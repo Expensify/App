@@ -332,7 +332,10 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getModifiedExpenseMessage(props.action)} />;
         } else {
-            const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING,CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE], moderationDecision);
+            const hasBeenFlagged = !_.contains(
+                [CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING, CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE],
+                moderationDecision,
+            );
             const isFlaggedRed = moderationDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 
             children = (
@@ -347,20 +350,20 @@ function ReportActionItem(props) {
                     {!props.draftMessage ? (
                         <View style={props.displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                             {!isFlaggedRed && (
-                            <ReportActionItemMessage
-                                reportID={props.report.reportID}
-                                action={props.action}
-                                displayAsGroup={props.displayAsGroup}
-                                isHidden={isHidden}
-                                style={[
-                                    _.contains(
-                                        [..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.APPROVED],
-                                        props.action.actionName,
-                                    )
-                                        ? styles.colorMuted
-                                        : undefined,
-                                ]}
-                            />
+                                <ReportActionItemMessage
+                                    reportID={props.report.reportID}
+                                    action={props.action}
+                                    displayAsGroup={props.displayAsGroup}
+                                    isHidden={isHidden}
+                                    style={[
+                                        _.contains(
+                                            [..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.APPROVED],
+                                            props.action.actionName,
+                                        )
+                                            ? styles.colorMuted
+                                            : undefined,
+                                    ]}
+                                />
                             )}
                             {isFlaggedRed && <Text>{props.translate('parentReportAction.hiddenMessage')}</Text>}
 
