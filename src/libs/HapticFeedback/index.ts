@@ -1,9 +1,13 @@
+import HapticFeedback from './types';
+
 /**
  * Web does not support Haptic feedback
  */
-export default {
+const hapticFeedback: HapticFeedback = {
     press: () => {},
     longPress: () => {},
     success: () => {},
     error: () => {},
 };
+
+export default hapticFeedback;
