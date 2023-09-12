@@ -16,6 +16,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import CONST from '../../CONST';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 import * as Browser from '../../libs/Browser';
+import Navigation from '../../libs/Navigation/Navigation';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
@@ -50,6 +51,11 @@ function TaskDescriptionPage(props) {
         [props],
     );
 
+    if (!ReportUtils.isTaskReport(props.report)) {
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal(props.report.reportID);
+        });
+    }
     const inputRef = useRef(null);
 
     const isOpen = ReportUtils.isOpenTaskReport(props.report);

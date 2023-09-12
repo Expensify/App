@@ -15,6 +15,7 @@ import compose from '../../libs/compose';
 import * as Task from '../../libs/actions/Task';
 import * as ReportUtils from '../../libs/ReportUtils';
 import CONST from '../../CONST';
+import Navigation from '../../libs/Navigation/Navigation';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
@@ -61,6 +62,12 @@ function TaskTitlePage(props) {
         },
         [props],
     );
+
+    if (!ReportUtils.isTaskReport(props.report)) {
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal(props.report.reportID);
+        });
+    }
 
     const inputRef = useRef(null);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
