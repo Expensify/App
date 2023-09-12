@@ -16,47 +16,47 @@ hubs:
     description: Request money for work expenses, bills, or a night out with friends.
 
   - href: billing-and-subscriptions
-    title: Playbooks
+    title: Billing & Subscriptions
     icon: /assets/images/playbook.svg
     description: Best practices for how to best deploy Expensify for your business
 
   - href: expense-and-report-settings
-    title: Other
+    title: Expense & Report Settings
     description: Everything else you're looking for is right here.
     icon: /assets/images/lightbulb.svg
 
   - href: expensify-card
-    title: Request money
+    title: Expensify Card
     icon: /assets/images/money-case.svg
     description: Request money for work expenses, bills, or a night out with friends.
 
   - href: exports
-    title: Playbooks
+    title: Exports
     icon: /assets/images/playbook.svg
     description: Best practices for how to best deploy Expensify for your business
 
   - href: get-paid-back
-    title: Other
+    title: Get Paid Back
     description: Everything else you're looking for is right here.
     icon: /assets/images/lightbulb.svg
 
   - href: getting-started
-    title: Other
+    title: Getting Started
     description: Everything else you're looking for is right here.
     icon: /assets/images/lightbulb.svg
 
   - href: integrations
-    title: Other
+    title: Integrations
     description: Everything else you're looking for is right here.
     icon: /assets/images/lightbulb.svg
 
   - href: manage-employees-and-reports
-    title: Other
+    title: Manage Employees & Reports
     description: Everything else you're looking for is right here.
     icon: /assets/images/lightbulb.svg
   
   - href: policy-and-domain-settings
-    title: Other
+    title: Policy And Domain Settings
     description: Everything else you're looking for is right here.
     icon: /assets/images/lightbulb.svg
   
