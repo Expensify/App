@@ -136,7 +136,12 @@ const propTypes = {
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 
     /** Collection of tags attached to a policy */
-    policyTags: PropTypes.objectOf(tagPropTypes),
+    policyTags: PropTypes.objectOf(
+        PropTypes.shape({
+            name: PropTypes.string,
+            tags: tagPropTypes,
+        }),
+    ),
 
     /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -185,7 +190,9 @@ function MoneyRequestConfirmationList(props) {
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
     const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
-    const shouldTagBeEditable = !_.isEmpty(props.policyTags) && Permissions.canUseTags(props.betas);
+    
+    const tags = _.keys(props.policyTags);
+    const canUseTags = Permissions.canUseTags(props.betas);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
         shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
@@ -508,16 +515,18 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
-                    {shouldTagBeEditable && (
+                    {canUseTags ? _.map(tags, (tag) => (
+                        !_.isEmpty(tag.tags) && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouTag}
-                            description={translate('common.tag')}
+                                description={tag.name || translate('common.tag')}
                             onPress={() => Navigation.navigate(ROUTES.getMoneyRequestTagRoute(props.iouType, props.reportID))}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             disabled={didConfirm || props.isReadOnly}
                         />
-                    )}
+                        )
+                    )) : null}
                 </>
             )}
         </OptionsSelector>
