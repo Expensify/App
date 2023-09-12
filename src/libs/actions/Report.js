@@ -1571,23 +1571,23 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
 
 /**
  * @param {String} reportID
- * @param {Object} action
+ * @param {Object} reportAction
  */
-function showReportActionNotification(reportID, action) {
-    if (!shouldShowReportActionNotification(reportID, action)) {
+function showReportActionNotification(reportID, reportAction) {
+    if (!shouldShowReportActionNotification(reportID, reportAction)) {
         return;
     }
 
     Log.info('[LocalNotification] Creating notification');
     LocalNotification.showCommentNotification({
         report: allReports[reportID],
-        reportAction: action,
+        reportAction,
         onClick: () => {
             // Navigate to this report onClick
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
     });
-    notifyNewAction(reportID, action.actorAccountID, action.reportActionID);
+    notifyNewAction(reportID, reportAction.actorAccountID, reportAction.reportActionID);
 }
 
 /**
