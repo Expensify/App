@@ -9,7 +9,7 @@ function showUpdateAvailableNotification() {
 }
 
 function showModifiedExpenseNotification({report, reportAction, onClick}) {
-    BrowserNotifications.pushModifiedExpenseNotification({report, reportAction, onClick});
+    BrowserNotifications.pushModifiedExpenseNotification({report, reportAction, onClick}, true);
 }
 
 export default {

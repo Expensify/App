@@ -128,12 +128,13 @@ export default {
         });
     },
 
-    pushModifiedExpenseNotification({reportAction, onClick}) {
+    pushModifiedExpenseNotification({reportAction, onClick}, usesIcon = false) {
         push({
             title: _.map(reportAction.person, (f) => f.text).join(),
             body: ReportUtils.getModifiedExpenseMessage(reportAction),
             delay: 0,
             onClick,
+            icon: usesIcon ? EXPENSIFY_ICON_URL : '',
         });
     },
 
