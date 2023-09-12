@@ -38,7 +38,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
     PaidUsingPaypalWithAmountParams,
-    PaidUsingExpensifyWithAmountParams,
+    PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     SizeExceededParams,
@@ -525,7 +525,7 @@ export default {
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `pagó ${amount} de otra forma`,
         paidUsingPaypalWithAmount: ({amount}: PaidUsingPaypalWithAmountParams) => `pagó ${amount} con PayPal.me`,
-        paidUsingExpensifyWithAmount: ({amount}: PaidUsingExpensifyWithAmountParams) => `pagó ${amount} con Expensify`,
+        paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `pagó ${amount} con Expensify`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheRequest: 'cambió la solicitud',
@@ -2246,17 +2246,6 @@ export default {
         },
         errors: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
-        },
-    },
-    demos: {
-        saastr: {
-            signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
-            heroBody: 'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales, ¡y para que te devuelvan el dinero de la comida!',
-        },
-        sbe: {
-            signInWelcome: '¡Bienvenido a Small Business Expo! Recupera el dinero de tu viaje.',
-            heroBody:
-                'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales y para que te paguen el viaje de ida y vuelta a la conferencia.',
         },
     },
 };
