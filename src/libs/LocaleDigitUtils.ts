@@ -8,7 +8,7 @@ const INDEX_DECIMAL = 10;
 const INDEX_MINUS_SIGN = 11;
 const INDEX_GROUP = 12;
 
-const getLocaleDigits = _.memoize((locale: string) => {
+const getLocaleDigits = _.memoize((locale: string): string[] => {
     const localeDigits = [...STANDARD_DIGITS];
     for (let i = 0; i <= 9; i++) {
         localeDigits[i] = NumberFormatUtils.format(locale, i);
