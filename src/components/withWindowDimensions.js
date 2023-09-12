@@ -1,4 +1,4 @@
-import React, {forwardRef, createContext, useState, useEffect, useCallback} from 'react';
+import React, {forwardRef, createContext, useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import lodashDebounce from 'lodash/debounce';
 import {Dimensions} from 'react-native';
