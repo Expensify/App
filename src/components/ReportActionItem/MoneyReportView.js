@@ -46,7 +46,7 @@ function MoneyReportView(props) {
                 </View>
                 <View style={[styles.flexRow, styles.justifyContentCenter]}>
                     {isSettled && (
-                        <View style={[styles.defaultCheckmarkWrapper, styles.mh1]}>
+                        <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
                             <Icon
                                 src={Expensicons.Checkmark}
                                 fill={styles.success}
