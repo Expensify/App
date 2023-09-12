@@ -126,7 +126,7 @@ type PaidElsewhereWithAmountParams = {amount: string};
 
 type PaidUsingPaypalWithAmountParams = {amount: string};
 
-type PaidUsingExpensifyWithAmountParams = {amount: string};
+type PaidWithExpensifyWithAmountParams = {amount: string};
 
 type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
@@ -231,7 +231,7 @@ export type {
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
     PaidUsingPaypalWithAmountParams,
-    PaidUsingExpensifyWithAmountParams,
+    PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     SizeExceededParams,

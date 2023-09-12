@@ -215,9 +215,6 @@ const ONYXKEYS = {
     // The last update ID that was applied to the client
     ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT: 'OnyxUpdatesLastUpdateIDAppliedToClient',
 
-    // Manual request tab selector
-    SELECTED_TAB: 'selectedTab',
-
     // Receipt upload modal
     RECEIPT_MODAL: 'receiptModal',
 
@@ -256,6 +253,9 @@ const ONYXKEYS = {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
+
+        // Manual request tab selector
+        SELECTED_TAB: 'selectedTab_',
 
         /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
@@ -366,7 +366,6 @@ type OnyxValues = {
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
     [ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS]: boolean;
-    [ONYXKEYS.SELECTED_TAB]: string;
     [ONYXKEYS.RECEIPT_MODAL]: OnyxTypes.ReceiptModal;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.OnyxUpdatesFromServer;
@@ -395,6 +394,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
+    [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;
