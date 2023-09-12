@@ -139,9 +139,7 @@ function ReportActionItem(props) {
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
     const reportActionID = lodashGet(props.route, 'params.reportActionID');
 
-    const highlightedBackgroundColorIfNeeded = useMemo(() => {
-        return reportActionID === props.action.reportActionID ? {backgroundColor: themeColors.highlightBG} : {};
-    }, [reportActionID]);
+    const highlightedBackgroundColorIfNeeded = useMemo(() => (reportActionID === props.action.reportActionID ? {backgroundColor: themeColors.highlightBG} : {}), [reportActionID]);
 
     useEffect(
         () => () => {
