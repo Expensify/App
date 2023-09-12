@@ -113,10 +113,7 @@ function ReportActionItemMessageEdit(props) {
         isFocusedRef.current = isFocused;
     }, [isFocused]);
 
-    // We consider the report action in edit mode is active when
-    // - it is focused or
-    // - EmojiPicker's activeID is equal to this action's reportActionID or
-    // - ReportActionContextMenu's reportActionID is equal to this action's reportActionID
+    // We consider the report action active if it's focused, its emoji picker is open or its context menu is open
     const isActive = useCallback(
         () => isFocusedRef.current || EmojiPickerAction.isActive(props.action.reportActionID) || ReportActionContextMenu.isActiveReportAction(props.action.reportActionID),
         [props.action.reportActionID],
@@ -135,9 +132,7 @@ function ReportActionItemMessageEdit(props) {
         });
 
         return () => {
-            // Skip if this is not the focused message so the other edit composer stays focused.
-            // In small screen devices, when EmojiPicker is shown, the current edit message will lose focus, we need to check this case as well.
-            // When delete modal is opened, the current edit message will lose focus, we need to check this case as well
+            // Skip if the current report action is not active
             if (!isActive()) {
                 return;
             }
@@ -153,7 +148,7 @@ function ReportActionItemMessageEdit(props) {
             // to prevent the main composer stays hidden until we swtich to another chat.
             setShouldShowComposeInputKeyboardAware(true);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps - this cleanup needs to be called only on unmount
     }, [props.action.reportActionID]);
 
     /**
