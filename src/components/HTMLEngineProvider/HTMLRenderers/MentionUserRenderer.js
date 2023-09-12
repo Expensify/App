@@ -11,6 +11,7 @@ import personalDetailsPropType from '../../../pages/personalDetailsPropType';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import TextLink from '../../TextLink';
+import CONST from '../../../CONST';
 
 const propTypes = {
     ...htmlRendererPropTypes,
@@ -31,8 +32,8 @@ const showUserDetails = (email) => Navigation.navigate(ROUTES.getDetailsRoute(em
 function MentionUserRenderer(props) {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
 
-    // We need to remove the leading @ from data as it is not part of the login
-    const loginWithoutLeadingAt = props.tnode.data ? props.tnode.data.slice(1) : '';
+    // We need to remove the LTR unicode and leading @ from data as it is not part of the login
+    const loginWithoutLeadingAt = props.tnode.data ? props.tnode.data.replace(CONST.UNICODE.LTR, '').slice(1) : '';
 
     const accountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([loginWithoutLeadingAt]));
 
