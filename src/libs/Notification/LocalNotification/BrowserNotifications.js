@@ -128,6 +128,15 @@ export default {
         });
     },
 
+    pushModifiedExpenseNotification({report, reportAction, onClick}) {
+        push({
+            title: report.reportName,
+            body: ReportUtils.getModifiedExpenseMessage(reportAction),
+            delay: 0,
+            onClick,
+        });
+    },
+
     /**
      * Create a notification to indicate that an update is available.
      */

@@ -1579,14 +1579,22 @@ function showReportActionNotification(reportID, reportAction) {
     }
 
     Log.info('[LocalNotification] Creating notification');
-    LocalNotification.showCommentNotification({
-        report: allReports[reportID],
-        reportAction,
-        onClick: () => {
-            // Navigate to this report onClick
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
-        },
-    });
+    const report = allReports[reportID];
+
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+        LocalNotification.showModifiedExpenseNotification({
+            report,
+            reportAction,
+            onClick: () => Navigation.navigate(ROUTES.getReportRoute(reportID)),
+        });
+    } else {
+        LocalNotification.showCommentNotification({
+            report,
+            reportAction,
+            onClick: () => Navigation.navigate(ROUTES.getReportRoute(reportID)),
+        });
+    }
+
     notifyNewAction(reportID, reportAction.actorAccountID, reportAction.reportActionID);
 }
 
