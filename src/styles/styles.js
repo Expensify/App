@@ -2553,6 +2553,13 @@ const styles = {
         position: 'absolute',
     },
 
+    attachmentRevealButtonContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...spacing.ph4,
+    },
+
     arrowIcon: {
         height: 40,
         width: 40,
