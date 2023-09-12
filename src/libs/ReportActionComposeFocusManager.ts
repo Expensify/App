@@ -1,20 +1,21 @@
-import _ from 'underscore';
 import React from 'react';
+import {TextInput} from 'react-native';
 
-const composerRef = React.createRef();
+type FocusCallback = () => void;
+
+const composerRef = React.createRef<TextInput>();
 // There are two types of composer: general composer (edit composer) and main composer.
 // The general composer callback will take priority if it exists.
-let focusCallback = null;
-let mainComposerFocusCallback = null;
+let focusCallback: FocusCallback | null = null;
+let mainComposerFocusCallback: FocusCallback | null = null;
 
 /**
  * Register a callback to be called when focus is requested.
  * Typical uses of this would be call the focus on the ReportActionComposer.
  *
- * @param {Function} callback callback to register
- * @param {Boolean} isMainComposer
+ * @param callback callback to register
  */
-function onComposerFocus(callback, isMainComposer = false) {
+function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
     if (isMainComposer) {
         mainComposerFocusCallback = callback;
     } else {
@@ -24,11 +25,10 @@ function onComposerFocus(callback, isMainComposer = false) {
 
 /**
  * Request focus on the ReportActionComposer
- *
  */
 function focus() {
-    if (!_.isFunction(focusCallback)) {
-        if (!_.isFunction(mainComposerFocusCallback)) {
+    if (typeof focusCallback !== 'function') {
+        if (typeof mainComposerFocusCallback !== 'function') {
             return;
         }
 
@@ -41,8 +41,6 @@ function focus() {
 
 /**
  * Clear the registered focus callback
- *
- * @param {Boolean} isMainComposer
  */
 function clear(isMainComposer = false) {
     if (isMainComposer) {
@@ -54,10 +52,9 @@ function clear(isMainComposer = false) {
 
 /**
  * Exposes the current focus state of the report action composer.
- * @return {Boolean} isFocused
  */
-function isFocused() {
-    return composerRef.current && composerRef.current.isFocused();
+function isFocused(): boolean {
+    return !!composerRef.current?.isFocused();
 }
 
 export default {
