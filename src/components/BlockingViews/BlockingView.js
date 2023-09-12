@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import Icon from '../Icon';
@@ -20,7 +19,7 @@ const propTypes = {
     iconColor: PropTypes.string,
 
     /** Title message below the icon */
-    title: PropTypes.string,
+    title: PropTypes.string.isRequired,
 
     /** Subtitle message below the title */
     subtitle: PropTypes.string,
@@ -46,7 +45,6 @@ const propTypes = {
 
 const defaultProps = {
     iconColor: themeColors.offline,
-    title: '',
     subtitle: '',
     shouldShowLink: false,
     linkKey: 'notFound.goBackHome',
@@ -85,7 +83,7 @@ function BlockingView(props) {
                 width={props.iconWidth}
                 height={props.iconHeight}
             />
-            {!_.isEmpty(props.title) && <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>}
+            <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
 
             {props.shouldEmbedLinkWithSubtitle ? (
                 <Text style={[styles.textAlignCenter]}>{renderContent()}</Text>

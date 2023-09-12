@@ -30,7 +30,7 @@ import Button from './Button';
 import MapView from './MapView';
 import LinearGradient from './LinearGradient';
 import * as Expensicons from './Icon/Expensicons';
-import BlockingView from './BlockingViews/BlockingView';
+import PendingMapView from './MapView/PendingMapView';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {iouPropTypes} from '../pages/iou/propTypes';
@@ -252,14 +252,10 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                         styleURL={CONST.MAPBOX.STYLE_URL}
                     />
                 ) : (
-                    <View style={[styles.mapPendingView]}>
-                        <BlockingView
-                            icon={Expensicons.EmptyStateRoutePending}
-                            iconWidth={100}
-                            iconHeight={100}
-                            shouldShowLink={false}
-                        />
-                    </View>
+                    <PendingMapView
+                        title={translate('distance.mapPending.title')}
+                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                    />
                 )}
             </View>
             <Button

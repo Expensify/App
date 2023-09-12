@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
 
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -14,7 +13,7 @@ import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
 import styles from '../styles/styles';
 import transactionPropTypes from './transactionPropTypes';
-import BlockingView from './BlockingViews/BlockingView';
+import PendingMapView from './MapView/PendingMapView';
 import useNetwork from '../hooks/useNetwork';
 import MapView from './MapView';
 
@@ -103,14 +102,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
                     styleURL={CONST.MAPBOX.STYLE_URL}
                 />
             ) : (
-                <View style={[styles.mapPendingView]}>
-                    <BlockingView
-                        icon={Expensicons.EmptyStateRoutePending}
-                        iconWidth={100}
-                        iconHeight={100}
-                        shouldShowLink={false}
-                    />
-                </View>
+                <PendingMapView />
             )}
         </>
     );
