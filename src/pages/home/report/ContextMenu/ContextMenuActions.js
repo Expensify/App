@@ -183,10 +183,11 @@ export default [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, selection, reportID}) => {
+        onPress: (closePopover, {reportAction, selection}) => {
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
+            const reportID = reportAction.originalMessage.taskReportID.toString();
             const messageHtml = isTaskAction ? Task.getTaskReportActionMessage(reportAction.actionName, reportID) : lodashGet(message, 'html', '');
 
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
