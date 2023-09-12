@@ -99,3 +99,5 @@ function Hoverable({disabled, onHoverIn, onHoverOut, children}) {
 
 Hoverable.propTypes = propTypes;
 Hoverable.defaultProps = defaultProps;
+
+export default Hoverable;
