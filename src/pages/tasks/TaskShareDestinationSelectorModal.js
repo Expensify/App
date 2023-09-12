@@ -46,7 +46,7 @@ function TaskShareDestinationSelectorModal(props) {
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
 
-    const optionRef = useRef()
+    const optionRef = useRef();
 
     const filteredReports = useMemo(() => {
         const reports = {};
