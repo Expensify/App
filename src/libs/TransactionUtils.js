@@ -278,6 +278,7 @@ function hasMissingSmartscanFields(transaction) {
  *
  * @param {Object} reportAction
  * @returns {Object}
+ * @deprecated Use Onyx.connect() or withOnyx() instead
  */
 function getLinkedTransaction(reportAction = {}) {
     const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');

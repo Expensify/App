@@ -122,6 +122,7 @@ function isThreadParentMessage(reportAction = {}, reportID) {
  * @param {Object} report
  * @param {Object} [allReportActionsParam]
  * @returns {Object}
+ * @deprecated Use Onyx.connect() or withOnyx() instead
  */
 function getParentReportAction(report, allReportActionsParam = undefined) {
     if (!report || !report.parentReportID || !report.parentReportActionID) {
