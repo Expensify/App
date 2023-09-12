@@ -501,7 +501,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
-                    <View>
+                    {props.policy?.disabledFields?.defaultBillable === false && (
                         <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                             <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
                             <Switch
@@ -512,7 +512,7 @@ function MoneyRequestConfirmationList(props) {
                                 }}
                             />
                         </View>
-                    </View>
+                    )}
                 </>
             )}
         </OptionsSelector>
@@ -540,6 +540,9 @@ export default compose(
         },
         transaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        },
+        policy: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         },
     }),
 )(MoneyRequestConfirmationList);

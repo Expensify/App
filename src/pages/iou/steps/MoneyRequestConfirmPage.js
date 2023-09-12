@@ -59,7 +59,7 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmPage(props) {
-    const [isBillable, setIsBillable] = useState(true);
+    const [isBillable, setIsBillable] = useState(props.policy?.defaultBillable);
     const {windowHeight} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
@@ -136,6 +136,7 @@ function MoneyRequestConfirmPage(props) {
                 trimmedComment,
                 receipt,
                 props.iou.category,
+                props.iou.defaultBillable,
             );
         },
         [
@@ -147,6 +148,7 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.login,
             props.currentUserPersonalDetails.accountID,
             props.iou.category,
+            props.iou.defaultBillable,
         ],
     );
 
@@ -285,7 +287,10 @@ function MoneyRequestConfirmPage(props) {
                                 iouComment={props.iou.comment}
                                 iouCurrencyCode={props.iou.currency}
                                 iouIsBillable={isBillable}
-                                onToggleBillable={(newValue) => setIsBillable(newValue)}
+                                onToggleBillable={(value) => {
+                                    setIsBillable(value);
+                                    IOU.setMoneyRequestDefaultBillable(value);
+                                }}
                                 iouCategory={props.iou.category}
                                 onConfirm={createTransaction}
                                 onSendMoney={sendMoney}
@@ -352,6 +357,11 @@ export default compose(
         },
         selectedTab: {
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+    }),
+    withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
     }),
 )(MoneyRequestConfirmPage);

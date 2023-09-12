@@ -95,7 +95,7 @@ function resetMoneyRequestInfo(id = '') {
         receiptPath: '',
         receiptSource: '',
         transactionID: '',
-        isBillable: false,
+        defaultBillable: false,
     });
 }
 
@@ -339,6 +339,7 @@ function buildOnyxDataForMoneyRequest(
  * @param {Object} [receipt]
  * @param {String} [existingTransactionID]
  * @param {String} [category]
+ * @param {Boolean} defaultBillable
  * @returns {Object} data
  * @returns {String} data.payerEmail
  * @returns {Object} data.iouReport
@@ -366,6 +367,7 @@ function getMoneyRequestInformation(
     receipt = undefined,
     existingTransactionID = undefined,
     category = undefined,
+    defaultBillable = false,
 ) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
@@ -431,6 +433,7 @@ function getMoneyRequestInformation(
         filename,
         existingTransactionID,
         category,
+        defaultBillable,
     );
 
     const uniquePolicyRecentlyUsedCategories = allRecentlyUsedCategories
@@ -598,8 +601,9 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {String} comment
  * @param {Object} [receipt]
  * @param {String} [category]
+ * * @param {Boolean} defaultBillable
  */
-function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined, category = undefined) {
+function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined, category = undefined, defaultBillable = false) {
     const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
@@ -613,6 +617,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
         receipt,
         undefined,
         category,
+        defaultBillable,
     );
 
     API.write(
@@ -633,6 +638,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             receipt,
             category,
+            defaultBillable,
         },
         onyxData,
     );
@@ -1885,6 +1891,13 @@ function resetMoneyRequestCategory() {
 }
 
 /**
+ * @param {Boolean} defaultBillable
+ */
+function setMoneyRequestDefaultBillable(defaultBillable) {
+    Onyx.merge(ONYXKEYS.IOU, {defaultBillable: defaultBillable});
+}
+
+/**
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
@@ -1964,6 +1977,7 @@ export {
     setMoneyRequestMerchant,
     setMoneyRequestCategory,
     resetMoneyRequestCategory,
+    setMoneyRequestDefaultBillable,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
     createEmptyTransaction,
