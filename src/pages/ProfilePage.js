@@ -287,8 +287,5 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
     }),
 )(ProfilePage);
