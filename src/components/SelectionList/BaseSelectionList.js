@@ -248,7 +248,7 @@ function BaseSelectionList({
                 <CheckboxListItem
                     item={item}
                     isFocused={isFocused}
-                    onSelectRow={() => selectRow(item)}
+                    onSelectRow={selectRow}
                     onDismissError={onDismissError}
                 />
             );
@@ -259,7 +259,7 @@ function BaseSelectionList({
                 item={item}
                 isFocused={isFocused}
                 isDisabled={isDisabled}
-                onSelectRow={() => selectRow(item)}
+                onSelectRow={selectRow}
             />
         );
     };
