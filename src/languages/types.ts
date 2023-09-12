@@ -214,7 +214,13 @@ type FlattenObject<TObject, TPrefix extends string = ''> = {
 }[keyof TObject];
 
 // Retrieves a type for a given key path (calculated from the type above)
-type TranslateType<TObject, TPath extends string> = TPath extends keyof TObject ? TObject[TPath] : TPath extends `${infer TKey}.${infer TRest}` ? (TKey extends keyof TObject ? TranslateType<TObject[TKey], TRest> : never) : never;
+type TranslateType<TObject, TPath extends string> = TPath extends keyof TObject
+    ? TObject[TPath]
+    : TPath extends `${infer TKey}.${infer TRest}`
+    ? TKey extends keyof TObject
+        ? TranslateType<TObject[TKey], TRest>
+        : never
+    : never;
 
 type TranslationsType = typeof en;
 
