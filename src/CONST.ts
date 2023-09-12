@@ -2642,6 +2642,10 @@ const CONST = {
         HTTPS: 'https',
         PUSHER: 'pusher',
     },
+    SIDEBAR_MENU_OPTIONS: {
+        CHATS: 'chats',
+        EXPENSES: 'expenses',
+    },
 } as const;
 
 export default CONST;

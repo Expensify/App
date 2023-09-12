@@ -8,20 +8,35 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import GlobalNavigationMenuItemList from './GlobalNavigationMenuItemList';
 import Logo from '../../../../assets/images/new-expensify.svg';
 import variables from '../../../styles/variables';
+import CONST from '../../../CONST';
 
 const propTypes = {
     isSmallScreenWidth: PropTypes.bool.isRequired,
     isCreateMenuOpen: PropTypes.bool,
+    switchSidebarMenu: PropTypes.func.isRequired,
     ...withLocalizePropTypes,
 };
 
-function GlobalNavigation({isSmallScreenWidth, isCreateMenuOpen, translate}) {
-    if (isSmallScreenWidth) { 
+const defaultProps = {
+    isCreateMenuOpen: false,
+};
+
+function GlobalNavigation({isSmallScreenWidth, isCreateMenuOpen, switchSidebarMenu}) {
+    if (isSmallScreenWidth) {
         return null;
     }
 
     return (
-        <View style={[ styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter, styles.h100, {width: variables.globalNavigationWidth, backgroundColor: styles.sidebarLinkActive.backgroundColor}]}>
+        <View
+            style={[
+                styles.ph5,
+                styles.pv3,
+                styles.justifyContentBetween,
+                styles.alignItemsCenter,
+                styles.h100,
+                {width: variables.globalNavigationWidth, backgroundColor: styles.sidebarLinkActive.backgroundColor},
+            ]}
+        >
             <PressableAvatarWithIndicator isCreateMenuOpen={isCreateMenuOpen} />
 
             <GlobalNavigationMenuItemList
@@ -29,12 +44,12 @@ function GlobalNavigation({isSmallScreenWidth, isCreateMenuOpen, translate}) {
                     {
                         icon: Expensicons.ChatBubble,
                         text: 'Chats',
-                        onSelected: () => console.log('clicked'),
+                        onSelected: () => switchSidebarMenu(CONST.SIDEBAR_MENU_OPTIONS.CHATS),
                     },
                     {
                         icon: Expensicons.Receipt,
                         text: 'Expenses',
-                        onSelected: () => console.log('clicked'),
+                        onSelected: () => switchSidebarMenu(CONST.SIDEBAR_MENU_OPTIONS.EXPENSES),
                     },
                 ]}
             />
@@ -44,9 +59,10 @@ function GlobalNavigation({isSmallScreenWidth, isCreateMenuOpen, translate}) {
             />
         </View>
     );
-};
+}
 
 GlobalNavigation.propTypes = propTypes;
+GlobalNavigation.defaultProps = defaultProps;
 GlobalNavigation.displayName = 'GlobalNavigation';
 
 export default withLocalize(GlobalNavigation);

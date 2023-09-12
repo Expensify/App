@@ -21,36 +21,32 @@ const propTypes = {
     ).isRequired,
 };
 
-const defaultProps = {
-};
+const defaultProps = {};
 
 function GlobalNavigationMenuItemList(props) {
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1, isActive: props.isVisible});
 
     const selectItem = (index, onSelected) => {
-        console.log('clicked he');
         onSelected();
-        const selectedItem = props.menuItems[index];
-        props.onSelected(selectedItem, index);
         setSelectedItemIndex(index);
     };
 
     return (
-            <View>
-                {_.map(props.menuItems, (item, menuIndex) => (
-                    <GlobalNavigationMenuItem
-                        key={item.text}
-                        icon={item.icon}
-                        iconWidth={item.iconWidth}
-                        iconHeight={item.iconHeight}
-                        title={item.text}
-                        description={item.description}
-                        onPress={() => selectItem(menuIndex, item.onSelected)}
-                        focused={focusedIndex === menuIndex}
-                    />
-                ))}
-            </View>
+        <View>
+            {_.map(props.menuItems, (item, menuIndex) => (
+                <GlobalNavigationMenuItem
+                    key={item.text}
+                    icon={item.icon}
+                    iconWidth={item.iconWidth}
+                    iconHeight={item.iconHeight}
+                    title={item.text}
+                    description={item.description}
+                    onPress={() => selectItem(menuIndex, item.onSelected)}
+                    focused={focusedIndex === menuIndex}
+                />
+            ))}
+        </View>
     );
 }
 
