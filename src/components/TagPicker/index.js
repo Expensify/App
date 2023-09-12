@@ -15,17 +15,17 @@ function TagPicker({policyTags, reportID, tag, iouType, iou}) {
     const {translate} = useLocalize();
 
     const selectedOptions = useMemo(() => {
-        if (!iou.tags || !iou.tags[tag]) {
+        if (!iou.tag) {
             return [];
         }
 
         return [
             {
-                name: iou.tags[tag],
+                name: iou.tag,
                 enabled: true,
             },
         ];
-    }, [iou.tags, tag]);
+    }, [iou.tag]);
 
     // Only shows one section, which will be the default behavior if there are
     // less than 8 policy tags

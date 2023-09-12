@@ -19,7 +19,7 @@ type IOU = {
     receiptSource?: string;
     transactionID?: string;
     participants?: Participant[];
-    tags: Record<string, string>;
+    tag?: string;
 };
 
 export default IOU;

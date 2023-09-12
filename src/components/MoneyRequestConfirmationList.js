@@ -71,7 +71,7 @@ const propTypes = {
     iouCategory: PropTypes.string,
 
     /** IOU Tag */
-    iouTags: PropTypes.objectOf(PropTypes.string),
+    iouTag: PropTypes.string,
 
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
@@ -153,7 +153,7 @@ const defaultProps = {
     onSelectParticipant: () => {},
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     iouCategory: '',
-    iouTags: {},
+    iouTag: '',
     payeePersonalDetails: null,
     canModifyParticipants: false,
     isReadOnly: false,
@@ -192,7 +192,9 @@ function MoneyRequestConfirmationList(props) {
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
     const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
 
-    const tags = _.keys(props.policyTags);
+    // Fetches the first tag of the policy
+    const tagKey = _.first(_.keys(props.policyTags));
+    const tag = lodashGet(props.policyTags, tagKey, {});
     const canUseTags = Permissions.canUseTags(props.betas);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
@@ -516,23 +518,16 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
-                    {canUseTags
-                        ? _.map(
-                              tags,
-                              (tag) =>
-                                  !_.isEmpty(lodashGet(props.policyTags, [tag, 'tags'], [])) && (
-                                      <MenuItemWithTopDescription
-                                          key={tag}
-                                          shouldShowRightIcon={!props.isReadOnly}
-                                          title={lodashGet(props.policyTags, [lodashGet(props.iouTags, tag), 'name'], '')}
-                                          description={lodashGet(props.policyTags, [tag, 'name'], '') || translate('common.tag')}
-                                          onPress={() => Navigation.navigate(ROUTES.getMoneyRequestTagRoute(props.iouType, props.reportID, tag))}
-                                          style={[styles.moneyRequestMenuItem, styles.mb2]}
-                                          disabled={didConfirm || props.isReadOnly}
-                                      />
-                                  ),
-                          )
-                        : null}
+                    {canUseTags && tag.tags ? (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly}
+                            title={props.iouTag}
+                            description={lodashGet(tag, 'name', '') || translate('common.tag')}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestTagRoute(props.iouType, props.reportID, tagKey))}
+                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            disabled={didConfirm || props.isReadOnly}
+                        />
+                    ) : null}
                 </>
             )}
         </OptionsSelector>
