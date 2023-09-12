@@ -1566,6 +1566,11 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
         return false;
     }
 
+    // Only show notifications for supported types of report actions
+    if (action && !_.contains([CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE], action.actionName)) {
+        return false;
+    }
+
     return true;
 }
 
