@@ -275,6 +275,10 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
+    if (lodashGet(newProps, 'report.participantAccountIDs', 0) !== lodashGet(oldProps, 'report.participantAccountIDs', 0)) {
+        return false;
+    }
+
     return _.isEqual(lodashGet(newProps.report, 'icons', []), lodashGet(oldProps.report, 'icons', []));
 }
 
