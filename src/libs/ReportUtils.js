@@ -1399,6 +1399,10 @@ function getTransactionReportName(reportAction) {
         return Localize.translateLocal('iou.receiptScanning');
     }
 
+    if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
+        return Localize.translateLocal('iou.receiptMissingDetails');
+    }
+
     const {amount, currency, comment} = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
