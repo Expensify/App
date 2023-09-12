@@ -217,7 +217,7 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
-                    return new Promise((resolve) => setTimeout(resolve, RequestThrottle.getRequestWaitTimeForTests()))
+                    return new Promise((resolve) => setTimeout(resolve, RequestThrottle.getLastRequestWaitTime()))
                 })
                 .then(() => {
                     // Then we have retried the failing request
@@ -228,7 +228,7 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
-                    return new Promise((resolve) => setTimeout(resolve, RequestThrottle.getRequestWaitTimeForTests())).then(waitForPromisesToResolve);
+                    return new Promise((resolve) => setTimeout(resolve, RequestThrottle.getLastRequestWaitTime())).then(waitForPromisesToResolve);
                 })
                 .then(() => {
                     // Then the request is retried again
