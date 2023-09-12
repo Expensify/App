@@ -28,6 +28,7 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
+import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 
 const propTypes = {
     /** React Navigation route */
@@ -268,7 +269,14 @@ function MoneyRequestConfirmPage(props) {
                                     icon: Expensicons.Gallery,
                                     text: props.translate('attachmentPicker.chooseFromGallery'),
                                     onSelected: () => openPicker({
-                                        onPicked: (file) => {},
+                                        onPicked: (file) => {
+                                            if (!ReceiptUtils.validateReceipt(file)) {
+                                                return;
+                                            }
+
+                                            const filePath = URL.createObjectURL(file);
+                                            IOU.setMoneyRequestReceipt(filePath, file.name);
+                                        },
                                     }),
                                 }]}
                             />
