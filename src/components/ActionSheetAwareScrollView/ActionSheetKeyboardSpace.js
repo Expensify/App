@@ -1,7 +1,18 @@
 import React, {useContext, useState, useEffect} from 'react';
-import {useWindowDimensions} from 'react-native';
-import Reanimated, {useWorkletCallback, KeyboardState, useAnimatedKeyboard, useAnimatedStyle, useDerivedValue, withSpring, useAnimatedReaction, runOnJS, withSequence, withTiming} from 'react-native-reanimated';
+import Reanimated, {
+    useWorkletCallback,
+    KeyboardState,
+    useAnimatedKeyboard,
+    useAnimatedStyle,
+    useDerivedValue,
+    withSpring,
+    useAnimatedReaction,
+    runOnJS,
+    withSequence,
+    withTiming,
+} from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 import styles from '../../styles/styles';
 import {Actions, States, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollViewContext';
 
@@ -20,33 +31,33 @@ function ActionSheetKeyboardSpace(props) {
         shouldRunAnimation: false,
         lastKeyboardHeight: 0,
     });
-    const {height: windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
     const {currentActionSheetState, transitionActionSheetStateWorklet: transition, transitionActionSheetState, resetStateMachine} = useContext(ActionSheetAwareScrollViewContext);
 
     // Reset state machine when component unmounts
-    useEffect(() => () => resetStateMachine(), [resetStateMachine])
+    useEffect(() => () => resetStateMachine(), [resetStateMachine]);
 
     useAnimatedReaction(
         () => keyboard.state.value,
         (lastState) => {
-          if (lastState === syncLocalWorkletState.lastState) {
-            return;
-          }
+            if (lastState === syncLocalWorkletState.lastState) {
+                return;
+            }
 
-          syncLocalWorkletState.lastState = lastState;
+            syncLocalWorkletState.lastState = lastState;
 
-          if (lastState === KeyboardState.OPEN) {
-            runOnJS(transitionActionSheetState)({
-                type: Actions.OPEN_KEYBOARD,
-            });
-          } else if (lastState === KeyboardState.CLOSED) {
-            runOnJS(transitionActionSheetState)({
-                type: Actions.CLOSE_KEYBOARD,
-            });
-          }
+            if (lastState === KeyboardState.OPEN) {
+                runOnJS(transitionActionSheetState)({
+                    type: Actions.OPEN_KEYBOARD,
+                });
+            } else if (lastState === KeyboardState.CLOSED) {
+                runOnJS(transitionActionSheetState)({
+                    type: Actions.CLOSE_KEYBOARD,
+                });
+            }
         },
-        []
-      );
+        [],
+    );
 
     // We need this because of the bug in useAnimatedKeyboard.
     // It calls the same state twice which triggers this thing again.
@@ -106,12 +117,12 @@ function ActionSheetKeyboardSpace(props) {
                     // });
                     return withSequence(
                         withTiming(elementOffset + invertedKeyboardHeight, {
-                          duration: 0,
+                            duration: 0,
                         }),
                         withSpring(0, config, () => {
-                          transition({type: Actions.END_TRANSITION});
-                        })
-                      );
+                            transition({type: Actions.END_TRANSITION});
+                        }),
+                    );
                 }
 
                 return 0;
@@ -176,7 +187,6 @@ function ActionSheetKeyboardSpace(props) {
                 return invertedKeyboardHeight;
             }
 
-
             case States.KEYBOARD_POPOVER_OPEN: {
                 if (keyboard.state.value === KeyboardState.OPEN) {
                     return 0;
@@ -204,18 +214,18 @@ function ActionSheetKeyboardSpace(props) {
                 // return elementOffset;
                 return withSequence(
                     withTiming(elementOffset + lastKeyboardHeight, {
-                      duration: 0,
+                        duration: 0,
                     }),
                     withTiming(
-                      elementOffset,
-                      {
-                        duration: 0,
-                      },
-                      () => {
-                        transition({type: Actions.END_TRANSITION});
-                      }
-                    )
-                  );
+                        elementOffset,
+                        {
+                            duration: 0,
+                        },
+                        () => {
+                            transition({type: Actions.END_TRANSITION});
+                        },
+                    ),
+                );
             }
 
             default:
