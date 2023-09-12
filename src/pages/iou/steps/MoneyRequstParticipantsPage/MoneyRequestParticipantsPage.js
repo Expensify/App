@@ -50,6 +50,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, translate, route}) {
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, selectedTab);
+    const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
 
     useEffect(() => {
@@ -74,7 +75,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, translate, route}) {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing
-            if (!isDistanceRequest && iou.id) {
+            if (iou.id && !isDistanceRequest && !isSplitRequest) {
                 navigateBack(true);
             }
             return;
@@ -93,7 +94,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, translate, route}) {
         return () => {
             prevMoneyRequestId.current = iou.id;
         };
-    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest]);
+    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest]);
 
     return (
         <ScreenWrapper
