@@ -1,11 +1,12 @@
 import React from 'react';
-import {Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {View} from 'react-native';
 import SelectCircle from './SelectCircle';
 import styles from '../styles/styles';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import CONST from '../CONST';
+import Text from './Text';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     options: PropTypes.arrayOf(
@@ -26,9 +27,9 @@ const defaultProps = {
 
 function SingleOptionSelector({options, selectedOptionKey, onSelectOption}) {
     return (
-        <>
+        <View style={styles.pt4}>
             {_.map(options, (option) => (
-                <PressableWithFeedback
+                <PressableWithoutFeedback
                     key={option.key}
                     style={styles.singleOptionSelectorRow}
                     onPress={() => onSelectOption(option)}
@@ -39,9 +40,9 @@ function SingleOptionSelector({options, selectedOptionKey, onSelectOption}) {
                 >
                     <SelectCircle isChecked={selectedOptionKey === option.key} />
                     <Text>{option.label}</Text>
-                </PressableWithFeedback>
+                </PressableWithoutFeedback>
             ))}
-        </>
+        </View>
     );
 }
 
