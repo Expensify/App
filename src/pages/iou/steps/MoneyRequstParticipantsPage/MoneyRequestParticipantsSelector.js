@@ -11,7 +11,7 @@ import compose from '../../../../libs/compose';
 import CONST from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
-import refPropTypes from "../../../../components/refPropTypes";
+import refPropTypes from '../../../../components/refPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -205,5 +205,5 @@ export default compose(
             {...props}
             forwardedRef={ref}
         />
-    ))
+    )),
 );
