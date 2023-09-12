@@ -282,7 +282,7 @@ function ReportActionItemMessageEdit(props) {
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             textInputRef.current.blur();
-            ReportActionContextMenu.showDeleteModal(props.reportID, props.action, false, deleteDraft, () => focusWithDelay(textInputRef.current)(true));
+            ReportActionContextMenu.showDeleteModal(props.reportID, props.action, false, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
             return;
         }
         Report.editReportComment(props.reportID, props.action, trimmedNewDraft);
