@@ -76,10 +76,11 @@ function MoneyRequestHeader(props) {
     report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
     report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
 
+    const parentReportAction = props.parentReportAction;
     const deleteTransaction = useCallback(() => {
         IOU.deleteMoneyRequest(lodashGet(props, 'parentReportAction.originalMessage.IOUTransactionID'), props.parentReportAction, true);
         setIsDeleteModalVisible(false);
-    }, [props.parentReportAction, setIsDeleteModalVisible]);
+    }, [parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(props.transaction) && TransactionUtils.isReceiptBeingScanned(props.transaction);
 
