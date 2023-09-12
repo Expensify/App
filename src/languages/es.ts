@@ -38,7 +38,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
     PaidUsingPaypalWithAmountParams,
-    PaidUsingExpensifyWithAmountParams,
+    PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     SizeExceededParams,
@@ -68,6 +68,9 @@ import type {
     OOOEventSummaryPartialDayParams,
     ParentNavigationSummaryParams,
     ManagerApprovedParams,
+    SetTheRequestParams,
+    UpdatedTheRequestParams,
+    RemovedTheRequestParams,
 } from './types';
 
 /* eslint-disable max-len */
@@ -521,9 +524,15 @@ export default {
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `pagó ${amount} de otra forma`,
         paidUsingPaypalWithAmount: ({amount}: PaidUsingPaypalWithAmountParams) => `pagó ${amount} con PayPal.me`,
-        paidUsingExpensifyWithAmount: ({amount}: PaidUsingExpensifyWithAmountParams) => `pagó ${amount} con Expensify`,
+        paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `pagó ${amount} con Expensify`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
+        changedTheRequest: 'cambió la solicitud',
+        setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `estableció ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
+        removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) =>
+            `eliminó ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} (previamente ${oldValueToDisplay})`,
+        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
+            `cambío ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         error: {
@@ -1373,6 +1382,7 @@ export default {
             fastReimbursementsVBACopy: '¡Todo listo para reembolsar recibos desde tu cuenta bancaria!',
             updateCustomUnitError: 'Los cambios no han podido ser guardados. El espacio de trabajo ha sido modificado mientras estabas desconectado. Por favor, inténtalo de nuevo.',
             invalidRateError: 'Por favor, introduce una tarifa válida',
+            lowRateError: 'La tarifa debe ser mayor que 0',
         },
         bills: {
             manageYourBills: 'Gestiona tus facturas',
@@ -2235,17 +2245,6 @@ export default {
         },
         errors: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
-        },
-    },
-    demos: {
-        saastr: {
-            signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
-            heroBody: 'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales, ¡y para que te devuelvan el dinero de la comida!',
-        },
-        sbe: {
-            signInWelcome: '¡Bienvenido a Small Business Expo! Recupera el dinero de tu viaje.',
-            heroBody:
-                'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales y para que te paguen el viaje de ida y vuelta a la conferencia.',
         },
     },
 };
