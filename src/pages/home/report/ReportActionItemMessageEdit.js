@@ -115,6 +115,12 @@ function ReportActionItemMessageEdit(props) {
         isFocusedRef.current = isFocused;
     }, [isFocused]);
 
+    // We consider the report action in edit mode is active when
+    // - it is focused or
+    // - EmojiPicker's activeID is equal to this action's reportActionID or
+    // - ReportActionContextMenu's reportActionID is equal to this action's reportActionID
+    const isActive = useCallback((reportActionID) => isFocusedRef.current || EmojiPickerAction.isActive(reportActionID) || ReportActionContextMenu.isActiveReportAction(reportActionID), []);
+
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
@@ -131,7 +137,7 @@ function ReportActionItemMessageEdit(props) {
             // Skip if this is not the focused message so the other edit composer stays focused.
             // In small screen devices, when EmojiPicker is shown, the current edit message will lose focus, we need to check this case as well.
             // When delete modal is opened, the current edit message will lose focus, we need to check this case as well
-            if (!isFocusedRef.current && !EmojiPickerAction.isActive(props.action.reportActionID) && !ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
+            if (!isActive(props.action.reportActionID)) {
                 return;
             }
 
@@ -146,6 +152,7 @@ function ReportActionItemMessageEdit(props) {
             // to prevent the main composer stays hidden until we swtich to another chat.
             setShouldShowComposeInputKeyboardAware(true);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.action.reportActionID]);
 
     /**
@@ -219,7 +226,7 @@ function ReportActionItemMessageEdit(props) {
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
 
-        if (isFocusedRef.current || EmojiPickerAction.isActive(props.action.reportActionID) || ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
+        if (isActive(props.action.reportActionID)) {
             setShouldShowComposeInputKeyboardAware(true);
             isFocusedRef.current = true;
             ReportActionComposeFocusManager.clear();
@@ -239,7 +246,7 @@ function ReportActionItemMessageEdit(props) {
                 keyboardDidHideListener.remove();
             });
         }
-    }, [props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID, reportScrollManager]);
+    }, [props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID, reportScrollManager, isActive]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
