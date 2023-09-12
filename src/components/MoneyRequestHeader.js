@@ -71,13 +71,13 @@ function MoneyRequestHeader(props) {
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
 
     // Only the requestor can take delete the request, admins can only edit it.
-    const isActionOwner = props.parentReportAction?.actorAccountID === lodashGet(props.session, 'accountID', null);
+    const isActionOwner = lodashGet(props, 'parentReportAction.actorAccountID') === lodashGet(props.session, 'accountID', null);
     const report = props.report;
     report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
     report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
 
     const deleteTransaction = useCallback(() => {
-        IOU.deleteMoneyRequest(props.parentReportAction?.originalMessage.IOUTransactionID, props.parentReportAction, true);
+        IOU.deleteMoneyRequest(lodashGet(props, 'parentReportAction.originalMessage.IOUTransactionID'), props.parentReportAction, true);
         setIsDeleteModalVisible(false);
     }, [props.parentReportAction, setIsDeleteModalVisible]);
 
@@ -139,7 +139,7 @@ export default compose(
             canEvict: false,
         },
         transaction: {
-            key: ({parentReportAction}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction?.originalMessage?.IOUTransactionID || 0}`,
+            key: ({parentReportAction}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`,
         },
     }),
 )(MoneyRequestHeader);

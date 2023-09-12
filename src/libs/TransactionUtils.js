@@ -161,6 +161,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
  *
  * @param {String} transactionID
  * @returns {Object}
+ * @deprecated Use withOnyx() or Onyx.connect() instead
  */
 function getTransaction(transactionID) {
     return lodashGet(allTransactions, `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
