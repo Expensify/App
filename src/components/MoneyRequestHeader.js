@@ -64,25 +64,21 @@ const defaultProps = {
     transaction: {},
 };
 
-function MoneyRequestHeader(props) {
+function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails, isSmallScreenWidth, windowWidth}) {
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const moneyRequestReport = props.parentReport;
+    const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
 
     // Only the requestor can take delete the request, admins can only edit it.
-    const isActionOwner = lodashGet(props, 'parentReportAction.actorAccountID') === lodashGet(props.session, 'accountID', null);
-    const report = props.report;
-    report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
-    report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
+    const isActionOwner = lodashGet(props, 'parentReportAction.actorAccountID') === lodashGet(session, 'accountID', null);
 
-    const parentReportAction = props.parentReportAction;
     const deleteTransaction = useCallback(() => {
-        IOU.deleteMoneyRequest(lodashGet(props, 'parentReportAction.originalMessage.IOUTransactionID'), props.parentReportAction, true);
+        IOU.deleteMoneyRequest(lodashGet(props, 'parentReportAction.originalMessage.IOUTransactionID'), parentReportAction, true);
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
-    const isScanning = TransactionUtils.hasReceipt(props.transaction) && TransactionUtils.isReceiptBeingScanned(props.transaction);
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     return (
         <>
@@ -94,15 +90,19 @@ function MoneyRequestHeader(props) {
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
-                            text: translate('reportActionContextMenu.deleteAction', {action: props.parentReportAction}),
+                            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
                             onSelected: () => setIsDeleteModalVisible(true),
                         },
                     ]}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
-                    report={report}
-                    policy={props.policy}
-                    personalDetails={props.personalDetails}
-                    shouldShowBackButton={props.isSmallScreenWidth}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    report={{
+                        ...report,
+                        ownerAccountID: lodashGet(parentReport, 'ownerAccountID', null),
+                        ownerEmail: lodashGet(parentReport, 'ownerEmail', null),
+                    }}
+                    policy={policy}
+                    personalDetails={personalDetails}
+                    shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 />
                 {isScanning && <MoneyRequestHeaderStatusBar />}
