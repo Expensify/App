@@ -8,7 +8,8 @@ type AnchorOrigin = {
     vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
 };
 
-type EmojiPicker = {
+// TODO: Move this type to src/components/EmojiPicker/EmojiPicker.js once it is converted to TS
+type EmojiPickerRef = {
     showEmojiPicker: (onModalHideValue?: () => void, onEmojiSelectedValue?: () => void, emojiPopoverAnchor?: View, anchorOrigin?: AnchorOrigin, onWillShow?: () => void, id?: string) => void;
     isActive: (id: string) => boolean;
     hideEmojiPicker: (isNavigating: boolean) => void;
@@ -16,7 +17,7 @@ type EmojiPicker = {
     resetEmojiPopoverAnchor: () => void;
 };
 
-const emojiPickerRef = React.createRef<EmojiPicker>();
+const emojiPickerRef = React.createRef<EmojiPickerRef>();
 
 /**
  * Show the EmojiPicker modal popover.
@@ -28,7 +29,7 @@ const emojiPickerRef = React.createRef<EmojiPicker>();
  * @param onWillShow - Run a callback when Popover will show
  * @param id - Unique id for EmojiPicker
  */
-function showEmojiPicker(onModalHide = () => {}, onEmojiSelected = () => {}, emojiPopoverAnchor = undefined, anchorOrigin = undefined, onWillShow = () => {}, id = undefined): void {
+function showEmojiPicker(onModalHide = () => {}, onEmojiSelected = () => {}, emojiPopoverAnchor = undefined, anchorOrigin = undefined, onWillShow = () => {}, id = undefined) {
     if (!emojiPickerRef.current) {
         return;
     }
@@ -39,7 +40,7 @@ function showEmojiPicker(onModalHide = () => {}, onEmojiSelected = () => {}, emo
 /**
  * Hide the Emoji Picker modal.
  */
-function hideEmojiPicker(isNavigating: boolean): void {
+function hideEmojiPicker(isNavigating: boolean) {
     if (!emojiPickerRef.current) {
         return;
     }
@@ -66,7 +67,7 @@ function isEmojiPickerVisible(): boolean {
     return emojiPickerRef.current.isEmojiPickerVisible;
 }
 
-function resetEmojiPopoverAnchor(): void {
+function resetEmojiPopoverAnchor() {
     if (!emojiPickerRef.current) {
         return;
     }
