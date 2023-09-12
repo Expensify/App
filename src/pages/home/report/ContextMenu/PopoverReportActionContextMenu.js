@@ -124,6 +124,7 @@ function PopoverReportActionContextMenu(_props, ref) {
      * @param {String} reportID - Active Report Id
      * @param {Object} reportActionID - ReportAction for ContextMenu
      * @param {String} originalReportID - The currrent Report Id of the reportAction
+     * @param {String} draftMessage - ReportAction Draftmessage
      * @param {Function} [onShow] - Run a callback when Menu is shown
      * @param {Function} [onHide] - Run a callback when Menu is hidden
      * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
