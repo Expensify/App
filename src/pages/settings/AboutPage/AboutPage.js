@@ -96,6 +96,7 @@ function AboutPage(props) {
             title={props.translate('initialSettingsPage.about')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             illustration={LottieAnimations.Coin}
+            shouldShowCloseButton
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.SETTINGS_ABOUT]}
             overlayContent={overlayContent}
         >
