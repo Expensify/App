@@ -28,8 +28,9 @@ function GlobalNavigationMenuItemList(props) {
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1, isActive: props.isVisible});
 
-    const selectItem = (index) => {
+    const selectItem = (index, onSelected) => {
         console.log('clicked he');
+        onSelected();
         const selectedItem = props.menuItems[index];
         props.onSelected(selectedItem, index);
         setSelectedItemIndex(index);
@@ -45,7 +46,7 @@ function GlobalNavigationMenuItemList(props) {
                         iconHeight={item.iconHeight}
                         title={item.text}
                         description={item.description}
-                        onPress={() => selectItem(menuIndex)}
+                        onPress={() => selectItem(menuIndex, item.onSelected)}
                         focused={focusedIndex === menuIndex}
                     />
                 ))}
