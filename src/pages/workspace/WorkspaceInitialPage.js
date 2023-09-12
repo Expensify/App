@@ -31,6 +31,7 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import * as ReportUtils from '../../libs/ReportUtils';
 import withWindowDimensions from '../../components/withWindowDimensions';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
+import * as Modal from '../../libs/actions/Modal';
 
 const propTypes = {
     ...policyPropTypes,
@@ -103,6 +104,7 @@ function WorkspaceInitialPage(props) {
      */
     const goToRoom = useCallback(
         (type) => {
+            Modal.setModalVisibility(false);
             const room = _.find(props.reports, (report) => report && report.policyID === policy.id && report.chatType === type && !ReportUtils.isThread(report));
             Navigation.navigate(ROUTES.getReportRoute(room.reportID));
         },
