@@ -28,7 +28,7 @@ function getBrowser(): string {
         }
     }
 
-    browserName = match[1] ? match[1] : navigator.appName;
+    browserName = match[1] ?? navigator.appName;
     return browserName ? browserName.toLowerCase() : CONST.BROWSER.OTHER;
 }
 
