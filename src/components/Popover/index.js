@@ -33,16 +33,19 @@ function Popover(props) {
     }
 
     return (
-        <Modal
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
-            popoverAnchorPosition={props.isSmallScreenWidth ? undefined : props.anchorPosition}
-            fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
-            animationInTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationInTiming}
-            animationOutTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationOutTiming}
-            onLayout={props.onLayout}
-        />
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <PopoverWithoutOverlay {...props}>
+            <Modal
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
+                popoverAnchorPosition={props.isSmallScreenWidth ? undefined : props.anchorPosition}
+                fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
+                animationInTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationInTiming}
+                animationOutTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationOutTiming}
+                onLayout={props.onLayout}
+            />
+        </PopoverWithoutOverlay>
     );
 }
 
