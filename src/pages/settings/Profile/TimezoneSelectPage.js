@@ -46,7 +46,7 @@ function TimezoneSelectPage(props) {
             }))
             .value(),
     );
-    const [timezoneInputText, setTimezoneInputText] = useState(timezone.selected);
+    const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones.current);
 
     /**
