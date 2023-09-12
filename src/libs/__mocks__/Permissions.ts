@@ -1,4 +1,5 @@
 import CONST from '../../CONST';
+import * as OnyxTypes from '../../types/onyx';
 
 /**
  * This module is mocked in tests because all the permission methods call canUseAllBetas() and that will
@@ -9,8 +10,8 @@ import CONST from '../../CONST';
 
 export default {
     ...jest.requireActual('../Permissions'),
-    canUseDefaultRooms: (betas: string[]) => betas.includes(CONST.BETAS.DEFAULT_ROOMS),
-    canUsePolicyRooms: (betas: string[]) => betas.includes(CONST.BETAS.POLICY_ROOMS),
-    canUseIOUSend: (betas: string[]) => betas.includes(CONST.BETAS.IOU_SEND),
-    canUseCustomStatus: (betas: string[]) => betas.includes(CONST.BETAS.CUSTOM_STATUS),
+    canUseDefaultRooms: (betas: OnyxTypes.Beta[]) => betas.includes(CONST.BETAS.DEFAULT_ROOMS),
+    canUsePolicyRooms: (betas: OnyxTypes.Beta[]) => betas.includes(CONST.BETAS.POLICY_ROOMS),
+    canUseIOUSend: (betas: OnyxTypes.Beta[]) => betas.includes(CONST.BETAS.IOU_SEND),
+    canUseCustomStatus: (betas: OnyxTypes.Beta[]) => betas.includes(CONST.BETAS.CUSTOM_STATUS),
 };
