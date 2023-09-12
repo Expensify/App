@@ -229,7 +229,7 @@ function getMerchant(transaction) {
 }
 
 /**
- * Return the category from the transaction. The "created" field has no "modified" complement.
+ * Return the category from the transaction. This "category" field has no "modified" complement.
  *
  * @param {Object} transaction
  * @return {String}
