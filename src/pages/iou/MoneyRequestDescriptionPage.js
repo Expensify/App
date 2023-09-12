@@ -14,6 +14,7 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
+import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
@@ -55,7 +56,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
     const inputRef = useRef(null);
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
-    const isDistanceRequest = selectedTab === CONST.TAB.DISTANCE;
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
     useEffect(() => {
         const moneyRequestId = `${iouType}${reportID}`;
