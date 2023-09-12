@@ -93,7 +93,7 @@ function MoneyRequestHeader(props) {
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
-                            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                            text: translate('reportActionContextMenu.deleteAction', {action: props.parentReportAction}),
                             onSelected: () => setIsDeleteModalVisible(true),
                         },
                     ]}
@@ -135,7 +135,8 @@ export default compose(
         },
         parentReportAction: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(report.parentReportID, report.parentReportActionID)}`,
-            selector: (reportActions, props) => props && props.parentReport && reportActions[props.parentReport.parentReportActionID],
+            selector: (reportActions, props) => props && props.parentReport && reportActions && reportActions[props.parentReport.parentReportActionID],
+            canEvict: false,
         },
         transaction: {
             key: ({parentReportAction}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction?.originalMessage?.IOUTransactionID || 0}`,
