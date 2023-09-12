@@ -55,13 +55,14 @@ function MoneyRequestParticipantsPage(props) {
     };
 
     const moneyRequestNavigateToNextStep = (option) => {
+        isNewReportIDSelectedLocally.current = true;
+
         if (!option.reportID) {
+            IOU.setMoneyRequestId(iouType.current);
             Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
 
             return;
         }
-
-        isNewReportIDSelectedLocally.current = true;
 
         IOU.setMoneyRequestId(`${iouType.current}${option.reportID}`);
         Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, option.reportID));
