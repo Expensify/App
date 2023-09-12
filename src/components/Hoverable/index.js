@@ -17,7 +17,7 @@ function mapChildren(children, callbackParam) {
  * parent. https://github.com/necolas/react-native-web/issues/1875
  */
 
-function Hoverable({disabled, onHoverIn, onHoverOut, children}) {
+function InnerHoverable({disabled, onHoverIn, onHoverOut, children}, ref) {
     const [isHovered, setIsHovered] = useState(false);
     const wrapperView = useRef(null);
 
@@ -43,17 +43,14 @@ function Hoverable({disabled, onHoverIn, onHoverOut, children}) {
 
     const refCallback = useCallback(
         (el) => {
-            if (!el) return;
-
             wrapperView.current = el;
 
-            const {ref} = child;
-
+            if (!ref) return;
             if (_.isFunction(ref)) return ref(el);
-
-            if (_.isObject(ref)) return (ref.current = el);
+            // eslint-disable-next-line no-param-reassign
+            if (_.has(ref, 'current')) return (ref.current = wrapperView.current);
         },
-        [child],
+        [ref],
     );
 
     const onMouseEnter = useCallback(
@@ -96,6 +93,8 @@ function Hoverable({disabled, onHoverIn, onHoverOut, children}) {
         onBlur,
     });
 }
+
+const Hoverable = React.forwardRef(InnerHoverable);
 
 Hoverable.propTypes = propTypes;
 Hoverable.defaultProps = defaultProps;
