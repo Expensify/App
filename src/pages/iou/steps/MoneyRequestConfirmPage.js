@@ -26,6 +26,7 @@ import * as Policy from '../../../libs/actions/Policy';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 
 const propTypes = {
     /** React Navigation route */
@@ -254,6 +255,16 @@ function MoneyRequestConfirmPage(props) {
                     <HeaderWithBackButton
                         title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
                         onBackButtonPress={navigateBack}
+                        shouldShowThreeDotsButton={!isDistanceRequest}
+                        threeDotsMenuItems={[{
+                            icon: Expensicons.Camera,
+                            text: props.translate('receipt.takePhoto'),
+                            onSelected: () => {},
+                        }, {
+                            icon: Expensicons.Gallery,
+                            text: props.translate('attachmentPicker.chooseFromGallery'),
+                            onSelected: () => {},
+                        }]}
                     />
                     {/*
                      * The MoneyRequestConfirmationList component uses a SectionList which uses a VirtualizedList internally.
