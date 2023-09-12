@@ -72,7 +72,6 @@ import type {
     FormattedMaxLengthParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
-    TranslationBase,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
@@ -1785,4 +1784,21 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-} satisfies TranslationBase;
+    demos: {
+        saastr: {
+            signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
+            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for lunch!',
+        },
+        sbe: {
+            signInWelcome: 'Welcome to Small Business Expo! Get paid back for your ride.',
+            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for your ride to or from the show!',
+        },
+    },
+    reportCardLostOrDamaged: {
+        screenTitle: 'Report card lost or damaged',
+        nextButtonLabel: 'Next',
+        title: 'Why do you need a new card?',
+        cardDamaged: 'My card was damaged',
+        cardLostOrStolen: 'My card was lost or stolen',
+    },
+} as const;

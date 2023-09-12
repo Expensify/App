@@ -72,7 +72,6 @@ import type {
     FormattedMaxLengthParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
-    EnglishTranslation,
 } from './types';
 
 /* eslint-disable max-len */
@@ -2268,4 +2267,22 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
     },
-} satisfies EnglishTranslation;
+    demos: {
+        saastr: {
+            signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
+            heroBody: 'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales, ¡y para que te devuelvan el dinero de la comida!',
+        },
+        sbe: {
+            signInWelcome: '¡Bienvenido a Small Business Expo! Recupera el dinero de tu viaje.',
+            heroBody:
+                'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales y para que te paguen el viaje de ida y vuelta a la conferencia.',
+        },
+    },
+    reportCardLostOrDamaged: {
+        screenTitle: 'Report card lost or damaged',
+        nextButtonLabel: 'Next',
+        title: 'Why do you need a new card?',
+        cardDamaged: 'My card was damaged',
+        cardLostOrStolen: 'My card was lost or stolen',
+    },
+};
