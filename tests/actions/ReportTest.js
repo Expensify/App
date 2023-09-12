@@ -318,9 +318,6 @@ describe('actions/Report', () => {
                 Report.addComment(REPORT_ID, 'Current User Comment 3');
                 return waitForPromisesToResolve();
             })
-            .then(waitForPromisesToResolve)
-            .then(waitForPromisesToResolve)
-            .then(waitForPromisesToResolve)
             .then(() => {
                 // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
@@ -390,17 +387,11 @@ describe('actions/Report', () => {
             .then(() => {
                 expect(report.lastReadTime).toBe(reportActionCreatedDate);
             })
-            .then(waitForPromisesToResolve)
-            .then(waitForPromisesToResolve)
             .then(() => {
                 // If the user deletes a comment that is before the last read
                 Report.deleteReportComment(REPORT_ID, {...reportActions[200]});
                 return waitForPromisesToResolve();
             })
-            .then(waitForPromisesToResolve)
-            .then(waitForPromisesToResolve)
-            .then(waitForPromisesToResolve)
-            .then(waitForPromisesToResolve)
             .then(() => {
                 // Then no change will occur
                 expect(report.lastReadTime).toBe(reportActionCreatedDate);
