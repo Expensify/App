@@ -29,12 +29,18 @@ function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, apiCommand) {
         // Get report updates from Onyx response data
         const reportUpdate = _.find(response.onyxData, ({key}) => key === ONYXKEYS.COLLECTION.REPORT);
         if (!reportUpdate) {
+            // If there's no related onyx data, navigate the user home so they're not stuck.
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.HOME);
             return;
         }
 
         // Get the policy expense chat update
         const policyExpenseChatReport = _.find(reportUpdate.value, ({chatType}) => chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         if (!policyExpenseChatReport) {
+            // If there's no related onyx data, navigate the user home so they're not stuck.
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.HOME);
             return;
         }
 
@@ -79,14 +85,24 @@ function runDemoByURL(url = '') {
     }
 }
 
-function getHeadlineKeyByDemoInfo(demoInfo = {}) {
+/**
+ * @param {Object} demoInfo
+ * @returns {Object}
+ */
+function getCustomTextForDemo(demoInfo = {}) {
     if (lodashGet(demoInfo, 'saastr.isBeginningDemo')) {
-        return Localize.translateLocal('demos.saastr.signInWelcome');
+        return {
+            customHeadline: Localize.translateLocal('demos.saastr.signInWelcome'),
+            customHeroBody: Localize.translateLocal('demos.saastr.heroBody'),
+        };
     }
     if (lodashGet(demoInfo, 'sbe.isBeginningDemo')) {
-        return Localize.translateLocal('demos.sbe.signInWelcome');
+        return {
+            customHeadline: Localize.translateLocal('demos.sbe.signInWelcome'),
+            customHeroBody: Localize.translateLocal('demos.sbe.heroBody'),
+        };
     }
-    return '';
+    return {};
 }
 
-export {runSaastrDemo, runSbeDemo, runDemoByURL, getHeadlineKeyByDemoInfo};
+export {runSaastrDemo, runSbeDemo, runDemoByURL, getCustomTextForDemo};

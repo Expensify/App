@@ -42,13 +42,14 @@ class EmojiPickerMenuItem extends PureComponent {
         super(props);
 
         this.ref = null;
+        this.focusAndScroll = this.focusAndScroll.bind(this);
     }
 
     componentDidMount() {
         if (!this.props.isFocused) {
             return;
         }
-        this.ref.focus();
+        this.focusAndScroll();
     }
 
     componentDidUpdate(prevProps) {
@@ -58,7 +59,12 @@ class EmojiPickerMenuItem extends PureComponent {
         if (!this.props.isFocused) {
             return;
         }
-        this.ref.focus();
+        this.focusAndScroll();
+    }
+
+    focusAndScroll() {
+        this.ref.focus({preventScroll: true});
+        this.ref.scrollIntoView({block: 'nearest'});
     }
 
     render() {

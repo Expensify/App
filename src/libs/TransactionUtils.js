@@ -43,7 +43,7 @@ function buildOptimisticTransaction(
     created = '',
     source = '',
     originalTransactionID = '',
-    merchant = CONST.TRANSACTION.DEFAULT_MERCHANT,
+    merchant = '',
     receipt = {},
     filename = '',
     existingTransactionID = null,
@@ -60,13 +60,16 @@ function buildOptimisticTransaction(
         commentJSON.originalTransactionID = originalTransactionID;
     }
 
+    // For the SmartScan to run successfully, we need to pass the merchant field empty to the API
+    const defaultMerchant = _.isEmpty(receipt) ? CONST.TRANSACTION.DEFAULT_MERCHANT : '';
+
     return {
         transactionID,
         amount,
         currency,
         reportID,
         comment: commentJSON,
-        merchant: merchant || CONST.TRANSACTION.DEFAULT_MERCHANT,
+        merchant: merchant || defaultMerchant,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
@@ -80,6 +83,21 @@ function buildOptimisticTransaction(
  */
 function hasReceipt(transaction) {
     return lodashGet(transaction, 'receipt.state', '') !== '';
+}
+
+/**
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
+function areRequiredFieldsEmpty(transaction) {
+    return (
+        transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
+        transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
+        (transaction.modifiedMerchant === '' &&
+            (transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === '' || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) ||
+        (transaction.modifiedAmount === 0 && transaction.amount === 0) ||
+        (transaction.modifiedCreated === '' && transaction.created === '')
+    );
 }
 
 /**
@@ -123,6 +141,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
+
     updatedTransaction.pendingFields = {
         ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -225,6 +244,34 @@ function getCreated(transaction) {
     return '';
 }
 
+/*
+ * @param {Object} transaction
+ * @param {Object} transaction.comment
+ * @param {String} transaction.comment.type
+ * @param {Object} [transaction.comment.customUnit]
+ * @param {String} [transaction.comment.customUnit.name]
+ * @returns {Boolean}
+ */
+function isDistanceRequest(transaction) {
+    const type = lodashGet(transaction, 'comment.type');
+    const customUnitName = lodashGet(transaction, 'comment.customUnit.name');
+    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+function isReceiptBeingScanned(transaction) {
+    return _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], transaction.receipt.state);
+}
+
+/**
+ * Check if the transaction has a non-smartscanning receipt and is missing required fields
+ *
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
+function hasMissingSmartscanFields(transaction) {
+    return hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction);
+}
+
 /**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
@@ -238,56 +285,63 @@ function getLinkedTransaction(reportAction = {}) {
 }
 
 function getAllReportTransactions(reportID) {
-    return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
-}
-
-function isReceiptBeingScanned(transaction) {
-    return transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
+    // `reportID` from the `/CreateDistanceRequest` endpoint return's number instead of string for created `transaction`.
+    // For reference, https://github.com/Expensify/App/pull/26536#issuecomment-1703573277.
+    // We will update this in a follow-up Issue. According to this comment: https://github.com/Expensify/App/pull/26536#issuecomment-1703591019.
+    return _.filter(allTransactions, (transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
 /**
- * Verifies that the provided waypoints are valid
- * @param {Object} waypoints
- * @returns {Boolean}
+ * Checks if a waypoint has a valid address
+ * @param {Object} waypoint
+ * @returns {Boolean} Returns true if the address is valid
  */
-function validateWaypoints(waypoints) {
-    const waypointValues = _.values(waypoints);
-
-    // Ensure the number of waypoints is between 2 and 25
-    if (waypointValues.length < 2 || waypointValues.length > 25) {
+function waypointHasValidAddress(waypoint) {
+    if (!waypoint || !waypoint.address || typeof waypoint.address !== 'string' || waypoint.address.trim() === '') {
         return false;
     }
-
-    for (let i = 0; i < waypointValues.length; i++) {
-        const currentWaypoint = waypointValues[i];
-        const previousWaypoint = waypointValues[i - 1];
-
-        // Check if the waypoint has a valid address
-        if (!currentWaypoint || !currentWaypoint.address || typeof currentWaypoint.address !== 'string' || currentWaypoint.address.trim() === '') {
-            return false;
-        }
-
-        // Check for adjacent waypoints with the same address
-        if (previousWaypoint && currentWaypoint.address === previousWaypoint.address) {
-            return false;
-        }
-    }
-
     return true;
 }
 
-/*
- * @param {Object} transaction
- * @param {Object} transaction.comment
- * @param {String} transaction.comment.type
- * @param {Object} [transaction.comment.customUnit]
- * @param {String} [transaction.comment.customUnit.name]
- * @returns {Boolean}
+/**
+ * Filters the waypoints which are valid and returns those
+ * @param {Object} waypoints
+ * @param {Boolean} reArrangeIndexes
+ * @returns {Object} validated waypoints
  */
-function isDistanceRequest(transaction) {
-    const type = lodashGet(transaction, 'comment.type');
-    const customUnitName = lodashGet(transaction, 'comment.customUnit.name');
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+function getValidWaypoints(waypoints, reArrangeIndexes = false) {
+    const waypointValues = _.values(waypoints);
+    // Ensure the number of waypoints is between 2 and 25
+    if (waypointValues.length < 2 || waypointValues.length > 25) {
+        return {};
+    }
+
+    let lastWaypointIndex = -1;
+
+    const validWaypoints = _.reduce(
+        waypointValues,
+        (acc, currentWaypoint, index) => {
+            const previousWaypoint = waypointValues[lastWaypointIndex];
+            // Check if the waypoint has a valid address
+            if (!waypointHasValidAddress(currentWaypoint)) {
+                return acc;
+            }
+
+            // Check for adjacent waypoints with the same address
+            if (previousWaypoint && currentWaypoint.address === previousWaypoint.address) {
+                return acc;
+            }
+
+            const validatedWaypoints = {...acc, [`waypoint${reArrangeIndexes ? lastWaypointIndex + 1 : index}`]: currentWaypoint};
+
+            lastWaypointIndex += 1;
+
+            return validatedWaypoints;
+        },
+        {},
+    );
+
+    return validWaypoints;
 }
 
 export {
@@ -303,6 +357,7 @@ export {
     getAllReportTransactions,
     hasReceipt,
     isReceiptBeingScanned,
-    validateWaypoints,
+    getValidWaypoints,
     isDistanceRequest,
+    hasMissingSmartscanFields,
 };
