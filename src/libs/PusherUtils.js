@@ -18,12 +18,13 @@ function subscribeToMultiEvent(eventType, callback) {
 /**
  * @param {String} eventType
  * @param {Mixed} data
+ * @returns {Promise}
  */
 function triggerMultiEventHandler(eventType, data) {
     if (!multiEventCallbackMapping[eventType]) {
-        return;
+        return Promise.resolve();
     }
-    multiEventCallbackMapping[eventType](data);
+    return multiEventCallbackMapping[eventType](data);
 }
 
 /**
