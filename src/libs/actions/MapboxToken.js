@@ -151,7 +151,6 @@ const stop = () => {
         appStateSubscription = null;
     }
     clearTimeout(refreshTimeoutID);
-    refreshTimeoutID = null;
 };
 
 export {init, stop};
