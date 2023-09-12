@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
-import participantPropTypes from '../../../components/participantPropTypes';
 import CONST from '../../../CONST';
 import ReceiptUpload from '../../../../assets/images/receipt-upload.svg';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
@@ -21,6 +20,7 @@ import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
 import * as ReceiptUtils from '../../../libs/ReceiptUtils';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -46,19 +46,7 @@ const propTypes = {
     }).isRequired,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Currency of the request */
-        currency: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-    }),
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
@@ -68,12 +56,7 @@ const defaultProps = {
         attachmentInvalidReason: '',
     },
     report: {},
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: iouDefaultProps,
 };
 
 function ReceiptSelector(props) {
