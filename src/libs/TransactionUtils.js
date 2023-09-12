@@ -235,7 +235,7 @@ function getMerchant(transaction) {
  * @return {*}
  */
 function getCategory(transaction) {
-    return lodashGet(transaction, 'category', null);
+    return lodashGet(transaction, 'category', '');
 }
 
 /**
