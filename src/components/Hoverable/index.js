@@ -100,5 +100,6 @@ function Hoverable({disabled, onHoverIn, onHoverOut, children}) {
 
 Hoverable.propTypes = propTypes;
 Hoverable.defaultProps = defaultProps;
+Hoverable.displayName = 'Hoverable';
 
 export default Hoverable;
