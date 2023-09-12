@@ -16,7 +16,7 @@ function queueOnyxUpdates(updates: OnyxUpdate[]): Promise<void> {
     return Onyx.set(ONYXKEYS.QUEUED_ONYX_UPDATES, [...queuedOnyxUpdates, ...updates]);
 }
 
-function clear(): void {
+function clear() {
     Onyx.set(ONYXKEYS.QUEUED_ONYX_UPDATES, null);
 }
 
