@@ -410,7 +410,7 @@ function getLastMessageTextForReport(report) {
             const latestVisibleAction =
                 _.find(
                     allSortedReportActions[report.reportID],
-                    (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action) && !ReportActionUtils.isCreatedAction(action),
+                    (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action) && !ReportActionUtils.isCreatedAction(action) && !ReportActionUtils.isPendingRemove(action),
                 ) || {};
             lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
         }
