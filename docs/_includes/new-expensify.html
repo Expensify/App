@@ -7,9 +7,9 @@
     <p>{{ site.data.routes.home.description }}</p>
 
     <div class="cards-group">
-        {% for platform in site.data.routes.platforms %}
-            {% assign platform_href = platform.href %}
-            {% include platform-card.html href=platform.platform_href %}
+        {% for hub in site.data.routes.hubs %}
+            {% assign hub_href = hub.href %}
+            {% include hub-card.html href=hub.hub_href %}
         {% endfor %}
     </div>
 
