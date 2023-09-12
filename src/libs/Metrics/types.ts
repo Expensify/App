@@ -1,6 +1,4 @@
-type Metrics = {
-    canCapturePerformanceMetrics: () => boolean;
-    canCaptureOnyxMetrics: () => boolean;
-};
+type CanCapturePerformanceMetrics = () => boolean;
+type CanCaptureOnyxMetrics = () => boolean;
 
-export default Metrics;
+export type {CanCapturePerformanceMetrics, CanCaptureOnyxMetrics};
