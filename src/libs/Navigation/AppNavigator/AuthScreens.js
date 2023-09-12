@@ -35,6 +35,7 @@ import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
+import DemoSetupPage from '../../../pages/DemoSetupPage';
 
 let timezone;
 let currentAccountID;
@@ -105,16 +106,6 @@ const propTypes = {
     /** The last Onyx update ID was applied to the client */
     lastUpdateIDAppliedToClient: PropTypes.number,
 
-    /** Information about any currently running demos */
-    demoInfo: PropTypes.shape({
-        saastr: PropTypes.shape({
-            isBeginningDemo: PropTypes.bool,
-        }),
-        sbe: PropTypes.shape({
-            isBeginningDemo: PropTypes.bool,
-        }),
-    }),
-
     ...windowDimensionsPropTypes,
 };
 
@@ -125,7 +116,6 @@ const defaultProps = {
     },
     lastOpenedPublicRoomID: null,
     lastUpdateIDAppliedToClient: null,
-    demoInfo: {},
 };
 
 class AuthScreens extends React.Component {
@@ -162,12 +152,6 @@ class AuthScreens extends React.Component {
         App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);
         App.redirectThirdPartyDesktopSignIn();
 
-        // Check if we should be running any demos immediately after signing in.
-        if (lodashGet(this.props.demoInfo, 'saastr.isBeginningDemo', false)) {
-            Navigation.navigate(ROUTES.SAASTR, CONST.NAVIGATION.TYPE.FORCED_UP);
-        } else if (lodashGet(this.props.demoInfo, 'sbe.isBeginningDemo', false)) {
-            Navigation.navigate(ROUTES.SBE, CONST.NAVIGATION.TYPE.FORCED_UP);
-        }
         if (this.props.lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
             Report.openLastOpenedPublicRoom(this.props.lastOpenedPublicRoomID);
@@ -283,6 +267,16 @@ class AuthScreens extends React.Component {
                         }}
                     />
                     <RootStack.Screen
+                        name={CONST.DEMO_PAGES.SAASTR}
+                        options={defaultScreenOptions}
+                        component={DemoSetupPage}
+                    />
+                    <RootStack.Screen
+                        name={CONST.DEMO_PAGES.SBE}
+                        options={defaultScreenOptions}
+                        component={DemoSetupPage}
+                    />
+                    <RootStack.Screen
                         name={SCREENS.REPORT_ATTACHMENTS}
                         options={{
                             headerShown: false,
@@ -332,9 +326,6 @@ export default compose(
         },
         lastUpdateIDAppliedToClient: {
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-        },
-        demoInfo: {
-            key: ONYXKEYS.DEMO_INFO,
         },
     }),
 )(AuthScreens);
