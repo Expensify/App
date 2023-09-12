@@ -19,7 +19,7 @@ import styles from '../../styles/styles';
 const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
-        /** Route specific parameters used on this screen via route :iouType/new/tag/:reportID/:tag? */
+        /** Route specific parameters used on this screen via route :iouType/new/tag/:reportID? */
         params: PropTypes.shape({
             /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string,
