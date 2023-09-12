@@ -11,7 +11,7 @@ import variables from '../../../styles/variables';
 
 const propTypes = {
     isSmallScreenWidth: PropTypes.bool.isRequired,
-    isCreateMenuOpen: PropTypes.bool.isRequired,
+    isCreateMenuOpen: PropTypes.bool,
     ...withLocalizePropTypes,
 };
 

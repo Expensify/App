@@ -16,7 +16,6 @@ import useLocalize from '../../../hooks/useLocalize';
 import styles from '../../../styles/styles';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import * as SessionUtils from '../../../libs/SessionUtils';
-import GlobalNavigation from './GlobalNavigation';
 
 const propTypes = {
     ...basePropTypes,
@@ -64,7 +63,7 @@ const defaultProps = {
     policies: [],
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode, isCreateMenuOpen}) {
+function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef(null);
@@ -104,7 +103,6 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
             accessibilityLabel={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100, styles.flexRow]}
         >
-            <GlobalNavigation isSmallScreenWidth={isSmallScreenWidth} isCreateMenuOpen={isCreateMenuOpen} />
             <SidebarLinks
                 // Forwarded props:
                 onLinkClick={onLinkClick}

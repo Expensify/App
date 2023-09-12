@@ -9,6 +9,7 @@ import Performance from '../../../../libs/Performance';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import sidebarPropTypes from './sidebarPropTypes';
 import * as Browser from '../../../../libs/Browser';
+import GlobalNavigation from '../GlobalNavigation';
 
 const propTypes = {
     ...sidebarPropTypes,
@@ -38,12 +39,12 @@ function BaseSidebarScreen(props) {
         >
             {({insets}) => (
                 <>
-                    <View style={[styles.flex1]}>
+                    <View style={[styles.flex1, styles.flexRow]}>
+                        <GlobalNavigation isSmallScreenWidth={props.isSmallScreenWidth} isCreateMenuOpen={props.isCreateMenuOpen} />
                         <SidebarLinksData
                             onLinkClick={startTimer}
                             insets={insets}
                             isSmallScreenWidth={props.isSmallScreenWidth}
-                            onLayout={props.onLayout}
                         />
                     </View>
                     {props.children}
