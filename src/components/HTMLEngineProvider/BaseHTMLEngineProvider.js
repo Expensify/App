@@ -73,7 +73,8 @@ function BaseHTMLEngineProvider(props) {
             systemFonts={_.values(fontFamily)}
             fallbackFonts={fallbackFonts}
             domVisitors={{
-                onText: (text) => text.data = convertToLTR(text.data),
+                // eslint-disable-next-line no-param-reassign
+                onText: (text) => (text.data = convertToLTR(text.data)),
             }}
         >
             <RenderHTMLConfigProvider
