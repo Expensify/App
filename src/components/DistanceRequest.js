@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useState, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import lodashIsNil from "lodash/isNil";
+import lodashIsNil from 'lodash/isNil';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
