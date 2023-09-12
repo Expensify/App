@@ -82,8 +82,6 @@ const defaultProps = {
 };
 
 // native ids
-const saveButtonID = 'saveButton';
-const cancelButtonID = 'cancelButton';
 const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
@@ -119,7 +117,10 @@ function ReportActionItemMessageEdit(props) {
     // - it is focused or
     // - EmojiPicker's activeID is equal to this action's reportActionID or
     // - ReportActionContextMenu's reportActionID is equal to this action's reportActionID
-    const isActive = useCallback((reportActionID) => isFocusedRef.current || EmojiPickerAction.isActive(reportActionID) || ReportActionContextMenu.isActiveReportAction(reportActionID), []);
+    const isActive = useCallback(
+        () => isFocusedRef.current || EmojiPickerAction.isActive(props.action.reportActionID) || ReportActionContextMenu.isActiveReportAction(props.action.reportActionID),
+        [props.action.reportActionID],
+    );
 
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
@@ -137,7 +138,7 @@ function ReportActionItemMessageEdit(props) {
             // Skip if this is not the focused message so the other edit composer stays focused.
             // In small screen devices, when EmojiPicker is shown, the current edit message will lose focus, we need to check this case as well.
             // When delete modal is opened, the current edit message will lose focus, we need to check this case as well
-            if (!isActive(props.action.reportActionID)) {
+            if (!isActive()) {
                 return;
             }
 
@@ -226,7 +227,7 @@ function ReportActionItemMessageEdit(props) {
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
 
-        if (isActive(props.action.reportActionID)) {
+        if (isActive()) {
             setShouldShowComposeInputKeyboardAware(true);
             ReportActionComposeFocusManager.clear();
             ReportActionComposeFocusManager.focus();
@@ -281,7 +282,7 @@ function ReportActionItemMessageEdit(props) {
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             textInputRef.current.blur();
-            ReportActionContextMenu.showDeleteModal(props.reportID, props.action, false, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
+            ReportActionContextMenu.showDeleteModal(props.reportID, props.action, false, deleteDraft, () => focusWithDelay(textInputRef.current)(true));
             return;
         }
         Report.editReportComment(props.reportID, props.action, trimmedNewDraft);
@@ -333,7 +334,6 @@ function ReportActionItemMessageEdit(props) {
                         <PressableWithFeedback
                             onPress={deleteDraft}
                             style={styles.chatItemSubmitButton}
-                            nativeID={cancelButtonID}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={translate('common.close')}
                             // disable dimming
@@ -392,7 +392,7 @@ function ReportActionItemMessageEdit(props) {
                             onBlur={(event) => {
                                 setIsFocused(false);
                                 const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
-                                if (messageEditInput === relatedTargetId) {
+                                if (_.contains([messageEditInput, emojiButtonID], relatedTargetId)) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
@@ -411,8 +411,6 @@ function ReportActionItemMessageEdit(props) {
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
                             emojiPickerID={props.action.reportActionID}
-                            // Keep focus on the composer when emoji button is clicked.
-                            onMouseDown={(e) => e.preventDefault()}
                         />
                     </View>
 
@@ -421,7 +419,6 @@ function ReportActionItemMessageEdit(props) {
                             <PressableWithFeedback
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
-                                nativeID={saveButtonID}
                                 disabled={hasExceededMaxCommentLength}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}
