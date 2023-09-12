@@ -1,7 +1,7 @@
 home:
   href: home
   title: Welcome to ExpensifyHelp!
-  description: Find the answers to all of your questions about receipts, expenses, corporate cards, or anything else in the spend management universe.
+  description: Questions? Find the answers by clicking a Category or using the search bar located in the left-hand menu.
 
 # Hubs are comprised of sections and articles. Sections contain multiple related articles, but there can be standalone articles as well
 hubs:
@@ -61,6 +61,6 @@ hubs:
     icon: /assets/images/lightbulb.svg
   
   - href: send-payments
-    title: Other
+    title: Send Payments
     description: Everything else you're looking for is right here.
     icon: /assets/images/lightbulb.svg
