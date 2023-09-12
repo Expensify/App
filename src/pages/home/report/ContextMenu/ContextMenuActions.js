@@ -187,7 +187,7 @@ export default [
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const reportID = reportAction.originalMessage.taskReportID.toString();
+            const reportID = lodashGet(reportAction, 'originalMessage.taskReportID', '').toString();
             const messageHtml = isTaskAction ? Task.getTaskReportActionMessage(reportAction.actionName, reportID) : lodashGet(message, 'html', '');
 
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
