@@ -102,7 +102,7 @@ function TaskTitlePage(props) {
                                 ref={(el) => {
                                     if (!el) return;
                                     if (!inputRef.current && didScreenTransitionEnd) {
-                                        inputRef.current.focus();
+                                        el.focus();
                                     }
                                     inputRef.current = el;
                                 }}
