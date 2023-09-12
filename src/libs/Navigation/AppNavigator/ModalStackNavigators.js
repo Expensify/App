@@ -125,6 +125,13 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
         },
         name: 'Money_Request_Waypoint',
     },
+    {
+        getComponent: () => {
+            const EditRequestReceiptPage = require('../../../pages/iou/EditRequestReceiptPage').default;
+            return EditRequestReceiptPage;
+        },
+        name: 'Money_Request_Receipt',
+    },
 ]);
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator([

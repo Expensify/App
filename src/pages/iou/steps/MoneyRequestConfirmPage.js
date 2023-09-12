@@ -263,7 +263,7 @@ function MoneyRequestConfirmPage(props) {
                                 threeDotsMenuItems={[{
                                     icon: Expensicons.Receipt,
                                     text: props.translate('receipt.addReceipt'),
-                                    onSelected: () => {},
+                                    onSelected: () => Navigation.navigate(ROUTES.getMoneyRequestReceiptRoute(props.iouType, reportID)),
                                 }]}
                             />
                         )}
