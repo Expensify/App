@@ -1,11 +1,11 @@
-import _ from 'underscore';
 import CONST from '../CONST';
 
 /**
  * Generates a random positive 64 bit numeric string by randomly generating the left, middle, and right parts and concatenating them. Used to generate client-side ids.
- * @returns {String} string representation of a randomly generated 64 bit signed integer
+ *
+ * @returns string representation of a randomly generated 64 bit signed integer
  */
-function rand64() {
+function rand64(): string {
     // Max 64-bit signed:
     // 9,223,372,036,854,775,807
     // The left part of the max 64-bit number *+1* because we're flooring it.
@@ -38,24 +38,22 @@ function rand64() {
 
 /**
  * Returns a hexadecimal value of the specified length
- * @param {Number} num
- * @returns {String}
  */
-function generateHexadecimalValue(num) {
-    return _.times(num, () => Math.floor(Math.random() * 16).toString(16))
-        .join('')
-        .toUpperCase();
+function generateHexadecimalValue(num: number): string {
+    const result: string[] = [];
+    for (let i = 0; i < num; i++) {
+        result.push(Math.floor(Math.random() * 16).toString(16));
+    }
+    return result.join('').toUpperCase();
 }
 
 /**
  * Generates a random integer between a and b
  * It's and equivalent of _.random(a, b)
  *
- * @param {Number} a
- * @param {Number} b
- * @returns {Number} random integer between a and b
+ * @returns random integer between a and b
  */
-function generateRandomInt(a, b) {
+function generateRandomInt(a: number, b: number): number {
     const lower = Math.ceil(Math.min(a, b));
     const upper = Math.floor(Math.max(a, b));
     return Math.floor(lower + Math.random() * (upper - lower + 1));
