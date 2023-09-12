@@ -1,3 +1,6 @@
+import {CSSProperties} from 'react';
+import {ViewStyle} from 'react-native';
+
 /**
  * Display utilities with Bootstrap inspired naming.
  *
@@ -28,4 +31,4 @@ export default {
     dBlock: {
         display: 'block',
     },
-};
+} satisfies Record<string, ViewStyle | CSSProperties>;

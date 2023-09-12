@@ -1,7 +1,8 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {useFocusEffect} from '@react-navigation/native';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
@@ -42,7 +43,6 @@ function BaseSelectionList({
     keyboardType = CONST.KEYBOARD_TYPE.DEFAULT,
     onChangeText,
     initiallyFocusedOptionKey = '',
-    shouldDelayFocus = false,
     onScroll,
     onScrollBeginDrag,
     headerMessage = '',
@@ -266,23 +266,20 @@ function BaseSelectionList({
         );
     };
 
-    /** Focuses the text input when the component mounts. If `props.shouldDelayFocus` is true, we wait for the animation to finish */
-    useEffect(() => {
-        if (shouldShowTextInput) {
-            if (shouldDelayFocus) {
+    /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
+    useFocusEffect(
+        useCallback(() => {
+            if (shouldShowTextInput) {
                 focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
-            } else {
-                textInputRef.current.focus();
             }
-        }
-
-        return () => {
-            if (!focusTimeoutRef.current) {
-                return;
-            }
-            clearTimeout(focusTimeoutRef.current);
-        };
-    }, [shouldDelayFocus, shouldShowTextInput]);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, [shouldShowTextInput]),
+    );
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
