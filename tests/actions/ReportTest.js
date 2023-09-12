@@ -382,14 +382,9 @@ describe('actions/Report', () => {
                     },
                     optimisticReportActions,
                 ]);
-
-                console.log('emmited update through pusher')
         
                 return waitForPromisesToResolve();
             })
-            .then(() => {console.log("i;m here")})
-            //.then(SequentialQueue.getCurrentRequest)
-            .then(() => {console.log("i;m here 2")})
             .then(waitForPromisesToResolve)
             .then(waitForPromisesToResolve)
             .then(() => {

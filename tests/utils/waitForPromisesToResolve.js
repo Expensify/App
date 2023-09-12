@@ -32,12 +32,10 @@ export default () => new Promise((outerResolve) => {
             outerResolve()
             return 
         }
-        setTimeout(() => { console.log('resolving waitForPromistesToResolve'); outerResolve()}, 0);
+        setTimeout(outerResolve, 0);
     });
 });
 
 const usingFakeTimers = () => {
     return !!(global.setTimeout.mock||global.setTimeout.clock)
 }
-
-// export default () => new Promise((resolve) => setTimeout(resolve, 0));

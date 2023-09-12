@@ -403,7 +403,6 @@ describe('APITests', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                console.log(xhr.mock.calls)
                 API.write('MockCommand');
                 expect(PersistedRequests.getAll().length).toBe(1);
                 expect(NetworkStore.isOffline()).toBe(true);
@@ -416,12 +415,10 @@ describe('APITests', () => {
                 waitForPromisesToResolve()
 
                 // Come back from offline to trigger the sequential queue flush
-                console.log('about to set isOffline false')
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
             })
             .then(() => {
                 // When we wait for the sequential queue to finish
-                console.log('checking isRunning')
                 expect(SequentialQueue.isRunning()).toBe(true);
                 return waitForPromisesToResolve();
             })

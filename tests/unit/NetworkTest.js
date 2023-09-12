@@ -31,7 +31,6 @@ beforeEach(() => {
     NetworkStore.checkRequiredData();
 
     // Wait for any Log command to finish and Onyx to fully clear
-    // jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
     return waitForPromisesToResolve()
         .then(() => PersistedRequests.clear())
         .then(() => Onyx.clear())
