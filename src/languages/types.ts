@@ -126,7 +126,7 @@ type PaidElsewhereWithAmountParams = {payer?: string; amount: number};
 
 type PaidUsingPaypalWithAmountParams = {payer?: string; amount: string};
 
-type PaidUsingExpensifyWithAmountParams = {payer?: string; amount: string};
+type PaidWithExpensifyWithAmountParams = {payer?: string; amount: string};
 
 type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
@@ -184,6 +184,12 @@ type OOOEventSummaryPartialDayParams = {summary: string; timePeriod: string; dat
 
 type ParentNavigationSummaryParams = {rootReportName: string; workspaceName: string};
 
+type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
+
+type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
+
+type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
+
 export type {
     AddressLineParams,
     CharacterLimitParams,
@@ -223,7 +229,7 @@ export type {
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
     PaidUsingPaypalWithAmountParams,
-    PaidUsingExpensifyWithAmountParams,
+    PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     SizeExceededParams,
@@ -252,4 +258,7 @@ export type {
     OOOEventSummaryFullDayParams,
     OOOEventSummaryPartialDayParams,
     ParentNavigationSummaryParams,
+    SetTheRequestParams,
+    UpdatedTheRequestParams,
+    RemovedTheRequestParams,
 };
