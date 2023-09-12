@@ -74,6 +74,12 @@ const MSG_VISIBLE_THRESHOLD = 250;
 // the useRef value gets reset when the reportID changes, so we use a global variable to keep track
 let prevReportID = null;
 
+// In the component we are subscribing to the arrival of new actions.
+// As there is the possibility that there are multiple instances of a ReportScreen
+// for the same report, we only ever want one subscription to be active, as
+// the subscriptions could otherwise be conflicting.
+const newActionUnsubscribeMap = {};
+
 /**
  * Create a unique key for each action in the FlatList.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
@@ -176,12 +182,6 @@ function ReportActionsList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastReadTime]);
 
-    // In the component we are subscribing to the arrival of new actions.
-    // As there is the possibility that there are multiple instances of a ReportScreen
-    // for the same report, we only ever want one subscription to be active, as
-    // the subscriptions could otherwise be conflicting.
-    const newActionUnsubscribeMap = {};
-
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
@@ -200,9 +200,12 @@ function ReportActionsList({
         const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, (isFromCurrentUser) => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
-            if (!isFromCurrentUser) return;
+            if (!isFromCurrentUser) {
+                return;
+            }
             reportScrollManager.scrollToBottom();
         });
+
         const cleanup = () => {
             if (unsubscribe) {
                 unsubscribe();
@@ -212,9 +215,8 @@ function ReportActionsList({
 
         newActionUnsubscribeMap[report.reportID] = cleanup;
 
-        return () => {
-            cleanup();
-        };
+        return cleanup;
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID, reportScrollManager]);
 
