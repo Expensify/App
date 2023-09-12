@@ -215,7 +215,6 @@ function notifyNewAction(reportID, accountID, reportActionID) {
         return;
     }
     const isFromCurrentUser = accountID === currentUserAccountID;
-    console.log('calling callback')
     actionSubscriber.callback(isFromCurrentUser, reportActionID);
 }
 

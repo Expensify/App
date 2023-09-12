@@ -405,7 +405,6 @@ describe('APITests', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                console.log(xhr.mock.calls)
                 API.write('MockCommand');
                 expect(PersistedRequests.getAll().length).toBe(1);
                 expect(NetworkStore.isOffline()).toBe(true);

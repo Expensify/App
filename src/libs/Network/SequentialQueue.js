@@ -66,8 +66,6 @@ function process() {
     }
     const requestToProcess = persistedRequests[0];
 
-    console.log('trying to process', requestToProcess)
-
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequest = Request.processWithMiddleware(requestToProcess, true)
         .then((response) => {
@@ -81,7 +79,6 @@ function process() {
             return process();
         })
         .catch((error) => {
-            console.log('error processing ',requestToProcess, "error:", error)
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
@@ -182,7 +179,6 @@ function push(request) {
  * @returns {Promise}
  */
 function getCurrentRequest() {
-    console.log('currentRequestwas null', currentRequest === null)
     if (currentRequest === null) {
         return Promise.resolve();
     }
