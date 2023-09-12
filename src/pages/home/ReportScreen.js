@@ -458,7 +458,7 @@ export default compose(
             },
         },
         {
-            delayUpdates: true,
+            shouldDelayUpdates: true,
         },
     ),
 )(ReportScreen);
