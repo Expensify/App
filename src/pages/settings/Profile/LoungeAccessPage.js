@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import * as Lounge from '../../../libs/actions/Lounge';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -15,14 +16,32 @@ import * as Illustrations from '../../../components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
 import * as LottieAnimations from '../../../components/LottieAnimations';
 import styles from '../../../styles/styles';
+import compose from '../../../libs/compose';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
+import LinearGradient from '../../../components/LinearGradient';
+import Avatar from '../../../components/Avatar';
+import * as UserUtils from '../../../libs/UserUtils';
+import CONST from '../../../CONST';
+import themeColors from '../../../styles/themes/default';
+import * as LocalePhoneNumber from '../../../libs/LocalePhoneNumber';
 
 const propTypes = {
+    /** The session of the logged in person */
+    session: PropTypes.shape({
+        /** Email of the logged in person */
+        email: PropTypes.string,
+    }),
+
     /** Current user details, which will hold whether or not they have Lounge Access */
     user: userPropTypes,
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
+    session: {},
     user: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const menuItems = [
@@ -40,12 +59,12 @@ const menuItems = [
     },
 ];
 
-function LoungeAccessPage({user}) {
+function LoungeAccessPage(props) {
     const {translate} = useLocalize();
     const isCheckedIn = false;
     const numberOfCheckInsLeft = 6;
 
-    if (!user.hasLoungeAccess) {
+    if (!props.user.hasLoungeAccess) {
         return <NotFoundPage />;
     }
 
@@ -54,11 +73,39 @@ function LoungeAccessPage({user}) {
         Lounge.recordLoungeVisit();
     }
 
+    const overlayContent = () => (
+        <LinearGradient
+            colors={[`${themeColors.dark}00`, themeColors.dark]}
+            style={[styles.pAbsolute, styles.w100, styles.h100]}
+        >
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pt5]}>
+                <Avatar
+                    imageStyles={[styles.avatarLarge]}
+                    source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
+                    size={CONST.AVATAR_SIZE.LARGE}
+                />
+                <Text
+                    style={[styles.textHeadline, styles.pre, styles.mt2]}
+                    numberOfLines={1}
+                >
+                    {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : LocalePhoneNumber.formatPhoneNumber(props.session.email)}
+                </Text>
+                <Text
+                    style={[styles.textLabelSupporting, styles.mt1]}
+                    numberOfLines={1}
+                >
+                    {LocalePhoneNumber.formatPhoneNumber(props.session.email)}
+                </Text>
+            </View>
+        </LinearGradient>
+    );
+
     return (
         <IllustratedHeaderPageLayout
             title={translate('loungeAccessPage.loungeAccess')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             illustration={LottieAnimations.ExpensifyLounge}
+            overlayContent={overlayContent}
         >
             <View style={[styles.w100, styles.ph5, styles.pb8]}>
                 <Text style={[styles.textStrong, styles.mb4]}>{translate('loungeAccessPage.checkIn')}</Text>
@@ -98,8 +145,14 @@ LoungeAccessPage.propTypes = propTypes;
 LoungeAccessPage.defaultProps = defaultProps;
 LoungeAccessPage.displayName = 'LoungeAccessPage';
 
-export default withOnyx({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(LoungeAccessPage);
+export default compose(
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(LoungeAccessPage);

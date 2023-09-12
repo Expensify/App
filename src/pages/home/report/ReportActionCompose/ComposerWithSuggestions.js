@@ -22,6 +22,7 @@ import usePrevious from '../../../../hooks/usePrevious';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import * as User from '../../../../libs/actions/User';
 import * as ReportUtils from '../../../../libs/ReportUtils';
+import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import SilentCommentUpdater from './SilentCommentUpdater';
@@ -110,7 +111,8 @@ function ComposerWithSuggestions({
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
+    const parentAction = ReportActionsUtils.getParentReportAction(report);
+    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -290,9 +292,11 @@ function ComposerWithSuggestions({
 
                 const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
                 const parentReportAction = lodashGet(parentReportActions, [parentReportActionID], {});
-                const lastReportAction = _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
-
-                if (lastReportAction !== -1 && lastReportAction) {
+                const lastReportAction = _.find(
+                    [...reportActions, parentReportAction],
+                    (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
+                );
+                if (lastReportAction) {
                     Report.saveReportActionDraft(reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
                 }
             }
@@ -350,9 +354,10 @@ function ComposerWithSuggestions({
      * @returns {Boolean}
      */
     const checkComposerVisibility = useCallback(() => {
-        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || modal.isVisible;
+        // Checking whether the screen is focused or not, helps avoid `modal.isVisible` false when popups are closed, even if the modal is opened.
+        const isComposerCoveredUp = !isFocused || EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || modal.isVisible || modal.willAlertModalBecomeVisible;
         return !isComposerCoveredUp;
-    }, [isMenuVisible, modal.isVisible]);
+    }, [isMenuVisible, modal, isFocused]);
 
     const focusComposerOnKeyPress = useCallback(
         (e) => {
