@@ -576,7 +576,7 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
-/*
+/**
  * Returns the number of money requests associated with a report preview
  *
  * @param {Object|null} reportPreviewAction

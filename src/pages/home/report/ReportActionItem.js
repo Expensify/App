@@ -502,14 +502,17 @@ function ReportActionItem(props) {
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 return (
-                    <ReportActionItemSingle
-                        action={parentReportAction}
-                        showHeader={!props.draftMessage}
-                        wrapperStyles={[styles.chatItem]}
-                        report={props.report}
-                    >
-                        <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
-                    </ReportActionItemSingle>
+                    <>
+                        <ReportActionItemSingle
+                            action={parentReportAction}
+                            showHeader={!props.draftMessage}
+                            wrapperStyles={[styles.chatItem]}
+                            report={props.report}
+                        >
+                            <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                        </ReportActionItemSingle>
+                        <View style={styles.reportHorizontalRule} />
+                    </>
                 );
             }
 
