@@ -35,23 +35,25 @@ function CheckboxListItem({item, isFocused = false, onSelectRow, onDismissError 
                 hoverStyle={styles.hoveredComponentBG}
                 focusStyle={styles.hoveredComponentBG}
             >
-                <View
-                    style={[
-                        StyleUtils.getCheckboxContainerStyle(20, 4),
-                        item.isSelected && styles.checkedContainer,
-                        item.isSelected && styles.borderColorFocus,
-                        item.isDisabled && styles.cursorDisabled,
-                        item.isDisabled && styles.buttonOpacityDisabled,
-                    ]}
-                >
-                    {item.isSelected && (
-                        <Icon
-                            src={Expensicons.Checkmark}
-                            fill={themeColors.textLight}
-                            height={14}
-                            width={14}
-                        />
-                    )}
+                <View style={styles.checkboxPressable}>
+                    <View
+                        style={[
+                            StyleUtils.getCheckboxContainerStyle(20, 4),
+                            item.isSelected && styles.checkedContainer,
+                            item.isSelected && styles.borderColorFocus,
+                            item.isDisabled && styles.cursorDisabled,
+                            item.isDisabled && styles.buttonOpacityDisabled,
+                        ]}
+                    >
+                        {item.isSelected && (
+                            <Icon
+                                src={Expensicons.Checkmark}
+                                fill={themeColors.textLight}
+                                height={14}
+                                width={14}
+                            />
+                        )}
+                    </View>
                 </View>
                 {Boolean(item.avatar) && (
                     <Avatar
