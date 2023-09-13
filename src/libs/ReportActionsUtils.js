@@ -375,12 +375,12 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
  * @return {Object}
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
-    let updatedActionsToMerge = actionsToMerge;
-    if (Object.keys(updatedActionsToMerge).length !== 0) {
-        const actionID = Object.keys(actionsToMerge)[0];
-        updatedActionsToMerge = {[actionID]: {...allReportActions[reportID][actionID], ...actionsToMerge[actionID]}};
+    const updatedActionsToMerge = {};
+    if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
+        Object.keys(actionsToMerge).forEach(
+            (actionToMergeID) => (updatedActionsToMerge[actionToMergeID] = {...allReportActions[reportID][actionToMergeID], ...actionsToMerge[actionToMergeID]}),
+        );
     }
-
     const actions = Object.values({
         ...allReportActions[reportID],
         ...updatedActionsToMerge,
