@@ -64,7 +64,7 @@ const menuItems = [
 function LoungeAccessPage(props) {
     const {translate} = useLocalize();
 
-    if (!props.user.hasLoungeAccess) {
+    if (props.user.hasLoungeAccess) {
         return <NotFoundPage />;
     }
 
@@ -125,9 +125,9 @@ function LoungeAccessPage(props) {
                 </Text>
                 {props.user.loungeCheckInDetails.isCheckedIn ? (
                     <Button
-                        text={translate('loungeAccessPage.youAreCheckedIn')}
                         style={[styles.buttonSuccessHovered, styles.w100]}
                         innerStyles={[styles.appBG,styles.alignItemsCenter]}
+                        text={translate('loungeAccessPage.youAreCheckedIn')}
                         icon={Expensicons.Checkmark}
                         iconFill={styles.success}
                     />
