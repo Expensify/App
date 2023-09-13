@@ -69,8 +69,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
     const isPayer = policyType === CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const shouldShowSettlementButton = useMemo(
-        () => isPayer && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0,
-        [isPayer, isSettled, moneyRequestReport, reportTotal],
+        () => isPayer && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
+        [isPayer, isSettled, moneyRequestReport, reportTotal, chatReport],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (policyType !== CONST.POLICY.TYPE.CORPORATE) {
