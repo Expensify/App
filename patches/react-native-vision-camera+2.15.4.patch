@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-vision-camera/ios/Frame Processor/FrameProcessorRuntimeManager.mm b/node_modules/react-native-vision-camera/ios/Frame Processor/FrameProcessorRuntimeManager.mm
+index 3841b20..687ea94 100644
+--- a/node_modules/react-native-vision-camera/ios/Frame Processor/FrameProcessorRuntimeManager.mm
++++ b/node_modules/react-native-vision-camera/ios/Frame Processor/FrameProcessorRuntimeManager.mm
+@@ -19,6 +19,8 @@
+ #import <React/RCTUIManager.h>
+ #import <ReactCommon/RCTTurboModuleManager.h>
+
++#define VISION_CAMERA_DISABLE_FRAME_PROCESSORS 1
++
+ #ifndef VISION_CAMERA_DISABLE_FRAME_PROCESSORS
+   #if __has_include(<RNReanimated/NativeReanimatedModule.h>)
+     #if __has_include(<RNReanimated/RuntimeManager.h>)
