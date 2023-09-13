@@ -1,6 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
 import type {
+    Translation,
     AddressLineParams,
     CharacterLimitParams,
     MaxParticipantsReachedParams,
@@ -1756,4 +1757,4 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-} as const;
+} satisfies Translation;
