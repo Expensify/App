@@ -171,7 +171,6 @@ const defaultProps = {
     listStyles: [],
     policyCategories: {},
     policyTags: {},
-    betas: [],
     transactionID: '',
     transaction: {},
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
