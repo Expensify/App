@@ -260,7 +260,7 @@ function MagicCodeInput(props) {
                             <TextInput
                                 ref={(ref) => {
                                     inputRefs.current[index] = ref;
-                                    // Setting Attribute type search to prvent Password Manager to appear in Mobile Chrome
+                                    // Setting attribute type to "search" to prevent Password Manager from appearing in Mobile Chrome
                                     if (ref && ref.setAttribute) {
                                         ref.setAttribute('type', 'search');
                                     }
