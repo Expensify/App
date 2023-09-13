@@ -3,7 +3,7 @@
 import * as API from '../API';
 
 /**
- * Checks in the user in to the lounge
+ * Register visit at the lounge
  *
  */
 function recordLoungeVisit() {
