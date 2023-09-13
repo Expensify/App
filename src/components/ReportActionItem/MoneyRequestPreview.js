@@ -162,7 +162,7 @@ function MoneyRequestPreview(props) {
     const description = requestComment;
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
-    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
+    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction) || props.transaction.violations
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
@@ -203,7 +203,9 @@ function MoneyRequestPreview(props) {
         }
 
         let message = props.translate('iou.cash');
-        if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
+        if (props.transaction.violations) {
+            message +=  props.transaction.violations.length > 1 || props.translate(props.transaction.violations[0]).length > 15 ? ' • Review required' : `• ${props.translate(props.transaction.violations[0])}`;
+        } else if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
             message += ` • ${props.translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
