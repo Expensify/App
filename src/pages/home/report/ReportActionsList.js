@@ -133,9 +133,6 @@ function ReportActionsList({
             userActiveSince.current = DateUtils.getDBTime();
         }
 
-        // if (prevReportID.current !== report.reportID) {
-        //     currentUnreadMarker.current = null;
-        // }
         prevReportID.current = report.reportID;
     }, [report.reportID]);
 
