@@ -1,8 +1,9 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import styles from '../../styles/styles';
-import CONST from '../../CONST';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import useLocalize from '../../hooks/useLocalize';
 import FormHelpMessage from '../FormHelpMessage';
@@ -52,7 +53,7 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
         hidePickerModal();
     };
 
-    const title = value && CONST.ALL_US_ISO_STATES.includes(value) ? translate(`allStates.${value}.stateName`) : '';
+    const title = value && _.keys(COMMON_CONST.STATES).includes(value) ? translate(`allStates.${value}.stateName`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
