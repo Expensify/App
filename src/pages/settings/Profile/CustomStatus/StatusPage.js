@@ -2,7 +2,6 @@ import React, {useMemo, useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import moment from 'moment';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import StaticHeaderPageLayout from '../../../../components/StaticHeaderPageLayout';
