@@ -69,7 +69,6 @@ function LoungeAccessPage(props) {
     }
 
     const checkIn = () => {
-        console.log('Check in');
         Lounge.recordLoungeVisit();
     }
 
