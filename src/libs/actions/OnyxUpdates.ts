@@ -1,4 +1,4 @@
-import Onyx, {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {Merge} from 'type-fest';
 import PusherUtils from '../PusherUtils';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -6,6 +6,7 @@ import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 import CONST from '../../CONST';
 import {OnyxUpdatesFromServer, Request} from '../../types/onyx';
 import Response from '../../types/onyx/Response';
+import {OnyxUpdateEvent} from '../../types/onyx/OnyxUpdatesFromServer';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -43,7 +44,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
         });
 }
 
-function applyPusherOnyxUpdates(updates: OnyxUpdate[]) {
+function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
     console.debug('[OnyxUpdateManager] Applying pusher update');
     const pusherEventPromises = updates.map((update) => PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
     return Promise.all(pusherEventPromises).then(() => {
@@ -56,7 +57,7 @@ function applyPusherOnyxUpdates(updates: OnyxUpdate[]) {
  * @param [updateParams.response] Exists if updateParams.type === 'https'
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
-function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {updates: OnyxUpdate[]; type: 'pusher'}>): Promise<void>;
+function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {updates: OnyxUpdateEvent[]; type: 'pusher'}>): Promise<void>;
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {request: Request; response: Response; type: 'https'}>): Promise<Response>;
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
     console.debug(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, {request, response, updates});
