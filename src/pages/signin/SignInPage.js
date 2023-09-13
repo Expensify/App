@@ -193,7 +193,7 @@ export default withOnyx({
     whenever the activeClients change, so that we call the 
     ActiveClientManager.isClientTheLeader function 
     everytime the leader client changes.
-    We use that to prevent repeating code that checks which client is the leader.
+    We use that function to prevent repeating code that checks which client is the leader.
     */
     activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS}
 })(SignInPage);
