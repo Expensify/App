@@ -37,7 +37,7 @@ function SpacerView(props) {
             marginVertical.value = withTiming(0, {duration: 300});
             borderBottomWidth.value = withTiming(0, {duration: 300});
         }
-    }, [props.shouldShow]);
+    }, [props.shouldShow, borderBottomWidth, marginVertical]);
 
     return <Animated.View style={[animatedStyles, ...StyleUtils.parseStyleAsArray(props.style)]} />;
 }

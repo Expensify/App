@@ -166,7 +166,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
-            <SpacerView shouldShow={props.shouldShowHorizontalRule} style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}/>
+            <SpacerView shouldShow={shouldShowHorizontalRule} style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}/>
         </View>
     );
 }
