@@ -218,7 +218,7 @@ function ReportActionsList({
         return cleanup;
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.reportID, reportScrollManager]);
+    }, [report.reportID]);
 
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
