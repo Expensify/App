@@ -999,12 +999,11 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
     // Should only update if the transaction matches the currency of the report, else we wait for the update
     // from the server with the currency conversion
-    let updatedMoneyRequestReport = null;
+    let updatedMoneyRequestReport = {...iouReport};
     const updatedChatReport = {...chatReport};
     if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount) {
         const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
         if (ReportUtils.isExpenseReport(iouReport)) {
-            updatedMoneyRequestReport = {...iouReport};
             updatedMoneyRequestReport.total += diff;
         } else {
             updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID, diff, TransactionUtils.getCurrency(transaction), false);
