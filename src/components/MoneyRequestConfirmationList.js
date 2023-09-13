@@ -389,7 +389,7 @@ function MoneyRequestConfirmationList(props) {
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
             />
         );
-    }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
+    }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
     return (
         <OptionsSelector
