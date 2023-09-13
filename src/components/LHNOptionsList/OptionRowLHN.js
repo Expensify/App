@@ -256,10 +256,12 @@ function OptionRowLHN(props) {
                             accessible={false}
                         >
                             {shouldShowGreenDotIndicator && (
-                                <Icon
-                                    src={Expensicons.DotIndicator}
-                                    fill={themeColors.success}
-                                />
+                                <View style={styles.ml2}>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={themeColors.success}
+                                    />
+                                </View>
                             )}
                             {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
                                 <View

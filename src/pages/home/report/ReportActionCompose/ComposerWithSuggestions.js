@@ -321,11 +321,11 @@ function ComposerWithSuggestions({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, [suggestionsRef]);
 
-    const setShouldBlockSuggestionCalc = useCallback(() => {
+    const setShouldBlockSuggestionCalcToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
             return false;
         }
-        return suggestionsRef.current.setShouldBlockSuggestionCalc(true);
+        return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
 
     /**
@@ -472,7 +472,7 @@ function ComposerWithSuggestions({
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
-                    onClick={setShouldBlockSuggestionCalc}
+                    onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
                     onClear={() => setTextInputShouldClear(false)}
