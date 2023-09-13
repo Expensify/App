@@ -1286,6 +1286,7 @@ function getTransactionDetails(transaction) {
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
+        category: TransactionUtils.getCategory(transaction),
     };
 }
 
@@ -1397,6 +1398,10 @@ function getTransactionReportName(reportAction) {
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
         return Localize.translateLocal('iou.receiptScanning');
+    }
+
+    if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
+        return Localize.translateLocal('iou.receiptMissingDetails');
     }
 
     const {amount, currency, comment} = getTransactionDetails(transaction);
