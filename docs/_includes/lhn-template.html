@@ -11,7 +11,6 @@
     </li>
 
     {% for platform in site.data.routes.platforms %}
-        <!-- {{ hub }} -->
         {% if platform.href == activePlatform %}
             <li>
                 <div class="icon-with-link selected">
@@ -26,6 +25,10 @@
                             <span>{{ hub.title }}</span>
                         </div>
                         <ul class="nested-treeview">
+                            {% for article in hub.articles %}
+                                {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
+                            {% endfor %}
+
                             {% for section in hub.sections %}
                                 <li>
                                     <a href="#{{ section.href }}" class="link">{{ section.title }}</a>
@@ -36,11 +39,6 @@
                                         {% endfor %}
                                     </ul>
                                 </li>
-                            {% endfor %}
-
-                            <!-- Then display standalone articles -->
-                            {% for article in hub.articles %}
-                                {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
                             {% endfor %}
                         </ul>
                     {% else %}
