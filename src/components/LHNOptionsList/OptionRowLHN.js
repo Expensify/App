@@ -66,7 +66,7 @@ const defaultProps = {
 
 function OptionRowLHN(props) {
     const theme = useTheme();
-    const themeStyles = useThemeStyles;
+    const themeStyles = useThemeStyles();
 
     const hoverStyle = props.hoverStyle || themeStyles.sidebarLinkHover;
 
