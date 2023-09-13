@@ -71,7 +71,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
-    Translation,
+    EnglishTranslation,
 } from './types';
 
 /* eslint-disable max-len */
@@ -2249,4 +2249,4 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
     },
-} satisfies Translation;
+} satisfies EnglishTranslation;

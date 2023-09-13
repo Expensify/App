@@ -222,17 +222,17 @@ type TranslateType<TObject, TPath extends string> = TPath extends keyof TObject
         : never
     : never;
 
-type Translation = typeof en;
+type EnglishTranslation = typeof en;
 
-type TranslationPaths = FlattenObject<Translation>;
+type TranslationPaths = FlattenObject<EnglishTranslation>;
 
 type TranslationFlatObject = {
-    [TKey in TranslationPaths]: TranslateType<Translation, TKey>;
+    [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
 };
 
 export type {
     TranslationBase,
-    Translation,
+    EnglishTranslation,
     TranslationFlatObject,
     AddressLineParams,
     CharacterLimitParams,

@@ -74,13 +74,12 @@ import type {
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
-type States = Record<
-    keyof typeof COMMON_CONST.STATES,
-    {
-        stateISO: string;
-        stateName: string;
-    }
->;
+type StateValue = {
+    stateISO: string;
+    stateName: string;
+};
+
+type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
 
