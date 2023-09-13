@@ -656,16 +656,7 @@ describe('OptionsListUtils', () => {
         const search = 'Food';
         const emptySearch = '';
         const wrongSearch = 'bla bla';
-        const recentlyUsedCategories = {
-            Taxi: {
-                enabled: false,
-                name: 'Taxi',
-            },
-            Restaurant: {
-                enabled: true,
-                name: 'Restaurant',
-            },
-        };
+        const recentlyUsedCategories = ['Taxi', 'Restaurant'];
         const selectedOptions = [
             {
                 name: 'Medical',

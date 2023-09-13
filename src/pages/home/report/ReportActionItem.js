@@ -67,6 +67,7 @@ import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import usePrevious from '../../../hooks/usePrevious';
 import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
+import ReportAttachmentsContext from './ReportAttachmentsContext';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -129,12 +130,25 @@ function ReportActionItem(props) {
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const {reactionListRef} = useContext(ReportScreenContext);
+    const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
+
+    const updateHiddenState = useCallback(
+        (isHiddenValue) => {
+            setIsHidden(isHiddenValue);
+            const isAttachment = ReportUtils.isReportMessageAttachment(_.last(props.action.message));
+            if (!isAttachment) {
+                return;
+            }
+            updateHiddenAttachments(props.action.reportActionID, isHiddenValue);
+        },
+        [props.action.reportActionID, props.action.message, updateHiddenAttachments],
+    );
 
     useEffect(
         () => () => {
@@ -362,7 +376,7 @@ function ReportActionItem(props) {
                                 <Button
                                     small
                                     style={[styles.mt2, styles.alignSelfStart]}
-                                    onPress={() => setIsHidden(!isHidden)}
+                                    onPress={() => updateHiddenState(!isHidden)}
                                 >
                                     <Text
                                         style={styles.buttonSmallText}

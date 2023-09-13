@@ -126,12 +126,6 @@ function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined
     // since they can also be accessed by people who aren't in the workspace
     const policyName = lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
 
-    // The SBE and SAASTR policies have the user name in its name, however, we do not want to show that
-    if (lodashGet(finalPolicy, 'owner') === CONST.EMAIL.SBE || lodashGet(finalPolicy, 'owner') === CONST.EMAIL.SAASTR) {
-        const policyNameParts = policyName.split(' ');
-        if (!Str.isValidEmail(policyNameParts[0])) return policyName;
-        return policyNameParts.length > 1 ? policyNameParts.slice(1).join(' ') : policyName;
-    }
     return policyName;
 }
 
@@ -1954,6 +1948,7 @@ function buildOptimisticIOUReport(payeeAccountID, payerAccountID, total, chatRep
 
         // We don't translate reportName because the server response is always in English
         reportName: `${payerEmail} owes ${formattedTotal}`,
+        parentReportID: chatReportID,
     };
 }
 
@@ -1991,6 +1986,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
         total: storedTotal,
+        parentReportID: chatReportID,
     };
 }
 
