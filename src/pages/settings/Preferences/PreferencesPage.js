@@ -68,7 +68,7 @@ function PreferencesPage(props) {
                 </View>
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
-                    title={translate(`priorityModePage.priorityModes.${props.priorityMode}.label`)}
+                    title={translate(`priorityModePage.priorityModes.${props.priorityMode.toLowerCase()}.label`)}
                     description={translate('priorityModePage.priorityMode')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
                 />

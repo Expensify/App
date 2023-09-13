@@ -26,12 +26,12 @@ const defaultProps = {
 };
 
 function PriorityModePage(props) {
-    const priorityModes = _.map(props.translate('priorityModePage.priorityModes'), (mode, key) => ({
+    const priorityModes = _.map(CONST.PRIORITY_MODE, (mode, key) => ({
         value: key,
-        text: mode.label,
-        alternateText: mode.description,
+        text: props.translate(`priorityModePage.priorityModes.${mode}.label`),
+        alternateText: props.translate(`priorityModePage.priorityModes.${mode}.description`),
         keyForList: key,
-        isSelected: props.priorityMode === key,
+        isSelected: props.priorityMode.toUpperCase() === key.toUpperCase(),
     }));
 
     const updateMode = useCallback(
@@ -48,7 +48,7 @@ function PriorityModePage(props) {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
-                title={props.translate('priorityModePage.priorityMode')}
+                title={props.translate('priorityModePage.priorityModes.default.label')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
             <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
