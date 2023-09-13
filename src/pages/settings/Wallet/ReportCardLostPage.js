@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -13,6 +13,7 @@ import SingleOptionSelector from '../../../components/SingleOptionSelector';
 import useLocalize from '../../../hooks/useLocalize';
 import Text from '../../../components/Text';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
+import usePrivatePersonalDetails from '../../../hooks/usePrivatePersonalDetails';
 
 const OPTIONS = [
     {
@@ -53,6 +54,8 @@ const defaultProps = {
 };
 
 function ReportCardLostPage({privatePersonalDetails}) {
+    usePrivatePersonalDetails();
+
     const privateDetails = privatePersonalDetails || {};
     const address = privateDetails.address || {};
 
@@ -109,8 +112,7 @@ function ReportCardLostPage({privatePersonalDetails}) {
                 formID={ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_LOST}
                 validate={validate}
                 onSubmit={onSubmit}
-                submitButtonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
-                // style={[styles.mh5, styles.flexGrow1]}
+                submitButtonText={isReasonConfirmed ? translate('reportCardLostOrDamaged.deactivateCardButton') : translate('reportCardLostOrDamaged.nextButtonLabel')}
                 style={styles.flexGrow1}
             >
                 {isReasonConfirmed ? (
@@ -121,7 +123,6 @@ function ReportCardLostPage({privatePersonalDetails}) {
                             description={translate('reportCardLostOrDamaged.address')}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
-                            // style={[styles.popoverMenuItem, {paddingHorizontal: 0}]}
                             numberOfLinesTitle={2}
                         />
                         <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.currentCardInfo')}</Text>
