@@ -1,8 +1,8 @@
 import * as Composer from '../actions/Composer';
 import OpenReportActionComposeViewWhenClosingMessageEdit from './types';
 
-const openReportActionComposeViewWhenClosingVMessageEdit: OpenReportActionComposeViewWhenClosingMessageEdit = () => {
+const openReportActionComposeViewWhenClosingMessageEdit: OpenReportActionComposeViewWhenClosingMessageEdit = () => {
     Composer.setShouldShowComposeInput(true);
 };
 
-export default openReportActionComposeViewWhenClosingVMessageEdit;
+export default openReportActionComposeViewWhenClosingMessageEdit;
