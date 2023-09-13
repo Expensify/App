@@ -19,6 +19,16 @@
                     <img src="/assets/images/down.svg" class="base-icon"></img>
                     <span>{{ platform.title }}</span>
                 </div>
+                {% for hub in platform.hubs %}
+                <ul>
+                    <li>
+                        <a href="/hubs/{{ hub.href }}" class="icon-with-link link">
+                            <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
+                            {{ hub.title }}
+                        </a>
+                    </li>    
+                </ul>
+                {% endfor %}
             </li>
 
         {% else %}
