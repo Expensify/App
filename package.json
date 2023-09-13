@@ -51,6 +51,7 @@
   },
   "dependencies": {
     "@expensify/react-native-web": "0.18.15",
+    "@formatjs/intl-datetimeformat": "^6.10.0",
     "@formatjs/intl-getcanonicallocales": "^2.2.0",
     "@formatjs/intl-listformat": "^7.2.2",
     "@formatjs/intl-locale": "^3.3.0",
@@ -88,6 +89,7 @@
     "domhandler": "^4.3.0",
     "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#35bff866a8d345b460ea6256f0a0f0a8a7f81086",
     "fbjs": "^3.0.2",
+    "focus-trap-react": "^10.2.1",
     "htmlparser2": "^7.2.0",
     "idb-keyval": "^6.2.1",
     "jest-when": "^3.5.2",
