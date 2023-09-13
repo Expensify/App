@@ -20,6 +20,15 @@ type User = {
     /** Whether or not the user has lounge access */
     hasLoungeAccess?: boolean;
 
+    /** An object grouping all the props related to the lounge access */
+    loungeCheckInDetails: {
+        /** Whether or not user is currently checked into the lounge */
+        isCheckedIn: boolean;
+
+        /** Number of lounge check-ins remaining in the current period */
+        checkInsRemaining: number;
+    }
+
     /** error associated with adding a secondary login */
     error?: string;
 
