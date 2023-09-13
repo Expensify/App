@@ -35,7 +35,6 @@ const defaultProps = {
 
 function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
     const {translate} = useLocalize();
-    const allStates = translate('allStates');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [searchValue, setSearchValue] = useState('');
 
@@ -52,7 +51,7 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
         hidePickerModal();
     };
 
-    const title = allStates[value] ? allStates[value].stateName : '';
+    const title = value ? translate(`allStates.${value}.stateName`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (

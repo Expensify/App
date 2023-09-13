@@ -32,7 +32,10 @@ import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import transactionPropTypes from '../transactionPropTypes';
+import * as StyleUtils from '../../styles/StyleUtils';
 import colors from '../../styles/colors';
+import variables from '../../styles/variables';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 import MoneyRequestSkeletonView from '../MoneyRequestSkeletonView';
 
 const propTypes = {
@@ -135,9 +138,12 @@ const defaultProps = {
 };
 
 function MoneyRequestPreview(props) {
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
+
     const sessionAccountID = lodashGet(props.session, 'accountID', null);
     const managerID = props.iouReport.managerID || '';
     const ownerAccountID = props.iouReport.ownerAccountID || '';
@@ -265,7 +271,15 @@ function MoneyRequestPreview(props) {
                             </View>
                             <View style={[styles.flexRow]}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={styles.textHeadline}>{getDisplayAmountText()}</Text>
+                                    <Text
+                                        style={[
+                                            styles.moneyRequestPreviewAmount,
+                                            StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth),
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {getDisplayAmountText()}
+                                    </Text>
                                     {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
                                         <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
