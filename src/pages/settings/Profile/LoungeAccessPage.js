@@ -64,7 +64,7 @@ const menuItems = [
 function LoungeAccessPage(props) {
     const {translate} = useLocalize();
 
-    if (props.user.hasLoungeAccess) {
+    if (!props.user.hasLoungeAccess) {
         return <NotFoundPage />;
     }
 
