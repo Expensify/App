@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import { View } from 'react-native';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -69,7 +70,6 @@ function ReportCardLostPage({privatePersonalDetails}) {
     };
 
     const onSubmit = () => {
-        console.log('SUBMIT');
         setIsReasonConfirmed(true);
     };
 
@@ -110,30 +110,31 @@ function ReportCardLostPage({privatePersonalDetails}) {
                 validate={validate}
                 onSubmit={onSubmit}
                 submitButtonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
-                style={[styles.mh5, styles.flexGrow1]}
+                // style={[styles.mh5, styles.flexGrow1]}
+                style={styles.flexGrow1}
             >
                 {isReasonConfirmed ? (
                     <>
-                        <Text style={[styles.textHeadline, styles.mb3]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
+                        <Text style={[styles.textHeadline, styles.mb3, styles.mh5]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
                         <MenuItemWithTopDescription
                             title={getFormattedAddress()}
                             description={translate('reportCardLostOrDamaged.address')}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
-                            style={[styles.popoverMenuItem, {paddingHorizontal: 0}]}
+                            // style={[styles.popoverMenuItem, {paddingHorizontal: 0}]}
                             numberOfLinesTitle={2}
                         />
-                        <Text style={styles.mt3}>{translate('reportCardLostOrDamaged.currentCardInfo')}</Text>
+                        <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.currentCardInfo')}</Text>
                     </>
                 ) : (
-                    <>
+                    <View style={styles.mh5}>
                         <Text style={[styles.textHeadline, styles.pre]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
                         <SingleOptionSelector
                             options={OPTIONS}
                             selectedOptionKey={reason.key}
                             onSelectOption={handleOptionSelect}
                         />
-                    </>
+                    </View>
                 )}
             </Form>
         </ScreenWrapper>
