@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useMemo} from 'react';
+import React, {useMemo, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import Modal from '../Modal';
@@ -44,15 +44,26 @@ const defaultProps = {
 function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
     const {translate} = useLocalize();
 
+    useEffect(() => {
+        if (isVisible) {
+            return;
+        }
+        setSearchValue('');
+    }, [isVisible, setSearchValue]);
+
     const countryStates = useMemo(
         () =>
-            _.map(translate('allStates'), (state) => ({
-                value: state.stateISO,
-                keyForList: state.stateISO,
-                text: state.stateName,
-                isSelected: currentState === state.stateISO,
-                searchValue: StringUtils.sanitizeString(`${state.stateISO}${state.stateName}`),
-            })),
+            _.map(CONST.ALL_US_ISO_STATES, (state) => {
+                const stateName = translate(`allStates.${state}.stateName`);
+                const stateISO = translate(`allStates.${state}.stateISO`);
+                return {
+                    value: stateISO,
+                    keyForList: stateISO,
+                    text: stateName,
+                    isSelected: currentState === stateISO,
+                    searchValue: StringUtils.sanitizeString(`${stateISO}${stateName}`),
+                };
+            }),
         [translate, currentState],
     );
 
@@ -81,12 +92,10 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                 <SelectionList
                     headerMessage={headerMessage}
                     textInputLabel={label || translate('common.state')}
-                    textInputPlaceholder={translate('stateSelectorModal.placeholderText')}
                     textInputValue={searchValue}
                     sections={[{data: searchResults, indexOffset: 0}]}
                     onSelectRow={onStateSelected}
                     onChangeText={setSearchValue}
-                    shouldDelayFocus
                     initiallyFocusedOptionKey={currentState}
                 />
             </ScreenWrapper>
