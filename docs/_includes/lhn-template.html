@@ -26,7 +26,7 @@
                         </div>
                         <ul class="nested-treeview">
                             {% for article in hub.articles %}
-                                {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
+                                {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article.href title=article.title %}
                             {% endfor %}
 
                             {% for section in hub.sections %}
@@ -35,7 +35,7 @@
                                     <ul>
                                         {% for article in section.articles %}
                                             {% assign article_href = section.href | append: '/' | append: article.href %}
-                                            {% include lhn-article-link.html hub=hub.href href=article_href title=article.title %}
+                                            {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article_href title=article.title %}
                                         {% endfor %}
                                     </ul>
                                 </li>
@@ -43,7 +43,7 @@
                         </ul>
                     {% else %}
                         <li>
-                            <a href="/hubs/{{ hub.href }}" class="icon-with-link link">
+                            <a href="/{{ activePlatform }}/hubs/{{ hub.href }}" class="icon-with-link link">
                                 <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
                                 {{ hub.title }}
                             </a>
@@ -63,38 +63,3 @@
         {% endif %}
     {% endfor %}
 </ul>
-
-<!-- 
-<ul class="nested-treeview">
-    {% for article in hub.articles %}
-        {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
-    {% endfor %}
-</ul> -->
-
-
-<!-- 
-
-           {% if hub.href == activeHub %}
-            <li>
-                <div class="icon-with-link selected">
-                    <img src="/assets/images/down.svg" class="base-icon"></img>
-                    <span>{{ hub.title }}</span>
-                </div>
-                <ul class="nested-treeview">
-                    <!-- First display sections with nested articles -->
-                    
-                </ul>
-            </li>
-        {% else %}
-            <li>
-                <a href="/hubs/{{ hub.href }}" class="icon-with-link link">
-                    <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
-                    {{ hub.title }}
-                </a>
-            </li>
-        {% endif %}
-
-
-
-
- -->
