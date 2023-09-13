@@ -258,7 +258,7 @@ function MoneyRequestConfirmPage(props) {
                     <HeaderWithBackButton
                         title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={!isDistanceRequest}
+                        shouldShowThreeDotsButton={!isDistanceRequest && !props.iou.receiptPath}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[{
                             icon: Expensicons.Receipt,
