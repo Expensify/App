@@ -23,8 +23,8 @@ function PendingMapView({title = '', subtitle = ''}: PendingMapViewProps) {
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
                     <Icon
                         src={Expensicons.EmptyStateRoutePending}
-                        width={100}
-                        height={100}
+                        width={120}
+                        height={120}
                     />
                 </View>
             )}
