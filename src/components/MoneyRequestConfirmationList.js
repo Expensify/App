@@ -507,9 +507,7 @@ function MoneyRequestConfirmationList(props) {
                             <Switch
                                 accessibilityLabel={translate('common.billable')}
                                 isOn={props.iouIsBillable}
-                                onToggle={(val) => {
-                                    props.onToggleBillable(val);
-                                }}
+                                onToggle={props.onToggleBillable}
                             />
                         </View>
                     )}
