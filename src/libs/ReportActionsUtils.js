@@ -4,6 +4,7 @@ import _ from 'underscore';
 import {max, parseISO, isEqual} from 'date-fns';
 import lodashFindLast from 'lodash/findLast';
 import Onyx from 'react-native-onyx';
+import lodashMerge from 'lodash/merge';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
@@ -375,9 +376,15 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
  * @return {Object}
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
+    let updatedActionsToMerge = actionsToMerge;
+    if (Object.keys(updatedActionsToMerge).length !== 0) {
+        const actionID = Object.keys(actionsToMerge)[0];
+        updatedActionsToMerge = {[actionID]: {...allReportActions[reportID][actionID], ...actionsToMerge[actionID]}};
+    }
+
     const actions = Object.values({
         ...allReportActions[reportID],
-        ...actionsToMerge,
+        ...updatedActionsToMerge,
     });
     const visibleActions = actions.filter((action) => shouldReportActionBeVisibleAsLastAction(action));
 
