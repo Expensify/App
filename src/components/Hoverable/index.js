@@ -22,11 +22,11 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children}, outerRef) {
     const ref = useRef(null);
 
     useEffect(() => {
-        const onVisibilityChange = () => document.visibilityState === 'hidden' && setIsHovered(false);
+        const unsetHoveredWhenDocumentIsHidden = () => document.visibilityState === 'hidden' && setIsHovered(false);
 
-        document.addEventListener('visibilitychange', onVisibilityChange);
+        document.addEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
 
-        return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
     }, []);
 
     useEffect(() => {
