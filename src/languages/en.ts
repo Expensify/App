@@ -71,6 +71,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    TranslationBase,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
@@ -1765,4 +1766,4 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-};
+} satisfies TranslationBase;
