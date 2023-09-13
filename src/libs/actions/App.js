@@ -141,9 +141,10 @@ function getPolicyParamsForOpenOrReconnect() {
 
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
+ * @param {Boolean} isOpenApp
  * @returns {Object}
  */
-function getOnyxDataForOpenOrReconnect() {
+function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
     return {
         optimisticData: [
             {
@@ -151,6 +152,13 @@ function getOnyxDataForOpenOrReconnect() {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: true,
             },
+            isOpenApp
+                ? {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.IS_LOADING_APP,
+                      value: true,
+                  }
+                : undefined,
         ],
         successData: [
             {
@@ -158,6 +166,13 @@ function getOnyxDataForOpenOrReconnect() {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: false,
             },
+            isOpenApp
+                ? {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.IS_LOADING_APP,
+                      value: false,
+                  }
+                : undefined,
         ],
         failureData: [
             {
@@ -165,6 +180,13 @@ function getOnyxDataForOpenOrReconnect() {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: false,
             },
+            isOpenApp
+                ? {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.IS_LOADING_APP,
+                      value: false,
+                  }
+                : undefined,
         ],
     };
 }
@@ -174,7 +196,7 @@ function getOnyxDataForOpenOrReconnect() {
  */
 function openApp() {
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect());
+        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect(true));
     });
 }
 

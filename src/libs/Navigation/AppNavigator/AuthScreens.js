@@ -38,6 +38,8 @@ import DemoSetupPage from '../../../pages/DemoSetupPage';
 
 let timezone;
 let currentAccountID;
+let isLoadingApp;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -72,6 +74,13 @@ Onyx.connect({
             timezone.selected = currentTimezone;
             PersonalDetails.updateAutomaticTimezone(timezone);
         }
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (val) => {
+        isLoadingApp = val;
     },
 });
 
@@ -126,7 +135,13 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => App.reconnectApp(this.props.lastUpdateIDAppliedToClient));
+        NetworkConnection.onReconnect(() => {
+            if (isLoadingApp) {
+                App.openApp();
+            } else {
+                App.reconnectApp(this.props.lastUpdateIDAppliedToClient);
+            }
+        });
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
