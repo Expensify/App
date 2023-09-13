@@ -8,7 +8,7 @@ import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import SelectionList from '../../../../components/SelectionList';
 import searchCountryOptions from '../../../../libs/searchCountryOptions';
 import StringUtils from '../../../../libs/StringUtils';
-
+import CONST from '../../../../CONST';
 import useLocalize from '../../../../hooks/useLocalize';
 
 const propTypes = {
@@ -37,13 +37,16 @@ function CountrySelectionPage({route, navigation}) {
 
     const countries = useMemo(
         () =>
-            _.map(translate('allCountries'), (countryName, countryISO) => ({
-                value: countryISO,
-                keyForList: countryISO,
-                text: countryName,
-                isSelected: currentCountry === countryISO,
-                searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-            })),
+            _.map(_.keys(CONST.ALL_COUNTRIES), (countryISO) => {
+                const countryName = translate(`allCountries.${countryISO}`);
+                return {
+                    value: countryISO,
+                    keyForList: countryISO,
+                    text: countryName,
+                    isSelected: currentCountry === countryISO,
+                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+                };
+            }),
         [translate, currentCountry],
     );
 
@@ -88,7 +91,6 @@ function CountrySelectionPage({route, navigation}) {
                 sections={[{data: searchResults, indexOffset: 0}]}
                 onSelectRow={selectCountry}
                 onChangeText={setSearchValue}
-                shouldDelayFocus
                 initiallyFocusedOptionKey={currentCountry}
             />
         </ScreenWrapper>

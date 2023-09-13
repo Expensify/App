@@ -106,11 +106,12 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
-    const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
+    const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
+    const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
 
@@ -120,6 +121,9 @@ function ReportPreview(props) {
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
     const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID);
     const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
+    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename, receiptFilename}) =>
+        ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || receiptFilename || ''),
+    );
 
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
     const previewSubtitle = hasOnlyOneReceiptRequest
@@ -162,8 +166,8 @@ function ReportPreview(props) {
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
-        ? props.policy.role === CONST.POLICY.ROLE.ADMIN && ReportUtils.isReportApproved(props.iouReport) && !iouSettled
-        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
+        ? props.policy.role === CONST.POLICY.ROLE.ADMIN && ReportUtils.isReportApproved(props.iouReport) && !iouSettled && !iouCanceled
+        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
 
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
@@ -181,7 +185,7 @@ function ReportPreview(props) {
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
                     {hasReceipts && (
                         <ReportActionItemImages
-                            images={_.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || ''))}
+                            images={lastThreeReceipts}
                             size={3}
                             total={transactionsWithReceipts.length}
                             isHovered={props.isHovered || isScanning}

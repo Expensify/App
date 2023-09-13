@@ -29,9 +29,8 @@ const defaultProps = {
 function CountryPickerMenuItem({errorText, value: countryCode, onInputChange, didCountryChange, setDidCountryChange}, ref) {
     const {translate} = useLocalize();
 
-    const countries = translate('allCountries');
-    const country = countries[countryCode] || '';
-    const countryTitleDescStyle = country.length === 0 ? styles.textNormal : null;
+    const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
+    const countryTitleDescStyle = title.length === 0 ? styles.textNormal : null;
 
     useEffect(() => {
         // This will cause the form to revalidate and remove any error related to country name
@@ -44,7 +43,7 @@ function CountryPickerMenuItem({errorText, value: countryCode, onInputChange, di
         <View>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={country}
+                title={title}
                 ref={ref}
                 descriptionTextStyle={countryTitleDescStyle}
                 description={translate('common.country')}
