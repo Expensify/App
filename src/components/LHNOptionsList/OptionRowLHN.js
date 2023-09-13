@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
 import * as optionRowStyles from '../../styles/optionRowStyles';
-import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import DateUtils from '../../libs/DateUtils';
 import Icon from '../Icon';
@@ -16,7 +15,6 @@ import colors from '../../styles/colors';
 import Text from '../Text';
 import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
-import themeColors from '../../styles/themes/default';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -26,6 +24,9 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
 import Permissions from '../../libs/Permissions';
 import Tooltip from '../Tooltip';
+import withTheme, {withThemePropTypes} from '../withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from '../withThemeStyles';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** Style for hovered state */
@@ -52,10 +53,13 @@ const propTypes = {
     /** The item that should be rendered */
     // eslint-disable-next-line react/forbid-prop-types
     optionItem: PropTypes.object,
+
+    ...withThemePropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
-    hoverStyle: styles.sidebarLinkHover,
+    hoverStyle: undefined,
     viewMode: 'default',
     onSelectRow: () => {},
     style: null,
@@ -65,12 +69,14 @@ const defaultProps = {
 };
 
 function OptionRowLHN(props) {
+    const hoverStyle = props.hoverStyle || props.themeStyles.sidebarLinkHover;
+
+    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
     const popoverAnchor = useRef(null);
 
     const {translate} = useLocalize();
 
     const optionItem = props.optionItem;
-    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     if (!optionItem) {
         return null;
@@ -81,24 +87,48 @@ function OptionRowLHN(props) {
         return null;
     }
 
-    const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
+    const textStyle = props.isFocused ? props.themeStyles.sidebarLinkActiveText : props.themeStyles.sidebarLinkText;
+    const textUnreadStyle = optionItem.isUnread ? [textStyle, props.themeStyles.sidebarLinkTextBold] : [textStyle];
+    const displayNameStyle = StyleUtils.combineStyles(
+        [props.themeStyles.optionDisplayName, props.themeStyles.optionDisplayNameCompact, props.themeStyles.pre, ...textUnreadStyle],
+        props.style,
+    );
     const alternateTextStyle = StyleUtils.combineStyles(
         props.viewMode === CONST.OPTION_MODE.COMPACT
-            ? [textStyle, styles.optionAlternateText, styles.noWrap, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
-            : [textStyle, styles.optionAlternateText, styles.noWrap, styles.textLabelSupporting],
+            ? [
+                  textStyle,
+                  props.themeStyles.optionAlternateText,
+                  props.themeStyles.noWrap,
+                  props.themeStyles.textLabelSupporting,
+                  props.themeStyles.optionAlternateTextCompact,
+                  props.themeStyles.ml2,
+              ]
+            : [textStyle, props.themeStyles.optionAlternateText, props.themeStyles.noWrap, props.themeStyles.textLabelSupporting],
         props.style,
     );
     const contentContainerStyles =
-        props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles] : [styles.flex1];
+        props.viewMode === CONST.OPTION_MODE.COMPACT
+            ? [props.themeStyles.flex1, props.themeStyles.flexRow, props.themeStyles.overflowHidden, optionRowStyles.compactContentContainerStyles]
+            : [props.themeStyles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten(
         props.viewMode === CONST.OPTION_MODE.COMPACT
-            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
-            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
+            ? [
+                  props.themeStyles.chatLinkRowPressable,
+                  props.themeStyles.flexGrow1,
+                  props.themeStyles.optionItemAvatarNameWrapper,
+                  props.themeStyles.optionRowCompact,
+                  props.themeStyles.justifyContentCenter,
+              ]
+            : [
+                  props.themeStyles.chatLinkRowPressable,
+                  props.themeStyles.flexGrow1,
+                  props.themeStyles.optionItemAvatarNameWrapper,
+                  props.themeStyles.optionRow,
+                  props.themeStyles.justifyContentCenter,
+              ],
     );
-    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : themeColors.sidebar;
-    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : props.theme.sidebar;
+    const focusedBackgroundColor = props.themeStyles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
@@ -170,24 +200,24 @@ function OptionRowLHN(props) {
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
                         style={[
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                            styles.justifyContentBetween,
-                            styles.sidebarLink,
-                            styles.sidebarLinkInner,
-                            StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
-                            props.isFocused ? styles.sidebarLinkActive : null,
-                            (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
+                            props.themeStyles.flexRow,
+                            props.themeStyles.alignItemsCenter,
+                            props.themeStyles.justifyContentBetween,
+                            props.themeStyles.sidebarLink,
+                            props.themeStyles.sidebarLinkInner,
+                            StyleUtils.getBackgroundColorStyle(props.theme.sidebar),
+                            props.isFocused ? props.themeStyles.sidebarLinkActive : null,
+                            (hovered || isContextMenuActive) && !props.isFocused ? hoverStyle : null,
                         ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
                     >
                         <View style={sidebarInnerRowStyle}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <View style={[props.themeStyles.flexRow, props.themeStyles.alignItemsCenter]}>
                                 {!_.isEmpty(optionItem.icons) &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            backgroundColor={props.isFocused ? themeColors.activeComponentBG : themeColors.sidebar}
+                                            backgroundColor={props.isFocused ? props.theme.activeComponentBG : props.theme.sidebar}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
@@ -198,7 +228,7 @@ function OptionRowLHN(props) {
                                             isFocusMode={props.viewMode === CONST.OPTION_MODE.COMPACT}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
-                                                StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
+                                                StyleUtils.getBackgroundAndBorderStyle(props.theme.sidebar),
                                                 props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                 hovered && !props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                             ]}
@@ -206,7 +236,7 @@ function OptionRowLHN(props) {
                                         />
                                     ))}
                                 <View style={contentContainerStyles}>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
+                                    <View style={[props.themeStyles.flexRow, props.themeStyles.alignItemsCenter, props.themeStyles.mw100, props.themeStyles.overflowHidden]}>
                                         <DisplayNames
                                             accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
                                             fullTitle={optionItem.text}
@@ -223,7 +253,7 @@ function OptionRowLHN(props) {
                                                 text={statusContent}
                                                 shiftVertical={-4}
                                             >
-                                                <Text style={styles.ml1}>{emojiCode}</Text>
+                                                <Text style={props.themeStyles.ml1}>{emojiCode}</Text>
                                             </Tooltip>
                                         )}
                                     </View>
@@ -238,12 +268,12 @@ function OptionRowLHN(props) {
                                     ) : null}
                                 </View>
                                 {optionItem.descriptiveText ? (
-                                    <View style={[styles.flexWrap]}>
-                                        <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
+                                    <View style={[props.themeStyles.flexWrap]}>
+                                        <Text style={[props.themeStyles.textLabel]}>{optionItem.descriptiveText}</Text>
                                     </View>
                                 ) : null}
                                 {hasBrickError && (
-                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                    <View style={[props.themeStyles.alignItemsCenter, props.themeStyles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
                                             fill={colors.red}
@@ -253,20 +283,20 @@ function OptionRowLHN(props) {
                             </View>
                         </View>
                         <View
-                            style={[styles.flexRow, styles.alignItemsCenter]}
+                            style={[props.themeStyles.flexRow, props.themeStyles.alignItemsCenter]}
                             accessible={false}
                         >
                             {shouldShowGreenDotIndicator && (
-                                <View style={styles.ml2}>
+                                <View style={props.themeStyles.ml2}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        fill={themeColors.success}
+                                        fill={props.theme.success}
                                     />
                                 </View>
                             )}
                             {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
                                 <View
-                                    style={styles.ml2}
+                                    style={props.themeStyles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}
                                 >
                                     <Icon src={Expensicons.Pencil} />
@@ -274,7 +304,7 @@ function OptionRowLHN(props) {
                             )}
                             {!shouldShowGreenDotIndicator && optionItem.isPinned && (
                                 <View
-                                    style={styles.ml2}
+                                    style={props.themeStyles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.chatPinned')}
                                 >
                                     <Icon src={Expensicons.Pin} />
@@ -292,6 +322,6 @@ OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-export default React.memo(OptionRowLHN);
+export default compose(withTheme, withThemeStyles)(React.memo(OptionRowLHN));
 
 export {propTypes, defaultProps};
