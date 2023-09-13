@@ -59,6 +59,16 @@ const server = http.createServer((request, response) => {
 
     request.pipe(proxyRequest);
     proxyRequest.on('response', (proxyResponse) => {
+        // Get the existing CSP header value
+        let existingCSP = proxyResponse.headers['content-security-policy'];
+
+        // Append newDot staging and development URLs in the frame-ancestors CSP headers to allow the oldDot to be embedded in the Expensify App
+        existingCSP += ' https://staging.new.expensify.com http://localhost:8082';
+
+        // Update the CSP header in the response
+        // eslint-disable-next-line no-param-reassign
+        proxyResponse.headers['content-security-policy'] = existingCSP;
+
         response.writeHead(proxyResponse.statusCode, proxyResponse.headers);
         proxyResponse.pipe(response);
     });
