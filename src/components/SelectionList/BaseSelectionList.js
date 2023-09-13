@@ -24,6 +24,7 @@ import useLocalize from '../../hooks/useLocalize';
 import Log from '../../libs/Log';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import useActiveElement from '../../hooks/useActiveElement';
+import BaseListItem from './BaseListItem';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -243,31 +244,42 @@ function BaseSelectionList({
 
     const renderItem = ({item, index, section}) => {
         const normalizedIndex = index + lodashGet(section, 'indexOffset', 0);
-        const isDisabled = section.isDisabled;
+        const isDisabled = section.isDisabled || item.isDisabled;
         const isFocused = !isDisabled && focusedIndex === normalizedIndex;
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = normalizedIndex < 10;
 
-        if (canSelectMultiple) {
-            return (
-                <UserListItem
-                    item={item}
-                    isFocused={isFocused}
-                    onSelectRow={() => selectRow(item, index)}
-                    onDismissError={onDismissError}
-                    showTooltip={showTooltip}
-                />
-            );
-        }
-
         return (
-            <RadioListItem
+            <BaseListItem
                 item={item}
                 isFocused={isFocused}
                 isDisabled={isDisabled}
+                showTooltip={showTooltip}
+                canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, index)}
             />
         );
+
+        // if (canSelectMultiple) {
+        //     return (
+        //         <UserListItem
+        //             item={item}
+        //             isFocused={isFocused}
+        //             onSelectRow={() => selectRow(item, index)}
+        //             onDismissError={onDismissError}
+        //             showTooltip={showTooltip}
+        //         />
+        //     );
+        // }
+        //
+        // return (
+        //     <RadioListItem
+        //         item={item}
+        //         isFocused={isFocused}
+        //         isDisabled={isDisabled}
+        //         onSelectRow={() => selectRow(item, index)}
+        //     />
+        // );
     };
 
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
