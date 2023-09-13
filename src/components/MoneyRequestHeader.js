@@ -84,11 +84,15 @@ function MoneyRequestHeader(props) {
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton={isActionOwner && !isSettled}
                     threeDotsMenuItems={[
-                        ...(TransactionUtils.hasReceipt(transaction) ? [] : [{
-                            icon: Expensicons.Receipt,
-                            text: translate('receipt.addReceipt'),
-                            onSelected: () => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
-                        }]),
+                        ...(TransactionUtils.hasReceipt(transaction)
+                            ? []
+                            : [
+                                  {
+                                      icon: Expensicons.Receipt,
+                                      text: translate('receipt.addReceipt'),
+                                      onSelected: () => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+                                  },
+                              ]),
                         {
                             icon: Expensicons.Trashcan,
                             text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),

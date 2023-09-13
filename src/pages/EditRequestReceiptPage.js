@@ -25,8 +25,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    replaceReceipt: () => {}
-}
+    replaceReceipt: () => {},
+};
 
 function EditRequestReceiptPage({route, replaceReceipt}) {
     const {translate} = useLocalize();

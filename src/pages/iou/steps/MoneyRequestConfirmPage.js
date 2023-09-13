@@ -207,7 +207,7 @@ function MoneyRequestConfirmPage(props) {
             if (props.iou.receiptPath && props.iou.receiptSource) {
                 FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
                     const receipt = file;
-                    receipt.state = (file && isManualRequest) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+                    receipt.state = file && isManualRequest ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
                     requestMoney(selectedParticipants, trimmedComment, receipt);
                 });
                 return;
@@ -272,11 +272,13 @@ function MoneyRequestConfirmPage(props) {
                         onBackButtonPress={navigateBack}
                         shouldShowThreeDotsButton={isManualRequest}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                        threeDotsMenuItems={[{
-                            icon: Expensicons.Receipt,
-                            text: props.translate('receipt.addReceipt'),
-                            onSelected: () => Navigation.navigate(ROUTES.getMoneyRequestReceiptRoute(iouType.current, reportID.current)),
-                        }]}
+                        threeDotsMenuItems={[
+                            {
+                                icon: Expensicons.Receipt,
+                                text: props.translate('receipt.addReceipt'),
+                                onSelected: () => Navigation.navigate(ROUTES.getMoneyRequestReceiptRoute(iouType.current, reportID.current)),
+                            },
+                        ]}
                     />
                     {/*
                      * The MoneyRequestConfirmationList component uses a SectionList which uses a VirtualizedList internally.
