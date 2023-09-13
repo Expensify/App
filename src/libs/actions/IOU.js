@@ -8,7 +8,6 @@ import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import Navigation from '../Navigation/Navigation';
 import * as Localize from '../Localize';
-import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as CurrencyUtils from '../CurrencyUtils';

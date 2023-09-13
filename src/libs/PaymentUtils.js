@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import BankAccount from './models/BankAccount';
-import * as Expensicons from '../components/Icon/Expensicons';
 import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
 import * as Localize from './Localize';

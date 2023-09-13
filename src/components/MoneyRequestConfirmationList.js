@@ -364,7 +364,6 @@ function MoneyRequestConfirmationList(props) {
 
         const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
-        const recipient = props.selectedParticipants[0] || {};
 
         return shouldShowSettlementButton ? (
             <SettlementButton

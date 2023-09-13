@@ -8,8 +8,6 @@ import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
 import * as Link from './Link';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
