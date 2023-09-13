@@ -263,6 +263,9 @@
     "webpack-font-preload-plugin": "^1.5.0",
     "webpack-merge": "^5.8.0"
   },
+  "overrides": {
+    "react-native": "$react-native"
+  },
   "electronmon": {
     "patterns": [
       "!node_modules",
