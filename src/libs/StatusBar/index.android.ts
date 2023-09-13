@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
-import {StatusBar} from 'react-native';
+import StatusBar from './types';
 
 // Only has custom web implementation
 StatusBar.getBackgroundColor = () => null;

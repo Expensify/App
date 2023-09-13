@@ -1,20 +1,20 @@
-// eslint-disable-next-line no-restricted-imports
-import {StatusBar} from 'react-native';
+import StatusBar from './types';
 
 StatusBar.getBackgroundColor = () => {
     const element = document.querySelector('meta[name=theme-color]');
-    if (!element || !element.content) {
-        return null;
+
+    if (element && 'content' in element && typeof element.content === 'string') {
+        return element.content;
     }
-    return element.content;
+
+    return null;
 };
 
 StatusBar.setBackgroundColor = (backgroundColor) => {
     const element = document.querySelector('meta[name=theme-color]');
-    if (!element) {
-        return;
+    if (element && 'content' in element) {
+        element.content = backgroundColor;
     }
-    element.content = backgroundColor;
 };
 
 export default StatusBar;
