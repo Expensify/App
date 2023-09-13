@@ -10,6 +10,6 @@ jobs:
     if: github.actor != 'OSBotify'
     steps:
       - name: Generate dynamic checklist
-        uses: Expensify/App/.github/actions/javascript/dynamicChecklist@main
+        uses: software-mansion-labs/expensify-app-fork/.github/actions/javascript/dynamicChecklist@Sebryu-DynamicChecklistPOC
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
