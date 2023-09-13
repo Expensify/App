@@ -240,6 +240,7 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
+        NEW_DOT_CATEGORIES: 'newDotCategories',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -759,6 +760,10 @@ const CONST = {
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
+    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+[\s\w~!@#$%^&*(){}[\];':"`|?.,/\\+\-=<]+.*[\s]*)>/g,
+
+    WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
+
     PASSWORD_PAGE: {
         ERROR: {
             ALREADY_VALIDATED: 'Account already validated',
@@ -1084,6 +1089,29 @@ const CONST = {
 
         DEFAULT: 'en',
     },
+
+    LANGUAGES: ['en', 'es'],
+
+    PRONOUNS_LIST: [
+        'coCos',
+        'eEyEmEir',
+        'heHimHis',
+        'heHimHisTheyThemTheirs',
+        'sheHerHers',
+        'sheHerHersTheyThemTheirs',
+        'merMers',
+        'neNirNirs',
+        'neeNerNers',
+        'perPers',
+        'theyThemTheirs',
+        'thonThons',
+        'veVerVis',
+        'viVir',
+        'xeXemXyr',
+        'zeZieZirHir',
+        'zeHirHirs',
+        'callMeByMyName',
+    ],
 
     POLICY: {
         TYPE: {
@@ -1655,6 +1683,61 @@ const CONST = {
         ZM: 'Zambia',
         ZW: 'Zimbabwe',
     },
+
+    ALL_US_ISO_STATES: [
+        'AK',
+        'AL',
+        'AR',
+        'AZ',
+        'CA',
+        'CO',
+        'CT',
+        'DE',
+        'FL',
+        'GA',
+        'HI',
+        'IA',
+        'ID',
+        'IL',
+        'IN',
+        'KS',
+        'KY',
+        'LA',
+        'MA',
+        'MD',
+        'ME',
+        'MI',
+        'MN',
+        'MO',
+        'MS',
+        'MT',
+        'NC',
+        'ND',
+        'NE',
+        'NH',
+        'NJ',
+        'NM',
+        'NV',
+        'NY',
+        'OH',
+        'OK',
+        'OR',
+        'PA',
+        'PR',
+        'RI',
+        'SC',
+        'SD',
+        'TN',
+        'TX',
+        'UT',
+        'VA',
+        'VT',
+        'WA',
+        'WI',
+        'WV',
+        'WY',
+        'DC',
+    ],
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
     // https://github.com/Expensify/App/issues/14958#issuecomment-1456026810

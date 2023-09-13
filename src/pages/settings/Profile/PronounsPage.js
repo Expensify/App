@@ -27,23 +27,23 @@ function PronounsPage({currentUserPersonalDetails}) {
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
 
     const [searchValue, setSearchValue] = useState(() => {
-        const currentPronounsText = _.chain(translate('pronouns'))
-            .find((_value, key) => key === currentPronounsKey)
+        const currentPronounsText = _.chain(CONST.PRONOUNS_LIST)
+            .find((_value) => _value === currentPronounsKey)
             .value();
 
         return currentPronounsText || '';
     });
 
     const filteredPronounsList = useMemo(() => {
-        const pronouns = _.chain(translate('pronouns'))
-            .map((value, key) => {
-                const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
+        const pronouns = _.chain(CONST.PRONOUNS_LIST)
+            .map((value) => {
+                const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${value}`;
                 const isCurrentPronouns = fullPronounKey === currentPronouns;
 
                 return {
-                    text: value,
+                    text: translate(`pronouns.${value}`),
                     value: fullPronounKey,
-                    keyForList: key,
+                    keyForList: value,
                     isSelected: isCurrentPronouns,
                 };
             })
@@ -61,7 +61,7 @@ function PronounsPage({currentUserPersonalDetails}) {
     const headerMessage = searchValue.trim() && filteredPronounsList.length === 0 ? translate('common.noResultsFound') : '';
 
     const updatePronouns = (selectedPronouns) => {
-        PersonalDetails.updatePronouns(selectedPronouns.keyForList === currentPronouns.keyForList ? '' : lodashGet(selectedPronouns, 'value', ''));
+        PersonalDetails.updatePronouns(selectedPronouns.keyForList === currentPronounsKey ? '' : lodashGet(selectedPronouns, 'value', ''));
     };
 
     return (
@@ -80,7 +80,6 @@ function PronounsPage({currentUserPersonalDetails}) {
                 onSelectRow={updatePronouns}
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentPronounsKey}
-                shouldDelayFocus
             />
         </ScreenWrapper>
     );
