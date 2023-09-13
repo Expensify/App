@@ -778,6 +778,22 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    textInputDisabled: {
+        // Adding disabled color theme to indicate user that the field is not editable.
+        backgroundColor: themeColors.highlightBG,
+        borderBottomWidth: 2,
+        borderColor: themeColors.borderLighter,
+        // Adding browser specefic style to bring consistency between Safari and other platforms.
+        // Applying the Webkit styles only to browsers as it is not available in native.
+        ...(Browser.getBrowser()
+            ? {
+                  WebkitTextFillColor: themeColors.textSupporting,
+                  WebkitOpacity: 1,
+              }
+            : {}),
+        color: themeColors.textSupporting,
+    },
+
     uploadReceiptView: (isSmallScreenWidth) => ({
         borderRadius: variables.componentBorderRadiusLarge,
         borderWidth: isSmallScreenWidth ? 0 : 2,
