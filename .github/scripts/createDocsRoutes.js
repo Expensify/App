@@ -2,7 +2,7 @@ const yaml = require('js-yaml');
 const fs = require('fs');
 const _ = require('underscore');
 
-const warn = 'Number of hubs in _routes.yml does not match number of hubs in docs/articles. Please update _routes.yml with hub info.';
+const getNumberOfRoutesNotMatchingError = (platform) => `Number of hubs in _routes.yml does not match number of hubs in docs/${platform}/articles. Please update _routes.yml with hub info.`;
 const disclaimer = '# This file is auto-generated. Do not edit it directly. Use npm run createDocsRoutes instead.\n';
 const docsDir = `${process.cwd()}/docs`;
 const routes = yaml.load(fs.readFileSync(`${docsDir}/_data/_routes.yml`, 'utf8'));
@@ -28,7 +28,7 @@ function getArticleObj(filename) {
 }
 
 /**
- * If the articlea / sections exist in the hub, then push the entry to the array.
+ * If the article / sections exist in the hub, then push the entry to the array.
  * Otherwise, create the array and push the entry to it.
  * @param {*} hubs - The hubs array
  * @param {*} hub - The hub we are iterating
@@ -45,12 +45,31 @@ function pushOrCreateEntry(hubs, hub, key, entry) {
 }
 
 function run() {
-    const hubs = fs.readdirSync(`${docsDir}/articles`);
-    if (hubs.length !== routes.hubs.length) {
-        // If new hubs have been added without metadata addition to _routes.yml
-        console.error(warn);
-        process.exit(1);
+    const newExpensifyHubs = fs.readdirSync(`${docsDir}/articles/new-expensify`);
+    const expensifyClassicHubs = fs.readdirSync(`${docsDir}/articles/expensify-classic`);
+
+
+    const newExpensifyRoute = routes.platforms.find((platform) => platform.href === "new-expensify");
+    const expensifyClassicRoute = routes.platforms.find((platform) => platform.href === "expensify-classic");
+
+    if (newExpensifyHubs.length !== newExpensifyRoute.hubs.length) {
+        console.error(getNumberOfRoutesNotMatchingError("new-expensify"));
+        return 1;
     }
+
+    if (expensifyClassicHubs.length !== expensifyClassicRoute.hubs.length) {
+        console.error(getNumberOfRoutesNotMatchingError("expensify-classic"));
+        return 1;
+    }
+
+    // // Convert the object to YAML and write it to the file
+    // let yamlString = yaml.dump(routes);
+    // yamlString = disclaimer + yamlString;
+    // fs.writeFileSync(`${docsDir}/_data/routes.yml`, yamlString);
+}
+
+
+function createHubWithArticles(hubs) {
     _.each(hubs, (hub) => {
         // Iterate through each directory in articles
         fs.readdirSync(`${docsDir}/articles/${hub}`).forEach((fileOrFolder) => {
@@ -77,16 +96,11 @@ function run() {
             });
         });
     });
-
-    // Convert the object to YAML and write it to the file
-    let yamlString = yaml.dump(routes);
-    yamlString = disclaimer + yamlString;
-    fs.writeFileSync(`${docsDir}/_data/routes.yml`, yamlString);
 }
 
 try {
     run();
 } catch (error) {
     console.error('A problem occurred while trying to read the directories.', error);
-    process.exit(1);
+    return 1;
 }

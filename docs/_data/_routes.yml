@@ -4,9 +4,9 @@ home:
   description: Questions? Find the answers by clicking a Category or using the search bar located in the left-hand menu.
 
 platforms:
-  - href: new-expensify
-    title: New Expensify
-    url: new.expensify.com
+  - href: expensify-classic
+    title: Expensify Classic
+    url: expensify.com
     description: Your account settings will look something like this
     image: /assets/images/paper-airplane.svg
   
@@ -72,9 +72,9 @@ platforms:
         description: Everything else you're looking for is right here.
         icon: /assets/images/lightbulb.svg
   
-  - href: expensify-classic
-    title: Expensify Classic
-    url: expensify.com
+  - href: new-expensify
+    title: New Expensify
+    url: new.expensify.com
     description: Your account settings will look something like this
     image: /assets/images/paper-airplane.svg
   
@@ -84,7 +84,7 @@ platforms:
         description: With only a couple of clicks, split bills with your friends or coworkers.
         icon: /assets/images/paper-airplane.svg
 
-      - href: bank-accounts-and-credit-cards
-        title: Bank Accounts & Credit Cards
+      - href: policy-and-domain-settings
+        title: Policy & Domain Settings
         icon: /assets/images/money-case.svg
         description: Request money for work expenses, bills, or a night out with friends.
