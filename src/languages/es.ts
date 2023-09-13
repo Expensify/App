@@ -1,6 +1,7 @@
 import CONST from '../CONST';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import type {
+    Translation,
     AddressLineParams,
     CharacterLimitParams,
     MaxParticipantsReachedParams,
@@ -499,6 +500,7 @@ export default {
         pending: 'Pendiente',
         deleteReceipt: 'Eliminar recibo',
         receiptScanning: 'Escaneo de recibo en curso…',
+        receiptMissingDetails: 'Recibo con campos vacíos',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
@@ -2247,15 +2249,4 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
     },
-    demos: {
-        saastr: {
-            signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
-            heroBody: 'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales, ¡y para que te devuelvan el dinero de la comida!',
-        },
-        sbe: {
-            signInWelcome: '¡Bienvenido a Small Business Expo! Recupera el dinero de tu viaje.',
-            heroBody:
-                'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales y para que te paguen el viaje de ida y vuelta a la conferencia.',
-        },
-    },
-};
+} satisfies Translation;
