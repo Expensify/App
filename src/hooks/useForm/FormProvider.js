@@ -141,7 +141,6 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
             return;
         }
 
-        // Call submit handler
         onSubmit(inputValues);
     }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
 
