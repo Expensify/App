@@ -179,9 +179,9 @@ function MoneyRequestConfirmationList(props) {
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
     const shouldCategoryBeEditable = !_.isEmpty(props.policyCategories) && Permissions.canUseCategories(props.betas);
 
-    const doesRouteExist = TransactionUtils.doesRouteExist(transaction);
+    const hasRoute = TransactionUtils.hasRoute(transaction);
     const formattedAmount =
-        props.isDistanceRequest && !doesRouteExist
+        props.isDistanceRequest && !hasRoute
             ? translate('common.tbd')
             : CurrencyUtils.convertToDisplayString(
                   shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
@@ -305,9 +305,9 @@ function MoneyRequestConfirmationList(props) {
         if (!props.isDistanceRequest) {
             return;
         }
-        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(distance, unit, rate, currency, translate);
+        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate);
         IOU.setMoneyRequestMerchant(distanceMerchant);
-    }, [distance, unit, rate, currency, translate, props.isDistanceRequest]);
+    }, [hasRoute, distance, unit, rate, currency, translate, props.isDistanceRequest]);
 
     /**
      * @param {Object} option

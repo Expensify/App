@@ -281,7 +281,7 @@ function hasMissingSmartscanFields(transaction) {
  * @param {Object} transaction
  * @returns {Boolean}
  */
-function doesRouteExist(transaction) {
+function hasRoute(transaction) {
     return !!lodashGet(transaction, 'routes.route0.geometry.coordinates');
 }
 
@@ -368,7 +368,6 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
 
 export {
     buildOptimisticTransaction,
-    doesRouteExist,
     getUpdatedTransaction,
     getTransaction,
     getDescription,
@@ -379,6 +378,7 @@ export {
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
+    hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,

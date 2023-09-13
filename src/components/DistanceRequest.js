@@ -92,9 +92,9 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
-    const doesRouteExist = TransactionUtils.doesRouteExist(transaction);
+    const hasRoute = TransactionUtils.hasRoute(transaction);
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
-    const isRouteAbsentWithoutErrors = !hasRouteError && !doesRouteExist;
+    const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
     const shouldFetchRoute = (haveWaypointsChanged || isRouteAbsentWithoutErrors) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
     const waypointMarkers = useMemo(
         () =>
