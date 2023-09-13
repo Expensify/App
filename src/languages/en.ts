@@ -1803,5 +1803,6 @@ export default {
         confirmAddressTitle: "Please confirm the address below is where you'd like us to send your new card.",
         currentCardInfo: 'Your current card will be permanently deactivated as soon as your order is placed. Most cards arrive in a few business days.',
         address: 'Address',
+        deactivateCardButton: 'Deactivate card',
     },
 } as const;
