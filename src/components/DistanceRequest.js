@@ -161,6 +161,13 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
         Transaction.getRoute(iou.transactionID, validatedWaypoints);
     }, [shouldFetchRoute, iou.transactionID, validatedWaypoints, isOffline]);
 
+    useEffect(() => {
+        if (numberOfWaypoints <= numberOfPreviousWaypoints) {
+            return;
+        }
+        scrollViewRef.current.scrollToEnd({animated: true});
+    }, [numberOfPreviousWaypoints, numberOfWaypoints]);
+
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
@@ -170,12 +177,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
             >
                 <ScrollView
-                    onContentSizeChange={(width, height) => {
-                        if (scrollContentHeight < height && numberOfWaypoints > numberOfPreviousWaypoints) {
-                            scrollViewRef.current.scrollToEnd({animated: true});
-                        }
-                        setScrollContentHeight(height);
-                    }}
+                    onContentSizeChange={(width, height) => setScrollContentHeight(height)}
                     onScroll={updateGradientVisibility}
                     scrollEventThrottle={variables.distanceScrollEventThrottle}
                     ref={scrollViewRef}

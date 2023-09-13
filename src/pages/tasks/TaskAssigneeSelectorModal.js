@@ -17,9 +17,11 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
-import ROUTES from '../../ROUTES';
 import * as ReportUtils from '../../libs/ReportUtils';
+import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 
 const propTypes = {
     /** Beta features list */
@@ -190,14 +192,18 @@ function TaskAssigneeSelectorModal(props) {
             const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
 
             // Pass through the selected assignee
-            Task.editTaskAssigneeAndNavigate(props.task.report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
+            Task.editTaskAssigneeAndNavigate(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
         }
     };
+
+    const isOpen = ReportUtils.isOpenTaskReport(props.task.report);
+    const canModifyTask = Task.canModifyTask(props.task.report, props.currentUserPersonalDetails.accountID);
+    const isTaskNonEditable = report && ReportUtils.isTaskReport(props.task.report) && (!canModifyTask || !isOpen);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
-                <>
+                <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton
                         title={props.translate('task.assignee')}
                         onBackButtonPress={() => (lodashGet(props.route.params, 'reportID') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
@@ -215,7 +221,7 @@ function TaskAssigneeSelectorModal(props) {
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     </View>
-                </>
+                </FullPageNotFoundView>
             )}
         </ScreenWrapper>
     );
@@ -227,6 +233,7 @@ TaskAssigneeSelectorModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

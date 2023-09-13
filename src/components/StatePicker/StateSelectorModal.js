@@ -53,13 +53,17 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
 
     const countryStates = useMemo(
         () =>
-            _.map(translate('allStates'), (state) => ({
-                value: state.stateISO,
-                keyForList: state.stateISO,
-                text: state.stateName,
-                isSelected: currentState === state.stateISO,
-                searchValue: StringUtils.sanitizeString(`${state.stateISO}${state.stateName}`),
-            })),
+            _.map(CONST.ALL_US_ISO_STATES, (state) => {
+                const stateName = translate(`allStates.${state}.stateName`);
+                const stateISO = translate(`allStates.${state}.stateISO`);
+                return {
+                    value: stateISO,
+                    keyForList: stateISO,
+                    text: stateName,
+                    isSelected: currentState === stateISO,
+                    searchValue: StringUtils.sanitizeString(`${stateISO}${stateName}`),
+                };
+            }),
         [translate, currentState],
     );
 
