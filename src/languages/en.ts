@@ -1,6 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
 import type {
+    Translation,
     AddressLineParams,
     CharacterLimitParams,
     MaxParticipantsReachedParams,
@@ -498,6 +499,7 @@ export default {
         pending: 'Pending',
         deleteReceipt: 'Delete receipt',
         receiptScanning: 'Receipt scan in progress…',
+        receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
@@ -1764,4 +1766,4 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-} as const;
+} satisfies Translation;
