@@ -10,8 +10,7 @@ const getNavigationModalCardStyles: GetNavigationModalCardStyles = () => ({
     width: '100%',
     height: '100%',
 
-    // NOTE: asserting "fixed" TS type to a valid type, because isn't possible
-    // to augment "position".
+    // NOTE: asserting "position" to a valid type, because isn't possible to augment "position".
     position: 'fixed' as ViewStyle['position'],
 });
 

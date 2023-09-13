@@ -1,4 +1,3 @@
-import {CSSProperties} from 'react';
 import {ViewStyle} from 'react-native';
 
 /**
@@ -21,14 +20,17 @@ export default {
     },
 
     dInline: {
-        display: 'inline',
+        // NOTE: asserting "display" to a valid type, because isn't possible to augment "display".
+        display: 'inline' as ViewStyle['display'],
     },
 
     dInlineFlex: {
-        display: 'inline-flex',
+        // NOTE: asserting "display" to a valid type, because isn't possible to augment "display".
+        display: 'inline-flex' as ViewStyle['display'],
     },
 
     dBlock: {
-        display: 'block',
+        // NOTE: asserting "display" to a valid type, because isn't possible to augment "display".
+        display: 'block' as ViewStyle['display'],
     },
-} satisfies Record<string, ViewStyle | CSSProperties>;
+} satisfies Record<string, ViewStyle>;

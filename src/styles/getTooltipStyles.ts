@@ -1,12 +1,11 @@
-import {CSSProperties} from 'react';
 import {TextStyle, View, ViewStyle} from 'react-native';
-import spacing from './utilities/spacing';
-import styles from './styles';
 import colors from './colors';
-import themeColors from './themes/default';
 import fontFamily from './fontFamily';
-import variables from './variables';
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
+import styles from './styles';
+import themeColors from './themes/default';
+import spacing from './utilities/spacing';
+import variables from './variables';
 
 /** This defines the proximity with the edge of the window in which tooltips should not be displayed.
  * If a tooltip is too close to the edge of the screen, we'll shift it towards the center. */
@@ -96,9 +95,9 @@ function isOverlappingAtTop(tooltip: View | HTMLDivElement, xOffset: number, yOf
 
 type TooltipStyles = {
     animationStyle: ViewStyle;
-    rootWrapperStyle: ViewStyle | CSSProperties;
+    rootWrapperStyle: ViewStyle;
     textStyle: TextStyle;
-    pointerWrapperStyle: ViewStyle | CSSProperties;
+    pointerWrapperStyle: ViewStyle;
     pointerStyle: ViewStyle;
 };
 
@@ -238,7 +237,8 @@ export default function getTooltipStyles(
             transform: [{scale}],
         },
         rootWrapperStyle: {
-            position: 'fixed',
+            // NOTE: asserting "position" to a valid type, because isn't possible to augment "position".
+            position: 'fixed' as ViewStyle['position'],
             backgroundColor: themeColors.heading,
             borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
@@ -260,7 +260,8 @@ export default function getTooltipStyles(
             lineHeight: variables.lineHeightSmall,
         },
         pointerWrapperStyle: {
-            position: 'fixed',
+            // NOTE: asserting "position" to a valid type, because isn't possible to augment "position".
+            position: 'fixed' as ViewStyle['position'],
             top: pointerWrapperTop,
             left: pointerWrapperLeft,
         },
