@@ -2141,7 +2141,7 @@ function buildOptimisticIOUReportAction(
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
-        whisperedToAccountIDs: !_.isEmpty(receipt) ? [currentUserAccountID] : [],
+        whisperedToAccountIDs: lodashGet(receipt, 'state', '') === CONST.IOU.RECEIPT_STATE.SCANREADY ? [currentUserAccountID] : [],
     };
 }
 /**
