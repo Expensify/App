@@ -144,8 +144,7 @@ function isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, p
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 function PaymentMethodList(props) {
-    const {actionPaymentMethodType, activePaymentMethodID, bankAccountList, fundList, filterType, network, onPress, shouldShowSelectedState, selectedMethodID, translate} =
-        props;
+    const {actionPaymentMethodType, activePaymentMethodID, bankAccountList, fundList, filterType, network, onPress, shouldShowSelectedState, selectedMethodID, translate} = props;
 
     const filteredPaymentMethods = useMemo(() => {
         const paymentCardList = fundList || {};

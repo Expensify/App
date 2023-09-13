@@ -177,7 +177,7 @@ function MoneyRequestPreview(props) {
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
                 return props.translate('iou.settledExpensify');
             default:
-                return props.translate('iou.settledElsewhere');;
+                return props.translate('iou.settledElsewhere');
         }
     };
 
