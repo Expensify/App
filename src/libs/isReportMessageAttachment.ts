@@ -17,7 +17,7 @@ export default function isReportMessageAttachment({text, html, translationKey}: 
         return false;
     }
 
-    if (translationKey && (text === CONST.ATTACHMENT_MESSAGE_TEXT || text === CONST.TRANSLATION_KEYS.ATTACHMENT)) {
+    if (translationKey && text === CONST.ATTACHMENT_MESSAGE_TEXT) {
         return translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
     }
 
