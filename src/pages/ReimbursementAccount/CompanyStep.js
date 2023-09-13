@@ -224,7 +224,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     <Picker
                         inputID="incorporationType"
                         label={translate('companyStep.companyType')}
-                        items={_.map(translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
+                        items={_.map(_.keys(CONST.INCORPORATION_TYPES), (key) => ({value: key, label: translate(`companyStep.incorporationTypes.${key}`)}))}
                         placeholder={{value: '', label: '-'}}
                         defaultValue={getDefaultStateForField('incorporationType')}
                         shouldSaveDraft
