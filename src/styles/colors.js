@@ -90,4 +90,6 @@ export default {
     ice600: '#4BA6A6',
     ice700: '#28736D',
     ice800: '#134038',
+
+    orange800: '#400000',
 };

@@ -7,6 +7,11 @@ import * as TestHelper from '../utils/TestHelper';
 import CONST from '../../src/CONST';
 import PushNotification from '../../src/libs/Notification/PushNotification';
 import * as App from '../../src/libs/actions/App';
+import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
+
+// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+// eslint-disable-next-line no-unused-vars
+import subscribePushNotification from '../../src/libs/Notification/PushNotification/subscribePushNotification';
 
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
 // We test HttpUtils.xhr() since this means that our API command turned into a network request and isn't only queued.
@@ -20,6 +25,7 @@ Onyx.init({
     registerStorageEventListener: () => {},
 });
 
+OnyxUpdateManager();
 beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
 
 describe('Session', () => {

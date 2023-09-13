@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
+import * as ReportUtils from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
@@ -103,6 +104,10 @@ describe('OptionsListUtils', () => {
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
+
+            // This indicates that the report is archived
+            stateNum: 2,
+            statusNum: 2,
         },
     };
 
@@ -567,39 +572,57 @@ describe('OptionsListUtils', () => {
     });
 
     it('getShareDestinationsOptions()', () => {
+        // Filter current REPORTS as we do in the component, before getting share destination options
+        const filteredReports = {};
+        _.keys(REPORTS).forEach((reportKey) => {
+            if (ReportUtils.shouldDisableWriteActions(REPORTS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS[reportKey])) {
+                return;
+            }
+            filteredReports[reportKey] = REPORTS[reportKey];
+        });
+
         // When we pass an empty search value
-        let results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], '');
+        let results = OptionsListUtils.getShareDestinationOptions(filteredReports, PERSONAL_DETAILS, [], '');
 
         // Then we should expect all the recent reports to show but exclude the archived rooms
         expect(results.recentReports.length).toBe(_.size(REPORTS) - 1);
 
         // When we pass a search value that doesn't match the group chat name
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'mutants');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReports, PERSONAL_DETAILS, [], 'mutants');
 
         // Then we should expect no recent reports to show
         expect(results.recentReports.length).toBe(0);
 
         // When we pass a search value that matches the group chat name
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'Iron Man, Fantastic');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReports, PERSONAL_DETAILS, [], 'Iron Man, Fantastic');
 
         // Then we should expect the group chat to show along with the contacts matching the search
         expect(results.recentReports.length).toBe(1);
 
+        // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
+        const filteredReportsWithWorkspaceRooms = {};
+        _.keys(REPORTS_WITH_WORKSPACE_ROOMS).forEach((reportKey) => {
+            if (ReportUtils.shouldDisableWriteActions(REPORTS_WITH_WORKSPACE_ROOMS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS_WITH_WORKSPACE_ROOMS[reportKey])) {
+                return;
+            }
+            filteredReportsWithWorkspaceRooms[reportKey] = REPORTS_WITH_WORKSPACE_ROOMS[reportKey];
+        });
+
         // When we also have a policy to return rooms in the results
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], '');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, PERSONAL_DETAILS, [], '');
 
         // Then we should expect the DMS, the group chats and the workspace room to show
         // We should expect all the recent reports to show, excluding the archived rooms
         expect(results.recentReports.length).toBe(_.size(REPORTS_WITH_WORKSPACE_ROOMS) - 1);
 
         // When we search for a workspace room
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], 'Avengers Room');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, PERSONAL_DETAILS, [], 'Avengers Room');
 
         // Then we should expect only the workspace room to show
         expect(results.recentReports.length).toBe(1);
 
         // When we search for a workspace room that doesn't exist
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], 'Mutants Lair');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, PERSONAL_DETAILS, [], 'Mutants Lair');
 
         // Then we should expect no results to show
         expect(results.recentReports.length).toBe(0);
@@ -627,5 +650,675 @@ describe('OptionsListUtils', () => {
         // Then one personal should be in personalDetails list
         expect(results.personalDetails.length).toBe(1);
         expect(results.personalDetails[0].text).toBe('Spider-Man');
+    });
+
+    it('getNewChatOptions() for categories', () => {
+        const search = 'Food';
+        const emptySearch = '';
+        const wrongSearch = 'bla bla';
+        const recentlyUsedCategories = ['Taxi', 'Restaurant'];
+        const selectedOptions = [
+            {
+                name: 'Medical',
+            },
+        ];
+        const smallCategoriesList = {
+            Taxi: {
+                enabled: false,
+                name: 'Taxi',
+            },
+            Restaurant: {
+                enabled: true,
+                name: 'Restaurant',
+            },
+            Food: {
+                enabled: true,
+                name: 'Food',
+            },
+            'Food: Meat': {
+                enabled: true,
+                name: 'Food: Meat',
+            },
+        };
+        const smallResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Taxi',
+                        keyForList: 'Taxi',
+                        searchText: 'Taxi',
+                        tooltipText: 'Taxi',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'Restaurant',
+                        keyForList: 'Restaurant',
+                        searchText: 'Restaurant',
+                        tooltipText: 'Restaurant',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food',
+                        keyForList: 'Food',
+                        searchText: 'Food',
+                        tooltipText: 'Food',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    Meat',
+                        keyForList: 'Meat',
+                        searchText: 'Food: Meat',
+                        tooltipText: 'Meat',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const smallSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Food',
+                        keyForList: 'Food',
+                        searchText: 'Food',
+                        tooltipText: 'Food',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food: Meat',
+                        keyForList: 'Food: Meat',
+                        searchText: 'Food: Meat',
+                        tooltipText: 'Food: Meat',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const smallWrongSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [],
+            },
+        ];
+        const largeCategoriesList = {
+            Taxi: {
+                enabled: false,
+                name: 'Taxi',
+            },
+            Restaurant: {
+                enabled: true,
+                name: 'Restaurant',
+            },
+            Food: {
+                enabled: true,
+                name: 'Food',
+            },
+            'Food: Meat': {
+                enabled: true,
+                name: 'Food: Meat',
+            },
+            'Food: Milk': {
+                enabled: true,
+                name: 'Food: Milk',
+            },
+            'Food: Vegetables': {
+                enabled: false,
+                name: 'Food: Vegetables',
+            },
+            'Cars: Audi': {
+                enabled: true,
+                name: 'Cars: Audi',
+            },
+            'Cars: BMW': {
+                enabled: false,
+                name: 'Cars: BMW',
+            },
+            'Cars: Mercedes-Benz': {
+                enabled: true,
+                name: 'Cars: Mercedes-Benz',
+            },
+            Medical: {
+                enabled: false,
+                name: 'Medical',
+            },
+            'Travel: Meals': {
+                enabled: true,
+                name: 'Travel: Meals',
+            },
+            'Travel: Meals: Breakfast': {
+                enabled: true,
+                name: 'Travel: Meals: Breakfast',
+            },
+            'Travel: Meals: Dinner': {
+                enabled: false,
+                name: 'Travel: Meals: Dinner',
+            },
+            'Travel: Meals: Lunch': {
+                enabled: true,
+                name: 'Travel: Meals: Lunch',
+            },
+        };
+        const largeResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: true,
+                    },
+                ],
+            },
+            {
+                title: 'Recent',
+                shouldShow: true,
+                indexOffset: 1,
+                data: [
+                    {
+                        text: 'Taxi',
+                        keyForList: 'Taxi',
+                        searchText: 'Taxi',
+                        tooltipText: 'Taxi',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'Restaurant',
+                        keyForList: 'Restaurant',
+                        searchText: 'Restaurant',
+                        tooltipText: 'Restaurant',
+                        isDisabled: false,
+                    },
+                ],
+            },
+            {
+                title: 'All',
+                shouldShow: true,
+                indexOffset: 3,
+                data: [
+                    {
+                        text: 'Taxi',
+                        keyForList: 'Taxi',
+                        searchText: 'Taxi',
+                        tooltipText: 'Taxi',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'Restaurant',
+                        keyForList: 'Restaurant',
+                        searchText: 'Restaurant',
+                        tooltipText: 'Restaurant',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food',
+                        keyForList: 'Food',
+                        searchText: 'Food',
+                        tooltipText: 'Food',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    Meat',
+                        keyForList: 'Meat',
+                        searchText: 'Food: Meat',
+                        tooltipText: 'Meat',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    Milk',
+                        keyForList: 'Milk',
+                        searchText: 'Food: Milk',
+                        tooltipText: 'Milk',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    Vegetables',
+                        keyForList: 'Vegetables',
+                        searchText: 'Food: Vegetables',
+                        tooltipText: 'Vegetables',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'Cars',
+                        keyForList: 'Cars',
+                        searchText: 'Cars',
+                        tooltipText: 'Cars',
+                        isDisabled: true,
+                    },
+                    {
+                        text: '    Audi',
+                        keyForList: 'Audi',
+                        searchText: 'Cars: Audi',
+                        tooltipText: 'Audi',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    BMW',
+                        keyForList: 'BMW',
+                        searchText: 'Cars: BMW',
+                        tooltipText: 'BMW',
+                        isDisabled: true,
+                    },
+                    {
+                        text: '    Mercedes-Benz',
+                        keyForList: 'Mercedes-Benz',
+                        searchText: 'Cars: Mercedes-Benz',
+                        tooltipText: 'Mercedes-Benz',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Travel',
+                        keyForList: 'Travel',
+                        searchText: 'Travel',
+                        tooltipText: 'Travel',
+                        isDisabled: true,
+                    },
+                    {
+                        text: '    Meals',
+                        keyForList: 'Meals',
+                        searchText: 'Travel: Meals',
+                        tooltipText: 'Meals',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '        Breakfast',
+                        keyForList: 'Breakfast',
+                        searchText: 'Travel: Meals: Breakfast',
+                        tooltipText: 'Breakfast',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '        Dinner',
+                        keyForList: 'Dinner',
+                        searchText: 'Travel: Meals: Dinner',
+                        tooltipText: 'Dinner',
+                        isDisabled: true,
+                    },
+                    {
+                        text: '        Lunch',
+                        keyForList: 'Lunch',
+                        searchText: 'Travel: Meals: Lunch',
+                        tooltipText: 'Lunch',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const largeSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Food',
+                        keyForList: 'Food',
+                        searchText: 'Food',
+                        tooltipText: 'Food',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food: Meat',
+                        keyForList: 'Food: Meat',
+                        searchText: 'Food: Meat',
+                        tooltipText: 'Food: Meat',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food: Milk',
+                        keyForList: 'Food: Milk',
+                        searchText: 'Food: Milk',
+                        tooltipText: 'Food: Milk',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food: Vegetables',
+                        keyForList: 'Food: Vegetables',
+                        searchText: 'Food: Vegetables',
+                        tooltipText: 'Food: Vegetables',
+                        isDisabled: true,
+                    },
+                ],
+            },
+        ];
+        const largeWrongSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [],
+            },
+        ];
+
+        const smallResult = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], emptySearch, [], [], false, false, true, smallCategoriesList);
+        expect(smallResult.categoryOptions).toStrictEqual(smallResultList);
+
+        const smallSearchResult = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], search, [], [], false, false, true, smallCategoriesList);
+        expect(smallSearchResult.categoryOptions).toStrictEqual(smallSearchResultList);
+
+        const smallWrongSearchResult = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], wrongSearch, [], [], false, false, true, smallCategoriesList);
+        expect(smallWrongSearchResult.categoryOptions).toStrictEqual(smallWrongSearchResultList);
+
+        const largeResult = OptionsListUtils.getNewChatOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            emptySearch,
+            selectedOptions,
+            [],
+            false,
+            false,
+            true,
+            largeCategoriesList,
+            recentlyUsedCategories,
+        );
+        expect(largeResult.categoryOptions).toStrictEqual(largeResultList);
+
+        const largeSearchResult = OptionsListUtils.getNewChatOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            search,
+            selectedOptions,
+            [],
+            false,
+            false,
+            true,
+            largeCategoriesList,
+            recentlyUsedCategories,
+        );
+        expect(largeSearchResult.categoryOptions).toStrictEqual(largeSearchResultList);
+
+        const largeWrongSearchResult = OptionsListUtils.getNewChatOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            wrongSearch,
+            selectedOptions,
+            [],
+            false,
+            false,
+            true,
+            largeCategoriesList,
+            recentlyUsedCategories,
+        );
+        expect(largeWrongSearchResult.categoryOptions).toStrictEqual(largeWrongSearchResultList);
+    });
+
+    it('getCategoryOptionTree()', () => {
+        const categories = {
+            Taxi: {
+                enabled: false,
+                name: 'Taxi',
+            },
+            Restaurant: {
+                enabled: true,
+                name: 'Restaurant',
+            },
+            Food: {
+                enabled: true,
+                name: 'Food',
+            },
+            'Food: Meat': {
+                enabled: true,
+                name: 'Food: Meat',
+            },
+            'Food: Milk': {
+                enabled: true,
+                name: 'Food: Milk',
+            },
+            'Food: Vegetables': {
+                enabled: false,
+                name: 'Food: Vegetables',
+            },
+            'Cars: Audi': {
+                enabled: true,
+                name: 'Cars: Audi',
+            },
+            'Cars: BMW': {
+                enabled: false,
+                name: 'Cars: BMW',
+            },
+            'Cars: Mercedes-Benz': {
+                enabled: true,
+                name: 'Cars: Mercedes-Benz',
+            },
+            Medical: {
+                enabled: false,
+                name: 'Medical',
+            },
+            'Travel: Meals': {
+                enabled: true,
+                name: 'Travel: Meals',
+            },
+            'Travel: Meals: Breakfast': {
+                enabled: true,
+                name: 'Travel: Meals: Breakfast',
+            },
+            'Travel: Meals: Dinner': {
+                enabled: false,
+                name: 'Travel: Meals: Dinner',
+            },
+            'Travel: Meals: Lunch': {
+                enabled: true,
+                name: 'Travel: Meals: Lunch',
+            },
+            Plain: {
+                enabled: true,
+                name: 'Plain',
+            },
+            Health: {
+                enabled: true,
+                name: 'Health',
+            },
+            'A: B: C': {
+                enabled: true,
+                name: 'A: B: C',
+            },
+            'A: B: C: D: E': {
+                enabled: true,
+                name: 'A: B: C: D: E',
+            },
+        };
+        const result = [
+            {
+                text: 'Taxi',
+                keyForList: 'Taxi',
+                searchText: 'Taxi',
+                tooltipText: 'Taxi',
+                isDisabled: true,
+            },
+            {
+                text: 'Restaurant',
+                keyForList: 'Restaurant',
+                searchText: 'Restaurant',
+                tooltipText: 'Restaurant',
+                isDisabled: false,
+            },
+            {
+                text: 'Food',
+                keyForList: 'Food',
+                searchText: 'Food',
+                tooltipText: 'Food',
+                isDisabled: false,
+            },
+            {
+                text: '    Meat',
+                keyForList: 'Meat',
+                searchText: 'Food: Meat',
+                tooltipText: 'Meat',
+                isDisabled: false,
+            },
+            {
+                text: '    Milk',
+                keyForList: 'Milk',
+                searchText: 'Food: Milk',
+                tooltipText: 'Milk',
+                isDisabled: false,
+            },
+            {
+                text: '    Vegetables',
+                keyForList: 'Vegetables',
+                searchText: 'Food: Vegetables',
+                tooltipText: 'Vegetables',
+                isDisabled: true,
+            },
+            {
+                text: 'Cars',
+                keyForList: 'Cars',
+                searchText: 'Cars',
+                tooltipText: 'Cars',
+                isDisabled: true,
+            },
+            {
+                text: '    Audi',
+                keyForList: 'Audi',
+                searchText: 'Cars: Audi',
+                tooltipText: 'Audi',
+                isDisabled: false,
+            },
+            {
+                text: '    BMW',
+                keyForList: 'BMW',
+                searchText: 'Cars: BMW',
+                tooltipText: 'BMW',
+                isDisabled: true,
+            },
+            {
+                text: '    Mercedes-Benz',
+                keyForList: 'Mercedes-Benz',
+                searchText: 'Cars: Mercedes-Benz',
+                tooltipText: 'Mercedes-Benz',
+                isDisabled: false,
+            },
+            {
+                text: 'Medical',
+                keyForList: 'Medical',
+                searchText: 'Medical',
+                tooltipText: 'Medical',
+                isDisabled: true,
+            },
+            {
+                text: 'Travel',
+                keyForList: 'Travel',
+                searchText: 'Travel',
+                tooltipText: 'Travel',
+                isDisabled: true,
+            },
+            {
+                text: '    Meals',
+                keyForList: 'Meals',
+                searchText: 'Travel: Meals',
+                tooltipText: 'Meals',
+                isDisabled: false,
+            },
+            {
+                text: '        Breakfast',
+                keyForList: 'Breakfast',
+                searchText: 'Travel: Meals: Breakfast',
+                tooltipText: 'Breakfast',
+                isDisabled: false,
+            },
+            {
+                text: '        Dinner',
+                keyForList: 'Dinner',
+                searchText: 'Travel: Meals: Dinner',
+                tooltipText: 'Dinner',
+                isDisabled: true,
+            },
+            {
+                text: '        Lunch',
+                keyForList: 'Lunch',
+                searchText: 'Travel: Meals: Lunch',
+                tooltipText: 'Lunch',
+                isDisabled: false,
+            },
+            {
+                text: 'Plain',
+                keyForList: 'Plain',
+                searchText: 'Plain',
+                tooltipText: 'Plain',
+                isDisabled: false,
+            },
+            {
+                text: 'Health',
+                keyForList: 'Health',
+                searchText: 'Health',
+                tooltipText: 'Health',
+                isDisabled: false,
+            },
+            {
+                text: 'A',
+                keyForList: 'A',
+                searchText: 'A',
+                tooltipText: 'A',
+                isDisabled: true,
+            },
+            {
+                text: '    B',
+                keyForList: 'B',
+                searchText: 'A: B',
+                tooltipText: 'B',
+                isDisabled: true,
+            },
+            {
+                text: '        C',
+                keyForList: 'C',
+                searchText: 'A: B: C',
+                tooltipText: 'C',
+                isDisabled: false,
+            },
+            {
+                text: '            D',
+                keyForList: 'D',
+                searchText: 'A: B: C: D',
+                tooltipText: 'D',
+                isDisabled: true,
+            },
+            {
+                text: '                E',
+                keyForList: 'E',
+                searchText: 'A: B: C: D: E',
+                tooltipText: 'E',
+                isDisabled: false,
+            },
+        ];
+
+        expect(OptionsListUtils.getCategoryOptionTree(categories)).toStrictEqual(result);
+    });
+
+    it('formatMemberForList()', () => {
+        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, key === '1'));
+
+        // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
+        expect(formattedMembers[0].text).toBe('Mister Fantastic');
+        expect(formattedMembers[1].text).toBe('Iron Man');
+        expect(formattedMembers[2].text).toBe('Spider-Man');
+
+        // We should expect only the first item to be selected
+        expect(formattedMembers[0].isSelected).toBe(true);
+
+        // And all the others to be unselected
+        expect(_.every(formattedMembers.slice(1), (personalDetail) => !personalDetail.isSelected)).toBe(true);
+
+        // `isDisabled` is always false
+        expect(_.every(formattedMembers, (personalDetail) => !personalDetail.isDisabled)).toBe(true);
+
+        // `rightElement` is always null
+        expect(_.every(formattedMembers, (personalDetail) => personalDetail.rightElement === null)).toBe(true);
+
+        // The PERSONAL_DETAILS list doesn't specify `participantsList[n].avatar`, so the default one should be used
+        expect(_.every(formattedMembers, (personalDetail) => Boolean(personalDetail.avatar.source))).toBe(true);
     });
 });
