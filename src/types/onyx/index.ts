@@ -33,9 +33,11 @@ import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import WalletTransfer from './WalletTransfer';
 import ReceiptModal from './ReceiptModal';
 import MapboxAccessToken from './MapboxAccessToken';
+import OnyxUpdatesFromServer from './OnyxUpdatesFromServer';
 import Download from './Download';
 import PolicyMember from './PolicyMember';
 import Policy from './Policy';
+import PolicyCategory from './PolicyCategory';
 import Report from './Report';
 import ReportAction from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
@@ -43,6 +45,7 @@ import SecurityGroup from './SecurityGroup';
 import Transaction from './Transaction';
 import Form, {AddDebitCardForm} from './Form';
 import RecentWaypoints from './RecentWaypoints';
+import RecentlyUsedCategories from './RecentlyUsedCategories';
 
 export type {
     Account,
@@ -83,6 +86,7 @@ export type {
     Download,
     PolicyMember,
     Policy,
+    PolicyCategory,
     Report,
     ReportAction,
     ReportActionReactions,
@@ -90,5 +94,7 @@ export type {
     Transaction,
     Form,
     AddDebitCardForm,
+    OnyxUpdatesFromServer,
     RecentWaypoints,
+    RecentlyUsedCategories,
 };

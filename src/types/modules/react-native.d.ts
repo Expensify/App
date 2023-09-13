@@ -244,4 +244,9 @@ declare module 'react-native' {
     interface ViewStyle extends WebStyle, WebViewStyle {}
     interface TextStyle extends WebStyle {}
     interface ImageStyle extends WebStyle {}
+
+    interface TextInput {
+        // Typescript type declaration is missing in React Native for setting text selection.
+        setSelection: (start: number, end: number) => void;
+    }
 }

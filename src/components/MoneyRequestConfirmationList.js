@@ -33,6 +33,7 @@ import ConfirmedRoute from './ConfirmedRoute';
 import transactionPropTypes from './transactionPropTypes';
 import DistanceRequestUtils from '../libs/DistanceRequestUtils';
 import * as IOU from '../libs/actions/IOU';
+import Permissions from '../libs/Permissions';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -90,6 +91,9 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     /** The policyID of the request */
     policyID: PropTypes.string,
 
@@ -144,6 +148,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    betas: [],
     policyID: '',
     reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -171,7 +176,7 @@ function MoneyRequestConfirmationList(props) {
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
-    const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
+    const shouldCategoryBeEditable = !_.isEmpty(props.policyCategories) && Permissions.canUseCategories(props.betas);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
         shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
@@ -291,14 +296,13 @@ function MoneyRequestConfirmationList(props) {
         return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
     }, [selectedParticipants, props.hasMultipleParticipants, payeePersonalDetails]);
 
-    const distanceMerchant = useMemo(() => DistanceRequestUtils.getDistanceMerchant(distance, unit, rate, currency, translate), [distance, unit, rate, currency, translate]);
-
     useEffect(() => {
         if (!props.isDistanceRequest) {
             return;
         }
+        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(distance, unit, rate, currency, translate);
         IOU.setMoneyRequestMerchant(distanceMerchant);
-    }, [distanceMerchant, props.isDistanceRequest]);
+    }, [distance, unit, rate, currency, translate, props.isDistanceRequest]);
 
     /**
      * @param {Object} option
@@ -467,7 +471,7 @@ function MoneyRequestConfirmationList(props) {
                     {props.isDistanceRequest ? (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                            title={distanceMerchant}
+                            title={props.iouMerchant}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}
@@ -485,7 +489,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}
-                    {shouldCategoryEditable && (
+                    {shouldCategoryBeEditable && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouCategory}
@@ -509,6 +513,9 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
         policyCategories: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
