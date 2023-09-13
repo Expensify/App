@@ -69,7 +69,7 @@ function LoungeAccessPage(props) {
     }
 
     const checkIn = () => {
-        Lounge.recordLoungeVisit();
+        Lounge.recordLoungeVisit(props.user.loungeCheckInDetails.checkInsRemaining);
     }
 
     const overlayContent = () => (
