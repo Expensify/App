@@ -85,6 +85,10 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
+                            Settings_Wallet_Cards_Digital_Details_Update_Address: {
+                                path: ROUTES.SETTINGS_WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
+                                exact: true,
+                            },
                             Settings_Add_Paypal_Me: {
                                 path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
                                 exact: true,

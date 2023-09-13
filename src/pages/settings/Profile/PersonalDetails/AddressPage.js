@@ -134,7 +134,8 @@ function AddressPage({privatePersonalDetails}) {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
-                title={translate('privatePersonalDetails.homeAddress')}
+                // title={translate('privatePersonalDetails.homeAddress')}
+                title="Address"
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
