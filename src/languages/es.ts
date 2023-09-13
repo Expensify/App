@@ -1,7 +1,6 @@
 import CONST from '../CONST';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import type {
-    Translation,
     AddressLineParams,
     CharacterLimitParams,
     MaxParticipantsReachedParams,
@@ -72,6 +71,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    Translation,
 } from './types';
 
 /* eslint-disable max-len */
