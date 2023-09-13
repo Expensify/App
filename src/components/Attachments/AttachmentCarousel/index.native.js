@@ -5,11 +5,11 @@ import _ from 'underscore';
 import AttachmentCarouselPager from './Pager';
 import styles from '../../../styles/styles';
 import CarouselButtons from './CarouselButtons';
-import AttachmentView from '../AttachmentView';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import useCarouselArrows from './useCarouselArrows';
+import CarouselItem from './CarouselItem';
 import Navigation from '../../../libs/Navigation/Navigation';
 import BlockingView from '../../BlockingViews/BlockingView';
 import * as Illustrations from '../../Icon/Illustrations';
@@ -85,17 +85,14 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
 
     /**
      * Defines how a single attachment should be rendered
-     * @param {{ isAuthTokenRequired: Boolean, source: String, file: { name: String } }} item
+     * @param {{ reportActionID: String, isAuthTokenRequired: Boolean, source: String, file: { name: String }, hasBeenFlagged: Boolean }} item
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
         ({item}) => (
-            <AttachmentView
-                source={item.source}
-                file={item.file}
-                isAuthTokenRequired={item.isAuthTokenRequired}
+            <CarouselItem
+                item={item}
                 isFocused={activeSource === item.source}
-                isUsedInCarousel
                 onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),
