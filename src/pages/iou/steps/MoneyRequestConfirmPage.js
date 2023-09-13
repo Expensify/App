@@ -59,7 +59,7 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmPage(props) {
-    const [isBillable, setIsBillable] = useState(props.policy?.defaultBillable);
+    const [isBillable, setIsBillable] = useState(lodashGet(props.policy, 'defaultBillable', false));
     const {windowHeight} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));

@@ -601,7 +601,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {String} comment
  * @param {Object} [receipt]
  * @param {String} [category]
- * * @param {Boolean} defaultBillable
+ * @param {Boolean} [defaultBillable]
  */
 function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined, category = undefined, defaultBillable = false) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -1898,7 +1898,7 @@ function resetMoneyRequestCategory() {
  * @param {Boolean} defaultBillable
  */
 function setMoneyRequestDefaultBillable(defaultBillable) {
-    Onyx.merge(ONYXKEYS.IOU, {defaultBillable: defaultBillable});
+    Onyx.merge(ONYXKEYS.IOU, {defaultBillable});
 }
 
 /**
