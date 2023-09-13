@@ -2281,8 +2281,11 @@ export default {
     reportCardLostOrDamaged: {
         screenTitle: 'Report card lost or damaged',
         nextButtonLabel: 'Next',
-        title: 'Why do you need a new card?',
+        reasonTitle: 'Why do you need a new card?',
         cardDamaged: 'My card was damaged',
         cardLostOrStolen: 'My card was lost or stolen',
+        confirmAddressTitle: "Please confirm the address below is where you'd like us to send your new card.",
+        currentCardInfo: 'Your current card will be permanently deactivated as soon as your order is placed. Most cards arrive in a few business days.',
+        address: 'Address',
     },
 };
