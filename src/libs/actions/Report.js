@@ -916,7 +916,7 @@ function broadcastUserIsTyping(reportID) {
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
 /**
- * Broadcasts whether or not a user is leaving on a report over the report's private pusher channel.
+ * Broadcasts to the report's private pusher channel whether a user is leaving a report
  *
  * @param {String} reportID
  */

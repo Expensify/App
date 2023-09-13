@@ -88,7 +88,7 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    /** Whether user leaving current report that listen to another device leaveRoom trigger */
+    /** Whether user is leaving the current report */
     userLeavingStatus: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
@@ -290,7 +290,7 @@ function ReportScreen({
         const prevOnyxReportID = prevReport.reportID;
         const routeReportID = getReportID(route);
 
-        // navigate to concierge when the room removed from another device (e.g. user leaving a room)
+        // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room)
         if (
             // non-optimistic case
             userLeavingStatus ||
