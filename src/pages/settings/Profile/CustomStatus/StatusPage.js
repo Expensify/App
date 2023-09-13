@@ -44,8 +44,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const navigateBackToSettingsPage = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
     const updateStatus = useCallback(() => {
-        const endOfDay = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
-        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay});
+        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji});
 
         User.clearDraftCustomStatus();
         Navigation.goBack(ROUTES.SETTINGS_PROFILE);
