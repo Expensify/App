@@ -190,10 +190,10 @@ export default withOnyx({
     credentials: {key: ONYXKEYS.CREDENTIALS},
     /** 
     This variable is only added to make sure the component is re-rendered 
-    whenever the activeClients change, so that we can call the 
-    ActiveClientManager.isClientTheLeader function.
-    We use that function instead of using this variable to keep the code
-    that checks the activeLeader in one place.
+    whenever the activeClients change, so that we call the 
+    ActiveClientManager.isClientTheLeader function 
+    everytime the leader client changes.
+    We use that to prevent repeating code that checks which client is the leader.
     */
     activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS}
 })(SignInPage);
