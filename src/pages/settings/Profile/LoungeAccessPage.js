@@ -107,7 +107,7 @@ function LoungeAccessPage(props) {
             overlayContent={overlayContent}
         >
             <View style={[styles.w100, styles.ph5, styles.pb8]}>
-                <Text style={[styles.textStrong, styles.mb4]}>{translate('loungeAccessPage.checkIn')}</Text>
+                <Text style={[styles.textStrong, styles.mb2]}>{translate('loungeAccessPage.checkIn')}</Text>
                 <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('loungeAccessPage.addressLabel')}</Text>
                 <Text style={[styles.mb4]}>{translate('loungeAccessPage.address')}</Text>
                 <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('loungeAccessPage.nextCheckInLabel')}</Text>
