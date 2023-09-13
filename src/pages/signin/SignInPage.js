@@ -19,6 +19,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
+import * as ActiveClientManager from '../../libs/ActiveClientManager';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -45,6 +46,9 @@ const propTypes = {
         twoFactorAuthCode: PropTypes.string,
         validateCode: PropTypes.string,
     }),
+    
+    /** Active Clients connected to ONYX Database */
+    activeClients: PropTypes.arrayOf(PropTypes.string),
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
@@ -64,13 +68,13 @@ const defaultProps = {
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, hasEmailDeliveryFailure}) {
-    const shouldShowLoginForm = !hasLogin && !hasValidateCode;
+function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, hasEmailDeliveryFailure, isClientTheLeader}) {
+    const shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || !isClientTheLeader;
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
@@ -92,7 +96,9 @@ function SignInPage({credentials, account, isInModal}) {
     useEffect(() => {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
-
+    
+    const isClientTheLeader = ActiveClientManager.isClientTheLeader();
+    
     const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions(
         {
             hasLogin: Boolean(credentials.login),
@@ -101,13 +107,18 @@ function SignInPage({credentials, account, isInModal}) {
             isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
             isAccountValidated: Boolean(account.validated),
             hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
+            isClientTheLeader
         },
     );
 
     let welcomeHeader = '';
     let welcomeText = '';
     const headerText = translate('login.hero.header');
-    if (shouldShowLoginForm) {
+
+    if (!isClientTheLeader) {
+        welcomeHeader = translate('welcomeText.anotherLoginPageIsOpen');
+        welcomeText = translate('welcomeText.anotherLoginPageIsOpenExplanation');
+    } else if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
         welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
     } else if (shouldShowValidateCodeForm) {
@@ -177,4 +188,12 @@ SignInPage.displayName = 'SignInPage';
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
+    /** 
+    This variable is only added to make sure the component is re-rendered 
+    whenever the activeClients change, so that we can call the 
+    ActiveClientManager.isClientTheLeader function.
+    We use that function instead of using this variable to keep the code
+    that checks the activeLeader in one place.
+    */
+    activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS}
 })(SignInPage);

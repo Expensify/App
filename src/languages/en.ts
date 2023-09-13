@@ -333,6 +333,8 @@ export default {
     phoneCountryCode: '1',
     welcomeText: {
         getStarted: 'Get started below.',
+        anotherLoginPageIsOpen: 'Another Login Page is open.',
+        anotherLoginPageIsOpenExplanation: 'You\'ve opened the Login page in a separate tab, please Login from that specific tab.',
         welcomeBack: 'Welcome back!',
         welcome: 'Welcome!',
         phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
