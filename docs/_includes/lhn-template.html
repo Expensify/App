@@ -1,4 +1,5 @@
-{% assign activeHub = page.url | remove: "/hubs/" | remove: ".html" %}
+{% assign activePlatform = page.url | replace:'/',' ' | truncatewords: 1 | remove:'...' %}
+{% assign activeHub = page.url | remove: activePlatform | remove: "/hubs/" | remove: "/" | remove: ".html" %}
 
 <ul class="lhn-items">
     <li class="home-link">
@@ -9,8 +10,39 @@
         {% endif %}
     </li>
 
-    {% for hub in site.data.routes.hubs %}
-        {% if hub.href == activeHub %}
+    {% for platform in site.data.routes.platforms %}
+        {% assign hub = platform.hubs | where: "href", activeHub | first %}
+        {{ hub }}
+        {% if platform.href == activePlatform %}
+            <li>
+                <div class="icon-with-link selected">
+                    <img src="/assets/images/down.svg" class="base-icon"></img>
+                    <span>{{ platform.title }}</span>
+                </div>
+            </li>
+
+        {% else %}
+            <li>
+                <a href="/{{ platform.href }}/hubs" class="icon-with-link link">
+                    <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
+                    {{ platform.title }}
+                </a>
+            </li>
+        {% endif %}
+    {% endfor %}
+</ul>
+
+<!-- 
+<ul class="nested-treeview">
+    {% for article in hub.articles %}
+        {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
+    {% endfor %}
+</ul> -->
+
+
+<!-- 
+
+           {% if hub.href == activeHub %}
             <li>
                 <div class="icon-with-link selected">
                     <img src="/assets/images/down.svg" class="base-icon"></img>
@@ -44,5 +76,8 @@
                 </a>
             </li>
         {% endif %}
-    {% endfor %}
-</ul>
+
+
+
+
+ -->

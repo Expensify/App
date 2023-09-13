@@ -87,7 +87,7 @@ function createHubsWithArticles(hubs, platformName, routeHubs) {
             const articles = [];
 
             // Each subfolder will be a section containing articles
-            fs.readdirSync(`${docsDir}/${platformName}/articles/${hub}/${section}`).forEach((subArticle) => {
+            fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}/${section}`).forEach((subArticle) => {
                 articles.push(getArticleObj(subArticle));
             });
 
