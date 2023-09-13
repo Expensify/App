@@ -88,7 +88,7 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    /** Whether user leaving current report that listen to another device leaveRoom trigger */
+    /** Whether user is leaving the current report */
     userLeavingStatus: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
