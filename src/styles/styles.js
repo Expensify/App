@@ -1548,7 +1548,7 @@ const styles = {
         top: 0,
         bottom: 0,
         right: 0,
-        backgroundColor: Colors.black,
+        backgroundColor: themeColors.shadow,
         opacity: current.progress.interpolate({
             inputRange: [0, 1],
             outputRange: [0, variables.overlayOpacity],
