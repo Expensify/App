@@ -520,7 +520,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
-                    {canUseTags && tagList ? (
+                    {canUseTags && !!tagList && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouTag}
@@ -529,7 +529,7 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             disabled={didConfirm || props.isReadOnly}
                         />
-                    ) : null}
+                    )}
                 </>
             )}
         </OptionsSelector>
