@@ -113,35 +113,14 @@ function getReportChannelName(reportID) {
  * @param {Object} typingStatus
  * @returns {Object}
  */
-function getNormalizedTypingStatus(typingStatus) {
-    let normalizedTypingStatus = typingStatus;
+function getNormalizedStatus(status) {
+    let normalizedStatus = status;
 
-    if (_.first(_.keys(typingStatus)) === 'userLogin') {
-        normalizedTypingStatus = {[typingStatus.userLogin]: true};
+    if (_.first(_.keys(status)) === 'userLogin') {
+        normalizedStatus = {[status.userLogin]: true};
     }
 
-    return normalizedTypingStatus;
-}
-
-/**
- * There are 2 possibilities that we can receive via pusher for a user's leaving status:
- * 1. The "new" way from New Expensify is passed as {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
- * is whether the user with that login is leaving on the report or not.
- * 2. The "old" way from e.com which is passed as {userLogin: login} (e.g. {userLogin: bstites@expensify.com})
- *
- * This method makes sure that no matter which we get, we return the "new" format
- *
- * @param {Object} leavingStatus
- * @returns {Object}
- */
-function getNormalizedLeavingStatus(leavingStatus) {
-    let normalizedLeavingStatus = leavingStatus;
-
-    if (_.first(_.keys(leavingStatus)) === 'userLogin') {
-        normalizedLeavingStatus = {[leavingStatus.userLogin]: true};
-    }
-
-    return normalizedLeavingStatus;
+    return normalizedStatus;
 }
 
 /**
@@ -162,7 +141,7 @@ function subscribeToReportTypingEvents(reportID) {
         // If the pusher message comes from OldDot, we expect the typing status to be keyed by user
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
-        const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
+        const normalizedTypingStatus = getNormalizedStatus(typingStatus);
         const accountIDOrLogin = _.first(_.keys(normalizedTypingStatus));
 
         if (!accountIDOrLogin) {
@@ -209,7 +188,7 @@ function subscribeToReportLeavingEvents(reportID) {
         // If the pusher message comes from OldDot, we expect the leaving status to be keyed by user
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
-        const normalizedLeavingStatus = getNormalizedLeavingStatus(leavingStatus);
+        const normalizedLeavingStatus = getNormalizedStatus(leavingStatus);
         const accountIDOrLogin = _.first(_.keys(normalizedLeavingStatus));
 
         if (!accountIDOrLogin) {
