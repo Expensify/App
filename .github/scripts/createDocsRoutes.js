@@ -48,7 +48,6 @@ function run() {
     const newExpensifyHubs = fs.readdirSync(`${docsDir}/articles/new-expensify`);
     const expensifyClassicHubs = fs.readdirSync(`${docsDir}/articles/expensify-classic`);
 
-
     const newExpensifyRoute = routes.platforms.find((platform) => platform.href === "new-expensify");
     const expensifyClassicRoute = routes.platforms.find((platform) => platform.href === "expensify-classic");
 
@@ -62,21 +61,24 @@ function run() {
         return 1;
     }
 
-    // // Convert the object to YAML and write it to the file
-    // let yamlString = yaml.dump(routes);
-    // yamlString = disclaimer + yamlString;
-    // fs.writeFileSync(`${docsDir}/_data/routes.yml`, yamlString);
+    createHubsWithArticles(expensifyClassicHubs, "expensify-classic", expensifyClassicRoute.hubs);
+    createHubsWithArticles(newExpensifyHubs, "new-expensify", newExpensifyRoute.hubs);
+
+    // Convert the object to YAML and write it to the file
+    let yamlString = yaml.dump(routes);
+    yamlString = disclaimer + yamlString;
+    fs.writeFileSync(`${docsDir}/_data/routes.yml`, yamlString);
 }
 
 
-function createHubWithArticles(hubs) {
+function createHubsWithArticles(hubs, platformName, routeHubs) {
     _.each(hubs, (hub) => {
         // Iterate through each directory in articles
-        fs.readdirSync(`${docsDir}/articles/${hub}`).forEach((fileOrFolder) => {
+        fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}`).forEach((fileOrFolder) => {
             // If the directory content is a markdown file, then it is an article
             if (fileOrFolder.endsWith('.md')) {
                 const articleObj = getArticleObj(fileOrFolder);
-                pushOrCreateEntry(routes.hubs, hub, 'articles', articleObj);
+                pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
                 return;
             }
 
@@ -85,11 +87,11 @@ function createHubWithArticles(hubs) {
             const articles = [];
 
             // Each subfolder will be a section containing articles
-            fs.readdirSync(`${docsDir}/articles/${hub}/${section}`).forEach((subArticle) => {
+            fs.readdirSync(`${docsDir}/${platformName}/articles/${hub}/${section}`).forEach((subArticle) => {
                 articles.push(getArticleObj(subArticle));
             });
 
-            pushOrCreateEntry(routes.hubs, hub, 'sections', {
+            pushOrCreateEntry(routeHubs, hub, 'sections', {
                 href: section,
                 title: toTitleCase(section.replaceAll('-', ' ')),
                 articles,
