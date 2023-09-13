@@ -212,7 +212,7 @@ class Button extends Component {
                 numberOfLines={1}
                 selectable={false}
                 style={[
-                    this.props.isLoading && this.props.this.props.themeStyles.opacity0,
+                    this.props.isLoading && this.props.themeStyles.opacity0,
                     this.props.themeStyles.pointerEventsNone,
                     this.props.themeStyles.buttonText,
                     this.props.small && this.props.themeStyles.buttonSmallText,
