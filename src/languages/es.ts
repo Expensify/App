@@ -71,6 +71,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    TagSelectionParams,
     EnglishTranslation,
 } from './types';
 
@@ -234,6 +235,7 @@ export default {
         merchant: 'Comerciante',
         category: 'Categoría',
         billable: 'Facturable',
+        tag: 'Etiqueta',
         receipt: 'Recibo',
         replace: 'Sustituir',
         distance: 'Distancia',
@@ -538,6 +540,7 @@ export default {
             `cambío ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
+        tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',

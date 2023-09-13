@@ -9,6 +9,7 @@ import Text from './Text';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
+import Permissions from '../libs/Permissions';
 import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
@@ -31,11 +32,11 @@ import useLocalize from '../hooks/useLocalize';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
 import categoryPropTypes from './categoryPropTypes';
 import Switch from './Switch';
+import tagPropTypes from './tagPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import transactionPropTypes from './transactionPropTypes';
 import DistanceRequestUtils from '../libs/DistanceRequestUtils';
 import * as IOU from '../libs/actions/IOU';
-import Permissions from '../libs/Permissions';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -70,6 +71,9 @@ const propTypes = {
 
     /** IOU Category */
     iouCategory: PropTypes.string,
+
+    /** IOU Tag */
+    iouTag: PropTypes.string,
 
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
@@ -111,10 +115,6 @@ const propTypes = {
     /** List styles for OptionsSelector */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    /* Onyx Props */
-    /** Collection of categories attached to a policy */
-    policyCategories: PropTypes.objectOf(categoryPropTypes),
-
     /** ID of the transaction that represents the money request */
     transactionID: PropTypes.string,
 
@@ -135,6 +135,19 @@ const propTypes = {
 
     /** Whether the money request is a distance request */
     isDistanceRequest: PropTypes.bool,
+
+    /* Onyx Props */
+    /** Collection of categories attached to a policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
+
+    /** Collection of tags attached to a policy */
+    policyTags: PropTypes.objectOf(
+        PropTypes.shape({
+            name: PropTypes.string,
+            required: PropTypes.bool,
+            tags: PropTypes.objectOf(tagPropTypes),
+        }),
+    ),
 };
 
 const defaultProps = {
@@ -143,6 +156,7 @@ const defaultProps = {
     onSelectParticipant: () => {},
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     iouCategory: '',
+    iouTag: '',
     payeePersonalDetails: null,
     canModifyParticipants: false,
     isReadOnly: false,
@@ -158,6 +172,7 @@ const defaultProps = {
     receiptSource: '',
     listStyles: [],
     policyCategories: {},
+    policyTags: {},
     transactionID: '',
     transaction: {},
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
@@ -179,6 +194,12 @@ function MoneyRequestConfirmationList(props) {
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
     const shouldCategoryBeEditable = !_.isEmpty(props.policyCategories) && Permissions.canUseCategories(props.betas);
+
+    // Fetches the first tag list of the policy
+    const tagListKey = _.first(_.keys(props.policyTags));
+    const tagList = lodashGet(props.policyTags, [tagListKey, 'tags'], []);
+    const tagListName = lodashGet(props.policyTags, [tagListKey, 'name'], '');
+    const canUseTags = Permissions.canUseTags(props.betas);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
         shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
@@ -511,6 +532,16 @@ function MoneyRequestConfirmationList(props) {
                             />
                         </View>
                     )}
+                    {canUseTags && !!tagList && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly}
+                            title={props.iouTag}
+                            description={tagListName || translate('common.tag')}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestTagRoute(props.iouType, props.reportID))}
+                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            disabled={didConfirm || props.isReadOnly}
+                        />
+                    )}
                 </>
             )}
         </OptionsSelector>
@@ -531,6 +562,9 @@ export default compose(
         },
         policyCategories: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+        },
+        policyTags: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
         },
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

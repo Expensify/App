@@ -292,6 +292,7 @@ function MoneyRequestConfirmPage(props) {
                                     IOU.setMoneyRequestDefaultBillable(value);
                                 }}
                                 iouCategory={props.iou.category}
+                                iouTag={props.iou.tag}
                                 onConfirm={createTransaction}
                                 onSendMoney={sendMoney}
                                 onSelectParticipant={(option) => {

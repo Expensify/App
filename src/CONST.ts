@@ -241,6 +241,7 @@ const CONST = {
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
         NEW_DOT_CATEGORIES: 'newDotCategories',
+        NEW_DOT_TAGS: 'newDotTags',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
