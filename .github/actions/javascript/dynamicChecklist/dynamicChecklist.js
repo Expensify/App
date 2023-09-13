@@ -8,12 +8,10 @@ const checklistEndsWith = '### Screenshots/Videos';
 
 const prNumber = github.context.payload.pull_request.number;
 
-function getTypeScriptChecklistItems() {
-    return ['Make sure types pass'];
-}
+const typeScriptChecklistItems = ['Make sure types pass'];
 
 const CHECKLIST_CATEGORIES = {
-    TS: getTypeScriptChecklistItems,
+    TS: typeScriptChecklistItems,
 };
 
 /**
@@ -52,8 +50,7 @@ async function generateChecklist() {
     // Generate dynamic checks
     const checks = new Set();
     const categories = await getChecklistCategoriesForPullRequest();
-    for (const category of categories) {
-        const checksForCategory = CHECKLIST_CATEGORIES[category]();
+    for (const checksForCategory of categories) {
         for (const check of checksForCategory) {
             checks.add(check);
         }
