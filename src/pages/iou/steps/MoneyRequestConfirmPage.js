@@ -195,6 +195,9 @@ function MoneyRequestConfirmPage(props) {
 
             if (props.iou.receiptPath && props.iou.receiptSource) {
                 FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
+                    if (receipt && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST) {
+                        receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
+                    }
                     requestMoney(selectedParticipants, trimmedComment, receipt);
                 });
                 return;
