@@ -41,9 +41,9 @@ export default () => {
             // following the new format before we proceed. If it isn't, then let's clear the object in Onyx.
             if (
                 !_.isObject(val) ||
-                !Object.prototype.hasOwnProperty.call(val, 'type') ||
-                !(val.type === CONST.ONYX_UPDATE_TYPES.HTTPS && Object.prototype.hasOwnProperty.call(val, 'request') && Object.prototype.hasOwnProperty.call(val, 'response')) ||
-                !(val.type === CONST.ONYX_UPDATE_TYPES.PUSHER && Object.prototype.hasOwnProperty.call(val, 'updates'))
+                !_.has(val, 'type') ||
+                !(val.type === CONST.ONYX_UPDATE_TYPES.HTTPS && _.has(val, 'request') && _.has(val, 'response')) ||
+                !(val.type === CONST.ONYX_UPDATE_TYPES.PUSHER && _.has(val, 'updates'))
             ) {
                 Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
                 return;
