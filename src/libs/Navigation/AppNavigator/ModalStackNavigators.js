@@ -92,6 +92,13 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const MoneyRequestTagPage = require('../../../pages/iou/MoneyRequestTagPage').default;
+            return MoneyRequestTagPage;
+        },
+        name: 'Money_Request_Tag',
+    },
+    {
+        getComponent: () => {
             const MoneyRequestMerchantPage = require('../../../pages/iou/MoneyRequestMerchantPage').default;
             return MoneyRequestMerchantPage;
         },

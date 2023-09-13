@@ -248,6 +248,16 @@ function getWaypoints(transaction) {
 }
 
 /**
+ * Return the category from the transaction. This "category" field has no "modified" complement.
+ *
+ * @param {Object} transaction
+ * @return {String}
+ */
+function getCategory(transaction) {
+    return lodashGet(transaction, 'category', '');
+}
+
+/**
  * Return the created field from the transaction, return the modifiedCreated if present.
  *
  * @param {Object} transaction
@@ -381,6 +391,7 @@ export {
     getCurrency,
     getMerchant,
     getCreated,
+    getCategory,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
