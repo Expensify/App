@@ -2,7 +2,9 @@
 import React, {useMemo} from 'react';
 import useTheme from './themes/useTheme';
 import StylesContext from './ThemeStylesContext';
-import defaultStyles from './styles';
+import {styles as stylesUntyped} from './styles';
+
+const styles = stylesUntyped as (theme: Record<string, string>) => Record<string, unknown>;
 
 type ThemeStylesProviderProps = {
     children: React.ReactNode;
@@ -11,23 +13,9 @@ type ThemeStylesProviderProps = {
 function ThemeStylesProvider({children}: ThemeStylesProviderProps) {
     const theme = useTheme();
 
-    const appContentStyle = useMemo(
-        () => ({
-            ...defaultStyles.appContent,
-            backgroundColor: theme.appBG,
-        }),
-        [theme.appBG],
-    );
+    const themeStyles = useMemo(() => styles(theme), [theme]);
 
-    const styles = useMemo(
-        () => ({
-            ...defaultStyles,
-            appContent: appContentStyle,
-        }),
-        [appContentStyle],
-    );
-
-    return <StylesContext.Provider value={styles}>{children}</StylesContext.Provider>;
+    return <StylesContext.Provider value={themeStyles}>{children}</StylesContext.Provider>;
 }
 
 ThemeStylesProvider.displayName = 'ThemeStylesProvider';
