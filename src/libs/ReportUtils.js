@@ -2199,7 +2199,7 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
  */
 function buildOptimisticReportPreview(chatReport, iouReport, comment = '', transaction = undefined) {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isReceiptBeingScanned = TransactionUtils.isReceiptBeingScanned(transaction);
+    const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
     return {
         reportActionID: NumberUtils.rand64(),
