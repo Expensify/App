@@ -105,7 +105,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         const errors = {};
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
-            errors[`waypoint${waypointIndex}`] = 'bankAccount.error.address';
+            ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'bankAccount.error.address');
         }
 
         // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
