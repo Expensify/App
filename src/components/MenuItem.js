@@ -266,9 +266,9 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 </View>
                             </View>
                             <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
-                                {Boolean(props.badgeText) && (
+                                {true && (
                                     <Badge
-                                        text={props.badgeText}
+                                        text={'$0.00'}
                                         badgeStyles={[
                                             styles.alignSelfCenter,
                                             props.brickRoadIndicator ? styles.mr2 : undefined,
