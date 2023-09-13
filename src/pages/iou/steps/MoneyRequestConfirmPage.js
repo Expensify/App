@@ -27,7 +27,6 @@ import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import AttachmentPicker from '../../../components/AttachmentPicker';
 
 const propTypes = {
     /** React Navigation route */
@@ -256,21 +255,17 @@ function MoneyRequestConfirmPage(props) {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                    <AttachmentPicker>
-                        {({openPicker}) => (
-                            <HeaderWithBackButton
-                                title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
-                                onBackButtonPress={navigateBack}
-                                shouldShowThreeDotsButton={!isDistanceRequest}
-                                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                                threeDotsMenuItems={[{
-                                    icon: Expensicons.Receipt,
-                                    text: props.translate('receipt.addReceipt'),
-                                    onSelected: () => Navigation.navigate(ROUTES.getMoneyRequestReceiptRoute(iouType.current, reportID.current)),
-                                }]}
-                            />
-                        )}
-                    </AttachmentPicker>
+                    <HeaderWithBackButton
+                        title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
+                        onBackButtonPress={navigateBack}
+                        shouldShowThreeDotsButton={!isDistanceRequest}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                        threeDotsMenuItems={[{
+                            icon: Expensicons.Receipt,
+                            text: props.translate('receipt.addReceipt'),
+                            onSelected: () => Navigation.navigate(ROUTES.getMoneyRequestReceiptRoute(iouType.current, reportID.current)),
+                        }]}
+                    />
                     {/*
                      * The MoneyRequestConfirmationList component uses a SectionList which uses a VirtualizedList internally.
                      * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
