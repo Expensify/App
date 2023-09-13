@@ -522,16 +522,6 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
-                    {!lodashGet(props.policy, 'disabledFields.defaultBillable', true) && (
-                        <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
-                            <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
-                            <Switch
-                                accessibilityLabel={translate('common.billable')}
-                                isOn={props.iouIsBillable}
-                                onToggle={props.onToggleBillable}
-                            />
-                        </View>
-                    )}
                     {canUseTags && !!tagList && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
@@ -541,6 +531,16 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             disabled={didConfirm || props.isReadOnly}
                         />
+                    )}
+                    {!lodashGet(props.policy, 'disabledFields.defaultBillable', true) && (
+                        <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                            <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                            <Switch
+                                accessibilityLabel={translate('common.billable')}
+                                isOn={props.iouIsBillable}
+                                onToggle={props.onToggleBillable}
+                            />
+                        </View>
                     )}
                 </>
             )}
