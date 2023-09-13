@@ -40,6 +40,7 @@ import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import focusWithDelay from '../../../libs/focusWithDelay';
 import ONYXKEYS from '../../../ONYXKEYS';
+import * as Browser from '../../../libs/Browser';
 
 const propTypes = {
     /** All the data of the action */
@@ -88,13 +89,15 @@ const cancelButtonID = 'cancelButton';
 const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
+const isMobileSafari = Browser.isMobileSafari();
+
 function ReportActionItemMessageEdit(props) {
     const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
 
-    const [draft, setDraft] = useState(() => {
+    const getInitialDraft = () => {
         if (props.draftMessage === props.action.message[0].html) {
             // We only convert the report action message to markdown if the draft message is unchanged.
             const parser = new ExpensiMark();
@@ -102,21 +105,25 @@ function ReportActionItemMessageEdit(props) {
         }
         // We need to decode saved draft message because it's escaped before saving.
         return Str.htmlDecode(props.draftMessage);
-    });
-    const [selection, setSelection] = useState({start: 0, end: 0});
+    };
+
+    const getInitialSelection = () => {
+        if (isMobileSafari) {
+            return {start: 0, end: 0};
+        }
+
+        const length = getInitialDraft().length;
+        return {start: length, end: length};
+    };
+
+    const [draft, setDraft] = useState(() => getInitialDraft());
+    const [selection, setSelection] = useState(getInitialSelection());
     const [isFocused, setIsFocused] = useState(false);
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
 
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
     const insertedEmojis = useRef([]);
-
-    useEffect(() => {
-        if (props.draftMessage === props.action.message[0].html) {
-            return;
-        }
-        setDraft(Str.htmlDecode(props.draftMessage));
-    }, [props.draftMessage, props.action.message]);
 
     useEffect(() => {
         // required for keeping last state of isFocused variable
@@ -127,18 +134,20 @@ function ReportActionItemMessageEdit(props) {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
-        setDraft((prevDraft) => {
-            setSelection({
-                start: prevDraft.length,
-                end: prevDraft.length,
+        if (isMobileSafari) {
+            setDraft((prevDraft) => {
+                setSelection({
+                    start: prevDraft.length,
+                    end: prevDraft.length,
+                });
+                return prevDraft;
             });
-            return prevDraft;
-        });
+        }
 
         return () => {
             // Skip if this is not the focused message so the other edit composer stays focused.
             // In small screen devices, when EmojiPicker is shown, the current edit message will lose focus, we need to check this case as well.
-            if (!isFocusedRef.current && !EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
+            if (!isFocusedRef.current && !EmojiPickerAction.isActive(props.action.reportActionID)) {
                 return;
             }
 
@@ -156,9 +165,9 @@ function ReportActionItemMessageEdit(props) {
     const debouncedSaveDraft = useMemo(
         () =>
             _.debounce((newDraft) => {
-                Report.saveReportActionDraft(props.reportID, props.action, newDraft);
+                Report.saveReportActionDraft(props.reportID, props.action.reportActionID, newDraft);
             }, 1000),
-        [props.reportID, props.action],
+        [props.reportID, props.action.reportActionID],
     );
 
     /**
@@ -181,7 +190,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
+            const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 insertedEmojis.current = [...insertedEmojis.current, ...emojis];
@@ -217,8 +226,9 @@ function ReportActionItemMessageEdit(props) {
      */
     const deleteDraft = useCallback(() => {
         debouncedSaveDraft.cancel();
-        Report.saveReportActionDraft(props.reportID, props.action, '');
+        Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
         ComposerActions.setShouldShowComposeInput(true);
+        ReportActionComposeFocusManager.clear();
         ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
@@ -228,7 +238,7 @@ function ReportActionItemMessageEdit(props) {
                 keyboardDidHideListener.remove();
             });
         }
-    }, [props.action, debouncedSaveDraft, props.index, props.reportID, reportScrollManager]);
+    }, [props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID, reportScrollManager]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
@@ -388,7 +398,7 @@ function ReportActionItemMessageEdit(props) {
                             }}
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
-                            reportAction={props.action}
+                            emojiPickerID={props.action.reportActionID}
                         />
                     </View>
 

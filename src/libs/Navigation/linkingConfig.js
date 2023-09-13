@@ -12,12 +12,15 @@ export default {
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
-            Concierge: ROUTES.CONCIERGE,
+            [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
             AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
             GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
-            DesktopSignInRedirect: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
+            [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
-            SaaStrHome: ROUTES.SAASTR_HOME,
+
+            // Demo routes
+            [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR,
+            [CONST.DEMO_PAGES.SBE]: ROUTES.SBE,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -29,11 +32,7 @@ export default {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
                 },
             },
-            [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
-                screens: {
-                    [SCREENS.NOT_FOUND]: '*',
-                },
-            },
+            [SCREENS.NOT_FOUND]: '*',
 
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {
@@ -264,6 +263,14 @@ export default {
                             NewTask_Description: ROUTES.NEW_TASK_DESCRIPTION,
                         },
                     },
+                    TeachersUnite: {
+                        screens: {
+                            SaveTheWorld_Root: ROUTES.SAVE_THE_WORLD,
+                            I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
+                            Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
+                            I_Am_A_Teacher: ROUTES.I_AM_A_TEACHER,
+                        },
+                    },
                     Search: {
                         screens: {
                             Search_Root: ROUTES.SEARCH,
@@ -310,6 +317,7 @@ export default {
                             Money_Request_Date: ROUTES.MONEY_REQUEST_DATE,
                             Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
+                            Money_Request_Category: ROUTES.MONEY_REQUEST_CATEGORY,
                             Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT,
                             Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,

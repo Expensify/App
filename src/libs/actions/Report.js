@@ -25,9 +25,9 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Environment from '../Environment/Environment';
+import * as Session from './Session';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -528,12 +528,12 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxData.optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childReportID: reportID}},
+                value: {[parentReportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
             });
             onyxData.failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childReportID: '0'}},
+                value: {[parentReportActionID]: {childReportID: '0', childType: ''}},
             });
         }
     }
@@ -926,7 +926,7 @@ function deleteReportComment(reportID, reportAction) {
             html: '',
             text: '',
             isEdited: true,
-            isDeletedParentAction: ReportActionsUtils.hasCommentThread(reportAction),
+            isDeletedParentAction: ReportActionsUtils.isThreadParentMessage(reportAction, reportID),
         },
     ];
     const optimisticReportActions = {
@@ -1188,12 +1188,11 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  * Saves the draft for a comment report action. This will put the comment into "edit mode"
  *
  * @param {String} reportID
- * @param {Object} reportAction
+ * @param {Number} reportActionID
  * @param {String} draftMessage
  */
-function saveReportActionDraft(reportID, reportAction, draftMessage) {
-    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${reportAction.reportActionID}`, draftMessage);
+function saveReportActionDraft(reportID, reportActionID, draftMessage) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
 }
 
 /**
@@ -1299,10 +1298,6 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
  */
 function navigateToConciergeChat() {
     if (!conciergeChatReportID) {
-        // In order not to delay the report life cycle, we first navigate to the unknown report
-        if (!Navigation.getTopmostReportId()) {
-            Navigation.navigate(ROUTES.REPORT);
-        }
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
@@ -1545,9 +1540,9 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
         return false;
     }
 
-    // We don't want to send a local notification if the user preference is daily or mute
+    // We don't want to send a local notification if the user preference is daily, mute or hidden.
     const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
-    if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY) {
+    if (notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS) {
         Log.info(`${tag} No notification because user preference is to be notified: ${notificationPreference}`);
         return false;
     }
@@ -1764,13 +1759,16 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        SidebarUtils.isSidebarLoadedReady().then(() => {
+        Session.waitForUserSignIn().then(() => {
             if (reportID) {
                 Navigation.navigate(ROUTES.getReportRoute(reportID), CONST.NAVIGATION.TYPE.UP);
+                return;
             }
             if (route === ROUTES.CONCIERGE) {
                 navigateToConciergeChat();
+                return;
             }
+            Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
         });
     });
 }

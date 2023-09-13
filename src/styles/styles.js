@@ -230,6 +230,11 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    appIconBorderRadius: {
+        overflow: 'hidden',
+        borderRadius: 12,
+    },
+
     unitCol: {
         margin: 0,
         padding: 0,
@@ -564,10 +569,9 @@ const styles = {
     },
 
     buttonDivider: {
-        width: 1,
-        alignSelf: 'stretch',
-        backgroundColor: themeColors.appBG,
-        marginVertical: 1,
+        height: variables.dropDownButtonDividerHeight,
+        borderWidth: 0.7,
+        borderColor: themeColors.text,
     },
 
     noBorderRadius: {
@@ -639,14 +643,14 @@ const styles = {
     },
 
     visuallyHidden: {
-        ...visibility('hidden'),
+        ...visibility.hidden,
         overflow: 'hidden',
         width: 0,
         height: 0,
     },
 
     visibilityHidden: {
-        ...visibility('hidden'),
+        ...visibility.hidden,
     },
 
     loadingVBAAnimation: {
@@ -771,6 +775,22 @@ const styles = {
 
     borderColorDanger: {
         borderColor: themeColors.danger,
+    },
+
+    textInputDisabled: {
+        // Adding disabled color theme to indicate user that the field is not editable.
+        backgroundColor: themeColors.highlightBG,
+        borderBottomWidth: 2,
+        borderColor: themeColors.borderLighter,
+        // Adding browser specefic style to bring consistency between Safari and other platforms.
+        // Applying the Webkit styles only to browsers as it is not available in native.
+        ...(Browser.getBrowser()
+            ? {
+                  WebkitTextFillColor: themeColors.textSupporting,
+                  WebkitOpacity: 1,
+              }
+            : {}),
+        color: themeColors.textSupporting,
     },
 
     uploadReceiptView: (isSmallScreenWidth) => ({
@@ -1109,6 +1129,12 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    textLabelError: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textError,
+    },
+
     textReceiptUpload: {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
@@ -1333,13 +1359,12 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    leftPanelContainer: {
-        maxWidth: variables.sideBarWidth,
-    },
-
-    rightPanelContainer: {
-        width: variables.sideBarWidth,
-    },
+    RHPNavigatorContainer: (isSmallScreenWidth) => ({
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        position: 'absolute',
+        right: 0,
+        height: '100%',
+    }),
 
     onlyEmojisText: {
         fontSize: variables.fontSizeOnlyEmojis,
@@ -1462,7 +1487,7 @@ const styles = {
 
     optionDisplayName: {
         fontFamily: fontFamily.EXP_NEUE,
-        height: variables.alternateTextHeight,
+        minHeight: variables.alternateTextHeight,
         lineHeight: variables.lineHeightXLarge,
         ...whiteSpace.noWrap,
     },
@@ -1499,6 +1524,14 @@ const styles = {
         paddingBottom: 12,
     },
 
+    optionRowSelected: {
+        backgroundColor: themeColors.activeComponentBG,
+    },
+
+    optionRowDisabled: {
+        color: themeColors.textSupporting,
+    },
+
     optionRowCompact: {
         height: variables.optionRowHeightCompact,
         paddingTop: 12,
@@ -1508,6 +1541,22 @@ const styles = {
     optionsListSectionHeader: {
         height: variables.optionsListSectionHeaderHeight,
     },
+
+    overlayStyles: (current) => ({
+        position: 'fixed',
+
+        // We need to stretch the overlay to cover the sidebar and the translate animation distance.
+        left: -2 * variables.sideBarWidth,
+        top: 0,
+        bottom: 0,
+        right: 0,
+        backgroundColor: Colors.black,
+        opacity: current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, variables.overlayOpacity],
+            extrapolate: 'clamp',
+        }),
+    }),
 
     appContent: {
         backgroundColor: themeColors.appBG,
@@ -2385,6 +2434,9 @@ const styles = {
         borderRadius: 88,
     },
 
+    rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
+    RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
+
     avatarInnerTextChat: {
         color: themeColors.textLight,
         fontSize: variables.fontSizeXLarge,
@@ -2520,6 +2572,13 @@ const styles = {
     attachmentArrow: {
         zIndex: 23,
         position: 'absolute',
+    },
+
+    attachmentRevealButtonContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...spacing.ph4,
     },
 
     arrowIcon: {
@@ -2675,6 +2734,12 @@ const styles = {
     moneyRequestPreviewBoxAvatar: {
         marginRight: -10,
         marginBottom: 0,
+    },
+
+    moneyRequestPreviewAmount: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
     },
 
     defaultCheckmarkWrapper: {
@@ -2912,7 +2977,7 @@ const styles = {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        ...spacing.pt2,
+        ...spacing.ph5,
     },
 
     peopleRowBorderBottom: {
@@ -3048,7 +3113,7 @@ const styles = {
         left: '50%',
         top: 0,
         zIndex: 100,
-        ...visibility('hidden'),
+        ...visibility.hidden,
     },
 
     floatingMessageCounterWrapperAndroid: {
@@ -3058,7 +3123,7 @@ const styles = {
         position: 'absolute',
         top: 0,
         zIndex: 100,
-        ...visibility('hidden'),
+        ...visibility.hidden,
     },
 
     floatingMessageCounterSubWrapperAndroid: {
@@ -3068,7 +3133,7 @@ const styles = {
 
     floatingMessageCounter: {
         left: '-50%',
-        ...visibility('visible'),
+        ...visibility.visible,
     },
 
     floatingMessageCounterTransformation: (translateY) => ({
@@ -3636,13 +3701,16 @@ const styles = {
     },
 
     googleButtonContainer: {
+        colorScheme: 'light',
         width: 40,
         height: 40,
         marginLeft: 12,
         alignItems: 'center',
+        overflow: 'hidden',
     },
 
     googlePillButtonContainer: {
+        colorScheme: 'light',
         height: 40,
         width: 219,
     },
@@ -3653,15 +3721,14 @@ const styles = {
         height: 450,
     },
 
-    tabSelectorButton: (isSelected) => ({
+    tabSelectorButton: {
         height: 40,
         padding: 12,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: variables.buttonBorderRadius,
-        backgroundColor: isSelected ? themeColors.midtone : themeColors.appBG,
-    }),
+    },
 
     tabSelector: {
         flexDirection: 'row',
@@ -3693,6 +3760,23 @@ const styles = {
 
     willChangeTransform: {
         willChange: 'transform',
+    },
+
+    dropDownButtonCartIconContainerPadding: {
+        paddingRight: 0,
+        paddingLeft: 0,
+    },
+
+    dropDownButtonArrowContain: {
+        marginLeft: 12,
+        marginRight: 14,
+    },
+
+    dropDownButtonCartIconView: {
+        borderTopRightRadius: variables.buttonBorderRadius,
+        borderBottomRightRadius: variables.buttonBorderRadius,
+        ...flex.flexRow,
+        ...flex.alignItemsCenter,
     },
 
     emojiPickerButtonDropdown: {
@@ -3736,23 +3820,28 @@ const styles = {
 
     reportActionItemImages: {
         flexDirection: 'row',
-        borderWidth: 2,
-        borderColor: themeColors.cardBG,
+        borderWidth: 4,
+        borderColor: themeColors.transparent,
         borderTopLeftRadius: variables.componentBorderRadiusLarge,
         borderTopRightRadius: variables.componentBorderRadiusLarge,
+        borderBottomLeftRadius: variables.componentBorderRadiusLarge,
+        borderBottomRightRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
         height: 200,
     },
 
     reportActionItemImage: {
-        borderWidth: 1,
-        borderColor: themeColors.cardBG,
         flex: 1,
         width: '100%',
         height: '100%',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+
+    reportActionItemImageBorder: {
+        borderRightWidth: 2,
+        borderColor: themeColors.cardBG,
     },
 
     reportActionItemImagesMore: {
@@ -3767,10 +3856,14 @@ const styles = {
     },
 
     moneyRequestHeaderStatusBarBadge: {
-        padding: 8,
-        borderRadius: variables.componentBorderRadiusMedium,
-        marginRight: 16,
+        paddingHorizontal: 8,
+        borderRadius: variables.componentBorderRadiusSmall,
+        height: variables.inputHeightSmall,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         backgroundColor: themeColors.border,
+        marginRight: 12,
     },
 
     staticHeaderImage: {
@@ -3786,6 +3879,27 @@ const styles = {
         transform: [{rotate: '90deg'}],
     },
 
+    emojiStatusLHN: {
+        fontSize: 22,
+    },
+    sidebarStatusAvatarContainer: {
+        height: 44,
+        width: 84,
+        backgroundColor: themeColors.componentBG,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderRadius: 42,
+        paddingHorizontal: 2,
+        marginVertical: -2,
+        marginRight: -2,
+    },
+    sidebarStatusAvatar: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     moneyRequestViewImage: {
         ...spacing.mh5,
         ...spacing.mv3,
@@ -3799,7 +3913,7 @@ const styles = {
 
     distanceRequestContainer: (maxHeight) => ({
         ...flex.flexShrink2,
-        minHeight: variables.baseMenuItemHeight,
+        minHeight: variables.optionRowHeight * 2,
         maxHeight,
     }),
 
@@ -3817,15 +3931,33 @@ const styles = {
         overflow: 'hidden',
     },
 
+    confirmationListMapItem: {
+        ...spacing.m5,
+        height: 200,
+    },
+
+    mapDirection: {
+        lineColor: Colors.green,
+        lineWidth: 7,
+    },
+
+    mapDirectionLayer: {
+        layout: {'line-join': 'round', 'line-cap': 'round'},
+        paint: {'line-color': Colors.green, 'line-width': 7},
+    },
+
     mapPendingView: {
         backgroundColor: themeColors.highlightBG,
         ...flex.flex1,
         borderRadius: variables.componentBorderRadiusLarge,
     },
-
     userReportStatusEmoji: {
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
+    },
+    draggableTopBar: {
+        height: 30,
+        width: '100%',
     },
 };
 

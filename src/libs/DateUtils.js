@@ -273,7 +273,7 @@ function getDBTime(timestamp = '') {
  * @returns {String}
  */
 function subtractMillisecondsFromDateTime(dateTime, milliseconds) {
-    const date = zonedTimeToUtc(dateTime, 'Etc/UTC');
+    const date = zonedTimeToUtc(dateTime, 'UTC');
     const newTimestamp = subMilliseconds(date, milliseconds).valueOf();
     return getDBTime(newTimestamp);
 }
