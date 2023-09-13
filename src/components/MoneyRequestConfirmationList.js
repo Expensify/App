@@ -146,9 +146,6 @@ const propTypes = {
             tags: PropTypes.objectOf(tagPropTypes),
         }),
     ),
-
-    /* Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
