@@ -9,6 +9,9 @@ const propTypes = {
     /** The policyID we are getting tags for */
     policyID: PropTypes.string.isRequired,
 
+    /** The name of tag list we are getting tags for */
+    tag: PropTypes.string.isRequired,
+
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
 
@@ -17,19 +20,23 @@ const propTypes = {
 
     /* Onyx Props */
     /** Collection of tags attached to a policy */
-    policyTags: PropTypes.objectOf(tagPropTypes),
+    policyTags: PropTypes.objectOf(
+        PropTypes.shape({
+            name: PropTypes.string,
+            tags: PropTypes.objectOf(tagPropTypes),
+        }),
+    ),
 
     /** List of recently used tags */
-    policyRecentlyUsedTags: PropTypes.arrayOf(PropTypes.string),
+    policyRecentlyUsedTags: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
 };
 
 const defaultProps = {
-    policyID: '',
     policyTags: {},
-    policyRecentlyUsedTags: [],
+    policyRecentlyUsedTags: {},
     iou: iouDefaultProps,
 };
 

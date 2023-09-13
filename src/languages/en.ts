@@ -1,6 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
 import type {
+    Translation,
     AddressLineParams,
     CharacterLimitParams,
     MaxParticipantsReachedParams,
@@ -38,7 +39,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
     PaidUsingPaypalWithAmountParams,
-    PaidUsingExpensifyWithAmountParams,
+    PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     SizeExceededParams,
@@ -68,6 +69,10 @@ import type {
     OOOEventSummaryPartialDayParams,
     ParentNavigationSummaryParams,
     ManagerApprovedParams,
+    SetTheRequestParams,
+    UpdatedTheRequestParams,
+    RemovedTheRequestParams,
+    TagSelectionParams,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
@@ -496,6 +501,7 @@ export default {
         pending: 'Pending',
         deleteReceipt: 'Delete receipt',
         receiptScanning: 'Receipt scan in progress…',
+        receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
@@ -521,12 +527,17 @@ export default {
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `paid ${amount} elsewhere`,
         paidUsingPaypalWithAmount: ({amount}: PaidUsingPaypalWithAmountParams) => `paid ${amount} using Paypal.me`,
-        paidUsingExpensifyWithAmount: ({amount}: PaidUsingExpensifyWithAmountParams) => `paid ${amount} using Expensify`,
+        paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `paid ${amount} with Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
+        changedTheRequest: 'changed the request',
+        setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `set the ${valueName} to ${newValueToDisplay}`,
+        removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `removed the ${valueName} (previously ${oldValueToDisplay})`,
+        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
+            `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
-        tagSelection: 'Select a tag to add additional organization to your money',
+        tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -981,7 +992,7 @@ export default {
         notHere: "Hmm... it's not here",
         pageNotFound: 'Oops, this page cannot be found',
         noAccess: "You don't have access to this chat",
-        goBackHome: 'Go back to Home page',
+        goBackHome: 'Go back to home page',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -1749,14 +1760,4 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-    demos: {
-        saastr: {
-            signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
-            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for lunch!',
-        },
-        sbe: {
-            signInWelcome: 'Welcome to Small Business Expo! Get paid back for your ride.',
-            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for your ride to or from the show!',
-        },
-    },
-} as const;
+} satisfies Translation;

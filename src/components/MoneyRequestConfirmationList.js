@@ -95,6 +95,9 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     /** The policyID of the request */
     policyID: PropTypes.string,
 
@@ -136,10 +139,13 @@ const propTypes = {
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 
     /** Collection of tags attached to a policy */
-    policyTags: PropTypes.objectOf(tagPropTypes),
-
-    /* Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
+    policyTags: PropTypes.objectOf(
+        PropTypes.shape({
+            name: PropTypes.string,
+            required: PropTypes.bool,
+            tags: PropTypes.objectOf(tagPropTypes),
+        }),
+    ),
 };
 
 const defaultProps = {
@@ -148,6 +154,7 @@ const defaultProps = {
     onSelectParticipant: () => {},
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     iouCategory: '',
+    iouTag: '',
     payeePersonalDetails: null,
     canModifyParticipants: false,
     isReadOnly: false,
@@ -155,6 +162,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    betas: [],
     policyID: '',
     reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -163,7 +171,6 @@ const defaultProps = {
     listStyles: [],
     policyCategories: {},
     policyTags: {},
-    betas: [],
     transactionID: '',
     transaction: {},
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
@@ -184,8 +191,13 @@ function MoneyRequestConfirmationList(props) {
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
-    const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
-    const shouldTagBeEditable = !_.isEmpty(props.policyTags) && Permissions.canUseTags(props.betas);
+    const shouldCategoryBeEditable = !_.isEmpty(props.policyCategories) && Permissions.canUseCategories(props.betas);
+
+    // Fetches the first tag list of the policy
+    const tagListKey = _.first(_.keys(props.policyTags));
+    const tagList = lodashGet(props.policyTags, [tagListKey, 'tags'], []);
+    const tagListName = lodashGet(props.policyTags, [tagListKey, 'name'], '');
+    const canUseTags = Permissions.canUseTags(props.betas);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
         shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
@@ -498,7 +510,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}
-                    {shouldCategoryEditable && (
+                    {shouldCategoryBeEditable && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouCategory}
@@ -508,11 +520,11 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
-                    {shouldTagBeEditable && (
+                    {canUseTags && !!tagList && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouTag}
-                            description={translate('common.tag')}
+                            description={tagListName || translate('common.tag')}
                             onPress={() => Navigation.navigate(ROUTES.getMoneyRequestTagRoute(props.iouType, props.reportID))}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             disabled={didConfirm || props.isReadOnly}
