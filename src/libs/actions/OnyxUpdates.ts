@@ -82,7 +82,7 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
  * @param [updateParams.response] Exists if updateParams.type === 'https'
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
-function saveUpdateInformation(updateParams: OnyxUpdatesFromServer): void {
+function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, updateParams);
 }
