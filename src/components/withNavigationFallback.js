@@ -1,39 +1,34 @@
-import React, {Component} from 'react';
+import React, {forwardRef, useContext} from 'react';
 import {NavigationContext} from '@react-navigation/core';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import refPropTypes from './refPropTypes';
 
 export default function (WrappedComponent) {
-    class WithNavigationFallback extends Component {
-        render() {
-            if (!this.context) {
-                return (
-                    <NavigationContext.Provider
-                        value={{
-                            isFocused: () => true,
-                            addListener: () => () => {},
-                            removeListener: () => () => {},
-                        }}
-                    >
-                        <WrappedComponent
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...this.props}
-                            ref={this.props.forwardedRef}
-                        />
-                    </NavigationContext.Provider>
-                );
-            }
+    function WithNavigationFallback(props) {
+        const context = useContext(NavigationContext);
 
-            return (
+        return !context ? (
+            <NavigationContext.Provider
+                value={{
+                    isFocused: () => true,
+                    addListener: () => () => {},
+                    removeListener: () => () => {},
+                }}
+            >
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...this.props}
-                    ref={this.props.forwardedRef}
+                    {...props}
+                    ref={props.forwardedRef}
                 />
-            );
-        }
+            </NavigationContext.Provider>
+        ) : (
+            <WrappedComponent
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                ref={props.forwardedRef}
+            />
+        );
     }
-    WithNavigationFallback.contextType = NavigationContext;
     WithNavigationFallback.displayName = `WithNavigationFocusWithFallback(${getComponentDisplayName(WrappedComponent)})`;
     WithNavigationFallback.propTypes = {
         forwardedRef: refPropTypes,
@@ -41,7 +36,8 @@ export default function (WrappedComponent) {
     WithNavigationFallback.defaultProps = {
         forwardedRef: undefined,
     };
-    return React.forwardRef((props, ref) => (
+
+    return forwardRef((props, ref) => (
         <WithNavigationFallback
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
