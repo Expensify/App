@@ -4,9 +4,6 @@
 {% assign activeHub = page.url | remove: activePlatform | remove: "/hubs/" | remove: "/" | remove: ".html" %}
 {% assign hub = platform.hubs | where: "href", activeHub | first %}
 
-{{ hub }}
-<!-- {{ platform.hubs }} -->
-
 <h1 class="title">
     {{ hub.title }}
 </h1>
@@ -24,7 +21,7 @@
         <div class="cards-group">
             {% for article in section.articles %}
                 {% assign article_href = section.href | append: '/' | append: article.href %}
-                {% include article-card.html hub=hub.href href=article_href title=article.title %}
+                {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
             {% endfor %}
         </div>
     </section>
@@ -34,7 +31,7 @@
     <section>
         <div class="cards-group">
             {% for article in hub.articles %}
-                {% include article-card.html hub=hub.href href=article.href title=article.title %}
+                {% include article-card.html hub=hub.href href=article.href title=article.title platform=activePlatform %}
             {% endfor %}
         </div>
     </section>
