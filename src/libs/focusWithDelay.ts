@@ -1,4 +1,4 @@
-import {InteractionManager} from 'react-native';
+import {InteractionManager, TextInput} from 'react-native';
 import ComposerFocusManager from './ComposerFocusManager';
 
 /**
@@ -6,10 +6,10 @@ import ComposerFocusManager from './ComposerFocusManager';
  * @param {Object} textInput the text input to focus
  * @returns {Function} a function that focuses the text input with a configurable delay
  */
-function focusWithDelay(textInput) {
+function focusWithDelay(textInput: TextInput | null): (shouldDelay?: boolean) => void {
     /**
      * Focus the text input
-     * @param {Boolean} [shouldDelay=false] Impose delay before focusing the text input
+     * Impose delay before focusing the text input
      */
     return (shouldDelay = false) => {
         // There could be other animations running while we trigger manual focus.
@@ -18,6 +18,7 @@ function focusWithDelay(textInput) {
             if (!textInput) {
                 return;
             }
+
             if (!shouldDelay) {
                 textInput.focus();
                 return;
