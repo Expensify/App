@@ -23,7 +23,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic) =
                 if (!windowRef) {
                     return;
                 }
-                windowRef.location.href = typeof url === 'string' ? url : url(params);
+                windowRef.location = typeof url === 'string' ? url : url(params);
             })
             .catch(() => windowRef?.close());
     }
