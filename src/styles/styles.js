@@ -27,7 +27,6 @@ import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
-import Colors from './colors';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
@@ -800,8 +799,8 @@ const styles = {
         borderRadius: 28,
         borderStyle: 'solid',
         borderWidth: 8,
-        backgroundColor: Colors.greenHighlightBackground,
-        borderColor: Colors.greenAppBackground,
+        backgroundColor: themeColors.highlightBG,
+        borderColor: themeColors.appBG,
     },
 
     permissionView: {
@@ -3916,13 +3915,13 @@ const styles = {
     },
 
     mapDirection: {
-        lineColor: Colors.green,
+        lineColor: themeColors.success,
         lineWidth: 7,
     },
 
     mapDirectionLayer: {
         layout: {'line-join': 'round', 'line-cap': 'round'},
-        paint: {'line-color': Colors.green, 'line-width': 7},
+        paint: {'line-color': themeColors.success, 'line-width': 7},
     },
 
     mapPendingView: {

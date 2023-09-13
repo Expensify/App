@@ -57,7 +57,7 @@ function DotIndicatorMessage(props) {
             <View style={styles.offlineFeedback.errorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
-                    fill={props.type === 'error' ? colors.red : colors.green}
+                    fill={props.type === 'error' ? themeColors.danger : themeColors.success}
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
