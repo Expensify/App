@@ -124,7 +124,7 @@ type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
-type PaidElsewhereWithAmountParams = {payer: string; amount: number};
+type PaidElsewhereWithAmountParams = {payer: string; amount: string};
 
 type PaidUsingPaypalWithAmountParams = {payer: string; amount: string};
 
