@@ -1,6 +1,6 @@
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -21,6 +21,7 @@ import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /** React Navigation route */
@@ -43,11 +44,13 @@ const propTypes = {
 };
 
 const defaultProps = {
-    selectedTab: CONST.TAB.MANUAL,
+    selectedTab: CONST.TAB.SCAN,
     report: {},
 };
 
 function MoneyRequestSelectorPage(props) {
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
+
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const {translate} = useLocalize();
@@ -70,10 +73,22 @@ function MoneyRequestSelectorPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
+            headerGapStyles={
+                isDraggingOver
+                    ? [
+                          {
+                              backgroundColor: themeColors.receiptDropUIBG,
+                          },
+                      ]
+                    : []
+            }
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <DragAndDropProvider isDisabled={props.selectedTab !== CONST.TAB.SCAN}>
+                    <DragAndDropProvider
+                        isDisabled={props.selectedTab !== CONST.TAB.SCAN}
+                        setIsDraggingOver={setIsDraggingOver}
+                    >
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
                                 title={title[iouType]}
@@ -82,6 +97,7 @@ function MoneyRequestSelectorPage(props) {
                             {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
+                                    selectedTab={props.selectedTab}
                                     tabBar={({state, navigation, position}) => (
                                         <TabSelector
                                             state={state}
@@ -129,6 +145,6 @@ export default withOnyx({
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
     },
     selectedTab: {
-        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(MoneyRequestSelectorPage);

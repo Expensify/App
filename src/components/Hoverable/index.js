@@ -13,6 +13,7 @@ class Hoverable extends Component {
         super(props);
 
         this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+        this.checkHover = this.checkHover.bind(this);
 
         this.state = {
             isHovered: false,
@@ -23,6 +24,7 @@ class Hoverable extends Component {
 
     componentDidMount() {
         document.addEventListener('visibilitychange', this.handleVisibilityChange);
+        document.addEventListener('mouseover', this.checkHover);
     }
 
     componentDidUpdate(prevProps) {
@@ -37,6 +39,7 @@ class Hoverable extends Component {
 
     componentWillUnmount() {
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+        document.removeEventListener('mouseover', this.checkHover);
     }
 
     /**
@@ -52,6 +55,24 @@ class Hoverable extends Component {
         if (isHovered !== this.state.isHovered) {
             this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
         }
+    }
+
+    /**
+     * Checks the hover state of a component and updates it based on the event target.
+     * This is necessary to handle cases where the hover state might get stuck due to an unreliable mouseleave trigger,
+     * such as when an element is removed before the mouseleave event is triggered.
+     * @param {Event} e - The hover event object.
+     */
+    checkHover(e) {
+        if (!this.wrapperView || !this.state.isHovered) {
+            return;
+        }
+
+        if (this.wrapperView.contains(e.target)) {
+            return;
+        }
+
+        this.setIsHovered(false);
     }
 
     handleVisibilityChange() {

@@ -163,7 +163,7 @@ function FloatingActionButtonAndPopover(props) {
             return;
         }
         Welcome.show({routes, showCreateMenu});
-    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu]);
+    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu, props.demoInfo]);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
@@ -223,11 +223,6 @@ function FloatingActionButtonAndPopover(props) {
                         icon: Expensicons.MoneyCircle,
                         text: props.translate('iou.requestMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
-                    },
-                    {
-                        icon: Expensicons.Heart,
-                        text: props.translate('sidebarScreen.saveTheWorld'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.SAVE_THE_WORLD)),
                     },
                     {
                         icon: Expensicons.Receipt,
