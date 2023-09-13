@@ -11,8 +11,6 @@ import SafeAreaConsumer from '../../components/SafeAreaConsumer';
 import ScrollViewWithContext from '../../components/ScrollViewWithContext';
 
 import stylePropTypes from '../../styles/stylePropTypes';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -61,7 +59,9 @@ const propTypes = {
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
-    ...withLocalizePropTypes,
+    errors: PropTypes.objectOf(PropTypes.string).isRequired,
+
+    inputRefs: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(Element)})])).isRequired,
 };
 
 const defaultProps = {
@@ -187,11 +187,8 @@ FormWrapper.displayName = 'FormWrapper';
 FormWrapper.propTypes = propTypes;
 FormWrapper.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        formState: {
-            key: (props) => props.formID,
-        },
-    }),
-)(FormWrapper);
+export default withOnyx({
+    formState: {
+        key: (props) => props.formID,
+    },
+})(FormWrapper);

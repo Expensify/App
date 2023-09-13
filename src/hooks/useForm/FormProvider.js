@@ -8,7 +8,6 @@ import * as FormActions from '../../libs/actions/FormActions';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
 import compose from '../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {withNetwork} from '../../components/OnyxProvider';
 import stylePropTypes from '../../styles/stylePropTypes';
 import networkPropTypes from '../../components/networkPropTypes';
@@ -66,7 +65,9 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    ...withLocalizePropTypes,
+    shouldValidateOnBlur: PropTypes.bool,
+
+    shouldValidateOnChange: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -80,6 +81,8 @@ const defaultProps = {
     footerContent: null,
     style: [],
     validate: () => {},
+    shouldValidateOnBlur: false,
+    shouldValidateOnChange: false,
 };
 
 function getInitialValueByType(valueType) {
@@ -99,7 +102,7 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const [inputValues, setInputValues] = useState({});
-    const [errors, setErrors] = useState([]);
+    const [errors, setErrors] = useState({});
 
     const onValidate = useCallback(
         (values) => {
@@ -147,18 +150,18 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
             const newRef = propsToParse.ref || createRef();
             inputRefs[inputID] = newRef;
 
-            // We want to initialize the input value if it's undefined
-            if (_.isUndefined(inputValues[inputID])) {
-                inputValues[inputID] = propsToParse.defaultValue || getInitialValueByType(propsToParse.valueType);
+            if (!_.isUndefined(propsToParse.value)) {
+                inputValues[inputID] = propsToParse.value;
             }
 
             // We force the form to set the input value from the defaultValue props if there is a saved valid value
-            if (propsToParse.shouldUseDefaultValue) {
+            else if (propsToParse.shouldUseDefaultValue) {
                 inputValues[inputID] = propsToParse.defaultValue;
             }
 
-            if (!_.isUndefined(propsToParse.value)) {
-                inputValues[inputID] = propsToParse.value;
+            // We want to initialize the input value if it's undefined
+            else if (_.isUndefined(inputValues[inputID])) {
+                inputValues[inputID] = _.isUndefined(propsToParse.defaultValue) ? getInitialValueByType(propsToParse.valueType) : propsToParse.defaultValue;
             }
 
             const errorFields = lodashGet(formState, 'errorFields', {});
@@ -238,6 +241,8 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
             <FormWrapper
                 {...rest}
                 onSubmit={submit}
+                inputRefs={inputRefs}
+                errors={errors}
             >
                 {children}
             </FormWrapper>
@@ -250,7 +255,6 @@ FormProvider.propTypes = propTypes;
 FormProvider.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
     withNetwork(),
     withOnyx({
         formState: {
