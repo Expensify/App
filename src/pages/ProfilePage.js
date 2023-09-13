@@ -141,7 +141,7 @@ function ProfilePage(props) {
     const navigateBackTo = lodashGet(props.route, 'params.backTo', '');
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper shouldEnableAutoFocus>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}

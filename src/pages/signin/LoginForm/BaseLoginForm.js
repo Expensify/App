@@ -230,13 +230,14 @@ function LoginForm(props) {
                 // We need to unmount the submit button when the component is not visible so that the Enter button
                 // key handler gets unsubscribed
                 props.isVisible && (
-                    <View style={[styles.mt5]}>
+                    <View style={[!_.isEmpty(serverErrorText) ? {} : styles.mt5]}>
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.continue')}
                             isLoading={props.account.isLoading && props.account.loadingForm === CONST.FORMS.LOGIN_FORM}
                             onSubmit={validateAndSubmitForm}
                             message={serverErrorText}
                             isAlertVisible={!_.isEmpty(serverErrorText)}
+                            buttonStyles={[!_.isEmpty(serverErrorText) ? styles.mt3 : {}]}
                             containerStyles={[styles.mh0]}
                         />
                         {

@@ -418,7 +418,6 @@ function Composer({
         <View
             style={{
                 position: 'absolute',
-                bottom: -2000,
                 zIndex: -1,
                 opacity: 0,
             }}
