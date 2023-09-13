@@ -1,3 +1,3 @@
-type OpenReportActionComposeViewWhenClosingVMessageEdit = () => void;
+type OpenReportActionComposeViewWhenClosingMessageEdit = () => void;
 
-export default OpenReportActionComposeViewWhenClosingVMessageEdit;
+export default OpenReportActionComposeViewWhenClosingMessageEdit;
