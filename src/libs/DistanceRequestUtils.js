@@ -69,7 +69,7 @@ function convertDistanceUnit(distanceInMeters, unit) {
 const getRoundedDistanceInUnits = (distanceInMeters, unit) => {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
     return convertedDistance.toFixed(2);
-}
+};
 
 /**
  *
