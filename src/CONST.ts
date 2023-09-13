@@ -240,6 +240,7 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
+        NEW_DOT_CATEGORIES: 'newDotCategories',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
