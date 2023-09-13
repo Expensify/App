@@ -744,18 +744,6 @@ export default {
         passwordUpdated: 'Contraseña actualizada!',
         allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
     },
-    addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Recibe pagos vía PayPal.',
-        payPalMe: 'PayPal.me/',
-        yourPayPalUsername: 'Tu usuario de PayPal',
-        addPayPalAccount: 'Añadir cuenta de PayPal',
-        growlMessageOnSave: 'Tu nombre de usuario de PayPal se añadió correctamente',
-        updatePaypalAccount: 'Guardar cuenta PayPal',
-        growlMessageOnUpdate: 'Su nombre de usuario de PayPal se guardó con éxito',
-        formatError: 'Usuario PayPal.me no válido',
-        checkListOf: 'Consulta la lista de ',
-        supportedCurrencies: 'monedas admitidas',
-    },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',
         nameOnCard: 'Nombre en la tarjeta',
