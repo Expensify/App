@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, {useMemo} from 'react';
 import useTheme from './themes/useTheme';
-import StylesContext from './ThemeStylesContext';
+import ThemeStylesContext from './ThemeStylesContext';
 import {styles as stylesUntyped} from './styles';
 
 const styles = stylesUntyped as (theme: Record<string, string>) => Record<string, unknown>;
@@ -15,7 +15,7 @@ function ThemeStylesProvider({children}: ThemeStylesProviderProps) {
 
     const themeStyles = useMemo(() => styles(theme), [theme]);
 
-    return <StylesContext.Provider value={themeStyles}>{children}</StylesContext.Provider>;
+    return <ThemeStylesContext.Provider value={themeStyles}>{children}</ThemeStylesContext.Provider>;
 }
 
 ThemeStylesProvider.displayName = 'ThemeStylesProvider';
