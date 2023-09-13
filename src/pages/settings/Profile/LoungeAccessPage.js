@@ -13,6 +13,7 @@ import Text from '../../../components/Text';
 import Button from '../../../components/Button';
 import FeatureList from '../../../components/FeatureList';
 import * as Illustrations from '../../../components/Icon/Illustrations';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as NumberFormatUtils from '../../../libs/NumberFormatUtils';
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
 import * as LottieAnimations from '../../../components/LottieAnimations';
@@ -62,7 +63,6 @@ const menuItems = [
 
 function LoungeAccessPage(props) {
     const {translate} = useLocalize();
-    const isCheckedIn = false;
 
     if (!props.user.hasLoungeAccess) {
         return <NotFoundPage />;
@@ -113,7 +113,7 @@ function LoungeAccessPage(props) {
                 <Text style={[styles.mb4]}>{translate('loungeAccessPage.address')}</Text>
                 <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('loungeAccessPage.nextCheckInLabel')}</Text>
                 <Text style={[styles.mb4]}>
-                    {isCheckedIn ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn') : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn')}
+                    {props.user.loungeCheckInDetails.isCheckedIn ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn') : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn')}
                     {' '}
                     <Text style={[styles.textStrong]}>
                         {NumberFormatUtils.format(props.preferredLocale, props.user.loungeCheckInDetails.checkInsRemaining)}
@@ -123,12 +123,22 @@ function LoungeAccessPage(props) {
                     {' '}
                     {translate('loungeAccessPage.nextCheckInAfterNumber')}
                 </Text>
-                <Button
-                    style={[styles.w100]}
-                    text={translate('loungeAccessPage.checkIn')}
-                    onPress={checkIn}
-                    success
-                />
+                {props.user.loungeCheckInDetails.isCheckedIn ? (
+                    <Button
+                        text={translate('loungeAccessPage.youAreCheckedIn')}
+                        style={[styles.buttonSuccessHovered, styles.w100]}
+                        innerStyles={[styles.appBG,styles.alignItemsCenter]}
+                        icon={Expensicons.Checkmark}
+                        iconFill={styles.success}
+                    />
+                ) : (
+                    <Button
+                        style={[styles.w100]}
+                        text={translate('loungeAccessPage.checkIn')}
+                        onPress={checkIn}
+                        success
+                    />
+                )}
             </View>
             <FeatureList
                 headlineType="strong"

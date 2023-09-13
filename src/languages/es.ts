@@ -585,6 +585,7 @@ export default {
     },
     loungeAccessPage: {
         checkIn: 'Registrarse',
+        youAreCheckedIn: 'TRANSLATION NEEDED',
         addressLabel: 'TRANSLATION NEEDED',
         address: '88 Kearny Street, Floor 16, San Francisco, CA',
         nextCheckInLabel: 'TRANSLATION NEEDED',

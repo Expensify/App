@@ -592,6 +592,7 @@ export default {
     },
     loungeAccessPage: {
         checkIn: 'Check in',
+        youAreCheckedIn: 'You’re checked in!',
         addressLabel: 'Address',
         address: '88 Kearny Street, Floor 16, San Francisco, CA',
         nextCheckInLabel: 'Next check-in',
