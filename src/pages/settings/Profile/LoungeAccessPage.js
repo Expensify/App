@@ -13,6 +13,7 @@ import Text from '../../../components/Text';
 import Button from '../../../components/Button';
 import FeatureList from '../../../components/FeatureList';
 import * as Illustrations from '../../../components/Icon/Illustrations';
+import * as NumberFormatUtils from '../../../libs/NumberFormatUtils';
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
 import * as LottieAnimations from '../../../components/LottieAnimations';
 import styles from '../../../styles/styles';
@@ -62,7 +63,6 @@ const menuItems = [
 function LoungeAccessPage(props) {
     const {translate} = useLocalize();
     const isCheckedIn = false;
-    const numberOfCheckInsLeft = 6;
 
     if (!props.user.hasLoungeAccess) {
         return <NotFoundPage />;
@@ -115,11 +115,10 @@ function LoungeAccessPage(props) {
                 <Text style={[styles.mb4]}>
                     {isCheckedIn ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn') : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn')}
                     {' '}
-                    {/* TODO: Localize numbers as well */}
                     <Text style={[styles.textStrong]}>
-                        {numberOfCheckInsLeft}
+                        {NumberFormatUtils.format(props.preferredLocale, props.user.loungeCheckInDetails.checkInsRemaining)}
                         {' '}
-                        {numberOfCheckInsLeft === 1 ? translate('loungeAccessPage.nextCheckInNumberCountSingular') : translate('loungeAccessPage.nextCheckInNumberCountPlural')}
+                        {props.user.loungeCheckInDetails.checkInsRemaining === 1 ? translate('loungeAccessPage.nextCheckInNumberCountSingular') : translate('loungeAccessPage.nextCheckInNumberCountPlural')}
                     </Text>
                     {' '}
                     {translate('loungeAccessPage.nextCheckInAfterNumber')}
