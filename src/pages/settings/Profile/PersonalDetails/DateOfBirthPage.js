@@ -38,6 +38,7 @@ const defaultProps = {
 
 function DateOfBirthPage({translate, privatePersonalDetails}) {
     usePrivatePersonalDetails();
+    const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
 
     /**
      * @param {Object} values
@@ -45,24 +46,19 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
      * @returns {Object} - An object containing the errors for each inputID
      */
     const validate = useCallback((values) => {
-        const errors = {};
+        const requiredFields = ['dob'];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+
         const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
         const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
-
-        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
-            errors.dob = 'common.error.fieldRequired';
-        }
         const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
-        if (dateError) {
+
+        if (values.dob && dateError) {
             errors.dob = dateError;
         }
 
         return errors;
     }, []);
-
-    if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
-        return <FullscreenLoadingIndicator />;
-    }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -70,22 +66,26 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                 title={translate('common.dob')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
-            <Form
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
-                validate={validate}
-                onSubmit={PersonalDetails.updateDateOfBirth}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
-            >
-                <NewDatePicker
-                    inputID="dob"
-                    label={translate('common.date')}
-                    defaultValue={privatePersonalDetails.dob || ''}
-                    minDate={moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'years').toDate()}
-                    maxDate={moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'years').toDate()}
-                />
-            </Form>
+            {isLoadingPersonalDetails ? (
+                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            ) : (
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
+                    validate={validate}
+                    onSubmit={PersonalDetails.updateDateOfBirth}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <NewDatePicker
+                        inputID="dob"
+                        label={translate('common.date')}
+                        defaultValue={privatePersonalDetails.dob || ''}
+                        minDate={moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'years').toDate()}
+                        maxDate={moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'years').toDate()}
+                    />
+                </Form>
+            )}
         </ScreenWrapper>
     );
 }

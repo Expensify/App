@@ -58,16 +58,19 @@ function BaseTextInput(props) {
 
     // AutoFocus which only works on mount:
     useEffect(() => {
+        console.log(props.shouldDelayFocus, props.autoFocus)
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
         if (!props.autoFocus || !input.current) {
             return;
         }
 
         let focusTimeout;
-        if (props.shouldDelayFocus) {
+        if (!props.shouldDelayFocus) {
+            console.log('delays')
             focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
             return;
         }
+        console.log('doesnt delay')
         input.current.focus();
 
         return () => {
@@ -132,12 +135,6 @@ function BaseTextInput(props) {
             props.onBlur(event);
         }
         setIsFocused(false);
-
-        // If the text has been supplied by Chrome autofill, the value state is not synced with the value
-        // as Chrome doesn't trigger a change event. When there is autofill text, don't deactivate label.
-        if (!isInputAutoFilled(input.current)) {
-            deactivateLabel();
-        }
     };
 
     const onPress = (event) => {
@@ -190,9 +187,15 @@ function BaseTextInput(props) {
         // We can't use inputValue here directly, as it might contain
         // the defaultValue, which doesn't get updated when the text changes.
         // We can't use props.value either, as it might be undefined.
-        if (hasValueRef.current || isFocused) {
+        if (
+            hasValueRef.current ||
+            isFocused ||
+            // If the text has been supplied by Chrome autofill, the value state is not synced with the value
+            // as Chrome doesn't trigger a change event. When there is autofill text, keep the label activated.
+            isInputAutoFilled(input.current)
+        ) {
             activateLabel();
-        } else if (!hasValueRef.current && !isFocused) {
+        } else {
             deactivateLabel();
         }
     }, [activateLabel, deactivateLabel, inputValue, isFocused]);
@@ -331,6 +334,8 @@ function BaseTextInput(props) {
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
+                                    // Add disabled color theme when field is not editable.
+                                    props.disabled && styles.textInputDisabled,
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={props.maxLength}

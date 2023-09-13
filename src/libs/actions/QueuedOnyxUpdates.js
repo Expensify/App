@@ -14,7 +14,7 @@ Onyx.connect({
  * @returns {Promise}
  */
 function queueOnyxUpdates(updates) {
-    return Onyx.merge(ONYXKEYS.QUEUED_ONYX_UPDATES, updates);
+    return Onyx.set(ONYXKEYS.QUEUED_ONYX_UPDATES, [...queuedOnyxUpdates, ...updates]);
 }
 
 function clear() {
@@ -22,10 +22,10 @@ function clear() {
 }
 
 /**
- * @returns {Array<Object>}
+ * @returns {Promise}
  */
-function getQueuedUpdates() {
-    return queuedOnyxUpdates;
+function flushQueue() {
+    return Onyx.update(queuedOnyxUpdates).then(clear);
 }
 
-export {queueOnyxUpdates, clear, getQueuedUpdates};
+export {queueOnyxUpdates, flushQueue};

@@ -9,6 +9,7 @@ import themeColors from '../../styles/themes/default';
 import TextLink from '../TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
 import AutoEmailLink from '../AutoEmailLink';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -24,7 +25,7 @@ const propTypes = {
     subtitle: PropTypes.string,
 
     /** Link message below the subtitle */
-    link: PropTypes.string,
+    linkKey: PropTypes.string,
 
     /** Whether we should show a link to navigate elsewhere */
     shouldShowLink: PropTypes.bool,
@@ -37,19 +38,43 @@ const propTypes = {
 
     /** Function to call when pressing the navigation link */
     onLinkPress: PropTypes.func,
+
+    /** Whether we should embed the link with subtitle */
+    shouldEmbedLinkWithSubtitle: PropTypes.bool,
 };
 
 const defaultProps = {
     iconColor: themeColors.offline,
     subtitle: '',
     shouldShowLink: false,
-    link: 'notFound.goBackHome',
+    linkKey: 'notFound.goBackHome',
     iconWidth: variables.iconSizeSuperLarge,
     iconHeight: variables.iconSizeSuperLarge,
     onLinkPress: () => Navigation.dismissModal(),
+    shouldEmbedLinkWithSubtitle: false,
 };
 
 function BlockingView(props) {
+    const {translate} = useLocalize();
+    function renderContent() {
+        return (
+            <>
+                <AutoEmailLink
+                    style={[styles.textAlignCenter]}
+                    text={props.subtitle}
+                />
+                {props.shouldShowLink ? (
+                    <TextLink
+                        onPress={props.onLinkPress}
+                        style={[styles.link, styles.mt2]}
+                    >
+                        {translate(props.linkKey)}
+                    </TextLink>
+                ) : null}
+            </>
+        );
+    }
+
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
             <Icon
@@ -59,18 +84,12 @@ function BlockingView(props) {
                 height={props.iconHeight}
             />
             <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
-            <AutoEmailLink
-                style={[styles.textAlignCenter]}
-                text={props.subtitle}
-            />
-            {props.shouldShowLink ? (
-                <TextLink
-                    onPress={props.onLinkPress}
-                    style={[styles.link, styles.mt2]}
-                >
-                    {props.link}
-                </TextLink>
-            ) : null}
+
+            {props.shouldEmbedLinkWithSubtitle ? (
+                <Text style={[styles.textAlignCenter]}>{renderContent()}</Text>
+            ) : (
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{renderContent()}</View>
+            )}
         </View>
     );
 }

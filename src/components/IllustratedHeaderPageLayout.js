@@ -11,6 +11,7 @@ import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import FixedFooter from './FixedFooter';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -26,15 +27,20 @@ const propTypes = {
 
     /** A fixed footer to display at the bottom of the page. */
     footer: PropTypes.node,
+
+    /** Overlay content to display on top of animation */
+    overlayContent: PropTypes.func,
 };
 
 const defaultProps = {
     backgroundColor: themeColors.appBG,
     footer: null,
+    overlayContent: null,
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, ...propsToPassToHeader}) {
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
     const {windowHeight} = useWindowDimensions();
+    const {isOffline} = useNetwork();
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
@@ -50,7 +56,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                         titleColor={backgroundColor === themeColors.appBG ? undefined : themeColors.textColorfulBackground}
                         iconFill={backgroundColor === themeColors.appBG ? undefined : themeColors.iconColorfulBackground}
                     />
-                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
+                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG), !isOffline ? safeAreaPaddingBottomStyle : {}]}>
                         <ScrollView
                             contentContainerStyle={safeAreaPaddingBottomStyle}
                             showsVerticalScrollIndicator={false}
@@ -63,6 +69,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                                     autoPlay
                                     loop
                                 />
+                                {overlayContent && overlayContent()}
                             </View>
                             <View style={[styles.pt5]}>{children}</View>
                         </ScrollView>
