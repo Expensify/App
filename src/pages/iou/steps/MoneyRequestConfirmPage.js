@@ -64,6 +64,7 @@ function MoneyRequestConfirmPage(props) {
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
+    const isManualRequest = props.selectedTab === CONST.TAB.MANUAL;
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>
@@ -193,10 +194,9 @@ function MoneyRequestConfirmPage(props) {
             }
 
             if (props.iou.receiptPath && props.iou.receiptSource) {
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
-                    if (receipt && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST) {
-                        receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
-                    }
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
+                    const receipt = file;
+                    receipt.state = (file && isManualRequest) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
                     requestMoney(selectedParticipants, trimmedComment, receipt);
                 });
                 return;
@@ -220,6 +220,7 @@ function MoneyRequestConfirmPage(props) {
             isDistanceRequest,
             requestMoney,
             createDistanceRequest,
+            isManualRequest,
         ],
     );
 
@@ -258,7 +259,7 @@ function MoneyRequestConfirmPage(props) {
                     <HeaderWithBackButton
                         title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={!isDistanceRequest && !props.iou.receiptPath}
+                        shouldShowThreeDotsButton={isManualRequest}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[{
                             icon: Expensicons.Receipt,
