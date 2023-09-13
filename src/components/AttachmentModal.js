@@ -337,13 +337,11 @@ function AttachmentModal(props) {
                     setShouldLoadAttachment(true);
                 }}
                 onModalHide={(e) => {
-                    props.onModalHide(e).then(() => {
-                        if (!onModalHideCallbackRef.current) {
-                            return;
-                        }
-
+                    props.onModalHide(e);
+                    if (onModalHideCallbackRef.current) {
                         onModalHideCallbackRef.current();
-                    });
+                    }
+
                     setShouldLoadAttachment(false);
                 }}
                 propagateSwipe
