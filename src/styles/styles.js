@@ -1,5 +1,4 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
-import {StyleSheet} from 'react-native';
 import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
@@ -1544,8 +1543,14 @@ const styles = {
     },
 
     overlayStyles: (current) => ({
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: themeColors.overlay,
+        position: 'fixed',
+
+        // We need to stretch the overlay to cover the sidebar and the translate animation distance.
+        left: -2 * variables.sideBarWidth,
+        top: 0,
+        bottom: 0,
+        right: 0,
+        backgroundColor: Colors.black,
         opacity: current.progress.interpolate({
             inputRange: [0, 1],
             outputRange: [0, variables.overlayOpacity],
