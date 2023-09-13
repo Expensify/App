@@ -1,18 +1,17 @@
-import _ from 'underscore';
 import CONST from '../CONST';
 import * as TransactionUtils from './TransactionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
+import {Report, Transaction} from '../types/onyx';
 
 /**
  * Calculates the amount per user given a list of participants
  *
- * @param {Number} numberOfParticipants - Number of participants in the chat. It should not include the current user.
- * @param {Number} total - IOU total amount in backend format (cents, no matter the currency)
- * @param {String} currency - This is used to know how many decimal places are valid to use when splitting the total
- * @param {Boolean} isDefaultUser - Whether we are calculating the amount for the current user
- * @returns {Number}
+ * @param numberOfParticipants - Number of participants in the chat. It should not include the current user.
+ * @param total - IOU total amount in backend format (cents, no matter the currency)
+ * @param currency - This is used to know how many decimal places are valid to use when splitting the total
+ * @param isDefaultUser - Whether we are calculating the amount for the current user
  */
-function calculateAmount(numberOfParticipants, total, currency, isDefaultUser = false) {
+function calculateAmount(numberOfParticipants: number, total: number, currency: string, isDefaultUser = false): number {
     // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
     // has to be capped to 2 decimal places
     const currencyUnit = Math.min(100, CurrencyUtils.getCurrencyUnit(currency));
@@ -34,35 +33,32 @@ function calculateAmount(numberOfParticipants, total, currency, isDefaultUser = 
  * For example: if user1 owes user2 $10, then we have: {ownerAccountID: user2, managerID: user1, total: $10 (a positive amount, owed to user2)}
  * If user1 requests $17 from user2, then we have: {ownerAccountID: user1, managerID: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
- * @param {Object} iouReport
- * @param {Number} actorAccountID
- * @param {Number} amount
- * @param {String} currency
- * @param {String} isDeleting - whether the user is deleting the request
- * @returns {Object}
+ * @param isDeleting - whether the user is deleting the request
  */
-function updateIOUOwnerAndTotal(iouReport, actorAccountID, amount, currency, isDeleting = false) {
+function updateIOUOwnerAndTotal(iouReport: Report, actorAccountID: number, amount: number, currency: string, isDeleting = false) {
     if (currency !== iouReport.currency) {
         return iouReport;
     }
 
     // Make a copy so we don't mutate the original object
-    const iouReportUpdate = {...iouReport};
+    const iouReportUpdate: Report = {...iouReport};
 
-    if (actorAccountID === iouReport.ownerAccountID) {
-        iouReportUpdate.total += isDeleting ? -amount : amount;
-    } else {
-        iouReportUpdate.total += isDeleting ? amount : -amount;
+    if (iouReportUpdate.total) {
+        if (actorAccountID === iouReport.ownerAccountID) {
+            iouReportUpdate.total += isDeleting ? -amount : amount;
+        } else {
+            iouReportUpdate.total += isDeleting ? amount : -amount;
+        }
+
+        if (iouReportUpdate.total < 0) {
+            // The total sign has changed and hence we need to flip the manager and owner of the report.
+            iouReportUpdate.ownerAccountID = iouReport.managerID;
+            iouReportUpdate.managerID = iouReport.ownerAccountID;
+            iouReportUpdate.total = -iouReportUpdate.total;
+        }
+
+        iouReportUpdate.hasOutstandingIOU = iouReportUpdate.total !== 0;
     }
-
-    if (iouReportUpdate.total < 0) {
-        // The total sign has changed and hence we need to flip the manager and owner of the report.
-        iouReportUpdate.ownerAccountID = iouReport.managerID;
-        iouReportUpdate.managerID = iouReport.ownerAccountID;
-        iouReportUpdate.total = -iouReportUpdate.total;
-    }
-
-    iouReportUpdate.hasOutstandingIOU = iouReportUpdate.total !== 0;
 
     return iouReportUpdate;
 }
@@ -70,23 +66,19 @@ function updateIOUOwnerAndTotal(iouReport, actorAccountID, amount, currency, isD
 /**
  * Returns whether or not an IOU report contains money requests in a different currency
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
- *
- * @param {Object} iouReport
- * @returns {Boolean}
  */
-function isIOUReportPendingCurrencyConversion(iouReport) {
-    const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport.reportID);
-    const pendingRequestsInDifferentCurrency = _.filter(reportTransactions, (transaction) => transaction.pendingAction && TransactionUtils.getCurrency(transaction) !== iouReport.currency);
+function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
+    const reportTransactions: Transaction[] = TransactionUtils.getAllReportTransactions(iouReport.reportID);
+    const pendingRequestsInDifferentCurrency = reportTransactions.filter((transaction) => transaction.pendingAction && TransactionUtils.getCurrency(transaction) !== iouReport.currency);
     return pendingRequestsInDifferentCurrency.length > 0;
 }
 
 /**
  * Checks if the iou type is one of request, send, or split.
- * @param {String} iouType
- * @returns {Boolean}
  */
-function isValidMoneyRequestType(iouType) {
-    return [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.MONEY_REQUEST_TYPE.SPLIT].includes(iouType);
+function isValidMoneyRequestType(iouType: string): boolean {
+    const moneyRequestType: string[] = [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
+    return moneyRequestType.includes(iouType);
 }
 
 export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType};
