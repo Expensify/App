@@ -130,9 +130,6 @@ const propTypes = {
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey: PropTypes.string,
 
-    /** Whether to delay focus on the text input when mounting. Used for a smoother animation on Android */
-    shouldDelayFocus: PropTypes.bool,
-
     /** Callback to fire when the list is scrolled */
     onScroll: PropTypes.func,
 
