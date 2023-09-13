@@ -6,11 +6,9 @@ import lodashHas from 'lodash/has';
 import lodashIsNull from 'lodash/isNull';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-
 import CONST from '../CONST';
 import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
-
 import styles from '../styles/styles';
 import variables from '../styles/variables';
 import LinearGradient from './LinearGradient';
@@ -24,17 +22,14 @@ import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import usePrevious from '../hooks/usePrevious';
 import theme from '../styles/themes/default';
-
 import * as Transaction from '../libs/actions/Transaction';
 import * as TransactionUtils from '../libs/TransactionUtils';
-
 import Button from './Button';
 import MapView from './MapView';
 import * as Expensicons from './Icon/Expensicons';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import {iouPropTypes} from '../pages/iou/propTypes';
-import * as IOU from '../libs/actions/IOU';
 import * as StyleUtils from '../styles/StyleUtils';
+import transactionPropTypes from './transactionPropTypes';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -60,6 +55,9 @@ const propTypes = {
 
     /** Called on submit of this page */
     onSubmit: PropTypes.func.isRequired,
+
+    /* Onyx Props */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
@@ -69,6 +67,7 @@ const defaultProps = {
     mapboxAccessToken: {
         token: '',
     },
+    transaction: {},
 };
 
 function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingRequest, onSubmit, transaction}) {
@@ -78,14 +77,14 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
-    const waypoints = transaction?.comment?.waypoints || {};
+    const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
     const numberOfPreviousWaypoints = _.size(previousWaypoints);
     const scrollViewRef = useRef(null);
 
     const lastWaypointIndex = numberOfWaypoints - 1;
-    const isLoadingRoute = transaction?.comment?.isLoading || false;
+    const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
     const doesRouteExist = lodashHas(transaction, 'routes.route0.geometry.coordinates');
@@ -262,7 +261,7 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
                 )}
             </View>
             <Button
-                isLoading={transaction?.isLoading}
+                isLoading={transaction.isLoading}
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => onSubmit(waypoints)}
