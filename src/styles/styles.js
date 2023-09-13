@@ -3961,7 +3961,12 @@ const styles = (theme) => ({
     },
 });
 
+// For now we need to export the styles function that takes the theme as an argument
+// as something named different than "styles", because a lot of files import the "defaultStyles"
+// as "styles", which causes ESLint to throw an error.
+// TODO: Remove this once the app is migrated to theme switching hooks and HOCs and "styles/theme/default.js" is not used anywhere anymore
+const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
 export default defaultStyles;
-export {styles};
+export {stylesGenerator};
