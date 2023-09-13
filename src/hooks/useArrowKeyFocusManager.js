@@ -2,10 +2,6 @@ import {useState, useEffect, useCallback, useMemo} from 'react';
 import useKeyboardShortcut from './useKeyboardShortcut';
 import CONST from '../CONST';
 
-// Creating a default array this way because objects ({}) and arrays ([]) are not stable types.
-// The "disabledIndexes" array needs to be stable to prevent the "useCallback" hook from being recreated unnecessarily.
-// Freezing the array ensures that it cannot be unintentionally modified.
-const EMPTY_ARRAY = Object.freeze([]);
 /**
  * A hook that makes it easy to use the arrow keys to manage focus of items in a list
  *
@@ -24,7 +20,10 @@ export default function useArrowKeyFocusManager({
     maxIndex,
     onFocusedIndexChange = () => {},
     initialFocusedIndex = 0,
-    disabledIndexes = EMPTY_ARRAY,
+
+    // The "disabledIndexes" array needs to be stable to prevent the "useCallback" hook from being recreated unnecessarily.
+    // Hence the use of CONST.EMPTY_ARRAY.
+    disabledIndexes = CONST.EMPTY_ARRAY,
     shouldExcludeTextAreaNodes = true,
     isActive,
 }) {

@@ -35,6 +35,7 @@ import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
+import DemoSetupPage from '../../../pages/DemoSetupPage';
 
 let timezone;
 let currentAccountID;
@@ -240,6 +241,7 @@ class AuthScreens extends React.Component {
                     <RootStack.Screen
                         name={SCREENS.VALIDATE_LOGIN}
                         options={{
+                            ...screenOptions.fullScreen,
                             headerShown: false,
                             title: 'New Expensify',
                         }}
@@ -263,6 +265,16 @@ class AuthScreens extends React.Component {
                             const ConciergePage = require('../../../pages/ConciergePage').default;
                             return ConciergePage;
                         }}
+                    />
+                    <RootStack.Screen
+                        name={CONST.DEMO_PAGES.SAASTR}
+                        options={defaultScreenOptions}
+                        component={DemoSetupPage}
+                    />
+                    <RootStack.Screen
+                        name={CONST.DEMO_PAGES.SBE}
+                        options={defaultScreenOptions}
+                        component={DemoSetupPage}
                     />
                     <RootStack.Screen
                         name={SCREENS.REPORT_ATTACHMENTS}
