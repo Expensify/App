@@ -65,12 +65,12 @@
                         "comment": "New Chat"
                     },
                     {
-                        "/": "/teachersunite/*",
-                        "comment": "Teachers Unite!"
-                    },
-                    {
                         "/": "/workspace/*",
                         "comment": "Workspace Details"
+                    },
+                    {
+                        "/": "/teachersunite/*",
+                        "comment": "Teachers Unite!"
                     }
                 ]
             }
