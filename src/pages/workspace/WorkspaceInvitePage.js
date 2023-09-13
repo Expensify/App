@@ -186,7 +186,7 @@ function WorkspaceInvitePage(props) {
     );
 
     const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim();
+        const searchValue = searchTerm.trim().toLowerCase();
         if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
@@ -225,7 +225,9 @@ function WorkspaceInvitePage(props) {
                             onChangeText={setSearchTerm}
                             headerMessage={headerMessage}
                             onSelectRow={toggleOption}
+                            onConfirm={inviteUser}
                             showScrollIndicator
+                            showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
                         />
                         <View style={[styles.flexShrink0]}>
                             <FormAlertWithSubmitButton

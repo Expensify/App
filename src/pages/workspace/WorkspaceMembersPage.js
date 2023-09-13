@@ -393,11 +393,7 @@ function WorkspaceMembersPage(props) {
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
-                            initiallyFocusedOptionKey={lodashGet(
-                                _.find(data, (item) => !item.isDisabled),
-                                'keyForList',
-                                undefined,
-                            )}
+                            showScrollIndicator
                         />
                     </View>
                 </View>
