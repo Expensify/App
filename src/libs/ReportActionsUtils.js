@@ -4,7 +4,6 @@ import _ from 'underscore';
 import {max, parseISO, isEqual} from 'date-fns';
 import lodashFindLast from 'lodash/findLast';
 import Onyx from 'react-native-onyx';
-import lodashMerge from 'lodash/merge';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
