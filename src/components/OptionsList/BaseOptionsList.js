@@ -170,19 +170,17 @@ function BaseOptionsList({
      */
     const renderItem = ({item, index, section}) => {
         const isItemDisabled = isDisabled || section.isDisabled || !!item.isDisabled;
-        const isSelected = Boolean(
-            _.find(selectedOptions, (option) => {
-                if (option.accountID === item.accountID) {
-                    return true;
-                }
+        const isSelected = _.some(selectedOptions, (option) => {
+            if (option.accountID === item.accountID) {
+                return true;
+            }
 
-                if (_.isEmpty(option.name)) {
-                    return false;
-                }
+            if (_.isEmpty(option.name)) {
+                return false;
+            }
 
-                return option.name === item.searchText;
-            }),
-        );
+            return option.name === item.searchText;
+        });
 
         return (
             <OptionRow
