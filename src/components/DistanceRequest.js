@@ -152,7 +152,7 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
             return;
         }
 
-        Transaction.getRoute(transactionID, waypoints);
+        Transaction.getRoute(transactionID, validatedWaypoints);
     }, [shouldFetchRoute, transactionID, validatedWaypoints, isOffline]);
 
     useEffect(() => {
