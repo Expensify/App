@@ -1,8 +1,8 @@
 diff --git a/node_modules/@onfido/react-native-sdk/android/build.gradle b/node_modules/@onfido/react-native-sdk/android/build.gradle
-index 781925b..9e16430 100644
+index b4c7106..d5083d3 100644
 --- a/node_modules/@onfido/react-native-sdk/android/build.gradle
 +++ b/node_modules/@onfido/react-native-sdk/android/build.gradle
-@@ -134,9 +134,9 @@ afterEvaluate { project ->
+@@ -135,9 +135,9 @@ afterEvaluate { project ->
          group = "Reporting"
          description = "Generate Jacoco coverage reports after running tests."
          reports {
