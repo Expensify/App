@@ -340,7 +340,10 @@ class BaseOptionsSelector extends Component {
         const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
         const textInput = (
             <TextInput
-                ref={(el) => (this.textInput = el)}
+                ref={(el) => {
+                    this.textInput = el;
+                    this.props.inputRef.current = el;
+                }}
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 accessibilityLabel={this.props.textInputLabel}

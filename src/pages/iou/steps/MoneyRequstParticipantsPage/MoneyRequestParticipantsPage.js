@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -49,6 +49,8 @@ function MoneyRequestParticipantsPage(props) {
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const inputRef = useRef(null);
+
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
 
     const navigateToNextStep = () => {
@@ -57,6 +59,16 @@ function MoneyRequestParticipantsPage(props) {
 
     const navigateBack = (forceFallback = false) => {
         Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), forceFallback);
+    };
+
+    const focusTextInput = () => {
+        InteractionManager.runAfterInteractions(() => {
+            if (!inputRef.current) {
+                return;
+            }
+
+            inputRef.current.focus();
+        });
     };
 
     useEffect(() => {
@@ -88,6 +100,7 @@ function MoneyRequestParticipantsPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            onEntryTransitionEnd={focusTextInput}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
@@ -109,6 +122,7 @@ function MoneyRequestParticipantsPage(props) {
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             iouType={iouType.current}
                             isDistanceRequest={isDistanceRequest}
+                            inputRef={inputRef}
                         />
                     )}
                 </View>
