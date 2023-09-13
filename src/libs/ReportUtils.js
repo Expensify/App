@@ -2067,6 +2067,7 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
  * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
  * @param {Object} [receipt]
  * @param {Boolean} [isOwnPolicyExpenseChat] - Whether this is an expense report create from the current user's policy expense chat
+ * @param {String} [created] - Action created time
  * @returns {Object}
  */
 function buildOptimisticIOUReportAction(
@@ -2082,6 +2083,7 @@ function buildOptimisticIOUReportAction(
     isSendMoneyFlow = false,
     receipt = {},
     isOwnPolicyExpenseChat = false,
+    created = DateUtils.getDBTime(),
 ) {
     const IOUReportID = iouReportID || generateReportID();
 
@@ -2139,7 +2141,7 @@ function buildOptimisticIOUReportAction(
         ],
         reportActionID: NumberUtils.rand64(),
         shouldShow: true,
-        created: DateUtils.getDBTime(),
+        created,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
         whisperedToAccountIDs: !_.isEmpty(receipt) ? [currentUserAccountID] : [],
@@ -2400,9 +2402,10 @@ function buildOptimisticChatReport(
 /**
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
  * @param {String} emailCreatingAction
+ * @param {String} [created] - Action created time
  * @returns {Object}
  */
-function buildOptimisticCreatedReportAction(emailCreatingAction) {
+function buildOptimisticCreatedReportAction(emailCreatingAction, created = DateUtils.getDBTime()) {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -2429,7 +2432,7 @@ function buildOptimisticCreatedReportAction(emailCreatingAction) {
         ],
         automatic: false,
         avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
-        created: DateUtils.getDBTime(),
+        created,
         shouldShow: true,
     };
 }
