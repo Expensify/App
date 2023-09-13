@@ -2586,7 +2586,7 @@ const styles = {
     },
 
     switchInactive: {
-        backgroundColor: themeColors.icon,
+        backgroundColor: themeColors.border,
     },
 
     switchThumb: {
