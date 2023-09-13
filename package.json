@@ -273,6 +273,9 @@
     "webpack-merge": "^5.8.0",
     "yaml": "^2.2.1"
   },
+  "overrides": {
+    "react-native": "$react-native"
+  },
   "electronmon": {
     "patterns": [
       "!node_modules",
