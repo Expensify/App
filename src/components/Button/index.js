@@ -1,8 +1,6 @@
 import React, {Component} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import Text from '../Text';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import Icon from '../Icon';
@@ -16,6 +14,8 @@ import withNavigationFocus from '../withNavigationFocus';
 import validateSubmitShortcut from './validateSubmitShortcut';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import refPropTypes from '../refPropTypes';
+import withTheme, {withThemePropTypes} from '../withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from '../withThemeStyles';
 
 const propTypes = {
     /** The text for the button label */
@@ -77,10 +77,10 @@ const propTypes = {
     /** The priority to assign the enter key event listener. 0 is the highest priority. */
     enterKeyEventListenerPriority: PropTypes.number,
 
-    /** Additional styles to add after local styles. Applied to Pressable portion of button */
+    /** Additional styles to add after local this.props.themeStyles. Applied to Pressable portion of button */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    /** Additional button styles. Specific to the OpacityView of button */
+    /** Additional button this.props.themeStyles. Specific to the OpacityView of button */
     // eslint-disable-next-line react/forbid-prop-types
     innerStyles: PropTypes.arrayOf(PropTypes.object),
 
@@ -120,6 +120,9 @@ const propTypes = {
 
     /** A ref to forward the button */
     forwardedRef: refPropTypes,
+
+    ...withThemePropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -127,7 +130,7 @@ const defaultProps = {
     shouldShowRightIcon: false,
     icon: null,
     iconRight: Expensicons.ArrowRight,
-    iconFill: themeColors.textLight,
+    iconFill: undefined,
     iconStyles: [],
     iconRightStyles: [],
     isLoading: false,
@@ -202,20 +205,22 @@ class Button extends Component {
             return this.props.children;
         }
 
+        const defaultIconFill = this.props.theme.textLight;
+
         const textComponent = (
             <Text
                 numberOfLines={1}
                 selectable={false}
                 style={[
-                    this.props.isLoading && styles.opacity0,
-                    styles.pointerEventsNone,
-                    styles.buttonText,
-                    this.props.small && styles.buttonSmallText,
-                    this.props.medium && styles.buttonMediumText,
-                    this.props.large && styles.buttonLargeText,
-                    this.props.success && styles.buttonSuccessText,
-                    this.props.danger && styles.buttonDangerText,
-                    this.props.icon && styles.textAlignLeft,
+                    this.props.isLoading && this.props.this.props.themeStyles.opacity0,
+                    this.props.themeStyles.pointerEventsNone,
+                    this.props.themeStyles.buttonText,
+                    this.props.small && this.props.themeStyles.buttonSmallText,
+                    this.props.medium && this.props.themeStyles.buttonMediumText,
+                    this.props.large && this.props.themeStyles.buttonLargeText,
+                    this.props.success && this.props.themeStyles.buttonSuccessText,
+                    this.props.danger && this.props.themeStyles.buttonDangerText,
+                    this.props.icon && this.props.themeStyles.textAlignLeft,
                     ...this.props.textStyles,
                 ]}
             >
@@ -225,13 +230,13 @@ class Button extends Component {
 
         if (this.props.icon || this.props.shouldShowRightIcon) {
             return (
-                <View style={[styles.justifyContentBetween, styles.flexRow]}>
-                    <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
+                <View style={[this.props.themeStyles.justifyContentBetween, this.props.themeStyles.flexRow]}>
+                    <View style={[this.props.themeStyles.alignItemsCenter, this.props.themeStyles.flexRow, this.props.themeStyles.flexShrink1]}>
                         {this.props.icon && (
-                            <View style={[styles.mr1, ...this.props.iconStyles]}>
+                            <View style={[this.props.themeStyles.mr1, ...this.props.iconStyles]}>
                                 <Icon
                                     src={this.props.icon}
-                                    fill={this.props.iconFill}
+                                    fill={this.props.iconFill || defaultIconFill}
                                     small={this.props.small}
                                 />
                             </View>
@@ -239,7 +244,7 @@ class Button extends Component {
                         {textComponent}
                     </View>
                     {this.props.shouldShowRightIcon && (
-                        <View style={[styles.justifyContentCenter, styles.ml1, ...this.props.iconRightStyles]}>
+                        <View style={[this.props.themeStyles.justifyContentCenter, this.props.themeStyles.ml1, ...this.props.iconRightStyles]}>
                             <Icon
                                 src={this.props.iconRight}
                                 fill={this.props.iconFill}
@@ -279,29 +284,29 @@ class Button extends Component {
                 onMouseDown={this.props.onMouseDown}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 wrapperStyle={[
-                    this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
-                    styles.buttonContainer,
-                    this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                    this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                    this.props.isDisabled ? {...this.props.themeStyles.cursorDisabled, ...this.props.themeStyles.noSelect} : {},
+                    this.props.themeStyles.buttonContainer,
+                    this.props.shouldRemoveRightBorderRadius ? this.props.themeStyles.noRightBorderRadius : undefined,
+                    this.props.shouldRemoveLeftBorderRadius ? this.props.themeStyles.noLeftBorderRadius : undefined,
                     ...StyleUtils.parseStyleAsArray(this.props.style),
                 ]}
                 style={[
-                    styles.button,
-                    this.props.small ? styles.buttonSmall : undefined,
-                    this.props.medium ? styles.buttonMedium : undefined,
-                    this.props.large ? styles.buttonLarge : undefined,
-                    this.props.success ? styles.buttonSuccess : undefined,
-                    this.props.danger ? styles.buttonDanger : undefined,
-                    this.props.isDisabled && (this.props.success || this.props.danger) ? styles.buttonOpacityDisabled : undefined,
-                    this.props.isDisabled && !this.props.danger && !this.props.success ? styles.buttonDisabled : undefined,
-                    this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                    this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                    this.props.themeStyles.button,
+                    this.props.small ? this.props.themeStyles.buttonSmall : undefined,
+                    this.props.medium ? this.props.themeStyles.buttonMedium : undefined,
+                    this.props.large ? this.props.themeStyles.buttonLarge : undefined,
+                    this.props.success ? this.props.themeStyles.buttonSuccess : undefined,
+                    this.props.danger ? this.props.themeStyles.buttonDanger : undefined,
+                    this.props.isDisabled && (this.props.success || this.props.danger) ? this.props.themeStyles.buttonOpacityDisabled : undefined,
+                    this.props.isDisabled && !this.props.danger && !this.props.success ? this.props.themeStyles.buttonDisabled : undefined,
+                    this.props.shouldRemoveRightBorderRadius ? this.props.themeStyles.noRightBorderRadius : undefined,
+                    this.props.shouldRemoveLeftBorderRadius ? this.props.themeStyles.noLeftBorderRadius : undefined,
                     ...this.props.innerStyles,
                 ]}
                 hoverStyle={[
-                    this.props.shouldUseDefaultHover && !this.props.isDisabled ? styles.buttonDefaultHovered : undefined,
-                    this.props.success && !this.props.isDisabled ? styles.buttonSuccessHovered : undefined,
-                    this.props.danger && !this.props.isDisabled ? styles.buttonDangerHovered : undefined,
+                    this.props.shouldUseDefaultHover && !this.props.isDisabled ? this.props.themeStyles.buttonDefaultHovered : undefined,
+                    this.props.success && !this.props.isDisabled ? this.props.themeStyles.buttonSuccessHovered : undefined,
+                    this.props.danger && !this.props.isDisabled ? this.props.themeStyles.buttonDangerHovered : undefined,
                 ]}
                 nativeID={this.props.nativeID}
                 accessibilityLabel={this.props.accessibilityLabel}
@@ -310,8 +315,8 @@ class Button extends Component {
                 {this.renderContent()}
                 {this.props.isLoading && (
                     <ActivityIndicator
-                        color={this.props.success || this.props.danger ? themeColors.textLight : themeColors.text}
-                        style={[styles.pAbsolute, styles.l0, styles.r0]}
+                        color={this.props.success || this.props.danger ? this.props.theme.textLight : this.props.theme.text}
+                        style={[this.props.themeStyles.pAbsolute, this.props.themeStyles.l0, this.props.themeStyles.r0]}
                     />
                 )}
             </PressableWithFeedback>
@@ -325,6 +330,8 @@ Button.defaultProps = defaultProps;
 export default compose(
     withNavigationFallback,
     withNavigationFocus,
+    withTheme,
+    withThemeStyles,
 )(
     React.forwardRef((props, ref) => (
         <Button
