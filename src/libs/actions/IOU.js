@@ -496,8 +496,8 @@ function getMoneyRequestInformation(
               [payerAccountID]: {
                   accountID: payerAccountID,
                   avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
-                  displayName: participant.displayName || participant.login,
-                  login: payerEmail,
+                  displayName: participant.displayName || payerEmail,
+                  login: participant.login,
               },
           }
         : undefined;
@@ -604,8 +604,11 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * * @param {Boolean} defaultBillable
  */
 function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined, category = undefined, defaultBillable = false) {
+    // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
-        report,
+        currentChatReport,
         participant,
         comment,
         amount,
@@ -643,7 +646,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
         onyxData,
     );
     resetMoneyRequestInfo();
-    Navigation.dismissModal(chatReport.reportID);
+    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
     Report.notifyNewAction(chatReport.reportID, payeeAccountID);
 }
 
@@ -898,8 +901,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
                   [accountID]: {
                       accountID,
                       avatar: UserUtils.getDefaultAvatarURL(accountID),
-                      displayName: participant.displayName || participant.login,
-                      login: email,
+                      displayName: participant.displayName || email,
+                      login: participant.login,
                   },
               }
             : undefined;
@@ -1103,7 +1106,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     ];
 
     // STEP 6: Call the API endpoint
-    const {created, amount, currency, comment, merchant} = ReportUtils.getTransactionDetails(updatedTransaction);
+    const {created, amount, currency, comment, merchant, category} = ReportUtils.getTransactionDetails(updatedTransaction);
     API.write(
         'EditMoneyRequest',
         {
@@ -1114,6 +1117,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             currency,
             comment,
             merchant,
+            category,
         },
         {optimisticData, successData, failureData},
     );
@@ -1938,12 +1942,14 @@ function navigateToNextPage(iou, iouType, reportID, report) {
 
     // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
     if (report.reportID) {
+        // If the report is iou or expense report, we should get the chat report to set participant for request money
+        const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
         // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
         if (_.isEmpty(iou.participants) || shouldReset) {
             const currentUserAccountID = currentUserPersonalDetails.accountID;
-            const participants = ReportUtils.isPolicyExpenseChat(report)
-                ? [{reportID: report.reportID, isPolicyExpenseChat: true, selected: true}]
-                : _.chain(report.participantAccountIDs)
+            const participants = ReportUtils.isPolicyExpenseChat(chatReport)
+                ? [{reportID: chatReport.reportID, isPolicyExpenseChat: true, selected: true}]
+                : _.chain(chatReport.participantAccountIDs)
                       .filter((accountID) => currentUserAccountID !== accountID)
                       .map((accountID) => ({accountID, selected: true}))
                       .value();
