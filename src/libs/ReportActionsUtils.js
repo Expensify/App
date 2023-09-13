@@ -105,11 +105,15 @@ function isWhisperAction(action) {
 }
 
 /**
+ * Returns whether the comment is a thread parent message/the first message in a thread
+ *
  * @param {Object} reportAction
+ * @param {String} reportID
  * @returns {Boolean}
  */
-function hasCommentThread(reportAction) {
-    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
+function isThreadParentMessage(reportAction = {}, reportID) {
+    const {childType, childVisibleActionCount = 0, childReportID} = reportAction;
+    return childType === CONST.REPORT.TYPE.CHAT && (childVisibleActionCount > 0 || String(childReportID) === reportID);
 }
 
 /**
@@ -362,7 +366,14 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
         return false;
     }
 
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !isWhisperAction(reportAction) && !isDeletedAction(reportAction);
+    if (!_.isEmpty(reportAction.errors)) {
+        return false;
+    }
+
+    // If a whisper action is the REPORTPREVIEW action, we are displaying it.
+    return (
+        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction)) && !isDeletedAction(reportAction)
+    );
 }
 
 /**
@@ -393,6 +404,8 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     if (isReportMessageAttachment(message)) {
         return {
             lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            lastMessageText: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            lastMessageHtml: CONST.TRANSLATION_KEYS.ATTACHMENT,
         };
     }
 
@@ -585,6 +598,20 @@ function isSplitBillAction(reportAction) {
 }
 
 /**
+ *
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isTaskAction(reportAction) {
+    const reportActionName = lodashGet(reportAction, 'actionName', '');
+    return (
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
+    );
+}
+
+/**
  * @param {*} reportID
  * @returns {[Object]}
  */
@@ -619,7 +646,7 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     isMoneyRequestAction,
-    hasCommentThread,
+    isThreadParentMessage,
     getLinkedTransactionID,
     getMostRecentReportActionLastModified,
     getReportPreviewAction,
@@ -638,6 +665,7 @@ export {
     getReportAction,
     getNumberOfMoneyRequests,
     isSplitBillAction,
+    isTaskAction,
     getAllReportActions,
     isReportActionAttachment,
 };

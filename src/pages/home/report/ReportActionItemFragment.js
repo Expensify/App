@@ -46,6 +46,9 @@ const propTypes = {
         source: PropTypes.string,
     }),
 
+    /** Message(text) of an IOU report action */
+    iouMessage: PropTypes.string,
+
     /** Does this fragment belong to a reportAction that has not yet loaded? */
     loading: PropTypes.bool,
 
@@ -64,6 +67,9 @@ const propTypes = {
     /** icon */
     actorIcon: avatarPropTypes,
 
+    /** Whether the comment is a thread parent message/the first message in a thread */
+    isThreadParentMessage: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -78,12 +84,14 @@ const defaultProps = {
         type: '',
         source: '',
     },
+    iouMessage: '',
     loading: false,
     isSingleLine: false,
     source: '',
     style: [],
     delegateAccountID: 0,
     actorIcon: {},
+    isThreadParentMessage: false,
 };
 
 function ReportActionItemFragment(props) {
@@ -109,7 +117,7 @@ function ReportActionItemFragment(props) {
             // While offline we display the previous message with a strikethrough style. Once online we want to
             // immediately display "[Deleted message]" while the delete action is pending.
 
-            if ((!props.network.isOffline && props.hasCommentThread && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || props.fragment.isDeletedParentAction) {
+            if ((!props.network.isOffline && props.isThreadParentMessage && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || props.fragment.isDeletedParentAction) {
                 return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
             }
 
@@ -133,7 +141,7 @@ function ReportActionItemFragment(props) {
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
-                    {convertToLTR(text)}
+                    {convertToLTR(props.iouMessage || text)}
                     {Boolean(props.fragment.isEdited) && (
                         <Text
                             fontSize={variables.fontSizeSmall}
