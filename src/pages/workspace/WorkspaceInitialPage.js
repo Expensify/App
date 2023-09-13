@@ -109,6 +109,9 @@ function WorkspaceInitialPage(props) {
         [props.reports, policy],
     );
 
+    const onCloseCurrencyModal = useCallback(() => setIsCurrencyModalOpen(false), []);
+    const onCloseDeleteModal = useCallback(() => setIsDeleteModalOpen(false), []);
+
     const policyName = lodashGet(policy, 'name', '');
     const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMembers);
     const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
@@ -267,7 +270,7 @@ function WorkspaceInitialPage(props) {
                         title={props.translate('workspace.bankAccount.workspaceCurrency')}
                         isVisible={isCurrencyModalOpen}
                         onConfirm={confirmCurrencyChangeAndHideModal}
-                        onCancel={() => setIsCurrencyModalOpen(false)}
+                        onCancel={onCloseCurrencyModal}
                         prompt={props.translate('workspace.bankAccount.updateCurrencyPrompt')}
                         confirmText={props.translate('workspace.bankAccount.updateToUSD')}
                         cancelText={props.translate('common.cancel')}
@@ -277,7 +280,7 @@ function WorkspaceInitialPage(props) {
                         title={props.translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
                         onConfirm={confirmDeleteAndHideModal}
-                        onCancel={() => setIsDeleteModalOpen(false)}
+                        onCancel={onCloseDeleteModal}
                         prompt={props.translate('workspace.common.deleteConfirmation')}
                         confirmText={props.translate('common.delete')}
                         cancelText={props.translate('common.cancel')}
