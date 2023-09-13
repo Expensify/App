@@ -1,10 +1,11 @@
 {% assign activePlatform = page.url | replace: '/', ' ' | truncatewords: 1 | remove:'...' %}
 {% assign platform = site.data.routes.platforms | where: "href", activePlatform | first %}
 
-<!-- {% assign activeHub = page.url | remove: activePlatform | remove: "/hubs/" | remove: "/" | remove: ".html" %}
-{% assign hub = site.data.routes %} -->
+{% assign activeHub = page.url | remove: activePlatform | remove: "/hubs/" | remove: "/" | remove: ".html" %}
+{% assign hub = platform.hubs | where: "href", activeHub | first %}
 
-{{ platform }}
+{{ hub }}
+<!-- {{ platform.hubs }} -->
 
 <h1 class="title">
     {{ hub.title }}
