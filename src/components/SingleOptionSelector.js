@@ -10,13 +10,18 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
+    /** Array of options for the selector, key is a unique identifier, label is a localize key that will be translated and displayed */
     options: PropTypes.arrayOf(
         PropTypes.shape({
             key: PropTypes.string,
             label: PropTypes.string,
         }),
     ),
+
+    /** Key of the option that is currently selected */
     selectedOptionKey: PropTypes.string,
+
+    /** Function to be called when an option is selected */
     onSelectOption: PropTypes.func,
     ...withLocalizePropTypes,
 };

@@ -15,6 +15,7 @@ import Text from '../../../components/Text';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import usePrivatePersonalDetails from '../../../hooks/usePrivatePersonalDetails';
 
+/** Options for reason selector */
 const OPTIONS = [
     {
         key: 'damaged',
