@@ -56,11 +56,13 @@ function BaseOptionsList({
     shouldDisableRowInnerPadding,
     disableFocusOptions,
     canSelectMultipleOptions,
+    highlightSelectedOptions,
     onSelectRow,
     shouldDebounceRowSelect,
     boldStyle,
     isDisabled,
     innerRef,
+    isRowMultilineSupported,
 }) {
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
@@ -177,12 +179,14 @@ function BaseOptionsList({
                 optionIsFocused={!disableFocusOptions && !isItemDisabled && focusedIndex === index + section.indexOffset}
                 onSelectRow={onSelectRow}
                 shouldDebounceRowSelect={shouldDebounceRowSelect}
-                isSelected={Boolean(_.find(selectedOptions, (option) => option.accountID === item.accountID))}
+                isSelected={Boolean(_.find(selectedOptions, (option) => option.accountID === item.accountID || option.name === item.searchText))}
                 showSelectedState={canSelectMultipleOptions}
+                highlightSelected={highlightSelectedOptions}
                 boldStyle={boldStyle}
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
+                isMultilineSupported={isRowMultilineSupported}
             />
         );
     };
