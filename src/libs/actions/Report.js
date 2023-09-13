@@ -192,7 +192,7 @@ function subscribeToReportTypingEvents(reportID) {
 }
 
 /**
- * Initialize our pusher subscriptions to listen for someone typing in a report.
+ * Initialize our pusher subscriptions to listen for someone leaving a room.
  *
  * @param {String} reportID
  */
