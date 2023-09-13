@@ -35,6 +35,9 @@ const propTypes = {
             /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
+
+        /** The current route path */
+        path: PropTypes.string,
     }).isRequired,
 
     /** The report on which the request is initiated on */
@@ -196,7 +199,7 @@ function ReceiptSelector(props) {
             })
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report, props.route.path);
             })
             .catch((error) => {
                 showCameraAlert();
@@ -261,7 +264,7 @@ function ReceiptSelector(props) {
                         showImagePicker(launchImageLibrary)
                             .then((receiptImage) => {
                                 IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+                                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report, props.route.path);
                             })
                             .catch(() => {
                                 Log.info('User did not select an image from gallery');
