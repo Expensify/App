@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import colors from '../styles/colors';
+import themeColors from '../styles/themes/default';
 import Text from './Text';
 import * as Localize from '../libs/Localize';
 

@@ -13,7 +13,6 @@ import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
 import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
-import * as NumberUtils from '../libs/NumberUtils';
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -569,7 +568,7 @@ function getReportActionItemStyle(isHovered = false, isLoading = false): ViewSty
         backgroundColor: isHovered
             ? themeColors.hoverComponentBG
             : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
-            themeColors.transparent,
+              themeColors.transparent,
         opacity: isLoading ? 0.5 : 1,
         ...styles.cursorInitial,
     };
