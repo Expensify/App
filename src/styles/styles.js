@@ -170,7 +170,6 @@ const styles = {
     ...writingDirection,
     ...cursor,
     ...userSelect,
-    ...themeColors,
     ...textUnderline,
 
     rateCol: {
