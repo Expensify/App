@@ -4,9 +4,8 @@ import PusherUtils from '../PusherUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 import CONST from '../../CONST';
-import {OnyxUpdatesFromServer, Request} from '../../types/onyx';
+import {OnyxUpdatesFromServer, OnyxUpdateEvent, Request} from '../../types/onyx';
 import Response from '../../types/onyx/Response';
-import {OnyxUpdateEvent} from '../../types/onyx/OnyxUpdatesFromServer';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
