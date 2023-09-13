@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const defaultPropTypes = {
+const propTypes = {
     /** pointerEvents property to the SVG element */
     pointerEvents: PropTypes.string.isRequired,
 
@@ -8,4 +8,4 @@ const defaultPropTypes = {
     width: PropTypes.number.isRequired,
 };
 
-export default defaultPropTypes;
+export default propTypes;
