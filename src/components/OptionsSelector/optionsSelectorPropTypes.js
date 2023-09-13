@@ -61,6 +61,8 @@ const propTypes = {
 
     /** Callback to fire when the multiple selector (tickbox or button) is clicked */
     onAddToSelection: PropTypes.func,
+    /** Whether we highlight selected options */
+    highlightSelectedOptions: PropTypes.bool,
 
     /** Whether any section headers should be visible */
     hideSectionHeaders: PropTypes.bool,
@@ -115,6 +117,12 @@ const propTypes = {
 
     /** Whether to use default padding and flex styles for children */
     shouldUseStyleForChildren: PropTypes.bool,
+
+    /** Whether to wrap large text up to 2 lines */
+    isRowMultilineSupported: PropTypes.bool,
+
+    /** Initial focused index value */
+    initialFocusedIndex: PropTypes.number,
 };
 
 const defaultProps = {
@@ -128,6 +136,7 @@ const defaultProps = {
     shouldShowMultipleOptionSelectorAsButton: false,
     multipleOptionSelectorButtonText: '',
     onAddToSelection: () => {},
+    highlightSelectedOptions: false,
     hideSectionHeaders: false,
     boldStyle: false,
     showTitleTooltip: false,
@@ -148,6 +157,8 @@ const defaultProps = {
     shouldShowTextInput: true,
     onChangeText: () => {},
     shouldUseStyleForChildren: true,
+    isRowMultilineSupported: false,
+    initialFocusedIndex: undefined,
 };
 
 export {propTypes, defaultProps};
