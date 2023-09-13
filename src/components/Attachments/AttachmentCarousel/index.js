@@ -5,7 +5,6 @@ import _ from 'underscore';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import styles from '../../../styles/styles';
 import CarouselActions from './CarouselActions';
-import AttachmentView from '../AttachmentView';
 import withWindowDimensions from '../../withWindowDimensions';
 import CarouselButtons from './CarouselButtons';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
@@ -15,6 +14,7 @@ import withLocalize from '../../withLocalize';
 import compose from '../../../libs/compose';
 import useCarouselArrows from './useCarouselArrows';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import CarouselItem from './CarouselItem';
 import Navigation from '../../../libs/Navigation/Navigation';
 import BlockingView from '../../BlockingViews/BlockingView';
 import * as Illustrations from '../../Icon/Illustrations';
@@ -143,21 +143,20 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     /**
      * Defines how a single attachment should be rendered
      * @param {Object} item
+     * @param {String} item.reportActionID
      * @param {Boolean} item.isAuthTokenRequired
      * @param {String} item.source
      * @param {Object} item.file
      * @param {String} item.file.name
+     * @param {Boolean} item.hasBeenFlagged
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
         ({item}) => (
-            <AttachmentView
-                source={item.source}
-                file={item.file}
-                isAuthTokenRequired={item.isAuthTokenRequired}
+            <CarouselItem
+                item={item}
                 isFocused={activeSource === item.source}
                 onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
-                isUsedInCarousel
             />
         ),
         [activeSource, setShouldShowArrows, shouldShowArrows],

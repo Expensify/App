@@ -63,6 +63,14 @@
                     {
                         "/": "/new/*",
                         "comment": "New Chat"
+                    },
+                    {
+                        "/": "/workspace/*",
+                        "comment": "Workspace Details"
+                    },
+                    {
+                        "/": "/save-the-world/*",
+                        "comment": "Save the World"
                     }
                 ]
             }
