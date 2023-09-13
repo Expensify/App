@@ -29,7 +29,6 @@ function RNTextInput(props) {
             }}
             // eslint-disable-next-line
             {...props}
-            autoFocus={true}
         />
     );
 }
