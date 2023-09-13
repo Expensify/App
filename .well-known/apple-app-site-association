@@ -67,6 +67,10 @@
                     {
                         "/": "/teachersunite/*",
                         "comment": "Teachers Unite!"
+                    },
+                    {
+                        "/": "/workspace/*",
+                        "comment": "Workspace Details"
                     }
                 ]
             }

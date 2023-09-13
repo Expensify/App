@@ -778,6 +778,22 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    textInputDisabled: {
+        // Adding disabled color theme to indicate user that the field is not editable.
+        backgroundColor: themeColors.highlightBG,
+        borderBottomWidth: 2,
+        borderColor: themeColors.borderLighter,
+        // Adding browser specefic style to bring consistency between Safari and other platforms.
+        // Applying the Webkit styles only to browsers as it is not available in native.
+        ...(Browser.getBrowser()
+            ? {
+                  WebkitTextFillColor: themeColors.textSupporting,
+                  WebkitOpacity: 1,
+              }
+            : {}),
+        color: themeColors.textSupporting,
+    },
+
     uploadReceiptView: (isSmallScreenWidth) => ({
         borderRadius: variables.componentBorderRadiusLarge,
         borderWidth: isSmallScreenWidth ? 0 : 2,
@@ -1472,7 +1488,7 @@ const styles = {
 
     optionDisplayName: {
         fontFamily: fontFamily.EXP_NEUE,
-        height: variables.alternateTextHeight,
+        minHeight: variables.alternateTextHeight,
         lineHeight: variables.lineHeightXLarge,
         ...whiteSpace.noWrap,
     },
@@ -1507,6 +1523,14 @@ const styles = {
         minHeight: variables.optionRowHeight,
         paddingTop: 12,
         paddingBottom: 12,
+    },
+
+    optionRowSelected: {
+        backgroundColor: themeColors.activeComponentBG,
+    },
+
+    optionRowDisabled: {
+        color: themeColors.textSupporting,
     },
 
     optionRowCompact: {
@@ -2543,6 +2567,13 @@ const styles = {
     attachmentArrow: {
         zIndex: 23,
         position: 'absolute',
+    },
+
+    attachmentRevealButtonContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...spacing.ph4,
     },
 
     arrowIcon: {
