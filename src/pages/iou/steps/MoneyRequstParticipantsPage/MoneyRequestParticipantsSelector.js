@@ -4,13 +4,13 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
 import * as ReportUtils from '../../../../libs/ReportUtils';
-import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import CONST from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
+import SelectionList from '../../../../components/SelectionList';
 
 const propTypes = {
     /** Beta features list */
@@ -28,9 +28,6 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
-    /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
 
@@ -41,7 +38,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    safeAreaPaddingBottomStyle: {},
     personalDetails: {},
     reports: {},
     betas: [],
@@ -57,10 +53,14 @@ class MoneyRequestParticipantsSelector extends Component {
 
         const {recentReports, personalDetails, userToInvite} = this.getRequestOptions();
 
+        const formattedRecentReports = _.map(recentReports, (report) => OptionsListUtils.formatMemberForList(report));
+        const formattedPersonalDetails = _.map(personalDetails, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
+        const formattedUserToInvite = OptionsListUtils.formatMemberForList(userToInvite);
+
         this.state = {
-            recentReports,
-            personalDetails,
-            userToInvite,
+            recentReports: formattedRecentReports,
+            personalDetails: formattedPersonalDetails,
+            userToInvite: formattedUserToInvite,
             searchTerm: '',
         };
     }
@@ -133,11 +133,15 @@ class MoneyRequestParticipantsSelector extends Component {
 
     updateOptionsWithSearchTerm(searchTerm = '') {
         const {recentReports, personalDetails, userToInvite} = this.getRequestOptions(searchTerm);
+        const formattedRecentReports = _.map(recentReports, (report) => OptionsListUtils.formatMemberForList(report));
+        const formattedPersonalDetails = _.map(personalDetails, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
+        const formattedUserToInvite = OptionsListUtils.formatMemberForList(userToInvite);
+
         this.setState({
+            recentReports: formattedRecentReports,
+            personalDetails: formattedPersonalDetails,
+            userToInvite: formattedUserToInvite,
             searchTerm,
-            recentReports,
-            userToInvite,
-            personalDetails,
         });
     }
 
@@ -160,16 +164,14 @@ class MoneyRequestParticipantsSelector extends Component {
         const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
 
         return (
-            <OptionsSelector
+            <SelectionList
                 sections={this.getSections()}
-                value={this.state.searchTerm}
+                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputValue={this.state.searchTerm}
                 onSelectRow={this.addSingleParticipant}
                 onChangeText={this.updateOptionsWithSearchTerm}
                 headerMessage={headerMessage}
-                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                boldStyle
-                safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
-                shouldShowOptions={isOptionsDataReady}
+                showLoadingPlaceholder={!isOptionsDataReady}
             />
         );
     }
