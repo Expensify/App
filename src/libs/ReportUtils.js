@@ -1418,10 +1418,9 @@ function getTransactionReportName(reportAction) {
  * @param {Object} report
  * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
- * @param {Boolean} [shouldShowEmailForSettledIOU=true]
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, shouldShowEmailForSettledIOU = true) {
+function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1457,7 +1456,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
-        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: shouldShowEmailForSettledIOU && payerName});
+        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerName});
     }
 
     if (report.isWaitingOnBankAccount) {
