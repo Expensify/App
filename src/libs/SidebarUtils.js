@@ -205,7 +205,6 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
         statusNum: null,
         stateNum: null,
         phoneNumber: null,
-        payPalMeAddress: null,
         isUnread: null,
         isUnreadWithMention: null,
         hasDraftComment: false,
@@ -345,7 +344,6 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
         result.accountID = personalDetail.accountID;
         result.login = personalDetail.login;
         result.phoneNumber = personalDetail.phoneNumber;
-        result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
     const reportName = ReportUtils.getReportName(report, policy);

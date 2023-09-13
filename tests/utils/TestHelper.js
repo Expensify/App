@@ -25,7 +25,6 @@ function buildPersonalDetails(login, accountID, firstName = 'Test') {
         lastName: 'User',
         pronouns: '',
         timezone: CONST.DEFAULT_TIME_ZONE,
-        payPalMeAddress: '',
         phoneNumber: '',
     };
 }

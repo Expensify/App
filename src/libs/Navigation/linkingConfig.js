@@ -85,10 +85,6 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
-                            Settings_Add_Paypal_Me: {
-                                path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
-                                exact: true,
-                            },
                             Settings_Add_Debit_Card: {
                                 path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
                                 exact: true,

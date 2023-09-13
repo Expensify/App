@@ -174,14 +174,10 @@ function MoneyRequestPreview(props) {
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
-            case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-                return props.translate('iou.settledPaypalMe');
-            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                return props.translate('iou.settledElsewhere');
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
                 return props.translate('iou.settledExpensify');
             default:
-                return '';
+                return props.translate('iou.settledElsewhere');;
         }
     };
 

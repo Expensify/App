@@ -98,8 +98,6 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
-type SettlePaypalMeParams = {formattedAmount: string};
-
 type RequestAmountParams = {amount: number};
 
 type SplitAmountParams = {amount: number};
@@ -123,8 +121,6 @@ type WaitingOnBankAccountParams = {submitterDisplayName: string};
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
 type PaidElsewhereWithAmountParams = {amount: string};
-
-type PaidUsingPaypalWithAmountParams = {amount: string};
 
 type PaidWithExpensifyWithAmountParams = {amount: string};
 
@@ -215,7 +211,6 @@ export type {
     ReportArchiveReasonsPolicyDeletedParams,
     RequestCountParams,
     SettleExpensifyCardParams,
-    SettlePaypalMeParams,
     RequestAmountParams,
     SplitAmountParams,
     AmountEachParams,
@@ -228,7 +223,6 @@ export type {
     WaitingOnBankAccountParams,
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
-    PaidUsingPaypalWithAmountParams,
     PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,

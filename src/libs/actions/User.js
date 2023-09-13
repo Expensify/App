@@ -465,32 +465,6 @@ function isBlockedFromConcierge(blockedFromConciergeNVP) {
     return moment().isBefore(moment(blockedFromConciergeNVP.expiresAt), 'day');
 }
 
-/**
- * Deletes a paypal.me address for the user
- *
- */
-function deletePaypalMeAddress() {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PAYPAL,
-            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-        },
-    ];
-
-    // Success data required for Android, more info here https://github.com/Expensify/App/pull/17903#discussion_r1175763081
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.PAYPAL,
-            value: {},
-        },
-    ];
-
-    API.write('DeletePaypalMeAddress', {}, {optimisticData, successData});
-    Growl.show(Localize.translateLocal('walletPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
-}
-
 function triggerNotifications(onyxUpdates) {
     _.each(onyxUpdates, (update) => {
         if (!update.shouldNotify) {
@@ -889,7 +863,6 @@ export {
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
-    deletePaypalMeAddress,
     updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,

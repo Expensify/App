@@ -82,7 +82,6 @@ import NewWorkspace from '../../../assets/images/new-workspace.svg';
 import Offline from '../../../assets/images/offline.svg';
 import OfflineCloud from '../../../assets/images/offline-cloud.svg';
 import Paperclip from '../../../assets/images/paperclip.svg';
-import PayPal from '../../../assets/images/paypal.svg';
 import Paycheck from '../../../assets/images/paycheck.svg';
 import Pencil from '../../../assets/images/pencil.svg';
 import Phone from '../../../assets/images/phone.svg';
@@ -216,7 +215,6 @@ export {
     Offline,
     OfflineCloud,
     Paperclip,
-    PayPal,
     Paycheck,
     Pencil,
     Phone,

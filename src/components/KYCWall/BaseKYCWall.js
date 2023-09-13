@@ -142,7 +142,6 @@ class KYCWall extends React.Component {
                         vertical: this.state.anchorPositionVertical,
                         horizontal: this.state.anchorPositionHorizontal,
                     }}
-                    shouldShowPaypal={false}
                     onItemSelected={(item) => {
                         this.setState({shouldShowAddPaymentMenu: false});
                         if (item === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {

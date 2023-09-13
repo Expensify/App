@@ -32,7 +32,7 @@ const propTypes = {
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Menu options to display */
-    /** e.g. [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}] */
+    /** e.g. [{text: 'Pay with Expensify', icon: Wallet}] */
     options: PropTypes.arrayOf(
         PropTypes.shape({
             value: PropTypes.string.isRequired,
