@@ -3,8 +3,6 @@ import ComposerFocusManager from './ComposerFocusManager';
 
 /**
  * Create a function that focuses a text input.
- * @param {Object} textInput the text input to focus
- * @returns {Function} a function that focuses the text input with a configurable delay
  */
 function focusWithDelay(textInput: TextInput | null): (shouldDelay?: boolean) => void {
     /**
