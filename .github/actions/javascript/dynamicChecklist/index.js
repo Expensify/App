@@ -49,6 +49,8 @@ async function getChecklistCategoriesForPullRequest() {
         categories.push(CHECKLIST_CATEGORIES.TS);
     }
 
+    // TODO add more if statements to look for other dynamic checklist categories
+
     return categories;
 }
 
@@ -72,13 +74,20 @@ async function generateChecklist() {
     // eslint-disable-next-line prefer-const
     let [checklistContent, contentAfterChecklist] = contentAfterStartOfChecklist.split(checklistEndsWith);
 
+    let isPassing = true;
     for (const check of checks) {
         // Check if it's already in the PR body, capturing the whether or not it's already checked
-        const regex = new RegExp(`- \\[[ x]] ${check}`);
+        const regex = new RegExp(`- \\[[( x)]] ${check}`);
         const match = regex.exec(checklistContent);
         if (!match) {
             // Add it to the PR body
+            isPassing = false;
             checklistContent += `\n- [ ] ${check}`;
+        }
+        // TODO: get result of capture group (isChecked)
+        const isChecked = regex.match[1] === 'x';
+        if (!isChecked) {
+            isPassing = false;
         }
     }
 
@@ -94,6 +103,13 @@ async function generateChecklist() {
     });
 
     console.log('Done. Updated PR checklist', result);
+
+    if (!isPassing) {
+        // TODO: fail action (and workflow)
+        const err = new Error('Some items from checklist are not checked');
+        console.error(err);
+        core.setFailed(err);
+    }
 }
 
 if (require.main === require.cache[eval('__filename')]) {

@@ -12,4 +12,4 @@ jobs:
       - name: Generate dynamic checklist
         uses: Expensify/App/.github/actions/javascript/dynamicChecklist@main
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHdUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

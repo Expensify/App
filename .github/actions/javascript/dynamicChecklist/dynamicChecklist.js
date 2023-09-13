@@ -75,7 +75,7 @@ async function generateChecklist() {
             checklistContent += `\n- [ ] ${check}`;
         }
         // TODO: get result of capture group (isChecked)
-        const isChecked = true;
+        const isChecked = regex.match[1] === 'x';
         if (!isChecked) {
             isPassing = false;
         }
@@ -96,6 +96,9 @@ async function generateChecklist() {
 
     if (!isPassing) {
         // TODO: fail action (and workflow)
+        const err = new Error('Some items from checklist are not checked');
+        console.error(err);
+        core.setFailed(err);
     }
 }
 
