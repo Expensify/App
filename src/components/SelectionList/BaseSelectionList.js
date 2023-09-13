@@ -2,7 +2,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
@@ -61,6 +61,7 @@ function BaseSelectionList({
     const shouldShowTextInput = Boolean(textInputLabel);
     const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElement = useActiveElement();
+    const isFocused = useIsFocused();
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -243,13 +244,13 @@ function BaseSelectionList({
 
     const renderItem = ({item, index, section}) => {
         const isDisabled = section.isDisabled;
-        const isFocused = !isDisabled && focusedIndex === index + lodashGet(section, 'indexOffset', 0);
+        const isItemFocused = !isDisabled && focusedIndex === index + lodashGet(section, 'indexOffset', 0);
 
         if (canSelectMultiple) {
             return (
                 <CheckboxListItem
                     item={item}
-                    isFocused={isFocused}
+                    isFocused={isItemFocused}
                     onSelectRow={() => selectRow(item, index)}
                     onDismissError={onDismissError}
                 />
@@ -259,7 +260,7 @@ function BaseSelectionList({
         return (
             <RadioListItem
                 item={item}
-                isFocused={isFocused}
+                isFocused={isItemFocused}
                 isDisabled={isDisabled}
                 onSelectRow={() => selectRow(item, index)}
             />
@@ -285,14 +286,14 @@ function BaseSelectionList({
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        isActive: !activeElement,
+        isActive: !activeElement && isFocused,
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        isActive: Boolean(onConfirm),
+        isActive: Boolean(onConfirm) && isFocused,
     });
 
     return (
