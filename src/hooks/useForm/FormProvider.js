@@ -79,7 +79,7 @@ const defaultProps = {
     scrollContextEnabled: false,
     footerContent: null,
     style: [],
-    validate: () => ({}),
+    validate: () => {},
 };
 
 function getInitialValueByType(valueType) {
@@ -137,6 +137,7 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
         if (network.isOffline && !enabledWhenOffline) {
             return;
         }
+
         // Call submit handler
         onSubmit(inputValues);
     }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
@@ -190,7 +191,7 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
                     // Only run validation when user proactively blurs the input.
                     if (Visibility.isVisible() && Visibility.hasFocus()) {
                         // We delay the validation in order to prevent Checkbox loss of focus when
-                        // the user are focusing a TextInput and proceeds to toggle a CheckBox in
+                        // the user is focusing a TextInput and proceeds to toggle a CheckBox in
                         // web and mobile web platforms.
                         setTimeout(() => {
                             setTouchedInput(inputID);
