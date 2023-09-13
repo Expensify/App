@@ -1,26 +1,18 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-/**
- * @param {Boolean} isOffline
- */
-function setIsOffline(isOffline) {
+function setIsOffline(isOffline: boolean) {
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline});
 }
 
-/**
- *
- * @param {Boolean} shouldForceOffline
- */
-function setShouldForceOffline(shouldForceOffline) {
+function setShouldForceOffline(shouldForceOffline: boolean) {
     Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline});
 }
 
 /**
  * Test tool that will fail all network requests when enabled
- * @param {Boolean} shouldFailAllRequests
  */
-function setShouldFailAllRequests(shouldFailAllRequests) {
+function setShouldFailAllRequests(shouldFailAllRequests: boolean) {
     Onyx.merge(ONYXKEYS.NETWORK, {shouldFailAllRequests});
 }
 
