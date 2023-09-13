@@ -134,9 +134,19 @@ function MoneyRequestConfirmPage(props) {
                 selectedParticipants[0],
                 trimmedComment,
                 receipt,
+                props.iou.category,
             );
         },
-        [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+        [
+            props.report,
+            props.iou.amount,
+            props.iou.currency,
+            props.iou.created,
+            props.iou.merchant,
+            props.currentUserPersonalDetails.login,
+            props.currentUserPersonalDetails.accountID,
+            props.iou.category,
+        ],
     );
 
     /**
@@ -151,12 +161,13 @@ function MoneyRequestConfirmPage(props) {
                 trimmedComment,
                 props.iou.created,
                 props.iou.transactionID,
+                props.iou.category,
                 props.iou.amount,
                 props.iou.currency,
                 props.iou.merchant,
             );
         },
-        [props.report, props.iou.created, props.iou.transactionID, props.iou.amount, props.iou.currency, props.iou.merchant],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.amount, props.iou.currency, props.iou.merchant],
     );
 
     const createTransaction = useCallback(
@@ -272,6 +283,7 @@ function MoneyRequestConfirmPage(props) {
                                 iouAmount={props.iou.amount}
                                 iouComment={props.iou.comment}
                                 iouCurrencyCode={props.iou.currency}
+                                iouCategory={props.iou.category}
                                 onConfirm={createTransaction}
                                 onSendMoney={sendMoney}
                                 onSelectParticipant={(option) => {
