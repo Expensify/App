@@ -35,7 +35,7 @@ const propTypes = {
             iouType: PropTypes.string,
 
             /** Thread reportID */
-            threadReportID: PropTypes.oneOfType(PropTypes.number, PropTypes.string),
+            threadReportID: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
             /** Index of the waypoint being edited */
             waypointIndex: PropTypes.string,
