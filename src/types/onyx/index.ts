@@ -37,6 +37,7 @@ import OnyxUpdatesFromServer from './OnyxUpdatesFromServer';
 import Download from './Download';
 import PolicyMember from './PolicyMember';
 import Policy from './Policy';
+import PolicyCategory from './PolicyCategory';
 import Report from './Report';
 import ReportMetadata from './ReportMetadata';
 import ReportAction from './ReportAction';
@@ -86,6 +87,7 @@ export type {
     Download,
     PolicyMember,
     Policy,
+    PolicyCategory,
     Report,
     ReportMetadata,
     ReportAction,
