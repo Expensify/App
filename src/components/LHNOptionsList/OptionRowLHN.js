@@ -1,8 +1,9 @@
 import _ from 'underscore';
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
+import {useFocusEffect} from '@react-navigation/native';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -65,6 +66,7 @@ const defaultProps = {
 
 function OptionRowLHN(props) {
     const popoverAnchor = useRef(null);
+    const isFocusedRef = useRef(true);
 
     const {translate} = useLocalize();
 
@@ -104,12 +106,26 @@ function OptionRowLHN(props) {
     const shouldShowGreenDotIndicator =
         !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
 
+    useFocusEffect(
+        useCallback(() => {
+            isFocusedRef.current = true;
+            return () => {
+                if (!props.isSmallScreenWidth) {
+                    return;
+                }
+                isFocusedRef.current = false;
+            };
+        }, []),
+    );
     /**
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
+        if (!isFocusedRef.current) {
+            return;
+        }
         setIsContextMenuActive(true);
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,

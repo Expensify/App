@@ -18,6 +18,7 @@ import * as TransactionUtils from '../../libs/TransactionUtils';
 import participantPropTypes from '../participantPropTypes';
 import CONST from '../../CONST';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
     /** If true will disable ever setting the OptionRowLHN to focused */
@@ -53,6 +54,7 @@ const propTypes = {
     }),
 
     ...withCurrentReportIDPropTypes,
+    ...windowDimensionsPropTypes,
     ...basePropTypes,
 };
 
@@ -218,5 +220,6 @@ export default React.memo(
                     `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportActions, [fullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '')}`,
             },
         }),
+        withWindowDimensions,
     )(OptionRowLHNData),
 );
