@@ -205,9 +205,9 @@ function MoneyRequestConfirmationList(props) {
         props.isDistanceRequest && !hasRoute
             ? translate('common.tbd')
             : CurrencyUtils.convertToDisplayString(
-                shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
-                props.isDistanceRequest ? currency : props.iouCurrencyCode,
-            );
+                  shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
+                  props.isDistanceRequest ? currency : props.iouCurrencyCode,
+              );
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {

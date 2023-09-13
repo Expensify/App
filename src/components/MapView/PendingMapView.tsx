@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'lodash';
+import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import {PendingMapViewProps} from './MapViewTypes';
@@ -23,8 +24,8 @@ function PendingMapView({title = '', subtitle = ''}: PendingMapViewProps) {
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
                     <Icon
                         src={Expensicons.EmptyStateRoutePending}
-                        width={120}
-                        height={120}
+                        width={variables.iconSizeUltraLarge}
+                        height={variables.iconSizeUltraLarge}
                     />
                 </View>
             )}
