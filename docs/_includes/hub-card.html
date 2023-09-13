@@ -1,6 +1,6 @@
-{% assign hub = site.data.routes.hubs | where: "href", include.href | first %}
-
-<a class="card" href="/hubs/{{ hub.href }}">
+{% assign hub = include.hub %}
+{% assign platform = include.platform %}
+<a class="card" href="/{{ platform }}/hubs/{{ hub.href }}">
     <div class="row">
         <div class="left-icon">
             <img class="icon" src="{{ hub.icon }}" alt="{{ hub.href }}"/>
