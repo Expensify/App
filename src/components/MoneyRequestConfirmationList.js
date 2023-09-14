@@ -532,7 +532,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
-                    {!lodashGet(props.policy, 'disabledFields.defaultBillable', true) && (
+                    {canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true) && (
                         <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                             <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
                             <Switch
