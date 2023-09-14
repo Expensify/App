@@ -36,7 +36,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
         <HeaderPageLayout
             backgroundColor={backgroundColor}
             title={propsToPassToHeader.title}
-            headerContent={(
+            headerContent={
                 <>
                     <Lottie
                         source={illustration}
@@ -46,7 +46,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                     />
                     {overlayContent && overlayContent()}
                 </>
-            )}
+            }
             headerContainerStyles={[styles.justifyContentCenter]}
             footer={footer}
             // eslint-disable-next-line react/jsx-props-no-spreading
