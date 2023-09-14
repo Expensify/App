@@ -56,7 +56,7 @@ const validate = (values) => {
     return errors;
 };
 
-function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField, translate}) {
+function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField, translate}, ref) {
     const submit = useCallback(
         (values) => {
             const payload = {
@@ -176,6 +176,8 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
         </ScreenWrapper>
     );
 }
+
+const RequestorStep = React.forwardRef(InnerRequestorStep);
 
 RequestorStep.propTypes = propTypes;
 
