@@ -198,6 +198,9 @@ class BasePopoverReactionList extends React.Component {
      * Hide the ReactionList modal popover.
      */
     hideReactionList() {
+        if (!this.state.isPopoverVisible) {
+            return;
+        }
         this.setState({
             isPopoverVisible: false,
         });
