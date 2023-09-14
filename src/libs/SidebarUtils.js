@@ -127,7 +127,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     let nonArchivedReports = [];
     let archivedReports = [];
     _.each(reportsToDisplay, (report) => {
-        if (report.isPinned) {
+        if (report.isPinned || report.violations) {
             pinnedReports.push(report);
             return;
         }
@@ -244,7 +244,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
-    result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) || report.violations === true ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
@@ -263,7 +263,6 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference || null;
     result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
-
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 

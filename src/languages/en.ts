@@ -1253,6 +1253,10 @@ export default {
             'We take your security seriously, so please set up two-factor authentication for your account now. That will allow us to dispute Expensify Card digital transactions, and will reduce your risk for fraud.',
         secureYourAccount: 'Secure your account',
     },
+    missingCategory: 'Missing Category',
+    missingTag: 'Missing Tag',
+    overLimit: 'Expense over limit',
+    cashExpenseWithNoReceipt: 'Cash expense with no receipt',
     beneficialOwnersStep: {
         additionalInformation: 'Additional information',
         checkAllThatApply: 'Check all that apply, otherwise leave blank.',

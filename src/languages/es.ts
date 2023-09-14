@@ -1281,6 +1281,10 @@ export default {
             'Tu seguridad es importante para nosotros. Por favor, configura ahora la autenticación de dos factores. Eso nos permitirá disputar las transacciones de la Tarjeta Expensify y reducirá tu riesgo de fraude.',
         secureYourAccount: 'Asegura tu cuenta',
     },
+    missingCategory: 'Categoría requerida',
+    missingTag: 'Etiqueta requerida',
+    overLimit: 'Monto excede el límite',
+    cashExpenseWithNoReceipt: 'Cash expense sin recibo',
     beneficialOwnersStep: {
         additionalInformation: 'Información adicional',
         checkAllThatApply: 'Marca todos los que apliquen, en caso de que ninguno aplique dejar en blanco.',

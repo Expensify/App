@@ -1,5 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
+import Text from '../Text';
+import Icon from '../Icon';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -53,7 +55,31 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction}) {
+const violations = {
+    missingCategory: 'category',
+    overLimit: 'amount',
+    missingTag: 'amount',
+    cashExpenseWithNoReceipt: 'Cash expense with no receipt',
+};
+
+const notes = [
+    'overAutoApprovalLimit',
+    'rter',
+    'smartscanFailed',
+    'overLimit',
+];
+
+function getViolationForField(transaction, field) {
+    const {translate} = useLocalize();
+    const fieldViolation = _.find(transaction.violations, (violation) => violations[violation] === field);
+    return fieldViolation ? translate(fieldViolation) : '';
+}
+
+function getNotesCount(transaction) {
+    return _.intersection(transaction.violations, notes).length;
+}
+
+function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction, policy}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -114,6 +140,14 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     />
                 </View>
             )}
+    <Icon
+        width={32}
+        height={32}
+        src={getNotesCount(transaction) > 0 ? Expensicons.Receipt : Expensicons.Checkmark}
+    />
+<Text>
+        Receipt Audit • {getNotesCount(transaction) > 0 ? `${getNotesCount(transaction)} Issue(s) Found` : 'No issues Found'}
+</Text>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.amount') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
                     title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
@@ -124,10 +158,15 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-                    brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    brickRoadIndicator={hasErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     subtitle={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                     subtitleTextStyle={styles.textLabelError}
                 />
+                {getViolationForField(transaction, 'amount') && (
+                    <View>
+                        <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transaction, 'amount')}</Text>
+                    </View>
+                )}
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
