@@ -19,7 +19,7 @@ type MapViewProps = {
     // List of coordinates which together forms a direction.
     directionCoordinates?: Array<[number, number]>;
     // Callback to call when the map is idle / ready.
-    onMapReady: () => void;
+    onMapReady?: () => void;
 };
 
 type DirectionProps = {
