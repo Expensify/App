@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
@@ -24,6 +24,8 @@ import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import RenderHTML from './RenderHTML';
 
 const propTypes = menuItemPropTypes;
 
@@ -78,6 +80,7 @@ const defaultProps = {
 
 const MenuItem = React.forwardRef((props, ref) => {
     const {isSmallScreenWidth} = useWindowDimensions();
+    const [html, setHtml] = React.useState('');
 
     const isDeleted = _.contains(props.style, styles.offlineFeedback.deleted);
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
@@ -104,6 +107,16 @@ const MenuItem = React.forwardRef((props, ref) => {
     ]);
 
     const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+
+    const titleRef = React.useRef('');
+    useEffect(() => {
+        if (!props.title || (titleRef.current.length && titleRef.current === props.title) || !props.shouldParseTitle) {
+            return;
+        }
+        const parser = new ExpensiMark();
+        setHtml(parser.replace(props.title));
+        titleRef.current = props.title;
+    }, [props.title, props.shouldParseTitle]);
 
     return (
         <Hoverable>
@@ -221,14 +234,19 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(props.title) && (
-                                                <Text
-                                                    style={titleTextStyle}
-                                                    numberOfLines={props.numberOfLinesTitle || undefined}
-                                                >
-                                                    {convertToLTR(props.title)}
-                                                </Text>
+                                            {Boolean(html.length) ? (
+                                                <RenderHTML html={`<comment>${html}</comment>`} />
+                                            ) : (
+                                                Boolean(props.title) && (
+                                                    <Text
+                                                        style={titleTextStyle}
+                                                        numberOfLines={props.numberOfLinesTitle || undefined}
+                                                    >
+                                                        {convertToLTR(props.title)}
+                                                    </Text>
+                                                )
                                             )}
+
                                             {Boolean(props.shouldShowTitleIcon) && (
                                                 <View style={[styles.ml2]}>
                                                     <Icon
