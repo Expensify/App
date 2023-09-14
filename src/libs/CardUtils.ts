@@ -34,7 +34,7 @@ function getCompanyCards(cardList: {string: Card}) {
 function getDomainCards(cardList: Record<string, OnyxTypes.Card>) {
     // eslint-disable-next-line you-dont-need-lodash-underscore/filter
     const activeCards = lodash.filter(cardList, (card) => [2, 3, 4, 7].includes(card.state));
-    return lodash.groupBy(activeCards, (card) => card.domainName);
+    return lodash.groupBy(activeCards, (card) => card.domainName.toLowerCase());
 }
 
 export {getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString};
