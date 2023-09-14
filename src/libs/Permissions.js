@@ -95,6 +95,14 @@ function canUseCategories(betas) {
 }
 
 /**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseTags(betas) {
+    return _.contains(betas, CONST.BETAS.NEW_DOT_TAGS) || canUseAllBetas(betas);
+}
+
+/**
  * Link previews are temporarily disabled.
  * @returns {Boolean}
  */
@@ -113,5 +121,6 @@ export default {
     canUseTasks,
     canUseCustomStatus,
     canUseCategories,
+    canUseTags,
     canUseLinkPreviews,
 };
