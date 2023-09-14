@@ -5,6 +5,9 @@ import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import BasePreRenderer from './BasePreRenderer';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import ControlSelection from '../../../../libs/ControlSelection';
+import hasPassiveEventListenerSupport from '../../../../libs/DeviceCapabilities/hasPassiveEventListenerSupport';
+
+const supportsPassive = hasPassiveEventListenerSupport();
 
 class PreRenderer extends React.Component {
     constructor(props) {
@@ -18,7 +21,7 @@ class PreRenderer extends React.Component {
         if (!this.ref) {
             return;
         }
-        this.ref.getScrollableNode().addEventListener('wheel', this.scrollNode);
+        this.ref.getScrollableNode().addEventListener('wheel', this.scrollNode, supportsPassive ? {passive: true} : false);
     }
 
     componentWillUnmount() {
@@ -47,7 +50,6 @@ class PreRenderer extends React.Component {
         const isScrollingVertically = this.debouncedIsScrollingVertically(event);
         if (event.currentTarget === node && horizontalOverflow && !isScrollingVertically) {
             node.scrollLeft += event.deltaX;
-            event.preventDefault();
             event.stopPropagation();
         }
     }
