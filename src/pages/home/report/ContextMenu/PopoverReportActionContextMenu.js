@@ -23,6 +23,7 @@ class PopoverReportActionContextMenu extends React.Component {
             reportID: '0',
             reportActionID: '0',
             originalReportID: '0',
+            reportAction: {},
             selection: '',
             reportActionDraftMessage: '',
             isPopoverVisible: false,
@@ -114,7 +115,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @return {Boolean}
      */
     isActiveReportAction(actionID) {
-        return Boolean(actionID) && this.state.reportActionID === actionID;
+        return Boolean(actionID) && (this.state.reportActionID === actionID || this.state.reportAction.reportActionID === actionID);
     }
 
     clearActiveReportAction() {
