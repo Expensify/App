@@ -12,6 +12,7 @@ import CheckboxWithLabel from '../components/CheckboxWithLabel';
 import Text from '../components/Text';
 import NetworkConnection from '../libs/NetworkConnection';
 import CONST from '../CONST';
+import * as ValidationUtils from '../libs/ValidationUtils';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -166,28 +167,28 @@ const defaultArgs = {
     submitButtonText: 'Submit',
     validate: (values) => {
         const errors = {};
-        if (!values.routingNumber) {
+        if (!ValidationUtils.isRequiredFulfilled(values.routingNumber)) {
             errors.routingNumber = 'Please enter a routing number';
         }
-        if (!values.accountNumber) {
+        if (!ValidationUtils.isRequiredFulfilled(values.accountNumber)) {
             errors.accountNumber = 'Please enter an account number';
         }
-        if (!values.street) {
+        if (!ValidationUtils.isRequiredFulfilled(values.street)) {
             errors.street = 'Please enter an address';
         }
-        if (!values.dob) {
+        if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
             errors.dob = 'Please enter your date of birth';
         }
-        if (!values.pickFruit) {
+        if (!ValidationUtils.isRequiredFulfilled(values.pickFruit)) {
             errors.pickFruit = 'Please select a fruit';
         }
-        if (!values.pickAnotherFruit) {
+        if (!ValidationUtils.isRequiredFulfilled(values.pickAnotherFruit)) {
             errors.pickAnotherFruit = 'Please select a fruit';
         }
-        if (!values.state) {
+        if (!ValidationUtils.isRequiredFulfilled(values.state)) {
             errors.state = 'Please select a state';
         }
-        if (!values.checkbox) {
+        if (!ValidationUtils.isRequiredFulfilled(values.checkbox)) {
             errors.checkbox = 'You must accept the Terms of Service to continue';
         }
         return errors;

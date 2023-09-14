@@ -11,7 +11,7 @@ function removeInvisibleCharacters(value: string): string {
     result = result.replace(/[\u200B\u00A0\u2060]/g, '');
 
     // Remove all characters from the 'Other' (C) category except for format characters (Cf)
-    // because some of them they are used for emojis
+    // because some of them are used for emojis
     result = result.replace(/[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu, '');
 
     // Remove characters from the (Cf) category that are not used for emojis

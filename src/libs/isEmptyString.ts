@@ -1,7 +1,7 @@
 import CONST from '../CONST';
 
 /**
- *  Checks if the string would be empty if all invisible characters were removed.
+ *  Check if the string would be empty if all invisible characters were removed.
  */
 function isEmptyString(value: string): boolean {
     // \p{C} matches all 'Other' characters
