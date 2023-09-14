@@ -6,6 +6,7 @@ home:
 platforms:
   - href: expensify-classic
     title: Expensify Classic
+    hub-title: Expensify Classic - Help & Resources
     url: expensify.com
     description: Your account settings will look something like this
     image: /assets/images/paper-airplane.svg
@@ -15,65 +16,66 @@ platforms:
       - href: account-settings
         title: Account Settings
         description: With only a couple of clicks, split bills with your friends or coworkers.
-        icon: /assets/images/paper-airplane.svg
+        icon: /assets/images/gears.svg
 
       - href: bank-accounts-and-credit-cards
         title: Bank Accounts & Credit Cards
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/bank-card.svg
         description: Request money for work expenses, bills, or a night out with friends.
 
       - href: billing-and-subscriptions
         title: Billing & Subscriptions
-        icon: /assets/images/playbook.svg
+        icon: /assets/images/money-wings.svg
         description: Best practices for how to best deploy Expensify for your business
 
       - href: expense-and-report-features
         title: Expense & Report Features
         description: Everything else you're looking for is right here.
-        icon: /assets/images/lightbulb.svg
+        icon: /assets/images/money-receipt.svg
 
       - href: expensify-card
         title: Expensify Card
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/hand-card.svg
         description: Request money for work expenses, bills, or a night out with friends.
 
       - href: exports
         title: Exports
-        icon: /assets/images/playbook.svg
+        icon: /assets/images/monitor.svg
         description: Best practices for how to best deploy Expensify for your business
 
       - href: get-paid-back
         title: Get Paid Back
         description: Everything else you're looking for is right here.
-        icon: /assets/images/lightbulb.svg
+        icon: /assets/images/money-into-wallet.svg
 
       - href: getting-started
         title: Getting Started
         description: Everything else you're looking for is right here.
-        icon: /assets/images/lightbulb.svg
+        icon: /assets/images/accounting.svg
 
       - href: integrations
         title: Integrations
         description: Everything else you're looking for is right here.
-        icon: /assets/images/lightbulb.svg
+        icon: /assets/images/workflow.svg
 
       - href: manage-employees-and-report-approvals
         title: Manage Employees & Report Approvals
         description: Everything else you're looking for is right here.
-        icon: /assets/images/lightbulb.svg
+        icon: /assets/images/envelope-receipt.svg
       
       - href: policy-and-domain-settings
         title: Policy & Domain Setting
         description: Everything else you're looking for is right here.
-        icon: /assets/images/lightbulb.svg
+        icon: /assets/images/shield.svg
       
       - href: send-payments
         title: Send Payments
         description: Everything else you're looking for is right here.
-        icon: /assets/images/lightbulb.svg
+        icon: /assets/images/money-wings.svg
   
   - href: new-expensify
     title: New Expensify
+    hub-title: New Expensify - Help & Resources
     url: new.expensify.com
     description: Your account settings will look something like this
     image: /assets/images/paper-airplane.svg
@@ -82,59 +84,59 @@ platforms:
       - href: account-settings
         title: Account Settings
         description: With only a couple of clicks, split bills with your friends or coworkers.
-        icon: /assets/images/paper-airplane.svg
+        icon: /assets/images/gears.svg
 
       - href: bank-accounts-and-credit-cards
         title: Bank Accounts & Credit Cards
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/bank-card.svg
         description: Bank Accounts & Credit Cards.
       
       - href: billing-and-plan-types
         title: Bank Accounts & Credit Cards
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/money-wings.svg
         description: Bank Accounts & Credit Cards.
       
       - href: expense-and-report-features
         title: Bank Accounts & Credit Cards
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/money-receipt.svg
         description: Bank Accounts & Credit Cards.
 
       - href: expensify-card
         title: Bank Accounts & Credit Cards
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/hand-card.svg
         description: Bank Accounts & Credit Cards.
       
       - href: exports
         title: Bank Accounts & Credit Cards
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/monitor.svg
         description: Bank Accounts & Credit Cards.
 
       - href: get-paid-back
         title: Bank Accounts & Credit Cards
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/money-into-wallet.svg
         description: Bank Accounts & Credit Cards.
       
       - href: getting-started
         title: Bank Accounts & Credit Cards
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/accounting.svg
         description: Bank Accounts & Credit Cards.
       
       - href: integrations
         title: Bank Accounts & Credit Cards
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/workflow.svg
         description: Bank Accounts & Credit Cards.
 
       - href: manage-employees-and-report-approvals
         title: Bank Accounts & Credit Cards
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/envelope-receipt.svg
         description: Bank Accounts & Credit Cards.
 
       - href: send-payments
         title: Bank Accounts & Credit Cards
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/money-wings.svg
         description: Bank Accounts & Credit Cards.
 
       - href: workspace-and-domain-settings
         title: Bank Accounts & Credit Cards
-        icon: /assets/images/money-case.svg
+        icon: /assets/images/shield.svg
         description: Bank Accounts & Credit Cards.
