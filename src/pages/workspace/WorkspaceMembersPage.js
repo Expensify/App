@@ -75,7 +75,9 @@ function WorkspaceMembersPage(props) {
     const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState('');
     const prevIsOffline = usePrevious(props.network.isOffline);
-
+    const accountIDs = useMemo(() => _.keys(props.policyMembers), [props.policyMembers]);
+    const prevAccountIDs = usePrevious(accountIDs);
+    
     /**
      * Get members for the current workspace
      */
@@ -107,8 +109,7 @@ function WorkspaceMembersPage(props) {
     useEffect(() => {
         validateSelection();
     }, [props.preferredLocale, validateSelection]);
-    const accountIDs = useMemo(() => _.keys(props.policyMembers), [props.policyMembers]);
-    const prevAccountIDs = usePrevious(accountIDs);
+
     useEffect(() => {
         if (removeMembersConfirmModalVisible && !_.isEqual(accountIDs, prevAccountIDs)) {
             setRemoveMembersConfirmModalVisible(false);
