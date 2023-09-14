@@ -1891,6 +1891,7 @@ function resetMoneyRequestCategory() {
  */
 function setMoneyRequestParticipants(participants) {
     // TODO: temporarily we want to save both participants and participantAccountIDs, then we can remove participants (and rename the function)
+    // more info: https://github.com/Expensify/App/issues/25714#issuecomment-1712924903 and https://github.com/Expensify/App/issues/25714#issuecomment-1716335802
     Onyx.merge(ONYXKEYS.IOU, {participants, participantAccountIDs: _.map(participants, 'accountID')});
 }
 
