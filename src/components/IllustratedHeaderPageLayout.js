@@ -40,10 +40,10 @@ const defaultProps = {
 };
 
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
-    const {windowHeight} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const appBGColor = StyleUtils.getBackgroundColorStyle(themeColors.appBG);
+
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
