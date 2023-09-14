@@ -24,6 +24,7 @@ import Avatar from '../../components/Avatar';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 
 const propTypes = {
     // The currency list constant object from Onyx
@@ -69,7 +70,7 @@ function WorkspaceSettingsPage(props) {
         const errors = {};
         const name = values.name.trim();
 
-        if (!name || !name.length) {
+        if (!ValidationUtils.isRequiredFulfilled(name)) {
             errors.name = 'workspace.editor.nameIsRequiredError';
         } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16

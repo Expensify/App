@@ -5,6 +5,7 @@ import {parsePhoneNumber} from 'awesome-phonenumber';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
+import isEmptyString from './isEmptyString';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -84,7 +85,7 @@ function isValidPastDate(date) {
  */
 function isRequiredFulfilled(value) {
     if (_.isString(value)) {
-        return !_.isEmpty(value.trim());
+        return !isEmptyString(value);
     }
     if (_.isDate(value)) {
         return isValidDate(value);
