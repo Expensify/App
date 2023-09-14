@@ -16,6 +16,7 @@ function TagPicker({ reportID, tag, iouType, policyTags, policyRecentlyUsedTags,
     const { translate } = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
+    const policyRecentlyUsedTagsList = lodashGet(policyRecentlyUsedTags, tag, []);
     const policyTagList = lodashGet(policyTags, [tag, 'tags'], []);
     const policyTagsCount = _.size(policyTagList);
     const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
@@ -52,9 +53,9 @@ function TagPicker({ reportID, tag, iouType, policyTags, policyRecentlyUsedTags,
             {},
             {},
             [], searchValue, selectedOptions, [], false, false, false, {}, [],
-            true, policyTagList, policyRecentlyUsedTags, false).tagOptions
+            true, policyTagList, policyRecentlyUsedTagsList, false).tagOptions
         ,
-        [searchValue, selectedOptions, policyTagList, policyRecentlyUsedTags]
+        [searchValue, selectedOptions, policyTagList, policyRecentlyUsedTagsList]
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, '');
