@@ -4,6 +4,8 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Tab from '../actions/Tab';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as Browser from '../Browser';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* ID of the tab component to be saved in onyx */
@@ -23,6 +25,10 @@ const defaultProps = {
 // eslint-disable-next-line rulesdir/no-inline-named-export
 export const TopTab = createMaterialTopTabNavigator();
 
+// Will set this for all platforms once issue below is fixed for native devices.
+// https://github.com/Expensify/App/issues/27117
+const keyboardDismissModeProp = Browser.getBrowser() === CONST.BROWSER.SAFARI ? {keyboardDismissMode: 'none'} : {};
+
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
 function OnyxTabNavigator({id, selectedTab, children, ...rest}) {
@@ -30,6 +36,8 @@ function OnyxTabNavigator({id, selectedTab, children, ...rest}) {
         <TopTab.Navigator
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...rest}
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...keyboardDismissModeProp}
             id={id}
             initialRouteName={selectedTab}
             backBehavior="initialRoute"
