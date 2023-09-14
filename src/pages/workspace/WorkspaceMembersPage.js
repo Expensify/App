@@ -107,8 +107,12 @@ function WorkspaceMembersPage(props) {
     useEffect(() => {
         validateSelection();
     }, [props.preferredLocale, validateSelection]);
-
+    const accountIDs = useMemo(() => _.keys(props.policyMembers), [props.policyMembers]);
+    const prevAccountIDs = usePrevious(accountIDs);
     useEffect(() => {
+        if (removeMembersConfirmModalVisible && !_.isEqual(accountIDs, prevAccountIDs)) {
+            setRemoveMembersConfirmModalVisible(false);
+        }
         setSelectedEmployees((prevSelected) =>
             _.intersection(
                 prevSelected,
