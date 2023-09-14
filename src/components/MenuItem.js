@@ -234,7 +234,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(html.length) ? (
+                                            {html.length ? (
                                                 <RenderHTML html={`<comment>${html}</comment>`} />
                                             ) : (
                                                 Boolean(props.title) && (
