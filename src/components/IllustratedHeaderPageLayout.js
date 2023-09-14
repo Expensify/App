@@ -1,17 +1,10 @@
-import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {ScrollView, View} from 'react-native';
 import Lottie from 'lottie-react-native';
 import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import * as StyleUtils from '../styles/StyleUtils';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import FixedFooter from './FixedFooter';
-import useNetwork from '../hooks/useNetwork';
+import HeaderPageLayout from './HeaderPageLayout';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -39,45 +32,25 @@ const defaultProps = {
 };
 
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
-    const {windowHeight} = useWindowDimensions();
-    const {isOffline} = useNetwork();
     return (
-        <ScreenWrapper
-            style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
-            shouldEnablePickerAvoiding={false}
-            includeSafeAreaPaddingBottom={false}
-            offlineIndicatorStyle={[StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}
+        <HeaderPageLayout
+            backgroundColor={backgroundColor}
+            title={propsToPassToHeader.title}
+            headerContent={
+                <Lottie
+                    source={illustration}
+                    style={styles.w100}
+                    autoPlay
+                    loop
+                />
+            }
+            footer={footer}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...propsToPassToHeader}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...propsToPassToHeader}
-                        titleColor={backgroundColor === themeColors.appBG ? undefined : themeColors.textColorfulBackground}
-                        iconFill={backgroundColor === themeColors.appBG ? undefined : themeColors.iconColorfulBackground}
-                    />
-                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG), !isOffline ? safeAreaPaddingBottomStyle : {}]}>
-                        <ScrollView
-                            contentContainerStyle={safeAreaPaddingBottomStyle}
-                            showsVerticalScrollIndicator={false}
-                        >
-                            <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />
-                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor)]}>
-                                <Lottie
-                                    source={illustration}
-                                    style={styles.w100}
-                                    autoPlay
-                                    loop
-                                />
-                                {overlayContent && overlayContent()}
-                            </View>
-                            <View style={[styles.pt5]}>{children}</View>
-                        </ScrollView>
-                        {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
-                    </View>
-                </>
-            )}
-        </ScreenWrapper>
+            {children}
+            {overlayContent && overlayContent()}
+        </HeaderPageLayout>
     );
 }
 

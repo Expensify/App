@@ -1,7 +1,7 @@
 import _ from 'underscore';
-import React, {useMemo} from 'react';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import {ScrollView, View} from 'react-native';
+import { ScrollView, View } from 'react-native';
 import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
@@ -10,6 +10,8 @@ import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import FixedFooter from './FixedFooter';
+import useNetwork from '../hooks/useNetwork';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -22,17 +24,22 @@ const propTypes = {
 
     /** A fixed footer to display at the bottom of the page. */
     footer: PropTypes.node,
+
+    /** The image to display in the upper half of the screen. */
+    header: PropTypes.node,
 };
 
 const defaultProps = {
     backgroundColor: themeColors.appBG,
+    header: null,
     footer: null,
 };
 
-function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer, imageContainerStyle, style, ...propsToPassToHeader}) {
-    const {windowHeight} = useWindowDimensions();
-
-    const {titleColor, iconFill} = useMemo(() => {
+function HeaderPageLayout({ backgroundColor, children, footer, imageContainerStyle, style, headerContent, ...propsToPassToHeader }) {
+    const { windowHeight, isSmallScreenWidth } = useWindowDimensions();
+    const {isOffline} = useNetwork();
+    const appBGColor = StyleUtils.getBackgroundColorStyle(themeColors.appBG);
+    const { titleColor, iconFill } = useMemo(() => {
         const isColorfulBackground = backgroundColor !== themeColors.appBG;
         return {
             titleColor: isColorfulBackground ? themeColors.textColorfulBackground : undefined,
@@ -45,9 +52,9 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
             style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
-            offlineIndicatorStyle={[StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}
+            offlineIndicatorStyle={[appBGColor]}
         >
-            {({safeAreaPaddingBottomStyle}) => (
+            {({ safeAreaPaddingBottomStyle }) => (
                 <>
                     <HeaderWithBackButton
                         // eslint-disable-next-line react/jsx-props-no-spreading
@@ -55,12 +62,19 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
                         titleColor={titleColor}
                         iconFill={iconFill}
                     />
-                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
+                    <View style={[styles.flex1, appBGColor, !isOffline ? safeAreaPaddingBottomStyle : {}]}>
+                        {Browser.isSafari() && (
+                            <View style={[styles.dualColorOverscrollSpacer]}>
+                                <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(backgroundColor)]} />
+                                <View style={[isSmallScreenWidth ? styles.flex1 : styles.flex3, appBGColor]} />
+                            </View>
+                        )}
                         <ScrollView
                             contentContainerStyle={[safeAreaPaddingBottomStyle, style]}
                             showsVerticalScrollIndicator={false}
+                            offlineIndicatorStyle={[appBGColor]}
                         >
-                            <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />
+                            {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />}
                             <View
                                 style={[
                                     styles.alignItemsCenter,
@@ -70,10 +84,7 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
                                     styles.staticHeaderImage,
                                 ]}
                             >
-                                <Image
-                                    pointerEvents="none"
-                                    style={styles.staticHeaderImage}
-                                />
+                                {headerContent}
                             </View>
                             <View style={styles.pt5}>{children}</View>
                         </ScrollView>
@@ -85,8 +96,8 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
     );
 }
 
-StaticHeaderPageLayout.propTypes = propTypes;
-StaticHeaderPageLayout.defaultProps = defaultProps;
-StaticHeaderPageLayout.displayName = 'StaticHeaderPageLayout';
+HeaderPageLayout.propTypes = propTypes;
+HeaderPageLayout.defaultProps = defaultProps;
+HeaderPageLayout.displayName = 'HeaderPageLayout';
 
-export default StaticHeaderPageLayout;
+export default HeaderPageLayout;

@@ -12,6 +12,7 @@ export default {
     VALIDATE_LOGIN: 'ValidateLogin',
     CONCIERGE: 'Concierge',
     SETTINGS: {
+        ROOT: 'Settings_Root',
         PREFERENCES: 'Settings_Preferences',
         WORKSPACES: 'Settings_Workspaces',
     },

@@ -368,7 +368,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsInitialPage = require('../../../pages/settings/InitialSettingsPage').default;
             return SettingsInitialPage;
         },
-        name: 'Settings_Root',
+        name: SCREENS.SETTINGS.ROOT,
     },
     {
         getComponent: () => {
