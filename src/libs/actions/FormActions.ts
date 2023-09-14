@@ -5,7 +5,6 @@ import * as OnyxCommon from '../../types/onyx/OnyxCommon';
 import {OnyxKey} from '../../ONYXKEYS';
 
 type KeysWhichCouldBeDraft<T extends string> = T extends `${infer Prefix}Draft` ? Prefix : never;
-type KeysWithDraftSuffix<T extends string> = T extends `${infer Prefix}Draft` ? T : never;
 
 function setIsLoading(formID: OnyxKey, isLoading: boolean) {
     Onyx.merge(formID, {isLoading});
@@ -19,8 +18,8 @@ function setErrorFields(formID: OnyxKey, errorFields: OnyxCommon.ErrorFields) {
     Onyx.merge(formID, {errorFields});
 }
 
-function setDraftValues<T extends KeysWithDraftSuffix<OnyxKey>>(formID: KeysWhichCouldBeDraft<T>, draftValues: PartialDeep<KeyValueMapping[`${KeysWhichCouldBeDraft<T>}Draft`], {}>) {
+function setDraftValues<T extends OnyxKey>(formID: KeysWhichCouldBeDraft<T>, draftValues: PartialDeep<KeyValueMapping[`${KeysWhichCouldBeDraft<T>}Draft`], {}>) {
     Onyx.merge(`${formID}Draft`, draftValues);
 }
-
+setDraftValues('customStatus', {});
 export {setIsLoading, setErrors, setErrorFields, setDraftValues};
