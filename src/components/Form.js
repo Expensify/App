@@ -24,7 +24,7 @@ const propTypes = {
     formID: PropTypes.string.isRequired,
 
     /** Text to be displayed in the submit button */
-    submitButtonText: PropTypes.string.isRequired,
+    submitButtonText: PropTypes.string,
 
     /** Controls the submit button's visibility */
     isSubmitButtonVisible: PropTypes.bool,
@@ -99,6 +99,7 @@ const defaultProps = {
     footerContent: null,
     style: [],
     validate: () => ({}),
+    submitButtonText: ''
 };
 
 function Form(props) {
