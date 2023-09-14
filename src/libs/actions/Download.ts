@@ -8,7 +8,7 @@ function setDownload(sourceID: string, isDownloading: boolean): Promise<void> {
     return Onyx.merge(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {isDownloading});
 }
 
-function clearDownloads(): void {
+function clearDownloads() {
     const connectionID = Onyx.connect({
         key: ONYXKEYS.COLLECTION.DOWNLOAD,
         waitForCollectionCallback: true,
