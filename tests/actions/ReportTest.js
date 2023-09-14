@@ -16,6 +16,7 @@ import * as ReportUtils from '../../src/libs/ReportUtils';
 import DateUtils from '../../src/libs/DateUtils';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
+import fastForwardTwoMicrotasksCycles from '../utils/fastForwardTwoMicrotasksCycles';
 
 jest.mock('../../src/libs/actions/Report', () => {
     const originalModule = jest.requireActual('../../src/libs/actions/Report');
@@ -207,14 +208,12 @@ describe('actions/Report', () => {
         const USER_2_ACCOUNT_ID = 2;
         const setPromise = Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportName: 'Test', reportID: REPORT_ID})
             .then(() => TestHelper.signInWithTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN))
-            .then(waitForPromisesToResolve)
-            .then(waitForPromisesToResolve)
+            .then(fastForwardTwoMicrotasksCycles)
             .then(() => {
                 // Given a test user that is subscribed to Pusher events
                 User.subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
-            .then(waitForPromisesToResolve)
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
             .then(() => {
                 // When a Pusher event is handled for a new report comment that includes a mention of the current user
@@ -251,10 +250,8 @@ describe('actions/Report', () => {
                         },
                     },
                 ]);
-                return waitForPromisesToResolve();
+                return fastForwardTwoMicrotasksCycles();
             })
-            .then(waitForPromisesToResolve)
-            .then(waitForPromisesToResolve)
             .then(() => {
                 // Then the report will be unread
                 expect(ReportUtils.isUnread(report)).toBe(true);
@@ -382,9 +379,8 @@ describe('actions/Report', () => {
                     optimisticReportActions,
                 ]);
 
-                return waitForPromisesToResolve();
+                return fastForwardTwoMicrotasksCycles();
             })
-            .then(waitForPromisesToResolve)
             .then(() => {
                 // If the user deletes a comment that is before the last read
                 Report.deleteReportComment(REPORT_ID, {...reportActions[200]});

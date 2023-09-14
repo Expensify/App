@@ -10,6 +10,7 @@ import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as ReportActions from '../../src/libs/actions/ReportActions';
 import * as Report from '../../src/libs/actions/Report';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
+import fastForwardTwoMicrotasksCycles from '../utils/fastForwardTwoMicrotasksCycles';
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
@@ -492,8 +493,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(fetch.resume)
-                .then(waitForPromisesToResolve)
-                .then(waitForPromisesToResolve)
+                .then(fastForwardTwoMicrotasksCycles)
                 .then(
                     () =>
                         new Promise((resolve) => {
@@ -1130,8 +1130,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(fetch.resume)
-                .then(waitForPromisesToResolve)
-                .then(waitForPromisesToResolve)
+                .then(fastForwardTwoMicrotasksCycles)
                 .then(
                     () =>
                         new Promise((resolve) => {

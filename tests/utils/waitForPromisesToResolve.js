@@ -30,7 +30,7 @@ export default () =>
                 innerResolve("Flush all micro tasks that pushed by using '.then' method");
             });
         }).then(() => {
-            if (usingFakeTimers()) {
+            if (getIsUsingFakeTimers()) {
                 jest.runOnlyPendingTimers();
                 outerResolve();
                 return;

@@ -13,6 +13,7 @@ import * as API from '../../src/libs/API';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as Request from '../../src/libs/Request';
 import * as RequestThrottle from '../../src/libs/RequestThrottle';
+import fastForwardTwoMicrotasksCycles from '../utils/fastForwardTwoMicrotasksCycles';
 
 jest.mock('../../src/libs/Log');
 
@@ -202,7 +203,7 @@ describe('APITests', () => {
                 .then(() => {
                     // When API Write commands are made
                     API.write('mock command', {param1: 'value1'});
-                    return waitForPromisesToResolve().then(waitForPromisesToResolve);
+                    return fastForwardTwoMicrotasksCycles();
                 })
 
                 // When we resume connectivity
