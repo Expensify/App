@@ -6,7 +6,7 @@ import Emoji from '../../assets/emojis';
 import * as EmojiUtils from '../../src/libs/EmojiUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as User from '../../src/libs/actions/User';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as TestHelper from '../utils/TestHelper';
 import CONST from '../../src/CONST';
 
@@ -204,7 +204,7 @@ describe('EmojiTest', () => {
             ];
             Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
-            return waitForPromisesToResolve().then(() => {
+            return waitForBatchedUpdates().then(() => {
                 // When add a new emoji
                 const currentTime = moment().unix();
                 const smileEmoji = {code: '😄', name: 'smile'};
@@ -252,7 +252,7 @@ describe('EmojiTest', () => {
             ];
             Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
-            return waitForPromisesToResolve().then(() => {
+            return waitForBatchedUpdates().then(() => {
                 // When add an emoji that exists in the list
                 const currentTime = moment().unix();
                 const newEmoji = [smileEmoji];
@@ -294,7 +294,7 @@ describe('EmojiTest', () => {
             ];
             Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
-            return waitForPromisesToResolve().then(() => {
+            return waitForBatchedUpdates().then(() => {
                 // When add multiple emojis that either exist or not exist in the list
                 const currentTime = moment().unix();
                 const newEmoji = [smileEmoji, zzzEmoji, impEmoji];
@@ -465,7 +465,7 @@ describe('EmojiTest', () => {
             expect(frequentlyEmojisList.length).toBe(CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW);
             Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
-            return waitForPromisesToResolve().then(() => {
+            return waitForBatchedUpdates().then(() => {
                 // When add new emojis
                 const currentTime = moment().unix();
                 const newEmoji = [bookEmoji, smileEmoji, zzzEmoji, impEmoji, smileEmoji];

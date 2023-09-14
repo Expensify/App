@@ -1,5 +1,5 @@
 import {act} from '@testing-library/react-native';
-import waitForPromisesToResolve from './waitForPromisesToResolve';
+import waitForBatchedUpdates from './waitForBatchedUpdates';
 
 /**
  * This method is necessary because react-navigation's NavigationContainer makes an internal state update when parsing the
@@ -18,16 +18,16 @@ import waitForPromisesToResolve from './waitForPromisesToResolve';
  *
  * When not to use this:
  *
- *     - You're not rendering any react components at all in your tests, but have some async logic you need to wait for e.g. Onyx.merge(). Use waitForPromisesToResolve().
- *     - You're writing UI tests but don't see any errors or warnings related to using act(). You probably don't need this in that case and should use waitForPromisesToResolve().
+ *     - You're not rendering any react components at all in your tests, but have some async logic you need to wait for e.g. Onyx.merge(). Use waitForBatchedUpdates().
+ *     - You're writing UI tests but don't see any errors or warnings related to using act(). You probably don't need this in that case and should use waitForBatchedUpdates().
  *     - You're writing UI test and do see a warning about using act(), but there's no asynchronous code that needs to run inside act().
  *
  * @returns {Promise}
  */
 // eslint-disable-next-line @lwc/lwc/no-async-await
-export default async function waitForPromisesToResolveWithAct() {
+export default async function waitForBatchedUpdatesWithAct() {
     // eslint-disable-next-line @lwc/lwc/no-async-await
     await act(async () => {
-        await waitForPromisesToResolve();
+        await waitForBatchedUpdates();
     });
 }

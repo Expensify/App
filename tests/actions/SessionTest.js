@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import {beforeEach, jest, test} from '@jest/globals';
 import HttpUtils from '../../src/libs/HttpUtils';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
 import CONST from '../../src/CONST';
@@ -26,7 +26,7 @@ Onyx.init({
 });
 
 OnyxUpdateManager();
-beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
+beforeEach(() => Onyx.clear().then(waitForBatchedUpdates));
 
 describe('Session', () => {
     test('Authenticate is called with saved credentials when a session expires', () => {
@@ -50,7 +50,7 @@ describe('Session', () => {
 
         // When we sign in with the test user
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, 'Password1', TEST_INITIAL_AUTH_TOKEN)
-            .then(waitForPromisesToResolve)
+            .then(waitForBatchedUpdates)
             .then(() => {
                 // Then our re-authentication credentials should be generated and our session data
                 // have the correct information + initial authToken.
@@ -88,7 +88,7 @@ describe('Session', () => {
                 // When we attempt to fetch the initial app data via the API
                 App.confirmReadyToOpenApp();
                 App.openApp();
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 // Then it should fail and reauthenticate the user adding the new authToken to the session
@@ -99,7 +99,7 @@ describe('Session', () => {
 
     test('Push notifications are subscribed after signing in', () =>
         TestHelper.signInWithTestUser()
-            .then(waitForPromisesToResolve)
+            .then(waitForBatchedUpdates)
             .then(() => expect(PushNotification.register).toBeCalled()));
 
     test('Push notifications are unsubscribed after signing out', () =>

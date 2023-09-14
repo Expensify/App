@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Localize from '../../src/libs/Localize';
@@ -10,7 +10,7 @@ describe('localize', () => {
             keys: {NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE},
             initialKeyStates: {[ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.DEFAULT},
         });
-        return waitForPromisesToResolve();
+        return waitForBatchedUpdates();
     });
 
     afterEach(() => Onyx.clear());

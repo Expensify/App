@@ -8,7 +8,7 @@ import getIsUsingFakeTimers from './getIsUsingFakeTimers';
  *  ✅  Onyx.merge(...).then(...)
  *  than to do
  *  ❌  Onyx.merge(...)
- *      waitForPromisesToResolve().then(...)
+ *      waitForBatchedUpdates().then(...)
  *
  * @returns {Promise}
  */
@@ -20,7 +20,7 @@ export default () =>
         // E.g. this makes the following code work for tests:
         //
         //   Onyx.merge(...)
-        //   return waitForPromiseToResolve().then(...);
+        //   return waitForBatchedUpdates().then(...);
         //
         // Note: Ideally, you'd just await the Onyx.merge promise.
 

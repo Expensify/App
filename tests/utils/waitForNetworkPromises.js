@@ -1,4 +1,4 @@
-import waitForPromisesToResolve from './waitForPromisesToResolve';
+import waitForBatchedUpdates from './waitForBatchedUpdates';
 
 /**
  * Method flushes microtasks and pending timers twice. Because we batch onyx updates
@@ -7,8 +7,8 @@ import waitForPromisesToResolve from './waitForPromisesToResolve';
  *  ✅  Onyx.merge(...).then(...)
  *  than to do
  *  ❌  Onyx.merge(...)
- *      waitForPromisesToResolve().then(...)
+ *      waitForBatchedUpdates().then(...)
  *
  * @returns {Promise}
  */
-export default () => waitForPromisesToResolve().then(waitForPromisesToResolve);
+export default () => waitForBatchedUpdates().then(waitForBatchedUpdates);

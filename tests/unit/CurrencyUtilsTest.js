@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import CONST from '../../src/CONST';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as CurrencyUtils from '../../src/libs/CurrencyUtils';
 import LocaleListener from '../../src/libs/Localize/LocaleListener';
 
@@ -30,7 +30,7 @@ describe('CurrencyUtils', () => {
             },
         });
         LocaleListener.connect();
-        return waitForPromisesToResolve();
+        return waitForBatchedUpdates();
     });
 
     afterEach(() => Onyx.clear());

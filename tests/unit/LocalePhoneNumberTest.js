@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as LocalePhoneNumber from '../../src/libs/LocalePhoneNumber';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ES_NUMBER = '+34702474537';
 const US_NUMBER = '+18332403627';
@@ -20,7 +20,7 @@ describe('LocalePhoneNumber utils', () => {
             Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: 'current@user.com'},
                 [ONYXKEYS.COUNTRY_CODE]: 1,
-            }).then(waitForPromisesToResolve),
+            }).then(waitForBatchedUpdates),
         );
 
         afterEach(() => Onyx.clear());

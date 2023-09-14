@@ -4,7 +4,7 @@ import {addMinutes, subHours, subMinutes, subSeconds, format, setMinutes, setHou
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const LOCALE = CONST.LOCALES.EN;
 
@@ -17,7 +17,7 @@ describe('DateUtils', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {999: {timezone: {selected: 'UTC'}}},
             },
         });
-        return waitForPromisesToResolve();
+        return waitForBatchedUpdates();
     });
 
     afterEach(() => {

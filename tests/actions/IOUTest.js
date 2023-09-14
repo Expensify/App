@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as IOU from '../../src/libs/actions/IOU';
 import * as TestHelper from '../utils/TestHelper';
 import DateUtils from '../../src/libs/DateUtils';
@@ -10,7 +10,7 @@ import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as ReportActions from '../../src/libs/actions/ReportActions';
 import * as Report from '../../src/libs/actions/Report';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
-import fastForwardTwoMicrotasksCycles from '../utils/fastForwardTwoMicrotasksCycles';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
@@ -31,7 +31,7 @@ describe('actions/IOU', () => {
 
     beforeEach(() => {
         global.fetch = TestHelper.getGlobalFetchMock();
-        return Onyx.clear().then(waitForPromisesToResolve);
+        return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('requestMoney', () => {
@@ -45,7 +45,7 @@ describe('actions/IOU', () => {
             let transactionID;
             fetch.pause();
             IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
-            return waitForPromisesToResolve()
+            return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise((resolve) => {
@@ -210,7 +210,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
@@ -310,7 +310,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(fetch.resume)
-                .then(waitForPromisesToResolve)
+                .then(waitForBatchedUpdates)
                 .then(
                     () =>
                         new Promise((resolve) => {
@@ -402,7 +402,7 @@ describe('actions/IOU', () => {
                 .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransaction.transactionID}`, existingTransaction))
                 .then(() => {
                     IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
@@ -493,7 +493,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(fetch.resume)
-                .then(fastForwardTwoMicrotasksCycles)
+                .then(waitForNetworkPromises)
                 .then(
                     () =>
                         new Promise((resolve) => {
@@ -536,7 +536,7 @@ describe('actions/IOU', () => {
             fetch.pause();
             IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     .then(
                         () =>
                             new Promise((resolve) => {
@@ -907,7 +907,7 @@ describe('actions/IOU', () => {
                         comment,
                         CONST.CURRENCY.USD,
                     );
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
@@ -1130,7 +1130,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(fetch.resume)
-                .then(fastForwardTwoMicrotasksCycles)
+                .then(waitForNetworkPromises)
                 .then(
                     () =>
                         new Promise((resolve) => {
@@ -1191,7 +1191,7 @@ describe('actions/IOU', () => {
             let payIOUAction;
             let transaction;
             IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
-            return waitForPromisesToResolve()
+            return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise((resolve) => {
@@ -1271,7 +1271,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     fetch.pause();
                     IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(
                     () =>

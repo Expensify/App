@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('../../src/libs/Permissions');
 jest.mock('../../src/components/Icon/Expensicons');
@@ -45,7 +45,7 @@ test('simple Sidebar render with hundred of reports', () => {
     });
     const mockOnyxReports = _.assign({}, ...mockReports);
 
-    return waitForPromisesToResolve()
+    return waitForBatchedUpdates()
         .then(() =>
             Onyx.multiSet({
                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
