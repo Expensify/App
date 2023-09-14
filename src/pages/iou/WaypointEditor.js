@@ -198,7 +198,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                     onSubmit={onSubmit}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
-                    submitButtonText={translate('common.save')}
+                    isSubmitButtonVisible={false}
                 >
                     <View>
                         <AddressSearch
