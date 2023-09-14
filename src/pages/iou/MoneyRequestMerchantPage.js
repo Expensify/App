@@ -61,7 +61,7 @@ function MoneyRequestMerchantPage({iou, route}) {
         if (_.isEmpty(iou.participantAccountIDs) || (iou.amount === 0 && !iou.receiptPath) || shouldReset) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
         }
-    }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID]);
+    }, [iou.id, iou.participantAccountIDs, iou.amount, iou.receiptPath, iouType, reportID]);
 
     function navigateBack() {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
