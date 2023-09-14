@@ -354,6 +354,6 @@ jobs:
           IOS: ${{ needs.iOS.result }}
           WEB: ${{ needs.web.result }}
           ANDROID_LINK: ${{steps.get_android_path.outputs.android_path}}
-          DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ env.PULL_REQUEST_NUMBER }}/NewExpensify.dmg
+          DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ env.PULL_REQUEST_NUMBER }}/NewExpensifyAdHoc.dmg
           IOS_LINK: ${{steps.get_ios_path.outputs.ios_path}}
           WEB_LINK: https://${{ env.PULL_REQUEST_NUMBER }}.pr-testing.expensify.com
