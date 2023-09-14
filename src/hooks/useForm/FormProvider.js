@@ -151,15 +151,11 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
 
             if (!_.isUndefined(propsToParse.value)) {
                 inputValues[inputID] = propsToParse.value;
-            }
-
-            // We force the form to set the input value from the defaultValue props if there is a saved valid value
-            else if (propsToParse.shouldUseDefaultValue) {
+            } else if (propsToParse.shouldUseDefaultValue) {
+                // We force the form to set the input value from the defaultValue props if there is a saved valid value
                 inputValues[inputID] = propsToParse.defaultValue;
-            }
-
-            // We want to initialize the input value if it's undefined
-            else if (_.isUndefined(inputValues[inputID])) {
+            } else if (_.isUndefined(inputValues[inputID])) {
+                // We want to initialize the input value if it's undefined
                 inputValues[inputID] = _.isUndefined(propsToParse.defaultValue) ? getInitialValueByType(propsToParse.valueType) : propsToParse.defaultValue;
             }
 
