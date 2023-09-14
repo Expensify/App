@@ -11,6 +11,22 @@ import PopoverWithoutOverlay from '../PopoverWithoutOverlay';
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
 function Popover(props) {
+    // Not adding this inside the PopoverProvider
+    // because this is an issue on smaller screens as well.
+    React.useEffect(() => {
+        const listener = () => {
+            if (!props.isVisible) {
+                return;
+            }
+
+            props.onClose();
+        };
+        window.addEventListener('popstate', listener);
+        return () => {
+            window.removeEventListener('popstate', listener);
+        };
+    }, [props.onClose, props.isVisible]);
+
     if (!props.fullscreen && !props.isSmallScreenWidth) {
         return createPortal(
             <Modal
