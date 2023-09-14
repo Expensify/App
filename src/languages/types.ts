@@ -192,11 +192,13 @@ type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
 
+type TagSelectionParams = {tagName: string};
+
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
 
-type Translation = {[key: string]: TranslationBaseValue | Translation};
+type TranslationBase = {[key: string]: TranslationBaseValue | TranslationBase};
 
 /* Flat Translation Object types */
 // Flattens an object and returns concatenations of all the keys of nested objects
@@ -222,16 +224,17 @@ type TranslateType<TObject, TPath extends string> = TPath extends keyof TObject
         : never
     : never;
 
-type TranslationsType = typeof en;
+type EnglishTranslation = typeof en;
 
-type TranslationPaths = FlattenObject<TranslationsType>;
+type TranslationPaths = FlattenObject<EnglishTranslation>;
 
 type TranslationFlatObject = {
-    [TKey in TranslationPaths]: TranslateType<TranslationsType, TKey>;
+    [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
 };
 
 export type {
-    Translation,
+    TranslationBase,
+    EnglishTranslation,
     TranslationFlatObject,
     AddressLineParams,
     CharacterLimitParams,
@@ -303,4 +306,5 @@ export type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    TagSelectionParams,
 };

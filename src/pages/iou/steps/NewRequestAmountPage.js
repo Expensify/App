@@ -182,7 +182,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('iou.amount')}
-                            onBackButonBackButtonPress={navigateBack}
+                            onBackButtonPress={navigateBack}
                         />
                         {content}
                     </View>
