@@ -76,7 +76,7 @@
     "@react-native-firebase/perf": "^12.3.0",
     "@react-native-google-signin/google-signin": "^10.0.1",
     "@react-native-picker/picker": "^2.4.3",
-    "@react-navigation/material-top-tabs": "7.0.0-alpha.3",
+    "@react-navigation/material-top-tabs": "^6.6.3",
     "@react-navigation/native": "6.1.6",
     "@react-navigation/stack": "6.3.16",
     "@react-ng/bounds-observer": "^0.2.1",
