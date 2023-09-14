@@ -22,6 +22,7 @@ import ThemeProvider from './styles/themes/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
+import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import * as Session from './libs/actions/Session';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
@@ -58,6 +59,7 @@ function App() {
                     KeyboardStateProvider,
                     PopoverContextProvider,
                     CurrentReportIDContextProvider,
+                    ReportAttachmentsProvider,
                     PickerStateProvider,
                     EnvironmentProvider,
                     ThemeProvider,

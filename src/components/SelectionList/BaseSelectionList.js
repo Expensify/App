@@ -1,7 +1,8 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {useFocusEffect} from '@react-navigation/native';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
@@ -11,7 +12,7 @@ import CONST from '../../CONST';
 import variables from '../../styles/variables';
 import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
 import RadioListItem from './RadioListItem';
-import CheckboxListItem from './CheckboxListItem';
+import UserListItem from './UserListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
@@ -42,7 +43,6 @@ function BaseSelectionList({
     keyboardType = CONST.KEYBOARD_TYPE.DEFAULT,
     onChangeText,
     initiallyFocusedOptionKey = '',
-    shouldDelayFocus = false,
     onScroll,
     onScrollBeginDrag,
     headerMessage = '',
@@ -242,16 +242,20 @@ function BaseSelectionList({
     };
 
     const renderItem = ({item, index, section}) => {
+        const normalizedIndex = index + lodashGet(section, 'indexOffset', 0);
         const isDisabled = section.isDisabled;
-        const isFocused = !isDisabled && focusedIndex === index + lodashGet(section, 'indexOffset', 0);
+        const isFocused = !isDisabled && focusedIndex === normalizedIndex;
+        // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+        const showTooltip = normalizedIndex < 10;
 
         if (canSelectMultiple) {
             return (
-                <CheckboxListItem
+                <UserListItem
                     item={item}
                     isFocused={isFocused}
                     onSelectRow={() => selectRow(item, index)}
                     onDismissError={onDismissError}
+                    showTooltip={showTooltip}
                 />
             );
         }
@@ -266,23 +270,20 @@ function BaseSelectionList({
         );
     };
 
-    /** Focuses the text input when the component mounts. If `props.shouldDelayFocus` is true, we wait for the animation to finish */
-    useEffect(() => {
-        if (shouldShowTextInput) {
-            if (shouldDelayFocus) {
+    /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
+    useFocusEffect(
+        useCallback(() => {
+            if (shouldShowTextInput) {
                 focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
-            } else {
-                textInputRef.current.focus();
             }
-        }
-
-        return () => {
-            if (!focusTimeoutRef.current) {
-                return;
-            }
-            clearTimeout(focusTimeoutRef.current);
-        };
-    }, [shouldDelayFocus, shouldShowTextInput]);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, [shouldShowTextInput]),
+    );
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
