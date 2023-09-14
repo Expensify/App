@@ -1,7 +1,6 @@
-import React, {memo} from 'react';
+import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
@@ -35,20 +34,19 @@ export default function (WrappedComponent) {
         },
     };
 
-    const WithCurrentUserPersonalDetails = memo(
-        (props) => {
-            const accountID = props.session.accountID;
-            return (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    ref={props.forwardedRef}
-                    currentUserPersonalDetails={props.personalDetails[accountID]}
-                />
-            );
-        },
-        (prevProps, nextProps) => _.isEqual(prevProps.personalDetails[prevProps.session.accountID], nextProps.personalDetails[nextProps.session.accountID]),
-    );
+    function WithCurrentUserPersonalDetails(props) {
+        const accountID = props.session.accountID;
+        const accountPersonalDetails = props.personalDetails[accountID];
+        const currentUserPersonalDetails = useMemo(() => ({...accountPersonalDetails, accountID}), [accountPersonalDetails, accountID]);
+        return (
+            <WrappedComponent
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                ref={props.forwardedRef}
+                currentUserPersonalDetails={currentUserPersonalDetails}
+            />
+        );
+    }
 
     WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
     WithCurrentUserPersonalDetails.propTypes = propTypes;
