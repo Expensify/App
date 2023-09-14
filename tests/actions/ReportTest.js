@@ -412,7 +412,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(report.lastMessageText).toBe('Current User Comment 2');
             });
-        waitForPromisesToResolve(); // flushing onyx.set as it wull be batched
+        waitForPromisesToResolve(); // flushing onyx.set as it will be batched
         return setPromise;
     });
 
