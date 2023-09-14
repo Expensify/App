@@ -11,10 +11,14 @@ import compose from '../../../../libs/compose';
 import CONST from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
+import refPropTypes from '../../../../components/refPropTypes';
 
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** A ref to forward to options selector's text input */
+    forwardedRef: refPropTypes,
 
     /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
@@ -41,6 +45,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    forwardedRef: undefined,
     safeAreaPaddingBottomStyle: {},
     personalDetails: {},
     reports: {},
@@ -161,6 +166,8 @@ class MoneyRequestParticipantsSelector extends Component {
 
         return (
             <OptionsSelector
+                ref={this.props.forwardedRef}
+                autoFocus={false}
                 sections={this.getSections()}
                 value={this.state.searchTerm}
                 onSelectRow={this.addSingleParticipant}
@@ -191,4 +198,12 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(MoneyRequestParticipantsSelector);
+)(
+    React.forwardRef((props, ref) => (
+        <MoneyRequestParticipantsSelector
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);

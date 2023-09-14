@@ -38,6 +38,7 @@ import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
+import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -89,6 +90,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
+    ...withCurrentReportIDPropTypes,
 };
 
 const defaultProps = {
@@ -103,6 +105,7 @@ const defaultProps = {
     policies: {},
     accountManagerReportID: null,
     personalDetails: {},
+    ...withCurrentReportIDDefaultProps,
 };
 
 /**
@@ -141,6 +144,7 @@ function ReportScreen({
     viewportOffsetTop,
     isComposerFullSize,
     errors,
+    currentReportID,
 }) {
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
@@ -169,7 +173,7 @@ function ReportScreen({
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
-    const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(route);
+    const isTopMostReportId = currentReportID === getReportID(route);
 
     const isDefaultReport = checkDefaultReport(report);
 
@@ -313,6 +317,7 @@ function ReportScreen({
             <ScreenWrapper
                 style={screenWrapperStyle}
                 shouldEnableKeyboardAvoidingView={isTopMostReportId}
+                shouldDisableFocusTrap
             >
                 <FullPageNotFoundView
                     shouldShow={isReportAvailable}
@@ -415,6 +420,7 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withNetwork(),
+    withCurrentReportID,
     withOnyx({
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,

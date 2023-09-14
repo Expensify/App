@@ -130,6 +130,6 @@ export default withOnyx({
         key: ONYXKEYS.IOU,
     },
     selectedTab: {
-        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(MoneyRequestDescriptionPage);
