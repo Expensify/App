@@ -108,16 +108,19 @@ function Form(props) {
     const formContentRef = useRef(null);
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
+    const focusedInput = useRef(null);
     const isFirstRender = useRef(true);
 
     const {validate, onSubmit, children} = props;
+
+    const hasServerError = useMemo(() => Boolean(props.formState) && !_.isEmpty(props.formState.errors), [props.formState]);
 
     /**
      * @param {Object} values - An object containing the value of each inputID, e.g. {inputID1: value1, inputID2: value2}
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     const onValidate = useCallback(
-        (values) => {
+        (values, shouldClearServerError = true) => {
             const trimmedStringValues = {};
             _.each(values, (inputValue, inputID) => {
                 if (_.isString(inputValue)) {
@@ -127,7 +130,9 @@ function Form(props) {
                 }
             });
 
-            FormActions.setErrors(props.formID, null);
+            if (shouldClearServerError) {
+                FormActions.setErrors(props.formID, null);
+            }
             FormActions.setErrorFields(props.formID, null);
 
             // Run any validations passed as a prop
@@ -135,8 +140,33 @@ function Form(props) {
 
             // Validate the input for html tags. It should supercede any other error
             _.each(trimmedStringValues, (inputValue, inputID) => {
-                // Return early if there is no value OR the value is not a string OR there are no HTML characters
-                if (!inputValue || !_.isString(inputValue) || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
+                // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
+                if (!inputValue || !_.isString(inputValue)) {
+                    return;
+                }
+                const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
+
+                // Return early if there are no HTML characters
+                if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
+                    return;
+                }
+
+                const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                let isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(inputValue));
+                // Check for any matches that the original regex (foundHtmlTagIndex) matched
+                if (matchedHtmlTags) {
+                    // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
+                    for (let i = 0; i < matchedHtmlTags.length; i++) {
+                        const htmlTag = matchedHtmlTags[i];
+                        isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(htmlTag));
+                        if (!isMatch) {
+                            break;
+                        }
+                    }
+                }
+
+                if (isMatch && leadingSpaceIndex === -1) {
                     return;
                 }
 
@@ -305,6 +335,12 @@ function Form(props) {
                     // as this is already happening by the value prop.
                     defaultValue: undefined,
                     errorText: errors[inputID] || fieldErrorMessage,
+                    onFocus: (event) => {
+                        focusedInput.current = inputID;
+                        if (_.isFunction(child.props.onFocus)) {
+                            child.props.onFocus(event);
+                        }
+                    },
                     onBlur: (event) => {
                         // Only run validation when user proactively blurs the input.
                         if (Visibility.isVisible() && Visibility.hasFocus()) {
@@ -314,7 +350,7 @@ function Form(props) {
                             setTimeout(() => {
                                 setTouchedInput(inputID);
                                 if (props.shouldValidateOnBlur) {
-                                    onValidate(inputValues);
+                                    onValidate(inputValues, !hasServerError);
                                 }
                             }, 200);
                         }
@@ -328,6 +364,11 @@ function Form(props) {
                     },
                     onInputChange: (value, key) => {
                         const inputKey = key || inputID;
+
+                        if (focusedInput.current && focusedInput.current !== inputKey) {
+                            setTouchedInput(focusedInput.current);
+                        }
+
                         setInputValues((prevState) => {
                             const newState = {
                                 ...prevState,
@@ -353,7 +394,19 @@ function Form(props) {
 
             return childrenElements;
         },
-        [errors, inputRefs, inputValues, onValidate, props.draftValues, props.formID, props.formState, setTouchedInput, props.shouldValidateOnBlur, props.shouldValidateOnChange],
+        [
+            errors,
+            inputRefs,
+            inputValues,
+            onValidate,
+            props.draftValues,
+            props.formID,
+            props.formState,
+            setTouchedInput,
+            props.shouldValidateOnBlur,
+            props.shouldValidateOnChange,
+            hasServerError,
+        ],
     );
 
     const scrollViewContent = useCallback(

@@ -71,6 +71,7 @@ export default {
 
     ice200: '#CCF7FF',
     ice400: '#50EEF6',
+    ice500: '#4ED7DE',
     ice700: '#28736D',
     ice800: '#134038',
 
