@@ -17,7 +17,6 @@ import DisplayNames from './DisplayNames';
 import compose from '../libs/compose';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Text from './Text';
-import * as StyleUtils from '../styles/StyleUtils';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Navigation from '../libs/Navigation/Navigation';
