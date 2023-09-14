@@ -77,7 +77,7 @@ function WorkspaceMembersPage(props) {
     const prevIsOffline = usePrevious(props.network.isOffline);
     const accountIDs = useMemo(() => _.keys(props.policyMembers), [props.policyMembers]);
     const prevAccountIDs = usePrevious(accountIDs);
-    
+
     /**
      * Get members for the current workspace
      */
