@@ -24,7 +24,7 @@ const startTimer = () => {
 };
 
 function BaseSidebarScreen(props) {
-    const themeStyles = useThemeStyles();
+    const styles = useThemeStyles();
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -35,12 +35,12 @@ function BaseSidebarScreen(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            style={[themeStyles.sidebar, Browser.isMobile() ? themeStyles.userSelectNone : {}]}
+            style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             shouldDisableFocusTrap
         >
             {({insets}) => (
                 <>
-                    <View style={[themeStyles.flex1]}>
+                    <View style={[styles.flex1]}>
                         <SidebarLinksData
                             onLinkClick={startTimer}
                             insets={insets}
