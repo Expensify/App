@@ -3,7 +3,7 @@ import AsyncOpenURL from './types';
 
 /**
  * Prevents Safari from blocking pop-up window when opened within async call.
- *  * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
+ * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
  */
 const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic) => {
     if (!url) {
