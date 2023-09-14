@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {useMemo, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../../CONST';
 import Modal from '../Modal';
 import HeaderWithBackButton from '../HeaderWithBackButton';
@@ -53,7 +54,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
 
     const countryStates = useMemo(
         () =>
-            _.map(CONST.ALL_US_ISO_STATES, (state) => {
+            _.map(_.keys(COMMON_CONST.STATES), (state) => {
                 const stateName = translate(`allStates.${state}.stateName`);
                 const stateISO = translate(`allStates.${state}.stateISO`);
                 return {
