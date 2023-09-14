@@ -1,5 +1,5 @@
 ---
-title: Policy
+title: Expensify Chat Playbook for Conferences
 description: Best practices for how to deploy Expensify Chat for your conference
 ---
 ## Overview

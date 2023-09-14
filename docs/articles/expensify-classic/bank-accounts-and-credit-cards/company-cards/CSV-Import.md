@@ -1,7 +1,5 @@
 ---
-title: Brex
-description: Best practices for how to deploy Expensify Chat for your conference
+title: CSV Import
+description: CSV Import
 ---
-## Overview
-
-Coming soon!!
+## Resources Coming Soon!

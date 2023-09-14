@@ -27,8 +27,8 @@ platforms:
         icon: /assets/images/playbook.svg
         description: Best practices for how to best deploy Expensify for your business
 
-      - href: expense-and-report-settings
-        title: Expense & Report Settings
+      - href: expense-and-report-features
+        title: Expense & Report Features
         description: Everything else you're looking for is right here.
         icon: /assets/images/lightbulb.svg
 
@@ -57,8 +57,8 @@ platforms:
         description: Everything else you're looking for is right here.
         icon: /assets/images/lightbulb.svg
 
-      - href: manage-employees-and-reports
-        title: Manage Employees & Reports
+      - href: manage-employees-and-report-approvals
+        title: Manage Employees & Report Approvals
         description: Everything else you're looking for is right here.
         icon: /assets/images/lightbulb.svg
       
@@ -84,7 +84,57 @@ platforms:
         description: With only a couple of clicks, split bills with your friends or coworkers.
         icon: /assets/images/paper-airplane.svg
 
-      - href: policy-and-domain-settings
-        title: Policy & Domain Settings
+      - href: bank-accounts-and-credit-cards
+        title: Bank Accounts & Credit Cards
         icon: /assets/images/money-case.svg
-        description: Request money for work expenses, bills, or a night out with friends.
+        description: Bank Accounts & Credit Cards.
+      
+      - href: billing-and-plan-types
+        title: Bank Accounts & Credit Cards
+        icon: /assets/images/money-case.svg
+        description: Bank Accounts & Credit Cards.
+      
+      - href: expense-and-report-features
+        title: Bank Accounts & Credit Cards
+        icon: /assets/images/money-case.svg
+        description: Bank Accounts & Credit Cards.
+
+      - href: expensify-card
+        title: Bank Accounts & Credit Cards
+        icon: /assets/images/money-case.svg
+        description: Bank Accounts & Credit Cards.
+      
+      - href: exports
+        title: Bank Accounts & Credit Cards
+        icon: /assets/images/money-case.svg
+        description: Bank Accounts & Credit Cards.
+
+      - href: get-paid-back
+        title: Bank Accounts & Credit Cards
+        icon: /assets/images/money-case.svg
+        description: Bank Accounts & Credit Cards.
+      
+      - href: getting-started
+        title: Bank Accounts & Credit Cards
+        icon: /assets/images/money-case.svg
+        description: Bank Accounts & Credit Cards.
+      
+      - href: integrations
+        title: Bank Accounts & Credit Cards
+        icon: /assets/images/money-case.svg
+        description: Bank Accounts & Credit Cards.
+
+      - href: manage-employees-and-report-approvals
+        title: Bank Accounts & Credit Cards
+        icon: /assets/images/money-case.svg
+        description: Bank Accounts & Credit Cards.
+
+      - href: send-payments
+        title: Bank Accounts & Credit Cards
+        icon: /assets/images/money-case.svg
+        description: Bank Accounts & Credit Cards.
+
+      - href: workspace-and-domain-settings
+        title: Bank Accounts & Credit Cards
+        icon: /assets/images/money-case.svg
+        description: Bank Accounts & Credit Cards.
