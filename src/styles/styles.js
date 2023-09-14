@@ -3938,7 +3938,7 @@ const styles = (theme) => ({
         top: 0,
         borderRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
-        backgroundColor: themeColors.highlightBG,
+        backgroundColor: theme.highlightBG,
         ...sizing.w100,
         ...sizing.h100,
     },
