@@ -3931,6 +3931,18 @@ const styles = (theme) => ({
         overflow: 'hidden',
     },
 
+    mapViewOverlay: {
+        flex: 1,
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        borderRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
+        backgroundColor: theme.highlightBG,
+        ...sizing.w100,
+        ...sizing.h100,
+    },
+
     confirmationListMapItem: {
         ...spacing.m5,
         height: 200,

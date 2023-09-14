@@ -11,7 +11,7 @@ import CONST from '../../CONST';
 
 import {MapViewProps, MapViewHandle} from './MapViewTypes';
 
-const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates}, ref) => {
+const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady}, ref) => {
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
 
@@ -56,6 +56,9 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
     const setMapIdle = (e: MapState) => {
         if (e.gestures.isGestureActive) return;
         setIsIdle(true);
+        if (onMapReady) {
+            onMapReady();
+        }
     };
 
     return (
