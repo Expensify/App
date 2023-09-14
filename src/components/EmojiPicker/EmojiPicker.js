@@ -27,8 +27,8 @@ const EmojiPicker = forwardRef((props, ref) => {
         horizontal: 0,
         vertical: 0,
     });
-    const [reportAction, setReportAction] = useState({});
     const [emojiPopoverAnchorOrigin, setEmojiPopoverAnchorOrigin] = useState(DEFAULT_ANCHOR_ORIGIN);
+    const [activeID, setActiveID] = useState();
     const emojiPopoverAnchor = useRef(null);
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
@@ -42,9 +42,9 @@ const EmojiPicker = forwardRef((props, ref) => {
      * @param {Element} emojiPopoverAnchorValue - Element to which Popover is anchored
      * @param {Object} [anchorOrigin=DEFAULT_ANCHOR_ORIGIN] - Anchor origin for Popover
      * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
-     * @param {Object} reportActionValue - ReportAction for EmojiPicker
+     * @param {String} id - Unique id for EmojiPicker
      */
-    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}, reportActionValue) => {
+    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}, id) => {
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
         emojiPopoverAnchor.current = emojiPopoverAnchorValue;
@@ -60,7 +60,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             setIsEmojiPickerVisible(true);
             setEmojiPopoverAnchorPosition(value);
             setEmojiPopoverAnchorOrigin(anchorOriginValue);
-            setReportAction(reportActionValue);
+            setActiveID(id);
         });
     };
 
@@ -107,16 +107,16 @@ const EmojiPicker = forwardRef((props, ref) => {
     };
 
     /**
-     * Whether Context Menu is active for the Report Action.
+     * Whether emoji picker is active for the given id.
      *
-     * @param {Number|String} actionID
+     * @param {String} id
      * @return {Boolean}
      */
-    const isActiveReportAction = (actionID) => Boolean(actionID) && reportAction.reportActionID === actionID;
+    const isActive = (id) => Boolean(id) && id === activeID;
 
     const resetEmojiPopoverAnchor = () => (emojiPopoverAnchor.current = null);
 
-    useImperativeHandle(ref, () => ({showEmojiPicker, isActiveReportAction, hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor}));
+    useImperativeHandle(ref, () => ({showEmojiPicker, isActive, hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor}));
 
     useEffect(() => {
         const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {

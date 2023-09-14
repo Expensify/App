@@ -13,7 +13,8 @@ jobs:
     outputs:
       IS_DEPLOYER: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' }}
     steps:
-      - id: isDeployer
+      - name: Check if user is deployer
+        id: isDeployer
         run: |
           if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
             echo "IS_DEPLOYER=true" >> "$GITHUB_OUTPUT"
@@ -39,7 +40,8 @@ jobs:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+      - name: Set up git for OSBotify
+        uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
@@ -77,6 +79,7 @@ jobs:
         id: cherryPick
         run: |
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
+          git config user.name ${{ github.actor }}
           if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
             echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
             echo "HAS_CONFLICTS=false" >> "$GITHUB_OUTPUT"
@@ -87,6 +90,7 @@ jobs:
             GIT_MERGE_AUTOEDIT=no git cherry-pick --continue
             echo "HAS_CONFLICTS=true" >> "$GITHUB_OUTPUT"
           fi
+          git config user.name OSBotify
 
       - name: Push changes
         run: |
