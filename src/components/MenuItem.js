@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Text from './Text';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -24,7 +25,6 @@ import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import RenderHTML from './RenderHTML';
 
 const propTypes = menuItemPropTypes;
