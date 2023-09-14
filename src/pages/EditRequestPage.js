@@ -179,6 +179,7 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
             <EditRequestDistancePage
                 report={report}
                 transactionID={transaction.transactionID}
+                route={route}
             />
         );
     }
