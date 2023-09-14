@@ -68,6 +68,6 @@ NewDistanceRequestPage.defaultProps = defaultProps;
 export default withOnyx({
     iou: {key: ONYXKEYS.IOU},
     report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', 0)}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
     },
 })(NewDistanceRequestPage);

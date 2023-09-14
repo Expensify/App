@@ -86,7 +86,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function DistanceRequest({transactionID, iou, report, transaction, mapboxAccessToken, route, isEditingRequest, onSubmit}) {
+function DistanceRequest({transactionID, report, transaction, mapboxAccessToken, route, isEditingRequest, onSubmit}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -185,15 +185,6 @@ function DistanceRequest({transactionID, iou, report, transaction, mapboxAccessT
 
     const navigateBack = () => {
         Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
-    };
-
-    const navigateToNextPage = () => {
-        if (isEditing) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
-            return;
-        }
-
-        IOU.navigateToNextPage(iou, iouType, reportID, report);
     };
 
     const content = (
@@ -297,8 +288,6 @@ function DistanceRequest({transactionID, iou, report, transaction, mapboxAccessT
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => onSubmit(waypoints)}
-                // @TODO figure out how to resolve this
-                onPress={navigateToNextPage}
                 isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline}
                 text={translate(isEditingRequest ? 'common.save' : 'common.next')}
             />
@@ -333,7 +322,6 @@ DistanceRequest.displayName = 'DistanceRequest';
 DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
-    iou: {key: ONYXKEYS.IOU},
     transaction: {
         key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
     },
