@@ -1,30 +1,45 @@
-import React from 'react';
-import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
+import React from 'react';
+import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
+import CardPreview from '../../../components/CardPreview';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import cardPropTypes from '../../../components/cardPropTypes';
+import useLocalize from '../../../hooks/useLocalize';
+import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
-import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import CardPreview from '../../../components/CardPreview';
-import useLocalize from '../../../hooks/useLocalize';
+import * as CardUtils from '../../../libs/CardUtils';
 
 const propTypes = {
     /* Onyx Props */
+    cardList: PropTypes.objectOf(cardPropTypes),
 
-    spendLimit: PropTypes.number,
+    /** Navigation route context info provided by react navigation */
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            /** domain passed via route /settings/wallet/card/:domain */
+            domain: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
-    spendLimit: 0,
+    cardList: {},
 };
 
-function ExpensifyCardPage(props) {
+function ExpensifyCardPage({cardList, route: {params: {domain}}}) {
     const {translate} = useLocalize();
+    const domainCards = CardUtils.getDomainCards(cardList)[domain];
+    const virtualCard = _.find(domainCards, (card) => card.isVirtual);
+    const physicalCard = _.find(domainCards, (card) => !card.isVirtual);
 
-    const formattedSpendLimitAmount = CurrencyUtils.convertToDisplayString(props.spendLimit);
+    const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -41,9 +56,21 @@ function ExpensifyCardPage(props) {
 
                         <MenuItemWithTopDescription
                             description={translate('cardPage.availableSpend')}
-                            title={formattedSpendLimitAmount}
+                            title={formattedAvailableSpendAmount}
                             interactive={false}
                             titleStyle={styles.newKansasLarge}
+                        />
+                        <MenuItemWithTopDescription
+                            description={translate('cardPage.virtualCardNumber')}
+                            title={virtualCard.cardID}
+                            interactive={false}
+                            titleStyle={styles.walletCardNumber}
+                        />
+                        <MenuItemWithTopDescription
+                            description={translate('cardPage.physicalCardNumber')}
+                            title={physicalCard.cardID}
+                            interactive={false}
+                            titleStyle={styles.walletCardNumber}
                         />
                     </ScrollView>
                 </>
@@ -56,4 +83,8 @@ ExpensifyCardPage.propTypes = propTypes;
 ExpensifyCardPage.defaultProps = defaultProps;
 ExpensifyCardPage.displayName = 'ExpensifyCardPage';
 
-export default ExpensifyCardPage;
+export default withOnyx({
+    cardList: {
+        key: ONYXKEYS.CARD_LIST,
+    },
+})(ExpensifyCardPage);

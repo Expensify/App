@@ -1,5 +1,7 @@
+import lodash from 'lodash';
 import {Card} from '../types/onyx';
 import CONST from '../CONST';
+import * as OnyxTypes from '../types/onyx';
 
 /**
  * @returns string with a month in MM format
@@ -25,4 +27,14 @@ function getCompanyCards(cardList: {string: Card}) {
     return Object.values(cardList).filter((card) => card.bank !== CONST.EXPENSIFY_CARD.BANK);
 }
 
-export {getMonthFromExpirationDateString, getYearFromExpirationDateString, getCompanyCards};
+/**
+ * @param cardList - collection of assigned cards
+ * @returns collection of assigned cards grouped by domain
+ */
+function getDomainCards(cardList: Record<string, OnyxTypes.Card>) {
+    // eslint-disable-next-line you-dont-need-lodash-underscore/filter
+    const activeCards = lodash.filter(cardList, (card) => [2, 3, 4, 7].includes(card.state));
+    return lodash.groupBy(activeCards, (card) => card.domainName);
+}
+
+export {getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString};

@@ -3995,6 +3995,11 @@ const styles = (theme) => ({
         overflow: 'hidden',
     },
 
+    walletCardNumber: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+    },
+
     walletCardHolder: {
         position: 'absolute',
         left: 16,

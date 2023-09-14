@@ -809,6 +809,8 @@ export default {
     cardPage: {
         expensifyCard: 'Expensify Card',
         availableSpend: 'Remaining spending power',
+        virtualCardNumber: 'Virtual card number',
+        physicalCardNumber: 'Physical card number',
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
