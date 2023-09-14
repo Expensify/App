@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
@@ -27,6 +28,7 @@ import Image from '../Image';
 import ReportActionItemImage from './ReportActionItemImage';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
+import categoryPropTypes from '../categoryPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -34,6 +36,10 @@ const propTypes = {
 
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
+
+    /* Onyx Props */
+    /** Collection of categories attached to a policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
 
     /** The transaction associated with the transactionThread */
     transaction: transactionPropTypes,
@@ -46,6 +52,7 @@ const propTypes = {
 
 const defaultProps = {
     parentReport: {},
+    policyCategories: {},
     transaction: {
         amount: 0,
         currency: CONST.CURRENCY.USD,
@@ -53,7 +60,7 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction}) {
+function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -65,6 +72,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
         currency: transactionCurrency,
         comment: transactionDescription,
         merchant: transactionMerchant,
+        category: transactionCategory,
     } = ReportUtils.getTransactionDetails(transaction);
     const isEmptyMerchant =
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -72,6 +80,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+    const shouldShowCategory = !_.isEmpty(policyCategories) || !_.isEmpty(transactionCategory);
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
@@ -165,6 +174,18 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
+            {shouldShowCategory && (
+                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
+                    <MenuItemWithTopDescription
+                        description={translate('common.category')}
+                        title={transactionCategory}
+                        interactive={canEdit}
+                        shouldShowRightIcon={canEdit}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
+                    />
+                </OfflineWithFeedback>
+            )}
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
@@ -182,6 +203,9 @@ export default compose(
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+        },
+        policyCategories: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report.policyID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,
