@@ -1,5 +1,4 @@
-const getIsUsingFakeTimers = () => Boolean(global.setTimeout.mock || global.setTimeout.clock);
-
+import getIsUsingFakeTimers from './getIsUsingFakeTimers';
 /**
  * Method which waits for all asynchronous JS to stop executing before proceeding. This helps test things like actions
  * that expect some Onyx value to be available. This way we do not have to explicitly wait for an action to finish

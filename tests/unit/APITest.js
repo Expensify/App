@@ -168,7 +168,7 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
 
                     // We need to advance past the request throttle back off timer because the request won't be retried until then
-                    return new Promise((resolve) => setTimeout(resolve, 1000)).then(waitForPromisesToResolve);
+                    return new Promise((resolve) => setTimeout(resolve, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS)).then(waitForPromisesToResolve);
                 })
                 .then(() => {
                     // Finally, after it succeeds the queue should be empty
