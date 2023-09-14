@@ -220,7 +220,10 @@ function ReportActionsList({
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
      */
-    const shouldHideThreadDividerLine = useMemo(() => (sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === currentUnreadMarker), [sortedReportActions, currentUnreadMarker])
+    const shouldHideThreadDividerLine = useMemo(
+        () => sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === currentUnreadMarker,
+        [sortedReportActions, currentUnreadMarker],
+    );
 
     /**
      * @param {Object} args

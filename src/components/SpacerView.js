@@ -22,8 +22,8 @@ const defaultProps = {
 };
 
 function SpacerView(props) {
-    const marginVertical = useSharedValue(8)
-    const borderBottomWidth = useSharedValue(1)
+    const marginVertical = useSharedValue(8);
+    const borderBottomWidth = useSharedValue(1);
     const animatedStyles = useAnimatedStyle(() => ({
         marginVertical: marginVertical.value,
         borderBottomWidth: borderBottomWidth.value,

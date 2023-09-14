@@ -14,7 +14,7 @@ import variables from '../../styles/variables';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
-import SpacerView from '../SpacerView'
+import SpacerView from '../SpacerView';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -66,7 +66,10 @@ function MoneyReportView(props) {
                     </Text>
                 </View>
             </View>
-            <SpacerView shouldShow={props.shouldShowHorizontalRule} style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}/>
+            <SpacerView
+                shouldShow={props.shouldShowHorizontalRule}
+                style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+            />
         </View>
     );
 }
