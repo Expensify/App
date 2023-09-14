@@ -723,6 +723,7 @@ const CONST = {
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
         DUPLICATE_RECORD: '400 Unique Constraints Violation',
+        NETWORK_REQUEST_FAILED: 'Network request failed',
     },
     NETWORK: {
         METHOD: {
