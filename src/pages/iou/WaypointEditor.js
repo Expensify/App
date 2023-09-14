@@ -15,12 +15,10 @@ import Form from '../../components/Form';
 import styles from '../../styles/styles';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import useLocalize from '../../hooks/useLocalize';
-import useNetwork from '../../hooks/useNetwork';
 import CONST from '../../CONST';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ConfirmModal from '../../components/ConfirmModal';
 import * as Transaction from '../../libs/actions/Transaction';
-import * as ValidationUtils from '../../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
 import transactionPropTypes from '../../components/transactionPropTypes';
 
@@ -77,7 +75,6 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const textInput = useRef(null);
     const parsedWaypointIndex = parseInt(waypointIndex, 10);
     const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
@@ -103,13 +100,10 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     const validate = (values) => {
         const errors = {};
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
-        if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
-            errors[`waypoint${waypointIndex}`] = 'bankAccount.error.address';
-        }
 
-        // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
+        // If the user is trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
-        if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
+        if (waypointValue !== '' && waypointAddress !== waypointValue) {
             errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
         }
 
@@ -122,18 +116,6 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
             Transaction.removeWaypoint(transactionID, waypointIndex);
-        }
-
-        // While the user is offline, the auto-complete address search will not work
-        // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
-        if (isOffline && waypointValue) {
-            const waypoint = {
-                lat: null,
-                lng: null,
-                address: waypointValue,
-            };
-
-            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
@@ -204,7 +186,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                         <AddressSearch
                             inputID={`waypoint${waypointIndex}`}
                             ref={(e) => (textInput.current = e)}
-                            hint={!isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
+                            hint={translate('distance.errors.selectSuggestedAddress')}
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}
