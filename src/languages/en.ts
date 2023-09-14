@@ -1,7 +1,6 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
 import type {
-    Translation,
     AddressLineParams,
     CharacterLimitParams,
     MaxParticipantsReachedParams,
@@ -73,8 +72,18 @@ import type {
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
     TagSelectionParams,
+    TranslationBase,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+
+type StateValue = {
+    stateISO: string;
+    stateName: string;
+};
+
+type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
+
+type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
 
 /* eslint-disable max-len */
 export default {
@@ -1665,8 +1674,8 @@ export default {
         createAccount: 'Create A New Account',
         logIn: 'Log In',
     },
-    allStates: COMMON_CONST.STATES,
-    allCountries: CONST.ALL_COUNTRIES,
+    allStates: COMMON_CONST.STATES as States,
+    allCountries: CONST.ALL_COUNTRIES as AllCountries,
     accessibilityHints: {
         navigateToChatsList: 'Navigate back to chats list',
         chatWelcomeMessage: 'Chat welcome message',
@@ -1760,4 +1769,4 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-} satisfies Translation;
+} satisfies TranslationBase;
