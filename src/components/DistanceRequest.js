@@ -24,16 +24,12 @@ import usePrevious from '../hooks/usePrevious';
 import theme from '../styles/themes/default';
 import * as Transaction from '../libs/actions/Transaction';
 import * as TransactionUtils from '../libs/TransactionUtils';
-import * as IOUUtils from '../libs/IOUUtils';
 import Button from './Button';
 import MapView from './MapView';
 import * as Expensicons from './Icon/Expensicons';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import * as StyleUtils from '../styles/StyleUtils';
 import transactionPropTypes from './transactionPropTypes';
-import ScreenWrapper from './ScreenWrapper';
-import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from './HeaderWithBackButton';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -62,18 +58,6 @@ const propTypes = {
 
     /* Onyx Props */
     transaction: transactionPropTypes,
-
-    /** React Navigation route */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
 };
 
 const defaultProps = {
@@ -86,16 +70,13 @@ const defaultProps = {
     transaction: {},
 };
 
-function DistanceRequest({transactionID, iou, report, transaction, mapboxAccessToken, route, isEditingRequest, onSubmit}) {
+function DistanceRequest({transactionID, report, transaction, mapboxAccessToken, isEditingRequest, onSubmit}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
-    const isEditing = lodashGet(route, 'path', '').includes('address');
-    const reportID = lodashGet(report, 'reportID', '');
-    const iouType = lodashGet(route, 'params.iouType', '');
     const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
@@ -183,20 +164,7 @@ function DistanceRequest({transactionID, iou, report, transaction, mapboxAccessT
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
-    const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
-    };
-
-    const navigateToNextPage = () => {
-        if (isEditing) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
-            return;
-        }
-
-        IOU.navigateToNextPage(iou, iouType, reportID, report);
-    };
-
-    const content = (
+    return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
@@ -297,35 +265,10 @@ function DistanceRequest({transactionID, iou, report, transaction, mapboxAccessT
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => onSubmit(waypoints)}
-                // @TODO figure out how to resolve this
-                onPress={navigateToNextPage}
                 isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline}
                 text={translate(isEditingRequest ? 'common.save' : 'common.next')}
             />
         </ScrollView>
-    );
-
-    if (!isEditing) {
-        return content;
-    }
-
-    return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
-        >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={translate('common.distance')}
-                            onBackButonBackButtonPress={navigateBack}
-                        />
-                        {content}
-                    </View>
-                </FullPageNotFoundView>
-            )}
-        </ScreenWrapper>
     );
 }
 
