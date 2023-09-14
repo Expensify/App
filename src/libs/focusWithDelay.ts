@@ -1,11 +1,11 @@
 import {InteractionManager, TextInput} from 'react-native';
 import ComposerFocusManager from './ComposerFocusManager';
 
-type FocusWithDelayReturn = (shouldDelay?: boolean) => void;
+type FocusWithDelay = (shouldDelay?: boolean) => void;
 /**
  * Create a function that focuses a text input.
  */
-function focusWithDelay(textInput: TextInput | null): FocusWithDelayReturn {
+function focusWithDelay(textInput: TextInput | null): FocusWithDelay {
     /**
      * Focus the text input
      * Impose delay before focusing the text input
