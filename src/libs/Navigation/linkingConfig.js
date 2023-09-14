@@ -265,7 +265,7 @@ export default {
                     },
                     TeachersUnite: {
                         screens: {
-                            SaveTheWorld_Root: ROUTES.SAVE_THE_WORLD,
+                            SaveTheWorld_Root: ROUTES.TEACHERS_UNITE,
                             I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
                             Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
                             I_Am_A_Teacher: ROUTES.I_AM_A_TEACHER,
@@ -318,6 +318,7 @@ export default {
                             Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
                             Money_Request_Category: ROUTES.MONEY_REQUEST_CATEGORY,
+                            Money_Request_Tag: ROUTES.MONEY_REQUEST_TAG,
                             Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT,
                             Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
