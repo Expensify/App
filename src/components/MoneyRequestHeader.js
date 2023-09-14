@@ -38,7 +38,6 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     /* Onyx Props */
-
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
@@ -53,6 +52,8 @@ const propTypes = {
 
     /** All the data for the transaction */
     transaction: transactionPropTypes,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -72,6 +73,9 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     // Only the requestor can take delete the request, admins can only edit it.
     const isActionOwner = lodashGet(parentReportAction, 'actorAccountID') === lodashGet(session, 'accountID', null);
+    const report = props.report;
+    report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
+    report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
 
     const deleteTransaction = useCallback(() => {
         IOU.deleteMoneyRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), parentReportAction, true);
@@ -90,7 +94,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
-                            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                            text: translate('reportActionContextMenu.deleteAction', {action: props.parentReportAction}),
                             onSelected: () => setIsDeleteModalVisible(true),
                         },
                     ]}

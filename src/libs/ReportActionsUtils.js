@@ -405,7 +405,7 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     if (isReportMessageAttachment(message)) {
         return {
             lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
-            lastMessageText: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            lastMessageText: CONST.ATTACHMENT_MESSAGE_TEXT,
             lastMessageHtml: CONST.TRANSLATION_KEYS.ATTACHMENT,
         };
     }
