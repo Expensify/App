@@ -8,7 +8,7 @@ type Middleware = (response: unknown, request: Request, isFromSequentialQueue: b
 let middlewares: Middleware[] = [];
 
 function makeXHR(request: Request): Promise<unknown> {
-    const finalParameters = enhanceParameters(request.command, request.data);
+    const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return NetworkStore.hasReadRequiredDataFromStorage().then(() => {
         // If we're using the Supportal token and this is not a Supportal request
         // let's just return a promise that will resolve itself.
