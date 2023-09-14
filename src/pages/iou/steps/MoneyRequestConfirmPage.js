@@ -284,6 +284,7 @@ function MoneyRequestConfirmPage(props) {
                                 iouComment={props.iou.comment}
                                 iouCurrencyCode={props.iou.currency}
                                 iouCategory={props.iou.category}
+                                iouTag={props.iou.tag}
                                 onConfirm={createTransaction}
                                 onSendMoney={sendMoney}
                                 onSelectParticipant={(option) => {

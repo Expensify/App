@@ -47,6 +47,8 @@ import Transaction from './Transaction';
 import Form, {AddDebitCardForm} from './Form';
 import RecentWaypoints from './RecentWaypoints';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
+import RecentlyUsedTags from './RecentlyUsedTags';
+import PolicyTag from './PolicyTag';
 
 export type {
     Account,
@@ -99,4 +101,6 @@ export type {
     OnyxUpdatesFromServer,
     RecentWaypoints,
     RecentlyUsedCategories,
+    RecentlyUsedTags,
+    PolicyTag,
 };

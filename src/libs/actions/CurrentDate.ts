@@ -1,10 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-/**
- * @param {String} currentDate
- */
-function setCurrentDate(currentDate) {
+function setCurrentDate(currentDate: string) {
     Onyx.set(ONYXKEYS.CURRENT_DATE, currentDate);
 }
 

@@ -314,6 +314,7 @@ function ReportScreen({
                 <ScreenWrapper
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
+                    shouldDisableFocusTrap
                 >
                     <FullPageNotFoundView
                         shouldShow={(!report.reportID && !reportMetadata.isLoadingReportActions && !isLoading) || shouldHideReport}
