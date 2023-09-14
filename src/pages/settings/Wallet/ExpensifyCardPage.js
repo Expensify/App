@@ -33,7 +33,12 @@ const defaultProps = {
     cardList: {},
 };
 
-function ExpensifyCardPage({cardList, route: {params: {domain}}}) {
+function ExpensifyCardPage({
+    cardList,
+    route: {
+        params: {domain},
+    },
+}) {
     const {translate} = useLocalize();
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
     const virtualCard = _.find(domainCards, (card) => card.isVirtual);
@@ -62,16 +67,18 @@ function ExpensifyCardPage({cardList, route: {params: {domain}}}) {
                         />
                         <MenuItemWithTopDescription
                             description={translate('cardPage.virtualCardNumber')}
-                            title={virtualCard.cardID}
+                            title={virtualCard.maskedPan}
                             interactive={false}
                             titleStyle={styles.walletCardNumber}
                         />
-                        <MenuItemWithTopDescription
-                            description={translate('cardPage.physicalCardNumber')}
-                            title={physicalCard.cardID}
-                            interactive={false}
-                            titleStyle={styles.walletCardNumber}
-                        />
+                        {physicalCard && (
+                            <MenuItemWithTopDescription
+                                description={translate('cardPage.physicalCardNumber')}
+                                title={physicalCard.maskedPan}
+                                interactive={false}
+                                titleStyle={styles.walletCardNumber}
+                            />
+                        )}
                     </ScrollView>
                 </>
             )}
