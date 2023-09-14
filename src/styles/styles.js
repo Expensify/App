@@ -3987,7 +3987,6 @@ const styles = (theme) => ({
         width: '100%',
     },
 
-
     walletCard: {
         borderRadius: variables.componentBorderRadiusLarge,
         position: 'relative',
@@ -3996,7 +3995,7 @@ const styles = (theme) => ({
     },
 
     walletCardNumber: {
-        color: themeColors.text,
+        color: theme.text,
         fontSize: variables.fontSizeNormal,
     },
 
@@ -4005,7 +4004,7 @@ const styles = (theme) => ({
         left: 16,
         bottom: 16,
         width: 160,
-        color: themeColors.text,
+        color: theme.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightLarge,
     },
