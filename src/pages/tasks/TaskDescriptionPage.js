@@ -1,6 +1,7 @@
 import React, {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -57,6 +58,16 @@ function TaskDescriptionPage(props) {
         });
     }
     const inputRef = useRef(null);
+    const focusTimeoutRef = useRef(null);
+    useFocusEffect(useCallback(() => {
+        focusTimeoutRef.current = setTimeout(() => focusAndUpdateMultilineInputRange(inputRef.current, (props.report && props.report.description) || ''), CONST.ANIMATED_TRANSITION);
+        return () => {
+            if (!focusTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(focusTimeoutRef.current);
+        };
+    }, []));
 
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
@@ -65,7 +76,6 @@ function TaskDescriptionPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
             shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd}) => (
@@ -91,9 +101,6 @@ function TaskDescriptionPage(props) {
                                     // if we wrap the page with FullPageNotFoundView we need to explicitly handle focusing on text input
                                     if (!el) {
                                         return;
-                                    }
-                                    if (!inputRef.current && didScreenTransitionEnd) {
-                                        focusAndUpdateMultilineInputRange(el);
                                     }
                                     inputRef.current = el;
                                 }}

@@ -21,6 +21,10 @@ function TextInput(props) {
             textInputRef.current.setAttribute('name', props.name);
         }
 
+        if (props.multiline || props.autoGrowHeight) {
+            textInputRef.current.scrollTop = textInputRef.current.scrollHeight;
+        }
+
         removeVisibilityListenerRef.current = Visibility.onVisibilityChange(() => {
             if (!Browser.isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
                 return;
