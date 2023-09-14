@@ -89,54 +89,54 @@ platforms:
       - href: bank-accounts-and-credit-cards
         title: Bank Accounts & Credit Cards
         icon: /assets/images/bank-card.svg
-        description: Bank Accounts & Credit Cards.
+        description: description
       
       - href: billing-and-plan-types
-        title: Bank Accounts & Credit Cards
+        title: Billing & Plan Types
         icon: /assets/images/money-wings.svg
-        description: Bank Accounts & Credit Cards.
+        description: description
       
       - href: expense-and-report-features
-        title: Bank Accounts & Credit Cards
+        title: Expense & Report Features
         icon: /assets/images/money-receipt.svg
-        description: Bank Accounts & Credit Cards.
+        description: description
 
       - href: expensify-card
-        title: Bank Accounts & Credit Cards
+        title: Expensify Card
         icon: /assets/images/hand-card.svg
-        description: Bank Accounts & Credit Cards.
+        description: description
       
       - href: exports
-        title: Bank Accounts & Credit Cards
+        title: Exports
         icon: /assets/images/monitor.svg
-        description: Bank Accounts & Credit Cards.
+        description: description
 
       - href: get-paid-back
-        title: Bank Accounts & Credit Cards
+        title: Get Paid Back
         icon: /assets/images/money-into-wallet.svg
-        description: Bank Accounts & Credit Cards.
+        description: description
       
       - href: getting-started
-        title: Bank Accounts & Credit Cards
+        title: Getting Started
         icon: /assets/images/accounting.svg
-        description: Bank Accounts & Credit Cards.
+        description: description
       
       - href: integrations
-        title: Bank Accounts & Credit Cards
+        title: Integrations
         icon: /assets/images/workflow.svg
-        description: Bank Accounts & Credit Cards.
+        description: description
 
       - href: manage-employees-and-report-approvals
-        title: Bank Accounts & Credit Cards
+        title: Manage Employees & Report Approvals
         icon: /assets/images/envelope-receipt.svg
-        description: Bank Accounts & Credit Cards.
+        description: description
 
       - href: send-payments
-        title: Bank Accounts & Credit Cards
+        title: Send Payments
         icon: /assets/images/money-wings.svg
-        description: Bank Accounts & Credit Cards.
+        description: description.
 
       - href: workspace-and-domain-settings
-        title: Bank Accounts & Credit Cards
+        title: Workspace & Domain Settings
         icon: /assets/images/shield.svg
-        description: Bank Accounts & Credit Cards.
+        description: description.
