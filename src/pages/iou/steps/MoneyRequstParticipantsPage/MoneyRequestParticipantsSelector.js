@@ -97,7 +97,6 @@ function MoneyRequestParticipantsSelector({
     /**
      * Returns the sections needed for the OptionsSelector
      *
-     * @param {Boolean} maxParticipantsReached
      * @returns {Array}
      */
     const sections = useMemo(() => {
