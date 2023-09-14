@@ -2774,6 +2774,17 @@ function canAccessReport(report, policies, betas, allReportActions) {
 }
 
 /**
+ *
+ * @param {Object} report
+ * @param {String} currentReportId
+ * @returns {Boolean}
+ */
+function shouldHideReport(report, currentReportId) {
+    const parentReport = getParentReport(getReport(currentReportId));
+    return parentReport.reportID !== report.reportID && !ReportActionsUtils.isChildReportHasComment(report.reportID);
+}
+
+/**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
  *
@@ -2824,7 +2835,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     const isEmptyChat = !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
 
     // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (isChatThread(report) && isEmptyChat) {
+    if (isChatThread(report) && shouldHideReport(report, currentReportId) && isEmptyChat) {
         return false;
     }
 
@@ -2850,7 +2861,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
-    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report)) {
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && shouldHideReport(report, currentReportId)) {
         return false;
     }
 
@@ -3628,4 +3639,5 @@ export {
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
     hasMissingSmartscanFields,
+    shouldHideReport,
 };
