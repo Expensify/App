@@ -42,6 +42,7 @@ class ShareCodePage extends React.Component {
 
     render() {
         const isReport = this.props.report != null && this.props.report.reportID != null;
+        const title = isReport && this.props.report.reportName ? this.props.report.reportName : ReportUtils.getReportName(this.props.report);
         const subtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
 
         const urlWithTrailingSlash = Url.addTrailingForwardSlash(this.props.environmentURL);
@@ -65,7 +66,7 @@ class ShareCodePage extends React.Component {
                         <QRShareWithDownload
                             ref={this.qrCodeRef}
                             url={url}
-                            title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
+                            title={isReport ? title : this.props.currentUserPersonalDetails.displayName}
                             subtitle={isReport ? subtitle : formattedEmail}
                             logo={isReport ? expensifyLogo : UserUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
                             logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
