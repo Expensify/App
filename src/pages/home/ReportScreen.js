@@ -146,6 +146,7 @@ function ReportScreen({
     const flatListRef = useRef();
     const reactionListRef = useRef();
     const prevReport = usePrevious(report);
+    const prevUserLeavingStatus = usePrevious(userLeavingStatus);
 
     const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(0);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -293,7 +294,7 @@ function ReportScreen({
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room)
         if (
             // non-optimistic case
-            userLeavingStatus ||
+            (!prevUserLeavingStatus && userLeavingStatus) ||
             // optimistic case
             (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && prevReport.statusNum === CONST.REPORT.STATUS.OPEN && report.statusNum === CONST.REPORT.STATUS.CLOSED)
         ) {
@@ -312,7 +313,7 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, userLeavingStatus, prevReport.statusNum]);
+    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
