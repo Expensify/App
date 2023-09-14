@@ -4006,7 +4006,7 @@ const styles = (theme) => ({
         bottom: 16,
         width: 160,
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightLarge,
     },
 });

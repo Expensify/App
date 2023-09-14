@@ -43,7 +43,7 @@ function CardPreview({privatePersonalDetails: {legalFirstName, legalLastName}, s
             />
             <Text
                 style={styles.walletCardHolder}
-                numberOfLines={2}
+                numberOfLines={1}
                 ellipsizeMode="tail"
             >
                 {cardHolder}
