@@ -59,23 +59,24 @@ export default function (isRequireReportId = true) {
 
             const isReportIdInParam = !_.isUndefined(props.route.params.reportID);
 
-            const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID) && (isRequireReportId || isReportIdInParam);
-            // eslint-disable-next-line rulesdir/no-negated-variables
-            const shouldShowNotFoundPage =
-                (_.isEmpty(props.report) || !props.report.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas)) && (isRequireReportId || isReportIdInParam);
+            if (isRequireReportId || isReportIdInParam) {
+                const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
+                // eslint-disable-next-line rulesdir/no-negated-variables
+                const shouldShowNotFoundPage = _.isEmpty(props.report) || !props.report.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas);
 
-            // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
-            // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-            if (shouldShowNotFoundPage && contentShown.current) {
-                return null;
-            }
+                // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
+                // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
+                if (shouldShowNotFoundPage && contentShown.current) {
+                    return null;
+                }
 
-            if (shouldShowFullScreenLoadingIndicator) {
-                return <FullscreenLoadingIndicator />;
-            }
+                if (shouldShowFullScreenLoadingIndicator) {
+                    return <FullscreenLoadingIndicator />;
+                }
 
-            if (shouldShowNotFoundPage) {
-                return <NotFoundPage />;
+                if (shouldShowNotFoundPage) {
+                    return <NotFoundPage />;
+                }
             }
 
             if (!contentShown.current) {

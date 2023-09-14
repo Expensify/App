@@ -47,14 +47,12 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** The report currently being looked at */
-    report: reportPropTypes,
 };
 
 const defaultProps = {
     selectedTab: CONST.TAB.SCAN,
     report: {},
+    betas: [],
 };
 
 function MoneyRequestSelectorPage(props) {
