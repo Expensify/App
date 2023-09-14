@@ -260,8 +260,7 @@ class PopoverReportActionContextMenu extends React.Component {
         } else {
             // For Money Request Reports, if this is the last comment being deleted, let us call deleteMoneyRequest
             const report = ReportUtils.getReport(this.state.reportID);
-            if(ReportUtils.isMoneyRequestReport(report))
-            {
+            if (ReportUtils.isMoneyRequestReport(report)) {
                 const updatedReportAction = {
                     [this.state.reportAction.reportActionID]: {
                         message: [
@@ -276,9 +275,8 @@ class PopoverReportActionContextMenu extends React.Component {
                 };
                 const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(this.state.reportID, updatedReportAction);
                 const ioulastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(this.state.reportID, updatedReportAction);
-                const isEmptyChat = !ioulastVisibleMessage.lastMessageText && !ioulastVisibleMessage.lastMessageTranslationKey;                
-                if(isEmptyChat && !ReportActionsUtils.isDeletedParentAction(lastVisibleAction))
-                {
+                const isEmptyChat = !ioulastVisibleMessage.lastMessageText && !ioulastVisibleMessage.lastMessageTranslationKey;
+                if (isEmptyChat && !ReportActionsUtils.isDeletedParentAction(lastVisibleAction)) {
                     this.state.reportAction.originalMessage.IOUReportID = this.state.reportID;
                     IOU.deleteMoneyRequest(null, this.state.reportAction);
                     this.setState({isDeleteCommentConfirmModalVisible: false});
