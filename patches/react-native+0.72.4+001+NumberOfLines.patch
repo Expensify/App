@@ -30,7 +30,7 @@ index 6f69329..d531bee 100644
      maxLength: true,
      autoCapitalize: true,
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-index 8badb2a..6c3d601 100644
+index 8badb2a..b19f197 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
 @@ -347,12 +347,6 @@ export interface TextInputAndroidProps {
@@ -49,7 +49,7 @@ index 8badb2a..6c3d601 100644
 @@ -663,11 +657,30 @@ export interface TextInputProps
     */
    maxLength?: number | undefined;
-       
+ 
 +  /**
 +   * Sets the maximum number of lines for a TextInput.
 +   * Use it with multiline set to true to be able to fill the lines.
@@ -913,10 +913,10 @@ index ba39ebb..ead28e3 100644
    std::string textBreakStrategy{};
    SharedColor underlineColorAndroid{};
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-index 368c334..0ed9c3b 100644
+index 368c334..a1bb33e 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-@@ -244,26 +244,57 @@ - (void)getRectWithAttributedString:(AttributedString)attributedString
+@@ -244,26 +244,51 @@ - (void)getRectWithAttributedString:(AttributedString)attributedString
  
  #pragma mark - Private
  
@@ -949,12 +949,6 @@ index 368c334..0ed9c3b 100644
 -      ? RCTNSLineBreakModeFromEllipsizeMode(paragraphAttributes.ellipsizeMode)
 -      : NSLineBreakByClipping;
 -  textContainer.maximumNumberOfLines = paragraphAttributes.maximumNumberOfLines;
-+    [attributedString insertAttributedString:[[NSAttributedString alloc] initWithString:newLines attributes:attributesOfFirstCharacter] atIndex:0];
-+  }
-+
-+  NSTextContainer *textContainer = [NSTextContainer new];
-+
-+
 +    [attributedString insertAttributedString:[[NSAttributedString alloc] initWithString:newLines attributes:attributesOfFirstCharacter] atIndex:0];
 +  }
 +
