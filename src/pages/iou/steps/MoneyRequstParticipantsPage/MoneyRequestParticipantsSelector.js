@@ -29,9 +29,6 @@ const propTypes = {
     /** A ref to forward to options selector's text input */
     forwardedRef: refPropTypes,
 
-    /** Callback to inform parent modal of success */
-    onStepComplete: PropTypes.func.isRequired,
-
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
 
@@ -74,7 +71,8 @@ const defaultProps = {
     isDistanceRequest: false,
 };
 
-function MoneyRequestParticipantsSplitSelector({
+function MoneyRequestParticipantsSelector({
+    forwardedRef,
     betas,
     participants,
     personalDetails,
@@ -242,12 +240,7 @@ function MoneyRequestParticipantsSplitSelector({
                 value={searchTerm}
                 onSelectRow={addSingleParticipant}
                 onChangeText={setSearchTerm}
-                ref={this.props.forwardedRef}
-                autoFocus={false}
-                sections={this.getSections()}
-                value={this.state.searchTerm}
-                onSelectRow={this.addSingleParticipant}
-                onChangeText={this.updateOptionsWithSearchTerm}
+                ref={forwardedRef}
                 headerMessage={headerMessage}
                 boldStyle
                 shouldShowConfirmButton
@@ -262,9 +255,9 @@ function MoneyRequestParticipantsSplitSelector({
     );
 }
 
-MoneyRequestParticipantsSplitSelector.propTypes = propTypes;
-MoneyRequestParticipantsSplitSelector.defaultProps = defaultProps;
-MoneyRequestParticipantsSplitSelector.displayName = 'MoneyRequestParticipantsSplitSelector';
+MoneyRequestParticipantsSelector.propTypes = propTypes;
+MoneyRequestParticipantsSelector.defaultProps = defaultProps;
+MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
 export default compose(
     withLocalize,
