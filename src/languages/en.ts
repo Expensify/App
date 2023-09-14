@@ -1795,6 +1795,7 @@ export default {
         },
     },
     reportCardLostOrDamaged: {
+        report: 'Report physical card loss / damage',
         screenTitle: 'Report card lost or damaged',
         nextButtonLabel: 'Next',
         reasonTitle: 'Why do you need a new card?',
