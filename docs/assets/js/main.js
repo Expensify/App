@@ -55,7 +55,6 @@ function navigateBack() {
 
     if (referrer.includes(currentHost) && window.history.length > 1) {
         window.history.back();
-        toggleHeaderMenu();
         return;
     }
 
