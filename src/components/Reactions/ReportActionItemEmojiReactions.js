@@ -41,7 +41,6 @@ const defaultProps = {
 };
 
 function ReportActionItemEmojiReactions(props) {
-
     const reactionListRef = useContext(ReactionListContext);
     const popoverReactionListAnchors = useRef({});
 

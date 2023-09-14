@@ -5,7 +5,6 @@ import SkeletonViewLines from './SkeletonViewLines';
 import CONST from '../../CONST';
 
 const propTypes = {
-
     /** Whether to animate the skeleton view */
     shouldAnimate: PropTypes.bool,
 };
