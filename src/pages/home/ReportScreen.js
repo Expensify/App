@@ -462,8 +462,6 @@ export default compose(
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             },
         },
-        {
-            shouldDelayUpdates: true,
-        },
+        true
     ),
 )(ReportScreen);
