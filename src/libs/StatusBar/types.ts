@@ -3,7 +3,7 @@ import {StatusBar as StatusBarRN} from 'react-native';
 
 class StatusBar extends StatusBarRN {
     // Only has custom web implementation
-    static getBackgroundColor(): string | null {
+    static getBackgroundColor(): string | symbol | null {
         return null;
     }
 }

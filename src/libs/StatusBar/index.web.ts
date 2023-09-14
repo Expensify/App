@@ -3,7 +3,7 @@ import StatusBar from './types';
 StatusBar.getBackgroundColor = () => {
     const element = document.querySelector('meta[name=theme-color]');
 
-    if (element && 'content' in element && typeof element.content === 'string') {
+    if (element && 'content' in element && (typeof element.content === 'string' || typeof element.content === 'symbol')) {
         return element.content;
     }
 
