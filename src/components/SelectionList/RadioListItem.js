@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import CONST from '../../CONST';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import styles from '../../styles/styles';
 import Text from '../Text';
@@ -18,6 +19,7 @@ function RadioListItem({item, isFocused = false, isDisabled = false, onSelectRow
             hoverDimmingValue={1}
             hoverStyle={styles.hoveredComponentBG}
             focusStyle={styles.hoveredComponentBG}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
             <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, styles.userSelectNone, isFocused && styles.sidebarLinkActive]}>
                 <View style={[styles.flex1, styles.alignItemsStart]}>
