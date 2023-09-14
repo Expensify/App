@@ -71,8 +71,19 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    TagSelectionParams,
+    TranslationBase,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+
+type StateValue = {
+    stateISO: string;
+    stateName: string;
+};
+
+type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
+
+type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
 
 /* eslint-disable max-len */
 export default {
@@ -233,6 +244,7 @@ export default {
         showMore: 'Show more',
         merchant: 'Merchant',
         category: 'Category',
+        tag: 'Tag',
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
@@ -534,6 +546,7 @@ export default {
             `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -1661,8 +1674,8 @@ export default {
         createAccount: 'Create A New Account',
         logIn: 'Log In',
     },
-    allStates: COMMON_CONST.STATES,
-    allCountries: CONST.ALL_COUNTRIES,
+    allStates: COMMON_CONST.STATES as States,
+    allCountries: CONST.ALL_COUNTRIES as AllCountries,
     accessibilityHints: {
         navigateToChatsList: 'Navigate back to chats list',
         chatWelcomeMessage: 'Chat welcome message',
@@ -1756,4 +1769,4 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-} as const;
+} satisfies TranslationBase;
