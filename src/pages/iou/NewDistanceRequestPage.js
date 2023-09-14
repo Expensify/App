@@ -57,9 +57,7 @@ function NewDistanceRequestPage({iou, report, route}) {
             report={report}
             route={route}
             transactionID={iou.transactionID}
-            onSubmit={() => {
-                IOU.navigateToNextPage(iou, iouType, report.reportID, report);
-            }}
+            onSubmit={() => IOU.navigateToNextPage(iou, iouType, report.reportID, report)}
         />
     );
 }

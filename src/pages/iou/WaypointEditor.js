@@ -66,12 +66,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            threadReportID: 0,
-            waypointIndex: '',
-        },
-    },
+    route: {},
     recentWaypoints: [],
     transaction: {},
 };
