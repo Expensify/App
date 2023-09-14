@@ -1,4 +1,4 @@
-const usingFakeTimers = () => !!(global.setTimeout.mock || global.setTimeout.clock);
+const getIsUsingFakeTimers = () => Boolean(global.setTimeout.mock || global.setTimeout.clock);
 
 /**
  * Method which waits for all asynchronous JS to stop executing before proceeding. This helps test things like actions
