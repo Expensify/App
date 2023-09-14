@@ -2,6 +2,7 @@ import {View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import Mapbox, {MapState, MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import styles from '../../styles/styles';
 
 import responder from './responder';
 import utils from './utils';
@@ -64,6 +65,8 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                 styleURL={styleURL}
                 onMapIdle={setMapIdle}
                 pitchEnabled={pitchEnabled}
+                attributionPosition={{...styles.r2, ...styles.b2}}
+                logoPosition={{...styles.l2, ...styles.b2}}
                 // eslint-disable-next-line
                 {...responder.panHandlers}
             >
