@@ -258,9 +258,12 @@ function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
 
 function getZoomCursorStyle(isZoomed: boolean, isDragging: boolean): ViewStyle {
     if (!isZoomed) {
+        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return styles.cursorZoomIn;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
 }
 
@@ -336,12 +339,16 @@ function getWidthStyle(width: number): ViewStyle {
  */
 function getAutoGrowHeightInputStyle(textInputHeight: number, maxHeight: number): ViewStyle {
     if (textInputHeight > maxHeight) {
+        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return {
             ...styles.pr0,
             ...styles.overflowAuto,
         };
     }
 
+    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...styles.pr0,
         ...styles.overflowHidden,
@@ -439,11 +446,17 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
 function getBadgeColorStyle(success: boolean, error: boolean, isPressed = false, isAdHoc = false): ViewStyle {
     if (success) {
         if (isAdHoc) {
+            // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return isPressed ? styles.badgeAdHocSuccessPressed : styles.badgeAdHocSuccess;
         }
+        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
     if (error) {
+        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
     }
     return {};
@@ -593,6 +606,8 @@ function getLoginPagePromoStyle(): ViewStyle {
  * Generate the styles for the ReportActionItem wrapper view.
  */
 function getReportActionItemStyle(isHovered = false, isLoading = false): ViewStyle {
+    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         display: 'flex',
         justifyContent: 'space-between',
@@ -609,6 +624,8 @@ function getReportActionItemStyle(isHovered = false, isLoading = false): ViewSty
  * Generate the wrapper styles for the mini ReportActionContextMenu.
  */
 function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: boolean): ViewStyle {
+    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
         ...positioning.r4,
@@ -1049,6 +1066,8 @@ function displayIfTrue(condition: boolean): ViewStyle {
 
 function getGoogleListViewStyle(shouldDisplayBorder: boolean): ViewStyle {
     if (shouldDisplayBorder) {
+        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return {
             ...styles.borderTopRounded,
             ...styles.borderBottomRounded,
@@ -1156,6 +1175,8 @@ function getDisabledLinkStyles(isDisabled = false): ViewStyle {
         ...cursor.cursorDisabled,
     };
 
+    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...styles.link,
         ...(isDisabled ? disabledLinkStyles : {}),

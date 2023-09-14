@@ -35,6 +35,8 @@ function getReportActionContextMenuStyles(isMini: boolean, isSmallScreenWidth: b
         return miniWrapperStyle;
     }
 
+    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return [
         ...bigWrapperStyle,
 
