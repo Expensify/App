@@ -1,43 +1,29 @@
-import _ from 'underscore';
 import HttpUtils from './HttpUtils';
 import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkStore from './Network/NetworkStore';
+import Request from '../types/onyx/Request';
 
-let middlewares = [];
+type Middleware = (response: unknown, request: Request, isFromSequentialQueue: boolean) => Promise<unknown>;
 
-/**
- * @param {Object} request
- * @param {String} request.command
- * @param {Object} request.data
- * @param {String} request.type
- * @param {Boolean} request.shouldUseSecure
- * @returns {Promise}
- */
-function makeXHR(request) {
+let middlewares: Middleware[] = [];
+
+function makeXHR(request: Request): Promise<unknown> {
     const finalParameters = enhanceParameters(request.command, request.data);
     return NetworkStore.hasReadRequiredDataFromStorage().then(() => {
         // If we're using the Supportal token and this is not a Supportal request
         // let's just return a promise that will resolve itself.
         if (NetworkStore.getSupportAuthToken() && !NetworkStore.isSupportRequest(request.command)) {
-            return new Promise((resolve) => resolve());
+            return new Promise((resolve) => resolve(undefined));
         }
         return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
     });
 }
 
-/**
- * @param {Object} request
- * @param {Boolean} [isFromSequentialQueue]
- * @returns {Promise}
- */
-function processWithMiddleware(request, isFromSequentialQueue = false) {
-    return _.reduce(middlewares, (last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
+function processWithMiddleware(request: Request, isFromSequentialQueue = false): Promise<unknown> {
+    return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
 }
 
-/**
- * @param {Function} middleware
- */
-function use(middleware) {
+function use(middleware: Middleware) {
     middlewares.push(middleware);
 }
 
