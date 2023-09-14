@@ -196,7 +196,7 @@ function ReceiptSelector(props) {
             })
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+                IOU.navigateToNextPage(props.iou, iouType, props.report);
             })
             .catch((error) => {
                 showCameraAlert();
@@ -261,7 +261,7 @@ function ReceiptSelector(props) {
                         showImagePicker(launchImageLibrary)
                             .then((receiptImage) => {
                                 IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+                                IOU.navigateToNextPage(props.iou, iouType, props.report);
                             })
                             .catch(() => {
                                 Log.info('User did not select an image from gallery');

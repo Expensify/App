@@ -2090,11 +2090,11 @@ function setDistanceRequestTransactionID(transactionID) {
  *
  * @param {Object} iou
  * @param {String} iouType
- * @param {String} reportID
  * @param {Object} report
+ * @param {String} report.reportID
  */
-function navigateToNextPage(iou, iouType, reportID, report) {
-    const moneyRequestID = `${iouType}${reportID || ''}`;
+function navigateToNextPage(iou, iouType, report) {
+    const moneyRequestID = `${iouType}${report.reportID || ''}`;
     const shouldReset = iou.id !== moneyRequestID;
 
     // If the money request ID in Onyx does not match the ID from params, we want to start a new request
@@ -2118,7 +2118,7 @@ function navigateToNextPage(iou, iouType, reportID, report) {
                       .value();
             setMoneyRequestParticipants(participants);
         }
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, report.reportID));
         return;
     }
     Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));

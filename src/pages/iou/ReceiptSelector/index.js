@@ -60,7 +60,6 @@ const defaultProps = {
 };
 
 function ReceiptSelector(props) {
-    const reportID = lodashGet(props.route, 'params.reportID', '');
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
     const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
@@ -83,7 +82,7 @@ function ReceiptSelector(props) {
 
         const filePath = URL.createObjectURL(file);
         IOU.setMoneyRequestReceipt(filePath, file.name);
-        IOU.navigateToNextPage(iou, iouType, reportID, report);
+        IOU.navigateToNextPage(iou, iouType, report);
     };
 
     return (
