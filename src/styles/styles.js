@@ -34,7 +34,7 @@ const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'}
 
 const lineHeightBadge = getPlatform() === CONST.PLATFORM.WEB ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
-const picker = {
+const picker = (theme) => ({
     backgroundColor: theme.transparent,
     color: theme.text,
     fontFamily: fontFamily.EXP_NEUE,
