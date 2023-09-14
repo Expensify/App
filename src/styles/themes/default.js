@@ -86,9 +86,9 @@ darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: darkTheme.sidebar,
     [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
     [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
-    [ROUTES.I_KNOW_A_TEACHER]: colors.orange800,
-    [ROUTES.SETTINGS_SECURITY]: colors.ice500,
-    [SCREENS.SETTINGS.ROOT]: colors.green700,
+    [SCREENS.SAVE_THE_WORLD]: colors.orange800,
+    [SCREENS.SETTINGS.SECURITY]: colors.ice500,
+    [SCREENS.SETTINGS.ROOT]: darkTheme.sidebar,
 };
 
 const oldTheme = {

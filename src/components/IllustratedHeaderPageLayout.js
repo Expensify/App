@@ -36,20 +36,23 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
         <HeaderPageLayout
             backgroundColor={backgroundColor}
             title={propsToPassToHeader.title}
-            headerContent={
-                <Lottie
-                    source={illustration}
-                    style={styles.w100}
-                    autoPlay
-                    loop
-                />
-            }
+            headerContent={(
+                <>
+                    <Lottie
+                        source={illustration}
+                        style={styles.w100}
+                        autoPlay
+                        loop
+                    />
+                    {overlayContent && overlayContent()}
+                </>
+            )}
+            headerContainerStyles={[styles.justifyContentCenter]}
             footer={footer}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToPassToHeader}
         >
             {children}
-            {overlayContent && overlayContent()}
         </HeaderPageLayout>
     );
 }

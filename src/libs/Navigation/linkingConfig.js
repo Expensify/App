@@ -65,7 +65,7 @@ export default {
                                 path: ROUTES.SETTINGS_CLOSE,
                                 exact: true,
                             },
-                            Settings_Security: {
+                            [SCREENS.SETTINGS.SECURITY]: {
                                 path: ROUTES.SETTINGS_SECURITY,
                                 exact: true,
                             },
@@ -265,7 +265,7 @@ export default {
                     },
                     TeachersUnite: {
                         screens: {
-                            SaveTheWorld_Root: ROUTES.SAVE_THE_WORLD,
+                            [SCREENS.SAVE_THE_WORLD]: ROUTES.SAVE_THE_WORLD,
                             I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
                             Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
                             I_Am_A_Teacher: ROUTES.I_AM_A_TEACHER,

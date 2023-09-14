@@ -12,12 +12,11 @@ import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import Tooltip from '../../components/Tooltip';
 import Avatar from '../../components/Avatar';
-// import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import * as Expensicons from '../../components/Icon/Expensicons';
-// import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import themeColors from '../../styles/themes/default';
+import SCREENS from '../../SCREENS';
 import ROUTES from '../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -329,7 +328,7 @@ function InitialSettingsPage(props) {
         return null;
     }
     const headerContent = (
-        <View style={[styles.avatarSectionWrapper, styles.justifyContentCenter, styles.h100]}>
+        <View style={[styles.avatarSectionWrapper, styles.justifyContentCenter]}>
             {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
                 <CurrentUserPersonalDetailsSkeletonView />
             ) : (
@@ -382,8 +381,10 @@ function InitialSettingsPage(props) {
         <HeaderPageLayout
             title={translate('common.settings')}
             shouldShowCloseButton
+            shouldShowBackButton={false}
             headerContent={headerContent}
-            backgroundColor={themeColors.midtone}
+            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}
         >
             <View style={styles.w100}>
                 {getMenuItems}

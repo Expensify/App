@@ -69,9 +69,13 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             title={localize.translate('statusPage.status')}
             onBackButtonPress={navigateBackToSettingsPage}
             backgroundColor={themeColors.midtone}
-            headerContent={<MobileBackgroundImage
-                pointerEvents="none"
-                style={styles.staticHeaderImage}/>}
+            headerContent={
+                <MobileBackgroundImage
+                    pointerEvents="none"
+                    style={styles.staticHeaderImage}
+                />
+            }
+            headerContainerStyles={[styles.staticHeaderImage]}
             footer={footerComponent}
         >
             <View style={styles.m5}>

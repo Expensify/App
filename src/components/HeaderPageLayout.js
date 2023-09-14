@@ -1,7 +1,7 @@
 import _ from 'underscore';
-import React, { useMemo } from 'react';
+import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, View } from 'react-native';
+import {ScrollView, View} from 'react-native';
 import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
@@ -27,19 +27,24 @@ const propTypes = {
 
     /** The image to display in the upper half of the screen. */
     header: PropTypes.node,
+
+    /** Style to apply to the header image container */
+    // eslint-disable-next-line react/forbid-prop-types
+    headerContainerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     backgroundColor: themeColors.appBG,
     header: null,
+    headerContainerStyles: [],
     footer: null,
 };
 
-function HeaderPageLayout({ backgroundColor, children, footer, imageContainerStyle, style, headerContent, ...propsToPassToHeader }) {
-    const { windowHeight, isSmallScreenWidth } = useWindowDimensions();
+function HeaderPageLayout({backgroundColor, children, footer, headerContainerStyles, style, headerContent, ...propsToPassToHeader}) {
+    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const appBGColor = StyleUtils.getBackgroundColorStyle(themeColors.appBG);
-    const { titleColor, iconFill } = useMemo(() => {
+    const {titleColor, iconFill} = useMemo(() => {
         const isColorfulBackground = backgroundColor !== themeColors.appBG;
         return {
             titleColor: isColorfulBackground ? themeColors.textColorfulBackground : undefined,
@@ -54,7 +59,7 @@ function HeaderPageLayout({ backgroundColor, children, footer, imageContainerSty
             includeSafeAreaPaddingBottom={false}
             offlineIndicatorStyle={[appBGColor]}
         >
-            {({ safeAreaPaddingBottomStyle }) => (
+            {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
                         // eslint-disable-next-line react/jsx-props-no-spreading
@@ -75,15 +80,7 @@ function HeaderPageLayout({ backgroundColor, children, footer, imageContainerSty
                             offlineIndicatorStyle={[appBGColor]}
                         >
                             {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />}
-                            <View
-                                style={[
-                                    styles.alignItemsCenter,
-                                    styles.justifyContentEnd,
-                                    StyleUtils.getBackgroundColorStyle(backgroundColor),
-                                    imageContainerStyle,
-                                    styles.staticHeaderImage,
-                                ]}
-                            >
+                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor), ...headerContainerStyles]}>
                                 {headerContent}
                             </View>
                             <View style={[styles.pt5, appBGColor]}>{children}</View>
