@@ -26,7 +26,7 @@ import * as Transaction from '../libs/actions/Transaction';
 import * as TransactionUtils from '../libs/TransactionUtils';
 import * as IOUUtils from '../libs/IOUUtils';
 import Button from './Button';
-import MapView from './MapView';
+import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import * as StyleUtils from '../styles/StyleUtils';
@@ -259,7 +259,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
             </View>
             <View style={styles.mapViewContainer}>
                 {!isOffline && Boolean(mapboxAccessToken.token) ? (
-                    <MapView
+                    <DistanceMapView
                         accessToken={mapboxAccessToken.token}
                         mapPadding={CONST.MAPBOX.PADDING}
                         pitchEnabled={false}
@@ -271,6 +271,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
                         style={styles.mapView}
                         waypoints={waypointMarkers}
                         styleURL={CONST.MAPBOX.STYLE_URL}
+                        overlayStyle={styles.m4}
                     />
                 ) : (
                     <View style={[styles.mapPendingView]}>

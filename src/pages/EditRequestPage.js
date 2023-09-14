@@ -90,7 +90,9 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
         if (canEdit) {
             return;
         }
-        Navigation.dismissModal();
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal();
+        });
     }, [canEdit]);
 
     // Update the transaction object and close the modal
