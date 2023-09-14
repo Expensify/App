@@ -48,6 +48,7 @@ function MoneyRequestParticipantsPage(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const isNewReportIDSelectedLocally = useRef(false);
+    const optionsSelectorRef = useRef();
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
 
     const splitNavigateToNextStep = () => {
@@ -101,6 +102,7 @@ function MoneyRequestParticipantsPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
@@ -117,6 +119,7 @@ function MoneyRequestParticipantsPage(props) {
                         />
                     ) : (
                         <MoneyRequestParticipantsSelector
+                            ref={(el) => (optionsSelectorRef.current = el)}
                             onStepComplete={moneyRequestNavigateToNextStep}
                             onAddParticipants={IOU.setMoneyRequestParticipants}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
