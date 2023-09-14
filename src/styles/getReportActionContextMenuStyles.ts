@@ -3,13 +3,11 @@ import styles from './styles';
 import themeColors from './themes/default';
 import variables from './variables';
 
-type StylesArray = ViewStyle[];
-
 const defaultWrapperStyle: ViewStyle = {
     backgroundColor: themeColors.componentBG,
 };
 
-const miniWrapperStyle: StylesArray = [
+const miniWrapperStyle: ViewStyle[] = [
     styles.flexRow,
     defaultWrapperStyle,
     {
@@ -22,7 +20,7 @@ const miniWrapperStyle: StylesArray = [
     },
 ];
 
-const bigWrapperStyle: StylesArray = [styles.flexColumn, defaultWrapperStyle];
+const bigWrapperStyle: ViewStyle[] = [styles.flexColumn, defaultWrapperStyle];
 
 /**
  * Generate the wrapper styles for the ReportActionContextMenu.
@@ -30,7 +28,7 @@ const bigWrapperStyle: StylesArray = [styles.flexColumn, defaultWrapperStyle];
  * @param isMini
  * @param isSmallScreenWidth
  */
-function getReportActionContextMenuStyles(isMini: boolean, isSmallScreenWidth: boolean): StylesArray {
+function getReportActionContextMenuStyles(isMini: boolean, isSmallScreenWidth: boolean): ViewStyle[] {
     if (isMini) {
         return miniWrapperStyle;
     }

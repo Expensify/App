@@ -1,5 +1,5 @@
 import {TextStyle} from 'react-native';
 
-type ItalicStyles = TextStyle['fontStyle'];
+type ItalicStyles = NonNullable<TextStyle['fontStyle']>;
 
 export default ItalicStyles;

@@ -1,5 +1,5 @@
-import OptionRowStyles from './types';
 import styles from '../styles';
+import CompactContentContainerStyles from './types';
 
 /**
  *  On native platforms, alignItemsBaseline does not work correctly
@@ -7,8 +7,7 @@ import styles from '../styles';
  *  keeping compactContentContainerStyles as it is.
  *  https://github.com/Expensify/App/issues/14148
  */
-
-const compactContentContainerStyles: OptionRowStyles = styles.alignItemsCenter;
+const compactContentContainerStyles: CompactContentContainerStyles = styles.alignItemsCenter;
 
 export {
     // eslint-disable-next-line import/prefer-default-export

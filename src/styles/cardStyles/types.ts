@@ -1,5 +1,5 @@
 import {ViewStyle} from 'react-native';
 
-type GetCardStyles = (screenWidth: number) => Pick<ViewStyle, 'position' | 'width' | 'height'>;
+type GetCardStyles = (screenWidth: number) => ViewStyle;
 
 export default GetCardStyles;

@@ -1,5 +1,5 @@
 import {ViewStyle} from 'react-native';
 
-type OptionRowStyles = ViewStyle;
+type CompactContentContainerStyles = ViewStyle;
 
-export default OptionRowStyles;
+export default CompactContentContainerStyles;
