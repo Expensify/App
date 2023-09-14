@@ -86,7 +86,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function DistanceRequest({transactionID, iou, iouType, report, transaction, mapboxAccessToken, route, isEditingRequest, onSubmit, transaction}) {
+function DistanceRequest({transactionID, iou, report, transaction, mapboxAccessToken, route, isEditingRequest, onSubmit}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -95,6 +95,7 @@ function DistanceRequest({transactionID, iou, iouType, report, transaction, mapb
 
     const isEditing = lodashGet(route, 'path', '').includes('address');
     const reportID = lodashGet(report, 'reportID', '');
+    const iouType = lodashGet(route, 'params.iouType', '');
     const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
@@ -332,6 +333,7 @@ DistanceRequest.displayName = 'DistanceRequest';
 DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
+    iou: {key: ONYXKEYS.IOU},
     transaction: {
         key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
     },
