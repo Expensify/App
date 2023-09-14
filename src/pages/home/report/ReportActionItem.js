@@ -557,7 +557,7 @@ function ReportActionItem(props) {
             accessibilityLabel={props.translate('accessibilityHints.chatMessage')}
         >
             <Hoverable
-                shouldHandleScroll={CONST.IS_DESKTOP_AND_WEB}
+                shouldHandleScroll
                 disabled={Boolean(props.draftMessage)}
             >
                 {(hovered) => (

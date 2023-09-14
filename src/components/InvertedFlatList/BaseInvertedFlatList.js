@@ -2,10 +2,9 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, FlatList as NativeFlatlist, DeviceEventEmitter} from 'react-native';
+import {View, FlatList as NativeFlatlist} from 'react-native';
 import * as CollectionUtils from '../../libs/CollectionUtils';
 import FlatList from '../FlatList';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Same as FlatList can be any array of anything */
@@ -23,15 +22,11 @@ const propTypes = {
 
     /** Should we measure these items and call getItemLayout? */
     shouldMeasureItems: PropTypes.bool,
-
-    /** Same as for FlatList */
-    onScroll: PropTypes.func,
 };
 
 const defaultProps = {
     data: [],
     shouldMeasureItems: false,
-    onScroll: () => {},
 };
 
 class BaseInvertedFlatList extends Component {
@@ -40,53 +35,12 @@ class BaseInvertedFlatList extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
-        this.handleScroll = this.handleScroll.bind(this);
-        this.onScroll = this.onScroll.bind(this);
-        this.onScrollEnd = this.onScrollEnd.bind(this);
 
         // Stores each item's computed height after it renders
         // once and is then referenced for the life of this component.
         // This is essential to getting FlatList inverted to work on web
         // and also enables more predictable scrolling on native platforms.
         this.sizeMap = {};
-
-        this.lastScrollEvent = null;
-        this.scrollEndTimeout = null;
-        this.updateInProgress = false;
-        this.eventHandler = null;
-    }
-
-    componentWillUnmount() {
-        if (this.scrollEndTimeout) {
-            clearTimeout(this.scrollEndTimeout);
-        }
-
-        if (this.eventHandler) {
-            this.eventHandler.remove();
-        }
-    }
-
-    /**
-     * Emits when the scrolling is in progress. Also,
-     * invokes the onScroll callback function from props.
-     *
-     * @param {Event} event - The onScroll event from the FlatList
-     */
-    onScroll(event) {
-        this.props.onScroll(event);
-
-        if (!this.updateInProgress) {
-            this.updateInProgress = true;
-            this.eventHandler = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, true);
-        }
-    }
-
-    /**
-     * Emits when the scrolling has ended.
-     */
-    onScrollEnd() {
-        this.eventHandler = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
-        this.updateInProgress = false;
     }
 
     /**
@@ -124,43 +78,6 @@ class BaseInvertedFlatList extends Component {
             offset: _.isUndefined(lastMeasuredItem) ? this.props.initialRowHeight * index : lastMeasuredItem.offset + this.props.initialRowHeight,
             index,
         };
-    }
-
-    /**
-     * Decides whether the scrolling has ended or not. If it has ended,
-     * then it calls the onScrollEnd function. Otherwise, it calls the
-     * onScroll function and pass the event to it.
-     *
-     * This is a temporary work around, since react-native-web doesn't
-     * support onScrollBeginDrag and onScrollEndDrag props for FlatList.
-     * More info:
-     * https://github.com/necolas/react-native-web/pull/1305
-     *
-     * This workaround is taken from below and refactored to fit our needs:
-     * https://github.com/necolas/react-native-web/issues/1021#issuecomment-984151185
-     *
-     * @param {Event} event - The onScroll event from the FlatList
-     */
-    handleScroll(event) {
-        this.onScroll(event);
-        const timestamp = Date.now();
-
-        if (this.scrollEndTimeout) {
-            clearTimeout(this.scrollEndTimeout);
-        }
-
-        if (this.lastScrollEvent) {
-            this.scrollEndTimeout = setTimeout(() => {
-                if (this.lastScrollEvent !== timestamp) {
-                    return;
-                }
-                // Scroll has ended
-                this.lastScrollEvent = null;
-                this.onScrollEnd();
-            }, 250);
-        }
-
-        this.lastScrollEvent = timestamp;
     }
 
     /**
@@ -222,7 +139,6 @@ class BaseInvertedFlatList extends Component {
                 // We keep this property very low so that chat switching remains fast
                 maxToRenderPerBatch={1}
                 windowSize={15}
-                onScroll={CONST.IS_DESKTOP_AND_WEB ? this.handleScroll : this.props.onScroll}
                 // Commenting the line below as it breaks the unread indicator test
                 // we will look at fixing/reusing this after RN v0.72
                 // maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}

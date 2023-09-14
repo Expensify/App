@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
-import {Platform} from 'react-native';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
@@ -2646,7 +2645,6 @@ const CONST = {
     EVENTS: {
         SCROLLING: 'scrolling',
     },
-    IS_DESKTOP_AND_WEB: Platform.OS === 'web' || Platform.OS === 'macos' || Platform.OS === 'windows',
 } as const;
 
 export default CONST;
