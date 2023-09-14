@@ -34,15 +34,15 @@ function rotateCanvas(canvas: HTMLCanvasElement, degrees: number): HTMLCanvasEle
     result.height = height;
 
     const context = result.getContext('2d');
+    if (context) {
+        // In order to rotate image along its center we have to apply next transformation
+        context.translate(result.width / 2, result.height / 2);
 
-    // In order to rotate image along its center we have to apply next transformation
-    context?.translate(result.width / 2, result.height / 2);
+        const radians = (degrees * Math.PI) / 180;
+        context.rotate(radians);
 
-    const radians = (degrees * Math.PI) / 180;
-    context?.rotate(radians);
-
-    context?.drawImage(canvas, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
-
+        context.drawImage(canvas, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+    }
     return result;
 }
 
