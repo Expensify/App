@@ -1,11 +1,11 @@
 import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Camera, useCameraDevices} from 'react-native-vision-camera';
+import {useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {withOnyx} from 'react-native-onyx';
-import {useIsFocused} from '@react-navigation/native';
+import {RESULTS} from 'react-native-permissions';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -20,7 +20,9 @@ import Button from '../../../components/Button';
 import useLocalize from '../../../hooks/useLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../../libs/Log';
-import participantPropTypes from '../../../components/participantPropTypes';
+import * as CameraPermission from './CameraPermission';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
+import NavigationAwareCamera from './NavigationAwareCamera';
 
 const propTypes = {
     /** React Navigation route */
@@ -39,33 +41,12 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Description of the request */
-        comment: PropTypes.string,
-        created: PropTypes.string,
-        merchant: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-    }),
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
     report: {},
-    iou: {
-        id: '',
-        amount: 0,
-        merchant: '',
-        created: '',
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: iouDefaultProps,
 };
 
 /**
@@ -94,26 +75,26 @@ function getImagePickerOptions(type) {
 }
 
 function ReceiptSelector(props) {
-    const devices = useCameraDevices();
+    const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
-    const [permissions, setPermissions] = useState('authorized');
+    const [permissions, setPermissions] = useState('granted');
+    const isAndroidBlockedPermissionRef = useRef(false);
     const appState = useRef(AppState.currentState);
 
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
+    const pageIndex = lodashGet(props.route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
-    // Keep track of whether the camera is visible, when we navigate elsewhere, turn off the camera
-    const isFocused = useIsFocused();
 
     // We want to listen to if the app has come back from background and refresh the permissions status to show camera when permissions were granted
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
             if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-                Camera.getCameraPermissionStatus().then((permissionStatus) => {
+                CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
                     setPermissions(permissionStatus);
                 });
             }
@@ -156,12 +137,15 @@ function ReceiptSelector(props) {
     };
 
     const askForPermissions = () => {
-        if (permissions === 'not-determined') {
-            Camera.requestCameraPermission().then((permissionStatus) => {
-                setPermissions(permissionStatus);
-            });
-        } else {
+        // There's no way we can check for the BLOCKED status without requesting the permission first
+        // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
+        if (permissions === RESULTS.BLOCKED || isAndroidBlockedPermissionRef.current) {
             Linking.openSettings();
+        } else if (permissions === RESULTS.DENIED) {
+            CameraPermission.requestCameraPermission().then((permissionStatus) => {
+                setPermissions(permissionStatus);
+                isAndroidBlockedPermissionRef.current = permissionStatus === RESULTS.BLOCKED;
+            });
         }
     };
 
@@ -214,18 +198,19 @@ function ReceiptSelector(props) {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
                 IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
             })
-            .catch(() => {
+            .catch((error) => {
                 showCameraAlert();
+                Log.warn('Error taking photo', error);
             });
     }, [flash, iouType, props.iou, props.report, reportID, translate]);
 
-    Camera.getCameraPermissionStatus().then((permissionStatus) => {
+    CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
     });
 
     return (
         <View style={styles.flex1}>
-            {permissions !== CONST.RECEIPT.PERMISSION_AUTHORIZED && (
+            {permissions !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView]}>
                     <Hand
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
@@ -248,7 +233,7 @@ function ReceiptSelector(props) {
                     </PressableWithFeedback>
                 </View>
             )}
-            {permissions === CONST.RECEIPT.PERMISSION_AUTHORIZED && device == null && (
+            {permissions === RESULTS.GRANTED && device == null && (
                 <View style={[styles.cameraView]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -257,14 +242,14 @@ function ReceiptSelector(props) {
                     />
                 </View>
             )}
-            {permissions === CONST.RECEIPT.PERMISSION_AUTHORIZED && device != null && (
-                <Camera
+            {permissions === RESULTS.GRANTED && device != null && (
+                <NavigationAwareCamera
                     ref={camera}
                     device={device}
                     style={[styles.cameraView]}
                     zoom={device.neutralZoom}
-                    isActive={isFocused}
                     photo
+                    cameraTabIndex={pageIndex}
                 />
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>

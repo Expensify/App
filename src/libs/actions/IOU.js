@@ -21,6 +21,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
 import * as NumberUtils from '../NumberUtils';
+import ReceiptGeneric from '../../../assets/images/receipt-generic.png';
 
 let allReports;
 Onyx.connect({
@@ -43,10 +44,19 @@ Onyx.connect({
     },
 });
 
+let allRecentlyUsedCategories = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedCategories = val),
+});
+
 let userAccountID = '';
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
+        currentUserEmail = lodashGet(val, 'email', '');
         userAccountID = lodashGet(val, 'accountID', '');
     },
 });
@@ -80,9 +90,11 @@ function resetMoneyRequestInfo(id = '') {
         comment: '',
         participants: [],
         merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+        category: '',
         created,
         receiptPath: '',
         receiptSource: '',
+        transactionID: '',
     });
 }
 
@@ -95,6 +107,7 @@ function buildOnyxDataForMoneyRequest(
     iouAction,
     optimisticPersonalDetailListAction,
     reportPreviewAction,
+    optimisticRecentlyUsedCategories,
     isNewChatReport,
     isNewIOUReport,
 ) {
@@ -143,6 +156,14 @@ function buildOnyxDataForMoneyRequest(
             },
         },
     ];
+
+    if (!_.isEmpty(optimisticRecentlyUsedCategories)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
+            value: optimisticRecentlyUsedCategories,
+        });
+    }
 
     if (!_.isEmpty(optimisticPersonalDetailListAction)) {
         optimisticData.push({
@@ -312,9 +333,11 @@ function buildOnyxDataForMoneyRequest(
  * @param {String} currency
  * @param {String} created
  * @param {String} merchant
- * @param {Number} payeeAccountID
- * @param {String} payeeEmail
+ * @param {Number} [payeeAccountID]
+ * @param {String} [payeeEmail]
  * @param {Object} [receipt]
+ * @param {String} [existingTransactionID]
+ * @param {String} [category]
  * @returns {Object} data
  * @returns {String} data.payerEmail
  * @returns {Object} data.iouReport
@@ -328,9 +351,21 @@ function buildOnyxDataForMoneyRequest(
  * @returns {Object} data.onyxData.optimisticData
  * @returns {Object} data.onyxData.successData
  * @returns {Object} data.onyxData.failureData
- * @param {String} [existingTransactionID]
  */
-function getMoneyRequestInformation(report, participant, comment, amount, currency, created, merchant, payeeAccountID, payeeEmail, receipt = undefined, existingTransactionID = null) {
+function getMoneyRequestInformation(
+    report,
+    participant,
+    comment,
+    amount,
+    currency,
+    created,
+    merchant,
+    payeeAccountID = userAccountID,
+    payeeEmail = currentUserEmail,
+    receipt = undefined,
+    existingTransactionID = undefined,
+    category = undefined,
+) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -379,7 +414,7 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
     let filename;
     if (receipt && receipt.source) {
         receiptObject.source = receipt.source;
-        receiptObject.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+        receiptObject.state = receipt.state || CONST.IOU.RECEIPT_STATE.SCANREADY;
         filename = receipt.name;
     }
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
@@ -394,7 +429,16 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
         receiptObject,
         filename,
         existingTransactionID,
+        category,
     );
+
+    const uniquePolicyRecentlyUsedCategories = allRecentlyUsedCategories
+        ? _.filter(
+              allRecentlyUsedCategories[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`],
+              (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory !== category,
+          )
+        : [];
+    const optimisticPolicyRecentlyUsedCategories = [category, ...uniquePolicyRecentlyUsedCategories];
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -436,6 +480,10 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
         reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, comment, optimisticTransaction);
     } else {
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+
+        // Generated ReportPreview action is a parent report action of the iou report.
+        // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
+        iouReport.parentReportActionID = reportPreviewAction.reportActionID;
     }
 
     // Add optimistic personal details for participant
@@ -460,6 +508,7 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
         iouAction,
         optimisticPersonalDetailListAction,
         reportPreviewAction,
+        optimisticPolicyRecentlyUsedCategories,
         isNewChatReport,
         isNewIOUReport,
     );
@@ -485,36 +534,37 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
  * Requests money based on a distance (eg. mileage from a map)
  *
  * @param {Object} report
- * @param {String} payeeEmail
- * @param {Number} payeeAccountID
  * @param {Object} participant
  * @param {String} comment
- * @param {Object[]} waypoints
- * @param {String} waypoints[].address required and must be non empty
- * @param {String} [waypoints[].lat] optional
- * @param {String} [waypoints[].lng] optional
  * @param {String} created
  * @param {String} [transactionID]
+ * @param {String} [category]
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} merchant
  */
-function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, comment, waypoints, created, transactionID) {
-    const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
+function createDistanceRequest(report, participant, comment, created, transactionID, category, amount, currency, merchant) {
+    const optimisticReceipt = {
+        source: ReceiptGeneric,
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+    };
+    const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
         comment,
-        0,
-        'USD',
+        amount,
+        currency,
         created,
-        '',
-        payeeAccountID,
-        payeeEmail,
+        merchant,
         null,
+        null,
+        optimisticReceipt,
         transactionID,
+        category,
     );
-
     API.write(
         'CreateDistanceRequest',
         {
-            debtorEmail: payerEmail,
             comment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
@@ -523,11 +573,14 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
             createdChatReportActionID,
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
-            waypoints,
+            waypoints: JSON.stringify(TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true)),
             created,
+            category,
         },
         onyxData,
     );
+    Navigation.dismissModal(chatReport.reportID);
+    Report.notifyNewAction(chatReport.reportID, userAccountID);
 }
 
 /**
@@ -543,10 +596,14 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
  * @param {Object} participant
  * @param {String} comment
  * @param {Object} [receipt]
+ * @param {String} [category]
  */
-function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
+function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined, category = undefined) {
+    // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
-        report,
+        currentChatReport,
         participant,
         comment,
         amount,
@@ -556,6 +613,8 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
         payeeAccountID,
         payeeEmail,
         receipt,
+        undefined,
+        category,
     );
 
     API.write(
@@ -575,11 +634,12 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             receipt,
+            category,
         },
         onyxData,
     );
     resetMoneyRequestInfo();
-    Navigation.dismissModal(chatReport.reportID);
+    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
     Report.notifyNewAction(chatReport.reportID, payeeAccountID);
 }
 
@@ -605,7 +665,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
  * @return {Object}
  */
 function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingSplitChatReportID = '') {
-    const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
+    const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport = existingSplitChatReportID
         ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID}`]
@@ -630,7 +690,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
     const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         amount,
@@ -749,14 +809,14 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, false);
-    const splits = [{email: currentUserEmail, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
+    const splits = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
         // In case the participant is a worskapce, email & accountID should remain undefined and won't be used in the rest of this code
         const email = isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
         const accountID = isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
-        if (email === currentUserEmail) {
+        if (email === currentUserEmailForIOUSplit) {
             return;
         }
 
@@ -815,8 +875,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // 3. IOU action for the iouReport
         // 4. REPORTPREVIEW action for the chatReport
         // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
-        const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-        const oneOnOneCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+        const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+        const oneOnOneCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
         const oneOnOneIOUAction = ReportUtils.buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
@@ -857,6 +917,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneIOUAction,
             oneOnOnePersonalDetailListAction,
             oneOnOneReportPreviewAction,
+            [],
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
         );
@@ -1032,13 +1093,13 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.report}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: iouReport,
         },
     ];
 
     // STEP 6: Call the API endpoint
-    const {created, amount, currency, comment, merchant} = ReportUtils.getTransactionDetails(updatedTransaction);
+    const {created, amount, currency, comment, merchant, category} = ReportUtils.getTransactionDetails(updatedTransaction);
     API.write(
         'EditMoneyRequest',
         {
@@ -1049,6 +1110,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             currency,
             comment,
             merchant,
+            category,
         },
         {optimisticData, successData, failureData},
     );
@@ -1521,7 +1583,13 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         true,
     );
 
-    const optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID));
+    // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
+    // hence we need to make the updates to the action safely.
+    let optimisticReportPreviewAction = null;
+    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    if (reportPreviewAction) {
+        optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction);
+    }
 
     const optimisticData = [
         {
@@ -1549,20 +1617,13 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.REIMBURSED,
             },
         },
         {
@@ -1594,7 +1655,18 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 },
             },
         },
-        {
+    ];
+
+    // In case the report preview action is loaded locally, let's update it.
+    if (optimisticReportPreviewAction) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+            },
+        });
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
@@ -1602,8 +1674,8 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                     created: optimisticReportPreviewAction.created,
                 },
             },
-        },
-    ];
+        });
+    }
 
     return {
         params: {
@@ -1805,6 +1877,17 @@ function setMoneyRequestMerchant(merchant) {
 }
 
 /**
+ * @param {String} category
+ */
+function setMoneyRequestCategory(category) {
+    Onyx.merge(ONYXKEYS.IOU, {category});
+}
+
+function resetMoneyRequestCategory() {
+    Onyx.merge(ONYXKEYS.IOU, {category: ''});
+}
+
+/**
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
@@ -1845,12 +1928,14 @@ function navigateToNextPage(iou, iouType, reportID, report) {
 
     // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
     if (report.reportID) {
+        // If the report is iou or expense report, we should get the chat report to set participant for request money
+        const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
         // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
         if (_.isEmpty(iou.participants) || shouldReset) {
             const currentUserAccountID = currentUserPersonalDetails.accountID;
-            const participants = ReportUtils.isPolicyExpenseChat(report)
-                ? [{reportID: report.reportID, isPolicyExpenseChat: true, selected: true}]
-                : _.chain(report.participantAccountIDs)
+            const participants = ReportUtils.isPolicyExpenseChat(chatReport)
+                ? [{reportID: chatReport.reportID, isPolicyExpenseChat: true, selected: true}]
+                : _.chain(chatReport.participantAccountIDs)
                       .filter((accountID) => currentUserAccountID !== accountID)
                       .map((accountID) => ({accountID, selected: true}))
                       .value();
@@ -1882,6 +1967,8 @@ export {
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneyRequestMerchant,
+    setMoneyRequestCategory,
+    resetMoneyRequestCategory,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
     createEmptyTransaction,

@@ -92,6 +92,13 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const MoneyRequestTagPage = require('../../../pages/iou/MoneyRequestTagPage').default;
+            return MoneyRequestTagPage;
+        },
+        name: 'Money_Request_Tag',
+    },
+    {
+        getComponent: () => {
             const MoneyRequestMerchantPage = require('../../../pages/iou/MoneyRequestMerchantPage').default;
             return MoneyRequestMerchantPage;
         },
@@ -321,6 +328,37 @@ const NewTaskModalStackNavigator = createModalStackNavigator([
             return NewTaskDescriptionPage;
         },
         name: 'NewTask_Description',
+    },
+]);
+
+const NewTeachersUniteNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const SaveTheWorldPage = require('../../../pages/TeachersUnite/SaveTheWorldPage').default;
+            return SaveTheWorldPage;
+        },
+        name: 'SaveTheWorld_Root',
+    },
+    {
+        getComponent: () => {
+            const KnowATeacherPage = require('../../../pages/TeachersUnite/KnowATeacherPage').default;
+            return KnowATeacherPage;
+        },
+        name: 'I_Know_A_Teacher',
+    },
+    {
+        getComponent: () => {
+            const IntroSchoolPrincipalPage = require('../../../pages/TeachersUnite/IntroSchoolPrincipalPage').default;
+            return IntroSchoolPrincipalPage;
+        },
+        name: 'Intro_School_Principal',
+    },
+    {
+        getComponent: () => {
+            const ImTeacherPage = require('../../../pages/TeachersUnite/ImTeacherPage').default;
+            return ImTeacherPage;
+        },
+        name: 'I_Am_A_Teacher',
     },
 ]);
 
@@ -763,5 +801,6 @@ export {
     WalletStatementStackNavigator,
     FlagCommentStackNavigator,
     EditRequestStackNavigator,
+    NewTeachersUniteNavigator,
     SignInModalStackNavigator,
 };

@@ -71,8 +71,11 @@ export default {
 
     ice200: '#CCF7FF',
     ice400: '#50EEF6',
+    ice500: '#4ED7DE',
     ice700: '#28736D',
     ice800: '#134038',
+
+    orange800: '#400000',
 
     // DEPRECATED COLORS. Do not reference these colors. Will be deleted in color switch PR.
     gray1: '#FAFAFA',

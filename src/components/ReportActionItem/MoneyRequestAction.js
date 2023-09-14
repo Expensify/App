@@ -58,6 +58,9 @@ const propTypes = {
 
     network: networkPropTypes.isRequired,
 
+    /** Whether a message is a whisper */
+    isWhisper: PropTypes.bool,
+
     /** Styles to be assigned to Container */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
@@ -71,6 +74,7 @@ const defaultProps = {
     reportActions: {},
     isHovered: false,
     style: [],
+    isWhisper: false,
 };
 
 function MoneyRequestAction({
@@ -86,6 +90,7 @@ function MoneyRequestAction({
     isHovered,
     network,
     style,
+    isWhisper,
 }) {
     const {translate} = useLocalize();
     const isSplitBillAction = lodashGet(action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
@@ -137,6 +142,7 @@ function MoneyRequestAction({
             onPreviewPressed={onMoneyRequestPreviewPressed}
             containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, ...style]}
             isHovered={isHovered}
+            isWhisper={isWhisper}
         />
     );
 }
