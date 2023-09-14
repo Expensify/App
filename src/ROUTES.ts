@@ -119,11 +119,8 @@ export default {
     getMoneyRequestMerchantRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}`,
     getMoneyRequestDistanceTabRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance`,
     getMoneyRequestWaypointRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}`,
-<<<<<<< HEAD
     getMoneyRequestAddressRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}`,
-=======
     getMoneyRequestTagRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}`,
->>>>>>> main
     SPLIT_BILL_DETAILS: `r/:reportID/split/:reportActionID`,
     getSplitBillDetailsRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}`,
     getNewTaskRoute: (reportID: string) => `${NEW_TASK}/${reportID}`,
