@@ -2,7 +2,6 @@ import React, {useRef, useCallback, useState, useEffect} from 'react';
 import {View, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import styles from '../../../styles/styles';
 import CarouselActions from './CarouselActions';
 import Carousel from './Carousel';
@@ -19,10 +18,12 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import BlockingView from '../../BlockingViews/BlockingView';
 import * as Illustrations from '../../Icon/Illustrations';
 import variables from '../../../styles/variables';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 
-const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
     const scrollRef = useRef(null);
+
+    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState([]);
@@ -94,7 +95,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                 updatePage.current({viewableItems: [{item: attachments[nextIndex], index: page}]});
             }
         },
-        [attachments, page],
+        [attachments, canUseTouchScreen, page],
     );
 
     /**
@@ -116,7 +117,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                 onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
             />
         ),
-        [activeSource, setShouldShowArrows, shouldShowArrows],
+        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
