@@ -177,7 +177,7 @@ function ReportPreview(props) {
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
-                style={[styles.flexRow, styles.justifyContentBetween]}
+                style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                 accessibilityRole="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
