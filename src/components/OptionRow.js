@@ -48,6 +48,7 @@ const propTypes = {
 
     /** Callback to fire when the multiple selector (tickbox or button) is clicked */
     onSelectedStatePressed: PropTypes.func,
+
     /** Whether we highlight selected option */
     highlightSelected: PropTypes.bool,
 
