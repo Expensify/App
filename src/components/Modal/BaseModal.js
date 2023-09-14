@@ -198,7 +198,6 @@ function BaseModal({
             <View
                 style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
                 ref={forwardedRef}
-                nativeID="no-drag-area"
             >
                 {children}
             </View>

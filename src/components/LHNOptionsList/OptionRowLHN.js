@@ -86,8 +86,8 @@ function OptionRowLHN(props) {
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
     const alternateTextStyle = StyleUtils.combineStyles(
         props.viewMode === CONST.OPTION_MODE.COMPACT
-            ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
-            : [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting],
+            ? [textStyle, styles.optionAlternateText, styles.noWrap, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
+            : [textStyle, styles.optionAlternateText, styles.noWrap, styles.textLabelSupporting],
         props.style,
     );
     const contentContainerStyles =
@@ -121,7 +121,8 @@ function OptionRowLHN(props) {
             '',
             popoverAnchor,
             props.reportID,
-            {},
+            '0',
+            props.reportID,
             '',
             () => {},
             () => setIsContextMenuActive(false),
@@ -256,10 +257,12 @@ function OptionRowLHN(props) {
                             accessible={false}
                         >
                             {shouldShowGreenDotIndicator && (
-                                <Icon
-                                    src={Expensicons.DotIndicator}
-                                    fill={themeColors.success}
-                                />
+                                <View style={styles.ml2}>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={themeColors.success}
+                                    />
+                                </View>
                             )}
                             {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
                                 <View
