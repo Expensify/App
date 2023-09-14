@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -25,9 +25,21 @@ const propTypes = {
     shouldShowOnfido: PropTypes.bool.isRequired,
 };
 
+const REQUIRED_FIELDS = ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
+const INPUT_KEYS = {
+    firstName: 'firstName',
+    lastName: 'lastName',
+    dob: 'dob',
+    ssnLast4: 'ssnLast4',
+    street: 'requestorAddressStreet',
+    city: 'requestorAddressCity',
+    state: 'requestorAddressState',
+    zipCode: 'requestorAddressZipCode',
+};
+const STEP_COUNTER = {step: 3, total: 5};
+
 const validate = (values) => {
-    const requiredFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
-    const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+    const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
     if (values.dob) {
         if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
@@ -57,6 +69,20 @@ const validate = (values) => {
 };
 
 function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField, translate}, ref) {
+    const defaultValues = useMemo(
+        () => ({
+            firstName: getDefaultStateForField('firstName'),
+            lastName: getDefaultStateForField('lastName'),
+            street: getDefaultStateForField('requestorAddressStreet'),
+            city: getDefaultStateForField('requestorAddressCity'),
+            state: getDefaultStateForField('requestorAddressState'),
+            zipCode: getDefaultStateForField('requestorAddressZipCode'),
+            dob: getDefaultStateForField('dob'),
+            ssnLast4: getDefaultStateForField('ssnLast4'),
+        }),
+        [getDefaultStateForField],
+    );
+
     const submit = useCallback(
         (values) => {
             const payload = {
@@ -67,6 +93,15 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
             BankAccounts.updatePersonalInformationForBankAccount(payload);
         },
         [reimbursementAccount],
+    );
+
+    const LabelComponent = useCallback(
+        () => (
+            <View style={[styles.flex1, styles.pr1]}>
+                <Text>{translate('requestorStep.isControllingOfficer')}</Text>
+            </View>
+        ),
+        [translate],
     );
 
     if (shouldShowOnfido)
@@ -83,7 +118,7 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={translate('requestorStep.headerTitle')}
-                stepCounter={{step: 3, total: 5}}
+                stepCounter={STEP_COUNTER}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={onBackButtonPress}
                 shouldShowGetAssistanceButton
@@ -115,37 +150,15 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
                 </View>
                 <IdentityForm
                     translate={translate}
-                    defaultValues={{
-                        firstName: getDefaultStateForField('firstName'),
-                        lastName: getDefaultStateForField('lastName'),
-                        street: getDefaultStateForField('requestorAddressStreet'),
-                        city: getDefaultStateForField('requestorAddressCity'),
-                        state: getDefaultStateForField('requestorAddressState'),
-                        zipCode: getDefaultStateForField('requestorAddressZipCode'),
-                        dob: getDefaultStateForField('dob'),
-                        ssnLast4: getDefaultStateForField('ssnLast4'),
-                    }}
-                    inputKeys={{
-                        firstName: 'firstName',
-                        lastName: 'lastName',
-                        dob: 'dob',
-                        ssnLast4: 'ssnLast4',
-                        street: 'requestorAddressStreet',
-                        city: 'requestorAddressCity',
-                        state: 'requestorAddressState',
-                        zipCode: 'requestorAddressZipCode',
-                    }}
+                    defaultValues={defaultValues}
+                    inputKeys={INPUT_KEYS}
                     shouldSaveDraft
                 />
                 <CheckboxWithLabel
                     accessibilityLabel={translate('requestorStep.isControllingOfficer')}
                     inputID="isControllingOfficer"
                     defaultValue={getDefaultStateForField('isControllingOfficer', false)}
-                    LabelComponent={() => (
-                        <View style={[styles.flex1, styles.pr1]}>
-                            <Text>{translate('requestorStep.isControllingOfficer')}</Text>
-                        </View>
-                    )}
+                    LabelComponent={LabelComponent}
                     style={[styles.mt4]}
                     shouldSaveDraft
                 />
