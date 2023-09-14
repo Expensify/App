@@ -793,6 +793,7 @@ function markCommentAsUnread(reportID, reportActionCreated) {
             ],
         },
     );
+    return lastReadTime;
 }
 
 /**

@@ -23,6 +23,8 @@ import useNetwork from '../../../hooks/useNetwork';
 import DateUtils from '../../../libs/DateUtils';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
+import {DeviceEventEmitter} from 'react-native';
+import {use} from '../../../libs/Request';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -110,10 +112,11 @@ function ReportActionsList({
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
+    const lastReadRef = useRef(report.lastReadTime);
 
     // Considering that renderItem is enclosed within a useCallback, marking it as "read" twice will retain the value as "true," preventing the useCallback from re-executing.
     // However, if we create and listen to an object, it will lead to a new useCallback execution.
-    const [messageManuallyMarked, setMessageManuallyMarked] = useState({read: false});
+    const [messageManuallyMarked, setMessageManuallyMarked] = useState(0);
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -159,19 +162,23 @@ function ReportActionsList({
     }, [sortedReportActions.length, report.reportID]);
 
     useEffect(() => {
-        const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
-        if (!didManuallyMarkReportAsUnread) {
-            setMessageManuallyMarked({read: false});
+        if (!userActiveSince.current || report.reportID !== prevReportID.current) {
             return;
         }
 
-        // Clearing the current unread marker so that it can be recalculated
-        currentUnreadMarker.current = null;
-        setMessageManuallyMarked({read: true});
+        lastReadRef.current = report.lastReadTime;
+        setMessageManuallyMarked(0);
+    }, [report.lastReadTime, report.reportID]);
 
-        // We only care when a new lastReadTime is set in the report
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.lastReadTime]);
+    useEffect(() => {
+        const unreadActionSubscription = DeviceEventEmitter.addListener('unreadAction', (newLastReadTime) => {
+            currentUnreadMarker.current = null;
+            lastReadRef.current = newLastReadTime;
+            setMessageManuallyMarked(new Date().getTime());
+        });
+
+        return () => unreadActionSubscription.remove();
+    }, []);
 
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
@@ -224,14 +231,14 @@ function ReportActionsList({
 
             if (!currentUnreadMarker.current) {
                 const nextMessage = sortedReportActions[index + 1];
-                const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
-                let canDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
+                const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadRef.current);
+                let canDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, lastReadRef.current);
 
-                if (!messageManuallyMarked.read) {
+                if (!messageManuallyMarked) {
                     canDisplayNewMarker = canDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
                 let isMessageInScope = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
-                if (messageManuallyMarked.read) {
+                if (messageManuallyMarked) {
                     isMessageInScope = true;
                 }
                 if (!currentUnreadMarker.current && canDisplayNewMarker && isMessageInScope) {

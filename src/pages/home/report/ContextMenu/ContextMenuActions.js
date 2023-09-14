@@ -2,6 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashGet from 'lodash/get';
+import {DeviceEventEmitter} from 'react-native';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as Report from '../../../../libs/actions/Report';
 import * as Download from '../../../../libs/actions/Download';
@@ -250,7 +251,8 @@ export default [
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
         onPress: (closePopover, {reportAction, reportID}) => {
-            Report.markCommentAsUnread(reportID, reportAction.created);
+            const lastReadTime = Report.markCommentAsUnread(reportID, reportAction.created);
+            DeviceEventEmitter.emit('unreadAction', lastReadTime);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
