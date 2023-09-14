@@ -25,9 +25,9 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Environment from '../Environment/Environment';
+import * as Session from './Session';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -1759,11 +1759,12 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        SidebarUtils.isSidebarLoadedReady().then(() => {
-            if (route !== ROUTES.CONCIERGE) {
+        Session.waitForUserSignIn().then(() => {
+            if (route === ROUTES.CONCIERGE) {
+                navigateToConciergeChat();
                 return;
             }
-            navigateToConciergeChat();
+            Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
         });
     });
 }
