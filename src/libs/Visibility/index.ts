@@ -1,28 +1,23 @@
-// Mobile apps do not require this check for visibility as
-// they do not use the Notification lib.
-
 import {AppState} from 'react-native';
 
 /**
- * @return {Boolean}
+ * Detects whether the app is visible or not.
  */
-const isVisible = () => AppState.currentState === 'active';
+function isVisible() {
+    return document.visibilityState === 'visible';
+}
 
 /**
- * @returns {Boolean}
+ * Whether the app is focused.
  */
 function hasFocus() {
-    return true;
+    return document.hasFocus();
 }
 
 /**
  * Adds event listener for changes in visibility state
- *
- * @param {Function} callback
- *
- * @return {Function} removes the listener
  */
-function onVisibilityChange(callback) {
+function onVisibilityChange(callback: () => void) {
     // Deliberately strip callback argument to be consistent across implementations
     const subscription = AppState.addEventListener('change', () => callback());
 
