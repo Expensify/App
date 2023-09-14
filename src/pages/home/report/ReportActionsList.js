@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState, useRef, useMemo} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
+import {DeviceEventEmitter} from 'react-native';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import compose from '../../../libs/compose';
 import styles from '../../../styles/styles';
@@ -23,8 +24,6 @@ import useNetwork from '../../../hooks/useNetwork';
 import DateUtils from '../../../libs/DateUtils';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
-import {DeviceEventEmitter} from 'react-native';
-import {use} from '../../../libs/Request';
 
 const propTypes = {
     /** The report currently being looked at */

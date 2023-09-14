@@ -766,6 +766,8 @@ function readNewestAction(reportID) {
  *
  * @param {String} reportID
  * @param {String} reportActionCreated
+ *
+ * @returns {String} lastReadTime
  */
 function markCommentAsUnread(reportID, reportActionCreated) {
     // If no action created date is provided, use the last action's
