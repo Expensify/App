@@ -135,6 +135,9 @@ function BaseSelectionList({
         };
     }, [canSelectMultiple, sections]);
 
+    // Disable `Enter` hotkey if the active element is a button or checkbox
+    const shouldDisableHotkeys = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
+
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
 
@@ -287,7 +290,7 @@ function BaseSelectionList({
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        isActive: !activeElement,
+        isActive: !shouldDisableHotkeys,
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
