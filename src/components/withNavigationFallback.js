@@ -1,4 +1,4 @@
-import React, {forwardRef, useContext} from 'react';
+import React, {forwardRef, useContext, useMemo} from 'react';
 import {NavigationContext} from '@react-navigation/core';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import refPropTypes from './refPropTypes';
@@ -7,26 +7,22 @@ export default function (WrappedComponent) {
     function WithNavigationFallback(props) {
         const context = useContext(NavigationContext);
 
-        return !context ? (
-            <NavigationContext.Provider
-                value={{
-                    isFocused: () => true,
-                    addListener: () => () => {},
-                    removeListener: () => () => {},
-                }}
-            >
+        const navigationContextValue = useMemo(() => ({isFocused: () => true, addListener: () => () => {}, removeListener: () => () => {}}), []);
+
+        return context ? (
+            <WrappedComponent
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                ref={props.forwardedRef}
+            />
+        ) : (
+            <NavigationContext.Provider value={navigationContextValue}>
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     ref={props.forwardedRef}
                 />
             </NavigationContext.Provider>
-        ) : (
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                ref={props.forwardedRef}
-            />
         );
     }
     WithNavigationFallback.displayName = `WithNavigationFocusWithFallback(${getComponentDisplayName(WrappedComponent)})`;
