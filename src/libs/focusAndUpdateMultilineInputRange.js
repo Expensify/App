@@ -9,15 +9,12 @@
  *
  * @param {Object} input the input element
  */
-export default function focusAndUpdateMultilineInputRange(input, value) {
+export default function focusAndUpdateMultilineInputRange(input) {
     if (!input) {
         return;
     }
 
     input.focus();
-    if (typeof input.setSelection === 'function') {
-        input.setSelection(value.length, value.length);
-    }
     if (input.value && input.setSelectionRange) {
         const length = input.value.length;
         input.setSelectionRange(length, length);
