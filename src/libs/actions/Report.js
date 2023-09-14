@@ -1846,6 +1846,12 @@ function getCurrentUserAccountID() {
 function leaveRoom(reportID) {
     const report = lodashGet(allReports, [reportID], {});
     const reportKeys = _.keys(report);
+
+    // Pusher's leavingStatus should be sent earlier.
+    // Place the broadcast before calling the LeaveRoom API to prevent a race condition
+    // between Onyx report being null and Pusher's leavingStatus becoming true.
+    broadcastUserIsLeavingRoom(reportID);
+
     API.write(
         'LeaveRoom',
         {
@@ -1887,7 +1893,6 @@ function leaveRoom(reportID) {
     if (Navigation.getTopmostReportId() === reportID) {
         Navigation.goBack();
     }
-    broadcastUserIsLeavingRoom(reportID);
     navigateToConciergeChat();
 }
 
