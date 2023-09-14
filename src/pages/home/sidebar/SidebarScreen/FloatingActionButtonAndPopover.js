@@ -210,7 +210,7 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.Heart,
                         text: props.translate('sidebarScreen.saveTheWorld'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.SAVE_THE_WORLD)),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
                     },
                     ...(Permissions.canUseTasks(props.betas)
                         ? [

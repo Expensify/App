@@ -47,6 +47,7 @@ const defaultProps = {
 
 function MoneyRequestParticipantsPage({iou, selectedTab, translate, route}) {
     const prevMoneyRequestId = useRef(iou.id);
+    const optionsSelectorRef = useRef();
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, selectedTab);
@@ -100,6 +101,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, translate, route}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>

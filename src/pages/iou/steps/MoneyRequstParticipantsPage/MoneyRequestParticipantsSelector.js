@@ -14,6 +14,7 @@ import compose from '../../../../libs/compose';
 import CONST from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
+import refPropTypes from '../../../../components/refPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -24,6 +25,12 @@ const propTypes = {
 
     /** Callback to request parent modal to go to next step, which should be split */
     navigateToSplit: PropTypes.func.isRequired,
+
+    /** A ref to forward to options selector's text input */
+    forwardedRef: refPropTypes,
+
+    /** Callback to inform parent modal of success */
+    onStepComplete: PropTypes.func.isRequired,
 
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
@@ -59,6 +66,7 @@ const propTypes = {
 
 const defaultProps = {
     participants: [],
+    forwardedRef: undefined,
     safeAreaPaddingBottomStyle: {},
     personalDetails: {},
     reports: {},
@@ -234,6 +242,12 @@ function MoneyRequestParticipantsSplitSelector({
                 value={searchTerm}
                 onSelectRow={addSingleParticipant}
                 onChangeText={setSearchTerm}
+                ref={this.props.forwardedRef}
+                autoFocus={false}
+                sections={this.getSections()}
+                value={this.state.searchTerm}
+                onSelectRow={this.addSingleParticipant}
+                onChangeText={this.updateOptionsWithSearchTerm}
                 headerMessage={headerMessage}
                 boldStyle
                 shouldShowConfirmButton
@@ -265,4 +279,12 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(MoneyRequestParticipantsSplitSelector);
+)(
+    React.forwardRef((props, ref) => (
+        <MoneyRequestParticipantsSelector
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);

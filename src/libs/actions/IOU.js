@@ -1093,7 +1093,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.report}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: iouReport,
         },
     ];
