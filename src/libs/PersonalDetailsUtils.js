@@ -4,7 +4,6 @@ import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 let personalDetails = [];
 let allPersonalDetails = {};
@@ -116,7 +115,7 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
-                displayName: LocalePhoneNumber.formatPhoneNumber(login),
+                displayName: login,
             };
 
             /**
