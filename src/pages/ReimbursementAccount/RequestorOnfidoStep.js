@@ -26,19 +26,20 @@ const defaultProps = {
     onfidoToken: null,
 };
 
-const stepCounter = {step: 3, total: 5};
+const HEADER_STEP_COUNTER = {step: 3, total: 5};
+const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
 function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoToken}) {
     const {translate} = useLocalize();
 
     const submitOnfidoData = (onfidoData) => {
-        BankAccounts.verifyIdentityForBankAccount(lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0, onfidoData);
+        BankAccounts.verifyIdentityForBankAccount(lodashGet(reimbursementAccount, 'achData.bankAccountID', 0), onfidoData);
         BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
     };
 
     const handleOnfidoError = () => {
         // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
-        Growl.error(translate('onfidoStep.genericError'), 10000);
+        Growl.error(translate('onfidoStep.genericError'), ONFIDO_ERROR_DISPLAY_DURATION);
         BankAccounts.clearOnfidoToken();
         BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
     };
@@ -55,7 +56,7 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
         testID={RequestorOnfidoStep.displayName}>
             <HeaderWithBackButton
                 title={translate('requestorStep.headerTitle')}
-                stepCounter={stepCounter}
+                stepCounter={HEADER_STEP_COUNTER}
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={onBackButtonPress}
@@ -74,6 +75,7 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
     );
 }
 
+RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
 RequestorOnfidoStep.propTypes = propTypes;
 RequestorOnfidoStep.defaultProps = defaultProps;
 
