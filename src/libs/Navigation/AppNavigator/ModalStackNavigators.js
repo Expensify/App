@@ -141,10 +141,10 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const NewDistanceRequestUpdateWaypointsPage = require('../../../pages/iou/NewDistanceRequestUpdateWaypointsPage').default;
-            return NewDistanceRequestUpdateWaypointsPage;
+            const DistanceRequestEditPage = require('../../../pages/EditRequestDistancePage').default;
+            return DistanceRequestEditPage;
         },
-        name: 'Money_Request_Update_Distance',
+        name: 'Money_Request_Address',
     },
 ]);
 
