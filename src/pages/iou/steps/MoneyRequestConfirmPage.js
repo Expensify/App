@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -59,7 +59,6 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmPage(props) {
-    const [isBillable, setIsBillable] = useState(lodashGet(props.policy, 'defaultBillable', false));
     const {windowHeight} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
@@ -78,6 +77,7 @@ function MoneyRequestConfirmPage(props) {
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
+        if (typeof props.iou.defaultBillable !== 'boolean') IOU.setMoneyRequestDefaultBillable(lodashGet(props.policy, 'defaultBillable', false));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -286,11 +286,8 @@ function MoneyRequestConfirmPage(props) {
                                 iouAmount={props.iou.amount}
                                 iouComment={props.iou.comment}
                                 iouCurrencyCode={props.iou.currency}
-                                iouIsBillable={isBillable}
-                                onToggleBillable={(value) => {
-                                    setIsBillable(value);
-                                    IOU.setMoneyRequestDefaultBillable(value);
-                                }}
+                                iouIsBillable={props.iou.defaultBillable}
+                                onToggleBillable={IOU.setMoneyRequestDefaultBillable}
                                 iouCategory={props.iou.category}
                                 iouTag={props.iou.tag}
                                 onConfirm={createTransaction}

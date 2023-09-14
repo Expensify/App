@@ -95,7 +95,7 @@ function resetMoneyRequestInfo(id = '') {
         receiptPath: '',
         receiptSource: '',
         transactionID: '',
-        defaultBillable: false,
+        defaultBillable: '',
     });
 }
 
@@ -367,7 +367,7 @@ function getMoneyRequestInformation(
     receipt = undefined,
     existingTransactionID = undefined,
     category = undefined,
-    defaultBillable = false,
+    defaultBillable = undefined,
 ) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
@@ -603,7 +603,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {String} [category]
  * @param {Boolean} [defaultBillable]
  */
-function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined, category = undefined, defaultBillable = false) {
+function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined, category = undefined, defaultBillable = undefined) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
