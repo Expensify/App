@@ -108,7 +108,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
-    const hasRouteError = lodashHas(transaction, 'errorFields.route');
+    const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
     const doesRouteExist = lodashHas(transaction, 'routes.route0.geometry.coordinates');
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
@@ -121,7 +121,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                         return;
                     }
 
-                    const index = Number(key.replace('waypoint', ''));
+                    const index = TransactionUtils.getWaypointIndex(key);
                     let MarkerComponent;
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;
@@ -178,6 +178,13 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
         Transaction.getRoute(iou.transactionID, validatedWaypoints);
     }, [shouldFetchRoute, iou.transactionID, validatedWaypoints, isOffline]);
 
+    useEffect(() => {
+        if (numberOfWaypoints <= numberOfPreviousWaypoints) {
+            return;
+        }
+        scrollViewRef.current.scrollToEnd({animated: true});
+    }, [numberOfPreviousWaypoints, numberOfWaypoints]);
+
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     const navigateBack = () => {
@@ -200,19 +207,14 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
             >
                 <ScrollView
-                    onContentSizeChange={(width, height) => {
-                        if (scrollContentHeight < height && numberOfWaypoints > numberOfPreviousWaypoints) {
-                            scrollViewRef.current.scrollToEnd({animated: true});
-                        }
-                        setScrollContentHeight(height);
-                    }}
+                    onContentSizeChange={(width, height) => setScrollContentHeight(height)}
                     onScroll={updateGradientVisibility}
                     scrollEventThrottle={variables.distanceScrollEventThrottle}
                     ref={scrollViewRef}
                 >
                     {_.map(waypoints, (waypoint, key) => {
                         // key is of the form waypoint0, waypoint1, ...
-                        const index = Number(key.replace('waypoint', ''));
+                        const index = TransactionUtils.getWaypointIndex(key);
                         let descriptionKey = 'distance.waypointDescription.';
                         let waypointIcon;
                         if (index === 0) {
@@ -294,7 +296,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={navigateToNextPage}
-                isDisabled={_.size(validatedWaypoints) < 2}
+                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline}
                 text={translate('common.next')}
             />
         </ScrollView>

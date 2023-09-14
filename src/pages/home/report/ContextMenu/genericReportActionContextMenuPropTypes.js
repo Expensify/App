@@ -1,12 +1,14 @@
 import PropTypes from 'prop-types';
-import reportActionPropTypes from '../reportActionPropTypes';
 
 const propTypes = {
     /** The ID of the report this report action is attached to. */
     reportID: PropTypes.string.isRequired,
 
-    /** The report action this context menu is attached to. */
-    reportAction: PropTypes.shape(reportActionPropTypes).isRequired,
+    /** The ID of the report action this context menu is attached to. */
+    reportActionID: PropTypes.string.isRequired,
+
+    /** The ID of the original report from which the given reportAction is first created. */
+    originalReportID: PropTypes.string.isRequired,
 
     /** If true, this component will be a small, row-oriented menu that displays icons but not text.
     If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row. */
