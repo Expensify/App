@@ -22,6 +22,7 @@ import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
 import * as NumberUtils from '../NumberUtils';
 import ReceiptGeneric from '../../../assets/images/receipt-generic.png';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 
 let allReports;
 Onyx.connect({
@@ -492,7 +493,7 @@ function getMoneyRequestInformation(
               [payerAccountID]: {
                   accountID: payerAccountID,
                   avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
-                  displayName: participant.displayName || payerEmail,
+                  displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || payerEmail),
                   login: participant.login,
               },
           }
@@ -894,7 +895,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
                   [accountID]: {
                       accountID,
                       avatar: UserUtils.getDefaultAvatarURL(accountID),
-                      displayName: participant.displayName || email,
+                      displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
                       login: participant.login,
                   },
               }
