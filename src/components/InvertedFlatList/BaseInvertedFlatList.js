@@ -69,12 +69,12 @@ class BaseInvertedFlatList extends Component {
     /**
      * Emits when the scrolling is in progress. Also,
      * invokes the onScroll callback function from props.
-     * 
+     *
      * @param {Event} event - The onScroll event from the FlatList
      */
     onScroll(event) {
         this.props.onScroll(event);
-    
+
         if (!this.updateInProgress) {
             this.updateInProgress = true;
             this.eventHandler = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, true);
@@ -130,38 +130,38 @@ class BaseInvertedFlatList extends Component {
      * Decides whether the scrolling has ended or not. If it has ended,
      * then it calls the onScrollEnd function. Otherwise, it calls the
      * onScroll function and pass the event to it.
-     * 
+     *
      * This is a temporary work around, since react-native-web doesn't
      * support onScrollBeginDrag and onScrollEndDrag props for FlatList.
      * More info:
      * https://github.com/necolas/react-native-web/pull/1305
-     * 
+     *
      * This workaround is taken from below and refactored to fit our needs:
      * https://github.com/necolas/react-native-web/issues/1021#issuecomment-984151185
-     * 
+     *
      * @param {Event} event - The onScroll event from the FlatList
      */
     handleScroll(event) {
         this.onScroll(event);
         const timestamp = Date.now();
-    
+
         if (this.scrollEndTimeout) {
-          clearTimeout(this.scrollEndTimeout);
+            clearTimeout(this.scrollEndTimeout);
         }
-    
+
         if (this.lastScrollEvent) {
-          this.scrollEndTimeout = setTimeout(() => {
-            if (this.lastScrollEvent !== timestamp) {
-                return;
-            }
-            // Scroll has ended
-            this.lastScrollEvent = null;
-            this.onScrollEnd();
-          }, 250);
+            this.scrollEndTimeout = setTimeout(() => {
+                if (this.lastScrollEvent !== timestamp) {
+                    return;
+                }
+                // Scroll has ended
+                this.lastScrollEvent = null;
+                this.onScrollEnd();
+            }, 250);
         }
-    
+
         this.lastScrollEvent = timestamp;
-      };
+    }
 
     /**
      * Measure item and cache the returned length (a.k.a. height)

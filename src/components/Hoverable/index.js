@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import { DeviceEventEmitter } from 'react-native';
+import {DeviceEventEmitter} from 'react-native';
 import {propTypes, defaultProps} from './hoverablePropTypes';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import CONST from '../../CONST';
@@ -37,7 +37,7 @@ class Hoverable extends Component {
         if (!this.scrollingListener && this.props.shouldHandleScroll) {
             this.scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
                 /**
-                 * If user has stopped scrolling and the isHoveredRef is true, then we should update the hover state. 
+                 * If user has stopped scrolling and the isHoveredRef is true, then we should update the hover state.
                  */
                 if (!scrolling && this.isHoveredRef) {
                     this.setState({isHovered: this.isHoveredRef}, this.props.onHoverIn);
@@ -91,7 +91,7 @@ class Hoverable extends Component {
         /**
          * If the isScrollingRef is true, then the user is scrolling and we should not update the hover state.
          */
-        if (this.isScrollingRef && this.props.shouldHandleScroll && !this.state.isHovered) return
+        if (this.isScrollingRef && this.props.shouldHandleScroll && !this.state.isHovered) return;
 
         if (isHovered !== this.state.isHovered) {
             this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);

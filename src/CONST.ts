@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
-import { Platform } from 'react-native';
+import {Platform} from 'react-native';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
