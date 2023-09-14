@@ -1,24 +1,8 @@
+import {CropOptions, CropOrRotateImage, CropOrRotateImageOptions, FileWithUri} from './types';
+
 type SizeFromAngle = {
     width: number;
     height: number;
-};
-type CropOrRotateImageOptions = {
-    type: string;
-    name: string;
-    compress: number;
-};
-type CropOptions = {
-    originX: number;
-    originY: number;
-    width: number;
-    height: number;
-};
-type Action = {
-    crop?: CropOptions;
-    rotate?: number;
-};
-type FileWithUri = File & {
-    uri: string;
 };
 
 /**
@@ -95,6 +79,7 @@ function convertCanvasToFile(canvas: HTMLCanvasElement, options: CropOrRotateIma
             }
             const file = new File([blob], options.name || 'fileName.jpeg', {type: options.type || 'image/jpeg'});
             const fileWithUri = Object.assign(file, {uri: URL.createObjectURL(file)});
+
             resolve(fileWithUri);
         });
     });
@@ -126,8 +111,8 @@ function loadImageAsync(uri: string): Promise<HTMLCanvasElement> {
  * Crops and rotates the image on web
  */
 
-function cropOrRotateImage(uri: string, actions: Action[], options: CropOrRotateImageOptions): Promise<FileWithUri> {
-    return loadImageAsync(uri).then((originalCanvas) => {
+const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
+    loadImageAsync(uri).then((originalCanvas) => {
         const resultCanvas = actions.reduce((canvas, action) => {
             if (action.crop) {
                 return cropCanvas(canvas, action.crop);
@@ -140,6 +125,5 @@ function cropOrRotateImage(uri: string, actions: Action[], options: CropOrRotate
 
         return convertCanvasToFile(resultCanvas, options);
     });
-}
 
 export default cropOrRotateImage;
