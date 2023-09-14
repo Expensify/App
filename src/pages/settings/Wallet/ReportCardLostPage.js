@@ -115,7 +115,7 @@ function ReportCardLostPage({privatePersonalDetails}) {
                 onSubmit={onSubmit}
                 submitButtonText={isReasonConfirmed ? translate('reportCardLostOrDamaged.deactivateCardButton') : translate('reportCardLostOrDamaged.nextButtonLabel')}
                 style={styles.flexGrow1}
-                submitButtonStyle={styles.ph5}
+                buttonStyles={[styles.ph5]}
             >
                 {isReasonConfirmed ? (
                     <>

@@ -83,7 +83,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     /** Custom styles for submit button */
-    submitButtonStyle: stylePropTypes,
+    buttonStyles: stylePropTypes,
 
     ...withLocalizePropTypes,
 };
@@ -102,7 +102,7 @@ const defaultProps = {
     footerContent: null,
     style: [],
     validate: () => ({}),
-    submitButtonStyle: {},
+    buttonStyles: [],
 };
 
 function Form(props) {
@@ -455,7 +455,7 @@ function Form(props) {
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
                         disablePressOnEnters
-                        submitButtonStyle={props.submitButtonStyle}
+                        buttonStyles={props.buttonStyles}
                     />
                 )}
             </FormSubmit>
@@ -469,7 +469,7 @@ function Form(props) {
             props.footerContent,
             props.enabledWhenOffline,
             props.isSubmitActionDangerous,
-            props.submitButtonStyle,
+            props.buttonStyles,
             submit,
             childrenWrapperWithProps,
             children,
