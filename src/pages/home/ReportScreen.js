@@ -302,7 +302,8 @@ function ReportScreen({
         ComposerActions.setShouldShowComposeInput(true);
     }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID]);
 
-    const isReportAvailable = useMemo(
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(
         () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading) || shouldHideReport,
         [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete],
     );
@@ -320,7 +321,7 @@ function ReportScreen({
                 shouldDisableFocusTrap
             >
                 <FullPageNotFoundView
-                    shouldShow={isReportAvailable}
+                    shouldShow={shouldShowNotFoundPage}
                     subtitleKey="notFound.noAccess"
                     shouldShowCloseButton={false}
                     shouldShowBackButton={isSmallScreenWidth}
