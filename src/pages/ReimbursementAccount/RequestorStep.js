@@ -17,11 +17,10 @@ import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
 import useLocalize from '../../hooks/useLocalize';
-
-const {reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField} = StepPropTypes;
+import {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
-    ...{reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField},
+    ..._.omit(StepPropTypes, _.keys(withLocalizePropTypes)),
 
     /** If we should show Onfido flow */
     shouldShowOnfido: PropTypes.bool.isRequired,
