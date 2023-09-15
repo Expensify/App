@@ -43,6 +43,8 @@ const server = http.createServer((request, response) => {
     } else if (request.url.startsWith(proxyConfig.STAGING)) {
         hostname = stagingHost;
         requestPath = request.url.replace(proxyConfig.STAGING, '/');
+    } else if (request.url === '/oldDot') {
+        requestPath = '';
     }
 
     const proxyRequest = https.request({
@@ -63,8 +65,8 @@ const server = http.createServer((request, response) => {
         let existingCSP = proxyResponse.headers['content-security-policy'];
 
         // Append newDot staging and development URLs in the frame-ancestors CSP headers to allow the oldDot to be embedded in the Expensify App
-        existingCSP += ' https://staging.new.expensify.com http://localhost:8082';
-
+        existingCSP += ' http://localhost:8082';
+        
         // Update the CSP header in the response
         // eslint-disable-next-line no-param-reassign
         proxyResponse.headers['content-security-policy'] = existingCSP;
