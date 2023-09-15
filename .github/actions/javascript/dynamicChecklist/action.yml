@@ -1,9 +1,0 @@
-name: 'Generate dynamic checklist'
-description: 'Generate a dynamic PR checklist depending on the contents of the PR'
-inputs:
-  GITHUB_TOKEN:
-    description: Auth token for New Expensify Github
-    required: true
-runs:
-  using: 'node16'
-  main: './index.js'
