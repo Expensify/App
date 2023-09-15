@@ -2887,7 +2887,7 @@ const styles = (theme) => ({
         left: 0,
         right: 0,
         opacity: variables.overlayOpacity,
-        backgroundColor: themeColors.overlay,
+        backgroundColor: defaultTheme.overlay,
     },
 
     fullscreenCard: {
