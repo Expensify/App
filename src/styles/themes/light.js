@@ -1,6 +1,5 @@
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
-import ROUTES from '../../ROUTES';
 
 const lightTheme = {
     // Figma keys
