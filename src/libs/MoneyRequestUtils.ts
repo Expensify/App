@@ -4,14 +4,14 @@ import CONST from '../CONST';
 /**
  * Strip comma from the amount
  */
-function stripCommaFromAmount(amount: string) {
+function stripCommaFromAmount(amount: string): string {
     return amount.replace(/,/g, '');
 }
 
 /**
  * Strip spaces from the amount
  */
-function stripSpacesFromAmount(amount: string) {
+function stripSpacesFromAmount(amount: string): string {
     return amount.replace(/\s+/g, '');
 }
 
@@ -20,14 +20,14 @@ function stripSpacesFromAmount(amount: string) {
  *
  * @param amount - Changed amount from user input
  */
-function addLeadingZero(amount: string) {
+function addLeadingZero(amount: string): string {
     return amount === '.' ? '0.' : amount;
 }
 
 /**
  * Calculate the length of the amount with leading zeroes
  */
-function calculateAmountLength(amount: string) {
+function calculateAmountLength(amount: string): number {
     const leadingZeroes = amount.match(/^0+/);
     const leadingZeroesLength = leadingZeroes?.[0]?.length ?? 0;
     const absAmount = parseFloat((Number(stripCommaFromAmount(amount)) * 100).toFixed(2)).toString();
@@ -42,7 +42,7 @@ function calculateAmountLength(amount: string) {
 /**
  * Check if amount is a decimal up to 3 digits
  */
-function validateAmount(amount: string) {
+function validateAmount(amount: string): boolean {
     const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
     return amount === '' || (decimalNumberRegex.test(amount) && calculateAmountLength(amount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
 }
@@ -51,7 +51,7 @@ function validateAmount(amount: string) {
  * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
  * the original character will be preserved.
  */
-function replaceAllDigits(text: string, convertFn: (char: string) => string) {
+function replaceAllDigits(text: string, convertFn: (char: string) => string): string {
     return text
         .split('')
         .map((char) => {
@@ -67,7 +67,7 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string) {
 /**
  * Check if distance request or not
  */
-function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, selectedTab: ValueOf<typeof CONST.TAB>) {
+function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, selectedTab: ValueOf<typeof CONST.TAB>): boolean {
     return iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && selectedTab === CONST.TAB.DISTANCE;
 }
 
