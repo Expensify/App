@@ -120,7 +120,7 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
         [translate],
     );
 
-    if (shouldShowOnfido)
+    if (shouldShowOnfido) {
         return (
             <RequestorOnfidoStep
                 reimbursementAccount={reimbursementAccount}
@@ -129,6 +129,7 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
                 getDefaultStateForField={getDefaultStateForField}
             />
         );
+    }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
