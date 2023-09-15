@@ -1,6 +1,7 @@
 import {Linking} from 'react-native';
+import AsyncOpenURL from './types';
 
-export default function asyncOpenURL(promise, url) {
+const asyncOpenURL: AsyncOpenURL = (promise, url) => {
     if (!url) {
         return;
     }
@@ -8,4 +9,6 @@ export default function asyncOpenURL(promise, url) {
     promise.then((params) => {
         Linking.openURL(typeof url === 'string' ? url : url(params));
     });
-}
+};
+
+export default asyncOpenURL;

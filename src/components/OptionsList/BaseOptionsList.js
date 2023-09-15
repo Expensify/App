@@ -236,7 +236,7 @@ function BaseOptionsList({
     return (
         <View style={listContainerStyles}>
             {isLoading ? (
-                <OptionsListSkeletonView />
+                <OptionsListSkeletonView shouldAnimate />
             ) : (
                 <>
                     {headerMessage ? (

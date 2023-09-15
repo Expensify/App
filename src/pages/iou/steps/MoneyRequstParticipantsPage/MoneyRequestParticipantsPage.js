@@ -10,14 +10,13 @@ import ROUTES from '../../../../ROUTES';
 import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
 import styles from '../../../../styles/styles';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Navigation from '../../../../libs/Navigation/Navigation';
-import compose from '../../../../libs/compose';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as IOU from '../../../../libs/actions/IOU';
 import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import {iouPropTypes, iouDefaultProps} from '../../propTypes';
+import useLocalize from '../../../../hooks/useLocalize';
 
 const propTypes = {
     /** React Navigation route */
@@ -37,16 +36,16 @@ const propTypes = {
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     iou: iouDefaultProps,
 };
 
-function MoneyRequestParticipantsPage({iou, selectedTab, translate, route}) {
+function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
+    const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
+    const isNewReportIDSelectedLocally = useRef(false);
     const optionsSelectorRef = useRef();
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
@@ -76,7 +75,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, translate, route}) {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing
-            if (iou.id && !isDistanceRequest && !isSplitRequest) {
+            if (iou.id && !isDistanceRequest && !isSplitRequest && !isNewReportIDSelectedLocally.current) {
                 navigateBack(true);
             }
             return;
@@ -84,7 +83,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, translate, route}) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = iou.id !== moneyRequestId;
+        const shouldReset = iou.id !== moneyRequestId && !isNewReportIDSelectedLocally.current;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
@@ -110,6 +109,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, translate, route}) {
                         onBackButtonPress={navigateBack}
                     />
                     <MoneyRequestParticipantsSelector
+                        ref={(el) => (optionsSelectorRef.current = el)}
                         participants={iou.participants}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToNextStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)}
@@ -128,12 +128,11 @@ MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-        selectedTab: {
-            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
-        },
-    }),
-)(MoneyRequestParticipantsPage);
+export default withOnyx({
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+    },
+})(MoneyRequestParticipantsPage);
