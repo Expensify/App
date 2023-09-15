@@ -300,7 +300,7 @@ function AddressSearch(props) {
                     query={query}
                     requestUrl={{
                         useOnPlatform: 'all',
-                        url: ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
+                        url: props.network.isOffline ? null : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
                     }}
                     textInputProps={{
                         InputComp: TextInput,
