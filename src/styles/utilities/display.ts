@@ -33,4 +33,9 @@ export default {
         // NOTE: asserting "display" to a valid type, because isn't possible to augment "display".
         display: 'block' as ViewStyle['display'],
     },
+
+    dGrid: {
+        // NOTE: asserting "display" to a valid type, because isn't possible to augment "display".
+        display: 'grid' as ViewStyle['display'],
+    },
 } satisfies Record<string, ViewStyle>;

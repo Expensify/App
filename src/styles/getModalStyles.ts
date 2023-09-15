@@ -7,9 +7,11 @@ import themeColors from './themes/default';
 import variables from './variables';
 
 function getCenteredModalStyles(windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
+    const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall);
+
     return {
-        borderWidth: styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall).borderWidth,
-        width: isSmallScreenWidth ? '100%' : windowWidth - styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall).marginHorizontal * 2,
+        borderWidth: modalStyles.borderWidth,
+        width: isSmallScreenWidth ? '100%' : windowWidth - modalStyles.marginHorizontal * 2,
     };
 }
 
