@@ -1510,6 +1510,7 @@ export default {
             reopened: 'reopened task',
             error: 'You do not have the permission to do the requested action.',
         },
+        createdTask: ({title}: {title: string}) => `Created a task: ${title}`,
         markAsDone: 'Mark as done',
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',

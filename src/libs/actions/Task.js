@@ -898,9 +898,14 @@ function clearEditTaskErrors(reportID) {
 /**
  * @param {string} actionName
  * @param {string} reportID
+ * @param {boolean} isCreateTaskAction
  * @returns {string}
  */
-function getTaskReportActionMessage(actionName, reportID) {
+function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
+    const report = ReportUtils.getReport(reportID);
+    if (isCreateTaskAction) {
+        return Localize.translateLocal('task.createdTask', {title: report.reportName});
+    }
     let taskStatusText = '';
     switch (actionName) {
         case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
@@ -916,7 +921,7 @@ function getTaskReportActionMessage(actionName, reportID) {
             taskStatusText = Localize.translateLocal('task.task');
     }
 
-    return `${taskStatusText} ${ReportUtils.getReport(reportID).reportName}`;
+    return `${taskStatusText} ${report.reportName}`;
 }
 
 export {
