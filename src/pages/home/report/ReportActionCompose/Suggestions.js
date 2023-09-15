@@ -116,7 +116,6 @@ function Suggestions({
                 ref={suggestionEmojiRef}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
-                selection={selection}
                 onInsertedEmoji={onInsertedEmoji}
                 resetKeyboardInput={resetKeyboardInput}
             />
