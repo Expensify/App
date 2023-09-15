@@ -20,6 +20,8 @@ import styles from '../../../../styles/styles';
 import compose from '../../../../libs/compose';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
+import SCREENS from '../../../../SCREENS';
+
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -75,7 +77,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 />
             }
             headerContainerStyles={[styles.staticHeaderImage]}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.SETTINGS_STATUS]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS_STATUS]}
             footer={footerComponent}
         >
             <View style={styles.m5}>

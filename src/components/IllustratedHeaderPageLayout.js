@@ -47,7 +47,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                     {overlayContent && overlayContent()}
                 </>
             }
-            headerContainerStyles={[styles.justifyContentCenter]}
+            headerContainerStyles={[styles.justifyContentCenter, styles.w100]}
             footer={footer}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToPassToHeader}

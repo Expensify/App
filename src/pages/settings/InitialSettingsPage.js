@@ -380,8 +380,6 @@ function InitialSettingsPage(props) {
     return (
         <HeaderPageLayout
             title={translate('common.settings')}
-            shouldShowCloseButton
-            shouldShowBackButton={false}
             headerContent={headerContent}
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}

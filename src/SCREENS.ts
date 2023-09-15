@@ -17,6 +17,7 @@ export default {
         WORKSPACES: 'Settings_Workspaces',
         SECURITY: 'Settings_Security',
     },
+    SETTINGS_STATUS: 'Settings_Status',
     SAVE_THE_WORLD: 'SaveTheWorld_Root',
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',

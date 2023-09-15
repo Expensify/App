@@ -91,7 +91,7 @@ darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.SAVE_THE_WORLD]: colors.tangerine800,
     [SCREENS.SETTINGS.SECURITY]: colors.ice500,
     [SCREENS.SETTINGS.ROOT]: darkTheme.sidebar,
-    [ROUTES.SETTINGS_STATUS]: colors.green700,
+    [SCREENS.SETTINGS_STATUS]: colors.green700,
 };
 
 export default darkTheme;
