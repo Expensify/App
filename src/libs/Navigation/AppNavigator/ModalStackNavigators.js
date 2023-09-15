@@ -516,7 +516,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsSecurityPage = require('../../../pages/settings/Security/SecuritySettingsPage').default;
             return SettingsSecurityPage;
         },
-        name: 'Settings_Security',
+        name: SCREENS.SETTINGS.SECURITY,
     },
     {
         getComponent: () => {

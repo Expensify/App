@@ -88,8 +88,8 @@ darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: darkTheme.sidebar,
     [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
     [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
+    [SCREENS.SETTINGS.SECURITY]: colors.ice500,
     [ROUTES.I_KNOW_A_TEACHER]: colors.tangerine800,
-    [ROUTES.SETTINGS_SECURITY]: colors.ice500,
 };
 
 export default darkTheme;

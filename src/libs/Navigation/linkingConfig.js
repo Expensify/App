@@ -65,7 +65,7 @@ export default {
                                 path: ROUTES.SETTINGS_CLOSE,
                                 exact: true,
                             },
-                            Settings_Security: {
+                            [SCREENS.SETTINGS.SECURITY]: {
                                 path: ROUTES.SETTINGS_SECURITY,
                                 exact: true,
                             },
