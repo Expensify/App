@@ -46,6 +46,7 @@ module.exports = {
                         touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
                     },
                 ],
+                curly: 'error',
             },
         },
         {

@@ -100,7 +100,9 @@ function Expensify(props) {
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
 
     useEffect(() => {
-        if (props.isCheckingPublicRoom) return;
+        if (props.isCheckingPublicRoom) {
+            return;
+        }
         setAttemptedToOpenPublicRoom(true);
     }, [props.isCheckingPublicRoom]);
 

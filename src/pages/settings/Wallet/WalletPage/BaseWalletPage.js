@@ -74,7 +74,9 @@ function BaseWalletPage(props) {
      * @param {Object} position
      */
     const setMenuPosition = useCallback(() => {
-        if (!paymentMethodButtonRef.current) return;
+        if (!paymentMethodButtonRef.current) {
+            return;
+        }
 
         const position = getClickedTargetLocation(paymentMethodButtonRef.current);
 

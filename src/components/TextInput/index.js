@@ -30,7 +30,9 @@ function TextInput(props) {
         });
 
         return () => {
-            if (!removeVisibilityListenerRef.current) return;
+            if (!removeVisibilityListenerRef.current) {
+                return;
+            }
             removeVisibilityListenerRef.current();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps

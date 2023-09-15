@@ -55,7 +55,9 @@ const successListener = (event) => {
 };
 
 const failureListener = (event) => {
-    if (!event.detail || event.detail.error === 'popup_closed_by_user') return null;
+    if (!event.detail || event.detail.error === 'popup_closed_by_user') {
+        return null;
+    }
     Log.warn(`Apple sign-in failed: ${event.detail}`);
 };
 
@@ -126,7 +128,9 @@ const SingletonAppleSignInButtonWithFocus = withNavigationFocus(SingletonAppleSi
 function AppleSignIn({isDesktopFlow}) {
     const [scriptLoaded, setScriptLoaded] = useState(false);
     useEffect(() => {
-        if (window.appleAuthScriptLoaded) return;
+        if (window.appleAuthScriptLoaded) {
+            return;
+        }
 
         const localeCode = getUserLanguage();
         const script = document.createElement('script');

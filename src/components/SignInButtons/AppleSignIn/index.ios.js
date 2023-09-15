@@ -37,7 +37,9 @@ function AppleSignIn() {
         appleSignInRequest()
             .then((token) => Session.beginAppleSignIn(token))
             .catch((e) => {
-                if (e.code === appleAuth.Error.CANCELED) return null;
+                if (e.code === appleAuth.Error.CANCELED) {
+                    return null;
+                }
                 Log.alert('[Apple Sign In] Apple authentication failed', e);
             });
     };
