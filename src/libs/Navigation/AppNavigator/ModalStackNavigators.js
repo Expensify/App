@@ -344,7 +344,7 @@ const NewTeachersUniteNavigator = createModalStackNavigator([
             const SaveTheWorldPage = require('../../../pages/TeachersUnite/SaveTheWorldPage').default;
             return SaveTheWorldPage;
         },
-        name: 'SaveTheWorld_Root',
+        name: SCREENS.SAVE_THE_WORLD.ROOT,
     },
     {
         getComponent: () => {
