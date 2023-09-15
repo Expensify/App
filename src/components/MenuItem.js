@@ -115,7 +115,7 @@ const MenuItem = React.forwardRef((props, ref) => {
             return;
         }
         const parser = new ExpensiMark();
-        setHtml(parser.replace(props.title));
+        setHtml(parser.replace(convertToLTR(props.title)));
         titleRef.current = props.title;
     }, [props.title, props.shouldParseTitle]);
 
