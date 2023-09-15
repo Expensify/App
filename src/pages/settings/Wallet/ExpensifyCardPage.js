@@ -41,10 +41,12 @@ function ExpensifyCardPage({
 }) {
     const {translate} = useLocalize();
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
-    const virtualCard = _.find(domainCards, (card) => card.isVirtual);
-    const physicalCard = _.find(domainCards, (card) => !card.isVirtual);
+    const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
+    const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
 
-    const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend);
+    const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
+
+    const virtualMaskedPan = virtualCard.maskedPan || '';
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -67,7 +69,7 @@ function ExpensifyCardPage({
                         />
                         <MenuItemWithTopDescription
                             description={translate('cardPage.virtualCardNumber')}
-                            title={virtualCard.maskedPan}
+                            title={virtualMaskedPan}
                             interactive={false}
                             titleStyle={styles.walletCardNumber}
                         />
