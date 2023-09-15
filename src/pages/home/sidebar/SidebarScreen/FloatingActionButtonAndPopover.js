@@ -5,7 +5,6 @@ import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
-import * as Browser from '../../../../libs/Browser';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import NAVIGATORS from '../../../../NAVIGATORS';
