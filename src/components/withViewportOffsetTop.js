@@ -24,7 +24,7 @@ export default function (WrappedComponent) {
                 const targetOffsetTop = lodashGet(e, 'target.offsetTop', 0);
                 setViewportOffsetTop(targetOffsetTop);
             };
-            
+
             const removeViewportResizeListener = addViewportResizeListener(updateDimensions);
 
             return () => {
