@@ -307,6 +307,7 @@ function WorkspaceMembersPage(props) {
 
             result.push({
                 keyForList: accountID,
+                accountID: Number(accountID),
                 isSelected: _.contains(selectedEmployees, Number(accountID)),
                 isDisabled: accountID === props.session.accountID || details.login === props.policy.owner || policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 text: props.formatPhoneNumber(details.displayName),
