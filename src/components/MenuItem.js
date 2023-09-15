@@ -235,19 +235,16 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {!props.shouldRenderAsHTML &&
-                                                (html.length ? (
-                                                    <RenderHTML html={`<comment>${html}</comment>`} />
-                                                ) : (
-                                                    Boolean(props.title) && (
-                                                        <Text
-                                                            style={titleTextStyle}
-                                                            numberOfLines={props.numberOfLinesTitle || undefined}
-                                                        >
-                                                            {convertToLTR(props.title)}
-                                                        </Text>
-                                                    )
-                                                ))}
+                                            {!props.shouldRenderAsHTML && Boolean(html.length) && <RenderHTML html={`<comment>${html}</comment>`} />}
+
+                                            {!props.shouldRenderAsHTML && !Boolean(html.length) && Boolean(props.title) && (
+                                                <Text
+                                                    style={titleTextStyle}
+                                                    numberOfLines={props.numberOfLinesTitle || undefined}
+                                                >
+                                                    {convertToLTR(props.title)}
+                                                </Text>
+                                            )}
 
                                             {Boolean(props.title) && Boolean(props.shouldRenderAsHTML) && <RenderHTML html={convertToLTR(props.title)} />}
 
