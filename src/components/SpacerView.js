@@ -2,6 +2,7 @@ import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
 import * as StyleUtils from '../styles/StyleUtils';
+import CONST from '../CONST';
 
 const propTypes = {
     /**
@@ -21,19 +22,19 @@ const defaultProps = {
     style: [],
 };
 
-function SpacerView({shouldShow, style}) {
-    const marginVertical = useSharedValue(8);
-    const borderBottomWidth = useSharedValue(1);
+function SpacerView({shouldShow = true, style = []}) {
+    const marginVertical = useSharedValue(CONST.HORIZONTAL_SPACER.DEFAULT_MARGIN_VERTICAL);
+    const borderBottomWidth = useSharedValue(CONST.HORIZONTAL_SPACER.DEFAULT_BORDER_BOTTOM_WIDTH);
     const animatedStyles = useAnimatedStyle(() => ({
         marginVertical: marginVertical.value,
         borderBottomWidth: borderBottomWidth.value,
     }));
 
     React.useEffect(() => {
-        const duration = 300;
+        const duration = CONST.ANIMATED_TRANSITION;
         const values = {
-            marginVertical: shouldShow ? 8 : 0,
-            borderBottomWidth: shouldShow ? 1 : 0,
+            marginVertical: shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_MARGIN_VERTICAL : CONST.HORIZONTAL_SPACER.HIDDEN_MARGIN_VERTICAL,
+            borderBottomWidth: shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_BORDER_BOTTOM_WIDTH : CONST.HORIZONTAL_SPACER.HIDDEN_BORDER_BOTTOM_WIDTH,
         };
         marginVertical.value = withTiming(values.marginVertical, {duration});
         borderBottomWidth.value = withTiming(values.borderBottomWidth, {duration});
