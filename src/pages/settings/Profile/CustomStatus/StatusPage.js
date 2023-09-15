@@ -68,7 +68,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         <StaticHeaderPageLayout
             title={localize.translate('statusPage.status')}
             onBackButtonPress={navigateBackToSettingsPage}
-            backgroundColor={themeColors.midtone}
+            backgroundColor={themeColors.border}
             image={MobileBackgroundImage}
             footer={footerComponent}
         >
