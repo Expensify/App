@@ -74,7 +74,7 @@ async function generateChecklist() {
     let isPassing = true;
     for (const check of checks) {
         // Check if it's already in the PR body, capturing the whether or not it's already checked
-        const regex = new RegExp(`- \\[[( x)]] ${check}`);
+        const regex = new RegExp(`- \\[([ x])] ${check}`);
         const match = regex.exec(checklistContent);
         if (!match) {
             // Add it to the PR body
@@ -82,7 +82,7 @@ async function generateChecklist() {
             checklistContent += `\n- [ ] ${check}`;
         }
         // TODO: get result of capture group (isChecked)
-        const isChecked = regex.match[1] === 'x';
+        const isChecked = match[1] === 'x';
         if (!isChecked) {
             isPassing = false;
         }
