@@ -37,6 +37,10 @@ import ReportScreenContext from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
+import withCurrentReportID, {
+    withCurrentReportIDPropTypes,
+    withCurrentReportIDDefaultProps
+} from '../../components/withCurrentReportID';
 import {ReportActionListFrozenScrollContextProvider} from "./report/ReportActionListFrozenScrollContext";
 
 const propTypes = {
@@ -89,6 +93,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
+    ...withCurrentReportIDPropTypes,
 };
 
 const defaultProps = {
@@ -103,6 +108,7 @@ const defaultProps = {
     policies: {},
     accountManagerReportID: null,
     personalDetails: {},
+    ...withCurrentReportIDDefaultProps,
 };
 
 /**
@@ -132,6 +138,7 @@ function ReportScreen({
                           viewportOffsetTop,
                           isComposerFullSize,
                           errors,
+                          currentReportID,
                       }) {
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
@@ -161,7 +168,7 @@ function ReportScreen({
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
-    const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(route);
+    const isTopMostReportId = currentReportID === getReportID(route);
 
     let headerView = (
         <HeaderView
@@ -247,9 +254,10 @@ function ReportScreen({
 
     useEffect(() => {
         const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            const isTopMostReportID = Navigation.getTopmostReportId() === getReportID(route);
             // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
             // we don't need to call openReport
-            if (!getIsReportFullyVisible(isTopMostReportId) || report.isOptimisticReport) {
+            if (!getIsReportFullyVisible(isTopMostReportID) || report.isOptimisticReport) {
                 return;
             }
 
@@ -299,6 +307,7 @@ function ReportScreen({
                 <ScreenWrapper
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
+                    shouldDisableFocusTrap
                 >
                     <FullPageNotFoundView
                         shouldShow={(!report.reportID && !report.isLoadingReportActions && !isLoading) || shouldHideReport}
@@ -403,6 +412,7 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withNetwork(),
+    withCurrentReportID,
     withOnyx({
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,

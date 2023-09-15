@@ -86,6 +86,7 @@ function TooltipRenderedOnPageBody(props) {
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             getTooltipStyles(
+                rootWrapper.current,
                 props.animation,
                 props.windowWidth,
                 props.xOffset,
@@ -97,7 +98,6 @@ function TooltipRenderedOnPageBody(props) {
                 wrapperMeasuredHeight,
                 props.shiftHorizontal,
                 props.shiftVertical,
-                rootWrapper.current,
             ),
         [
             props.animation,
