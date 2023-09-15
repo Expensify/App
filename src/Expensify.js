@@ -193,7 +193,6 @@ function Expensify(props) {
         <DeeplinkWrapper isAuthenticated={isAuthenticated}>
             {shouldInit && (
                 <>
-                    <DownloadAppModal isAuthenticated={isAuthenticated} />
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
