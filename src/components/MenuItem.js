@@ -36,6 +36,7 @@ const defaultProps = {
     shouldShowBasicTitle: false,
     shouldShowDescriptionOnTop: false,
     shouldShowHeaderTitle: false,
+    shouldParseTitle: false,
     wrapperStyle: [],
     style: styles.popoverMenuItem,
     titleStyle: {},
