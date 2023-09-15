@@ -760,6 +760,30 @@ const EditRequestStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const PrivateNotesModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const PrivateNotesPage = require('../../../pages/PrivateNotes/PrivateNotesViewPage').default;
+            return PrivateNotesPage;
+        },
+        name: 'PrivateNotes_View',
+    },
+    {
+        getComponent: () => {
+            const PrivateNotesListPage = require('../../../pages/PrivateNotes/PrivateNotesListPage').default;
+            return PrivateNotesListPage;
+        },
+        name: 'PrivateNotes_List',
+    },
+    {
+        getComponent: () => {
+            const PrivateNotesEditPage = require('../../../pages/PrivateNotes/PrivateNotesEditPage').default;
+            return PrivateNotesEditPage;
+        },
+        name: 'PrivateNotes_Edit',
+    },
+]);
+
 const SignInModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -790,6 +814,7 @@ export {
     WalletStatementStackNavigator,
     FlagCommentStackNavigator,
     EditRequestStackNavigator,
+    PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
     SignInModalStackNavigator,
 };

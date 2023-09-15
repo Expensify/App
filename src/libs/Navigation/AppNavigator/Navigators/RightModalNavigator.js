@@ -108,6 +108,10 @@ function RightModalNavigator(props) {
                         name="SignIn"
                         component={ModalStackNavigators.SignInModalStackNavigator}
                     />
+                    <Stack.Screen
+                        name="Private_Notes"
+                        component={ModalStackNavigators.PrivateNotesModalStackNavigator}
+                    />
                 </Stack.Navigator>
             </View>
         </NoDropZone>
