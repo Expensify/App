@@ -280,21 +280,11 @@ const SearchModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
-const NewGroupModalStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const NewGroupPage = require('../../../pages/NewGroupPage').default;
-            return NewGroupPage;
-        },
-        name: 'NewGroup_Root',
-    },
-]);
-
 const NewChatModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
-            const NewChatPage = require('../../../pages/NewChatPage').default;
-            return NewChatPage;
+            const NewChatSelectorPage = require('../../../pages/NewChatSelectorPage').default;
+            return NewChatSelectorPage;
         },
         name: 'NewChat_Root',
     },
@@ -688,13 +678,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const WorkspaceNewRoomPage = require('../../../pages/workspace/WorkspaceNewRoomPage').default;
-            return WorkspaceNewRoomPage;
-        },
-        name: 'Workspace_NewRoom',
-    },
-    {
-        getComponent: () => {
             const ReimbursementAccountPage = require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default;
             return ReimbursementAccountPage;
         },
@@ -784,6 +767,30 @@ const EditRequestStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const PrivateNotesModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const PrivateNotesPage = require('../../../pages/PrivateNotes/PrivateNotesViewPage').default;
+            return PrivateNotesPage;
+        },
+        name: 'PrivateNotes_View',
+    },
+    {
+        getComponent: () => {
+            const PrivateNotesListPage = require('../../../pages/PrivateNotes/PrivateNotesListPage').default;
+            return PrivateNotesListPage;
+        },
+        name: 'PrivateNotes_List',
+    },
+    {
+        getComponent: () => {
+            const PrivateNotesEditPage = require('../../../pages/PrivateNotes/PrivateNotesEditPage').default;
+            return PrivateNotesEditPage;
+        },
+        name: 'PrivateNotes_Edit',
+    },
+]);
+
 const SignInModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -805,7 +812,6 @@ export {
     ReportWelcomeMessageModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
-    NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     NewTaskModalStackNavigator,
     SettingsModalStackNavigator,
@@ -815,6 +821,7 @@ export {
     WalletStatementStackNavigator,
     FlagCommentStackNavigator,
     EditRequestStackNavigator,
+    PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
     SignInModalStackNavigator,
 };

@@ -1,12 +1,12 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
-import MoneyRequestParticipantsSplitSelector from './MoneyRequestParticipantsSplitSelector';
 import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
 import styles from '../../../../styles/styles';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
@@ -42,31 +42,29 @@ const defaultProps = {
     iou: iouDefaultProps,
 };
 
-function MoneyRequestParticipantsPage(props) {
+function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const {translate} = useLocalize();
-    const prevMoneyRequestId = useRef(props.iou.id);
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const prevMoneyRequestId = useRef(iou.id);
     const isNewReportIDSelectedLocally = useRef(false);
     const optionsSelectorRef = useRef();
-    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
+    const iouType = useRef(lodashGet(route, 'params.iouType', ''));
+    const reportID = useRef(lodashGet(route, 'params.reportID', ''));
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, selectedTab);
+    const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
+    const [headerTitle, setHeaderTitle] = useState();
 
-    const splitNavigateToNextStep = () => {
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
-    };
-
-    const moneyRequestNavigateToNextStep = (option) => {
-        isNewReportIDSelectedLocally.current = true;
-
-        if (!option.reportID) {
-            IOU.setMoneyRequestId(iouType.current);
-            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
-
+    useEffect(() => {
+        if (isDistanceRequest) {
+            setHeaderTitle(translate('common.distance'));
             return;
         }
 
-        IOU.setMoneyRequestId(`${iouType.current}${option.reportID}`);
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, option.reportID));
+        setHeaderTitle(_.isEmpty(iou.participants) ? translate('tabSelector.manual') : translate('iou.split'));
+    }, [iou.participants, isDistanceRequest, translate]);
+
+    const navigateToNextStep = (moneyRequestType) => {
+        IOU.setMoneyRequestId(moneyRequestType);
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(moneyRequestType, reportID.current));
     };
 
     const navigateBack = (forceFallback = false) => {
@@ -75,9 +73,9 @@ function MoneyRequestParticipantsPage(props) {
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (prevMoneyRequestId.current !== props.iou.id) {
+        if (prevMoneyRequestId.current !== iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing
-            if (!isNewReportIDSelectedLocally.current && !isDistanceRequest && props.iou.id) {
+            if (iou.id && !isDistanceRequest && !isSplitRequest && !isNewReportIDSelectedLocally.current) {
                 navigateBack(true);
             }
             return;
@@ -85,18 +83,18 @@ function MoneyRequestParticipantsPage(props) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestId && !isNewReportIDSelectedLocally.current;
+        const shouldReset = iou.id !== moneyRequestId && !isNewReportIDSelectedLocally.current;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
-        if (!isDistanceRequest && ((props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset)) {
+        if (!isDistanceRequest && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
             navigateBack(true);
         }
 
         return () => {
-            prevMoneyRequestId.current = props.iou.id;
+            prevMoneyRequestId.current = iou.id;
         };
-    }, [props.iou.amount, props.iou.id, props.iou.receiptPath, isDistanceRequest]);
+    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest]);
 
     return (
         <ScreenWrapper
@@ -107,26 +105,19 @@ function MoneyRequestParticipantsPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
-                        title={isDistanceRequest ? translate('common.distance') : translate('iou.cash')}
+                        title={headerTitle}
                         onBackButtonPress={navigateBack}
                     />
-                    {iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
-                        <MoneyRequestParticipantsSplitSelector
-                            onStepComplete={splitNavigateToNextStep}
-                            participants={props.iou.participants}
-                            onAddParticipants={IOU.setMoneyRequestParticipants}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                        />
-                    ) : (
-                        <MoneyRequestParticipantsSelector
-                            ref={(el) => (optionsSelectorRef.current = el)}
-                            onStepComplete={moneyRequestNavigateToNextStep}
-                            onAddParticipants={IOU.setMoneyRequestParticipants}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            iouType={iouType.current}
-                            isDistanceRequest={isDistanceRequest}
-                        />
-                    )}
+                    <MoneyRequestParticipantsSelector
+                        ref={(el) => (optionsSelectorRef.current = el)}
+                        participants={iou.participants}
+                        onAddParticipants={IOU.setMoneyRequestParticipants}
+                        navigateToRequest={() => navigateToNextStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)}
+                        navigateToSplit={() => navigateToNextStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
+                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                        iouType={iouType.current}
+                        isDistanceRequest={isDistanceRequest}
+                    />
                 </View>
             )}
         </ScreenWrapper>
