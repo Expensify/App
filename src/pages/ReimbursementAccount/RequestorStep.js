@@ -150,14 +150,14 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
                         // eslint-disable-next-line max-len
                         href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
                     >
-                        {`${translate('requestorStep.learnMore')}`}
+                        {translate('requestorStep.learnMore')}
                     </TextLink>
                     <Text style={STYLES.LearnMoreSeparator}>{' | '}</Text>
                     <TextLink
                         style={STYLES.DataSafeLink}
                         href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
                     >
-                        {`${translate('requestorStep.isMyDataSafe')}`}
+                        {translate('requestorStep.isMyDataSafe')}
                     </TextLink>
                 </View>
                 <IdentityForm
