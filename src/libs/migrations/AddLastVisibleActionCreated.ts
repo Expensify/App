@@ -13,8 +13,11 @@ export default function (): Promise<void> {
             callback: (allReports) => {
                 Onyx.disconnect(connectionID);
                 const reportsToUpdate: Record<string, Report> = {};
-                (allReports as Report[]).forEach((report, key) => {
-                    if (report.lastVisibleActionCreated) {
+                if (!allReports) {
+                    return resolve()
+                }
+                Object.keys(allReports as Record<string, Report>).forEach(( key) => {
+                    if (allReports[key].lastVisibleActionCreated) {
                         return resolve();
                     }
 
@@ -24,11 +27,11 @@ export default function (): Promise<void> {
                         return resolve();
                     }
 
-                    reportsToUpdate[key] = report;
+                    reportsToUpdate[key] = allReports[key];
                     // `lastActionCreated` isn't included in types because it was deleted and migration moves data from that field to `lastVisibleActionCreated`
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-expect-error
-                    reportsToUpdate[key].lastVisibleActionCreated = report.lastActionCreated;
+                    reportsToUpdate[key].lastVisibleActionCreated = allReports[key].lastActionCreated;
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-expect-error
                     reportsToUpdate[key].lastActionCreated = null;
