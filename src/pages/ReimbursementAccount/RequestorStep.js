@@ -205,5 +205,6 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
 const RequestorStep = React.forwardRef(InnerRequestorStep);
 
 RequestorStep.propTypes = propTypes;
+RequestorStep.displayName = 'RequestorStep';
 
 export default withLocalize(RequestorStep);
