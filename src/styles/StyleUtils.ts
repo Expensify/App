@@ -3,7 +3,6 @@ import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
 import * as Browser from '../libs/Browser';
-import * as NumberUtils from '../libs/NumberUtils';
 import * as UserUtils from '../libs/UserUtils';
 import colors from './colors';
 import fontFamily from './fontFamily';
@@ -573,36 +572,6 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
 }
 
 /**
- * Get the random promo color and image for Login page
- */
-function getLoginPagePromoStyle(): ViewStyle {
-    const promos = [
-        {
-            backgroundColor: colors.green,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg`,
-        },
-        {
-            backgroundColor: colors.orange,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg`,
-        },
-        {
-            backgroundColor: colors.pink,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg`,
-        },
-        {
-            backgroundColor: colors.blue,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg`,
-        },
-        {
-            backgroundColor: colors.ivory,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/cpa-card.svg`,
-            redirectUri: `${CONST.USE_EXPENSIFY_URL}/accountants`,
-        },
-    ];
-    return promos[NumberUtils.generateRandomInt(0, 4)];
-}
-
-/**
  * Generate the styles for the ReportActionItem wrapper view.
  */
 function getReportActionItemStyle(isHovered = false, isLoading = false): ViewStyle {
@@ -614,7 +583,7 @@ function getReportActionItemStyle(isHovered = false, isLoading = false): ViewSty
         backgroundColor: isHovered
             ? themeColors.hoverComponentBG
             : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
-              colors.transparent,
+              themeColors.transparent,
         opacity: isLoading ? 0.5 : 1,
         ...styles.cursorInitial,
     };
@@ -993,7 +962,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number, shouldIncl
  * Select the correct color for text.
  */
 function getColoredBackgroundStyle(isColored: boolean): ViewStyle {
-    return {backgroundColor: isColored ? colors.blueLink : undefined};
+    return {backgroundColor: isColored ? themeColors.link : undefined};
 }
 
 function getEmojiReactionBubbleStyle(isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): ViewStyle {
@@ -1041,7 +1010,7 @@ function getEmojiReactionCounterTextStyle(hasUserReacted: boolean): TextStyle {
         return {color: themeColors.reactionActiveText};
     }
 
-    return {color: themeColors.textLight};
+    return {color: themeColors.text};
 }
 
 /**
@@ -1298,7 +1267,6 @@ export {
     getIconFillColor,
     getKeyboardShortcutsModalWidth,
     getLineHeightStyle,
-    getLoginPagePromoStyle,
     getMaximumHeight,
     getMaximumWidth,
     getMentionStyle,

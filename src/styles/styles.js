@@ -26,7 +26,6 @@ import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
-import Colors from './colors';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
@@ -815,8 +814,8 @@ const styles = (theme) => ({
         borderRadius: 28,
         borderStyle: 'solid',
         borderWidth: 8,
-        backgroundColor: Colors.greenHighlightBackground,
-        borderColor: Colors.greenAppBackground,
+        backgroundColor: theme.highlightBG,
+        borderColor: theme.appBG,
     },
 
     permissionView: {
@@ -1550,7 +1549,7 @@ const styles = (theme) => ({
         top: 0,
         bottom: 0,
         right: 0,
-        backgroundColor: Colors.black,
+        backgroundColor: theme.shadow,
         opacity: current.progress.interpolate({
             inputRange: [0, 1],
             outputRange: [0, variables.overlayOpacity],
@@ -3429,7 +3428,7 @@ const styles = (theme) => ({
     },
 
     fontColorReactionLabel: {
-        color: '#586A64',
+        color: theme.tooltipSupportingText,
     },
 
     reactionEmojiTitle: {
@@ -3438,7 +3437,7 @@ const styles = (theme) => ({
     },
 
     textReactionSenders: {
-        color: theme.dark,
+        color: theme.tooltipPrimaryText,
         ...wordBreak.breakWord,
     },
 
@@ -3931,19 +3930,31 @@ const styles = (theme) => ({
         overflow: 'hidden',
     },
 
+    mapViewOverlay: {
+        flex: 1,
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        borderRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
+        backgroundColor: theme.highlightBG,
+        ...sizing.w100,
+        ...sizing.h100,
+    },
+
     confirmationListMapItem: {
         ...spacing.m5,
         height: 200,
     },
 
     mapDirection: {
-        lineColor: Colors.green,
+        lineColor: theme.success,
         lineWidth: 7,
     },
 
     mapDirectionLayer: {
         layout: {'line-join': 'round', 'line-cap': 'round'},
-        paint: {'line-color': Colors.green, 'line-width': 7},
+        paint: {'line-color': theme.success, 'line-width': 7},
     },
 
     mapPendingView: {

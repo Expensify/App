@@ -1,5 +1,4 @@
 import {TextStyle, View, ViewStyle} from 'react-native';
-import colors from './colors';
 import fontFamily from './fontFamily';
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 import styles from './styles';
@@ -268,13 +267,13 @@ export default function getTooltipStyles(
         pointerStyle: {
             width: 0,
             height: 0,
-            backgroundColor: colors.transparent,
+            backgroundColor: themeColors.transparent,
             borderStyle: 'solid',
             borderLeftWidth: POINTER_WIDTH / 2,
             borderRightWidth: POINTER_WIDTH / 2,
             borderTopWidth: POINTER_HEIGHT,
-            borderLeftColor: colors.transparent,
-            borderRightColor: colors.transparent,
+            borderLeftColor: themeColors.transparent,
+            borderRightColor: themeColors.transparent,
             borderTopColor: themeColors.heading,
             ...pointerAdditionalStyle,
         },
