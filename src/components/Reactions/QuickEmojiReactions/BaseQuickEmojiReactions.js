@@ -80,7 +80,7 @@ function BaseQuickEmojiReactions(props) {
                 isContextMenu
                 onPressOpenPicker={props.onPressOpenPicker}
                 onWillShowPicker={props.onWillShowPicker}
-                onSelectEmoji={props.onEmojiSelected}
+                onSelectEmoji={(emoji) => props.onEmojiSelected(emoji, props.emojiReactions)}
                 reportAction={props.reportAction}
             />
         </View>
