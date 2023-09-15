@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import Text from './Text';
 import CONST from '../CONST';
@@ -79,7 +80,7 @@ function MentionSuggestions(props) {
                         size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
                         name={item.icons[0].name}
                         type={item.icons[0].type}
-                        fill={styles.success}
+                        fill={themeColors.success}
                     />
                 </View>
                 <Text
