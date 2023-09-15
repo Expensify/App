@@ -3959,6 +3959,9 @@ const styles = (theme) => ({
         height: 30,
         width: '100%',
     },
+    bottomReportLoader: {
+      height: 40,
+    },
 });
 
 // For now we need to export the styles function that takes the theme as an argument

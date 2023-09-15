@@ -1,5 +1,6 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState, useRef, useMemo} from 'react';
+import {ActivityIndicator, View} from 'react-native';
+import PropTypes from 'prop-types';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
@@ -21,6 +22,7 @@ import reportPropTypes from '../../reportPropTypes';
 import useLocalize from '../../../hooks/useLocalize';
 import useNetwork from '../../../hooks/useNetwork';
 import DateUtils from '../../../libs/DateUtils';
+import themeColors from '../../../styles/themes/default';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 
@@ -323,13 +325,6 @@ function ReportActionsList({
 
                         return null;
                     }}
-                    ListHeaderComponent={() => {
-                        if (report.isLoadingOlderReportActions) {
-                            return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
-                        }
-
-                        return null;
-                    }}
                     keyboardShouldPersistTaps="handled"
                     onLayout={(event) => {
                         setSkeletonViewHeight(event.nativeEvent.layout.height);
@@ -339,6 +334,14 @@ function ReportActionsList({
                     extraData={extraData}
                 />
             </Animated.View>
+            {report.isLoadingNewerReportActions ? (
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.bottomReportLoader]}>
+                    <ActivityIndicator
+                        color={themeColors.spinner}
+                        size="small"
+                    />
+                </View>
+            ) : null}
         </>
     );
 }
