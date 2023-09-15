@@ -35,6 +35,7 @@ function BaseSidebarScreen(props) {
             shouldEnableKeyboardAvoidingView={false}
             shouldShowOfflineIndicator={props.shouldShowOfflineIndicator}
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
+            shouldDisableFocusTrap
         >
             {({insets}) => (
                 <>

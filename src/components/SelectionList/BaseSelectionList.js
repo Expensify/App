@@ -12,7 +12,7 @@ import CONST from '../../CONST';
 import variables from '../../styles/variables';
 import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
 import RadioListItem from './RadioListItem';
-import CheckboxListItem from './CheckboxListItem';
+import UserListItem from './UserListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
@@ -242,16 +242,20 @@ function BaseSelectionList({
     };
 
     const renderItem = ({item, index, section}) => {
+        const normalizedIndex = index + lodashGet(section, 'indexOffset', 0);
         const isDisabled = section.isDisabled;
-        const isFocused = !isDisabled && focusedIndex === index + lodashGet(section, 'indexOffset', 0);
+        const isFocused = !isDisabled && focusedIndex === normalizedIndex;
+        // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+        const showTooltip = normalizedIndex < 10;
 
         if (canSelectMultiple) {
             return (
-                <CheckboxListItem
+                <UserListItem
                     item={item}
                     isFocused={isFocused}
                     onSelectRow={() => selectRow(item, index)}
                     onDismissError={onDismissError}
+                    showTooltip={showTooltip}
                 />
             );
         }
@@ -351,7 +355,7 @@ function BaseSelectionList({
                                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         />
                                         <View style={[styles.flex1]}>
-                                            <Text style={[styles.textStrong, styles.ph5]}>{translate('workspace.people.selectAll')}</Text>
+                                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                                         </View>
                                     </PressableWithFeedback>
                                 )}
