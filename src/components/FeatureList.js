@@ -24,7 +24,7 @@ const propTypes = {
 
 const defaultProps = {
     headlineType: 'h1',
-}
+};
 
 function FeatureList({menuItems, headline, headlineType, description}) {
     const {translate} = useLocalize();

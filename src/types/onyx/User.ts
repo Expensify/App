@@ -27,7 +27,7 @@ type User = {
 
         /** Number of lounge check-ins remaining in the current period */
         checkInsRemaining: number;
-    }
+    };
 
     /** error associated with adding a secondary login */
     error?: string;

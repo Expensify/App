@@ -70,7 +70,7 @@ function LoungeAccessPage(props) {
 
     const checkIn = () => {
         Lounge.recordLoungeVisit(props.user.loungeCheckInDetails.checkInsRemaining);
-    }
+    };
 
     const overlayContent = () => (
         <LinearGradient
@@ -112,31 +112,36 @@ function LoungeAccessPage(props) {
                 <Text style={[styles.mb4]}>{translate('loungeAccessPage.address')}</Text>
                 <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('loungeAccessPage.nextCheckInLabel')}</Text>
                 <Text style={[styles.mb4]}>
-                    {props.user.loungeCheckInDetails.isCheckedIn ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn') : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn')}
-                    {' '}
+                    {props.user.loungeCheckInDetails.isCheckedIn
+                        ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn')
+                        : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn')}{' '}
                     <Text style={[styles.textStrong]}>
-                        {NumberFormatUtils.format(props.preferredLocale, props.user.loungeCheckInDetails.checkInsRemaining)}
-                        {' '}
-                        {props.user.loungeCheckInDetails.checkInsRemaining === 1 ? translate('loungeAccessPage.nextCheckInNumberCountSingular') : translate('loungeAccessPage.nextCheckInNumberCountPlural')}
-                    </Text>
-                    {' '}
+                        {NumberFormatUtils.format(props.preferredLocale, props.user.loungeCheckInDetails.checkInsRemaining)}{' '}
+                        {props.user.loungeCheckInDetails.checkInsRemaining === 1
+                            ? translate('loungeAccessPage.nextCheckInNumberCountSingular')
+                            : translate('loungeAccessPage.nextCheckInNumberCountPlural')}
+                    </Text>{' '}
                     {translate('loungeAccessPage.nextCheckInAfterNumber')}
                 </Text>
                 {props.user.loungeCheckInDetails.isCheckedIn ? (
                     <Button
                         style={[styles.buttonSuccessHovered, styles.w100]}
-                        innerStyles={[styles.appBG,styles.alignItemsCenter]}
+                        innerStyles={[styles.appBG, styles.alignItemsCenter]}
                         text={translate('loungeAccessPage.youAreCheckedIn')}
                         icon={Expensicons.Checkmark}
                         iconFill={styles.success}
                     />
                 ) : (
-                    <Button
-                        style={[styles.w100]}
-                        text={translate('loungeAccessPage.checkIn')}
-                        onPress={checkIn}
-                        success
-                    />
+                    <>
+                        {props.user.loungeCheckInDetails.checkInsRemaining > 0 && (
+                            <Button
+                                style={[styles.w100]}
+                                text={translate('loungeAccessPage.checkIn')}
+                                onPress={checkIn}
+                                success
+                            />
+                        )}
+                    </>
                 )}
             </View>
             <FeatureList

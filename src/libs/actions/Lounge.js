@@ -16,12 +16,12 @@ function recordLoungeVisit(checkInsRemaining) {
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.USER,
-                    value: {loungeCheckInDetails: { isCheckedIn: true, checkInsRemaining: checkInsRemaining - 1 }}
+                    value: {loungeCheckInDetails: {isCheckedIn: true, checkInsRemaining: checkInsRemaining - 1}},
                 },
             ],
         },
     );
-};
+}
 
 export {
     // eslint-disable-next-line import/prefer-default-export
