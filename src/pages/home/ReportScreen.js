@@ -247,13 +247,15 @@ function ReportScreen({
 
     useEffect(() => {
         const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+
             const topmostReportId = Navigation.getTopmostReportId()
             if(topmostReportId !== report.reportID) {
                 return;
             }
+
             // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
             // we don't need to call openReport
-            if (!getIsReportFullyVisible(isTopMostReportId) || report.isOptimisticReport) {
+            if (!getIsReportFullyVisible(topmostReportId) || report.isOptimisticReport) {
                 return;
             }
 
