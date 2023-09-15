@@ -13,7 +13,7 @@ function makeXHR(request: Request): Promise<unknown> {
         // If we're using the Supportal token and this is not a Supportal request
         // let's just return a promise that will resolve itself.
         if (NetworkStore.getSupportAuthToken() && !NetworkStore.isSupportRequest(request.command)) {
-            return new Promise((resolve) => resolve(undefined));
+            return new Promise<void>((resolve) => resolve());
         }
         return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
     });
