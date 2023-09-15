@@ -100,8 +100,8 @@ function ConfirmContent(props) {
                         <View style={[styles.flexRow, styles.mb3]}>
                             <Icon
                                 src={props.iconSource}
-                                width={variables.downloadAppModalAppIconSize}
-                                height={variables.downloadAppModalAppIconSize}
+                                width={variables.appModalAppIconSize}
+                                height={variables.appModalAppIconSize}
                                 additionalStyles={[...props.iconAdditionalStyles]}
                             />
                         </View>

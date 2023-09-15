@@ -335,11 +335,6 @@ export default {
             `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
     },
-    DownloadAppModal: {
-        downloadTheApp: 'Descarga la aplicación',
-        keepTheConversationGoing: 'Mantén la conversación en New Expensify, descarga la aplicación para una experiencia mejorada.',
-        noThanks: 'No, gracias',
-    },
     login: {
         hero: {
             header: 'Divida las facturas, solicite pagos y chatee con sus amigos.',
