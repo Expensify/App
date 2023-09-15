@@ -16,7 +16,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import TextInput from '../../components/TextInput';
 import CONST from '../../CONST';
 import Text from '../../components/Text';
-import ROUTES from '../../ROUTES';
 import Form from '../../components/Form';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import reportPropTypes from '../reportPropTypes';
@@ -68,8 +67,8 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
         Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         Keyboard.dismiss();
 
-        // Navigate back to the private notes view page
-        Navigation.goBack(ROUTES.getPrivateNotesViewRoute(report.reportID, route.params.accountID));
+        // Take user back to the PrivateNotesView page
+        Navigation.goBack();
     };
 
     return (
@@ -77,14 +76,14 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || !isCurrentUserNote}
                 subtitleKey="privateNotes.notesUnavailable"
-                onBackButtonPress={() => Navigation.goBack(ROUTES.getPrivateNotesViewRoute(report.reportID, route.params.accountID))}
+                onBackButtonPress={() => Navigation.goBack()}
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     subtitle="My note"
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.getPrivateNotesViewRoute(report.reportID, route.params.accountID))}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flexGrow1, styles.ph5]}>
                     <View style={[styles.mb5]}>

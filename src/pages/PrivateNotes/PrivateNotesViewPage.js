@@ -60,14 +60,14 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note'])}
                 subtitleKey="privateNotes.notesUnavailable"
-                onBackButtonPress={() => Navigation.goBack(ROUTES.getPrivateNotesListRoute(report.reportID))}
+                onBackButtonPress={() => Navigation.goBack()}
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     subtitle={isCurrentUserNote ? 'My note' : `${lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')} note`}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.getPrivateNotesListRoute(report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <ScrollView style={[styles.flexGrow1]}>
                     <OfflineWithFeedback pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], null)}>

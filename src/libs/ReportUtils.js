@@ -3463,36 +3463,6 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
 }
 
 /**
- * Redirect the user to either privateNotesLisPage if the report has multiple notes otherwise, it redirects the user to their own private note on the report
- *
- * @param {Object} report
- * @param {Number} accountID
- */
-function navigateToPrivateNotesPage(report, accountID) {
-    if (_.isEmpty(report)) {
-        return;
-    }
-
-    const privateNotes = lodashGet(report, 'privateNotes', {});
-
-    // Redirect the user to privateNotesList page in case there are multiple notes and accountID is not set
-    // We will also redirect to the privateNotesList page if privateNotes is empty since we load the private notes on that page.
-    if ((_.isEmpty(accountID) && _.keys(privateNotes).length > 1) || _.isEmpty(privateNotes)) {
-        Navigation.navigate(ROUTES.getPrivateNotesListRoute(report.reportID));
-        return;
-    }
-
-    // If the privateNotes is empty, then we will redirect the user to the privateNotesEdit page
-    if (_.isEmpty(lodashGet(privateNotes[_.isEmpty(accountID) ? currentUserAccountID : accountID], 'note', ''))) {
-        Navigation.navigate(ROUTES.getPrivateNotesEditRoute(report.reportID, _.isEmpty(accountID) ? currentUserAccountID : accountID));
-        return;
-    }
-
-    // Default the accountID to current user's accountID in case it is empty
-    Navigation.navigate(ROUTES.getPrivateNotesViewRoute(report.reportID, _.isEmpty(accountID) ? currentUserAccountID : accountID));
-}
-
-/**
  * Get the last 3 transactions with receipts of an IOU report that will be displayed on the report preview
  *
  * @param {Object} reportPreviewAction
@@ -3651,7 +3621,6 @@ export {
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
-    navigateToPrivateNotesPage,
     getTransactionsWithReceipts,
     hasMissingSmartscanFields,
 };

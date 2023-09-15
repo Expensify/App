@@ -36,6 +36,7 @@ import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import Permissions from '../libs/Permissions';
+import ROUTES from '../ROUTES';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -242,9 +243,7 @@ function ProfilePage(props) {
                                 title={`${props.translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => {
-                                    ReportUtils.navigateToPrivateNotesPage(chatReportWithCurrentUser);
-                                }}
+                                onPress={() => Navigation.navigate(ROUTES.getPrivateNotesListRoute(chatReportWithCurrentUser.reportID))}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={Report.hasErrorInPrivateNotes(chatReportWithCurrentUser) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}

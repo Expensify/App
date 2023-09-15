@@ -10,7 +10,6 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import MenuItem from '../../components/MenuItem';
-import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Report from '../../libs/actions/Report';
@@ -23,6 +22,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -110,7 +110,7 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
                 title: Number(lodashGet(session, 'accountID', null)) === Number(accountID) ? 'My note' : lodashGet(personalDetailsList, [accountID, 'login'], ''),
                 icon: UserUtils.getAvatar(lodashGet(personalDetailsList, [accountID, 'avatar'], UserUtils.getDefaultAvatar(accountID)), accountID),
                 iconType: CONST.ICON_TYPE_AVATAR,
-                action: () => ReportUtils.navigateToPrivateNotesPage(report, accountID),
+                action: () => Navigation.navigate(ROUTES.getPrivateNotesViewRoute(report.reportID, accountID)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
             }))
             .value();
