@@ -25,7 +25,7 @@ module.exports = (env = {}) =>
                           '/staging': 'http://[::1]:9000',
                           '/chat-attachments': 'http://[::1]:9000',
                           '/receipts': 'http://[::1]:9000',
-                          '/olddot': 'https://new.expensify.com',
+                          '/olddot': 'https://new.expensify.com/olddot',
                       },
                   };
 
