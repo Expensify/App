@@ -2,14 +2,16 @@ import {View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import Mapbox, {MapState, MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import styles from '../../styles/styles';
 
+import responder from './responder';
 import utils from './utils';
 import Direction from './Direction';
 import CONST from '../../CONST';
 
 import {MapViewProps, MapViewHandle} from './MapViewTypes';
 
-const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates}, ref) => {
+const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady}, ref) => {
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
 
@@ -54,6 +56,9 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
     const setMapIdle = (e: MapState) => {
         if (e.gestures.isGestureActive) return;
         setIsIdle(true);
+        if (onMapReady) {
+            onMapReady();
+        }
     };
 
     return (
@@ -63,6 +68,10 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                 styleURL={styleURL}
                 onMapIdle={setMapIdle}
                 pitchEnabled={pitchEnabled}
+                attributionPosition={{...styles.r2, ...styles.b2}}
+                logoPosition={{...styles.l2, ...styles.b2}}
+                // eslint-disable-next-line
+                {...responder.panHandlers}
             >
                 <Mapbox.Camera
                     ref={cameraRef}

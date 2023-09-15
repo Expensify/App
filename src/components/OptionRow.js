@@ -8,6 +8,7 @@ import * as StyleUtils from '../styles/StyleUtils';
 import optionPropTypes from './optionPropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import Button from './Button';
 import MultipleAvatars from './MultipleAvatars';
 import Hoverable from './Hoverable';
 import DisplayNames from './DisplayNames';
@@ -39,6 +40,18 @@ const propTypes = {
     /** Whether we should show the selected state */
     showSelectedState: PropTypes.bool,
 
+    /** Whether to show a button pill instead of a tickbox */
+    shouldShowSelectedStateAsButton: PropTypes.bool,
+
+    /** Text for button pill */
+    selectedStateButtonText: PropTypes.string,
+
+    /** Callback to fire when the multiple selector (tickbox or button) is clicked */
+    onSelectedStatePressed: PropTypes.func,
+
+    /** Whether we highlight selected option */
+    highlightSelected: PropTypes.bool,
+
     /** Whether this item is selected */
     isSelected: PropTypes.bool,
 
@@ -57,6 +70,9 @@ const propTypes = {
     /** Whether to remove the lateral padding and align the content with the margins */
     shouldDisableRowInnerPadding: PropTypes.bool,
 
+    /** Whether to wrap large text up to 2 lines */
+    isMultilineSupported: PropTypes.bool,
+
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
@@ -65,12 +81,17 @@ const propTypes = {
 const defaultProps = {
     hoverStyle: styles.sidebarLinkHover,
     showSelectedState: false,
+    shouldShowSelectedStateAsButton: false,
+    selectedStateButtonText: 'Select',
+    onSelectedStatePressed: () => {},
+    highlightSelected: false,
     isSelected: false,
     boldStyle: false,
     showTitleTooltip: false,
     onSelectRow: undefined,
     isDisabled: false,
     optionIsFocused: false,
+    isMultilineSupported: false,
     style: null,
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
@@ -89,9 +110,12 @@ class OptionRow extends Component {
         return (
             this.state.isDisabled !== nextState.isDisabled ||
             this.props.isDisabled !== nextProps.isDisabled ||
+            this.props.isMultilineSupported !== nextProps.isMultilineSupported ||
             this.props.isSelected !== nextProps.isSelected ||
             this.props.shouldHaveOptionSeparator !== nextProps.shouldHaveOptionSeparator ||
+            this.props.selectedStateButtonText !== nextProps.selectedStateButtonText ||
             this.props.showSelectedState !== nextProps.showSelectedState ||
+            this.props.highlightSelected !== nextProps.highlightSelected ||
             this.props.showTitleTooltip !== nextProps.showTitleTooltip ||
             !_.isEqual(this.props.option.icons, nextProps.option.icons) ||
             this.props.optionIsFocused !== nextProps.optionIsFocused ||
@@ -119,7 +143,7 @@ class OptionRow extends Component {
         let pressableRef = null;
         const textStyle = this.props.optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
         const textUnreadStyle = this.props.boldStyle || this.props.option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-        const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, this.props.style, styles.pre);
+        const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, this.props.style, styles.pre, this.state.isDisabled ? styles.optionRowDisabled : {});
         const alternateTextStyle = StyleUtils.combineStyles(
             textStyle,
             styles.optionAlternateText,
@@ -182,6 +206,7 @@ class OptionRow extends Component {
                                 this.props.optionIsFocused ? styles.sidebarLinkActive : null,
                                 this.props.shouldHaveOptionSeparator && styles.borderTop,
                                 !this.props.onSelectRow && !this.props.isDisabled ? styles.cursorDefault : null,
+                                this.props.isSelected && this.props.highlightSelected && styles.optionRowSelected,
                             ]}
                             accessibilityLabel={this.props.option.text}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
@@ -216,7 +241,7 @@ class OptionRow extends Component {
                                             fullTitle={this.props.option.text}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled={this.props.showTitleTooltip}
-                                            numberOfLines={1}
+                                            numberOfLines={this.props.isMultilineSupported ? 2 : 1}
                                             textStyles={displayNameStyle}
                                             shouldUseFullTitle={
                                                 this.props.option.isChatRoom ||
@@ -248,7 +273,34 @@ class OptionRow extends Component {
                                             />
                                         </View>
                                     )}
-                                    {this.props.showSelectedState && <SelectCircle isChecked={this.props.isSelected} />}
+                                    {this.props.showSelectedState && (
+                                        <>
+                                            {this.props.shouldShowSelectedStateAsButton && !this.props.isSelected ? (
+                                                <Button
+                                                    style={[styles.pl2]}
+                                                    text={this.props.selectedStateButtonText}
+                                                    onPress={() => this.props.onSelectedStatePressed(this.props.option)}
+                                                    small
+                                                />
+                                            ) : (
+                                                <PressableWithFeedback
+                                                    onPress={() => this.props.onSelectedStatePressed(this.props.option)}
+                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                    accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                >
+                                                    <SelectCircle isChecked={this.props.isSelected} />
+                                                </PressableWithFeedback>
+                                            )}
+                                        </>
+                                    )}
+                                    {this.props.isSelected && this.props.highlightSelected && (
+                                        <View style={styles.defaultCheckmarkWrapper}>
+                                            <Icon
+                                                src={Expensicons.Checkmark}
+                                                fill={themeColors.iconSuccessFill}
+                                            />
+                                        </View>
+                                    )}
                                 </View>
                             </View>
                             {Boolean(this.props.option.customIcon) && (

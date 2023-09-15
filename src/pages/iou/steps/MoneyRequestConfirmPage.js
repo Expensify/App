@@ -14,6 +14,7 @@ import * as IOU from '../../../libs/actions/IOU';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as OptionsListUtils from '../../../libs/OptionsListUtils';
+import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
 import withLocalize from '../../../components/withLocalize';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -59,9 +60,9 @@ const defaultProps = {
 
 function MoneyRequestConfirmPage(props) {
     const {windowHeight} = useWindowDimensions();
-    const isDistanceRequest = props.selectedTab === CONST.TAB.DISTANCE;
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>
@@ -133,9 +134,19 @@ function MoneyRequestConfirmPage(props) {
                 selectedParticipants[0],
                 trimmedComment,
                 receipt,
+                props.iou.category,
             );
         },
-        [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+        [
+            props.report,
+            props.iou.amount,
+            props.iou.currency,
+            props.iou.created,
+            props.iou.merchant,
+            props.currentUserPersonalDetails.login,
+            props.currentUserPersonalDetails.accountID,
+            props.iou.category,
+        ],
     );
 
     /**
@@ -144,9 +155,19 @@ function MoneyRequestConfirmPage(props) {
      */
     const createDistanceRequest = useCallback(
         (selectedParticipants, trimmedComment) => {
-            IOU.createDistanceRequest(props.report, selectedParticipants[0], trimmedComment, props.iou.created, props.iou.transactionID);
+            IOU.createDistanceRequest(
+                props.report,
+                selectedParticipants[0],
+                trimmedComment,
+                props.iou.created,
+                props.iou.transactionID,
+                props.iou.category,
+                props.iou.amount,
+                props.iou.currency,
+                props.iou.merchant,
+            );
         },
-        [props.report, props.iou.created, props.iou.transactionID],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.amount, props.iou.currency, props.iou.merchant],
     );
 
     const createTransaction = useCallback(
@@ -237,12 +258,24 @@ function MoneyRequestConfirmPage(props) {
         [props.iou.amount, props.iou.comment, participants, props.iou.currency, props.currentUserPersonalDetails.accountID, props.report],
     );
 
+    const headerTitle = () => {
+        if (isDistanceRequest) {
+            return props.translate('common.distance');
+        }
+
+        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
+            return props.translate('iou.split');
+        }
+
+        return props.translate('tabSelector.manual');
+    };
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
+                        title={headerTitle()}
                         onBackButtonPress={navigateBack}
                     />
                     {/*
@@ -250,7 +283,7 @@ function MoneyRequestConfirmPage(props) {
                      * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
                      * To work around this, we wrap the MoneyRequestConfirmationList component with a horizontal ScrollView.
                      */}
-                    <ScrollView>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                         <ScrollView
                             horizontal
                             contentContainerStyle={[styles.flex1, styles.flexColumn]}
@@ -262,6 +295,8 @@ function MoneyRequestConfirmPage(props) {
                                 iouAmount={props.iou.amount}
                                 iouComment={props.iou.comment}
                                 iouCurrencyCode={props.iou.currency}
+                                iouCategory={props.iou.category}
+                                iouTag={props.iou.tag}
                                 onConfirm={createTransaction}
                                 onSendMoney={sendMoney}
                                 onSelectParticipant={(option) => {
@@ -326,7 +361,7 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         selectedTab: {
-            key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
         },
     }),
 )(MoneyRequestConfirmPage);

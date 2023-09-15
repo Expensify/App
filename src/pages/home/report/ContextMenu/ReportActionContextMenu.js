@@ -39,7 +39,8 @@ function hideContextMenu(shouldDelay, onHideCallback = () => {}) {
  * @param {String} [selection] - Copied content.
  * @param {Element} contextMenuAnchor - popoverAnchor
  * @param {String} reportID - Active Report Id
- * @param {Object} reportAction - ReportAction for ContextMenu
+ * @param {String} reportActionID - ReportActionID for ContextMenu
+ * @param {String} originalReportID - The currrent Report Id of the reportAction
  * @param {String} draftMessage - ReportAction Draftmessage
  * @param {Function} [onShow=() => {}] - Run a callback when Menu is shown
  * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
@@ -54,7 +55,8 @@ function showContextMenu(
     selection,
     contextMenuAnchor,
     reportID = '0',
-    reportAction = {},
+    reportActionID = '0',
+    originalReportID = '0',
     draftMessage = '',
     onShow = () => {},
     onHide = () => {},
@@ -72,13 +74,15 @@ function showContextMenu(
         hideContextMenu();
         contextMenuRef.current.runAndResetOnPopoverHide();
     }
+
     contextMenuRef.current.showContextMenu(
         type,
         event,
         selection,
         contextMenuAnchor,
         reportID,
-        reportAction,
+        reportActionID,
+        originalReportID,
         draftMessage,
         onShow,
         onHide,
@@ -124,4 +128,11 @@ function isActiveReportAction(actionID) {
     return contextMenuRef.current.isActiveReportAction(actionID);
 }
 
-export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, showDeleteModal, hideDeleteModal};
+function clearActiveReportAction() {
+    if (!contextMenuRef.current) {
+        return;
+    }
+    return contextMenuRef.current.clearActiveReportAction();
+}
+
+export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};

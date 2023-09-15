@@ -32,7 +32,7 @@ function WalletStatementModal({statementPageURL, session}) {
         }
 
         if (event.data.type === 'STATEMENT_NAVIGATE' && event.data.url) {
-            const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
+            const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
             const navigateToIOURoute = _.find(iouRoutes, (iouRoute) => event.data.url.includes(iouRoute));
             if (navigateToIOURoute) {
                 Navigation.navigate(navigateToIOURoute);

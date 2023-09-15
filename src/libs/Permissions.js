@@ -90,8 +90,16 @@ function canUseCustomStatus(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseDistanceRequests(betas) {
-    return _.contains(betas, CONST.BETAS.DISTANCE_REQUESTS) || canUseAllBetas(betas);
+function canUseCategories(betas) {
+    return _.contains(betas, CONST.BETAS.NEW_DOT_CATEGORIES) || canUseAllBetas(betas);
+}
+
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseTags(betas) {
+    return _.contains(betas, CONST.BETAS.NEW_DOT_TAGS) || canUseAllBetas(betas);
 }
 
 /**
@@ -112,6 +120,7 @@ export default {
     canUsePolicyRooms,
     canUseTasks,
     canUseCustomStatus,
-    canUseDistanceRequests,
+    canUseCategories,
+    canUseTags,
     canUseLinkPreviews,
 };

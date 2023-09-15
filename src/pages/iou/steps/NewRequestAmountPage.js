@@ -15,6 +15,7 @@ import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
 import * as IOUUtils from '../../../libs/IOUUtils';
+import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import styles from '../../../styles/styles';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -64,7 +65,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const reportID = lodashGet(route, 'params.reportID', '');
     const isEditing = lodashGet(route, 'path', '').includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
-    const isDistanceRequestTab = selectedTab === CONST.TAB.DISTANCE;
+    const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
     const currency = currentCurrency || iou.currency;
 
@@ -114,7 +115,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
-            if (!isDistanceRequestTab && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
+            if (!isDistanceRequestTab && (_.isEmpty(iou.participantAccountIDs) || iou.amount === 0 || shouldReset)) {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
             }
         }
@@ -122,7 +123,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         return () => {
             prevMoneyRequestID.current = iou.id;
         };
-    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
+    }, [iou.participantAccountIDs, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
 
     const navigateBack = () => {
         Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
@@ -181,7 +182,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('iou.amount')}
-                            onBackButonBackButtonPress={navigateBack}
+                            onBackButtonPress={navigateBack}
                         />
                         {content}
                     </View>
@@ -201,6 +202,6 @@ export default withOnyx({
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
     },
     selectedTab: {
-        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(NewRequestAmountPage);

@@ -8,6 +8,7 @@ import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as MapboxToken from '../libs/actions/MapboxToken';
+import * as TransactionUtils from '../libs/TransactionUtils';
 import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
 import styles from '../styles/styles';
@@ -15,7 +16,7 @@ import transactionPropTypes from './transactionPropTypes';
 import BlockingView from './BlockingViews/BlockingView';
 import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
-import MapView from './MapView';
+import DistanceMapView from './DistanceMapView';
 
 const propTypes = {
     /** Transaction that stores the distance request data */
@@ -47,7 +48,7 @@ const getWaypointMarkers = (waypoints) => {
                 return;
             }
 
-            const index = Number(key.replace('waypoint', ''));
+            const index = TransactionUtils.getWaypointIndex(key);
             let MarkerComponent;
             if (index === 0) {
                 MarkerComponent = Expensicons.DotIndicatorUnfilled;
@@ -89,10 +90,14 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
     return (
         <>
             {!isOffline && Boolean(mapboxAccessToken.token) ? (
-                <MapView
+                <DistanceMapView
                     accessToken={mapboxAccessToken.token}
                     mapPadding={CONST.MAP_PADDING}
                     pitchEnabled={false}
+                    initialState={{
+                        zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                        location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
+                    }}
                     directionCoordinates={coordinates}
                     style={styles.mapView}
                     waypoints={waypointMarkers}
