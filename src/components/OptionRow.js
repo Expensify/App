@@ -8,6 +8,7 @@ import * as StyleUtils from '../styles/StyleUtils';
 import optionPropTypes from './optionPropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import Button from './Button';
 import MultipleAvatars from './MultipleAvatars';
 import Hoverable from './Hoverable';
 import DisplayNames from './DisplayNames';
@@ -38,6 +39,15 @@ const propTypes = {
 
     /** Whether we should show the selected state */
     showSelectedState: PropTypes.bool,
+
+    /** Whether to show a button pill instead of a tickbox */
+    shouldShowSelectedStateAsButton: PropTypes.bool,
+
+    /** Text for button pill */
+    selectedStateButtonText: PropTypes.string,
+
+    /** Callback to fire when the multiple selector (tickbox or button) is clicked */
+    onSelectedStatePressed: PropTypes.func,
 
     /** Whether we highlight selected option */
     highlightSelected: PropTypes.bool,
@@ -71,6 +81,9 @@ const propTypes = {
 const defaultProps = {
     hoverStyle: styles.sidebarLinkHover,
     showSelectedState: false,
+    shouldShowSelectedStateAsButton: false,
+    selectedStateButtonText: 'Select',
+    onSelectedStatePressed: () => {},
     highlightSelected: false,
     isSelected: false,
     boldStyle: false,
@@ -100,6 +113,7 @@ class OptionRow extends Component {
             this.props.isMultilineSupported !== nextProps.isMultilineSupported ||
             this.props.isSelected !== nextProps.isSelected ||
             this.props.shouldHaveOptionSeparator !== nextProps.shouldHaveOptionSeparator ||
+            this.props.selectedStateButtonText !== nextProps.selectedStateButtonText ||
             this.props.showSelectedState !== nextProps.showSelectedState ||
             this.props.highlightSelected !== nextProps.highlightSelected ||
             this.props.showTitleTooltip !== nextProps.showTitleTooltip ||
@@ -259,7 +273,26 @@ class OptionRow extends Component {
                                             />
                                         </View>
                                     )}
-                                    {this.props.showSelectedState && <SelectCircle isChecked={this.props.isSelected} />}
+                                    {this.props.showSelectedState && (
+                                        <>
+                                            {this.props.shouldShowSelectedStateAsButton && !this.props.isSelected ? (
+                                                <Button
+                                                    style={[styles.pl2]}
+                                                    text={this.props.selectedStateButtonText}
+                                                    onPress={() => this.props.onSelectedStatePressed(this.props.option)}
+                                                    small
+                                                />
+                                            ) : (
+                                                <PressableWithFeedback
+                                                    onPress={() => this.props.onSelectedStatePressed(this.props.option)}
+                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                    accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                >
+                                                    <SelectCircle isChecked={this.props.isSelected} />
+                                                </PressableWithFeedback>
+                                            )}
+                                        </>
+                                    )}
                                     {this.props.isSelected && this.props.highlightSelected && (
                                         <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
