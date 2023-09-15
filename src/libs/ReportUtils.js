@@ -1103,6 +1103,9 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
     const personalDetails = getPersonalDetailsForAccountID(accountID);
     const longName = personalDetails.displayName;
     const shortName = personalDetails.firstName || longName;
+    if (!longName && !personalDetails.login) {
+        return Localize.translateLocal('common.hidden');
+    }
     return shouldUseShortForm ? shortName : longName;
 }
 
