@@ -68,7 +68,6 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         <HeaderPageLayout
             title={localize.translate('statusPage.status')}
             onBackButtonPress={navigateBackToSettingsPage}
-            backgroundColor={themeColors.midtone}
             headerContent={
                 <MobileBackgroundImage
                     pointerEvents="none"
@@ -76,6 +75,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 />
             }
             headerContainerStyles={[styles.staticHeaderImage]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.SETTINGS_STATUS]}
             footer={footerComponent}
         >
             <View style={styles.m5}>
