@@ -40,18 +40,6 @@ const INPUT_KEYS = {
 };
 const STEP_COUNTER = {step: 3, total: 5};
 
-const STYLES = {
-    Label: [styles.flex1, styles.pr1],
-    Form: [styles.mh5, styles.flexGrow1],
-    LearnMoreContainer: [styles.mb5, styles.mt1, styles.dFlex, styles.flexRow],
-    LearnMoreLink: [styles.textMicro],
-    LearnMoreSeparator: [styles.textMicroSupporting],
-    DataSafeLink: [styles.textMicro, styles.textLink],
-    ControllingOfficerCheckbox: [styles.mt4],
-    ConditionsContainer: [styles.mt3, styles.textMicroSupporting],
-    ConditionsLink: [styles.textMicro],
-};
-
 const validate = (values) => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
@@ -113,7 +101,7 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
 
     const LabelComponent = useCallback(
         () => (
-            <View style={STYLES.Label}>
+            <View style={[styles.flex1, styles.pr1]}>
                 <Text>{translate('requestorStep.isControllingOfficer')}</Text>
             </View>
         ),
@@ -145,21 +133,21 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
                 submitButtonText={translate('common.saveAndContinue')}
                 validate={validate}
                 onSubmit={submit}
-                style={STYLES.Form}
+                style={[styles.mh5, styles.flexGrow1]}
                 scrollContextEnabled
             >
                 <Text>{translate('requestorStep.subtitle')}</Text>
-                <View style={STYLES.LearnMoreContainer}>
+                <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
                     <TextLink
-                        style={STYLES.LearnMoreLink}
+                        style={[styles.textMicro]}
                         // eslint-disable-next-line max-len
                         href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
                     >
                         {translate('requestorStep.learnMore')}
                     </TextLink>
-                    <Text style={STYLES.LearnMoreSeparator}>{' | '}</Text>
+                    <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
                     <TextLink
-                        style={STYLES.DataSafeLink}
+                        style={[styles.textMicro, styles.textLink]}
                         href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
                     >
                         {translate('requestorStep.isMyDataSafe')}
@@ -176,28 +164,28 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
                     inputID="isControllingOfficer"
                     defaultValue={getDefaultStateForField('isControllingOfficer', false)}
                     LabelComponent={LabelComponent}
-                    style={STYLES.ControllingOfficerCheckbox}
+                    style={[styles.mt4]}
                     shouldSaveDraft
                 />
-                <Text style={STYLES.ConditionsContainer}>
+                <Text style={[styles.mt3, styles.textMicroSupporting]}>
                     {translate('requestorStep.onFidoConditions')}
                     <TextLink
                         href="https://onfido.com/facial-scan-policy-and-release/"
-                        style={STYLES.ConditionsLink}
+                        style={[styles.textMicro]}
                     >
                         {translate('onfidoStep.facialScan')}
                     </TextLink>
                     {', '}
                     <TextLink
                         href="https://onfido.com/privacy/"
-                        style={STYLES.ConditionsLink}
+                        style={[styles.textMicro]}
                     >
                         {translate('common.privacy')}
                     </TextLink>
                     {` ${translate('common.and')} `}
                     <TextLink
                         href="https://onfido.com/terms-of-service/"
-                        style={STYLES.ConditionsLink}
+                        style={[styles.textMicro]}
                     >
                         {translate('common.termsOfService')}
                     </TextLink>
