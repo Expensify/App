@@ -98,7 +98,7 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
     const submit = useCallback(
         (values) => {
             const payload = {
-                bankAccountID: lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0,
+                bankAccountID: lodashGet(reimbursementAccount, 'achData.bankAccountID', 0),
                 ...values,
             };
 
