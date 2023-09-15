@@ -103,8 +103,14 @@ function ComposerWithSuggestions({
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
-
-    const [value, setValue] = useState(() => getDraftComment(reportID) || '');
+    var emojisPresentBefore = [];
+    const [value, setValue] = useState(() => {
+        const draft = getDraftComment(reportID) || '';
+        if (draft) {
+            emojisPresentBefore = EmojiUtils.extractEmojis(draft);
+        }
+        return draft;
+    });
     const commentRef = useRef(value);
 
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -125,6 +131,7 @@ function ComposerWithSuggestions({
 
     const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
+    
 
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
@@ -134,14 +141,6 @@ function ComposerWithSuggestions({
         User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
         insertedEmojisRef.current = [];
     }, []);
-
-    const onInsertedEmoji = useCallback(
-        (emojiObject) => {
-            insertedEmojisRef.current = [...insertedEmojisRef.current, emojiObject];
-            debouncedUpdateFrequentlyUsedEmojis(emojiObject);
-        },
-        [debouncedUpdateFrequentlyUsedEmojis],
-    );
 
     /**
      * Set the TextInput Ref
@@ -178,10 +177,12 @@ function ComposerWithSuggestions({
             const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
-                insertedEmojisRef.current = [...insertedEmojisRef.current, ...emojis];
+                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore);
+                
+                insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
                 debouncedUpdateFrequentlyUsedEmojis();
             }
-
+            emojisPresentBefore = emojis;
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
@@ -439,7 +440,6 @@ function ComposerWithSuggestions({
             return;
         }
         Report.setReportWithDraft(reportID, true);
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -504,7 +504,6 @@ function ComposerWithSuggestions({
                 updateComment={updateComment}
                 composerHeight={composerHeight}
                 shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
-                onInsertedEmoji={onInsertedEmoji}
                 measureParentContainer={measureParentContainer}
                 // Input
                 value={value}

@@ -278,22 +278,28 @@ function extractEmojis(text) {
     }
 
     const emojis = [];
-
-    // Text can contain similar emojis as well as their skin tone variants. Create a Set to remove duplicate emojis from the search.
-    const foundEmojiCodes = new Set();
-
     for (let i = 0; i < parsedEmojis.length; i++) {
         const character = parsedEmojis[i];
         const emoji = Emojis.emojiCodeTableWithSkinTones[character];
-
-        // Add the parsed emoji to the final emojis if not already present.
-        if (emoji && !foundEmojiCodes.has(emoji.code)) {
-            foundEmojiCodes.add(emoji.code);
+        if (emoji) {
             emojis.push(emoji);
         }
     }
 
     return emojis;
+}
+
+function getAddedEmojis(currentEmojis, formerEmojis){
+    
+    let newEmojis = [...currentEmojis];
+    // We are removing the emojis from the newEmojis array if they were already present before.
+    formerEmojis.forEach((formerEmoji) => {
+        const indexOfAlreadyPresentEmoji = newEmojis.findIndex(newEmoji => newEmoji.code == formerEmoji.code);
+        if(indexOfAlreadyPresentEmoji >= 0) {
+            newEmojis.splice(indexOfAlreadyPresentEmoji, 1);
+        }
+    });
+    return newEmojis;
 }
 
 /**
@@ -484,4 +490,6 @@ export {
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
     replaceAndExtractEmojis,
+    extractEmojis,
+    getAddedEmojis,
 };
