@@ -80,11 +80,11 @@ async function generateChecklist() {
             // Add it to the PR body
             isPassing = false;
             checklistContent += `\n- [ ] ${check}`;
-        }
-        // TODO: get result of capture group (isChecked)
-        const isChecked = match[1] === 'x';
-        if (!isChecked) {
-            isPassing = false;
+        } else {
+            const isChecked = match[1] === 'x';
+            if (!isChecked) {
+                isPassing = false;
+            }
         }
     }
 
