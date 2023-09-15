@@ -30,7 +30,6 @@ function appendCountryCode(phone: string): string {
  */
 function isEmailPublicDomain(email: string): boolean {
     const emailDomain = Str.extractEmailDomain(email).toLowerCase();
-    // That's the place where it's being checked if a general string is included in the union
     return (PUBLIC_DOMAINS as readonly string[]).includes(emailDomain);
 }
 
