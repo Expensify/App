@@ -34,21 +34,23 @@ function CategoryPicker({policyCategories, reportID, iouType, iou, policyRecentl
         ];
     }, [iou.category]);
 
+    const sections = useMemo(() => {
+        const {categoryOptions} = OptionsListUtils.getNewChatOptions({}, {}, [], searchValue, selectedOptions, [], false, false, true, policyCategories, policyRecentlyUsedCategories, false);
+
+        return categoryOptions;
+    }, [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions]);
+
     const initialFocusedIndex = useMemo(() => {
-        if (isCategoriesCountBelowThreshold && selectedOptions.length > 0) {
-            return _.chain(policyCategories)
-                .values()
-                .findIndex((category) => category.name === selectedOptions[0].name, true)
-                .value();
+        let categoryInitialFocusedIndex = 0;
+
+        if (!_.isEmpty(searchValue) || isCategoriesCountBelowThreshold) {
+            const index = _.findIndex(lodashGet(sections, '[0].data', []), (category) => category.searchText === iou.category);
+
+            categoryInitialFocusedIndex = index === -1 ? 0 : index;
         }
 
-        return 0;
-    }, [policyCategories, selectedOptions, isCategoriesCountBelowThreshold]);
-
-    const sections = useMemo(
-        () => OptionsListUtils.getNewChatOptions({}, {}, [], searchValue, selectedOptions, [], false, false, true, policyCategories, policyRecentlyUsedCategories, false).categoryOptions,
-        [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions],
-    );
+        return categoryInitialFocusedIndex;
+    }, [iou.category, searchValue, isCategoriesCountBelowThreshold, sections]);
 
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
     const shouldShowTextInput = !isCategoriesCountBelowThreshold;
