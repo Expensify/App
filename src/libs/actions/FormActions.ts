@@ -2,8 +2,11 @@ import Onyx from 'react-native-onyx';
 import * as OnyxCommon from '../../types/onyx/OnyxCommon';
 import {OnyxKey, OnyxValues} from '../../ONYXKEYS';
 
-type ExtractValueByKey<T, K extends keyof T> = T[K];
-
+type KeysWhichCouldBeDraft<T extends keyof OnyxValues> = T extends `${infer U}Draft` ? U : never;
+// type DraftKey<T extends DraftKeysWithoutDraftSuffix> = T extends DraftKeysWithoutDraftSuffix ? keyof OnyxValues[`${T}Draft`] : never;
+type GetDraftValue<T extends keyof OnyxValues> = T extends keyof OnyxValues ? OnyxValues[T] : never;
+type DraftKeysWithoutDraftSuffix = KeysWhichCouldBeDraft<keyof OnyxValues>;
+type GetDraftKey<T extends DraftKeysWithoutDraftSuffix> = T extends `${infer Prefix}Draft` ? T : `${T}Draft`;
 function setIsLoading(formID: OnyxKey, isLoading: boolean) {
     Onyx.merge(formID, {isLoading});
 }
@@ -16,8 +19,8 @@ function setErrorFields(formID: OnyxKey, errorFields: OnyxCommon.ErrorFields) {
     Onyx.merge(formID, {errorFields});
 }
 
-function setDraftValues<T extends keyof OnyxValues>(formID: T, draftValues: ExtractValueByKey<OnyxValues, T>) {
+function setDraftValues<T extends DraftKeysWithoutDraftSuffix>(formID: DraftKeysWithoutDraftSuffix, draftValues: GetDraftValue<GetDraftKey<T>>) {
     Onyx.merge(`${formID}Draft`, draftValues);
 }
-setDraftValues('reimbursementAccount', {});
+setDraftValues('customStatus', {});
 export {setIsLoading, setErrors, setErrorFields, setDraftValues};
