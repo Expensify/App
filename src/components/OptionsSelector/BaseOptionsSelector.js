@@ -95,13 +95,6 @@ class BaseOptionsSelector extends Component {
             }, CONST.ANIMATED_TRANSITION);
         }
 
-        // Blur when loosing focus in order not to have the input
-        // focused for a tiny period of time next time the screen
-        // is back to focus
-        if (prevProps.isFocused && !this.props.isFocused) {
-            this.textInput.blur();
-        }
-
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
