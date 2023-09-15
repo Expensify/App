@@ -148,8 +148,6 @@ function ReportScreen({
     const flatListRef = useRef();
     const reactionListRef = useRef();
     const prevReport = usePrevious(report);
-
-    const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(0);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
 
     const reportID = getReportID(route);
@@ -253,18 +251,6 @@ function ReportScreen({
         [route],
     );
 
-    const calculateSkeletonViewHeight = (event) => {
-        // Rounding this value for comparison because they can look like this: 411.9999694824219
-        const newSkeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
-
-        // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
-        // takes up so we can set the skeleton view container height.
-        if (newSkeletonViewContainerHeight === 0) {
-            return;
-        }
-        setSkeletonViewContainerHeight(newSkeletonViewContainerHeight);
-    };
-
     useEffect(() => {
         const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             const isTopMostReportID = Navigation.getTopmostReportId() === getReportID(route);
@@ -353,10 +339,7 @@ function ReportScreen({
                             />
                         )}
                         <DragAndDropProvider isDisabled={!isReportReadyForDisplay}>
-                            <View
-                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                onLayout={calculateSkeletonViewHeight}
-                            >
+                            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
                                         reportActions={reportActions}
@@ -364,7 +347,6 @@ function ReportScreen({
                                         isLoadingReportActions={reportMetadata.isLoadingReportActions}
                                         isLoadingMoreReportActions={reportMetadata.isLoadingMoreReportActions}
                                         isComposerFullSize={isComposerFullSize}
-                                        parentViewHeight={skeletonViewContainerHeight}
                                         policy={policy}
                                     />
                                 )}
