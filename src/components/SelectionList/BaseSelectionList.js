@@ -168,6 +168,7 @@ function BaseSelectionList({
     };
 
     const selectRow = (item, index) => {
+        textInputRef.current.focus();
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
             if (sections.length === 1) {
