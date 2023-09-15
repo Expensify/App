@@ -44,9 +44,6 @@ const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
 
-    /** Whether the user is replacing the receipt */
-    isReplacingReceipt: PropTypes.bool,
-
     /** The id of the transaction we're editing */
     transactionID: PropTypes.string,
 };
@@ -54,7 +51,6 @@ const propTypes = {
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
-    isReplacingReceipt: false,
     transactionID: '',
 };
 
@@ -83,7 +79,7 @@ function getImagePickerOptions(type) {
     };
 }
 
-function ReceiptSelector({route, report, iou, isReplacingReceipt, transactionID}) {
+function ReceiptSelector({route, report, iou, transactionID}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -206,7 +202,7 @@ function ReceiptSelector({route, report, iou, isReplacingReceipt, transactionID}
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
 
-                if (isReplacingReceipt) {
+                if (transactionID) {
                     IOU.replaceReceipt(transactionID, photo, `file://${photo.path}`);
                     Navigation.dismissModal();
                     return;
@@ -218,7 +214,7 @@ function ReceiptSelector({route, report, iou, isReplacingReceipt, transactionID}
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, iou, report, reportID, translate, transactionID, isReplacingReceipt]);
+    }, [flash, iouType, iou, report, reportID, translate, transactionID]);
 
     CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
@@ -278,7 +274,7 @@ function ReceiptSelector({route, report, iou, isReplacingReceipt, transactionID}
                             .then((receiptImage) => {
                                 IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
 
-                                if (isReplacingReceipt) {
+                                if (transactionID) {
                                     IOU.replaceReceipt(transactionID, receiptImage, receiptImage[0].uri);
                                     Navigation.dismissModal();
                                     return;

@@ -40,7 +40,6 @@ function EditRequestReceiptPage({route, transactionID}) {
                 <ReceiptSelector
                     route={route}
                     transactionID={transactionID}
-                    isReplacingReceipt
                 />
             </DragAndDropProvider>
         </ScreenWrapper>
