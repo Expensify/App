@@ -12,7 +12,7 @@ import PopoverWithoutOverlay from '../PopoverWithoutOverlay';
  */
 function Popover(props) {
     const {isVisible, onClose, isSmallScreenWidth, fullscreen, animationInTiming, onLayout, animationOutTiming, disableAnimation, withoutOverlay, anchorPosition} = props;
-    
+
     // Not adding this inside the PopoverProvider
     // because this is an issue on smaller screens as well.
     React.useEffect(() => {
