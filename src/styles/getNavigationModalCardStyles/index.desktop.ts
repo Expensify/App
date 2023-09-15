@@ -1,4 +1,4 @@
-import {ViewStyle} from 'react-native';
+import positioning from '../utilities/positioning';
 import GetNavigationModalCardStyles from './types';
 
 const getNavigationModalCardStyles: GetNavigationModalCardStyles = () => ({
@@ -10,8 +10,7 @@ const getNavigationModalCardStyles: GetNavigationModalCardStyles = () => ({
     width: '100%',
     height: '100%',
 
-    // NOTE: asserting "position" to a valid type, because isn't possible to augment "position".
-    position: 'fixed' as ViewStyle['position'],
+    ...positioning.pFixed,
 });
 
 export default getNavigationModalCardStyles;

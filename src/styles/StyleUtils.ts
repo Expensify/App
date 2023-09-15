@@ -40,7 +40,7 @@ type ParsableStyle = ViewStyle | ((state: PressableStateCallbackType) => ViewSty
 
 type WorkspaceColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
 
-type ModalPaddingStylesArgs = {
+type ModalPaddingStylesParams = {
     shouldAddBottomSafeAreaMargin: boolean;
     shouldAddTopSafeAreaMargin: boolean;
     shouldAddBottomSafeAreaPadding: boolean;
@@ -56,11 +56,17 @@ type ModalPaddingStylesArgs = {
     insets: EdgeInsets;
 };
 
-type AvatarBorderStyleArgs = {
+type AvatarBorderStyleParams = {
     isHovered: boolean;
     isPressed: boolean;
     isInReportAction: boolean;
     shouldUseCardBackground: boolean;
+};
+
+type GetBaseAutoCompleteSuggestionContainerStyleParams = {
+    left: number;
+    bottom: number;
+    width: number;
 };
 
 const workspaceColorOptions: WorkspaceColorStyle[] = [
@@ -531,7 +537,7 @@ function getModalPaddingStyles({
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
     insets,
-}: ModalPaddingStylesArgs): ViewStyle {
+}: ModalPaddingStylesParams): ViewStyle {
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
     const safeAreaPaddingBottomWithFallback = insets.bottom === 0 ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
@@ -785,7 +791,7 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth: boolean): ViewStyle 
     return {maxWidth: 600};
 }
 
-function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}: AvatarBorderStyleArgs): ViewStyle {
+function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}: AvatarBorderStyleParams): ViewStyle {
     let borderColor = shouldUseCardBackground ? themeColors.cardBG : themeColors.appBG;
 
     if (isHovered) {
@@ -928,10 +934,9 @@ function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex: number, rowHe
 /**
  * Gets the correct position for the base auto complete suggestion container
  */
-function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: {left: number; bottom: number; width: number}): ViewStyle {
+function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetBaseAutoCompleteSuggestionContainerStyleParams): ViewStyle {
     return {
-        // NOTE: asserting "position" to a valid type, because isn't possible to augment "position".
-        position: 'fixed' as ViewStyle['position'],
+        ...positioning.pFixed,
         bottom,
         left,
         width,

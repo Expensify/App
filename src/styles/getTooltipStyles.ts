@@ -3,6 +3,7 @@ import fontFamily from './fontFamily';
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 import styles from './styles';
 import themeColors from './themes/default';
+import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
 import variables from './variables';
 
@@ -236,8 +237,7 @@ export default function getTooltipStyles(
             transform: [{scale}],
         },
         rootWrapperStyle: {
-            // NOTE: asserting "position" to a valid type, because isn't possible to augment "position".
-            position: 'fixed' as ViewStyle['position'],
+            ...positioning.pFixed,
             backgroundColor: themeColors.heading,
             borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
@@ -259,8 +259,7 @@ export default function getTooltipStyles(
             lineHeight: variables.lineHeightSmall,
         },
         pointerWrapperStyle: {
-            // NOTE: asserting "position" to a valid type, because isn't possible to augment "position".
-            position: 'fixed' as ViewStyle['position'],
+            ...positioning.pFixed,
             top: pointerWrapperTop,
             left: pointerWrapperLeft,
         },

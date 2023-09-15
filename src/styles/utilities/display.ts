@@ -19,21 +19,33 @@ export default {
         display: 'none',
     },
 
+    /**
+     * Web-only style.
+     */
     dInline: {
         // NOTE: asserting "display" to a valid type, because isn't possible to augment "display".
         display: 'inline' as ViewStyle['display'],
     },
 
+    /**
+     * Web-only style.
+     */
     dInlineFlex: {
         // NOTE: asserting "display" to a valid type, because isn't possible to augment "display".
         display: 'inline-flex' as ViewStyle['display'],
     },
 
+    /**
+     * Web-only style.
+     */
     dBlock: {
         // NOTE: asserting "display" to a valid type, because isn't possible to augment "display".
         display: 'block' as ViewStyle['display'],
     },
 
+    /**
+     * Web-only style.
+     */
     dGrid: {
         // NOTE: asserting "display" to a valid type, because isn't possible to augment "display".
         display: 'grid' as ViewStyle['display'],

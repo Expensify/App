@@ -1,12 +1,11 @@
-import {ViewStyle} from 'react-native';
+import positioning from '../utilities/positioning';
 import GetCardStyles from './types';
 
 /**
  * Get card style for cardStyleInterpolator
  */
 const getCardStyles: GetCardStyles = (screenWidth) => ({
-    // NOTE: asserting "position" to a valid type, because isn't possible to augment "position".
-    position: 'fixed' as ViewStyle['position'],
+    ...positioning.pFixed,
     width: screenWidth,
     height: '100%',
 });

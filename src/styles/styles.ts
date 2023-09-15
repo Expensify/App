@@ -1596,8 +1596,7 @@ const styles = (theme: ThemeDefault) =>
 
         overlayStyles: (current: OverlayStylesParams) =>
             ({
-                // NOTE: asserting "position" to a valid type, because isn't possible to augment "position".
-                position: 'fixed' as ViewStyle['position'],
+                ...positioning.pFixed,
 
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
                 left: -2 * variables.sideBarWidth,
@@ -2886,8 +2885,7 @@ const styles = (theme: ThemeDefault) =>
         growlNotificationDesktopContainer: {
             maxWidth: variables.sideBarWidth,
             right: 0,
-            // NOTE: asserting "position" to a valid type, because isn't possible to augment "position".
-            position: 'fixed' as ViewStyle['position'],
+            ...positioning.pFixed,
         },
 
         growlNotificationTranslateY: (translateY: AnimatableNumericValue) =>
