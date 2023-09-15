@@ -18,9 +18,6 @@ import setSelection from '../../libs/setSelection';
 import compose from '../../libs/compose';
 
 const propTypes = {
-    /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
-    shouldDelayFocus: PropTypes.bool,
-
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
@@ -69,6 +66,12 @@ class BaseOptionsSelector extends Component {
 
     componentDidMount() {
         this.subscribeToKeyboardShortcut();
+
+        if (this.props.autoFocus) {
+            setTimeout(() => {
+                this.textInput.focus();
+            }, CONST.ANIMATED_TRANSITION)
+        }
 
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
     }
@@ -359,8 +362,6 @@ class BaseOptionsSelector extends Component {
                 selectTextOnFocus
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
                 spellCheck={false}
-                autoFocus={this.props.isFocused && this.props.autoFocus}
-                shouldDelayFocus={this.props.shouldDelayFocus}
             />
         );
         const optionsList = (
