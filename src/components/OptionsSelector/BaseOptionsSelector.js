@@ -16,6 +16,7 @@ import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
 import setSelection from '../../libs/setSelection';
 import compose from '../../libs/compose';
+import getPlatform from '../../libs/getPlatform';
 
 const propTypes = {
     /** padding bottom style of safe area */
@@ -67,7 +68,7 @@ class BaseOptionsSelector extends Component {
     componentDidMount() {
         this.subscribeToKeyboardShortcut();
 
-        if (this.props.autoFocus) {
+        if (this.props.isFocused && this.props.autoFocus) {
             setTimeout(() => {
                 this.textInput.focus();
             }, CONST.ANIMATED_TRANSITION);
@@ -86,11 +87,19 @@ class BaseOptionsSelector extends Component {
         }
 
         // Screen coming back into focus, for example
-        // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K
-        if (!prevProps.isFocused && this.props.isFocused && this.props.autoFocus) {
+        // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
+        // Only applies to platforms that support keyboard shortcuts
+        if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform()) && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus) {
             setTimeout(() => {
                 this.textInput.focus();
             }, CONST.ANIMATED_TRANSITION);
+        }
+
+        // Blur when loosing focus in order not to have the input
+        // focused for a tiny period of time next time the screen
+        // is back to focus
+        if (prevProps.isFocused && !this.props.isFocused) {
+            this.textInput.blur();
         }
 
         if (_.isEqual(this.props.sections, prevProps.sections)) {
