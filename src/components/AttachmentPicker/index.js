@@ -1,6 +1,7 @@
 import React, {useRef} from 'react';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './attachmentPickerPropTypes';
+import Visibility from '../../libs/Visibility';
 
 /**
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
@@ -53,7 +54,23 @@ function AttachmentPicker(props) {
                     if (!fileInput.current) {
                         return;
                     }
-                    fileInput.current.addEventListener('cancel', () => onCanceled.current(), {once: true});
+                    fileInput.current.addEventListener(
+                        'cancel',
+                        () => {
+                            // For Android Chrome, the cancel event happens before the page is visible on physical devices,
+                            // which makes it unreliable for us to show the keyboard, while on emulators it happens after the page is visible.
+                            // So here we can delay calling the onCanceled.current function based on visibility in order to reliably show the keyboard.
+                            if (Visibility.isVisible()) {
+                                onCanceled.current();
+                                return;
+                            }
+                            const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+                                onCanceled.current();
+                                unsubscribeVisibilityListener();
+                            });
+                        },
+                        {once: true},
+                    );
                 }}
                 accept={getAcceptableFileTypes(props.type)}
             />
