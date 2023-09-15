@@ -98,13 +98,10 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
         [reimbursementAccount],
     );
 
-    const renderLabelComponent = useCallback(
-        () => (
-            <View style={[styles.flex1, styles.pr1]}>
-                <Text>{translate('requestorStep.isControllingOfficer')}</Text>
-            </View>
-        ),
-        [translate],
+    const renderLabelComponent = () => (
+        <View style={[styles.flex1, styles.pr1]}>
+            <Text>{translate('requestorStep.isControllingOfficer')}</Text>
+        </View>
     );
 
     if (shouldShowOnfido) {
