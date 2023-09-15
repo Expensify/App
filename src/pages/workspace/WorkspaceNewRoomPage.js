@@ -172,6 +172,7 @@ function WorkspaceNewRoomPage(props) {
                                 <RoomNameInput
                                     inputID="roomName"
                                     isFocused={props.isFocused}
+                                    shouldDelayFocus
                                     autoFocus
                                 />
                             </View>
