@@ -49,13 +49,16 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
 
     const countries = useMemo(
         () =>
-            _.map(translate('allCountries'), (countryName, countryISO) => ({
-                value: countryISO,
-                keyForList: countryISO,
-                text: countryName,
-                isSelected: currentCountry === countryISO,
-                searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-            })),
+            _.map(_.keys(CONST.ALL_COUNTRIES), (countryISO) => {
+                const countryName = translate(`allCountries.${countryISO}`);
+                return {
+                    value: countryISO,
+                    keyForList: countryISO,
+                    text: countryName,
+                    isSelected: currentCountry === countryISO,
+                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+                };
+            }),
         [translate, currentCountry],
     );
 
@@ -87,7 +90,6 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                     sections={[{data: searchResults, indexOffset: 0}]}
                     onSelectRow={onCountrySelected}
                     onChangeText={setSearchValue}
-                    shouldDelayFocus
                     initiallyFocusedOptionKey={currentCountry}
                 />
             </ScreenWrapper>

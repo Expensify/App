@@ -1,5 +1,3 @@
-import moment from 'moment-timezone';
-import 'moment/locale/es';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -386,7 +384,7 @@ function openProfile(personalDetails) {
     if (lodashGet(oldTimezoneData, 'automatic', true)) {
         newTimezoneData = {
             automatic: true,
-            selected: moment.tz.guess(true),
+            selected: Intl.DateTimeFormat().resolvedOptions().timeZone,
         };
     }
 
