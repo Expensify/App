@@ -70,7 +70,7 @@ class BaseOptionsSelector extends Component {
         if (this.props.autoFocus) {
             setTimeout(() => {
                 this.textInput.focus();
-            }, CONST.ANIMATED_TRANSITION)
+            }, CONST.ANIMATED_TRANSITION);
         }
 
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
@@ -90,7 +90,7 @@ class BaseOptionsSelector extends Component {
         if (!prevProps.isFocused && this.props.isFocused && this.props.autoFocus) {
             setTimeout(() => {
                 this.textInput.focus();
-            }, CONST.ANIMATED_TRANSITION)
+            }, CONST.ANIMATED_TRANSITION);
         }
 
         if (_.isEqual(this.props.sections, prevProps.sections)) {
