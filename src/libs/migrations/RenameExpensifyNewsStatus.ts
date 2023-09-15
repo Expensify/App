@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import Log from '../Log';
 
@@ -15,8 +14,9 @@ export default function () {
                 Onyx.disconnect(connectionID);
 
                 // Fail early here because there is nothing to migrate
-                if (!user || _.isNull(user.expensifyNewsStatus) || _.isUndefined(user.expensifyNewsStatus)) {
+                if (user?.expensifyNewsStatus === null || user?.expensifyNewsStatus === undefined) {
                     Log.info('[Migrate Onyx] Skipped migration RenameExpensifyNewsStatus');
+                    // @ts-expect-error In that case we don't need to resolve anything
                     return resolve();
                 }
 
@@ -26,6 +26,7 @@ export default function () {
                     isSubscribedToNewsletter: user.expensifyNewsStatus,
                 }).then(() => {
                     Log.info('[Migrate Onyx] Ran migration RenameExpensifyNewsStatus');
+                    // @ts-expect-error In that case we don't need to resolve anything
                     resolve();
                 });
             },
