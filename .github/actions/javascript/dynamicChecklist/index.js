@@ -8,6 +8,7 @@ module.exports =
 /***/ 3113:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
+const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const _ = __nccwpck_require__(2947);
 const GithubUtils = __nccwpck_require__(7999);
@@ -79,7 +80,7 @@ async function generateChecklist() {
         if (!match) {
             // Add it to the PR body
             isPassing = false;
-            checklistContent += `\n- [ ] ${check}`;
+            checklistContent += `- [ ] ${check}\n`;
         } else {
             const isChecked = match[1] === 'x';
             if (!isChecked) {

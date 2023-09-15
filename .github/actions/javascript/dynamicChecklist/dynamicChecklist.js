@@ -1,3 +1,4 @@
+const core = require('@actions/core');
 const github = require('@actions/github');
 const _ = require('underscore');
 const GithubUtils = require('../../../libs/GithubUtils');
@@ -69,7 +70,7 @@ async function generateChecklist() {
         if (!match) {
             // Add it to the PR body
             isPassing = false;
-            checklistContent += `\n- [ ] ${check}`;
+            checklistContent += `- [ ] ${check}\n`;
         } else {
             const isChecked = match[1] === 'x';
             if (!isChecked) {
