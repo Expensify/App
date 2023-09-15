@@ -139,15 +139,14 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
                 <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
                     <TextLink
                         style={[styles.textMicro]}
-                        // eslint-disable-next-line max-len
-                        href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
+                        href={CONST.BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL}
                     >
                         {translate('requestorStep.learnMore')}
                     </TextLink>
                     <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
                     <TextLink
                         style={[styles.textMicro, styles.textLink]}
-                        href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
+                        href={CONST.PERSONAL_DATA_PROTECTION_INFO_URL}
                     >
                         {translate('requestorStep.isMyDataSafe')}
                     </TextLink>
@@ -169,21 +168,21 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
                 <Text style={[styles.mt3, styles.textMicroSupporting]}>
                     {translate('requestorStep.onFidoConditions')}
                     <TextLink
-                        href="https://onfido.com/facial-scan-policy-and-release/"
+                        href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}
                         style={[styles.textMicro]}
                     >
                         {translate('onfidoStep.facialScan')}
                     </TextLink>
                     {', '}
                     <TextLink
-                        href="https://onfido.com/privacy/"
+                        href={CONST.ONFIDO_PRIVACY_POLICY_URL}
                         style={[styles.textMicro]}
                     >
                         {translate('common.privacy')}
                     </TextLink>
                     {` ${translate('common.and')} `}
                     <TextLink
-                        href="https://onfido.com/terms-of-service/"
+                        href={CONST.ONFIDO_TERMS_OF_SERVICE_URL}
                         style={[styles.textMicro]}
                     >
                         {translate('common.termsOfService')}
