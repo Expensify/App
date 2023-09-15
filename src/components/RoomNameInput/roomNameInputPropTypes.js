@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import {withNavigationFocusPropTypes} from '../withNavigationFocus';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
@@ -27,6 +28,8 @@ const propTypes = {
 
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
     shouldDelayFocus: PropTypes.bool,
+
+    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
