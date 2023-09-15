@@ -5,6 +5,7 @@ import lodashHas from 'lodash/has';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
+import * as TransactionUtils from '../TransactionUtils';
 
 let recentWaypoints = [];
 Onyx.connect({
@@ -53,15 +54,6 @@ function addStop(transactionID) {
         comment: {
             waypoints: {
                 [`waypoint${newLastIndex}`]: {},
-            },
-        },
-
-        // Clear the existing route so that we don't show an old route
-        routes: {
-            route0: {
-                geometry: {
-                    coordinates: null,
-                },
             },
         },
     });
@@ -124,7 +116,8 @@ function removeWaypoint(transactionID, currentIndex) {
     }
 
     const waypointValues = _.values(existingWaypoints);
-    waypointValues.splice(index, 1);
+    const removed = waypointValues.splice(index, 1);
+    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0]);
 
     const reIndexedWaypoints = {};
     waypointValues.forEach((waypoint, idx) => {
@@ -134,21 +127,27 @@ function removeWaypoint(transactionID, currentIndex) {
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
-    const newTransaction = {
+    let newTransaction = {
         ...transaction,
         comment: {
             ...transaction.comment,
             waypoints: reIndexedWaypoints,
         },
-        // Clear the existing route so that we don't show an old route
-        routes: {
-            route0: {
-                geometry: {
-                    coordinates: null,
+    };
+
+    if (!isRemovedWaypointEmpty) {
+        newTransaction = {
+            ...newTransaction,
+            // Clear the existing route so that we don't show an old route
+            routes: {
+                route0: {
+                    geometry: {
+                        coordinates: null,
+                    },
                 },
             },
-        },
-    };
+        };
+    }
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, newTransaction);
 }
 

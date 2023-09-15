@@ -384,4 +384,5 @@ export {
     isDistanceRequest,
     hasMissingSmartscanFields,
     getWaypointIndex,
+    waypointHasValidAddress,
 };
