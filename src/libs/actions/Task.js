@@ -904,7 +904,7 @@ function clearEditTaskErrors(reportID) {
 function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
     const report = ReportUtils.getReport(reportID);
     if (isCreateTaskAction) {
-        return Localize.translateLocal('task.createdTask', {title: report.reportName});
+        return `Created a task: ${report.reportName}`;
     }
     let taskStatusText = '';
     switch (actionName) {
