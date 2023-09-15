@@ -162,7 +162,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     subtitle={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                     subtitleTextStyle={styles.textLabelError}
                 />
-                {getViolationForField(transaction, 'amount') && (
+                {Boolean(getViolationForField(transaction, 'amount')) && (
                     <View>
                         <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transaction, 'amount')}</Text>
                     </View>
