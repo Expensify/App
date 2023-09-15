@@ -23,6 +23,7 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -77,19 +78,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => {
-                if (!privateNotesInput.current) {
-                    return;
-                }
-
-                privateNotesInput.current.focus();
-
-                // Below condition is needed for web, desktop and mweb only, for native cursor to position at end by default.
-                if (privateNotesInput.current.value && privateNotesInput.current.setSelectionRange) {
-                    const length = privateNotesInput.current.value.length;
-                    privateNotesInput.current.setSelectionRange(length, length);
-                }
-            }}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(privateNotesInput.current)}
         >
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || !isCurrentUserNote}
