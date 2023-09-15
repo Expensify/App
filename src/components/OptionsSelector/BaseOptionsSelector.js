@@ -30,6 +30,9 @@ const propTypes = {
     /** List container styles for OptionsList */
     listContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** List styles for OptionsList */
+    listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
     ...withNavigationFocusPropTypes,
@@ -40,6 +43,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
     listContainerStyles: [styles.flex1],
+    listStyles: [],
     ...optionsSelectorDefaultProps,
 };
 
@@ -135,6 +139,10 @@ class BaseOptionsSelector extends Component {
      * @returns {Number}
      */
     getInitiallyFocusedIndex(allOptions) {
+        if (_.isNumber(this.props.initialFocusedIndex)) {
+            return this.props.initialFocusedIndex;
+        }
+
         if (this.props.selectedOptions.length > 0) {
             return this.props.selectedOptions.length;
         }
@@ -218,6 +226,14 @@ class BaseOptionsSelector extends Component {
                 });
             }, 500);
         }
+    }
+
+    focus() {
+        if (!this.textInput) {
+            return;
+        }
+
+        this.textInput.focus();
     }
 
     /**
@@ -362,6 +378,7 @@ class BaseOptionsSelector extends Component {
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
                 shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
+                highlightSelectedOptions={this.props.highlightSelectedOptions}
                 onLayout={() => {
                     if (this.props.selectedOptions.length === 0) {
                         this.scrollToIndex(this.state.focusedIndex, false);
@@ -373,8 +390,10 @@ class BaseOptionsSelector extends Component {
                 }}
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 listContainerStyles={this.props.listContainerStyles}
+                listStyles={this.props.listStyles}
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
+                isRowMultilineSupported={this.props.isRowMultilineSupported}
             />
         );
         return (

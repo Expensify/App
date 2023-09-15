@@ -14,7 +14,6 @@ import Badge from './Badge';
 import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
-import colors from '../styles/colors';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
@@ -54,6 +53,7 @@ const defaultProps = {
     disabled: false,
     isSelected: false,
     subtitle: undefined,
+    subtitleTextStyle: {},
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
     onSecondaryInteraction: undefined,
@@ -278,7 +278,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                                 {(props.subtitle || props.subtitle === 0) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                        <Text style={[styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
+                                        <Text style={[props.subtitleTextStyle || styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
                                     </View>
                                 )}
                                 {!_.isEmpty(props.floatRightAvatars) && (
@@ -297,7 +297,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
-                                            fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
+                                            fill={props.brickRoadIndicator === 'error' ? themeColors.danger : themeColors.success}
                                         />
                                     </View>
                                 )}

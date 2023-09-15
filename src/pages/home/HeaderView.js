@@ -20,7 +20,7 @@ import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
@@ -209,7 +209,7 @@ function HeaderView(props) {
                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        fill={colors.red}
+                                        fill={themeColors.danger}
                                     />
                                 </View>
                             )}
