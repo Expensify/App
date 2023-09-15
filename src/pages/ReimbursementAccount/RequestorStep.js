@@ -99,7 +99,7 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
         [reimbursementAccount],
     );
 
-    const LabelComponent = useCallback(
+    const renderLabelComponent = useCallback(
         () => (
             <View style={[styles.flex1, styles.pr1]}>
                 <Text>{translate('requestorStep.isControllingOfficer')}</Text>
@@ -163,7 +163,7 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
                     accessibilityLabel={translate('requestorStep.isControllingOfficer')}
                     inputID="isControllingOfficer"
                     defaultValue={getDefaultStateForField('isControllingOfficer', false)}
-                    LabelComponent={LabelComponent}
+                    LabelComponent={renderLabelComponent}
                     style={[styles.mt4]}
                     shouldSaveDraft
                 />
