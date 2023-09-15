@@ -82,6 +82,14 @@ class BaseOptionsSelector extends Component {
             }
         }
 
+        // Screen coming back into focus, for example
+        // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K
+        if (!prevProps.isFocused && this.props.isFocused && this.props.autoFocus) {
+            setTimeout(() => {
+                this.textInput.focus();
+            }, CONST.ANIMATED_TRANSITION)
+        }
+
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
