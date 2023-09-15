@@ -50,13 +50,10 @@ function generateHexadecimalValue(num: number): string {
 /**
  * Clamp a number in a range.
  * This is a worklet so it should be used only from UI thread.
- *
- * @param {Number} num
- * @param {Number} min
- * @param {Number} max
- * @returns {Number}
+ 
+ * @returns clamped value between min and max
  */
-function clampWorklet(num, min, max) {
+function clampWorklet(num: number, min: number, max: number): number {
     'worklet';
 
     return Math.min(Math.max(num, min), max);
