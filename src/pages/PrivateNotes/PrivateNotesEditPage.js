@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -62,6 +62,9 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     const [privateNote, setPrivateNote] = useState(parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim());
     const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
 
+    // To focus on the input field when the page loads
+    const privateNotesInput = useRef(null);
+
     const savePrivateNote = () => {
         const editedNote = parser.replace(privateNote);
         Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
@@ -72,7 +75,16 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => {
+                if (!privateNotesInput.current) {
+                    return;
+                }
+
+                privateNotesInput.current.focus();
+            }}
+        >
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || !isCurrentUserNote}
                 subtitleKey="privateNotes.notesUnavailable"
@@ -121,6 +133,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                                 defaultValue={privateNote}
                                 value={privateNote}
                                 onChangeText={(text) => setPrivateNote(text)}
+                                ref={(el) => (privateNotesInput.current = el)}
                             />
                         </OfflineWithFeedback>
                     </Form>
