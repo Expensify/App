@@ -79,10 +79,10 @@ const getBackgroundColor = (position, routesLength, tabIndex) => {
 
         return position.interpolate({
             inputRange,
-            outputRange: _.map(inputRange, (i) => (i === tabIndex ? themeColors.midtone : themeColors.appBG)),
+            outputRange: _.map(inputRange, (i) => (i === tabIndex ? themeColors.border : themeColors.appBG)),
         });
     }
-    return themeColors.midtone;
+    return themeColors.border;
 };
 
 function TabSelector({state, navigation, onTabPress, position}) {
