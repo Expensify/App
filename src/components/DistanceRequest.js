@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState, useRef} from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
