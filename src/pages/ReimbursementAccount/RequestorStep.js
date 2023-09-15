@@ -83,14 +83,14 @@ const validate = (values) => {
 function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField, translate}, ref) {
     const defaultValues = useMemo(
         () => ({
-            firstName: getDefaultStateForField('firstName'),
-            lastName: getDefaultStateForField('lastName'),
-            street: getDefaultStateForField('requestorAddressStreet'),
-            city: getDefaultStateForField('requestorAddressCity'),
-            state: getDefaultStateForField('requestorAddressState'),
-            zipCode: getDefaultStateForField('requestorAddressZipCode'),
-            dob: getDefaultStateForField('dob'),
-            ssnLast4: getDefaultStateForField('ssnLast4'),
+            firstName: getDefaultStateForField(INPUT_KEYS.firstName),
+            lastName: getDefaultStateForField(INPUT_KEYS.lastName),
+            street: getDefaultStateForField(INPUT_KEYS.street),
+            city: getDefaultStateForField(INPUT_KEYS.city),
+            state: getDefaultStateForField(INPUT_KEYS.state),
+            zipCode: getDefaultStateForField(INPUT_KEYS.zipCode),
+            dob: getDefaultStateForField(INPUT_KEYS.dob),
+            ssnLast4: getDefaultStateForField(INPUT_KEYS.ssnLast4),
         }),
         [getDefaultStateForField],
     );
