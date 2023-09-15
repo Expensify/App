@@ -143,7 +143,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
 
     if (_.has(transactionChanges, 'category')) {
         updatedTransaction.modifiedCategory = transactionChanges.category;
-        shouldStopSmartscan = true;
+        shouldStopSmartscan = false;
     }
 
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
