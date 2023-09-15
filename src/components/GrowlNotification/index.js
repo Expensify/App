@@ -1,7 +1,7 @@
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
 import {View, Animated} from 'react-native';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -14,15 +14,15 @@ import * as Pressables from '../Pressable';
 const types = {
     [CONST.GROWL.SUCCESS]: {
         icon: Expensicons.Checkmark,
-        iconColor: colors.green,
+        iconColor: themeColors.success,
     },
     [CONST.GROWL.ERROR]: {
         icon: Expensicons.Exclamation,
-        iconColor: colors.red,
+        iconColor: themeColors.danger,
     },
     [CONST.GROWL.WARNING]: {
         icon: Expensicons.Exclamation,
-        iconColor: colors.yellow,
+        iconColor: themeColors.warning,
     },
 };
 

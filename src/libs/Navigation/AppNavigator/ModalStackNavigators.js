@@ -132,6 +132,13 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
         },
         name: 'Money_Request_Waypoint',
     },
+    {
+        getComponent: () => {
+            const DistanceRequestEditPage = require('../../../pages/iou/DistanceRequestPage').default;
+            return DistanceRequestEditPage;
+        },
+        name: 'Money_Request_Address',
+    },
 ]);
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator([
