@@ -21,7 +21,7 @@ const defaultProps = {
     style: [],
 };
 
-function SpacerView(props) {
+function SpacerView({shouldShow, style}) {
     const marginVertical = useSharedValue(8);
     const borderBottomWidth = useSharedValue(1);
     const animatedStyles = useAnimatedStyle(() => ({
@@ -30,16 +30,16 @@ function SpacerView(props) {
     }));
 
     React.useEffect(() => {
-        if (props.shouldShow) {
-            marginVertical.value = withTiming(8, {duration: 300});
-            borderBottomWidth.value = withTiming(1, {duration: 300});
-        } else {
-            marginVertical.value = withTiming(0, {duration: 300});
-            borderBottomWidth.value = withTiming(0, {duration: 300});
-        }
-    }, [props.shouldShow, borderBottomWidth, marginVertical]);
+        const duration = 300;
+        const values = {
+            marginVertical: shouldShow ? 8 : 0,
+            borderBottomWidth: shouldShow ? 1 : 0,
+        };
+        marginVertical.value = withTiming(values.marginVertical, {duration});
+        borderBottomWidth.value = withTiming(values.borderBottomWidth, {duration});
+    }, [shouldShow, borderBottomWidth, marginVertical]);
 
-    return <Animated.View style={[animatedStyles, ...StyleUtils.parseStyleAsArray(props.style)]} />;
+    return <Animated.View style={[animatedStyles, ...StyleUtils.parseStyleAsArray(style)]} />;
 }
 
 SpacerView.displayName = 'SpacerView';
