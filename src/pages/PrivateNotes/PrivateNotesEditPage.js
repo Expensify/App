@@ -83,6 +83,12 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                 }
 
                 privateNotesInput.current.focus();
+
+                // Below condition is needed for web, desktop and mweb only, for native cursor to position at end by default.
+                if (privateNotesInput.current.value && privateNotesInput.current.setSelectionRange) {
+                    const length = privateNotesInput.current.value.length;
+                    privateNotesInput.current.setSelectionRange(length, length);
+                }
             }}
         >
             <FullPageNotFoundView
