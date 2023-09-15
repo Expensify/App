@@ -95,9 +95,9 @@ export default [
         successTextTranslateKey: 'common.download',
         successIcon: Expensicons.Download,
         shouldShow: (type, reportAction) => {
-            const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
-            return isAttachment && message.html !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction);
+            const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
+            const messageHtml = lodashGet(reportAction, ['message', 0, 'html']);
+            return isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
@@ -175,9 +175,7 @@ export default [
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction) =>
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))) &&
-            !ReportActionsUtils.isMessageDeleted(reportAction),
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && !ReportActionsUtils.isReportActionAttachment(reportAction) && !ReportActionsUtils.isMessageDeleted(reportAction),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -189,7 +187,7 @@ export default [
             const originalMessage = _.get(reportAction, 'originalMessage', {});
             const messageHtml = isTaskAction ? lodashGet(originalMessage, 'html', '') : lodashGet(message, 'html', '');
 
-            const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
+            const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             if (!isAttachment) {
                 const content = selection || messageHtml;
                 if (isReportPreviewAction) {
@@ -208,9 +206,8 @@ export default [
                         Clipboard.setHtml(content, plainText);
                     }
                 }
-            } else {
-                Clipboard.setString(messageHtml);
             }
+
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -225,8 +222,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget) => {
-            const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
+            const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
