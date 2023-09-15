@@ -60,8 +60,8 @@ class OptionsListSkeletonView extends React.Component {
                     key={`skeletonViewItems${i}`}
                     animate={this.props.shouldAnimate}
                     height={CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT}
-                    backgroundColor={themeColors.borderLighter}
-                    foregroundColor={themeColors.border}
+                    backgroundColor={themeColors.skeletonLHNIn}
+                    foregroundColor={themeColors.skeletonLHNOut}
                     style={styles.mr5}
                 >
                     <Circle

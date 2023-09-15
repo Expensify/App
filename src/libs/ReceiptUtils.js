@@ -4,7 +4,6 @@ import Str from 'expensify-common/lib/str';
 import * as FileUtils from './fileDownload/FileUtils';
 import CONST from '../CONST';
 import Receipt from './actions/Receipt';
-import * as Localize from './Localize';
 import ReceiptHTML from '../../assets/images/receipt-html.png';
 import ReceiptDoc from '../../assets/images/receipt-doc.png';
 import ReceiptGeneric from '../../assets/images/receipt-generic.png';
@@ -13,17 +12,17 @@ import ReceiptSVG from '../../assets/images/receipt-svg.png';
 function validateReceipt(file) {
     const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
     if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-        Receipt.setUploadReceiptError(true, Localize.translateLocal('attachmentPicker.wrongFileType'), Localize.translateLocal('attachmentPicker.notAllowedExtension'));
+        Receipt.setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
         return false;
     }
 
     if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-        Receipt.setUploadReceiptError(true, Localize.translateLocal('attachmentPicker.attachmentTooLarge'), Localize.translateLocal('attachmentPicker.sizeExceeded'));
+        Receipt.setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
         return false;
     }
 
     if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-        Receipt.setUploadReceiptError(true, Localize.translateLocal('attachmentPicker.attachmentTooSmall'), Localize.translateLocal('attachmentPicker.sizeNotMet'));
+        Receipt.setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
         return false;
     }
 

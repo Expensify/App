@@ -240,6 +240,8 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
+        NEW_DOT_CATEGORIES: 'newDotCategories',
+        NEW_DOT_TAGS: 'newDotTags',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1088,6 +1090,29 @@ const CONST = {
 
         DEFAULT: 'en',
     },
+
+    LANGUAGES: ['en', 'es'],
+
+    PRONOUNS_LIST: [
+        'coCos',
+        'eEyEmEir',
+        'heHimHis',
+        'heHimHisTheyThemTheirs',
+        'sheHerHers',
+        'sheHerHersTheyThemTheirs',
+        'merMers',
+        'neNirNirs',
+        'neeNerNers',
+        'perPers',
+        'theyThemTheirs',
+        'thonThons',
+        'veVerVis',
+        'viVir',
+        'xeXemXyr',
+        'zeZieZirHir',
+        'zeHirHirs',
+        'callMeByMyName',
+    ],
 
     POLICY: {
         TYPE: {

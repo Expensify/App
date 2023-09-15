@@ -7,4 +7,5 @@ import polyfillNumberFormat from './polyfillNumberFormat';
 export default function intlPolyfill() {
     // Just need to polyfill Intl.NumberFormat for web based platforms
     polyfillNumberFormat();
+    require('@formatjs/intl-datetimeformat');
 }
