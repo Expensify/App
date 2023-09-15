@@ -6,9 +6,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import {Layer, Source} from 'react-map-gl';
-import {DirectionProps} from './MapViewTypes';
+import {DirectionProps} from '../MapViewTypes';
 
-import styles from '../../styles/styles';
+import styles from '../../../styles/styles';
 
 function Direction({coordinates}: DirectionProps) {
     const layerLayoutStyle: Record<string, string> = styles.mapDirectionLayer.layout;

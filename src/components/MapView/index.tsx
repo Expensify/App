@@ -44,16 +44,16 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
             map.fitBounds([northEast, southWest], {padding: mapPadding});
         }, [waypoints, mapRef, mapPadding]);
 
-        useImperativeHandle(
+        useImperativeHandle<MapViewHandle, MapViewHandle>(
             ref,
             () => ({
-                flyTo: (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
+                flyTo: (location, zoomLevel, animationDuration) =>
                     mapRef?.flyTo({
                         center: location,
-                        zoom: zoomLevel,
+                        zoom: zoomLevel ?? CONST.MAPBOX.DEFAULT_ZOOM,
                         duration: animationDuration,
                     }),
-                fitBounds: (northEast: [number, number], southWest: [number, number]) => mapRef?.fitBounds([northEast, southWest]),
+                fitBounds: (northEast, southWest) => mapRef?.fitBounds([northEast, southWest]),
             }),
             [mapRef],
         );

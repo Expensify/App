@@ -6,7 +6,7 @@ import styles from '../../styles/styles';
 
 import responder from './responder';
 import utils from './utils';
-import Direction from './Direction';
+import Direction from './index.native';
 import CONST from '../../CONST';
 
 import {MapViewProps, MapViewHandle} from './MapViewTypes';
@@ -15,12 +15,12 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
 
-    useImperativeHandle(
+    useImperativeHandle<MapViewHandle, MapViewHandle>(
         ref,
         () => ({
-            flyTo: (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
-                cameraRef.current?.setCamera({zoomLevel, centerCoordinate: location, animationDuration}),
-            fitBounds: (northEast: [number, number], southWest: [number, number], paddingConfig?: number | number[] | undefined, animationDuration?: number | undefined) =>
+            flyTo: (location, zoomLevel, animationDuration) =>
+                cameraRef.current?.setCamera({zoomLevel: zoomLevel ?? CONST.MAPBOX.DEFAULT_ZOOM, centerCoordinate: location, animationDuration}),
+            fitBounds: (northEast, southWest, paddingConfig, animationDuration) =>
                 cameraRef.current?.fitBounds(northEast, southWest, paddingConfig, animationDuration),
         }),
         [],
