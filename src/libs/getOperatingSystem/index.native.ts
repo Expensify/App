@@ -1,11 +1,11 @@
 import {Platform} from 'react-native';
 import CONST from '../../CONST';
+import GetOperatingSystem from './types';
 
 /**
  * Reads the current operating system for native platforms.
- * @return {String | null}
  */
-export default () => {
+const getOperatingSystem: GetOperatingSystem = () => {
     switch (Platform.OS) {
         case 'ios':
             return CONST.OS.IOS;
@@ -15,3 +15,5 @@ export default () => {
             return CONST.OS.NATIVE;
     }
 };
+
+export default getOperatingSystem;
