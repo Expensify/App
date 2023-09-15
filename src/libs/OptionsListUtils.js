@@ -18,6 +18,9 @@ import * as UserUtils from './UserUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ErrorUtils from './ErrorUtils';
+import * as ReportActionsUtils from "./ReportActionsUtils";
+import * as TransactionUtils from './TransactionUtils';
+import {isCurrentUserSubmitter} from "./ReportUtils";
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -351,20 +354,19 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 function getAllReportErrors(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
-    const reportActionErrors = {};
-    _.each(reportActions, (action) => {
-        if (action && !_.isEmpty(action.errors)) {
-            _.extend(reportActionErrors, action.errors);
-        } else if (ReportActionUtils.isReportPreviewAction(action)) {
-            const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(action);
+    let reportActionErrors = _.reduce(
+        reportActions,
+        (prevReportActionErrors, action) => (!action || _.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
+        {},
+    );
 
-            // Instead of adding all Smartscan errors, let's just add a generic error if there are any. This
-            // will be more performant and provide the same result in the UI
-            if (ReportUtils.hasMissingSmartscanFields(iouReportID)) {
-                _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
-            }
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    if (parentReportAction.actorAccountID === currentUserAccountID && ReportActionsUtils.isTransactionThread(parentReportAction)) {
+        const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+        if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
+            _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
-    });
+    }
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
