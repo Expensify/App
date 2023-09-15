@@ -186,8 +186,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(() => {
-        setFirstPress(true);
         if (isInvaidAmount) {
+            setFirstPress(true);
             setFormError('iou.error.invalidAmount');
             return;
         }
