@@ -620,6 +620,17 @@ function getAllReportActions(reportID) {
 }
 
 /**
+ * Check whether a report action is an attachment (a file, such as an image or a zip).
+ *
+ * @param {Object} reportAction report action
+ * @returns {Boolean}
+ */
+function isReportActionAttachment(reportAction) {
+    const message = _.first(lodashGet(reportAction, 'message', [{}]));
+    return _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : isReportMessageAttachment(message);
+}
+
+/**
  *
  * @param {*} reportID
  * @returns {Boolean}
@@ -670,5 +681,6 @@ export {
     isSplitBillAction,
     isTaskAction,
     getAllReportActions,
+    isReportActionAttachment,
     isChildReportHasComment,
 };
