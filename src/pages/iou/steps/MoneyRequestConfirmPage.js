@@ -258,12 +258,24 @@ function MoneyRequestConfirmPage(props) {
         [props.iou.amount, props.iou.comment, participants, props.iou.currency, props.currentUserPersonalDetails.accountID, props.report],
     );
 
+    const headerTitle = () => {
+        if (isDistanceRequest) {
+            return props.translate('common.distance');
+        }
+
+        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
+            return props.translate('iou.split');
+        }
+
+        return props.translate('tabSelector.manual');
+    };
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
+                        title={headerTitle()}
                         onBackButtonPress={navigateBack}
                     />
                     {/*
