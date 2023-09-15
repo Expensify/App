@@ -12,7 +12,7 @@ import UserDetailsTooltip from '../UserDetailsTooltip';
 function UserListItem({item, isFocused = false, showTooltip}) {
     const avatar = (
         <Avatar
-            containerStyles={styles.pl5}
+            containerStyles={styles.pl3}
             source={lodashGet(item, 'avatar.source', '')}
             name={lodashGet(item, 'avatar.name', item.text)}
             type={lodashGet(item, 'avatar.type', CONST.ICON_TYPE_AVATAR)}

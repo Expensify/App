@@ -11,10 +11,14 @@ import CONST from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
 import SelectionList from '../../../../components/SelectionList';
+import refPropTypes from '../../../../components/refPropTypes';
 
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** A ref to forward to options selector's text input */
+    forwardedRef: refPropTypes,
 
     /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
@@ -38,6 +42,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    forwardedRef: undefined,
     personalDetails: {},
     reports: {},
     betas: [],
@@ -152,7 +157,7 @@ class MoneyRequestParticipantsSelector extends Component {
      */
     addSingleParticipant(option) {
         this.props.onAddParticipants([{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true}]);
-        this.props.onStepComplete();
+        this.props.onStepComplete(option);
     }
 
     render() {
@@ -193,4 +198,12 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(MoneyRequestParticipantsSelector);
+)(
+    React.forwardRef((props, ref) => (
+        <MoneyRequestParticipantsSelector
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);
