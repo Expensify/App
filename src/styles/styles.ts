@@ -26,8 +26,7 @@ import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
 import {ThemeDefault} from './themes/types';
-import {AnimatableNumericValue, Animated, TransformsStyle} from 'react-native';
-import {ValueOf} from 'type-fest';
+import {AnimatableNumericValue, Animated} from 'react-native';
 
 type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
 
