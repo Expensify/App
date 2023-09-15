@@ -5,22 +5,25 @@ type CropOrRotateImageOptions = {
     name: string;
     compress: number;
 };
+
 type CropOptions = {
     originX: number;
     originY: number;
     width: number;
     height: number;
 };
+
 type Action = {
     crop?: CropOptions;
     rotate?: number;
 };
+
 type FileWithUri = File & {
     uri: string;
 };
 
-type RNManipulator = RNImageManipulatorResult & {size: number; type: string; name: string};
+type CustomRNImageManipulatorResult = RNImageManipulatorResult & {size: number; type: string; name: string};
 
-type CropOrRotateImage = (uri: string, actions: Action[], options: CropOrRotateImageOptions) => Promise<FileWithUri | RNManipulator>;
+type CropOrRotateImage = (uri: string, actions: Action[], options: CropOrRotateImageOptions) => Promise<FileWithUri | CustomRNImageManipulatorResult>;
 
 export type {CropOrRotateImage, CropOptions, Action, FileWithUri, CropOrRotateImageOptions};

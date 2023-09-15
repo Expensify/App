@@ -77,10 +77,9 @@ function convertCanvasToFile(canvas: HTMLCanvasElement, options: CropOrRotateIma
             if (!blob) {
                 return;
             }
-            const file = new File([blob], options.name || 'fileName.jpeg', {type: options.type || 'image/jpeg'});
-            const fileWithUri = Object.assign(file, {uri: URL.createObjectURL(file)});
-
-            resolve(fileWithUri);
+            const file = new File([blob], options.name || 'fileName.jpeg', {type: options.type || 'image/jpeg'}) as FileWithUri;
+            file.uri = URL.createObjectURL(file);
+            resolve(file);
         });
     });
 }
@@ -122,7 +121,6 @@ const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
             }
             return canvas;
         }, originalCanvas);
-
         return convertCanvasToFile(resultCanvas, options);
     });
 
