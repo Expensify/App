@@ -14,6 +14,7 @@ import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as User from '../../src/libs/actions/User';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import DateUtils from '../../src/libs/DateUtils';
+import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
 
 jest.mock('../../src/libs/actions/Report', () => {
     const originalModule = jest.requireActual('../../src/libs/actions/Report');
@@ -24,6 +25,7 @@ jest.mock('../../src/libs/actions/Report', () => {
     };
 });
 
+OnyxUpdateManager();
 describe('actions/Report', () => {
     beforeAll(() => {
         PusherHelper.setup();

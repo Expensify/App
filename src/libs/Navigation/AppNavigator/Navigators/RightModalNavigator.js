@@ -33,14 +33,6 @@ function RightModalNavigator(props) {
                         component={ModalStackNavigators.NewChatModalStackNavigator}
                     />
                     <Stack.Screen
-                        name="NewGroup"
-                        component={ModalStackNavigators.NewGroupModalStackNavigator}
-                        options={{
-                            // Disable animation for this screen because it causes an animation glitch when using shortcuts
-                            animationEnabled: false,
-                        }}
-                    />
-                    <Stack.Screen
                         name="Search"
                         component={ModalStackNavigators.SearchModalStackNavigator}
                         options={{
@@ -115,6 +107,10 @@ function RightModalNavigator(props) {
                     <Stack.Screen
                         name="SignIn"
                         component={ModalStackNavigators.SignInModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="Private_Notes"
+                        component={ModalStackNavigators.PrivateNotesModalStackNavigator}
                     />
                 </Stack.Navigator>
             </View>

@@ -144,6 +144,9 @@ const propTypes = {
 
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled: PropTypes.bool,
+
+    /** Should render the content in HTML format */
+    shouldRenderAsHTML: PropTypes.bool,
 };
 
 export default propTypes;
