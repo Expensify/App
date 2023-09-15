@@ -85,11 +85,11 @@ const darkTheme = {
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: darkTheme.sidebar,
+    [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
     [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
     [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
     [SCREENS.SETTINGS.SECURITY]: colors.ice500,
-    [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
-    [ROUTES.SETTINGS_STATUS]: colors.green700,
+    [SCREENS.SETTINGS.STATUS]: colors.green700,
 };
 
 export default darkTheme;

@@ -84,11 +84,11 @@ const lightTheme = {
 
 lightTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: lightTheme.sidebar,
+    [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
     [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
     [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
-    [ROUTES.SETTINGS_SECURITY]: colors.ice500,
     [SCREENS.SETTINGS.SECURITY]: colors.ice500,
-    [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
+    [SCREENS.SETTINGS.STATUS]: colors.green700,
 };
 
 export default lightTheme;

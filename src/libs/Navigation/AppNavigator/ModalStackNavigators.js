@@ -593,7 +593,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsStatus = require('../../../pages/settings/Profile/CustomStatus/StatusPage').default;
             return SettingsStatus;
         },
-        name: 'Settings_Status',
+        name: SCREENS.SETTINGS.STATUS,
     },
     {
         getComponent: () => {

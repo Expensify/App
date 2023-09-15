@@ -15,6 +15,7 @@ export default {
         PREFERENCES: 'Settings_Preferences',
         WORKSPACES: 'Settings_Workspaces',
         SECURITY: 'Settings_Security',
+        STATUS: 'Settings_Status',
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
