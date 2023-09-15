@@ -34,7 +34,6 @@ function BaseSidebarScreen(props) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
-            shouldDisableFocusTrap
         >
             {({insets}) => (
                 <>
