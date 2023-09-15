@@ -3721,8 +3721,8 @@ const styles = (theme) => ({
     },
 
     tabSelectorButton: {
-        height: 40,
-        padding: 12,
+        height: variables.tabSelectorButtonHeight,
+        padding: variables.tabSelectorButtonPadding,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
