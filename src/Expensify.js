@@ -30,7 +30,6 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
-import * as DemoActions from './libs/actions/DemoActions';
 import DownloadAppModal from './components/DownloadAppModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 
@@ -168,13 +167,11 @@ function Expensify(props) {
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
-            DemoActions.runDemoByURL(url);
             Report.openReportFromDeepLink(url, isAuthenticated);
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            DemoActions.runDemoByURL(state.url);
             Report.openReportFromDeepLink(state.url, isAuthenticated);
         });
 

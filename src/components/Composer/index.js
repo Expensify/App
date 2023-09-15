@@ -83,6 +83,9 @@ const propTypes = {
     /** Whether this is the report action compose */
     isReportActionCompose: PropTypes.bool,
 
+    /** Whether the sull composer is open */
+    isComposerFullSize: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -111,6 +114,7 @@ const defaultProps = {
     shouldCalculateCaretPosition: false,
     checkComposerVisibility: () => false,
     isReportActionCompose: false,
+    isComposerFullSize: false,
 };
 
 /**
@@ -161,6 +165,7 @@ function Composer({
     checkComposerVisibility,
     selection: selectionProp,
     isReportActionCompose,
+    isComposerFullSize,
     ...props
 }) {
     const textRef = useRef(null);
@@ -413,7 +418,6 @@ function Composer({
         <View
             style={{
                 position: 'absolute',
-                bottom: -2000,
                 zIndex: -1,
                 opacity: 0,
             }}
@@ -440,9 +444,9 @@ function Composer({
             numberOfLines < maxLines ? styles.overflowHidden : {},
 
             StyleSheet.flatten([style, {outline: 'none'}]),
-            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp),
+            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp, isComposerFullSize),
         ],
-        [style, maxLines, numberOfLinesProp, numberOfLines],
+        [style, maxLines, numberOfLinesProp, numberOfLines, isComposerFullSize],
     );
 
     return (

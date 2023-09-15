@@ -12,9 +12,11 @@ jobs:
     if: github.actor != 'OSBotify'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       # Rebuild all the actions on this branch and check for a diff. Fail if there is one,
       # because that would be a sign that the PR author did not rebuild the Github Actions

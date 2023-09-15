@@ -47,4 +47,7 @@ export default {
     b0: {
         bottom: 0,
     },
+    b2: {
+        bottom: 8,
+    },
 } satisfies Record<string, ViewStyle>;
