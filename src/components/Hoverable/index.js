@@ -29,6 +29,31 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children}, outerRef) {
         return () => document.removeEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
     }, []);
 
+    /**
+     * Checks the hover state of a component and updates it based on the event target.
+     * This is necessary to handle cases where the hover state might get stuck due to an unreliable mouseleave trigger,
+     * such as when an element is removed before the mouseleave event is triggered.
+     * @param {Event} e - The hover event object.
+     */
+    const unsetHoveredIfOutside = useCallback(
+        (e) => {
+            if (!ref.current || !isHovered) return;
+
+            if (ref.current.contains(e.target)) return;
+
+            setIsHovered(false);
+        },
+        [isHovered],
+    );
+
+    useEffect(() => {
+        if (!DeviceCapabilities.hasHoverSupport()) return;
+
+        document.addEventListener('mouseover', unsetHoveredIfOutside);
+
+        return () => document.removeEventListener('mouseover', unsetHoveredIfOutside);
+    }, [unsetHoveredIfOutside]);
+
     useEffect(() => {
         if (disabled && isHovered) return setIsHovered(false);
     }, [disabled, isHovered]);
