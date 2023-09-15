@@ -355,7 +355,7 @@ function BaseSelectionList({
                                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         />
                                         <View style={[styles.flex1]}>
-                                            <Text style={[styles.textStrong, styles.ph5]}>{translate('workspace.people.selectAll')}</Text>
+                                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                                         </View>
                                     </PressableWithFeedback>
                                 )}

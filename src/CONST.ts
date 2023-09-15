@@ -293,8 +293,8 @@ const CONST = {
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
-        NEW_GROUP: {
-            descriptionKey: 'newGroup',
+        NEW_CHAT: {
+            descriptionKey: 'newChat',
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
@@ -2624,6 +2624,9 @@ const CONST = {
         DISABLED: 'DISABLED',
     },
     TAB: {
+        NEW_CHAT_TAB_ID: 'NewChatTab',
+        NEW_CHAT: 'chat',
+        NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         MANUAL: 'manual',
         SCAN: 'scan',
