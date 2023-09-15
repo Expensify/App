@@ -1,5 +1,5 @@
-import {Card} from "../types/onyx";
-import CONST from "../CONST";
+import {Card} from '../types/onyx';
+import CONST from '../CONST';
 
 /**
  * @returns string with a month in MM format
@@ -22,7 +22,7 @@ function getCompanyCards(cardList: {string: Card}) {
     if (!cardList) {
         return [];
     }
-    return Object.values(cardList).filter(card => card.bank !== CONST.EXPENSIFY_CARD.BANK);
+    return Object.values(cardList).filter((card) => card.bank !== CONST.EXPENSIFY_CARD.BANK);
 }
 
 export {getMonthFromExpirationDateString, getYearFromExpirationDateString, getCompanyCards};
