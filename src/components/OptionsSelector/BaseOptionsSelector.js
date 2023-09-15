@@ -68,7 +68,7 @@ class BaseOptionsSelector extends Component {
     componentDidMount() {
         this.subscribeToKeyboardShortcut();
 
-        if (this.props.isFocused && this.props.autoFocus) {
+        if (this.props.isFocused && this.props.autoFocus && this.textInput) {
             setTimeout(() => {
                 this.textInput.focus();
             }, CONST.ANIMATED_TRANSITION);
@@ -89,7 +89,7 @@ class BaseOptionsSelector extends Component {
         // Screen coming back into focus, for example
         // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
         // Only applies to platforms that support keyboard shortcuts
-        if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform()) && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus) {
+        if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform()) && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus && this.textInput) {
             setTimeout(() => {
                 this.textInput.focus();
             }, CONST.ANIMATED_TRANSITION);
