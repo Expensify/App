@@ -15,7 +15,6 @@ import Badge from './Badge';
 import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
-import colors from '../styles/colors';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
@@ -77,6 +76,7 @@ const defaultProps = {
     title: '',
     numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
+    shouldRenderAsHTML: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -235,18 +235,21 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {html.length ? (
-                                                <RenderHTML html={`<comment>${html}</comment>`} />
-                                            ) : (
-                                                Boolean(props.title) && (
-                                                    <Text
-                                                        style={titleTextStyle}
-                                                        numberOfLines={props.numberOfLinesTitle || undefined}
-                                                    >
-                                                        {convertToLTR(props.title)}
-                                                    </Text>
-                                                )
-                                            )}
+                                            {!props.shouldRenderAsHTML &&
+                                                (html.length ? (
+                                                    <RenderHTML html={`<comment>${html}</comment>`} />
+                                                ) : (
+                                                    Boolean(props.title) && (
+                                                        <Text
+                                                            style={titleTextStyle}
+                                                            numberOfLines={props.numberOfLinesTitle || undefined}
+                                                        >
+                                                            {convertToLTR(props.title)}
+                                                        </Text>
+                                                    )
+                                                ))}
+
+                                            {Boolean(props.title) && Boolean(props.shouldRenderAsHTML) && <RenderHTML html={convertToLTR(props.title)} />}
 
                                             {Boolean(props.shouldShowTitleIcon) && (
                                                 <View style={[styles.ml2]}>
@@ -317,7 +320,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
-                                            fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
+                                            fill={props.brickRoadIndicator === 'error' ? themeColors.danger : themeColors.success}
                                         />
                                     </View>
                                 )}

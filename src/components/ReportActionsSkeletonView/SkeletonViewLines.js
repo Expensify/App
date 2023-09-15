@@ -21,8 +21,8 @@ function SkeletonViewLines(props) {
         <SkeletonViewContentLoader
             animate={props.shouldAnimate}
             height={CONST.CHAT_SKELETON_VIEW.HEIGHT_FOR_ROW_COUNT[props.numberOfRows]}
-            backgroundColor={themeColors.highlightBG}
-            foregroundColor={themeColors.border}
+            backgroundColor={themeColors.skeletonLHNIn}
+            foregroundColor={themeColors.skeletonLHNOut}
             style={styles.mr5}
         >
             <Circle
