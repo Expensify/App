@@ -32,7 +32,7 @@ let loggedInDuringSession: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
-        if (loggedInDuringSession !== undefined) {
+        if (loggedInDuringSession) {
             return;
         }
 
