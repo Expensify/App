@@ -133,7 +133,7 @@ function ReportActionsView(props) {
     }, [props.report, didSubscribeToReportTypingEvents, reportID]);
 
     useEffect(() => {
-        if (!isFocused && context.reactionListRef && context.reactionListRef.current) {
+        if (isFocused || !context.reactionListRef || !context.reactionListRef.current) {
             return;
         }
         context.reactionListRef.current.hideReactionList();
