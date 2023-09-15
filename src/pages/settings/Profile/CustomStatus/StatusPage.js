@@ -22,7 +22,6 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import SCREENS from '../../../../SCREENS';
 
-
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
 };
