@@ -6,7 +6,7 @@ import useLocalize from '../../hooks/useLocalize';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
 
-function RoomNameInput({autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange}) {
+function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
     const {translate} = useLocalize();
 
     const [selection, setSelection] = useState();
@@ -57,8 +57,9 @@ function RoomNameInput({autoFocus, disabled, errorText, forwardedRef, value, onB
             onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
             errorText={errorText}
             autoCapitalize="none"
-            onBlur={onBlur}
-            autoFocus={autoFocus}
+            onBlur={() => isFocused && onBlur()}
+            shouldDelayFocus={shouldDelayFocus}
+            autoFocus={isFocused && autoFocus}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             spellCheck={false}
         />

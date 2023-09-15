@@ -69,8 +69,19 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    TagSelectionParams,
+    TranslationBase,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+
+type StateValue = {
+    stateISO: string;
+    stateName: string;
+};
+
+type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
+
+type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
 
 /* eslint-disable max-len */
 export default {
@@ -230,6 +241,7 @@ export default {
         showMore: 'Show more',
         merchant: 'Merchant',
         category: 'Category',
+        tag: 'Tag',
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
@@ -445,13 +457,10 @@ export default {
         },
     },
     sidebarScreen: {
-        fabAction: 'New chat',
-        newChat: 'New chat',
-        newGroup: 'New group',
-        newRoom: 'New room',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
-        fabNewChat: 'New chat (Floating action)',
+        fabNewChat: 'Send message',
+        fabNewChatExplained: 'Send message (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -459,6 +468,8 @@ export default {
         saveTheWorld: 'Save the world',
     },
     tabSelector: {
+        chat: 'Chat',
+        room: 'Room',
         manual: 'Manual',
         scan: 'Scan',
     },
@@ -485,9 +496,10 @@ export default {
         approved: 'Approved',
         cash: 'Cash',
         split: 'Split',
+        addToSplit: 'Add to split',
+        splitBill: 'Split bill',
         request: 'Request',
         participants: 'Participants',
-        splitBill: 'Split bill',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
@@ -495,6 +507,7 @@ export default {
         pending: 'Pending',
         deleteReceipt: 'Delete receipt',
         receiptScanning: 'Receipt scan in progress…',
+        receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
@@ -527,6 +540,7 @@ export default {
             `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -955,7 +969,9 @@ export default {
         localTime: 'Local time',
     },
     newChatPage: {
+        createChat: 'Create chat',
         createGroup: 'Create group',
+        addToGroup: 'Add to group',
     },
     yearPickerPage: {
         year: 'Year',
@@ -1505,7 +1521,7 @@ export default {
             openShortcutDialog: 'Opens the keyboard shortcuts dialog',
             escape: 'Escape dialogs',
             search: 'Open search dialog',
-            newGroup: 'New group screen',
+            newChat: 'New chat screen',
             copy: 'Copy comment',
         },
     },
@@ -1641,8 +1657,8 @@ export default {
         createAccount: 'Create A New Account',
         logIn: 'Log In',
     },
-    allStates: COMMON_CONST.STATES,
-    allCountries: CONST.ALL_COUNTRIES,
+    allStates: COMMON_CONST.STATES as States,
+    allCountries: CONST.ALL_COUNTRIES as AllCountries,
     accessibilityHints: {
         navigateToChatsList: 'Navigate back to chats list',
         chatWelcomeMessage: 'Chat welcome message',
@@ -1736,4 +1752,4 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-} as const;
+} satisfies TranslationBase;
