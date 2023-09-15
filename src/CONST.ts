@@ -240,6 +240,8 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
+        NEW_DOT_CATEGORIES: 'newDotCategories',
+        NEW_DOT_TAGS: 'newDotTags',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -291,8 +293,8 @@ const CONST = {
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
-        NEW_GROUP: {
-            descriptionKey: 'newGroup',
+        NEW_CHAT: {
+            descriptionKey: 'newChat',
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
@@ -759,6 +761,10 @@ const CONST = {
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
+    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+[\s\w~!@#$%^&*(){}[\];':"`|?.,/\\+\-=<]+.*[\s]*)>/g,
+
+    WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
+
     PASSWORD_PAGE: {
         ERROR: {
             ALREADY_VALIDATED: 'Account already validated',
@@ -885,8 +891,6 @@ const CONST = {
         QA: 'qa@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         RECEIPTS: 'receipts@expensify.com',
-        SAASTR: 'saastr@expensify.com',
-        SBE: 'sbe@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
     },
@@ -1086,6 +1090,29 @@ const CONST = {
 
         DEFAULT: 'en',
     },
+
+    LANGUAGES: ['en', 'es'],
+
+    PRONOUNS_LIST: [
+        'coCos',
+        'eEyEmEir',
+        'heHimHis',
+        'heHimHisTheyThemTheirs',
+        'sheHerHers',
+        'sheHerHersTheyThemTheirs',
+        'merMers',
+        'neNirNirs',
+        'neeNerNers',
+        'perPers',
+        'theyThemTheirs',
+        'thonThons',
+        'veVerVis',
+        'viVir',
+        'xeXemXyr',
+        'zeZieZirHir',
+        'zeHirHirs',
+        'callMeByMyName',
+    ],
 
     POLICY: {
         TYPE: {
@@ -1315,6 +1342,7 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         WELCOME_MESSAGE: 'welcomeMessage',
+        PRIVATE_NOTES: 'privateNotes',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -2597,6 +2625,9 @@ const CONST = {
         DISABLED: 'DISABLED',
     },
     TAB: {
+        NEW_CHAT_TAB_ID: 'NewChatTab',
+        NEW_CHAT: 'chat',
+        NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         MANUAL: 'manual',
         SCAN: 'scan',
