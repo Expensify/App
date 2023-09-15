@@ -104,7 +104,8 @@ const getDistanceMerchant = (hasRoute, distanceInMeters, unit, rate, currency, t
  */
 const getDistanceRequestAmount = (distance, unit, rate) => {
     const convertedDistance = convertDistanceUnit(distance, unit);
-    return convertedDistance * rate;
+    const roundedDistance = convertedDistance.toFixed(2);
+    return roundedDistance * rate;
 };
 
 export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};

@@ -15,7 +15,7 @@ import styles from '../styles/styles';
 import transactionPropTypes from './transactionPropTypes';
 import PendingMapView from './MapView/PendingMapView';
 import useNetwork from '../hooks/useNetwork';
-import MapView from './MapView';
+import DistanceMapView from './DistanceMapView';
 
 const propTypes = {
     /** Transaction that stores the distance request data */
@@ -88,7 +88,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
     return (
         <>
             {!isOffline && Boolean(mapboxAccessToken.token) ? (
-                <MapView
+                <DistanceMapView
                     accessToken={mapboxAccessToken.token}
                     mapPadding={CONST.MAP_PADDING}
                     pitchEnabled={false}
