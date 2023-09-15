@@ -164,7 +164,7 @@ class SidebarLinks extends React.PureComponent {
                     <Header
                         title={
                             <LogoComponent
-                                fill={defaultTheme.textLight}
+                                fill={defaultTheme.text}
                                 width={variables.lhnLogoWidth}
                                 height={variables.lhnLogoHeight}
                             />
