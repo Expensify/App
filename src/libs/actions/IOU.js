@@ -95,7 +95,7 @@ function resetMoneyRequestInfo(id = '') {
         receiptPath: '',
         receiptSource: '',
         transactionID: '',
-        defaultBillable: '',
+        defaultBillable: null,
     });
 }
 
