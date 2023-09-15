@@ -4,7 +4,7 @@ export default function ReportScreen() {
     return (
         <iframe
             style={{flex: 1}}
-            src="https://www.expensify.com.dev"
+            src="/oldDot"
             title="OldDot"
         />
     );
