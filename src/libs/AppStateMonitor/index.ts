@@ -8,7 +8,7 @@ let appState: AppStateStatus = CONST.APP_STATE.ACTIVE;
  * Listener that will only fire the callback when the user has become active.
  * @returns callback to unsubscribe
  */
-function addBecameActiveListener(callback: () => void) {
+function addBecameActiveListener(callback: () => void): () => void {
     function appStateChangeCallback(state: AppStateStatus) {
         if (shouldReportActivity && (appState === CONST.APP_STATE.INACTIVE || appState === CONST.APP_STATE.BACKGROUND) && state === CONST.APP_STATE.ACTIVE) {
             callback();
