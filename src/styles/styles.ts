@@ -1,4 +1,3 @@
-import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
@@ -26,11 +25,16 @@ import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+import {ThemeDefault} from './themes/types';
+import {AnimatableNumericValue, Animated, TransformsStyle} from 'react-native';
+import {ValueOf} from 'type-fest';
+
+type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
-const picker = (theme) => ({
+const picker = (theme: ThemeDefault) => ({
     backgroundColor: theme.transparent,
     color: theme.text,
     fontFamily: fontFamily.EXP_NEUE,
@@ -45,13 +49,13 @@ const picker = (theme) => ({
     textAlign: 'left',
 });
 
-const link = (theme) => ({
+const link = (theme: ThemeDefault) => ({
     color: theme.link,
     textDecorationColor: theme.link,
     fontFamily: fontFamily.EXP_NEUE,
 });
 
-const baseCodeTagStyles = (theme) => ({
+const baseCodeTagStyles = (theme: ThemeDefault) => ({
     borderWidth: 1,
     borderRadius: 5,
     borderColor: theme.border,
@@ -61,9 +65,9 @@ const baseCodeTagStyles = (theme) => ({
 const headlineFont = {
     fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
     fontWeight: '500',
-};
+} as const;
 
-const webViewStyles = (theme) => ({
+const webViewStyles = (theme: ThemeDefault) => ({
     // As of react-native-render-html v6, don't declare distinct styles for
     // custom renderers, the API for custom renderers has changed. Declare the
     // styles in the below "tagStyles" instead. If you need to reuse those
@@ -156,7 +160,7 @@ const webViewStyles = (theme) => ({
     },
 });
 
-const styles = (theme) => ({
+const styles = (theme: ThemeDefault) => ({
     // Add all of our utility and helper styles
     ...spacing,
     ...sizing,
@@ -675,7 +679,7 @@ const styles = (theme) => ({
             color: theme.text,
         },
         doneDepressed: {
-            fontSize: defaultPickerStyles.done.fontSize,
+            fontSize: 17,
         },
         modalViewMiddle: {
             backgroundColor: theme.border,
@@ -792,7 +796,7 @@ const styles = (theme) => ({
         color: theme.textSupporting,
     },
 
-    uploadReceiptView: (isSmallScreenWidth) => ({
+    uploadReceiptView: (isSmallScreenWidth: boolean) => ({
         borderRadius: variables.componentBorderRadiusLarge,
         borderWidth: isSmallScreenWidth ? 0 : 2,
         borderColor: theme.borderFocus,
@@ -922,18 +926,12 @@ const styles = (theme) => ({
         backgroundColor: theme.buttonDefaultBG,
     },
 
-    /**
-     * @param {number} textInputHeight
-     * @param {number} minHeight
-     * @param {number} maxHeight
-     * @returns {object}
-     */
-    autoGrowHeightInputContainer: (textInputHeight, minHeight, maxHeight) => ({
+    autoGrowHeightInputContainer: (textInputHeight: number, minHeight: number, maxHeight: number) => ({
         height: lodashClamp(textInputHeight, minHeight, maxHeight),
         minHeight,
     }),
 
-    autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
+    autoGrowHeightHiddenInput: (maxWidth: number, maxHeight?: number) => ({
         maxWidth,
         maxHeight: maxHeight && maxHeight + 1,
         overflow: 'hidden',
@@ -971,7 +969,7 @@ const styles = (theme) => ({
         transformOrigin: 'left center',
     },
 
-    textInputLabelTransformation: (translateY, translateX, scale) => ({
+    textInputLabelTransformation: (translateY: AnimatableNumericValue, translateX: AnimatableNumericValue, scale: AnimatableNumericValue) => ({
         transform: [{translateY}, {translateX}, {scale}],
     }),
 
@@ -1092,7 +1090,7 @@ const styles = (theme) => ({
             color: theme.text,
         },
         doneDepressed: {
-            fontSize: defaultPickerStyles.done.fontSize,
+            fontSize: 17,
         },
         modalViewMiddle: {
             backgroundColor: theme.border,
@@ -1358,7 +1356,7 @@ const styles = (theme) => ({
         textDecorationLine: 'none',
     },
 
-    RHPNavigatorContainer: (isSmallScreenWidth) => ({
+    RHPNavigatorContainer: (isSmallScreenWidth: boolean) => ({
         width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
         position: 'absolute',
         right: 0,
@@ -1374,17 +1372,17 @@ const styles = (theme) => ({
         lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
-    createMenuPositionSidebar: (windowHeight) => ({
+    createMenuPositionSidebar: (windowHeight: number) => ({
         horizontal: 18,
         vertical: windowHeight - 100,
     }),
 
-    createMenuPositionProfile: (windowWidth) => ({
+    createMenuPositionProfile: (windowWidth: number) => ({
         horizontal: windowWidth - 355,
         ...getPopOverVerticalOffset(162),
     }),
 
-    createMenuPositionReportActionCompose: (windowHeight) => ({
+    createMenuPositionReportActionCompose: (windowHeight: number) => ({
         horizontal: 18 + variables.sideBarWidth,
         vertical: windowHeight - 83,
     }),
@@ -1541,7 +1539,7 @@ const styles = (theme) => ({
         height: variables.optionsListSectionHeaderHeight,
     },
 
-    overlayStyles: (current) => ({
+    overlayStyles: (current: {progress: Animated.AnimatedInterpolation<string | number>}) => ({
         position: 'fixed',
 
         // We need to stretch the overlay to cover the sidebar and the translate animation distance.
@@ -2167,7 +2165,7 @@ const styles = (theme) => ({
         outline: 'none',
     },
 
-    getPDFPasswordFormStyle: (isSmallScreenWidth) => ({
+    getPDFPasswordFormStyle: (isSmallScreenWidth: boolean) => ({
         width: isSmallScreenWidth ? '100%' : 350,
         ...(isSmallScreenWidth && flex.flex1),
     }),
@@ -2180,7 +2178,7 @@ const styles = (theme) => ({
         backgroundColor: theme.modalBackdrop,
     },
 
-    centeredModalStyles: (isSmallScreenWidth, isFullScreenWhenSmall) => ({
+    centeredModalStyles: (isSmallScreenWidth: boolean, isFullScreenWhenSmall: boolean) => ({
         borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
         marginHorizontal: isSmallScreenWidth ? 0 : 20,
     }),
@@ -2269,7 +2267,6 @@ const styles = (theme) => ({
     },
 
     reportDetailsTitleContainer: {
-        ...flex.dFlex,
         ...flex.flexColumn,
         ...flex.alignItemsCenter,
         paddingHorizontal: 20,
@@ -2278,7 +2275,6 @@ const styles = (theme) => ({
 
     reportDetailsRoomInfo: {
         ...flex.flex1,
-        ...flex.dFlex,
         ...flex.flexColumn,
         ...flex.alignItemsCenter,
     },
@@ -2315,15 +2311,15 @@ const styles = (theme) => ({
         padding: 0,
     },
 
-    twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
-        let paddingHorizontal = styles.ph9;
+    twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean}) => {
+        let paddingHorizontal = spacing.ph9;
 
         if (isSmallScreenWidth) {
-            paddingHorizontal = styles.ph4;
+            paddingHorizontal = spacing.ph4;
         }
 
         if (isExtraSmallScreenWidth) {
-            paddingHorizontal = styles.ph2;
+            paddingHorizontal = spacing.ph2;
         }
 
         return {
@@ -2373,7 +2369,7 @@ const styles = (theme) => ({
         minWidth: 110,
     },
 
-    anonymousRoomFooter: (isSmallSizeLayout) => ({
+    anonymousRoomFooter: (isSmallSizeLayout: boolean) => ({
         flexDirection: isSmallSizeLayout ? 'column' : 'row',
         ...(!isSmallSizeLayout && {
             alignItems: 'center',
@@ -2384,7 +2380,7 @@ const styles = (theme) => ({
         borderRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
     }),
-    anonymousRoomFooterWordmarkAndLogoContainer: (isSmallSizeLayout) => ({
+    anonymousRoomFooterWordmarkAndLogoContainer: (isSmallSizeLayout: boolean) => ({
         flexDirection: 'row',
         alignItems: 'center',
         ...(isSmallSizeLayout && {
@@ -2433,8 +2429,8 @@ const styles = (theme) => ({
         borderRadius: 88,
     },
 
-    rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
-    RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
+    rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
+    RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
 
     avatarInnerTextChat: {
         color: theme.textLight,
@@ -2619,7 +2615,7 @@ const styles = (theme) => ({
         backgroundColor: theme.appBG,
     },
 
-    switchThumbTransformation: (translateX) => ({
+    switchThumbTransformation: (translateX: AnimatableNumericValue) => ({
         transform: [{translateX}],
     }),
 
@@ -2831,11 +2827,11 @@ const styles = (theme) => ({
         position: 'fixed',
     },
 
-    growlNotificationTranslateY: (y) => ({
-        transform: [{translateY: y}],
+    growlNotificationTranslateY: (translateY: AnimatableNumericValue) => ({
+        transform: [{translateY}],
     }),
 
-    makeSlideInTranslation: (translationType, fromValue) => ({
+    makeSlideInTranslation: (translationType: Translation, fromValue: number) => ({
         from: {
             [translationType]: fromValue,
         },
@@ -3135,7 +3131,7 @@ const styles = (theme) => ({
         ...visibility.visible,
     },
 
-    floatingMessageCounterTransformation: (translateY) => ({
+    floatingMessageCounterTransformation: (translateY: AnimatableNumericValue) => ({
         transform: [{translateY}],
     }),
 
@@ -3162,12 +3158,12 @@ const styles = (theme) => ({
         flex: 1,
     },
 
-    threeDotsPopoverOffset: (windowWidth) => ({
+    threeDotsPopoverOffset: (windowWidth: number) => ({
         ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 60,
     }),
 
-    threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
+    threeDotsPopoverOffsetNoCloseButton: (windowWidth: number) => ({
         ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 10,
     }),
@@ -3310,7 +3306,7 @@ const styles = (theme) => ({
         zIndex: 2,
     },
 
-    receiptImageWrapper: (receiptImageTopPosition) => ({
+    receiptImageWrapper: (receiptImageTopPosition: number) => ({
         position: 'absolute',
         top: receiptImageTopPosition,
     }),
@@ -3579,8 +3575,6 @@ const styles = (theme) => ({
     taskTitleMenuItem: {
         ...writingDirection.ltr,
         ...headlineFont,
-        ...spacing.flexWrap,
-        ...spacing.flex1,
         fontSize: variables.fontSizeXLarge,
         maxWidth: '100%',
         ...wordBreak.breakWord,
@@ -3622,8 +3616,6 @@ const styles = (theme) => ({
         marginLeft: 'auto',
         ...spacing.mt1,
         ...pointerEventsAuto,
-        ...spacing.dFlex,
-        ...spacing.alignItemsCenter,
     },
 
     shareCodePage: {
@@ -3735,19 +3727,14 @@ const styles = (theme) => ({
         paddingBottom: 12,
     },
 
-    tabText: (isSelected) => ({
+    tabText: (isSelected: boolean) => ({
         marginLeft: 8,
         fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
         fontWeight: isSelected ? fontWeightBold : 400,
         color: isSelected ? theme.textLight : theme.textSupporting,
     }),
 
-    /**
-     * @param {String} backgroundColor
-     * @param {Number} height
-     * @returns {Object}
-     */
-    overscrollSpacer: (backgroundColor, height) => ({
+    overscrollSpacer: (backgroundColor: string, height: number) => ({
         backgroundColor,
         height,
         width: '100%',
@@ -3910,7 +3897,7 @@ const styles = (theme) => ({
         maxWidth: 400,
     },
 
-    distanceRequestContainer: (maxHeight) => ({
+    distanceRequestContainer: (maxHeight: number) => ({
         ...flex.flexShrink2,
         minHeight: variables.optionRowHeight * 2,
         maxHeight,
@@ -3919,7 +3906,6 @@ const styles = (theme) => ({
     mapViewContainer: {
         ...flex.flex1,
         ...spacing.p4,
-        ...spacing.flex1,
         minHeight: 300,
         maxHeight: 500,
     },

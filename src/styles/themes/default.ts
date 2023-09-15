@@ -2,6 +2,7 @@
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
 import ROUTES from '../../ROUTES';
+import type {ThemeBase} from './types';
 
 const darkTheme = {
     // Figma keys
@@ -82,15 +83,14 @@ const darkTheme = {
     skeletonLHNOut: colors.darkDefaultButton,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
-};
-
-darkTheme.PAGE_BACKGROUND_COLORS = {
-    [SCREENS.HOME]: darkTheme.sidebar,
-    [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
-    [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
-    [ROUTES.SETTINGS_STATUS]: colors.green700,
-    [ROUTES.I_KNOW_A_TEACHER]: colors.tangerine800,
-    [ROUTES.SETTINGS_SECURITY]: colors.ice500,
-};
+    PAGE_BACKGROUND_COLORS: {
+        [SCREENS.HOME]: colors.darkHighlightBackground,
+        [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
+        [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
+        [ROUTES.SETTINGS_STATUS]: colors.green700,
+        [ROUTES.I_KNOW_A_TEACHER]: colors.tangerine800,
+        [ROUTES.SETTINGS_SECURITY]: colors.ice500,
+    },
+} satisfies ThemeBase;
 
 export default darkTheme;

@@ -1,6 +1,7 @@
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
 import ROUTES from '../../ROUTES';
+import type {ThemeDefault} from './types';
 
 const lightTheme = {
     // Figma keys
@@ -62,7 +63,7 @@ const lightTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.lightHighlightBackground,
     dropUIBG: 'rgba(252, 251, 249, 0.92)',
-    dropTransparentOverlay: 'rgba(255,255,255,0)',
+    receiptDropUIBG: '', // TODO: add color
     checkBox: colors.green400,
     pickerOptionsTextColor: colors.lightPrimaryText,
     imageCropBackgroundColor: colors.lightIcons,
@@ -81,15 +82,14 @@ const lightTheme = {
     skeletonLHNOut: colors.lightDefaultButtonPressed,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
-};
-
-lightTheme.PAGE_BACKGROUND_COLORS = {
-    [SCREENS.HOME]: lightTheme.sidebar,
-    [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
-    [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
-    [ROUTES.SETTINGS_STATUS]: colors.green700,
-    [ROUTES.I_KNOW_A_TEACHER]: colors.tangerine800,
-    [ROUTES.SETTINGS_SECURITY]: colors.ice500,
-};
+    PAGE_BACKGROUND_COLORS: {
+        [SCREENS.HOME]: colors.lightHighlightBackground,
+        [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
+        [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
+        [ROUTES.SETTINGS_STATUS]: colors.green700,
+        [ROUTES.I_KNOW_A_TEACHER]: colors.tangerine800,
+        [ROUTES.SETTINGS_SECURITY]: colors.ice500,
+    },
+} satisfies ThemeDefault;
 
 export default lightTheme;
