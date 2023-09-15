@@ -71,7 +71,7 @@ export default {
     NEW_CHAT: 'new/chat',
     NEW_TASK,
     REPORT,
-    REPORT_WITH_ID: 'r/:reportID/:reportActionID?',
+    REPORT_WITH_ID: 'r/:reportID?/:reportActionID?',
     EDIT_REQUEST: 'r/:threadReportID/edit/:field',
     getEditRequestRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${threadReportID}/edit/${field}`,
     EDIT_CURRENCY_REQUEST: 'r/:threadReportID/edit/currency',
