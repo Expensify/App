@@ -243,6 +243,10 @@ function BaseTextInput(props) {
     ]);
     const isMultiline = props.multiline || props.autoGrowHeight;
 
+    const lineHeight = _.isArray(props.inputStyle) ?
+        _.find(props.inputStyle, function (f) { return f.lineHeight !== undefined; })?.lineHeight
+        : props.inputStyle?.lineHeight;
+       
     return (
         <>
             <View style={styles.pointerEventsNone}>
@@ -328,7 +332,7 @@ function BaseTextInput(props) {
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
                                     // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
-                                    !isMultiline && { height, lineHeight: (Browser.isSafari() && _.find(props.inputStyle, function(f) { return f.lineHeight !== undefined; })?.lineHeight) || undefined},
+                                    !isMultiline && { height, lineHeight: Browser.isSafari() ? lineHeight : Browser.isMobileChrome() ? height : undefined},
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
                                     // Add disabled color theme when field is not editable.
