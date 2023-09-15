@@ -19,7 +19,8 @@ jobs:
     outputs:
       READY_TO_BUILD: ${{ fromJSON(steps.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) && fromJSON(steps.hasReadyToBuildLabel.outputs.HAS_READY_TO_BUILD_LABEL) }}
     steps:
-      - id: isExpensifyEmployee
+      - name: Is Expensify employee
+        id: isExpensifyEmployee
         run: |
           if gh api /orgs/Expensify/teams/expensify-expensify/memberships/${{ github.actor }} --silent; then
             echo "IS_EXPENSIFY_EMPLOYEE=true" >> "$GITHUB_OUTPUT"
@@ -70,7 +71,8 @@ jobs:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     steps:
       # This action checks-out the repository, so the workflow can access it.
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
@@ -80,9 +82,11 @@ jobs:
           sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -117,7 +121,8 @@ jobs:
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
         with:
           name: android
           path: ./android_paths.json
@@ -131,7 +136,8 @@ jobs:
     runs-on: macos-12-xl
     steps:
       # This action checks-out the repository, so the workflow can access it.
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
@@ -144,18 +150,33 @@ jobs:
           sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - name: Setup Xcode
+      - name: Setup XCode
         run: sudo xcode-select -switch /Applications/Xcode_14.2.app
 
-      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
           ruby-version: '2.7'
           bundler-cache: true
 
+      - name: Cache Pod dependencies
+        uses: actions/cache@v3
+        id: pods-cache
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: ${{ runner.os }}-pods-cache-
+
+      - name: Compare Podfile.lock and Manifest.lock
+        id: compare-podfile-and-manifest
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+
       - name: Install cocoapods
         uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
+        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true'
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -185,7 +206,8 @@ jobs:
           S3_BUCKET: ad-hoc-expensify-cash
           S3_REGION: us-east-1
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
         with:
           name: ios
           path: ./ios_paths.json
@@ -198,7 +220,8 @@ jobs:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12-xl
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
@@ -208,7 +231,8 @@ jobs:
           sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Decrypt Developer ID Certificate
         run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
@@ -239,7 +263,8 @@ jobs:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: ubuntu-latest-xl
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
@@ -249,7 +274,8 @@ jobs:
           sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Configure AWS Credentials
         uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
@@ -270,7 +296,7 @@ jobs:
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    needs: [validateActor, getBranchRef, android, ios, desktop, web]
+    needs: [validateActor, getBranchRef, android, iOS, desktop, web]
     if: ${{ always() }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
@@ -281,7 +307,8 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
-      - uses: actions/download-artifact@v3
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
 
       - name: Read JSONs with android paths
@@ -297,7 +324,7 @@ jobs:
 
       - name: Read JSONs with iOS paths
         id: get_ios_path
-        if: ${{ needs.ios.result == 'success' }}
+        if: ${{ needs.iOS.result == 'success' }}
         run: |
           content_ios="$(cat ./ios/ios_paths.json)"
           content_ios="${content_ios//'%'/'%25'}"
