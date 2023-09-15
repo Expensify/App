@@ -162,6 +162,7 @@ function NewTaskPage(props) {
                             title={description}
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
                             shouldShowRightIcon
+                            shouldParseTitle
                             numberOfLinesTitle={2}
                             titleStyle={styles.flex1}
                         />
