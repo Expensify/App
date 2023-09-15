@@ -201,13 +201,13 @@ function MoneyRequestConfirmationList(props) {
     const canUseTags = Permissions.canUseTags(props.betas);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
-    const formattedAmount =
-        props.isDistanceRequest && !hasRoute
-            ? translate('common.tbd')
-            : CurrencyUtils.convertToDisplayString(
-                  shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
-                  props.isDistanceRequest ? currency : props.iouCurrencyCode,
-              );
+    const isDistanceRequestWithoutRoute = props.isDistanceRequest && !hasRoute;
+    const formattedAmount = isDistanceRequestWithoutRoute
+        ? translate('common.tbd')
+        : CurrencyUtils.convertToDisplayString(
+              shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
+              props.isDistanceRequest ? currency : props.iouCurrencyCode,
+          );
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -239,7 +239,7 @@ function MoneyRequestConfirmationList(props) {
             text = translate('iou.request');
         } else {
             const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
-            text = translate(translationKey, {amount: formattedAmount});
+            text = translate(translationKey, {amount: isDistanceRequestWithoutRoute ? '' : formattedAmount});
         }
         return [
             {
