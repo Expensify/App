@@ -1,10 +1,8 @@
 import Onyx from 'react-native-onyx';
-import {PartialDeep} from 'type-fest';
-import {KeyValueMapping} from 'react-native-onyx/lib/types';
 import * as OnyxCommon from '../../types/onyx/OnyxCommon';
-import {OnyxKey} from '../../ONYXKEYS';
+import {OnyxKey, OnyxValues} from '../../ONYXKEYS';
 
-type KeysWhichCouldBeDraft<T extends string> = T extends `${infer Prefix}Draft` ? Prefix : never;
+type ExtractValueByKey<T, K extends keyof T> = T[K];
 
 function setIsLoading(formID: OnyxKey, isLoading: boolean) {
     Onyx.merge(formID, {isLoading});
@@ -18,8 +16,8 @@ function setErrorFields(formID: OnyxKey, errorFields: OnyxCommon.ErrorFields) {
     Onyx.merge(formID, {errorFields});
 }
 
-function setDraftValues<T extends OnyxKey>(formID: KeysWhichCouldBeDraft<T>, draftValues: PartialDeep<KeyValueMapping[`${KeysWhichCouldBeDraft<T>}Draft`], {}>) {
+function setDraftValues<T extends keyof OnyxValues>(formID: T, draftValues: ExtractValueByKey<OnyxValues, T>) {
     Onyx.merge(`${formID}Draft`, draftValues);
 }
-setDraftValues('customStatus', {});
+setDraftValues('reimbursementAccount', {});
 export {setIsLoading, setErrors, setErrorFields, setDraftValues};
