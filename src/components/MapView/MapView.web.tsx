@@ -40,8 +40,17 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
 
             const map = mapRef.getMap();
 
+            const resizeObserver = new ResizeObserver(() => {
+                mapRef?.resize();
+            });
+            resizeObserver.observe(mapRef?.getContainer());
+
             const {northEast, southWest} = utils.getBounds(waypoints.map((waypoint) => waypoint.coordinate));
             map.fitBounds([northEast, southWest], {padding: mapPadding});
+
+            return () => {
+                resizeObserver?.disconnect();
+            }
         }, [waypoints, mapRef, mapPadding]);
 
         useImperativeHandle(
