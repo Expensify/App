@@ -1,42 +1,45 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import lodashClamp from 'lodash/clamp';
 import {AnimatableNumericValue, Animated, TextStyle, ViewStyle} from 'react-native';
-import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
-import {PickerStyle} from 'react-native-picker-select';
 import {CustomAnimation} from 'react-native-animatable';
-import {EmptyObject} from 'type-fest';
-import fontFamily from './fontFamily';
-import addOutlineWidth from './addOutlineWidth';
-import defaultTheme from './themes/default';
-import fontWeightBold from './fontWeight/bold';
-import variables from './variables';
-import spacing from './utilities/spacing';
-import sizing from './utilities/sizing';
-import flex from './utilities/flex';
-import display from './utilities/display';
-import overflow from './utilities/overflow';
-import whiteSpace from './utilities/whiteSpace';
-import wordBreak from './utilities/wordBreak';
-import positioning from './utilities/positioning';
-import codeStyles from './codeStyles';
-import visibility from './utilities/visibility';
-import writingDirection from './utilities/writingDirection';
-import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
-import pointerEventsNone from './pointerEventsNone';
-import pointerEventsAuto from './pointerEventsAuto';
-import getPopOverVerticalOffset from './getPopOverVerticalOffset';
-import overflowXHidden from './overflowXHidden';
+import {PickerStyle} from 'react-native-picker-select';
+import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import CONST from '../CONST';
 import * as Browser from '../libs/Browser';
-import cursor from './utilities/cursor';
-import userSelect from './utilities/userSelect';
-import textUnderline from './utilities/textUnderline';
+import addOutlineWidth from './addOutlineWidth';
+import codeStyles from './codeStyles';
+import fontFamily from './fontFamily';
+import fontWeightBold from './fontWeight/bold';
+import getPopOverVerticalOffset from './getPopOverVerticalOffset';
+import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
+import overflowXHidden from './overflowXHidden';
+import pointerEventsAuto from './pointerEventsAuto';
+import pointerEventsNone from './pointerEventsNone';
+import defaultTheme from './themes/default';
 import {ThemeDefault} from './themes/types';
+import cursor from './utilities/cursor';
+import display from './utilities/display';
+import flex from './utilities/flex';
+import overflow from './utilities/overflow';
+import positioning from './utilities/positioning';
+import sizing from './utilities/sizing';
+import spacing from './utilities/spacing';
+import textUnderline from './utilities/textUnderline';
+import userSelect from './utilities/userSelect';
+import visibility from './utilities/visibility';
+import whiteSpace from './utilities/whiteSpace';
+import wordBreak from './utilities/wordBreak';
+import writingDirection from './utilities/writingDirection';
+import variables from './variables';
+
+type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | number>};
+
+type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 
 type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
-const touchCalloutNone: {WebkitTouchCallout: 'none'} | EmptyObject = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
 const picker = (theme: ThemeDefault): TextStyle => ({
     backgroundColor: theme.transparent,
@@ -693,6 +696,7 @@ const styles = (theme: ThemeDefault) => ({
             color: theme.text,
         },
         doneDepressed: {
+            // Extracted from react-native-picker-select, src/styles.js
             fontSize: 17,
         },
         modalViewMiddle: {
@@ -1553,7 +1557,7 @@ const styles = (theme: ThemeDefault) => ({
         height: variables.optionsListSectionHeaderHeight,
     },
 
-    overlayStyles: (current: {progress: Animated.AnimatedInterpolation<string | number>}): ViewStyle => ({
+    overlayStyles: (current: OverlayStylesParams): ViewStyle => ({
         // NOTE: asserting "position" to a valid type, because isn't possible to augment "position".
         position: 'fixed' as ViewStyle['position'],
 
@@ -2326,7 +2330,7 @@ const styles = (theme: ThemeDefault) => ({
         padding: 0,
     },
 
-    twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean}): ViewStyle => {
+    twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: TwoFactorAuthCodesBoxParams): ViewStyle => {
         let paddingHorizontal = spacing.ph9;
 
         if (isSmallScreenWidth) {
