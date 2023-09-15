@@ -58,19 +58,16 @@ function BaseTextInput(props) {
 
     // AutoFocus which only works on mount:
     useEffect(() => {
-        console.log(props.shouldDelayFocus, props.autoFocus)
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
         if (!props.autoFocus || !input.current) {
             return;
         }
 
         let focusTimeout;
-        if (!props.shouldDelayFocus) {
-            console.log('delays')
+        if (props.shouldDelayFocus) {
             focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
             return;
         }
-        console.log('doesnt delay')
         input.current.focus();
 
         return () => {

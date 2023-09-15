@@ -50,6 +50,8 @@ function BaseModal({
     onLayout,
     avoidKeyboard,
     forwardedRef,
+    coverScreen,
+    customBackdrop,
     children,
 }) {
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
@@ -186,7 +188,8 @@ function BaseModal({
             backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
             backdropTransitionOutTiming={0}
             hasBackdrop={fullscreen}
-            coverScreen={fullscreen}
+            coverScreen={!isSmallScreenWidth || coverScreen}
+            customBackdrop={customBackdrop && customBackdrop(handleBackdropPress)}
             style={modalStyle}
             deviceHeight={windowHeight}
             deviceWidth={windowWidth}
