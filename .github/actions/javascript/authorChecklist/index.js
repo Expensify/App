@@ -6,17 +6,65 @@ module.exports =
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 5998:
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const https = __nccwpck_require__(7211);
-const GitHubUtils = __nccwpck_require__(7999);
+const _ = __nccwpck_require__(2947);
+const GithubUtils = __nccwpck_require__(7999);
+const CONST = __nccwpck_require__(4097);
 
 const pathToAuthorChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md';
-const authorChecklistStartsWith = '### PR Author Checklist';
-const reviewerChecklistStartsWith = '<summary><h4>PR Reviewer Checklist</h4>';
-const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
+const checklistStartsWith = '### PR Author Checklist';
+const checklistEndsWith = '### Screenshots/Videos';
+
+const prNumber = github.context.payload.pull_request.number;
+
+const typeScriptChecklistItems = ['Make sure types pass'];
+
+const CHECKLIST_CATEGORIES = {
+    TS: typeScriptChecklistItems,
+};
+
+/**
+ * Look at the contents of the pull request, and determine which checklist categories apply.
+ *
+ * @returns {Promise<Array<String>>}
+ */
+async function getChecklistCategoriesForPullRequest() {
+    const categories = [];
+    const changedFiles = await GithubUtils.paginate(GithubUtils.octokit.pulls.listFiles, {
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
+        pull_number: prNumber,
+        per_page: 100,
+    });
+
+    if (
+        _.some(
+            _.map(changedFiles, (file) => file.filename),
+            (filename) => filename.endsWith('.ts') || filename.endsWith('.tsx'),
+        )
+    ) {
+        categories.push(CHECKLIST_CATEGORIES.TS);
+    }
+
+    // TODO add more if statements to look for other dynamic checklist categories
+
+    return categories;
+}
+
+/**
+ *
+ * @param {String} body
+ * @returns {[String, String, String]}
+ */
+function partitionWithChecklist(body) {
+    const [contentBeforeChecklist, contentAfterStartOfChecklist] = body.split(checklistStartsWith);
+    const [checklistContent, contentAfterChecklist] = contentAfterStartOfChecklist.split(checklistEndsWith);
+    return [contentBeforeChecklist, checklistContent, contentAfterChecklist];
+};
 
 /**
  * @returns {Promise}
@@ -30,12 +78,10 @@ function getNumberOfItemsFromAuthorChecklist() {
                     fileContents += chunk;
                 });
                 res.on('end', () => {
-                    // Currently, both the author and reviewer checklists are in the PR template file, so we need to do a little bit of parsing the PR description to get just the author
-                    // checklist.
-                    const contentAfterStartOfAuthorChecklist = fileContents.split(authorChecklistStartsWith).pop();
-                    const contentBeforeStartOfReviewerChecklist = contentAfterStartOfAuthorChecklist.split(reviewerChecklistStartsWith).shift();
+                    // eslint-disable-next-line no-unused-vars
+                    const [_start, checklist] = partitionWithChecklist(fileContents);
 
-                    const numberOfChecklistItems = (contentBeforeStartOfReviewerChecklist.match(/\[ \]/g) || []).length;
+                    const numberOfChecklistItems = (checklist.match(/\[ \]/g) || []).length;
                     resolve(numberOfChecklistItems);
                 });
             })
@@ -46,35 +92,106 @@ function getNumberOfItemsFromAuthorChecklist() {
 /**
  * @param {Number} numberOfChecklistItems
  */
-function checkIssueForCompletedChecklist(numberOfChecklistItems) {
-    GitHubUtils.getPullRequestBody(issue).then((pullRequestBody) => {
-        const contentAfterStartOfAuthorChecklist = pullRequestBody.split(authorChecklistStartsWith).pop();
-        const contentOfAuthorChecklist = contentAfterStartOfAuthorChecklist.split(reviewerChecklistStartsWith).shift();
+function checkPRForCompletedChecklist(numberOfChecklistItems) {
+    const pullRequestBody = github.context.payload.pull_request.body;
 
-        const numberOfFinishedChecklistItems = (contentOfAuthorChecklist.match(/- \[x\]/gi) || []).length;
-        const numberOfUnfinishedChecklistItems = (contentOfAuthorChecklist.match(/- \[ \]/g) || []).length;
+    // eslint-disable-next-line no-unused-vars
+    const [_start, checklist] = partitionWithChecklist(pullRequestBody);
 
-        const maxCompletedItems = numberOfChecklistItems + 2;
-        const minCompletedItems = numberOfChecklistItems - 2;
+    const numberOfFinishedChecklistItems = (checklist.match(/- \[x\]/gi) || []).length;
+    const numberOfUnfinishedChecklistItems = (checklist.match(/- \[ \]/g) || []).length;
 
-        console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
+    const minCompletedItems = numberOfChecklistItems - 2;
 
-        if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfFinishedChecklistItems <= maxCompletedItems && numberOfUnfinishedChecklistItems === 0) {
-            console.log('PR Author checklist is complete 🎉');
-            return;
-        }
+    console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
 
-        console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
-        core.setFailed("PR Author Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
-    });
+    if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfUnfinishedChecklistItems === 0) {
+        console.log('PR Author checklist is complete 🎉');
+        return;
+    }
+
+    console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
+    core.setFailed("PR Author Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
 }
 
-getNumberOfItemsFromAuthorChecklist()
-    .then(checkIssueForCompletedChecklist)
-    .catch((err) => {
+async function generateDynamicChecksAndCheckForCompletion() {
+    // Generate dynamic checks
+    const checks = new Set();
+    const categories = await getChecklistCategoriesForPullRequest();
+    for (const checksForCategory of categories) {
+        for (const check of checksForCategory) {
+            checks.add(check);
+        }
+    }
+
+    const body = github.context.payload.pull_request.body;
+    // eslint-disable-next-line prefer-const
+    let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
+
+    let isPassing = true;
+    for (const check of checks) {
+        // Check if it's already in the PR body, capturing the whether or not it's already checked
+        const regex = new RegExp(`- \\[([ x])] ${check}\n`);
+        const match = regex.exec(checklist);
+        if (!match) {
+            // Add it to the PR body
+            isPassing = false;
+            checklist += `- [ ] ${check}\n`;
+        } else {
+            const isChecked = match[1] === 'x';
+            if (!isChecked) {
+                isPassing = false;
+            }
+        }
+    }
+    const allChecks = _.flatten(CHECKLIST_CATEGORIES.values);
+    for (const check of allChecks) {
+        if (!checks.has(check)) {
+            // Check if some dynamic check has been added with previous commit, but the check is not relevant anymore
+            const regex = new RegExp(`- \\[([ x])] ${check}\n`);
+            const match = regex.exec(checklist);
+            if (match) {
+                // Remove it from the PR body
+                checklist = checklist.replace(match[0], '');
+            }
+        }
+    }
+
+    // Put the PR body back together, need to add the markers back in
+    const newBody = contentBeforeChecklist + checklistStartsWith + checklist + checklistEndsWith + contentAfterChecklist;
+
+    // Update the PR body
+    if (checks.length > 0) {
+        await GithubUtils.octokit.pulls.update({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            pull_number: prNumber,
+            body: newBody,
+        });
+        console.log('Updated PR checklist');
+    }
+
+    if (!isPassing) {
+        const err = new Error("New checks were added into checklist. Please check every box to verify you've thought about the item.");
         console.error(err);
         core.setFailed(err);
-    });
+    }
+
+    // check for completion
+    try {
+        const numberofItems = await getNumberOfItemsFromAuthorChecklist();
+        checkPRForCompletedChecklist(numberofItems)
+    } catch (err) {
+        console.error(err);
+        core.setFailed(err);
+    }
+}
+
+if (require.main === require.cache[eval('__filename')]) {
+    generateDynamicChecksAndCheckForCompletion();
+}
+
+module.exports = generateDynamicChecksAndCheckForCompletion;
 
 
 /***/ }),

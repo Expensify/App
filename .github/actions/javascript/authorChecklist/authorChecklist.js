@@ -121,7 +121,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     let isPassing = true;
     for (const check of checks) {
         // Check if it's already in the PR body, capturing the whether or not it's already checked
-        const regex = new RegExp(`- \\[([ x])] ${check}`);
+        const regex = new RegExp(`- \\[([ x])] ${check}\n`);
         const match = regex.exec(checklist);
         if (!match) {
             // Add it to the PR body
@@ -131,6 +131,18 @@ async function generateDynamicChecksAndCheckForCompletion() {
             const isChecked = match[1] === 'x';
             if (!isChecked) {
                 isPassing = false;
+            }
+        }
+    }
+    const allChecks = _.flatten(CHECKLIST_CATEGORIES.values);
+    for (const check of allChecks) {
+        if (!checks.has(check)) {
+            // Check if some dynamic check has been added with previous commit, but the check is not relevant anymore
+            const regex = new RegExp(`- \\[([ x])] ${check}\n`);
+            const match = regex.exec(checklist);
+            if (match) {
+                // Remove it from the PR body
+                checklist = checklist.replace(match[0], '');
             }
         }
     }
