@@ -30,8 +30,8 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children}, outerRef) {
     }, []);
 
     useEffect(() => {
-        if (disabled) return setIsHovered(false);
-    }, [disabled]);
+        if (disabled && isHovered) return setIsHovered(false);
+    }, [disabled, isHovered]);
 
     useEffect(() => {
         if (disabled) return;
