@@ -803,7 +803,7 @@ export default {
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
-        availableSpend: 'Poder de gasto restante',
+        availableSpend: 'Capacidad de gasto restante',
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
     },
