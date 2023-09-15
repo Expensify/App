@@ -660,6 +660,7 @@ describe('OptionsListUtils', () => {
         const selectedOptions = [
             {
                 name: 'Medical',
+                enabled: true,
             },
         ];
         const smallCategoriesList = {
@@ -817,7 +818,7 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Medical',
                         searchText: 'Medical',
                         tooltipText: 'Medical',
-                        isDisabled: true,
+                        isDisabled: false,
                     },
                 ],
             },
@@ -1000,6 +1001,23 @@ describe('OptionsListUtils', () => {
                 data: [],
             },
         ];
+        const emptyCategoriesList = {};
+        const emptySelectedResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
 
         const smallResult = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], emptySearch, [], [], false, false, true, smallCategoriesList);
         expect(smallResult.categoryOptions).toStrictEqual(smallResultList);
@@ -1054,6 +1072,9 @@ describe('OptionsListUtils', () => {
             recentlyUsedCategories,
         );
         expect(largeWrongSearchResult.categoryOptions).toStrictEqual(largeWrongSearchResultList);
+
+        const emptyResult = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], search, selectedOptions, [], false, false, true, emptyCategoriesList);
+        expect(emptyResult.categoryOptions).toStrictEqual(emptySelectedResultList);
     });
 
     it('getCategoryOptionTree()', () => {

@@ -666,6 +666,18 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
     const numberOfCategories = _.size(categoriesValues);
     let indexOffset = 0;
 
+    if (numberOfCategories === 0 && selectedOptions.length > 0) {
+        categorySections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(selectedOptions, true),
+        });
+
+        return categorySections;
+    }
+
     if (!_.isEmpty(searchInputValue)) {
         const searchCategories = _.filter(categoriesValues, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
