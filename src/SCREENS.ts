@@ -19,5 +19,3 @@ export default {
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
 } as const;
-
-// TODO: remove this, testing GH actions
