@@ -71,7 +71,7 @@ function ExpensifyCardPage({
                             interactive={false}
                             titleStyle={styles.walletCardNumber}
                         />
-                        {physicalCard && (
+                        {!_.isEmpty(physicalCard) && (
                             <MenuItemWithTopDescription
                                 description={translate('cardPage.physicalCardNumber')}
                                 title={physicalCard.maskedPan}
