@@ -1,4 +1,4 @@
-import React, {useEffect, forwardRef, useState, useCallback} from 'react';
+import React, {useEffect, forwardRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
@@ -16,21 +16,21 @@ export default function (WrappedComponent) {
     function WithViewportOffsetTop(props) {
         const [viewportOffsetTop, setViewportOffsetTop] = useState(0);
 
-        /**
-         * @param {SyntheticEvent} e
-         */
-        const updateDimensions = useCallback((e) => {
-            const viewPortOffsetTop = lodashGet(e, 'target.offsetTop', 0);
-            setViewportOffsetTop(viewPortOffsetTop);
-        }, []);
-
         useEffect(() => {
+            /**
+             * @param {SyntheticEvent} e
+             */
+            const updateDimensions = (e) => {
+                const targetOffsetTop = lodashGet(e, 'target.offsetTop', 0);
+                setViewportOffsetTop(targetOffsetTop);
+            };
+            
             const removeViewportResizeListener = addViewportResizeListener(updateDimensions);
 
             return () => {
                 removeViewportResizeListener();
             };
-        }, [updateDimensions]);
+        }, []);
 
         return (
             <WrappedComponent
