@@ -249,6 +249,7 @@ function MoneyRequestParticipantsSelector({
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
                 shouldFocusOnSelectRow={!Browser.isMobile()}
+                shouldDelayFocus
             />
         </View>
     );
