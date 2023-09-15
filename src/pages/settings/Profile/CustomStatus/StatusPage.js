@@ -19,6 +19,7 @@ import styles from '../../../../styles/styles';
 import compose from '../../../../libs/compose';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
+import SCREENS from '../../../../SCREENS';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -67,7 +68,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         <StaticHeaderPageLayout
             title={translate('statusPage.status')}
             onBackButtonPress={navigateBackToSettingsPage}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.SETTINGS_STATUS]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS]}
             image={MobileBackgroundImage}
             footer={footerComponent}
         >
