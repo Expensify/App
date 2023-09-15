@@ -18,8 +18,11 @@ function getYearFromExpirationDateString(expirationDateString: string) {
     return cardYear.length === 2 ? `20${cardYear}` : cardYear;
 }
 
-function getCompanyCards(cardList: Card[]) {
-    return cardList.filter(card => card.bank !== CONST.EXPENSIFY_CARD.BANK);
+function getCompanyCards(cardList: {string: Card}) {
+    if (!cardList) {
+        return [];
+    }
+    return Object.values(cardList).filter(card => card.bank !== CONST.EXPENSIFY_CARD.BANK);
 }
 
 export {getMonthFromExpirationDateString, getYearFromExpirationDateString, getCompanyCards};
