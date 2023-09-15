@@ -111,8 +111,7 @@ function ComposerWithSuggestions({
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
-    const parentAction = ReportActionsUtils.getParentReportAction(report);
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentAction))) && shouldShowComposeInput;
+    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -322,11 +321,11 @@ function ComposerWithSuggestions({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, [suggestionsRef]);
 
-    const setShouldBlockSuggestionCalc = useCallback(() => {
+    const setShouldBlockSuggestionCalcToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
             return false;
         }
-        return suggestionsRef.current.setShouldBlockSuggestionCalc(true);
+        return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
 
     /**
@@ -473,7 +472,7 @@ function ComposerWithSuggestions({
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
-                    onClick={setShouldBlockSuggestionCalc}
+                    onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
                     onClear={() => setTextInputShouldClear(false)}
