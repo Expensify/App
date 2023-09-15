@@ -7,7 +7,6 @@ import themeColors from '../../styles/themes/default';
 import Tooltip from '../Tooltip';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import useLocalize from '../../hooks/useLocalize';
-import {withLocalizePropTypes} from '../withLocalize';
 import FabPlusIcon from './FabPlusIcon';
 
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
@@ -16,10 +15,15 @@ AnimatedPressable.displayName = 'AnimatedPressable';
 const propTypes = {
     /* Callback to fire on request to toggle the FloatingActionButton */
     onPress: PropTypes.func.isRequired,
+
     /* Current state (active or not active) of the component */
     isActive: PropTypes.bool.isRequired,
 
-    ...withLocalizePropTypes,
+    /* An accessibility label for the button */
+    accessibilityLabel: PropTypes.string.isRequired,
+
+    /* An accessibility role for the button */
+    accessibilityRole: PropTypes.string.isRequired,
 };
 
 const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, accessibilityRole}, ref) => {
