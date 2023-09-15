@@ -19,7 +19,8 @@ import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
-import ReceiptUtils from '../../../libs/ReceiptUtils';
+import * as ReceiptUtils from '../../../libs/ReceiptUtils';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -32,28 +33,20 @@ const propTypes = {
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
+    /** React Navigation route */
     route: PropTypes.shape({
+        /** Params from the route */
         params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
-    }),
+    }).isRequired,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        id: PropTypes.string,
-        amount: PropTypes.number,
-        currency: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
-    }),
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
@@ -63,18 +56,7 @@ const defaultProps = {
         attachmentInvalidReason: '',
     },
     report: {},
-    route: {
-        params: {
-            iouType: '',
-            reportID: '',
-        },
-    },
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: iouDefaultProps,
 };
 
 function ReceiptSelector(props) {
@@ -159,11 +141,11 @@ function ReceiptSelector(props) {
                 receiptImageTopPosition={receiptImageTopPosition}
             />
             <ConfirmModal
-                title={attachmentInvalidReasonTitle}
+                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                 onConfirm={Receipt.clearUploadReceiptError}
                 onCancel={Receipt.clearUploadReceiptError}
                 isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason}
+                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />

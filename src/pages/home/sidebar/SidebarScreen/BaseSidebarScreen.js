@@ -3,8 +3,6 @@ import {View} from 'react-native';
 import styles from '../../../../styles/styles';
 import SidebarLinksData from '../SidebarLinksData';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
 import Timing from '../../../../libs/actions/Timing';
 import CONST from '../../../../CONST';
 import Performance from '../../../../libs/Performance';
@@ -15,13 +13,6 @@ import * as Browser from '../../../../libs/Browser';
 const propTypes = {
     ...sidebarPropTypes,
     ...windowDimensionsPropTypes,
-};
-
-/**
- * Function called when avatar is clicked
- */
-const navigateToSettings = () => {
-    Navigation.navigate(ROUTES.SETTINGS);
 };
 
 /**
@@ -43,6 +34,7 @@ function BaseSidebarScreen(props) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
+            shouldDisableFocusTrap
         >
             {({insets}) => (
                 <>
@@ -50,7 +42,6 @@ function BaseSidebarScreen(props) {
                         <SidebarLinksData
                             onLinkClick={startTimer}
                             insets={insets}
-                            onAvatarClick={navigateToSettings}
                             isSmallScreenWidth={props.isSmallScreenWidth}
                             onLayout={props.onLayout}
                         />

@@ -11,10 +11,14 @@ import compose from '../../../../libs/compose';
 import CONST from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
+import refPropTypes from '../../../../components/refPropTypes';
 
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** A ref to forward to options selector's text input */
+    forwardedRef: refPropTypes,
 
     /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
@@ -34,17 +38,19 @@ const propTypes = {
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
 
-    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
+    /** Whether the money request is a distance request or not */
+    isDistanceRequest: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    forwardedRef: undefined,
     safeAreaPaddingBottomStyle: {},
     personalDetails: {},
     reports: {},
     betas: [],
+    isDistanceRequest: false,
 };
 
 class MoneyRequestParticipantsSelector extends Component {
@@ -89,7 +95,7 @@ class MoneyRequestParticipantsSelector extends Component {
             this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
 
             // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-            this.props.selectedTab !== CONST.TAB.DISTANCE,
+            !this.props.isDistanceRequest,
         );
     }
 
@@ -147,7 +153,7 @@ class MoneyRequestParticipantsSelector extends Component {
      */
     addSingleParticipant(option) {
         this.props.onAddParticipants([{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true}]);
-        this.props.onStepComplete();
+        this.props.onStepComplete(option);
     }
 
     render() {
@@ -160,6 +166,8 @@ class MoneyRequestParticipantsSelector extends Component {
 
         return (
             <OptionsSelector
+                ref={this.props.forwardedRef}
+                autoFocus={false}
                 sections={this.getSections()}
                 value={this.state.searchTerm}
                 onSelectRow={this.addSingleParticipant}
@@ -189,8 +197,13 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
-        selectedTab: {
-            key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
-        },
     }),
-)(MoneyRequestParticipantsSelector);
+)(
+    React.forwardRef((props, ref) => (
+        <MoneyRequestParticipantsSelector
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);

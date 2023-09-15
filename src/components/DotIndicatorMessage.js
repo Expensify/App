@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import colors from '../styles/colors';
+import themeColors from '../styles/themes/default';
 import Text from './Text';
 import * as Localize from '../libs/Localize';
 
@@ -57,7 +57,7 @@ function DotIndicatorMessage(props) {
             <View style={styles.offlineFeedback.errorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
-                    fill={props.type === 'error' ? colors.red : colors.green}
+                    fill={props.type === 'error' ? themeColors.danger : themeColors.success}
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>

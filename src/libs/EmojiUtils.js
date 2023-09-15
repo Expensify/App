@@ -13,7 +13,7 @@ Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
     callback: (val) => {
         frequentlyUsedEmojis = _.map(val, (item) => {
-            const emoji = Emojis.emojiCodeTable[item.code];
+            const emoji = Emojis.emojiCodeTableWithSkinTones[item.code];
             if (emoji) {
                 return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
             }
@@ -33,7 +33,7 @@ const findEmojiByName = (name) => Emojis.emojiNameTable[name];
  * @param {String} code
  * @returns {Object}
  */
-const findEmojiByCode = (code) => Emojis.emojiCodeTable[code];
+const findEmojiByCode = (code) => Emojis.emojiCodeTableWithSkinTones[code];
 
 /**
  *
@@ -229,7 +229,7 @@ function getFrequentlyUsedEmojis(newEmoji) {
             frequentEmojiList.splice(emojiIndex, 1);
         }
 
-        const updatedEmoji = {...Emojis.emojiCodeTable[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
+        const updatedEmoji = {...Emojis.emojiCodeTableWithSkinTones[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
 
         // We want to make sure the current emoji is added to the list
         // Hence, we take one less than the current frequent used emojis
@@ -260,6 +260,43 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
 };
 
 /**
+ * Extracts emojis from a given text.
+ *
+ * @param {String} text - The text to extract emojis from.
+ * @returns {Object[]} An array of emoji codes.
+ */
+function extractEmojis(text) {
+    if (!text) {
+        return [];
+    }
+
+    // Parse Emojis including skin tones - Eg: ['👩🏻', '👩🏻', '👩🏼', '👩🏻', '👩🏼', '👩']
+    const parsedEmojis = text.match(CONST.REGEX.EMOJIS);
+
+    if (!parsedEmojis) {
+        return [];
+    }
+
+    const emojis = [];
+
+    // Text can contain similar emojis as well as their skin tone variants. Create a Set to remove duplicate emojis from the search.
+    const foundEmojiCodes = new Set();
+
+    for (let i = 0; i < parsedEmojis.length; i++) {
+        const character = parsedEmojis[i];
+        const emoji = Emojis.emojiCodeTableWithSkinTones[character];
+
+        // Add the parsed emoji to the final emojis if not already present.
+        if (emoji && !foundEmojiCodes.has(emoji.code)) {
+            foundEmojiCodes.add(emoji.code);
+            emojis.push(emoji);
+        }
+    }
+
+    return emojis;
+}
+
+/**
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  *
@@ -282,7 +319,16 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
     }
     for (let i = 0; i < emojiData.length; i++) {
         const name = emojiData[i].slice(1, -1);
-        const checkEmoji = trie.search(name);
+        let checkEmoji = trie.search(name);
+        // If the user has selected a language other than English, and the emoji doesn't exist in that language,
+        // we will check if the emoji exists in English.
+        if (lang !== CONST.LOCALES.DEFAULT && (!checkEmoji || !checkEmoji.metaData.code)) {
+            const englishTrie = emojisTrie[CONST.LOCALES.DEFAULT];
+            if (englishTrie) {
+                const englishEmoji = englishTrie.search(name);
+                checkEmoji = englishEmoji;
+            }
+        }
         if (checkEmoji && checkEmoji.metaData.code) {
             let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
             emojis.push({
@@ -302,6 +348,22 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
     }
 
     return {text: newText, emojis};
+}
+
+/**
+ * Find all emojis in a text and replace them with their code.
+ * @param {String} text
+ * @param {Number} preferredSkinTone
+ * @param {String} lang
+ * @returns {Object}
+ */
+function replaceAndExtractEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
+    const {text: convertedText = '', emojis = []} = replaceEmojis(text, preferredSkinTone, lang);
+
+    return {
+        text: convertedText,
+        emojis: emojis.concat(extractEmojis(text)),
+    };
 }
 
 /**
@@ -421,4 +483,5 @@ export {
     getPreferredSkinToneIndex,
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
+    replaceAndExtractEmojis,
 };

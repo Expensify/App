@@ -37,6 +37,12 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const customStatus = draftEmojiCode ? `${draftEmojiCode} ${draftText}` : `${currentUserEmojiCode || ''} ${currentUserStatusText || ''}`;
     const hasDraftStatus = !!draftEmojiCode || !!draftText;
 
+    const clearStatus = () => {
+        User.clearCustomStatus();
+        User.clearDraftCustomStatus();
+    };
+
+    const navigateBackToSettingsPage = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
     const updateStatus = useCallback(() => {
         const endOfDay = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
         User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay});
@@ -44,12 +50,6 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         User.clearDraftCustomStatus();
         Navigation.goBack(ROUTES.SETTINGS_PROFILE);
     }, [defaultText, defaultEmoji]);
-
-    const clearStatus = () => {
-        User.clearCustomStatus();
-        User.clearDraftCustomStatus();
-    };
-
     const footerComponent = useMemo(
         () =>
             hasDraftStatus ? (
@@ -67,8 +67,8 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     return (
         <StaticHeaderPageLayout
             title={localize.translate('statusPage.status')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
-            backgroundColor={themeColors.midtone}
+            onBackButtonPress={navigateBackToSettingsPage}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.SETTINGS_STATUS]}
             image={MobileBackgroundImage}
             footer={footerComponent}
         >
