@@ -247,9 +247,8 @@ function ReportScreen({
 
     useEffect(() => {
         const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
-
-            const isTopmostReportId = Navigation.getTopmostReportId() === report.reportID
-            if(!isTopmostReportId) {
+            const isTopmostReportId = Navigation.getTopmostReportId() === report.reportID;
+            if (!isTopmostReportId) {
                 return;
             }
 
