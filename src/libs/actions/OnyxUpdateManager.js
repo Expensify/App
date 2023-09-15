@@ -42,7 +42,7 @@ export default () => {
             if (
                 !_.isObject(val) ||
                 !_.has(val, 'type') ||
-                !(val.type === CONST.ONYX_UPDATE_TYPES.HTTPS && _.has(val, 'request') && _.has(val, 'response')) ||
+                !(val.type === CONST.ONYX_UPDATE_TYPES.HTTPS && _.has(val, 'request') && _.has(val, 'response')) &&
                 !(val.type === CONST.ONYX_UPDATE_TYPES.PUSHER && _.has(val, 'updates'))
             ) {
                 Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
