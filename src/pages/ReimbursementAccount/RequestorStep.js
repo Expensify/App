@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
-import withLocalize from '../../components/withLocalize';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
@@ -17,9 +16,12 @@ import RequestorOnfidoStep from './RequestorOnfidoStep';
 import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
+import useLocalize from '../../hooks/useLocalize';
+
+const {reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField} = StepPropTypes;
 
 const propTypes = {
-    ...StepPropTypes,
+    ...{reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField},
 
     /** If we should show Onfido flow */
     shouldShowOnfido: PropTypes.bool.isRequired,
@@ -80,7 +82,9 @@ const validate = (values) => {
     return errors;
 };
 
-function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField, translate}, ref) {
+function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}, ref) {
+    const {translate} = useLocalize();
+
     const defaultValues = useMemo(
         () => ({
             firstName: getDefaultStateForField(INPUT_KEYS.firstName),
@@ -207,4 +211,4 @@ const RequestorStep = React.forwardRef(InnerRequestorStep);
 RequestorStep.propTypes = propTypes;
 RequestorStep.displayName = 'RequestorStep';
 
-export default withLocalize(RequestorStep);
+export default RequestorStep;
