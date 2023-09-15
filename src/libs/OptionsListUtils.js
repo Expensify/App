@@ -18,9 +18,8 @@ import * as UserUtils from './UserUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ErrorUtils from './ErrorUtils';
-import * as ReportActionsUtils from "./ReportActionsUtils";
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
-import {isCurrentUserSubmitter} from "./ReportUtils";
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
