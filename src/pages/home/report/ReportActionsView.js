@@ -20,7 +20,6 @@ import reportPropTypes from '../../reportPropTypes';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 import ReportScreenContext from '../ReportScreenContext';
-import withNavigationFocus from '../../../components/withNavigationFocus';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -134,11 +133,11 @@ function ReportActionsView(props) {
     }, [props.report, didSubscribeToReportTypingEvents, reportID]);
 
     useEffect(() => {
-        if (!props.isFocused && context.reactionListRef && context.reactionListRef.current) {
+        if (!isFocused && context.reactionListRef && context.reactionListRef.current) {
             return;
         }
         context.reactionListRef.current.hideReactionList();
-    }, [props.isFocused, context.reactionListRef]);
+    }, [isFocused, context.reactionListRef]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -239,10 +238,6 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (newProps.isFocused !== oldProps.isFocused) {
-        return false;
-    }
-
     if (lodashGet(newProps.report, 'hasOutstandingIOU') !== lodashGet(oldProps.report, 'hasOutstandingIOU')) {
         return false;
     }
@@ -296,4 +291,4 @@ function arePropsEqual(oldProps, newProps) {
 
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
 
-export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withNavigationFocus, withWindowDimensions, withLocalize, withNetwork())(MemoizedReportActionsView);
+export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withLocalize, withNetwork())(MemoizedReportActionsView);
