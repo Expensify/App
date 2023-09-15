@@ -1827,11 +1827,12 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 /**
  * @param {String} transactionID
  * @param {Object} receipt
+ * @param {String} filePath
  */
-function replaceReceipt(transactionID, receipt) {
+function replaceReceipt(transactionID, receipt, filePath) {
     const transaction = lodashGet(allTransactions, 'transactionID', {});
     const oldReceipt = lodashGet(transaction, 'receipt', {});
-    const filePath = URL.createObjectURL(receipt);
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

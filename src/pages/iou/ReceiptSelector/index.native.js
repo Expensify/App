@@ -23,6 +23,7 @@ import Log from '../../../libs/Log';
 import * as CameraPermission from './CameraPermission';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import NavigationAwareCamera from './NavigationAwareCamera';
+import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** React Navigation route */
@@ -43,14 +44,18 @@ const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
 
-    /** Callback to fire if we're replacing the existing receipt */
-    replaceReceipt: PropTypes.func,
+    /** Whether the user is replacing the receipt */
+    isReplacingReceipt: PropTypes.bool,
+
+    /** The id of the transaction we're editing */
+    transactionID: PropTypes.string,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
-    replaceReceipt: null,
+    isReplacingReceipt: false,
+    transactionID: '',
 };
 
 /**
@@ -78,7 +83,7 @@ function getImagePickerOptions(type) {
     };
 }
 
-function ReceiptSelector({route, report, iou, replaceReceipt}) {
+function ReceiptSelector({route, report, iou, isReplacingReceipt, transactionID}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -201,8 +206,9 @@ function ReceiptSelector({route, report, iou, replaceReceipt}) {
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
 
-                if (replaceReceipt) {
-                    replaceReceipt(photo);
+                if (isReplacingReceipt) {
+                    IOU.replaceReceipt(transactionID, photo, `file://${photo.path}`);
+                    Navigation.dismissModal();
                     return;
                 }
 
@@ -212,7 +218,7 @@ function ReceiptSelector({route, report, iou, replaceReceipt}) {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, iou, report, replaceReceipt, reportID, translate]);
+    }, [flash, iouType, iou, report, reportID, translate, transactionID, isReplacingReceipt]);
 
     CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
@@ -272,8 +278,9 @@ function ReceiptSelector({route, report, iou, replaceReceipt}) {
                             .then((receiptImage) => {
                                 IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
 
-                                if (replaceReceipt) {
-                                    replaceReceipt(receiptImage);
+                                if (isReplacingReceipt) {
+                                    IOU.replaceReceipt(transactionID, receiptImage, receiptImage[0].uri);
+                                    Navigation.dismissModal();
                                     return;
                                 }
 

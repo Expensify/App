@@ -21,6 +21,7 @@ import useLocalize from '../../../hooks/useLocalize';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
 import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
+import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -48,8 +49,11 @@ const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
 
-    /** Callback to fire if we're replacing the existing receipt */
-    replaceReceipt: PropTypes.func,
+    /** Whether the user is replacing the receipt */
+    isReplacingReceipt: PropTypes.bool,
+
+    /** The id of the transaction we're editing */
+    transactionID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -60,7 +64,8 @@ const defaultProps = {
     },
     report: {},
     iou: iouDefaultProps,
-    replaceReceipt: null,
+    isReplacingReceipt: false,
+    transactionID: '',
 };
 
 function ReceiptSelector(props) {
@@ -88,8 +93,9 @@ function ReceiptSelector(props) {
         const filePath = URL.createObjectURL(file);
         IOU.setMoneyRequestReceipt(filePath, file.name);
 
-        if (props.replaceReceipt) {
-            props.replaceReceipt(file);
+        if (props.isReplacingReceipt) {
+            IOU.replaceReceipt(props.transactionID, file, filePath);
+            Navigation.dismissModal();
             return;
         }
 
