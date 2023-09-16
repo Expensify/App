@@ -126,12 +126,6 @@ function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined
     // since they can also be accessed by people who aren't in the workspace
     const policyName = lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
 
-    // The SBE and SAASTR policies have the user name in its name, however, we do not want to show that
-    if (lodashGet(finalPolicy, 'owner') === CONST.EMAIL.SBE || lodashGet(finalPolicy, 'owner') === CONST.EMAIL.SAASTR) {
-        const policyNameParts = policyName.split(' ');
-        if (!Str.isValidEmail(policyNameParts[0])) return policyName;
-        return policyNameParts.length > 1 ? policyNameParts.slice(1).join(' ') : policyName;
-    }
     return policyName;
 }
 
@@ -1292,6 +1286,7 @@ function getTransactionDetails(transaction) {
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
+        category: TransactionUtils.getCategory(transaction),
     };
 }
 
@@ -1403,6 +1398,10 @@ function getTransactionReportName(reportAction) {
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
         return Localize.translateLocal('iou.receiptScanning');
+    }
+
+    if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
+        return Localize.translateLocal('iou.receiptMissingDetails');
     }
 
     const {amount, currency, comment} = getTransactionDetails(transaction);
@@ -1610,7 +1609,7 @@ function getReportName(report, policy = undefined) {
             return getTransactionReportName(parentReportAction);
         }
 
-        const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
+        const isAttachment = ReportActionsUtils.isReportActionAttachment(parentReportAction);
         const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
@@ -2631,7 +2630,7 @@ function buildTransactionThread(reportAction, moneyRequestReportID) {
         participantAccountIDs,
         getTransactionReportName(reportAction),
         '',
-        lodashGet(getReport(reportAction.reportID), 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
+        lodashGet(getReport(moneyRequestReportID), 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
         CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
@@ -3113,8 +3112,8 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         return [];
     }
 
-    // Additional requests should be blocked for money request reports
-    if (isMoneyRequestReport(report)) {
+    // Additional requests should be blocked for money request reports if it is approved or reimbursed
+    if (isMoneyRequestReport(report) && (isReportApproved(report) || isSettled(report.reportID))) {
         return [];
     }
 

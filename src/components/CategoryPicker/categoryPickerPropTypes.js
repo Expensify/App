@@ -14,11 +14,23 @@ const propTypes = {
     /* Onyx Props */
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
+
+    /* Onyx Props */
+    /** Collection of recently used categories attached to a policy */
+    policyRecentlyUsedCategories: PropTypes.arrayOf(PropTypes.string),
+
+    /* Onyx Props */
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: PropTypes.shape({
+        category: PropTypes.string.isRequired,
+    }),
 };
 
 const defaultProps = {
     policyID: '',
-    policyCategories: null,
+    policyCategories: {},
+    policyRecentlyUsedCategories: [],
+    iou: {},
 };
 
 export {propTypes, defaultProps};
