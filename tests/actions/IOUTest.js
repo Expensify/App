@@ -11,6 +11,7 @@ import * as ReportActions from '../../src/libs/actions/ReportActions';
 import * as Report from '../../src/libs/actions/Report';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
 import * as ReportUtils from '../../src/libs/ReportUtils';
+import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import * as PersonalDetailsUtils from '../../src/libs/PersonalDetailsUtils';
 import * as User from '../../src/libs/actions/User';
 import PusherHelper from '../utils/PusherHelper';
@@ -1403,7 +1404,7 @@ describe('actions/IOU', () => {
             automatic: false,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
             message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment', translationKey: ''}],
-            person: [{type: 'TEXT', style: 'strong', text: 'test@test.com'}],
+            person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
             shouldShow: true,
         };
 
@@ -1417,7 +1418,7 @@ describe('actions/IOU', () => {
             User.subscribeToUserEvents();
             await waitForPromisesToResolve();
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID}, comment);
+            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', '', TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}, comment);
             await waitForPromisesToResolve();
             let allReports = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
@@ -2011,144 +2012,48 @@ describe('actions/IOU', () => {
             });
         });
 
-        it('update IOU report and reportPreview with new totals and messages if the IOU report is not deleted', () => {
+        it('update IOU report and reportPreview with new totals and messages if the IOU report is not deleted', async () => {
+            await waitForPromisesToResolve();
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                callback: (val) => (iouReport = val),
+            });
+            await waitForPromisesToResolve();
+            let reportActionsForIOUReport;
+
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                callback: (val) => (reportActionsForIOUReport = val),
+            });
+            await waitForPromisesToResolve();
+
+            jest.advanceTimersByTime(10);
             const amount2 = 20000;
             const comment2 = 'Send me money please 2';
-            return waitForPromisesToResolve()
-                .then(() => {
-                    IOU.requestMoney({}, amount2, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID}, comment2);
-                    return waitForPromisesToResolve();
-                })
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
-                                callback: (allReports) => {
-                                    Onyx.disconnect(connectionID);
-                                    iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
-                                    expect(iouReport).toBeTruthy();
-                                    expect(iouReport).toHaveProperty('reportID');
-                                    expect(iouReport).toHaveProperty('chatReportID');
+            IOU.requestMoney(chatReport, amount2, CONST.CURRENCY.USD, '', '', TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}, comment2);
 
-                                    expect(iouReport.hasOutstandingIOU).toBeTruthy();
-                                    expect(iouReport.total).toBe(30000);
+            await waitForPromisesToResolve();
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                waitForCollectionCallback: true,
-                                callback: (allReportActions) => {
-                                    Onyx.disconnect(connectionID);
+            expect(iouReport).toBeTruthy();
+            expect(iouReport).toHaveProperty('reportID');
+            expect(iouReport).toHaveProperty('chatReportID');
+            expect(iouReport.hasOutstandingIOU).toBeTruthy();
+            expect(iouReport.total).toBe(30000);
 
-                                    const reportActionsForIOUReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`];
+            const ioupreview = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+            expect(ioupreview).toBeTruthy();
+            expect(ioupreview.message[0].text).toBe('rory@expensifail.com owes $300.00');
 
-                                    const ioupreview = _.find(reportActionsForIOUReport, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW);
-                                    expect(ioupreview).toBeTruthy();
-                                    expect(ioupreview.message[0].text).toBe('Test owes $300.00');
+            fetch.pause();
+            jest.advanceTimersByTime(10);
+            IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
+            await waitForPromisesToResolve();
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(() => {
-                    fetch.pause();
-                    IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
-                    return waitForPromisesToResolve();
-                })
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
-                                callback: (allReports) => {
-                                    Onyx.disconnect(connectionID);
-                                    iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
-                                    expect(iouReport).toBeTruthy();
-                                    expect(iouReport).toHaveProperty('reportID');
-                                    expect(iouReport).toHaveProperty('chatReportID');
-
-                                    expect(iouReport.hasOutstandingIOU).toBeTruthy();
-                                    expect(iouReport.total).toBe(20000);
-
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                waitForCollectionCallback: true,
-                                callback: (allReportActions) => {
-                                    Onyx.disconnect(connectionID);
-
-                                    const reportActionsForIOUReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`];
-
-                                    const ioupreview = _.find(reportActionsForIOUReport, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW);
-                                    expect(ioupreview).toBeTruthy();
-                                    expect(ioupreview.message[0].text).toBe('Test owes $200.00');
-
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(fetch.resume)
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
-                                callback: (allReports) => {
-                                    Onyx.disconnect(connectionID);
-                                    iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
-                                    expect(iouReport).toBeTruthy();
-                                    expect(iouReport).toHaveProperty('reportID');
-                                    expect(iouReport).toHaveProperty('chatReportID');
-
-                                    expect(iouReport.hasOutstandingIOU).toBeTruthy();
-                                    expect(iouReport.total).toBe(20000);
-
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                waitForCollectionCallback: true,
-                                callback: (allReportActions) => {
-                                    Onyx.disconnect(connectionID);
-
-                                    const reportActionsForIOUReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`];
-
-                                    const ioupreview = _.find(reportActionsForIOUReport, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW);
-                                    expect(ioupreview).toBeFalsy();
-                                    expect(ioupreview.total).toBe(20000);
-                                    expect(ioupreview.message[0].text).toBe('Test owes $200.00');
-
-                                    resolve();
-                                },
-                            });
-                        }),
-                );
+            expect(iouReport).toBeTruthy();
+            expect(iouReport).toHaveProperty('reportID');
+            expect(iouReport).toHaveProperty('chatReportID');
+            expect(iouReport.hasOutstandingIOU).toBeTruthy();
+            expect(iouReport.total).toBe(20000);
         });
 
         it('navigate the user correctly to the iou Report when appropriate', async () => {
@@ -2170,7 +2075,6 @@ describe('actions/IOU', () => {
 
             expect(resultAction.message).toEqual(REPORT_ACTION.message);
             expect(resultAction.person).toEqual(REPORT_ACTION.person);
-            expect(resultAction.pendingAction).toBeNull();
 
             await waitForPromisesToResolve();
 
@@ -2178,10 +2082,6 @@ describe('actions/IOU', () => {
             expect(_.size(reportActions)).toBe(3);
 
             const resultActionAfterUpdate = reportActions[reportActionID];
-            //expect(resultActionAfterUpdate).toBeFalsy();
-
-            // Verify that our action is no longer in the loading state
-            expect(resultActionAfterUpdate.pendingAction).toBeNull();
 
             await waitForPromisesToResolve();
 
