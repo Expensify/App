@@ -1810,6 +1810,7 @@ const styles = (theme) => ({
         paddingTop: 2,
         paddingBottom: 2,
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        ...userSelect.userSelectNone,
     },
 
     emojiItemHighlighted: {

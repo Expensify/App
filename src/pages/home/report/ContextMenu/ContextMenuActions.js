@@ -10,7 +10,7 @@ import * as ReportUtils from '../../../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
-import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {hideContextMenu, showDeleteModal, clearActiveReportAction} from './ReportActionContextMenu';
 import CONST from '../../../../CONST';
 import getAttachmentDetails from '../../../../libs/fileDownload/getAttachmentDetails';
 import fileDownload from '../../../../libs/fileDownload';
@@ -317,12 +317,12 @@ export default [
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => showDeleteModal(reportID, reportAction));
+                hideContextMenu(false, () => showDeleteModal(reportID, reportAction, true, clearActiveReportAction, clearActiveReportAction));
                 return;
             }
 
             // No popover to hide, call showDeleteConfirmModal immediately
-            showDeleteModal(reportID, reportAction);
+            showDeleteModal(reportID, reportAction, true, clearActiveReportAction, clearActiveReportAction);
         },
         getDescription: () => {},
     },

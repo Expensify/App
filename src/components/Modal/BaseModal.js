@@ -13,6 +13,7 @@ import useWindowDimensions from '../../hooks/useWindowDimensions';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
 import ComposerFocusManager from '../../libs/ComposerFocusManager';
+import useNativeDriver from '../../libs/useNativeDriver';
 
 const propTypes = {
     ...modalPropTypes,
@@ -40,7 +41,7 @@ function BaseModal({
     fullscreen,
     animationIn,
     animationOut,
-    useNativeDriver,
+    useNativeDriver: useNativeDriverProp,
     hideModalContentWhileAnimating,
     animationInTiming,
     animationOutTiming,
@@ -187,7 +188,7 @@ function BaseModal({
             deviceWidth={windowWidth}
             animationIn={animationIn || modalStyleAnimationIn}
             animationOut={animationOut || modalStyleAnimationOut}
-            useNativeDriver={useNativeDriver}
+            useNativeDriver={useNativeDriverProp && useNativeDriver}
             hideModalContentWhileAnimating={hideModalContentWhileAnimating}
             animationInTiming={animationInTiming}
             animationOutTiming={animationOutTiming}
