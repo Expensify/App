@@ -1,7 +1,9 @@
 import {Color} from './themes/ThemeColors';
 
 /**
- * DO NOT import colors.js into files. Use ../themes/default.js instead.
+ * DO NOT import colors.js into files. Use the theme switching hooks and HOCs instead.
+ * For functional components, you can use the `useTheme` and `useThemeStyles` hooks
+ * For class components, you can use the `withTheme` and `withThemeStyles` HOCs
  */
 const colors: Record<string, Color> = {
     black: '#000000',
