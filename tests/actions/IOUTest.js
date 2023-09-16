@@ -1695,61 +1695,85 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
         });
 
-        it('delete the transaction thread if there are no visible comments in the thread', () =>
-            waitForPromisesToResolve()
-                .then(() => {
-                    thread = ReportUtils.buildTransactionThread(createIOUAction);
-                    const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
-                    Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
-                })
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                                waitForCollectionCallback: true,
-                                callback: (report) => {
-                                    Onyx.disconnect(connectionID);
-                                    expect(report).toBeTruthy();
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(() => {
-                    fetch.pause();
-                    IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
-                    return waitForPromisesToResolve();
-                })
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                                waitForCollectionCallback: true,
-                                callback: (report) => {
-                                    Onyx.disconnect(connectionID);
-                                    expect(report).toBeFalsy();
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(fetch.resume)
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                                waitForCollectionCallback: true,
-                                callback: (report) => {
-                                    Onyx.disconnect(connectionID);
-                                    expect(report).toBeFalsy();
-                                    resolve();
-                                },
-                            });
-                        }),
-                ));
+        it('delete the transaction thread if there are no visible comments in the thread', async () => {
+            await waitForPromisesToResolve();
+        
+            
+            jest.advanceTimersByTime(10);
+            thread = ReportUtils.buildTransactionThread(createIOUAction, REPORT_ID);
+        
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
+                callback: (val) => (reportActions = val),
+            });
+            await waitForPromisesToResolve();
+        
+            jest.advanceTimersByTime(10);
+            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
+            Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
+            await waitForPromisesToResolve();
+        
+            PusherHelper.emitOnyxUpdate([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                    value: {
+                        [createIOUAction.reportActionID]: {childReportID: thread.reportID},
+                    },
+                },
+            ]);
+        
+            await waitForPromisesToResolve();
+            
+            const allReportActions = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(actions);
+                    },
+                });
+            });
+        
+            const reportActionsForIOUReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.iouReportID}`];
+            createIOUAction = _.find(reportActionsForIOUReport, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+            expect(createIOUAction.childReportID).toBe(thread.reportID);
+        
+            await waitForPromisesToResolve();
+                
+            fetch.pause();
+            jest.advanceTimersByTime(10);
+            IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
+            await waitForPromisesToResolve();
+        
+            report = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    waitForCollectionCallback: true,
+                    callback: (reportData) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(reportData);
+                    },
+                });
+            });
+        
+            expect(report).toBeFalsy();
+            fetch.resume();
+        
+            report = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                    waitForCollectionCallback: true,
+                    callback: (reportData) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(reportData);
+                    },
+                });
+            });
+        
+            expect(report).toBeFalsy();
+        });
 
         it('does not delete the transaction thread if there are visible comments in the thread', () =>
             waitForPromisesToResolve()
