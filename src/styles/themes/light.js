@@ -90,6 +90,7 @@ lightTheme.PAGE_BACKGROUND_COLORS = {
     [ROUTES.SETTINGS_STATUS]: colors.green700,
     [ROUTES.I_KNOW_A_TEACHER]: colors.tangerine800,
     [ROUTES.SETTINGS_SECURITY]: colors.ice500,
+    [SCREENS.SETTINGS.ROOT]: lightTheme.sidebar,
 };
 
 export default lightTheme;

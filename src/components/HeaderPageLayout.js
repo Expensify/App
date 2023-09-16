@@ -68,6 +68,7 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
                         iconFill={iconFill}
                     />
                     <View style={[styles.flex1, appBGColor, !isOffline ? safeAreaPaddingBottomStyle : {}]}>
+                        {/** Safari on ios/mac has a bug where overscrolling the page scrollview shows green the background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
                         {Browser.isSafari() && (
                             <View style={[styles.dualColorOverscrollSpacer]}>
                                 <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(backgroundColor)]} />
