@@ -12,7 +12,12 @@ const propTypes = {
     /** The function that should be called when this pressable is pressedOut */
     onPressOut: PropTypes.func,
 
-    /** The function that should be called when this pressable is LongPressed or right-clicked. */
+    /**
+     * The function that should be called when this pressable is LongPressed or right-clicked.
+     *
+     * This function should be stable, preferably wrapped in a `useCallback` so that it does not
+     * cause several re-renders.
+     */
     onSecondaryInteraction: PropTypes.func,
 
     /** The children which should be contained in this wrapper component. */

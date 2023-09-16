@@ -321,11 +321,11 @@ function ComposerWithSuggestions({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, [suggestionsRef]);
 
-    const setShouldBlockSuggestionCalc = useCallback(() => {
+    const setShouldBlockSuggestionCalcToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
             return false;
         }
-        return suggestionsRef.current.setShouldBlockSuggestionCalc(true);
+        return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
 
     /**
@@ -353,9 +353,10 @@ function ComposerWithSuggestions({
      * @returns {Boolean}
      */
     const checkComposerVisibility = useCallback(() => {
-        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || modal.isVisible;
+        // Checking whether the screen is focused or not, helps avoid `modal.isVisible` false when popups are closed, even if the modal is opened.
+        const isComposerCoveredUp = !isFocused || EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || modal.isVisible || modal.willAlertModalBecomeVisible;
         return !isComposerCoveredUp;
-    }, [isMenuVisible, modal.isVisible]);
+    }, [isMenuVisible, modal, isFocused]);
 
     const focusComposerOnKeyPress = useCallback(
         (e) => {
@@ -471,7 +472,7 @@ function ComposerWithSuggestions({
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
-                    onClick={setShouldBlockSuggestionCalc}
+                    onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
                     onClear={() => setTextInputShouldClear(false)}

@@ -207,10 +207,7 @@ function fetchTag(tag) {
         console.log(`Running command: ${command}`);
         execSync(command);
     } catch (e) {
-        // This can happen if the tag was only created locally but does not exist in the remote. In this case, we'll fetch history of the staging branch instead
-        const command = `git fetch origin staging --no-tags --shallow-exclude=${previousPatchVersion}`;
-        console.log(`Running command: ${command}`);
-        execSync(command);
+        console.error(e);
     }
 }
 
@@ -301,13 +298,14 @@ function getValidMergedPRs(commits) {
  * @returns {Promise<Array<Number>>} – Pull request numbers
  */
 function getPullRequestsMergedBetween(fromTag, toTag) {
+    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
     return getCommitHistoryAsJSON(fromTag, toTag).then((commitList) => {
         console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
         // Find which commit messages correspond to merged PR's
         const pullRequestNumbers = getValidMergedPRs(commitList);
         console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-        return pullRequestNumbers;
+        return _.map(pullRequestNumbers, (prNum) => Number.parseInt(prNum, 10));
     });
 }
 

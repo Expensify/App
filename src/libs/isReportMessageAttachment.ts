@@ -13,12 +13,12 @@ type IsReportMessageAttachmentParams = {
  * @param reportActionMessage report action's message as text, html and translationKey
  */
 export default function isReportMessageAttachment({text, html, translationKey}: IsReportMessageAttachmentParams): boolean {
-    if (translationKey) {
-        return translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
-    }
-
     if (!text || !html) {
         return false;
+    }
+
+    if (translationKey && text === CONST.ATTACHMENT_MESSAGE_TEXT) {
+        return translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
     }
 
     const regex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');

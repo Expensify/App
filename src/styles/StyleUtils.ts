@@ -13,7 +13,6 @@ import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
 import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
-import * as NumberUtils from '../libs/NumberUtils';
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -259,9 +258,12 @@ function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle | CSSProperties {
 
 function getZoomCursorStyle(isZoomed: boolean, isDragging: boolean): ViewStyle | CSSProperties {
     if (!isZoomed) {
+        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return styles.cursorZoomIn;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
 }
 
@@ -336,12 +338,16 @@ function getWidthStyle(width: number): ViewStyle | CSSProperties {
  */
 function getAutoGrowHeightInputStyle(textInputHeight: number, maxHeight: number): ViewStyle | CSSProperties {
     if (textInputHeight > maxHeight) {
+        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return {
             ...styles.pr0,
             ...styles.overflowAuto,
         };
     }
 
+    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...styles.pr0,
         ...styles.overflowHidden,
@@ -439,11 +445,17 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
 function getBadgeColorStyle(success: boolean, error: boolean, isPressed = false, isAdHoc = false): ViewStyle | CSSProperties {
     if (success) {
         if (isAdHoc) {
+            // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return isPressed ? styles.badgeAdHocSuccessPressed : styles.badgeAdHocSuccess;
         }
+        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
     if (error) {
+        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
     }
     return {};
@@ -560,46 +572,18 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle | CSSProper
 }
 
 /**
- * Get the random promo color and image for Login page
- */
-function getLoginPagePromoStyle(): ViewStyle | CSSProperties {
-    const promos = [
-        {
-            backgroundColor: colors.green,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg`,
-        },
-        {
-            backgroundColor: colors.orange,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg`,
-        },
-        {
-            backgroundColor: colors.pink,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg`,
-        },
-        {
-            backgroundColor: colors.blue,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg`,
-        },
-        {
-            backgroundColor: colors.ivory,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/cpa-card.svg`,
-            redirectUri: `${CONST.USE_EXPENSIFY_URL}/accountants`,
-        },
-    ];
-    return promos[NumberUtils.generateRandomInt(0, 4)];
-}
-
-/**
  * Generate the styles for the ReportActionItem wrapper view.
  */
 function getReportActionItemStyle(isHovered = false, isLoading = false): ViewStyle | CSSProperties {
+    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         display: 'flex',
         justifyContent: 'space-between',
         backgroundColor: isHovered
             ? themeColors.hoverComponentBG
             : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
-              colors.transparent,
+              themeColors.transparent,
         opacity: isLoading ? 0.5 : 1,
         ...styles.cursorInitial,
     };
@@ -609,6 +593,8 @@ function getReportActionItemStyle(isHovered = false, isLoading = false): ViewSty
  * Generate the wrapper styles for the mini ReportActionContextMenu.
  */
 function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: boolean): ViewStyle | CSSProperties {
+    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
         ...positioning.r4,
@@ -970,7 +956,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number, shouldIncl
  * Select the correct color for text.
  */
 function getColoredBackgroundStyle(isColored: boolean): ViewStyle | CSSProperties {
-    return {backgroundColor: isColored ? colors.blueLink : undefined};
+    return {backgroundColor: isColored ? themeColors.link : undefined};
 }
 
 function getEmojiReactionBubbleStyle(isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): ViewStyle | CSSProperties {
@@ -1018,7 +1004,7 @@ function getEmojiReactionCounterTextStyle(hasUserReacted: boolean): TextStyle | 
         return {color: themeColors.reactionActiveText};
     }
 
-    return {color: themeColors.textLight};
+    return {color: themeColors.text};
 }
 
 /**
@@ -1043,6 +1029,8 @@ function displayIfTrue(condition: boolean): ViewStyle | CSSProperties {
 
 function getGoogleListViewStyle(shouldDisplayBorder: boolean): ViewStyle | CSSProperties {
     if (shouldDisplayBorder) {
+        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return {
             ...styles.borderTopRounded,
             ...styles.borderBottomRounded,
@@ -1098,11 +1086,18 @@ function getMentionTextColor(isOurMention: boolean): string {
 /**
  * Returns padding vertical based on number of lines
  */
-function getComposeTextAreaPadding(numberOfLines: number): ViewStyle | CSSProperties {
+function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: boolean): ViewStyle | CSSProperties {
     let paddingValue = 5;
-    if (numberOfLines === 1) paddingValue = 9;
-    // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
-    if (numberOfLines === 3) paddingValue = 8;
+    // Issue #26222: If isComposerFullSize paddingValue will always be 5 to prevent padding jumps when adding multiple lines.
+    if (!isComposerFullSize) {
+        if (numberOfLines === 1) {
+            paddingValue = 9;
+        }
+        // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
+        else if (numberOfLines === 3) {
+            paddingValue = 8;
+        }
+    }
     return {
         paddingTop: paddingValue,
         paddingBottom: paddingValue,
@@ -1143,6 +1138,8 @@ function getDisabledLinkStyles(isDisabled = false): ViewStyle | CSSProperties {
         ...cursor.cursorDisabled,
     };
 
+    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...styles.link,
         ...(isDisabled ? disabledLinkStyles : {}),
@@ -1181,6 +1178,35 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle | CSSPr
 }
 
 /**
+ * Returns fitting fontSize and lineHeight values in order to prevent large amounts from being cut off on small screen widths.
+ */
+function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: number, isSmallScreenWidth: boolean, windowWidth: number): ViewStyle | CSSProperties {
+    let toSubtract = 0;
+
+    if (isSmallScreenWidth) {
+        const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
+        switch (true) {
+            case widthDifference > 450:
+                toSubtract = 11;
+                break;
+            case widthDifference > 400:
+                toSubtract = 8;
+                break;
+            case widthDifference > 350:
+                toSubtract = 4;
+                break;
+            default:
+                break;
+        }
+    }
+
+    return {
+        fontSize: baseFontSize - toSubtract,
+        lineHeight: baseLineHeight - toSubtract,
+    };
+}
+
+/**
  * Get transparent color by setting alpha value 0 of the passed hex(#xxxxxx) color code
  */
 function getTransparentColor(color: string) {
@@ -1215,7 +1241,6 @@ export {
     getModalPaddingStyles,
     getFontFamilyMonospace,
     getEmojiPickerStyle,
-    getLoginPagePromoStyle,
     getReportActionItemStyle,
     getMiniReportActionContextMenuWrapperStyle,
     getKeyboardShortcutsModalWidth,
@@ -1263,5 +1288,6 @@ export {
     getDisabledLinkStyles,
     getCheckboxContainerStyle,
     getDropDownButtonHeight,
+    getAmountFontSizeAndLineHeight,
     getTransparentColor,
 };
