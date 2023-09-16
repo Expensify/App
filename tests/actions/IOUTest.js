@@ -1863,7 +1863,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
-            
+
             await waitForPromisesToResolve();
 
             const allReportActions = await new Promise((resolve) => {
