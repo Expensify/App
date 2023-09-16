@@ -47,7 +47,7 @@ function PressableWithSecondaryInteraction({
 
         if (forwardedRef) {
             if (_.isFunction(forwardedRef)) {
-                forwardedRef(pressableRef);
+                forwardedRef(pressableRef.current);
             } else if (_.isObject(forwardedRef)) {
                 // eslint-disable-next-line no-param-reassign
                 forwardedRef.current = pressableRef.current;
