@@ -1607,7 +1607,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
                                     const updatedAction = _.find(allActions, (reportAction) => !_.isEmpty(reportAction));
-                                    expect(Object.values(updatedAction.errors)).toEqual(expect.arrayContaining(['iou.error.genericEditFailureMessage']));
+                                    expect(_.values(updatedAction.errors)).toEqual(expect.arrayContaining(['iou.error.genericEditFailureMessage']));
                                     resolve();
                                 },
                             });
@@ -1688,7 +1688,7 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
-                                    expect(Object.values(allActions)).toEqual(
+                                    expect(_.values(allActions)).toEqual(
                                         expect.arrayContaining([
                                             expect.objectContaining({
                                                 message: expect.arrayContaining([
@@ -1784,8 +1784,8 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
-                                    const erroredAction = Object.values(allActions).find((action) => !_.isEmpty(action.errors));
-                                    expect(Object.values(erroredAction.errors)).toEqual(expect.arrayContaining(['iou.error.other']));
+                                    const erroredAction = _.find(_.values(allActions), (action) => !_.isEmpty(action.errors));
+                                    expect(_.values(erroredAction.errors)).toEqual(expect.arrayContaining(['iou.error.other']));
                                     resolve();
                                 },
                             });
