@@ -1,3 +1,5 @@
+// TODO: For consistency reasons, rename this file to "dark.ts" after theme switching migration is done (GH issue:)
+
 /* eslint-disable no-unused-vars */
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
