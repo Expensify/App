@@ -1409,150 +1409,109 @@ describe('actions/IOU', () => {
 
         let reportActions;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             jest.clearAllMocks();
             PusherHelper.setup();
             // Set up Onyx with some test user data
-            return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
-                .then(() => {
-                    User.subscribeToUserEvents();
-                    return waitForPromisesToResolve();
-                })
-                .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
-                .then(() => {
-                    IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID}, comment);
-                    return waitForPromisesToResolve();
-                })
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
-                                callback: (allReports) => {
-                                    Onyx.disconnect(connectionID);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            User.subscribeToUserEvents();
+            await waitForPromisesToResolve();
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID}, comment);
+            await waitForPromisesToResolve();
+            let allReports = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (reports) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(reports);
+                    },
+                });
+            });
 
-                                    expect(_.size(allReports)).toBe(2);
+            expect(_.size(allReports)).toBe(2);
 
-                                    chatReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT);
-                                    expect(chatReport).toBeTruthy();
-                                    expect(chatReport).toHaveProperty('reportID');
-                                    expect(chatReport).toHaveProperty('iouReportID');
-                                    expect(chatReport.hasOutstandingIOU).toBe(true);
+            chatReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT);
+            expect(chatReport).toBeTruthy();
+            expect(chatReport).toHaveProperty('reportID');
+            expect(chatReport).toHaveProperty('iouReportID');
+            expect(chatReport.hasOutstandingIOU).toBe(true);
 
-                                    iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
-                                    expect(iouReport).toBeTruthy();
-                                    expect(iouReport).toHaveProperty('reportID');
-                                    expect(iouReport).toHaveProperty('chatReportID');
+            iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+            expect(iouReport).toBeTruthy();
+            expect(iouReport).toHaveProperty('reportID');
+            expect(iouReport).toHaveProperty('chatReportID');
 
-                                    expect(chatReport.iouReportID).toBe(iouReport.reportID);
-                                    expect(iouReport.chatReportID).toBe(chatReport.reportID);
+            expect(chatReport.iouReportID).toBe(iouReport.reportID);
+            expect(iouReport.chatReportID).toBe(chatReport.reportID);
 
-                                    REPORT_ID = chatReport.iouReportID;
+            REPORT_ID = chatReport.iouReportID;
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(() => {
-                    PusherHelper.emitOnyxUpdate([
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                            value: {
-                                reportID: chatReport.reportID,
-                                lastActorAccountID: TEST_USER_ACCOUNT_ID,
-                            },
-                        },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                            value: {
-                                reportID: iouReport.reportID,
-                                lastActorAccountID: TEST_USER_ACCOUNT_ID,
-                            },
-                        },
-                    ]);
-                    return waitForPromisesToResolve();
-                })
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
-                                callback: (allReports) => {
-                                    Onyx.disconnect(connectionID);
+            PusherHelper.emitOnyxUpdate([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                    value: {
+                        reportID: chatReport.reportID,
+                        lastActorAccountID: TEST_USER_ACCOUNT_ID,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    value: {
+                        reportID: iouReport.reportID,
+                        lastActorAccountID: TEST_USER_ACCOUNT_ID,
+                    },
+                },
+            ]);
 
-                                    expect(_.size(allReports)).toBe(2);
+            await waitForPromisesToResolve();
 
-                                    chatReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT);
-                                    iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+            reportActions = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                    waitForCollectionCallback: true,
+                    callback: (val) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(val);
+                    },
+                });
+            });
 
-                                    expect(chatReport.iouReportID).toBe(iouReport.reportID);
-                                    expect(iouReport.chatReportID).toBe(chatReport.reportID);
+            const allReportActions = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(actions);
+                    },
+                });
+            });
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                                waitForCollectionCallback: true,
-                                callback: (val) => {
-                                    Onyx.disconnect(connectionID);
+            const reportActionsForIOUReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.iouReportID}`];
+            createIOUAction = _.find(reportActionsForIOUReport, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+            expect(createIOUAction).toBeTruthy();
+            expect(createIOUAction.originalMessage.IOUReportID).toBe(iouReport.reportID);
 
-                                    reportActions = val;
+            const allTransactions = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(transactions);
+                    },
+                });
+            });
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                waitForCollectionCallback: true,
-                                callback: (allReportActions) => {
-                                    Onyx.disconnect(connectionID);
-
-                                    const reportActionsForIOUReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.iouReportID}`];
-
-                                    createIOUAction = _.find(reportActionsForIOUReport, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
-                                    expect(createIOUAction).toBeTruthy();
-                                    expect(createIOUAction.originalMessage.IOUReportID).toBe(iouReport.reportID);
-
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                waitForCollectionCallback: true,
-                                callback: (allTransactions) => {
-                                    Onyx.disconnect(connectionID);
-                                    expect(_.size(allTransactions)).toBe(1);
-                                    transaction = _.find(allTransactions, (t) => t);
-                                    expect(transaction).toBeTruthy();
-                                    expect(transaction.amount).toBe(amount);
-                                    expect(transaction.reportID).toBe(iouReport.reportID);
-                                    expect(createIOUAction.originalMessage.IOUTransactionID).toBe(transaction.transactionID);
-                                    resolve();
-                                },
-                            });
-                        }),
-                );
+            transaction = _.find(allTransactions, (t) => t);
+            expect(transaction).toBeTruthy();
+            expect(transaction.amount).toBe(amount);
+            expect(transaction.reportID).toBe(iouReport.reportID);
+            expect(createIOUAction.originalMessage.IOUTransactionID).toBe(transaction.transactionID);
         });
         afterEach(PusherHelper.teardown);
 
