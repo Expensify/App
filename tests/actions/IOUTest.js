@@ -1460,26 +1460,6 @@ describe('actions/IOU', () => {
             // Storing IOU Report ID for further reference
             IOU_REPORT_ID = chatReport.iouReportID;
 
-            // When updates are emitted to Onyx
-            PusherHelper.emitOnyxUpdate([
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                    value: {
-                        reportID: chatReport.reportID,
-                        lastActorAccountID: TEST_USER_ACCOUNT_ID,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                    value: {
-                        reportID: iouReport.reportID,
-                        lastActorAccountID: TEST_USER_ACCOUNT_ID,
-                    },
-                },
-            ]);
-
             await waitForPromisesToResolve();
 
             // When fetching all report actions from Onyx
@@ -1733,19 +1713,6 @@ describe('actions/IOU', () => {
             Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
             await waitForPromisesToResolve();
 
-            // When: Emitting an Onyx update
-            PusherHelper.emitOnyxUpdate([
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`,
-                    value: {
-                        [createIOUAction.reportActionID]: {childReportID: thread.reportID},
-                    },
-                },
-            ]);
-
-            await waitForPromisesToResolve();
-
             // Then: The iou action has the transaction report id as a child report ID
             const allReportActions = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
@@ -1838,27 +1805,6 @@ describe('actions/IOU', () => {
             expect(resultAction.message).toEqual(REPORT_ACTION.message);
             expect(resultAction.person).toEqual(REPORT_ACTION.person);
 
-            // When onyx updates are emitted
-            PusherHelper.emitOnyxUpdate([
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    value: {
-                        reportID: thread.reportID,
-                        notificationPreference: 'always',
-                        lastVisibleActionCreated: DateUtils.getDBTime(),
-                        lastMessageText: 'Testing a comment',
-                        lastActorAccountID: TEST_USER_ACCOUNT_ID,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
-                    value: {
-                        [reportActionID]: {pendingAction: null},
-                    },
-                },
-            ]);
             await waitForPromisesToResolve();
 
             // Then the report should have 2 actions
@@ -1917,18 +1863,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
-            await waitForPromisesToResolve();
-
-            PusherHelper.emitOnyxUpdate([
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`,
-                    value: {
-                        [createIOUAction.reportActionID]: {childReportID: thread.reportID},
-                    },
-                },
-            ]);
-
+            
             await waitForPromisesToResolve();
 
             const allReportActions = await new Promise((resolve) => {
@@ -2141,18 +2076,6 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
-            await waitForPromisesToResolve();
-
-            PusherHelper.emitOnyxUpdate([
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`,
-                    value: {
-                        [createIOUAction.reportActionID]: {childReportID: thread.reportID},
-                    },
-                },
-            ]);
-
             await waitForPromisesToResolve();
 
             const allReportActions = await new Promise((resolve) => {
