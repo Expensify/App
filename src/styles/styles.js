@@ -2,7 +2,7 @@ import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/s
 import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
-import themeColors from './themes/dark';
+import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
 import spacing from './utilities/spacing';

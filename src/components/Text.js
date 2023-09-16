@@ -4,7 +4,7 @@ import _ from 'underscore';
 // eslint-disable-next-line no-restricted-imports
 import {Text as RNText} from 'react-native';
 import fontFamily from '../styles/fontFamily';
-import themeColors from '../styles/themes/dark';
+import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
 
 const propTypes = {

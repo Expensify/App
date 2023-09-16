@@ -5,7 +5,7 @@ import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import Icon from '../Icon';
 import Text from '../Text';
-import themeColors from '../../styles/themes/dark';
+import themeColors from '../../styles/themes/default';
 import TextLink from '../TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
 import AutoEmailLink from '../AutoEmailLink';

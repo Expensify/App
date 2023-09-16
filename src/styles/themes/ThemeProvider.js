@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import ThemeContext from './ThemeContext';
 import useThemePreference from './useThemePreference';
 import CONST from '../../CONST';
-import darkTheme from './dark';
+import darkTheme from './default';
 import lightTheme from './light';
 
 const propTypes = {

@@ -1,7 +1,7 @@
 import React from 'react';
 import QRCodeLibrary from 'react-native-qrcode-svg';
 import PropTypes from 'prop-types';
-import defaultTheme from '../../styles/themes/dark';
+import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
 
 const propTypes = {

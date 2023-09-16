@@ -5,7 +5,7 @@ import {Circle, Rect} from 'react-native-svg';
 import {View} from 'react-native';
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
-import themeColors from '../../styles/themes/dark';
+import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 

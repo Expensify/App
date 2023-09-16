@@ -1,6 +1,6 @@
 import styles from './styles';
 import variables from './variables';
-import themeColors from './themes/dark';
+import themeColors from './themes/default';
 
 const defaultWrapperStyle = {
     backgroundColor: themeColors.componentBG,

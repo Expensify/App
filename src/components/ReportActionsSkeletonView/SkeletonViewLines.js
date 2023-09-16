@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Rect, Circle} from 'react-native-svg';
 import SkeletonViewContentLoader from 'react-content-loader/native';
 import CONST from '../../CONST';
-import themeColors from '../../styles/themes/dark';
+import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 
 const propTypes = {

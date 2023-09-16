@@ -2,7 +2,7 @@ import {Text} from 'react-native';
 import React from 'react';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
-import themeColors from '../../styles/themes/dark';
+import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 

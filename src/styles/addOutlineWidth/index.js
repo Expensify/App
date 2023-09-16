@@ -3,7 +3,7 @@
  * can be added to the object
  */
 
-import themeDefault from '../themes/dark';
+import themeDefault from '../themes/default';
 
 /**
  * Adds the addOutlineWidth property to an object to be used when styling
