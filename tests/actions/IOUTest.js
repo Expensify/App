@@ -1690,11 +1690,11 @@ describe('actions/IOU', () => {
         });
 
         it('delete the transaction thread if there are no visible comments in the thread', async () => {
-            // Given: All promises are resolved
+            // Given all promises are resolved
             await waitForPromisesToResolve();
             jest.advanceTimersByTime(10);
 
-            // When: Building a transaction thread
+            // Given a transaction thread
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
 
             Onyx.connect({
@@ -1706,14 +1706,14 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
 
-            // Given: User logins from the participant accounts
+            // Given User logins from the participant accounts
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
 
-            // When: Opening a thread report with the given details
+            // When Opening a thread report with the given details
             Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
             await waitForPromisesToResolve();
 
-            // Then: The iou action has the transaction report id as a child report ID
+            // Then The iou action has the transaction report id as a child report ID
             const allReportActions = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -1730,15 +1730,15 @@ describe('actions/IOU', () => {
 
             await waitForPromisesToResolve();
 
-            // Given: Fetch is paused and timers have advanced
+            // Given Fetch is paused and timers have advanced
             fetch.pause();
             jest.advanceTimersByTime(10);
 
-            // When: Deleting a money request
+            // When Deleting a money request
             IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             await waitForPromisesToResolve();
 
-            // Then: The report for the given thread ID does not exist
+            // Then The report for the given thread ID does not exist
             let report = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
@@ -1753,7 +1753,7 @@ describe('actions/IOU', () => {
             expect(report).toBeFalsy();
             fetch.resume();
 
-            // Then: After resuming fetch, the report for the given thread ID still does not exist
+            // Then After resuming fetch, the report for the given thread ID still does not exist
             report = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
@@ -1846,7 +1846,7 @@ describe('actions/IOU', () => {
             });
         });
 
-        it('It should update the moneyRequestPreview to show [Deleted request] when appropriate', async () => {
+        it('update the moneyRequestPreview to show [Deleted request] when appropriate', async () => {
             await waitForPromisesToResolve();
 
             // Given a thread report
