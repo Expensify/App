@@ -1,6 +1,6 @@
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
-import {ThemeColors, ThemeColorsWithoutPageBackgroundColors} from './ThemeColors';
+import ThemeColors, {ThemeColorsWithoutPageBackgroundColors} from './ThemeColors';
 
 const lightThemeWithoutPageBackgroundColors = {
     // Figma keys

@@ -12,7 +12,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-function ThemeProvider(props) {
+function ThemeProvider(props: React.PropsWithChildren) {
     const themePreference = useThemePreference();
 
     const theme = useMemo(() => (themePreference === CONST.THEME.LIGHT ? lightTheme : darkTheme), [themePreference]);

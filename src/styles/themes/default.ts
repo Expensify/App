@@ -3,7 +3,7 @@
 /* eslint-disable no-unused-vars */
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
-import {ThemeColors, ThemeColorsWithoutPageBackgroundColors} from './ThemeColors';
+import ThemeColors, {ThemeColorsWithoutPageBackgroundColors} from './ThemeColors';
 
 const darkThemeWithoutPageBackgroundColors = {
     // Figma keys

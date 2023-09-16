@@ -83,4 +83,6 @@ type ThemeColors = ThemeColorsWithoutPageBackgroundColors & {
     PAGE_BACKGROUND_COLORS: Record<string, Color>;
 };
 
-export {type Color, type ThemeColors, type ThemeColorsWithoutPageBackgroundColors};
+export default ThemeColors;
+
+export {type Color, type ThemeColorsWithoutPageBackgroundColors};
