@@ -1,17 +1,17 @@
-import React, {useState, useEffect, useCallback, useImperativeHandle, forwardRef} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
+import * as Browser from '../../../../libs/Browser';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import NAVIGATORS from '../../../../NAVIGATORS';
 import SCREENS from '../../../../SCREENS';
 import Permissions from '../../../../libs/Permissions';
 import * as Policy from '../../../../libs/actions/Policy';
-import * as PolicyUtils from '../../../../libs/PolicyUtils';
 import PopoverMenu from '../../../../components/PopoverMenu';
 import CONST from '../../../../CONST';
 import FloatingActionButton from '../../../../components/FloatingActionButton';
@@ -36,6 +36,7 @@ const policySelector = (policy) =>
     policy && {
         type: policy.type,
         role: policy.role,
+        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
     };
 
@@ -60,6 +61,9 @@ const propTypes = {
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
+    /** For first time users, whether the download app banner should show */
+    shouldShowDownloadAppBanner: PropTypes.bool,
+
     /** Forwarded ref to FloatingActionButtonAndPopover */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
@@ -70,6 +74,7 @@ const defaultProps = {
     betas: [],
     isLoading: false,
     innerRef: null,
+    shouldShowDownloadAppBanner: true,
 };
 
 /**
@@ -81,6 +86,7 @@ const defaultProps = {
 function FloatingActionButtonAndPopover(props) {
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const isAnonymousUser = Session.isAnonymousUser();
+    const anchorRef = useRef(null);
 
     const prevIsFocused = usePrevious(props.isFocused);
 
@@ -144,19 +150,19 @@ function FloatingActionButtonAndPopover(props) {
         }
     };
 
-    useEffect(
-        () => {
-            const navigationState = props.navigation.getState();
-            const routes = lodashGet(navigationState, 'routes', []);
-            const currentRoute = routes[navigationState.index];
-            if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
-                return;
-            }
-            Welcome.show({routes, showCreateMenu});
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
-    );
+    useEffect(() => {
+        const navigationState = props.navigation.getState();
+        const routes = lodashGet(navigationState, 'routes', []);
+        const currentRoute = routes[navigationState.index];
+        if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
+            return;
+        }
+        // Avoid rendering the create menu for first-time users until they have dismissed the download app banner (mWeb only).
+        if (props.shouldShowDownloadAppBanner && Browser.isMobile()) {
+            return;
+        }
+        Welcome.show({routes, showCreateMenu});
+    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu, props.demoInfo]);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
@@ -173,8 +179,6 @@ function FloatingActionButtonAndPopover(props) {
         },
     }));
 
-    const workspaces = PolicyUtils.getActivePolicies(props.allPolicies);
-
     return (
         <View>
             <PopoverMenu
@@ -186,23 +190,9 @@ function FloatingActionButtonAndPopover(props) {
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,
-                        text: props.translate('sidebarScreen.newChat'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_CHAT)),
+                        text: props.translate('sidebarScreen.fabNewChat'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
-                    {
-                        icon: Expensicons.Users,
-                        text: props.translate('sidebarScreen.newGroup'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_GROUP)),
-                    },
-                    ...(Permissions.canUsePolicyRooms(props.betas) && workspaces.length
-                        ? [
-                              {
-                                  icon: Expensicons.Hashtag,
-                                  text: props.translate('sidebarScreen.newRoom'),
-                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM)),
-                              },
-                          ]
-                        : []),
                     ...(Permissions.canUseIOUSend(props.betas)
                         ? [
                               {
@@ -218,9 +208,9 @@ function FloatingActionButtonAndPopover(props) {
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
                     },
                     {
-                        icon: Expensicons.Receipt,
-                        text: props.translate('iou.splitBill'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
+                        icon: Expensicons.Heart,
+                        text: props.translate('sidebarScreen.saveTheWorld'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
                     },
                     ...(Permissions.canUseTasks(props.betas)
                         ? [
@@ -244,12 +234,21 @@ function FloatingActionButtonAndPopover(props) {
                           ]
                         : []),
                 ]}
+                withoutOverlay
+                anchorRef={anchorRef}
             />
             <FloatingActionButton
-                accessibilityLabel={props.translate('sidebarScreen.fabNewChat')}
+                accessibilityLabel={props.translate('sidebarScreen.fabNewChatExplained')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 isActive={isCreateMenuActive}
-                onPress={showCreateMenu}
+                ref={anchorRef}
+                onPress={() => {
+                    if (isCreateMenuActive) {
+                        hideCreateMenu();
+                    } else {
+                        showCreateMenu();
+                    }
+                }}
             />
         </View>
     );
@@ -274,6 +273,9 @@ export default compose(
         },
         isLoading: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        shouldShowDownloadAppBanner: {
+            key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
         },
     }),
 )(

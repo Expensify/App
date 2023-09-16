@@ -14,7 +14,6 @@ import Badge from './Badge';
 import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
-import colors from '../styles/colors';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
@@ -24,6 +23,7 @@ import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
+import RenderHTML from './RenderHTML';
 
 const propTypes = menuItemPropTypes;
 
@@ -42,16 +42,19 @@ const defaultProps = {
     descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
+    secondaryIcon: undefined,
     iconWidth: undefined,
     iconHeight: undefined,
     description: undefined,
     iconRight: Expensicons.ArrowRight,
     iconStyles: [],
     iconFill: undefined,
+    secondaryIconFill: undefined,
     focused: false,
     disabled: false,
     isSelected: false,
     subtitle: undefined,
+    subtitleTextStyle: {},
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
     onSecondaryInteraction: undefined,
@@ -71,6 +74,7 @@ const defaultProps = {
     title: '',
     numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
+    shouldRenderAsHTML: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -131,7 +135,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                     disabled={props.disabled}
                     ref={ref}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
-                    accessibilityLabel={props.title}
+                    accessibilityLabel={props.title ? props.title.toString() : ''}
                 >
                     {({pressed}) => (
                         <>
@@ -152,8 +156,8 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             size={props.avatarSize}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
-                                                pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
-                                                isHovered && !pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.border) : undefined,
+                                                pressed && props.interactive ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
+                                                isHovered && !pressed && props.interactive ? StyleUtils.getBackgroundAndBorderStyle(themeColors.border) : undefined,
                                             ]}
                                         />
                                     )}
@@ -161,6 +165,8 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize)]}>
                                             {props.iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
+                                                    hovered={isHovered}
+                                                    pressed={pressed}
                                                     src={props.icon}
                                                     width={props.iconWidth}
                                                     height={props.iconHeight}
@@ -193,6 +199,19 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             )}
                                         </View>
                                     )}
+                                    {Boolean(props.secondaryIcon) && (
+                                        <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
+                                            <Icon
+                                                src={props.secondaryIcon}
+                                                width={props.iconWidth}
+                                                height={props.iconHeight}
+                                                fill={
+                                                    props.secondaryIconFill ||
+                                                    StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true)
+                                                }
+                                            />
+                                        </View>
+                                    )}
                                     <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(props.isSmallAvatarSubscriptMenu)]}>
                                         {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
                                             <Text
@@ -203,7 +222,9 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(props.title) && (
+                                            {Boolean(props.title) && Boolean(props.shouldRenderAsHTML) && <RenderHTML html={convertToLTR(props.title)} />}
+
+                                            {Boolean(props.title) && !props.shouldRenderAsHTML && (
                                                 <Text
                                                     style={titleTextStyle}
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
@@ -261,7 +282,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                                 {(props.subtitle || props.subtitle === 0) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                        <Text style={[styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
+                                        <Text style={[props.subtitleTextStyle || styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
                                     </View>
                                 )}
                                 {!_.isEmpty(props.floatRightAvatars) && (
@@ -280,7 +301,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
-                                            fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
+                                            fill={props.brickRoadIndicator === 'error' ? themeColors.danger : themeColors.success}
                                         />
                                     </View>
                                 )}

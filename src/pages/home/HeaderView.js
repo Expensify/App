@@ -20,7 +20,7 @@ import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
@@ -104,7 +104,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('task.markAsDone'),
-                onSelected: () => Task.completeTask(props.report.reportID, title),
+                onSelected: () => Task.completeTask(props.report, title),
             });
         }
 
@@ -113,7 +113,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('task.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report.reportID, title),
+                onSelected: () => Task.reopenTask(props.report, title),
             });
         }
 
@@ -138,7 +138,7 @@ function HeaderView(props) {
     return (
         <View
             style={[styles.appContentHeader, shouldShowBorderBottom && styles.borderBottom]}
-            nativeID="drag-area"
+            dataSet={{dragArea: true}}
         >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
@@ -164,7 +164,7 @@ function HeaderView(props) {
                         <PressableWithoutFeedback
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-                            disabled={(isTaskReport && !ReportUtils.isOpenTaskReport(props.report)) || shouldDisableDetailPage}
+                            disabled={shouldDisableDetailPage}
                             accessibilityLabel={title}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
@@ -209,7 +209,7 @@ function HeaderView(props) {
                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        fill={colors.red}
+                                        fill={themeColors.danger}
                                     />
                                 </View>
                             )}

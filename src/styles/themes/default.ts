@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
-import {HexColor, ThemeColors} from './ThemeColors';
+import {ThemeColors, ThemeColorsWithoutPageBackgroundColors} from './ThemeColors';
 
-const darkTheme: ThemeColors = {
+const darkThemeWithoutPageBackgroundColors = {
     // Figma keys
     appBG: colors.darkAppBackground,
     splashBG: colors.green400,
@@ -16,10 +16,9 @@ const darkTheme: ThemeColors = {
     iconHovered: colors.darkPrimaryText,
     iconSuccessFill: colors.green400,
     iconReversed: colors.darkAppBackground,
-    iconColorfulBackground: `${colors.ivory as HexColor}cc`,
+    iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.darkSupportingText,
     text: colors.darkPrimaryText,
-    textColorfulBackground: colors.ivory,
     link: colors.blue300,
     linkHover: colors.blue100,
     buttonDefaultBG: colors.darkDefaultButton,
@@ -62,8 +61,8 @@ const darkTheme: ThemeColors = {
     placeholderText: colors.darkIcons,
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.darkHighlightBackground,
-    dropUIBG: 'rgba(6, 27, 9, 0.92)',
-    receiptDropUIBG: 'rgba(3, 212, 124, 0.84)',
+    dropUIBG: 'rgba(6,27,9,0.92)',
+    dropTransparentOverlay: 'rgba(255,255,255,0)',
     checkBox: colors.green400,
     pickerOptionsTextColor: colors.darkPrimaryText,
     imageCropBackgroundColor: colors.darkIcons,
@@ -81,12 +80,14 @@ const darkTheme: ThemeColors = {
     skeletonLHNIn: colors.darkBorders,
     skeletonLHNOut: colors.darkDefaultButton,
     QRLogo: colors.green400,
+} satisfies ThemeColorsWithoutPageBackgroundColors;
 
+const darkTheme = {
+    ...darkThemeWithoutPageBackgroundColors,
     PAGE_BACKGROUND_COLORS: {
-        [SCREENS.HOME]: colors.darkHighlightBackground,
+        [SCREENS.HOME]: darkThemeWithoutPageBackgroundColors.sidebar,
         [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
-        [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
     },
-};
+} satisfies ThemeColors;
 
 export default darkTheme;

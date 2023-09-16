@@ -40,6 +40,9 @@ const propTypes = {
     /** Whether we can select multiple options or not */
     canSelectMultipleOptions: PropTypes.bool,
 
+    /** Whether we highlight selected options */
+    highlightSelectedOptions: PropTypes.bool,
+
     /** Whether to show headers above each section or not */
     hideSectionHeaders: PropTypes.bool,
 
@@ -75,6 +78,12 @@ const propTypes = {
 
     /** Whether to disable the inner padding in rows */
     shouldDisableRowInnerPadding: PropTypes.bool,
+
+    /** Whether to show the scroll bar */
+    showScrollIndicator: PropTypes.bool,
+
+    /** Whether to wrap large text up to 2 lines */
+    isRowMultilineSupported: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -85,6 +94,7 @@ const defaultProps = {
     focusedIndex: 0,
     selectedOptions: [],
     canSelectMultipleOptions: false,
+    highlightSelectedOptions: false,
     hideSectionHeaders: false,
     disableFocusOptions: false,
     boldStyle: false,
@@ -97,6 +107,8 @@ const defaultProps = {
     onLayout: undefined,
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
+    showScrollIndicator: false,
+    isRowMultilineSupported: false,
 };
 
 export {propTypes, defaultProps};

@@ -54,6 +54,6 @@ OnyxTabNavigator.displayName = 'OnyxTabNavigator';
 
 export default withOnyx({
     selectedTab: {
-        key: ({id}) => `${ONYXKEYS.SELECTED_TAB}_${id}`,
+        key: ({id}) => `${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`,
     },
 })(OnyxTabNavigator);

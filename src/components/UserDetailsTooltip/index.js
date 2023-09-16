@@ -9,7 +9,9 @@ const propTypes = {
  * @param {propTypes} props
  * @returns {ReactNodeLike}
  */
-const UserDetailsTooltip = (props) => props.children;
+function UserDetailsTooltip(props) {
+    return props.children;
+}
 
 UserDetailsTooltip.propTypes = propTypes;
 UserDetailsTooltip.displayName = 'UserDetailsTooltip';

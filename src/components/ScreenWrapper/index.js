@@ -3,6 +3,7 @@ import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {PickerAvoidingView} from 'react-native-picker-select';
+import FocusTrapView from '../FocusTrapView';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
@@ -19,6 +20,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import withEnvironment from '../withEnvironment';
 import toggleTestToolsModal from '../../libs/actions/TestTool';
 import CustomDevMenu from '../CustomDevMenu';
+import * as Browser from '../../libs/Browser';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -27,6 +29,15 @@ class ScreenWrapper extends React.Component {
         this.panResponder = PanResponder.create({
             onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
             onPanResponderRelease: toggleTestToolsModal,
+        });
+
+        this.keyboardDissmissPanResponder = PanResponder.create({
+            onMoveShouldSetPanResponderCapture: (e, gestureState) => {
+                const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+                const shouldDismissKeyboard = this.props.shouldDismissKeyboardBeforeClose && this.props.isKeyboardShown && Browser.isMobile();
+                return isHorizontalSwipe && shouldDismissKeyboard;
+            },
+            onPanResponderGrant: Keyboard.dismiss,
         });
 
         this.state = {
@@ -96,35 +107,47 @@ class ScreenWrapper extends React.Component {
 
                     return (
                         <View
-                            style={[...this.props.style, styles.flex1, paddingStyle]}
+                            style={styles.flex1}
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
                         >
-                            <KeyboardAvoidingView
-                                style={[styles.w100, styles.h100, {maxHeight}]}
-                                behavior={this.props.keyboardAvoidingViewBehavior}
-                                enabled={this.props.shouldEnableKeyboardAvoidingView}
+                            <View
+                                style={[styles.flex1, paddingStyle, ...this.props.style]}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...this.keyboardDissmissPanResponder.panHandlers}
                             >
-                                <PickerAvoidingView
-                                    style={styles.flex1}
-                                    enabled={this.props.shouldEnablePickerAvoiding}
+                                <KeyboardAvoidingView
+                                    style={[styles.w100, styles.h100, {maxHeight}]}
+                                    behavior={this.props.keyboardAvoidingViewBehavior}
+                                    enabled={this.props.shouldEnableKeyboardAvoidingView}
                                 >
-                                    <HeaderGap />
-                                    {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
-                                    {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}
-                                    {
-                                        // If props.children is a function, call it to provide the insets to the children.
-                                        _.isFunction(this.props.children)
-                                            ? this.props.children({
-                                                  insets,
-                                                  safeAreaPaddingBottomStyle,
-                                                  didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                              })
-                                            : this.props.children
-                                    }
-                                    {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={this.props.offlineIndicatorStyle} />}
-                                </PickerAvoidingView>
-                            </KeyboardAvoidingView>
+                                    <PickerAvoidingView
+                                        style={styles.flex1}
+                                        enabled={this.props.shouldEnablePickerAvoiding}
+                                    >
+                                        <FocusTrapView
+                                            style={[styles.flex1, styles.noSelect]}
+                                            enabled={!this.props.shouldDisableFocusTrap}
+                                            shouldEnableAutoFocus={this.props.shouldEnableAutoFocus}
+                                        >
+                                            <HeaderGap styles={this.props.headerGapStyles} />
+                                            {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
+                                            {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}
+                                            {
+                                                // If props.children is a function, call it to provide the insets to the children.
+                                                _.isFunction(this.props.children)
+                                                    ? this.props.children({
+                                                          insets,
+                                                          safeAreaPaddingBottomStyle,
+                                                          didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                                      })
+                                                    : this.props.children
+                                            }
+                                            {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={this.props.offlineIndicatorStyle} />}
+                                        </FocusTrapView>
+                                    </PickerAvoidingView>
+                                </KeyboardAvoidingView>
+                            </View>
                         </View>
                     );
                 }}

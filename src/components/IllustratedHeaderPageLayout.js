@@ -11,6 +11,8 @@ import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import FixedFooter from './FixedFooter';
+import useNetwork from '../hooks/useNetwork';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -26,21 +28,28 @@ const propTypes = {
 
     /** A fixed footer to display at the bottom of the page. */
     footer: PropTypes.node,
+
+    /** Overlay content to display on top of animation */
+    overlayContent: PropTypes.func,
 };
 
 const defaultProps = {
     backgroundColor: themeColors.appBG,
     footer: null,
+    overlayContent: null,
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, ...propsToPassToHeader}) {
-    const {windowHeight} = useWindowDimensions();
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
+    const {isOffline} = useNetwork();
+    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const appBGColor = StyleUtils.getBackgroundColorStyle(themeColors.appBG);
+
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
-            offlineIndicatorStyle={[StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}
+            offlineIndicatorStyle={[appBGColor]}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
@@ -50,12 +59,19 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                         titleColor={backgroundColor === themeColors.appBG ? undefined : themeColors.textColorfulBackground}
                         iconFill={backgroundColor === themeColors.appBG ? undefined : themeColors.iconColorfulBackground}
                     />
-                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
+                    <View style={[styles.flex1, appBGColor, !isOffline ? safeAreaPaddingBottomStyle : {}]}>
+                        {/* Safari on ios/mac has a bug where overscrolling the page scrollview shows green the background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
+                        {Browser.isSafari() && (
+                            <View style={[styles.dualColorOverscrollSpacer]}>
+                                <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(backgroundColor)]} />
+                                <View style={[isSmallScreenWidth ? styles.flex1 : styles.flex3, appBGColor]} />
+                            </View>
+                        )}
                         <ScrollView
                             contentContainerStyle={safeAreaPaddingBottomStyle}
                             showsVerticalScrollIndicator={false}
                         >
-                            <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />
+                            {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />}
                             <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor)]}>
                                 <Lottie
                                     source={illustration}
@@ -63,8 +79,9 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                                     autoPlay
                                     loop
                                 />
+                                {overlayContent && overlayContent()}
                             </View>
-                            <View style={[styles.pt5]}>{children}</View>
+                            <View style={[styles.pt5, appBGColor]}>{children}</View>
                         </ScrollView>
                         {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
                     </View>

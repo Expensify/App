@@ -10,7 +10,6 @@ import * as Session from '../../libs/actions/Session';
 import useLocalize from '../../hooks/useLocalize';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
 import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import JustSignedInModal from '../../components/ValidateCode/JustSignedInModal';
 
@@ -62,7 +61,7 @@ function ValidateLoginPage(props) {
     useEffect(() => {
         if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
-            Navigation.navigate(ROUTES.REPORT);
+            Navigation.navigate();
             return;
         }
         Session.initAutoAuthState(autoAuthState);
@@ -82,7 +81,7 @@ function ValidateLoginPage(props) {
         }
 
         // The user clicked the option to sign in the current tab
-        Navigation.navigate(ROUTES.REPORT);
+        Navigation.navigate();
     }, [login, cachedAccountID, is2FARequired]);
 
     return (

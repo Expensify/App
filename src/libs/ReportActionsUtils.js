@@ -8,7 +8,6 @@ import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
-import * as CurrencyUtils from './CurrencyUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
 const allReports = {};
@@ -93,16 +92,28 @@ function isReportPreviewAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isModifiedExpenseAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+}
+
 function isWhisperAction(action) {
     return (action.whisperedToAccountIDs || []).length > 0;
 }
 
 /**
+ * Returns whether the comment is a thread parent message/the first message in a thread
+ *
  * @param {Object} reportAction
+ * @param {String} reportID
  * @returns {Boolean}
  */
-function hasCommentThread(reportAction) {
-    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
+function isThreadParentMessage(reportAction = {}, reportID) {
+    const {childType, childVisibleActionCount = 0, childReportID} = reportAction;
+    return childType === CONST.REPORT.TYPE.CHAT && (childVisibleActionCount > 0 || String(childReportID) === reportID);
 }
 
 /**
@@ -120,6 +131,17 @@ function getParentReportAction(report, allReportActionsParam = undefined) {
 }
 
 /**
+ * Find the reportAction having the given childReportID in parent report actions
+ *
+ * @param {String} childReportID
+ * @param {String} parentReportID
+ * @returns {Object}
+ */
+function getParentReportActionInReport(childReportID, parentReportID) {
+    return _.find(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
+}
+
+/**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  *
  * @param {Object} reportAction
@@ -132,19 +154,6 @@ function isSentMoneyReportAction(reportAction) {
         lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
         _.has(reportAction.originalMessage, 'IOUDetails')
     );
-}
-
-/**
- * Returns the formatted amount of a money request. The request and money sent (from send money flow) have
- * currency and amount in IOUDetails object.
- *
- * @param {Object} reportAction
- * @returns {Number}
- */
-function getFormattedAmount(reportAction) {
-    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY && lodashGet(reportAction, 'originalMessage.IOUDetails', false)
-        ? CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.IOUDetails.amount', 0), lodashGet(reportAction, 'originalMessage.IOUDetails.currency', ''))
-        : CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.amount', 0), lodashGet(reportAction, 'originalMessage.currency', ''));
 }
 
 /**
@@ -357,7 +366,14 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
         return false;
     }
 
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !isWhisperAction(reportAction) && !isDeletedAction(reportAction);
+    if (!_.isEmpty(reportAction.errors)) {
+        return false;
+    }
+
+    // If a whisper action is the REPORTPREVIEW action, we are displaying it.
+    return (
+        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction)) && !isDeletedAction(reportAction)
+    );
 }
 
 /**
@@ -388,6 +404,8 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     if (isReportMessageAttachment(message)) {
         return {
             lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            lastMessageText: CONST.ATTACHMENT_MESSAGE_TEXT,
+            lastMessageHtml: CONST.TRANSLATION_KEYS.ATTACHMENT,
         };
     }
 
@@ -561,6 +579,57 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
+/**
+ * Returns the number of money requests associated with a report preview
+ *
+ * @param {Object|null} reportPreviewAction
+ * @returns {Number}
+ */
+function getNumberOfMoneyRequests(reportPreviewAction) {
+    return lodashGet(reportPreviewAction, 'childMoneyRequestCount', 0);
+}
+
+/**
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isSplitBillAction(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+}
+
+/**
+ *
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isTaskAction(reportAction) {
+    const reportActionName = lodashGet(reportAction, 'actionName', '');
+    return (
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
+    );
+}
+
+/**
+ * @param {*} reportID
+ * @returns {[Object]}
+ */
+function getAllReportActions(reportID) {
+    return lodashGet(allReportActions, reportID, []);
+}
+
+/**
+ * Check whether a report action is an attachment (a file, such as an image or a zip).
+ *
+ * @param {Object} reportAction report action
+ * @returns {Boolean}
+ */
+function isReportActionAttachment(reportAction) {
+    const message = _.first(lodashGet(reportAction, 'message', [{}]));
+    return _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : isReportMessageAttachment(message);
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -577,20 +646,26 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     isMoneyRequestAction,
-    hasCommentThread,
+    isThreadParentMessage,
     getLinkedTransactionID,
     getMostRecentReportActionLastModified,
     getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,
+    getParentReportActionInReport,
     isTransactionThread,
-    getFormattedAmount,
     isSentMoneyReportAction,
     isDeletedParentAction,
     isReportPreviewAction,
+    isModifiedExpenseAction,
     getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    getNumberOfMoneyRequests,
+    isSplitBillAction,
+    isTaskAction,
+    getAllReportActions,
+    isReportActionAttachment,
 };

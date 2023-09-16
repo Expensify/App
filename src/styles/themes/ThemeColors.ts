@@ -1,7 +1,7 @@
-type HexColor = `#${string}`;
-type Color = HexColor | `rgba(${number}, ${number}, ${number})` | `rgba(${number}, ${number}, ${number}, ${number})` | 'transparent';
+type Color = string;
 
-type ThemeColors = {
+type ThemeColorsWithoutPageBackgroundColors = {
+    // Figma keys
     appBG: Color;
     splashBG: Color;
     highlightBG: Color;
@@ -16,7 +16,6 @@ type ThemeColors = {
     iconColorfulBackground: Color;
     textSupporting: Color;
     text: Color;
-    textColorfulBackground: Color;
     link: Color;
     linkHover: Color;
     buttonDefaultBG: Color;
@@ -60,7 +59,7 @@ type ThemeColors = {
     heroCard: Color;
     uploadPreviewActivityIndicator: Color;
     dropUIBG: Color;
-    receiptDropUIBG: Color;
+    dropTransparentOverlay: Color;
     checkBox: Color;
     pickerOptionsTextColor: Color;
     imageCropBackgroundColor: Color;
@@ -78,8 +77,10 @@ type ThemeColors = {
     skeletonLHNIn: Color;
     skeletonLHNOut: Color;
     QRLogo: Color;
+};
 
+type ThemeColors = ThemeColorsWithoutPageBackgroundColors & {
     PAGE_BACKGROUND_COLORS: Record<string, Color>;
 };
 
-export {type HexColor, type Color, type ThemeColors};
+export {type Color, type ThemeColors, type ThemeColorsWithoutPageBackgroundColors};

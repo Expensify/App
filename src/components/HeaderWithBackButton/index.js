@@ -27,7 +27,7 @@ function HeaderWithBackButton({
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report = null,
-    policies = {},
+    policy = {},
     personalDetails = {},
     shouldShowAvatarWithDisplay = false,
     shouldShowBackButton = true,
@@ -41,10 +41,6 @@ function HeaderWithBackButton({
     subtitle = '',
     title = '',
     titleColor = undefined,
-    threeDotsAnchorAlignment = {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    },
     threeDotsAnchorPosition = {
         vertical: 0,
         horizontal: 0,
@@ -81,7 +77,7 @@ function HeaderWithBackButton({
                 {shouldShowAvatarWithDisplay && (
                     <AvatarWithDisplayName
                         report={report}
-                        policies={policies}
+                        policy={policy}
                         personalDetails={personalDetails}
                     />
                 )}
@@ -141,7 +137,6 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
-                            anchorAlignment={threeDotsAnchorAlignment}
                         />
                     )}
                     {shouldShowCloseButton && (

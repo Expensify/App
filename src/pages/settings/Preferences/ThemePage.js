@@ -7,7 +7,7 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import SelectionListRadio from '../../../components/SelectionListRadio';
+import SelectionList from '../../../components/SelectionList';
 import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
@@ -27,11 +27,11 @@ const defaultProps = {
 };
 
 function ThemePage(props) {
-    const localesToThemes = _.map(props.translate('themePage.themes'), (theme, key) => ({
-        value: key,
-        text: theme.label,
-        keyForList: key,
-        isSelected: (props.preferredTheme || CONST.THEME.DEFAULT) === key,
+    const localesToThemes = _.map(_.values(_.omit(CONST.THEME, 'DEFAULT')), (theme) => ({
+        value: theme,
+        text: props.translate(`themePage.themes.${theme}.label`),
+        keyForList: theme,
+        isSelected: (props.preferredTheme || CONST.THEME.DEFAULT) === theme,
     }));
 
     return (
@@ -45,7 +45,7 @@ function ThemePage(props) {
 
             <Text style={[styles.mh5, styles.mv4]}>{props.translate('themePage.chooseThemeBelowOrSync')}</Text>
 
-            <SelectionListRadio
+            <SelectionList
                 sections={[{data: localesToThemes}]}
                 onSelectRow={(theme) => User.updateTheme(theme.value)}
                 initiallyFocusedOptionKey={_.find(localesToThemes, (theme) => theme.isSelected).keyForList}

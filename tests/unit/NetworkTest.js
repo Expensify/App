@@ -14,6 +14,7 @@ import Log from '../../src/libs/Log';
 import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as App from '../../src/libs/actions/App';
 import NetworkConnection from '../../src/libs/NetworkConnection';
+import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
 
 jest.mock('../../src/libs/Log');
 jest.useFakeTimers();
@@ -22,6 +23,7 @@ Onyx.init({
     keys: ONYXKEYS,
 });
 
+OnyxUpdateManager();
 const originalXHR = HttpUtils.xhr;
 
 beforeEach(() => {

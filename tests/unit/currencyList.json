@@ -622,7 +622,6 @@
     "RSD": {
         "symbol": "РСД",
         "name": "Serbian Dinar",
-        "decimals": 0,
         "ISO4217": "941"
     },
     "RUB": {

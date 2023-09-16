@@ -22,6 +22,7 @@ import * as FileUtils from '../libs/fileDownload/FileUtils';
 import getImageResolution from '../libs/fileDownload/getImageResolution';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import DotIndicatorMessage from './DotIndicatorMessage';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     /** Avatar source to display */
@@ -116,6 +117,7 @@ class AvatarWithImagePicker extends React.Component {
             imageUri: '',
             imageType: '',
         };
+        this.anchorRef = React.createRef();
     }
 
     componentDidMount() {
@@ -225,59 +227,27 @@ class AvatarWithImagePicker extends React.Component {
         this.setState({isAvatarCropModalOpen: false});
     }
 
-    /**
-     * Create menu items list for avatar menu
-     *
-     * @param {Function} openPicker
-     * @returns {Array}
-     */
-    createMenuItems(openPicker) {
-        const menuItems = [
-            {
-                icon: Expensicons.Upload,
-                text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
-                onSelected: () => {
-                    openPicker({
-                        onPicked: this.showAvatarCropModal,
-                    });
-                },
-            },
-        ];
-
-        // If current avatar isn't a default avatar, allow Remove Photo option
-        if (!this.props.isUsingDefaultAvatar) {
-            menuItems.push({
-                icon: Expensicons.Trashcan,
-                text: this.props.translate('avatarWithImagePicker.removePhoto'),
-                onSelected: () => {
-                    this.setError(null, {});
-                    this.props.onImageRemoved();
-                },
-            });
-        }
-        return menuItems;
-    }
-
     render() {
         const DefaultAvatar = this.props.DefaultAvatar;
         const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
 
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
-                <PressableWithoutFeedback
-                    onPress={() => this.setState({isMenuVisible: true})}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                    accessibilityLabel={this.props.translate('avatarWithImagePicker.editImage')}
-                    disabled={this.state.isAvatarCropModalOpen}
-                >
-                    <View style={[styles.pRelative, styles.avatarLarge]}>
-                        <OfflineWithFeedback
-                            pendingAction={this.props.pendingAction}
-                            errors={this.props.errors}
-                            errorRowStyles={this.props.errorRowStyles}
-                            onClose={this.props.onErrorClose}
-                        >
-                            <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
+                <View style={[styles.pRelative, styles.avatarLarge]}>
+                    <OfflineWithFeedback
+                        pendingAction={this.props.pendingAction}
+                        errors={this.props.errors}
+                        errorRowStyles={this.props.errorRowStyles}
+                        onClose={this.props.onErrorClose}
+                    >
+                        <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
+                            <PressableWithoutFeedback
+                                onPress={() => this.setState((prev) => ({isMenuVisible: !prev.isMenuVisible}))}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                accessibilityLabel={this.props.translate('avatarWithImagePicker.editImage')}
+                                disabled={this.state.isAvatarCropModalOpen}
+                                ref={this.anchorRef}
+                            >
                                 <View>
                                     {this.props.source ? (
                                         <Avatar
@@ -292,35 +262,70 @@ class AvatarWithImagePicker extends React.Component {
                                         <DefaultAvatar />
                                     )}
                                 </View>
-                            </Tooltip>
-                        </OfflineWithFeedback>
-
-                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
-                            {({openPicker}) => (
-                                <>
-                                    <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
-                                        <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
-                                            <Icon
-                                                src={Expensicons.Camera}
-                                                width={variables.iconSizeSmall}
-                                                height={variables.iconSizeSmall}
-                                                fill={themeColors.textLight}
-                                            />
-                                        </View>
-                                    </Tooltip>
-                                    <PopoverMenu
-                                        isVisible={this.state.isMenuVisible}
-                                        onClose={() => this.setState({isMenuVisible: false})}
-                                        onItemSelected={() => this.setState({isMenuVisible: false})}
-                                        menuItems={this.createMenuItems(openPicker)}
-                                        anchorPosition={this.props.anchorPosition}
-                                        anchorAlignment={this.props.anchorAlignment}
+                                <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                    <Icon
+                                        src={Expensicons.Camera}
+                                        width={variables.iconSizeSmall}
+                                        height={variables.iconSizeSmall}
+                                        fill={themeColors.textLight}
                                     />
-                                </>
-                            )}
-                        </AttachmentPicker>
-                    </View>
-                </PressableWithoutFeedback>
+                                </View>
+                            </PressableWithoutFeedback>
+                        </Tooltip>
+                    </OfflineWithFeedback>
+                    <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
+                        {({openPicker}) => {
+                            const menuItems = [
+                                {
+                                    icon: Expensicons.Upload,
+                                    text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
+                                    onSelected: () => {
+                                        if (Browser.isSafari()) {
+                                            return;
+                                        }
+                                        openPicker({
+                                            onPicked: this.showAvatarCropModal,
+                                        });
+                                    },
+                                },
+                            ];
+
+                            // If current avatar isn't a default avatar, allow Remove Photo option
+                            if (!this.props.isUsingDefaultAvatar) {
+                                menuItems.push({
+                                    icon: Expensicons.Trashcan,
+                                    text: this.props.translate('avatarWithImagePicker.removePhoto'),
+                                    onSelected: () => {
+                                        this.setError(null, {});
+                                        this.props.onImageRemoved();
+                                    },
+                                });
+                            }
+                            return (
+                                <PopoverMenu
+                                    isVisible={this.state.isMenuVisible}
+                                    onClose={() => this.setState({isMenuVisible: false})}
+                                    onItemSelected={(item, index) => {
+                                        this.setState({isMenuVisible: false});
+                                        // In order for the file picker to open dynamically, the click
+                                        // function must be called from within a event handler that was initiated
+                                        // by the user on Safari.
+                                        if (index === 0 && Browser.isSafari()) {
+                                            openPicker({
+                                                onPicked: this.showAvatarCropModal,
+                                            });
+                                        }
+                                    }}
+                                    menuItems={menuItems}
+                                    anchorPosition={this.props.anchorPosition}
+                                    withoutOverlay
+                                    anchorRef={this.anchorRef}
+                                    anchorAlignment={this.props.anchorAlignment}
+                                />
+                            );
+                        }}
+                    </AttachmentPicker>
+                </View>
                 {this.state.validationError && (
                     <DotIndicatorMessage
                         style={[styles.mt6]}

@@ -1,11 +1,15 @@
 import _ from 'underscore';
-import React, {useMemo} from 'react';
+import React, {useMemo, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import HeaderWithBackButton from '../HeaderWithBackButton';
-import SelectionListRadio from '../SelectionListRadio';
+import SelectionList from '../SelectionList';
 import Modal from '../Modal';
+import ScreenWrapper from '../ScreenWrapper';
+import styles from '../../styles/styles';
+import searchCountryOptions from '../../libs/searchCountryOptions';
+import StringUtils from '../../libs/StringUtils';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -33,31 +37,33 @@ const defaultProps = {
     onCountrySelected: () => {},
 };
 
-function filterOptions(searchValue, data) {
-    const trimmedSearchValue = searchValue.trim();
-    if (trimmedSearchValue.length === 0) {
-        return [];
-    }
-
-    return _.filter(data, (country) => country.text.toLowerCase().includes(searchValue.toLowerCase()));
-}
-
 function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySelected, setSearchValue, searchValue}) {
     const {translate} = useLocalize();
 
+    useEffect(() => {
+        if (isVisible) {
+            return;
+        }
+        setSearchValue('');
+    }, [isVisible, setSearchValue]);
+
     const countries = useMemo(
         () =>
-            _.map(translate('allCountries'), (countryName, countryISO) => ({
-                value: countryISO,
-                keyForList: countryISO,
-                text: countryName,
-                isSelected: currentCountry === countryISO,
-            })),
+            _.map(_.keys(CONST.ALL_COUNTRIES), (countryISO) => {
+                const countryName = translate(`allCountries.${countryISO}`);
+                return {
+                    value: countryISO,
+                    keyForList: countryISO,
+                    text: countryName,
+                    isSelected: currentCountry === countryISO,
+                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+                };
+            }),
         [translate, currentCountry],
     );
 
-    const filteredData = filterOptions(searchValue, countries);
-    const headerMessage = searchValue.trim() && !filteredData.length ? translate('common.noResultsFound') : '';
+    const searchResults = searchCountryOptions(searchValue, countries);
+    const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (
         <Modal
@@ -68,23 +74,25 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
             hideModalContentWhileAnimating
             useNativeDriver
         >
-            <HeaderWithBackButton
-                title={translate('common.country')}
-                onBackButtonPress={onClose}
-            />
-            <SelectionListRadio
-                headerMessage={headerMessage}
-                textInputLabel={translate('common.country')}
-                textInputPlaceholder={translate('countrySelectorModal.placeholderText')}
-                textInputValue={searchValue}
-                sections={[{data: filteredData, indexOffset: 0}]}
-                onSelectRow={onCountrySelected}
-                onChangeText={setSearchValue}
-                shouldFocusOnSelectRow
-                shouldHaveOptionSeparator
-                shouldDelayFocus
-                initiallyFocusedOptionKey={currentCountry}
-            />
+            <ScreenWrapper
+                style={[styles.pb0]}
+                includePaddingTop={false}
+                includeSafeAreaPaddingBottom={false}
+            >
+                <HeaderWithBackButton
+                    title={translate('common.country')}
+                    onBackButtonPress={onClose}
+                />
+                <SelectionList
+                    headerMessage={headerMessage}
+                    textInputLabel={translate('common.country')}
+                    textInputValue={searchValue}
+                    sections={[{data: searchResults, indexOffset: 0}]}
+                    onSelectRow={onCountrySelected}
+                    onChangeText={setSearchValue}
+                    initiallyFocusedOptionKey={currentCountry}
+                />
+            </ScreenWrapper>
         </Modal>
     );
 }
