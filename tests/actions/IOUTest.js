@@ -1878,112 +1878,138 @@ describe('actions/IOU', () => {
                         }),
                 ));
 
-        it('It should update the moneyRequestPreview to show [Deleted request] when appropriate', () =>
-            waitForPromisesToResolve()
-                .then(() => {
-                    thread = ReportUtils.buildTransactionThread(createIOUAction);
-                    const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
-                    Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
-                })
-                .then(() => {
-                    Onyx.connect({
-                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
-                        callback: (val) => (reportActions = val),
-                    });
-                    return waitForPromisesToResolve();
-                })
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                                waitForCollectionCallback: true,
-                                callback: (report) => {
-                                    Onyx.disconnect(connectionID);
-                                    expect(report).toBeTruthy();
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(() => {
-                    Report.addComment(thread.reportID, 'Testing a comment');
-                    return waitForPromisesToResolve();
-                })
+        it('It should update the moneyRequestPreview to show [Deleted request] when appropriate', async () => {
+            await waitForPromisesToResolve();
 
-                .then(() => {
-                    const resultAction = _.find(reportActions, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
-                    reportActionID = resultAction.reportActionID;
-                    expect(resultAction.message).toEqual(REPORT_ACTION.message);
-                    expect(resultAction.person).toEqual(REPORT_ACTION.person);
+            jest.advanceTimersByTime(10);
+            thread = ReportUtils.buildTransactionThread(createIOUAction, REPORT_ID);
 
-                    PusherHelper.emitOnyxUpdate([
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                            value: {
-                                reportID: thread.reportID,
-                                notificationPreference: 'always',
-                                lastVisibleActionCreated: '2023-08-29 03:48:27.267',
-                                lastMessageText: 'Testing a comment',
-                                lastActorAccountID: TEST_USER_ACCOUNT_ID,
-                            },
-                        },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
-                            value: {
-                                [reportActionID]: {pendingAction: null},
-                            },
-                        },
-                    ]);
-                    return waitForPromisesToResolve();
-                })
-                .then(() => {
-                    // Verify there is 2 action (created + addcomment) and our optimistic comment has been removed
-                    expect(_.size(reportActions)).toBe(2);
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
+                callback: (val) => (reportActions = val),
+            });
+            await waitForPromisesToResolve();
 
-                    const resultAction = reportActions[reportActionID];
+            jest.advanceTimersByTime(10);
+            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
+            Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
+            await waitForPromisesToResolve();
 
-                    // Verify that our action is no longer in the loading state
-                    expect(resultAction.pendingAction).toBeNull();
-                })
-                .then(() => {
-                    fetch.pause();
-                    IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
-                    return waitForPromisesToResolve();
-                })
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-                                waitForCollectionCallback: true,
-                                callback: (reportActionsForReport) => {
-                                    Onyx.disconnect(connectionID);
-                                    createIOUAction = _.find(reportActionsForReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
-                                    expect(createIOUAction.message[0].isDeletedParentAction).toBeTruthy();
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(fetch.resume)
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-                                waitForCollectionCallback: true,
-                                callback: (reportActionsForReport) => {
-                                    Onyx.disconnect(connectionID);
-                                    createIOUAction = _.find(reportActionsForReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
-                                    expect(createIOUAction.message[0].isDeletedParentAction).toBeTruthy();
-                                    resolve();
-                                },
-                            });
-                        }),
-                ));
+            PusherHelper.emitOnyxUpdate([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                    value: {
+                        [createIOUAction.reportActionID]: {childReportID: thread.reportID},
+                    },
+                },
+            ]);
+
+            await waitForPromisesToResolve();
+
+            const allReportActions = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(actions);
+                    },
+                });
+            });
+
+            const reportActionsForIOUReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.iouReportID}`];
+            createIOUAction = _.find(reportActionsForIOUReport, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+            expect(createIOUAction.childReportID).toBe(thread.reportID);
+
+            await waitForPromisesToResolve();
+
+            jest.advanceTimersByTime(10);
+
+            Report.addComment(thread.reportID, 'Testing a comment');
+            await waitForPromisesToResolve();
+
+            let resultAction = _.find(reportActions, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+            reportActionID = resultAction.reportActionID;
+
+            expect(resultAction.message).toEqual(REPORT_ACTION.message);
+            expect(resultAction.person).toEqual(REPORT_ACTION.person);
+            expect(resultAction.pendingAction).toBeNull();
+
+            await waitForPromisesToResolve();
+
+            // Verify there are three actions (created + addcomment) and our optimistic comment has been removed
+            expect(_.size(reportActions)).toBe(2);
+
+            let resultActionAfterUpdate = reportActions[reportActionID];
+            //expect(resultActionAfterUpdate).toBeFalsy();
+
+            // Verify that our action is no longer in the loading state
+            expect(resultActionAfterUpdate.pendingAction).toBeNull();
+
+            await waitForPromisesToResolve();
+
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                callback: (val) => (reportActions = val),
+            });
+            await waitForPromisesToResolve();
+
+            jest.advanceTimersByTime(10);
+
+            Report.addComment(REPORT_ID, 'Testing a comment');
+            await waitForPromisesToResolve();
+
+            resultAction = _.find(reportActions, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+            reportActionID = resultAction.reportActionID;
+
+            expect(resultAction.message).toEqual(REPORT_ACTION.message);
+            expect(resultAction.person).toEqual(REPORT_ACTION.person);
+            expect(resultAction.pendingAction).toBeNull();
+
+            await waitForPromisesToResolve();
+
+            // Verify there are three actions (created + iou + addcomment) and our optimistic comment has been removed
+            expect(_.size(reportActions)).toBe(3);
+
+            resultActionAfterUpdate = reportActions[reportActionID];
+            //expect(resultActionAfterUpdate).toBeFalsy();
+
+            // Verify that our action is no longer in the loading state
+            expect(resultActionAfterUpdate.pendingAction).toBeNull();
+
+            fetch.pause();
+            IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
+            await waitForPromisesToResolve();
+
+            await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                    waitForCollectionCallback: true,
+                    callback: (reportActionsForReport) => {
+                        Onyx.disconnect(connectionID);
+                        createIOUAction = _.find(reportActionsForReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                        expect(createIOUAction.message[0].isDeletedParentAction).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+
+            fetch.resume();
+
+            await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                    waitForCollectionCallback: true,
+                    callback: (reportActionsForReport) => {
+                        Onyx.disconnect(connectionID);
+                        createIOUAction = _.find(reportActionsForReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                        expect(createIOUAction.message[0].isDeletedParentAction).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+        });
 
         it('update IOU report and reportPreview with new totals and messages if the IOU report is not deleted', () => {
             const amount2 = 20000;
