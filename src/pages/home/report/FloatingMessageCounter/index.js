@@ -10,6 +10,7 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import themeColors from '../../../../styles/themes/default';
 import useLocalize from '../../../../hooks/useLocalize';
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
+import useNativeDriver from '../../../../libs/useNativeDriver';
 
 const propTypes = {
     /** Whether the New Messages indicator is active */
@@ -35,7 +36,7 @@ function FloatingMessageCounter(props) {
         Animated.spring(translateY, {
             toValue: MARKER_ACTIVE_TRANSLATE_Y,
             duration: 80,
-            useNativeDriver: true,
+            useNativeDriver,
         }).start();
     }, [translateY]);
 
@@ -43,7 +44,7 @@ function FloatingMessageCounter(props) {
         Animated.spring(translateY, {
             toValue: MARKER_INACTIVE_TRANSLATE_Y,
             duration: 80,
-            useNativeDriver: true,
+            useNativeDriver,
         }).start();
     }, [translateY]);
 
