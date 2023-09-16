@@ -163,7 +163,7 @@ export default {
                                 path: ROUTES.SETTINGS_SHARE_CODE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS_STATUS]: {
+                            [SCREENS.SETTINGS.STATUS]: {
                                 path: ROUTES.SETTINGS_STATUS,
                                 exact: true,
                             },
@@ -277,7 +277,7 @@ export default {
                     },
                     TeachersUnite: {
                         screens: {
-                            [SCREENS.SAVE_THE_WORLD]: ROUTES.TEACHERS_UNITE,
+                            [SCREENS.SAVE_THE_WORLD.ROOT]: ROUTES.TEACHERS_UNITE,
                             I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
                             Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
                             I_Am_A_Teacher: ROUTES.I_AM_A_TEACHER,

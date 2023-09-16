@@ -334,7 +334,7 @@ const NewTeachersUniteNavigator = createModalStackNavigator([
             const SaveTheWorldPage = require('../../../pages/TeachersUnite/SaveTheWorldPage').default;
             return SaveTheWorldPage;
         },
-        name: SCREENS.SAVE_THE_WORLD,
+        name: SCREENS.SAVE_THE_WORLD.ROOT,
     },
     {
         getComponent: () => {
@@ -583,7 +583,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsStatus = require('../../../pages/settings/Profile/CustomStatus/StatusPage').default;
             return SettingsStatus;
         },
-        name: SCREENS.SETTINGS_STATUS,
+        name: SCREENS.SETTINGS.STATUS,
     },
     {
         getComponent: () => {
