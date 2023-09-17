@@ -114,6 +114,7 @@ function CodesStep({account = defaultAccount}) {
                     <FormHelpMessage
                         isError
                         message={translate(error)}
+                        style={[styles.mb3]}
                     />
                 )}
                 <Button
