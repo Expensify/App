@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import {ValueOf} from 'type-fest';
 import * as Pusher from './Pusher/pusher';
 import * as Session from './actions/Session';
 import Log from './Log';
@@ -11,8 +11,8 @@ function init() {
      * current valid token to generate the signed auth response
      * needed to subscribe to Pusher channels.
      */
-    Pusher.registerCustomAuthorizer((channel) => ({
-        authorize: (socketID, callback) => {
+    Pusher.registerCustomAuthorizer((channel: {name: string}) => ({
+        authorize: (socketID: string, callback: () => void) => {
             Session.authenticatePusher(socketID, channel.name, callback);
         },
     }));
@@ -20,11 +20,11 @@ function init() {
     /**
      * @params {string} eventName
      */
-    Pusher.registerSocketEventCallback((eventName, error) => {
+    Pusher.registerSocketEventCallback((eventName: string, error: {type: ValueOf<typeof CONST.ERROR>; data: {code: number}}) => {
         switch (eventName) {
             case 'error': {
-                const errorType = lodashGet(error, 'type');
-                const code = lodashGet(error, 'data.code');
+                const errorType = error?.type;
+                const code = error?.data?.code;
                 if (errorType === CONST.ERROR.PUSHER_ERROR && code === 1006) {
                     // 1006 code happens when a websocket connection is closed. There may or may not be a reason attached indicating why the connection was closed.
                     // https://datatracker.ietf.org/doc/html/rfc6455#section-7.1.5
