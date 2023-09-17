@@ -1,4 +1,4 @@
-import React, {useRef, useEffect, useContext, useMemo, useCallback} from 'react';
+import React, {useRef, useEffect, useContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -61,6 +61,7 @@ function ReportActionsView(props) {
     const didLayout = useRef(false);
     const isFirstRender = useRef(true);
     const didSubscribeToReportTypingEvents = useRef(false);
+    const [isFetchNewerWasCalled, setFetchNewerWasCalled] = React.useState(false);
     const hasCachedActions = useRef(_.size(props.reportActions) > 0);
 
     const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
@@ -157,15 +158,18 @@ function ReportActionsView(props) {
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadNewerChats = () => {
+    const loadNewerChats = ({distanceFromStart}) => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.report.isLoadingNewerReportActions || isFirstRender.current || props.report.isLoadingReportActions || props.report.isLoadingOlderReportActions) {
+        if (props.report.isLoadingNewerReportActions || props.report.isLoadingReportActions) {
             isFirstRender.current = false;
             return;
         }
 
+        if ((!isFetchNewerWasCalled.current && !isFetchNewerWasCalled) || distanceFromStart <= 36) {
+            setFetchNewerWasCalled(true);
+            return;
+        }
         const newestReportAction = _.first(props.reportActions);
-
         Report.getNewerAction(reportID, newestReportAction.reportActionID);
     };
 
@@ -234,6 +238,7 @@ function arePropsEqual(oldProps, newProps) {
     if (oldProps.report.isLoadingOlderReportActions !== newProps.report.isLoadingOlderReportActions) {
         return false;
     }
+
     if (oldProps.report.isLoadingNewerReportActions !== newProps.report.isLoadingNewerReportActions) {
         return false;
     }

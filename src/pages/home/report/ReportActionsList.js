@@ -285,6 +285,11 @@ function ReportActionsList({
     const hideComposer = ReportUtils.shouldDisableWriteActions(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
+    const contentContainerStyle = useMemo(
+        () => [styles.chatContentScrollView, report.isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
+        [report.isLoadingNewerReportActions],
+    );
+
     return (
         <>
             <FloatingMessageCounter
@@ -297,7 +302,7 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     data={sortedReportActions}
                     renderItem={renderItem}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={initialNumToRender}
@@ -325,6 +330,20 @@ function ReportActionsList({
 
                         return null;
                     }}
+                    ListHeaderComponent={() => {
+                        if (report.isLoadingNewerReportActions) {
+                            return (
+                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.bottomReportLoader, styles.chatBottomLoader]}>
+                                    <ActivityIndicator
+                                        color={themeColors.spinner}
+                                        size="small"
+                                    />
+                                </View>
+                            );
+                        }
+
+                        return null;
+                    }}
                     keyboardShouldPersistTaps="handled"
                     onLayout={(event) => {
                         setSkeletonViewHeight(event.nativeEvent.layout.height);
@@ -334,14 +353,6 @@ function ReportActionsList({
                     extraData={extraData}
                 />
             </Animated.View>
-            {report.isLoadingNewerReportActions ? (
-                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.bottomReportLoader]}>
-                    <ActivityIndicator
-                        color={themeColors.spinner}
-                        size="small"
-                    />
-                </View>
-            ) : null}
         </>
     );
 }

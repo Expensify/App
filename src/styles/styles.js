@@ -1598,6 +1598,11 @@ const styles = (theme) => ({
         justifyContent: 'flex-start',
         paddingBottom: 16,
     },
+    chatContentScrollViewWithHeaderLoader: {
+        padding: 40,
+        paddingLeft: 0,
+        paddingRight: 0,
+    },
 
     // Chat Item
     chatItem: {
@@ -3960,7 +3965,15 @@ const styles = (theme) => ({
         width: '100%',
     },
     bottomReportLoader: {
-      height: 40,
+        height: 36,
+    },
+    chatBottomLoader: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 36,
     },
 });
 
