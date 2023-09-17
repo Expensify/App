@@ -170,6 +170,7 @@ function SearchPage({betas, personalDetails, reports}) {
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             onLayout={searchRendered}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            autoFocus
                         />
                     </View>
                 </>
