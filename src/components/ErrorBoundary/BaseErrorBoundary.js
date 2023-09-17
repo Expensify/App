@@ -26,7 +26,7 @@ const defaultProps = {
  * @return {React.Component}
  */
 function BaseErrorBoundary({logError, errorMessage, children}) {
-    const caughtError = (error, errorInfo) => {
+    const catchError = (error, errorInfo) => {
         logError(errorMessage, error, JSON.stringify(errorInfo));
         // We hide the splash screen since the error might happened during app init
         BootSplash.hide();
@@ -35,7 +35,7 @@ function BaseErrorBoundary({logError, errorMessage, children}) {
     return (
         <ErrorBoundary
             fallback={<GenericErrorPage />}
-            onError={caughtError}
+            onError={catchError}
         >
             {children}
         </ErrorBoundary>
