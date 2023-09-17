@@ -78,6 +78,7 @@ function VerifyStep({account = defaultAccount}) {
             <ScrollView
                 style={styles.mb5}
                 keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.flexGrow1}
             >
                 <View style={[styles.ph5, styles.mt3]}>
                     <Text>
