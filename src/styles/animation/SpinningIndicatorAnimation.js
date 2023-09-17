@@ -42,7 +42,7 @@ class SpinningIndicatorAnimation {
             toValue: 1.666,
             tension: 1,
             isInteraction: false,
-            useNativeDriver: true,
+            useNativeDriver,
         }).start();
     }
 
@@ -56,7 +56,7 @@ class SpinningIndicatorAnimation {
             toValue: 1,
             tension: 1,
             isInteraction: false,
-            useNativeDriver: true,
+            useNativeDriver,
         }).start(() => {
             this.rotate.resetAnimation();
             this.scale.resetAnimation();

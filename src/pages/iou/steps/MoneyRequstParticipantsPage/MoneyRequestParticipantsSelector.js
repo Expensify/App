@@ -1,12 +1,15 @@
-import React, {Component} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import styles from '../../../../styles/styles';
+import OptionsSelector from '../../../../components/OptionsSelector';
 import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
 import * as ReportUtils from '../../../../libs/ReportUtils';
-import OptionsSelector from '../../../../components/OptionsSelector';
-import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import * as Browser from '../../../../libs/Browser';
 import compose from '../../../../libs/compose';
 import CONST from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
@@ -17,14 +20,28 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Callback to request parent modal to go to next step, which should be split */
+    navigateToRequest: PropTypes.func.isRequired,
+
+    /** Callback to request parent modal to go to next step, which should be split */
+    navigateToSplit: PropTypes.func.isRequired,
+
     /** A ref to forward to options selector's text input */
     forwardedRef: refPropTypes,
 
-    /** Callback to inform parent modal of success */
-    onStepComplete: PropTypes.func.isRequired,
-
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
+
+    /** Selected participants from MoneyRequestModal with login */
+    participants: PropTypes.arrayOf(
+        PropTypes.shape({
+            accountID: PropTypes.number,
+            login: PropTypes.string,
+            isPolicyExpenseChat: PropTypes.bool,
+            isOwnPolicyExpenseChat: PropTypes.bool,
+            selected: PropTypes.bool,
+        }),
+    ),
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
@@ -45,6 +62,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    participants: [],
     forwardedRef: undefined,
     safeAreaPaddingBottomStyle: {},
     personalDetails: {},
@@ -53,137 +71,193 @@ const defaultProps = {
     isDistanceRequest: false,
 };
 
-class MoneyRequestParticipantsSelector extends Component {
-    constructor(props) {
-        super(props);
+function MoneyRequestParticipantsSelector({
+    forwardedRef,
+    betas,
+    participants,
+    personalDetails,
+    reports,
+    translate,
+    navigateToRequest,
+    navigateToSplit,
+    onAddParticipants,
+    safeAreaPaddingBottomStyle,
+    iouType,
+    isDistanceRequest,
+}) {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [newChatOptions, setNewChatOptions] = useState({
+        recentReports: [],
+        personalDetails: [],
+        userToInvite: null,
+    });
 
-        this.addSingleParticipant = this.addSingleParticipant.bind(this);
-        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
-
-        const {recentReports, personalDetails, userToInvite} = this.getRequestOptions();
-
-        this.state = {
-            recentReports,
-            personalDetails,
-            userToInvite,
-            searchTerm: '',
-        };
-    }
-
-    componentDidUpdate(prevProps) {
-        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
-            return;
-        }
-        this.updateOptionsWithSearchTerm(this.state.searchTerm);
-    }
-
-    /**
-     * @param {string} searchTerm
-     * @returns {Object}
-     */
-    getRequestOptions(searchTerm = '') {
-        return OptionsListUtils.getNewChatOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.props.betas,
-            searchTerm,
-            [],
-            CONST.EXPENSIFY_EMAILS,
-
-            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-            // sees the option to request money from their admin on their own Workspace Chat.
-            this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
-
-            // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-            !this.props.isDistanceRequest,
-        );
-    }
+    const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
     /**
      * Returns the sections needed for the OptionsSelector
      *
      * @returns {Array}
      */
-    getSections() {
-        const sections = [];
+    const sections = useMemo(() => {
+        const newSections = [];
         let indexOffset = 0;
 
-        sections.push({
-            title: this.props.translate('common.recents'),
-            data: this.state.recentReports,
-            shouldShow: !_.isEmpty(this.state.recentReports),
+        newSections.push({
+            title: undefined,
+            data: OptionsListUtils.getParticipantsOptions(participants, personalDetails),
+            shouldShow: true,
             indexOffset,
         });
-        indexOffset += this.state.recentReports.length;
+        indexOffset += participants.length;
 
-        sections.push({
-            title: this.props.translate('common.contacts'),
-            data: this.state.personalDetails,
-            shouldShow: !_.isEmpty(this.state.personalDetails),
+        if (maxParticipantsReached) {
+            return newSections;
+        }
+
+        newSections.push({
+            title: translate('common.recents'),
+            data: newChatOptions.recentReports,
+            shouldShow: !_.isEmpty(newChatOptions.recentReports),
             indexOffset,
         });
-        indexOffset += this.state.personalDetails.length;
+        indexOffset += newChatOptions.recentReports.length;
 
-        if (this.state.userToInvite && !OptionsListUtils.isCurrentUser(this.state.userToInvite)) {
-            sections.push({
+        newSections.push({
+            title: translate('common.contacts'),
+            data: newChatOptions.personalDetails,
+            shouldShow: !_.isEmpty(newChatOptions.personalDetails),
+            indexOffset,
+        });
+        indexOffset += newChatOptions.personalDetails.length;
+
+        if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
+            newSections.push({
                 undefined,
-                data: [this.state.userToInvite],
+                data: [newChatOptions.userToInvite],
                 shouldShow: true,
                 indexOffset,
             });
         }
 
-        return sections;
-    }
-
-    updateOptionsWithSearchTerm(searchTerm = '') {
-        const {recentReports, personalDetails, userToInvite} = this.getRequestOptions(searchTerm);
-        this.setState({
-            searchTerm,
-            recentReports,
-            userToInvite,
-            personalDetails,
-        });
-    }
+        return newSections;
+    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate]);
 
     /**
      * Adds a single participant to the request
      *
      * @param {Object} option
      */
-    addSingleParticipant(option) {
-        this.props.onAddParticipants([{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true}]);
-        this.props.onStepComplete();
-    }
+    const addSingleParticipant = (option) => {
+        onAddParticipants([{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true}]);
+        navigateToRequest();
+    };
 
-    render() {
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            this.state.personalDetails.length + this.state.recentReports.length !== 0,
-            Boolean(this.state.userToInvite),
-            this.state.searchTerm,
+    /**
+     * Removes a selected option from list if already selected. If not already selected add this option to the list.
+     * @param {Object} option
+     */
+    const addParticipantToSelection = useCallback(
+        (option) => {
+            const isOptionInList = _.some(participants, (selectedOption) => selectedOption.accountID === option.accountID);
+
+            let newSelectedOptions;
+
+            if (isOptionInList) {
+                newSelectedOptions = _.reject(participants, (selectedOption) => selectedOption.accountID === option.accountID);
+            } else {
+                newSelectedOptions = [...participants, {accountID: option.accountID, login: option.login, selected: true}];
+            }
+
+            onAddParticipants(newSelectedOptions);
+
+            const chatOptions = OptionsListUtils.getNewChatOptions(
+                reports,
+                personalDetails,
+                betas,
+                isOptionInList ? searchTerm : '',
+                newSelectedOptions,
+                CONST.EXPENSIFY_EMAILS,
+
+                // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+                // sees the option to request money from their admin on their own Workspace Chat.
+                iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+
+                // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
+                !isDistanceRequest,
+            );
+
+            setNewChatOptions({
+                recentReports: chatOptions.recentReports,
+                personalDetails: chatOptions.personalDetails,
+                userToInvite: chatOptions.userToInvite,
+            });
+        },
+        [participants, onAddParticipants, reports, personalDetails, betas, searchTerm, iouType, isDistanceRequest],
+    );
+
+    const headerMessage = OptionsListUtils.getHeaderMessage(
+        newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
+        Boolean(newChatOptions.userToInvite),
+        searchTerm,
+        maxParticipantsReached,
+    );
+    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
+
+    useEffect(() => {
+        const chatOptions = OptionsListUtils.getNewChatOptions(
+            reports,
+            personalDetails,
+            betas,
+            searchTerm,
+            participants,
+            CONST.EXPENSIFY_EMAILS,
+
+            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+            // sees the option to request money from their admin on their own Workspace Chat.
+            iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+
+            // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
+            !isDistanceRequest,
         );
-        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+        setNewChatOptions({
+            recentReports: chatOptions.recentReports,
+            personalDetails: chatOptions.personalDetails,
+            userToInvite: chatOptions.userToInvite,
+        });
+    }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, isDistanceRequest]);
 
-        return (
+    return (
+        <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <OptionsSelector
-                ref={this.props.forwardedRef}
-                autoFocus={false}
-                sections={this.getSections()}
-                value={this.state.searchTerm}
-                onSelectRow={this.addSingleParticipant}
-                onChangeText={this.updateOptionsWithSearchTerm}
+                canSelectMultipleOptions
+                shouldShowMultipleOptionSelectorAsButton
+                multipleOptionSelectorButtonText={translate('iou.split')}
+                onAddToSelection={addParticipantToSelection}
+                sections={sections}
+                selectedOptions={participants}
+                value={searchTerm}
+                onSelectRow={addSingleParticipant}
+                onChangeText={setSearchTerm}
+                ref={forwardedRef}
                 headerMessage={headerMessage}
-                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 boldStyle
-                safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
+                shouldShowConfirmButton
+                confirmButtonText={translate('iou.addToSplit')}
+                onConfirmSelection={navigateToSplit}
+                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
+                shouldFocusOnSelectRow={!Browser.isMobile()}
+                shouldDelayFocus
             />
-        );
-    }
+        </View>
+    );
 }
 
 MoneyRequestParticipantsSelector.propTypes = propTypes;
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
+MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
 export default compose(
     withLocalize,

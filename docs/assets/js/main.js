@@ -206,13 +206,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
             // If there is a fixed article scroll container, set to calculate titles' offset
             scrollContainer: 'content-area',
-
-            // onclick function to apply to all links in toc. will be called with
-            // the event as the first parameter, and this can be used to stop,
-            // propagation, prevent default or perform action
-            onClick() {
-                toggleHeaderMenu();
-            },
         });
     }
 
@@ -226,6 +219,18 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const articleContent = document.getElementById('article-content');
     const lhnContent = document.getElementById('lhn-content');
+
+    // This event listener checks if a link clicked in the LHN points to some section of the same page and toggles
+    // the LHN menu in responsive view.
+    lhnContent.addEventListener('click', (event) => {
+        const clickedLink = event.target;
+        if (clickedLink) {
+            const href = clickedLink.getAttribute('href');
+            if (href && href.startsWith('#') && !!document.getElementById(href.slice(1))) {
+                toggleHeaderMenu();
+            }
+        }
+    });
     lhnContent.addEventListener('wheel', (e) => {
         const scrollTop = lhnContent.scrollTop;
         const isScrollingPastLHNTop = e.deltaY < 0 && scrollTop === 0;
