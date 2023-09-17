@@ -33,7 +33,7 @@ import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import WalletTransfer from './WalletTransfer';
 import ReceiptModal from './ReceiptModal';
 import MapboxAccessToken from './MapboxAccessToken';
-import OnyxUpdatesFromServer from './OnyxUpdatesFromServer';
+import {OnyxUpdatesFromServer, OnyxUpdateEvent} from './OnyxUpdatesFromServer';
 import Download from './Download';
 import PolicyMember from './PolicyMember';
 import Policy from './Policy';
@@ -46,6 +46,8 @@ import Transaction from './Transaction';
 import Form, {AddDebitCardForm} from './Form';
 import RecentWaypoints from './RecentWaypoints';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
+import RecentlyUsedTags from './RecentlyUsedTags';
+import PolicyTag from './PolicyTag';
 
 export type {
     Account,
@@ -95,6 +97,9 @@ export type {
     Form,
     AddDebitCardForm,
     OnyxUpdatesFromServer,
+    OnyxUpdateEvent,
     RecentWaypoints,
     RecentlyUsedCategories,
+    RecentlyUsedTags,
+    PolicyTag,
 };
