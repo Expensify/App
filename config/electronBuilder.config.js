@@ -21,24 +21,6 @@ const macIcon = {
     adhoc: './desktop/icon-adhoc.png',
 };
 
-const appIds = {
-    production: 'com.expensifyreactnative.chat',
-    staging: 'com.expensifyreactnative.dev.chat',
-    adhoc: 'com.expensifyreactnative.adhoc.chat',
-};
-
-const productNames = {
-    production: 'New Expensify',
-    staging: 'New Expensify Dev',
-    adhoc: 'New Expensify AdHoc',
-};
-
-const artifactNames = {
-    production: 'NewExpensify.dmg',
-    staging: 'NewExpensifyDev.dmg',
-    adhoc: 'NewExpensifyAdHoc.dmg',
-};
-
 const isCorrectElectronEnv = ['production', 'staging', 'adhoc'].includes(process.env.ELECTRON_ENV);
 
 if (!isCorrectElectronEnv) {
@@ -50,8 +32,8 @@ if (!isCorrectElectronEnv) {
  * It can be used to create local builds of the same, by omitting the `--publish` flag
  */
 module.exports = {
-    appId: appIds[process.env.ELECTRON_ENV],
-    productName: productNames[process.env.ELECTRON_ENV],
+    appId: 'com.expensifyreactnative.chat',
+    productName: 'New Expensify',
     extraMetadata: {
         version,
     },
@@ -64,8 +46,8 @@ module.exports = {
         type: 'distribution',
     },
     dmg: {
-        title: productNames[process.env.ELECTRON_ENV],
-        artifactName: artifactNames[process.env.ELECTRON_ENV],
+        title: 'New Expensify',
+        artifactName: 'NewExpensify.dmg',
         internetEnabled: true,
     },
     publish: [
@@ -83,7 +65,7 @@ module.exports = {
         output: 'desktop-build',
     },
     protocols: {
-        name: productNames[process.env.ELECTRON_ENV],
+        name: 'New Expensify',
         schemes: ['new-expensify'],
     },
 };

@@ -22,6 +22,7 @@ import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
 import * as NumberUtils from '../NumberUtils';
 import ReceiptGeneric from '../../../assets/images/receipt-generic.png';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 
 let allReports;
 Onyx.connect({
@@ -88,7 +89,9 @@ function resetMoneyRequestInfo(id = '') {
         amount: 0,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
+        // TODO: remove participants after all instances of iou.participants will be replaced with iou.participantAccountIDs
         participants: [],
+        participantAccountIDs: [],
         merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
         category: '',
         created,
@@ -492,7 +495,7 @@ function getMoneyRequestInformation(
               [payerAccountID]: {
                   accountID: payerAccountID,
                   avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
-                  displayName: participant.displayName || payerEmail,
+                  displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || payerEmail),
                   login: participant.login,
               },
           }
@@ -894,7 +897,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
                   [accountID]: {
                       accountID,
                       avatar: UserUtils.getDefaultAvatarURL(accountID),
-                      displayName: participant.displayName || email,
+                      displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
                       login: participant.login,
                   },
               }
@@ -1949,7 +1952,9 @@ function resetMoneyRequestCategory() {
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
-    Onyx.merge(ONYXKEYS.IOU, {participants});
+    // TODO: temporarily we want to save both participants and participantAccountIDs, then we can remove participants (and rename the function)
+    // more info: https://github.com/Expensify/App/issues/25714#issuecomment-1712924903 and https://github.com/Expensify/App/issues/25714#issuecomment-1716335802
+    Onyx.merge(ONYXKEYS.IOU, {participants, participantAccountIDs: _.map(participants, 'accountID')});
 }
 
 /**
