@@ -2,16 +2,7 @@ import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
 import { ValueOf } from "type-fest";
 
-const BANK_ACCOUNT_STATES = {
-    PENDING: 'PENDING',
-    OPEN: 'OPEN',
-    DELETED: 'DELETED',
-    LOCKED: 'LOCKED',
-    SETUP: 'SETUP',
-    VERIFYING: 'VERIFYING',
-};
-
-type State = ValueOf<typeof BANK_ACCOUNT_STATES>;
+type State = ValueOf<typeof BankAccount.STATE>;
 
 type BankAccountType = "withdrawal" | "direct-deposit";
 
@@ -46,6 +37,14 @@ type ACHData = {
 };
 
 class BankAccount {
+    public static readonly STATE = {
+        PENDING: 'PENDING',
+        OPEN: 'OPEN',
+        DELETED: 'DELETED',
+        LOCKED: 'LOCKED',
+        SETUP: 'SETUP',
+        VERIFYING: 'VERIFYING',
+    };
     private readonly json: BankAccountJSON;
     constructor(accountJSON: BankAccountJSON) {
         this.json = accountJSON;
@@ -106,7 +105,7 @@ class BankAccount {
      * @returns - if the bank account is open.
      */
     isOpen() {
-        return this.getState() === BANK_ACCOUNT_STATES.OPEN;
+        return this.getState() === BankAccount.STATE.OPEN;
     }
 
     /**
@@ -121,28 +120,28 @@ class BankAccount {
      * @returns - if he user still needs to enter the 3 micro deposit amounts.
      */
     isPending() {
-        return this.getState() === BANK_ACCOUNT_STATES.PENDING;
+        return this.getState() === BankAccount.STATE.PENDING;
     }
 
     /**
      * @returns - if success team is currently verifying the bank account data provided by the user.
      */
     isVerifying() {
-        return this.getState() === BANK_ACCOUNT_STATES.VERIFYING;
+        return this.getState() === BankAccount.STATE.VERIFYING;
     }
 
     /**
      * @returns - if the user didn't finish entering all their info.
      */
     isInSetup() {
-        return this.getState() === BANK_ACCOUNT_STATES.SETUP;
+        return this.getState() === BankAccount.STATE.SETUP;
     }
 
     /**
      * @returns - if the bank account is locked.
      */
     isLocked() {
-        return this.getState() === BANK_ACCOUNT_STATES.LOCKED;
+        return this.getState() === BankAccount.STATE.LOCKED;
     }
 
     /**
