@@ -37,13 +37,6 @@ function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, 
 
     const isPermissionDenied = locationErrorCode === 1;
 
-    /**
-     * Clears the location error on press of close icon
-     */
-    const dismissError = () => {
-        User.clearLocationError();
-    };
-
     return (
         <View style={[styles.dotIndicatorMessage, styles.mt4]}>
             <View style={styles.offlineFeedback.errorDot}>
@@ -78,7 +71,7 @@ function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, 
             <View>
                 <Tooltip text={translate('common.close')}>
                     <PressableWithoutFeedback
-                        onPress={dismissError}
+                        onPress={() => User.clearLocationError()}
                         style={[styles.touchableButtonImage]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
