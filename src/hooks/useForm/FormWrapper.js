@@ -61,7 +61,7 @@ const propTypes = {
 
     errors: PropTypes.objectOf(PropTypes.string).isRequired,
 
-    inputRefs: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(Element)})])).isRequired,
+    inputRefs: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.element})])).isRequired,
 };
 
 const defaultProps = {
