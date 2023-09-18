@@ -390,7 +390,7 @@ function isChatRoom(report) {
  * @returns {Boolean}
  */
 function isPublicRoom(report) {
-    return (report && report.visibility === CONST.REPORT.VISIBILITY.PUBLIC) || report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
+    return report && (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC || report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE);
 }
 
 /**

@@ -188,6 +188,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
         nonArchivedReports.sort(
             (a, b) => new Date(b.lastVisibleActionCreated) - new Date(a.lastVisibleActionCreated) || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()),
         );
+        // For archived reports ensure that most recent reports are at the top by reversing the order
         archivedReports.sort((a, b) => new Date(a.lastVisibleActionCreated) - new Date(b.lastVisibleActionCreated));
     } else {
         nonArchivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
