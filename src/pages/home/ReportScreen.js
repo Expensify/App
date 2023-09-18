@@ -38,6 +38,7 @@ import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
+import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
 
 const propTypes = {
@@ -115,6 +116,15 @@ const defaultProps = {
 };
 
 /**
+ *
+ * Function to check weather the report available in props is default
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+const checkDefaultReport = (report) => report === defaultProps.report;
+
+/**
  * Get the currently viewed report ID as number
  *
  * @param {Object} route
@@ -157,6 +167,8 @@ function ReportScreen({
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingReportActions;
 
+    const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
+
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails) || firstRenderRef.current;
@@ -168,6 +180,8 @@ function ReportScreen({
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
     const isTopMostReportId = currentReportID === getReportID(route);
+
+    const isDefaultReport = checkDefaultReport(report);
 
     let headerView = (
         <HeaderView
@@ -295,6 +309,12 @@ function ReportScreen({
         ComposerActions.setShouldShowComposeInput(true);
     }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID]);
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(
+        () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading) || shouldHideReport,
+        [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete],
+    );
+
     return (
         <ActionListContext.Provider value={flatListRef}>
             <ReactionListContext.Provider value={reactionListRef}>
@@ -304,7 +324,7 @@ function ReportScreen({
                     shouldDisableFocusTrap
                 >
                     <FullPageNotFoundView
-                        shouldShow={(!report.reportID && !reportMetadata.isLoadingReportActions && !isLoading) || shouldHideReport}
+                        shouldShow={shouldShowNotFoundPage}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={isSmallScreenWidth}

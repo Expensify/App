@@ -87,9 +87,6 @@ const ONYXKEYS = {
     SESSION: 'session',
     BETAS: 'betas',
 
-    /** Denotes if the Download App Banner has been dismissed */
-    SHOW_DOWNLOAD_APP_BANNER: 'showDownloadAppBanner',
-
     /** NVP keys
      * Contains the user's payPalMe data */
     PAYPAL: 'paypal',
@@ -291,6 +288,7 @@ const ONYXKEYS = {
         SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
         SETTINGS_STATUS_CLEAR_AFTER_FORM: 'settingsStatusClearAfterForm',
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
+        PRIVATE_NOTES_FORM: 'privateNotesForm',
         I_KNOW_A_TEACHER_FORM: 'iKnowTeacherForm',
         INTRO_SCHOOL_PRINCIPAL_FORM: 'introSchoolPrincipalForm',
     },
@@ -307,7 +305,6 @@ type OnyxValues = {
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
-    [ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.Request[];
     [ONYXKEYS.QUEUED_ONYX_UPDATES]: OnyxTypes.QueuedOnyxUpdates;
     [ONYXKEYS.CURRENT_DATE]: string;
