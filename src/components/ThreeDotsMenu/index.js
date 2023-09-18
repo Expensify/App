@@ -1,5 +1,5 @@
 import React, {useState, useRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Icon from '../Icon';
@@ -45,6 +45,9 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    /** Function to call on popover hide */
+    onPopoverClose: PropTypes.func,
 };
 
 const defaultProps = {
@@ -57,9 +60,10 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
+    onPopoverHide: () => {},
 };
 
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, onPopoverHide}) {
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();
@@ -69,6 +73,9 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
     };
 
     const hidePopoverMenu = () => {
+        InteractionManager.runAfterInteractions(() => {
+            onPopoverHide();
+        });
         setPopupMenuVisible(false);
     };
 
@@ -101,6 +108,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
+                onPopoverHide={onPopoverHide}
                 isVisible={isPopupMenuVisible}
                 anchorPosition={anchorPosition}
                 anchorAlignment={anchorAlignment}
