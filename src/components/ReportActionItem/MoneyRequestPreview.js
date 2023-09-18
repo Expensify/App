@@ -342,6 +342,7 @@ function MoneyRequestPreview(props) {
             onLongPress={showContextMenu}
             accessibilityLabel={props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
+            style={styles.moneyRequestPreviewBox}
         >
             {childContainer}
         </PressableWithFeedback>
