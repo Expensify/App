@@ -103,11 +103,11 @@ function ComposerWithSuggestions({
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
-    var emojisPresentBefore = [];
+    const emojisPresentBefore = useRef([]);
     const [value, setValue] = useState(() => {
         const draft = getDraftComment(reportID) || '';
         if (draft) {
-            emojisPresentBefore = EmojiUtils.extractEmojis(draft);
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(draft);
         }
         return draft;
     });
@@ -182,7 +182,7 @@ function ComposerWithSuggestions({
                 insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
                 debouncedUpdateFrequentlyUsedEmojis();
             }
-            emojisPresentBefore = emojis;
+            emojisPresentBefore.current = emojis;
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {

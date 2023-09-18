@@ -291,10 +291,10 @@ function extractEmojis(text) {
 
 function getAddedEmojis(currentEmojis, formerEmojis){
     
-    let newEmojis = [...currentEmojis];
+    const newEmojis = [...currentEmojis];
     // We are removing the emojis from the newEmojis array if they were already present before.
     formerEmojis.forEach((formerEmoji) => {
-        const indexOfAlreadyPresentEmoji = newEmojis.findIndex(newEmoji => newEmoji.code == formerEmoji.code);
+        const indexOfAlreadyPresentEmoji = _.findIndex(newEmojis, newEmoji => newEmoji.code === formerEmoji.code);
         if(indexOfAlreadyPresentEmoji >= 0) {
             newEmojis.splice(indexOfAlreadyPresentEmoji, 1);
         }
