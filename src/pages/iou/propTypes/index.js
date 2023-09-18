@@ -18,6 +18,9 @@ const iouPropTypes = PropTypes.shape({
     /** The merchant name */
     merchant: PropTypes.string,
 
+    /** The tag */
+    tag: PropTypes.string,
+
     /** Date that the request was created */
     created: PropTypes.string,
 
@@ -34,6 +37,7 @@ const iouDefaultProps = {
     currency: CONST.CURRENCY.USD,
     comment: '',
     merchant: '',
+    tag: '',
     created: '',
     participants: [],
     receiptPath: '',

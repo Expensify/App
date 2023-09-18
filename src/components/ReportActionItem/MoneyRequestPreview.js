@@ -32,7 +32,9 @@ import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import transactionPropTypes from '../transactionPropTypes';
-import colors from '../../styles/colors';
+import * as StyleUtils from '../../styles/StyleUtils';
+import variables from '../../styles/variables';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 import MoneyRequestSkeletonView from '../MoneyRequestSkeletonView';
 
 const propTypes = {
@@ -135,9 +137,12 @@ const defaultProps = {
 };
 
 function MoneyRequestPreview(props) {
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
+
     const sessionAccountID = lodashGet(props.session, 'accountID', null);
     const managerID = props.iouReport.managerID || '';
     const ownerAccountID = props.iouReport.ownerAccountID || '';
@@ -259,13 +264,21 @@ function MoneyRequestPreview(props) {
                                 {hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        fill={colors.red}
+                                        fill={themeColors.danger}
                                     />
                                 )}
                             </View>
                             <View style={[styles.flexRow]}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={styles.textHeadline}>{getDisplayAmountText()}</Text>
+                                    <Text
+                                        style={[
+                                            styles.moneyRequestPreviewAmount,
+                                            StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth),
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {getDisplayAmountText()}
+                                    </Text>
                                     {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
                                         <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
@@ -292,15 +305,15 @@ function MoneyRequestPreview(props) {
                                     <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>{requestMerchant}</Text>
                                 </View>
                             )}
-                            <View style={[styles.flexRow]}>
+                            <View style={[styles.flexRow, styles.mt1]}>
                                 <View style={[styles.flex1]}>
                                     {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
                                     )}
-                                    {shouldShowDescription && <Text style={[styles.mt1, styles.colorMuted]}>{description}</Text>}
+                                    {shouldShowDescription && <Text style={[styles.colorMuted]}>{description}</Text>}
                                 </View>
                                 {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
-                                    <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
+                                    <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
                                         {props.translate('iou.amountEach', {
                                             amount: CurrencyUtils.convertToDisplayString(
                                                 IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
@@ -329,6 +342,7 @@ function MoneyRequestPreview(props) {
             onLongPress={showContextMenu}
             accessibilityLabel={props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
+            style={styles.moneyRequestPreviewBox}
         >
             {childContainer}
         </PressableWithFeedback>

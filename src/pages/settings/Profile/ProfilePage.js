@@ -57,7 +57,11 @@ function ProfilePage(props) {
         if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
             pronounsKey = pronounsKey.slice(CONST.PRONOUNS.PREFIX.length);
         }
-        return lodashGet(props.translate('pronouns'), pronounsKey, props.translate('profilePage.selectYourPronouns'));
+
+        if (!pronounsKey) {
+            return props.translate('profilePage.selectYourPronouns');
+        }
+        return props.translate(`pronouns.${pronounsKey}`);
     };
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);

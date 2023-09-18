@@ -22,7 +22,7 @@ function ImTeacherPage() {
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iAmATeacher')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SAVE_THE_WORLD)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
             />
             <BlockingView
                 shouldShowLink
