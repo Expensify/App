@@ -9,7 +9,6 @@ import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import CONST from '../../../../CONST';
 import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
-import * as ReportUtils from '../../../../libs/ReportUtils';
 import * as IOU from '../../../../libs/actions/IOU';
 
 const propTypes = {
