@@ -235,11 +235,11 @@ function MoneyRequestConfirmationList(props) {
 
     const splitOrRequestOptions = useMemo(() => {
         let text;
-        if (props.receiptPath) {
+        if (props.receiptPath || isDistanceRequestWithoutRoute) {
             text = translate('iou.request');
         } else {
             const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
-            text = translate(translationKey, {amount: isDistanceRequestWithoutRoute ? '' : formattedAmount});
+            text = translate(translationKey, {amount: formattedAmount});
         }
         return [
             {
