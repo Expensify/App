@@ -83,8 +83,7 @@ function MoneyRequestConfirmPage(props) {
         if (typeof props.iou.billable !== 'boolean') {
             IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isOffline, participants]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
