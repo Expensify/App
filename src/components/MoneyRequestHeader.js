@@ -53,6 +53,8 @@ const propTypes = {
         transactionID: PropTypes.string,
     }),
 
+    parentPolicy: PropTypes.any,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -63,6 +65,7 @@ const defaultProps = {
     parentReport: {},
     parentReportAction: {},
     transaction: {},
+    parentPolicy: {}
 };
 
 function MoneyRequestHeader(props) {
@@ -70,6 +73,9 @@ function MoneyRequestHeader(props) {
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = props.parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+
+    console.log("[DEV] parentReport", props.parentReport);
+    console.log("[DEV] parentPolicy", props.parentPolicy);
 
     // Only the requestor can take delete the request, admins can only edit it.
     const isActionOwner = props.parentReportAction.actorAccountID === lodashGet(props.session, 'accountID', null);
@@ -140,8 +146,14 @@ export default compose(
             canEvict: false,
         },
         transaction: {
-            key: ({report, parentReportActions}) =>
-                `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportActions, [report.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '')}`,
+            key: ({report, parentReportAction}) =>
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, [report.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '')}`,
         },
+        parentPolicy: {
+            key: (props) => {
+                console.log("[DEV] parentPolicy key", props);
+                return `${ONYXKEYS.COLLECTION.POLICY}${props.parentReport ? props.parentReport.policyID : undefined}`;
+            }
+        }
     }),
 )(MoneyRequestHeader);
