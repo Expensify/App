@@ -40,9 +40,12 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
 
             const map = mapRef.getMap();
 
-            const {northEast, southWest} = utils.getBounds(waypoints.map((waypoint) => waypoint.coordinate));
+            const {northEast, southWest} = utils.getBounds(
+                waypoints.map((waypoint) => waypoint.coordinate),
+                directionCoordinates,
+            );
             map.fitBounds([northEast, southWest], {padding: mapPadding});
-        }, [waypoints, mapRef, mapPadding]);
+        }, [waypoints, mapRef, mapPadding, directionCoordinates]);
 
         useImperativeHandle(
             ref,
