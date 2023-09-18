@@ -27,8 +27,13 @@ const propTypes = {
 
     /** create accessibility label for each item */
     accessibilityLabelExtractor: PropTypes.func.isRequired,
+
+    /** Meaures the parent container's position and dimensions. */
+    measureParentContainer: PropTypes.func,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    measureParentContainer: () => {},
+};
 
 export {propTypes, defaultProps};

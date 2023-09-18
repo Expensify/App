@@ -7,6 +7,7 @@ import CoffeeMug from '../../../assets/images/simple-illustrations/simple-illust
 import ConciergeBlue from '../../../assets/images/product-illustrations/concierge--blue.svg';
 import ConciergeExclamation from '../../../assets/images/product-illustrations/concierge--exclamation.svg';
 import CreditCardsBlue from '../../../assets/images/product-illustrations/credit-cards--blue.svg';
+import EmailAddress from '../../../assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import InvoiceOrange from '../../../assets/images/product-illustrations/invoice--orange.svg';
 import JewelBoxBlue from '../../../assets/images/product-illustrations/jewel-box--blue.svg';
 import JewelBoxGreen from '../../../assets/images/product-illustrations/jewel-box--green.svg';
@@ -55,6 +56,7 @@ export {
     ConciergeBlue,
     ConciergeExclamation,
     CreditCardsBlue,
+    EmailAddress,
     InvoiceOrange,
     JewelBoxBlue,
     JewelBoxGreen,

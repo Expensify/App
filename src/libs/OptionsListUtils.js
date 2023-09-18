@@ -17,6 +17,7 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as ErrorUtils from './ErrorUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -149,6 +150,7 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
     return _.map(accountIDs, (accountID) => {
         const login = lodashGet(reversedDefaultValues, accountID, '');
         const userPersonalDetail = lodashGet(personalDetails, accountID, {login, accountID, avatar: ''});
+
         return {
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
@@ -349,11 +351,20 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 function getAllReportErrors(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
-    const reportActionErrors = _.reduce(
-        reportActions,
-        (prevReportActionErrors, action) => (!action || _.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
-        {},
-    );
+    const reportActionErrors = {};
+    _.each(reportActions, (action) => {
+        if (action && !_.isEmpty(action.errors)) {
+            _.extend(reportActionErrors, action.errors);
+        } else if (ReportActionUtils.isReportPreviewAction(action)) {
+            const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(action);
+
+            // Instead of adding all Smartscan errors, let's just add a generic error if there are any. This
+            // will be more performant and provide the same result in the UI
+            if (ReportUtils.hasMissingSmartscanFields(iouReportID)) {
+                _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
+            }
+        }
+    });
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
@@ -382,6 +393,8 @@ function getLastMessageTextForReport(report) {
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
+    } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
@@ -449,6 +462,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
         isExpenseReport: false,
+        policyID: null,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -483,6 +497,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
         result.hasOutstandingIOU = report.hasOutstandingIOU;
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
+        result.policyID = report.policyID;
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -585,6 +600,146 @@ function isCurrentUser(userDetails) {
 }
 
 /**
+ * Build the options for the category tree hierarchy via indents
+ *
+ * @param {Object[]} options - an initial strings array
+ * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
+ * @param {String} options[].name - a name of an option
+ * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
+ * @returns {Array<Object>}
+ */
+function getCategoryOptionTree(options, isOneLine = false) {
+    const optionCollection = {};
+
+    _.each(options, (option) => {
+        if (isOneLine) {
+            if (_.has(optionCollection, option.name)) {
+                return;
+            }
+
+            optionCollection[option.name] = {
+                text: option.name,
+                keyForList: option.name,
+                searchText: option.name,
+                tooltipText: option.name,
+                isDisabled: !option.enabled,
+            };
+
+            return;
+        }
+
+        option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
+            const indents = _.times(index, () => CONST.INDENTS).join('');
+            const isChild = array.length - 1 === index;
+
+            if (_.has(optionCollection, optionName)) {
+                return;
+            }
+
+            optionCollection[optionName] = {
+                text: `${indents}${optionName}`,
+                keyForList: optionName,
+                searchText: array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR),
+                tooltipText: optionName,
+                isDisabled: isChild ? !option.enabled : true,
+            };
+        });
+    });
+
+    return _.values(optionCollection);
+}
+
+/**
+ * Build the section list for categories
+ *
+ * @param {Object<String, {name: String, enabled: Boolean}>} categories
+ * @param {String[]} recentlyUsedCategories
+ * @param {Object[]} selectedOptions
+ * @param {String} selectedOptions[].name
+ * @param {String} searchInputValue
+ * @param {Number} maxRecentReportsToShow
+ * @returns {Array<Object>}
+ */
+function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+    const categorySections = [];
+    const categoriesValues = _.values(categories);
+    const numberOfCategories = _.size(categoriesValues);
+    let indexOffset = 0;
+
+    if (!_.isEmpty(searchInputValue)) {
+        const searchCategories = _.filter(categoriesValues, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+
+        categorySections.push({
+            // "Search" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(searchCategories, true),
+        });
+
+        return categorySections;
+    }
+
+    if (numberOfCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(categoriesValues),
+        });
+
+        return categorySections;
+    }
+
+    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredRecentlyUsedCategories = _.map(
+        _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category)),
+        (category) => ({
+            name: category,
+            enabled: lodashGet(categories, `${category}.enabled`, false),
+        }),
+    );
+    const filteredCategories = _.filter(categoriesValues, (category) => !_.includes(selectedOptionNames, category.name));
+
+    if (!_.isEmpty(selectedOptions)) {
+        categorySections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(selectedOptions, true),
+        });
+
+        indexOffset += selectedOptions.length;
+    }
+
+    if (!_.isEmpty(filteredRecentlyUsedCategories)) {
+        const cutRecentlyUsedCategories = filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow);
+
+        categorySections.push({
+            // "Recent" section
+            title: Localize.translateLocal('common.recent'),
+            shouldShow: true,
+            indexOffset,
+            data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
+        });
+
+        indexOffset += filteredRecentlyUsedCategories.length;
+    }
+
+    categorySections.push({
+        // "All" section when items amount more than the threshold
+        title: Localize.translateLocal('common.all'),
+        shouldShow: true,
+        indexOffset,
+        data: getCategoryOptionTree(filteredCategories),
+    });
+
+    return categorySections;
+}
+
+/**
  * Build the options
  *
  * @param {Object} reports
@@ -617,22 +772,33 @@ function getOptions(
         includeMoneyRequests = false,
         excludeUnknownUsers = false,
         includeP2P = true,
+        includeCategories = false,
+        categories = {},
+        recentlyUsedCategories = [],
+        canInviteUser = true,
     },
 ) {
+    if (includeCategories) {
+        const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
+
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions,
+        };
+    }
+
     if (!isPersonalDetailsReady(personalDetails)) {
         return {
             recentReports: [],
             personalDetails: [],
             userToInvite: null,
             currentUserOption: null,
+            categoryOptions: [],
         };
     }
-
-    // We're only picking personal details that have logins set
-    // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
-    // See https://github.com/Expensify/Expensify/issues/293465 for more context
-    // eslint-disable-next-line no-param-reassign
-    personalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login));
 
     let recentReportOptions = [];
     let personalDetailsOptions = [];
@@ -714,7 +880,12 @@ function getOptions(
         );
     });
 
-    let allPersonalDetailsOptions = _.map(personalDetails, (personalDetail) =>
+    // We're only picking personal details that have logins set
+    // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
+    // See https://github.com/Expensify/Expensify/issues/293465 for more context
+    // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
+    const havingLoginPersonalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login));
+    let allPersonalDetailsOptions = _.map(havingLoginPersonalDetails, (personalDetail) =>
         createOption([personalDetail.accountID], personalDetails, reportMapForAccountIDs[personalDetail.accountID], reportActions, {
             showChatPreviewLine,
             forcePolicyNamePreview,
@@ -758,8 +929,17 @@ function getOptions(
             // Finally check to see if this option is a match for the provided search string if we have one
             const {searchText, participantsList, isChatRoom} = reportOption;
             const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
-                continue;
+
+            if (searchValue) {
+                // Determine if the search is happening within a chat room and starts with the report ID
+                const isReportIdSearch = isChatRoom && Str.startsWith(reportOption.reportID, searchValue);
+
+                // Check if the search string matches the search text or participant names considering the type of the room
+                const isSearchMatch = isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom);
+
+                if (!isReportIdSearch && !isSearchMatch) {
+                    continue;
+                }
             }
 
             recentReportOptions.push(reportOption);
@@ -787,7 +967,7 @@ function getOptions(
     }
 
     let currentUserOption = _.find(allPersonalDetailsOptions, (personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
-    if (searchValue && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
+    if (searchValue && currentUserOption && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
         currentUserOption = null;
     }
 
@@ -864,8 +1044,9 @@ function getOptions(
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
-        userToInvite,
+        userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
+        categoryOptions: [],
     };
 }
 
@@ -947,9 +1128,26 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array} [excludeLogins]
  * @param {Boolean} [includeOwnedWorkspaceChats]
  * @param {boolean} [includeP2P]
+ * @param {boolean} [includeCategories]
+ * @param {Object} [categories]
+ * @param {Array<String>} [recentlyUsedCategories]
+ * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
-function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = false, includeP2P = true) {
+function getNewChatOptions(
+    reports,
+    personalDetails,
+    betas = [],
+    searchValue = '',
+    selectedOptions = [],
+    excludeLogins = [],
+    includeOwnedWorkspaceChats = false,
+    includeP2P = true,
+    includeCategories = false,
+    categories = {},
+    recentlyUsedCategories = [],
+    canInviteUser = true,
+) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -960,6 +1158,10 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
         excludeLogins,
         includeOwnedWorkspaceChats,
         includeP2P,
+        includeCategories,
+        categories,
+        recentlyUsedCategories,
+        canInviteUser,
     });
 }
 
@@ -1007,6 +1209,39 @@ function getShareDestinationOptions(
 }
 
 /**
+ * Format personalDetails or userToInvite to be shown in the list
+ *
+ * @param {Object} member - personalDetails or userToInvite
+ * @param {Boolean} isSelected - whether the item is selected
+ * @returns {Object}
+ */
+function formatMemberForList(member, isSelected) {
+    if (!member) {
+        return undefined;
+    }
+
+    const avatarSource = lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'avatar', '');
+    const accountID = lodashGet(member, 'accountID', '');
+
+    return {
+        text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
+        alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
+        keyForList: lodashGet(member, 'keyForList', '') || String(accountID),
+        isSelected,
+        isDisabled: false,
+        accountID,
+        login: lodashGet(member, 'login', ''),
+        rightElement: null,
+        avatar: {
+            source: UserUtils.getAvatar(avatarSource, accountID),
+            name: lodashGet(member, 'participantsList[0].login', '') || lodashGet(member, 'displayName', ''),
+            type: 'avatar',
+        },
+        pendingAction: lodashGet(member, 'pendingAction'),
+    };
+}
+
+/**
  * Build the options for the Workspace Member Invite view
  *
  * @param {Object} personalDetails
@@ -1044,7 +1279,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
-    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone) {
+    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone && !hasSelectableOptions) {
         return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 
@@ -1095,4 +1330,6 @@ export {
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
+    getCategoryOptionTree,
+    formatMemberForList,
 };

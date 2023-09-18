@@ -68,20 +68,22 @@ function GoogleSignIn({translate, isDesktopFlow}) {
         };
     }, [loadScript]);
 
+    // willChangeTransform is used to prevent the icon cut in safari when the overflow hidden and width given to the parent
+    // ref: https://stackoverflow.com/questions/75306089/safari-when-using-border-radius-and-overflow-hidden-to-parent-and-the-child-th
     return isDesktopFlow ? (
         <View style={styles.googlePillButtonContainer}>
             <div
                 id={desktopId}
-                accessibilityrole="button"
-                accessibilitylabel={translate('common.signInWithGoogle')}
+                role="button"
+                aria-label={translate('common.signInWithGoogle')}
             />
         </View>
     ) : (
-        <View style={styles.googleButtonContainer}>
+        <View style={[styles.googleButtonContainer, styles.willChangeTransform]}>
             <div
                 id={mainId}
-                accessibilityrole="button"
-                accessibilitylabel={translate('common.signInWithGoogle')}
+                role="button"
+                aria-label={translate('common.signInWithGoogle')}
             />
         </View>
     );

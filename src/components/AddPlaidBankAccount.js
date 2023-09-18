@@ -1,11 +1,13 @@
 import _ from 'underscore';
-import React, {useEffect, useRef, useCallback} from 'react';
+import React, {useEffect, useRef, useCallback, useMemo} from 'react';
 import {ActivityIndicator, View} from 'react-native';
+import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
+import * as App from '../libs/actions/App';
 import * as BankAccounts from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
@@ -22,6 +24,9 @@ import useLocalize from '../hooks/useLocalize';
 import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
+    /** If the user has been throttled from Plaid */
+    isPlaidDisabled: PropTypes.bool,
+
     /** Contains plaid data */
     plaidData: plaidDataPropTypes.isRequired,
 
@@ -33,6 +38,9 @@ const propTypes = {
 
     /** Fired when the user exits the Plaid flow */
     onExitPlaid: PropTypes.func,
+
+    /** Fired when the screen is blurred */
+    onBlurPlaid: PropTypes.func,
 
     /** Fired when the user selects an account */
     onSelect: PropTypes.func,
@@ -57,20 +65,36 @@ const defaultProps = {
     selectedPlaidAccountID: '',
     plaidLinkToken: '',
     onExitPlaid: () => {},
+    onBlurPlaid: () => {},
     onSelect: () => {},
     text: '',
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
     allowDebit: false,
     bankAccountID: 0,
+    isPlaidDisabled: false,
 };
 
-function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken, onExitPlaid, onSelect, text, receivedRedirectURI, plaidLinkOAuthToken, bankAccountID, allowDebit}) {
+function AddPlaidBankAccount({
+    plaidData,
+    selectedPlaidAccountID,
+    plaidLinkToken,
+    onExitPlaid,
+    onBlurPlaid,
+    onSelect,
+    text,
+    receivedRedirectURI,
+    plaidLinkOAuthToken,
+    bankAccountID,
+    allowDebit,
+    isPlaidDisabled,
+}) {
     const subscribedKeyboardShortcuts = useRef([]);
     const previousNetworkState = useRef();
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
 
     /**
      * @returns {String}
@@ -84,6 +108,11 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
             return plaidLinkOAuthToken;
         }
     };
+
+    /**
+     * @returns {Array}
+     */
+    const plaidBankAccounts = useMemo(() => lodashGet(plaidData, 'bankAccounts') || [], [plaidData]);
 
     /**
      * @returns {Boolean}
@@ -135,6 +164,13 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
     }, []);
 
     useEffect(() => {
+        if (isFocused || plaidBankAccounts.length) {
+            return;
+        }
+        onBlurPlaid();
+    }, [isFocused, onBlurPlaid, plaidBankAccounts.length]);
+
+    useEffect(() => {
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
         if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid()) {
@@ -143,7 +179,6 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
         previousNetworkState.current = isOffline;
     }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
 
-    const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts') || [];
     const token = getPlaidLinkToken();
     const options = _.map(plaidBankAccounts, (account) => ({
         value: account.plaidAccountID,
@@ -153,6 +188,14 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
     const plaidErrors = lodashGet(plaidData, 'errors');
     const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
     const bankName = lodashGet(plaidData, 'bankName');
+
+    if (isPlaidDisabled) {
+        return (
+            <View>
+                <Text style={[styles.formError]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
+            </View>
+        );
+    }
 
     // Plaid Link view
     if (!plaidBankAccounts.length) {
@@ -176,6 +219,20 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
                         }}
                         onError={(error) => {
                             Log.hmmm('[PlaidLink] Error: ', error.message);
+                        }}
+                        onEvent={(event, metadata) => {
+                            // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
+                            if (event === 'ERROR') {
+                                Log.hmmm('[PlaidLink] Error: ', metadata);
+                                if (bankAccountID && metadata.error_code) {
+                                    BankAccounts.handlePlaidError(bankAccountID, metadata.error_code, metadata.error_message, metadata.request_id);
+                                }
+                            }
+
+                            // Limit the number of times a user can submit Plaid credentials
+                            if (event === 'SUBMIT_CREDENTIALS') {
+                                App.handleRestrictedEvent(event);
+                            }
                         }}
                         // User prematurely exited the Plaid flow
                         // eslint-disable-next-line react/jsx-props-no-multi-spaces
@@ -223,5 +280,8 @@ export default withOnyx({
     plaidLinkToken: {
         key: ONYXKEYS.PLAID_LINK_TOKEN,
         initWithStoredValues: false,
+    },
+    isPlaidDisabled: {
+        key: ONYXKEYS.IS_PLAID_DISABLED,
     },
 })(AddPlaidBankAccount);

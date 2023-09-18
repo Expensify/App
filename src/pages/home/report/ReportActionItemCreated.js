@@ -89,7 +89,10 @@ function ReportActionItemCreated(props) {
                         />
                     </PressableWithoutFeedback>
                     <View style={[styles.ph5]}>
-                        <ReportWelcomeText report={props.report} />
+                        <ReportWelcomeText
+                            report={props.report}
+                            policy={props.policy}
+                        />
                     </View>
                 </View>
             </View>

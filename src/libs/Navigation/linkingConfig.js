@@ -12,12 +12,15 @@ export default {
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
-            Concierge: ROUTES.CONCIERGE,
+            [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
             AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
             GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
-            DesktopSignInRedirect: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
+            [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
-            SaaStrHome: ROUTES.SAASTR_HOME,
+
+            // Demo routes
+            [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR,
+            [CONST.DEMO_PAGES.SBE]: ROUTES.SBE,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -29,11 +32,7 @@ export default {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
                 },
             },
-            [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
-                screens: {
-                    [SCREENS.NOT_FOUND]: '*',
-                },
-            },
+            [SCREENS.NOT_FOUND]: '*',
 
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {
@@ -205,9 +204,6 @@ export default {
                             Workspace_Invite_Message: {
                                 path: ROUTES.WORKSPACE_INVITE_MESSAGE,
                             },
-                            Workspace_NewRoom: {
-                                path: ROUTES.WORKSPACE_NEW_ROOM,
-                            },
                             ReimbursementAccount: {
                                 path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                                 exact: true,
@@ -215,6 +211,13 @@ export default {
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE,
                             },
+                        },
+                    },
+                    Private_Notes: {
+                        screens: {
+                            PrivateNotes_View: ROUTES.PRIVATE_NOTES_VIEW,
+                            PrivateNotes_List: ROUTES.PRIVATE_NOTES_LIST,
+                            PrivateNotes_Edit: ROUTES.PRIVATE_NOTES_EDIT,
                         },
                     },
                     Report_Details: {
@@ -244,14 +247,22 @@ export default {
                             Report_WelcomeMessage_Root: ROUTES.REPORT_WELCOME_MESSAGE,
                         },
                     },
-                    NewGroup: {
-                        screens: {
-                            NewGroup_Root: ROUTES.NEW_GROUP,
-                        },
-                    },
                     NewChat: {
                         screens: {
-                            NewChat_Root: ROUTES.NEW_CHAT,
+                            NewChat_Root: {
+                                path: ROUTES.NEW,
+                                exact: true,
+                                screens: {
+                                    chat: {
+                                        path: ROUTES.NEW_CHAT,
+                                        exact: true,
+                                    },
+                                    room: {
+                                        path: ROUTES.NEW_ROOM,
+                                        exact: true,
+                                    },
+                                },
+                            },
                         },
                     },
                     NewTask: {
@@ -262,6 +273,14 @@ export default {
                             NewTask_Details: ROUTES.NEW_TASK_DETAILS,
                             NewTask_Title: ROUTES.NEW_TASK_TITLE,
                             NewTask_Description: ROUTES.NEW_TASK_DESCRIPTION,
+                        },
+                    },
+                    TeachersUnite: {
+                        screens: {
+                            SaveTheWorld_Root: ROUTES.TEACHERS_UNITE,
+                            I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
+                            Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
+                            I_Am_A_Teacher: ROUTES.I_AM_A_TEACHER,
                         },
                     },
                     Search: {
@@ -307,9 +326,14 @@ export default {
                             Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT,
                             Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS,
                             Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION,
+                            Money_Request_Date: ROUTES.MONEY_REQUEST_DATE,
                             Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
+                            Money_Request_Category: ROUTES.MONEY_REQUEST_CATEGORY,
+                            Money_Request_Tag: ROUTES.MONEY_REQUEST_TAG,
+                            Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT,
                             Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT,
+                            Money_Request_Address: ROUTES.MONEY_REQUEST_ADDRESS,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                             IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,

@@ -116,16 +116,24 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
         const isWorkspaceRoute = topRoute.name === 'Settings' && topRoute.params.path.includes('workspace');
         const transitionRoute = _.find(routes, (route) => route.name === SCREENS.TRANSITION_BETWEEN_APPS);
         const exitingToWorkspaceRoute = lodashGet(transitionRoute, 'params.exitTo', '') === 'workspace/new';
+        const openOnAdminRoom = lodashGet(topRoute, 'params.openOnAdminRoom', false);
         const isDisplayingWorkspaceRoute = isWorkspaceRoute || exitingToWorkspaceRoute;
 
-        // We want to display the Workspace chat first since that means a user is already in a Workspace and doesn't need to create another one
+        // If we already opened the workspace settings or want the admin room to stay open, do not
+        // navigate away to the workspace chat report
+        const shouldNavigateToWorkspaceChat = !isDisplayingWorkspaceRoute && !openOnAdminRoom;
+
         const workspaceChatReport = _.find(
             allReports,
             (report) => ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS.CLOSED,
         );
-        if (workspaceChatReport && !isDisplayingWorkspaceRoute) {
+
+        if (workspaceChatReport || openOnAdminRoom) {
             // This key is only updated when we call ReconnectApp, setting it to false now allows the user to navigate normally instead of always redirecting to the workspace chat
             Onyx.set(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, false);
+        }
+
+        if (shouldNavigateToWorkspaceChat && workspaceChatReport) {
             Navigation.navigate(ROUTES.getReportRoute(workspaceChatReport.reportID));
 
             // If showPopoverMenu exists and returns true then it opened the Popover Menu successfully, and we can update isFirstTimeNewExpensifyUser

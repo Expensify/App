@@ -71,10 +71,38 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const MoneyRequestDatePage = require('../../../pages/iou/MoneyRequestDatePage').default;
+            return MoneyRequestDatePage;
+        },
+        name: 'Money_Request_Date',
+    },
+    {
+        getComponent: () => {
             const MoneyRequestDescriptionPage = require('../../../pages/iou/MoneyRequestDescriptionPage').default;
             return MoneyRequestDescriptionPage;
         },
         name: 'Money_Request_Description',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestCategoryPage = require('../../../pages/iou/MoneyRequestCategoryPage').default;
+            return MoneyRequestCategoryPage;
+        },
+        name: 'Money_Request_Category',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestTagPage = require('../../../pages/iou/MoneyRequestTagPage').default;
+            return MoneyRequestTagPage;
+        },
+        name: 'Money_Request_Tag',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestMerchantPage = require('../../../pages/iou/MoneyRequestMerchantPage').default;
+            return MoneyRequestMerchantPage;
+        },
+        name: 'Money_Request_Merchant',
     },
     {
         getComponent: () => {
@@ -103,6 +131,13 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
             return WaypointEditorPage;
         },
         name: 'Money_Request_Waypoint',
+    },
+    {
+        getComponent: () => {
+            const DistanceRequestEditPage = require('../../../pages/iou/DistanceRequestPage').default;
+            return DistanceRequestEditPage;
+        },
+        name: 'Money_Request_Address',
     },
 ]);
 
@@ -238,21 +273,11 @@ const SearchModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
-const NewGroupModalStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const NewGroupPage = require('../../../pages/NewGroupPage').default;
-            return NewGroupPage;
-        },
-        name: 'NewGroup_Root',
-    },
-]);
-
 const NewChatModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
-            const NewChatPage = require('../../../pages/NewChatPage').default;
-            return NewChatPage;
+            const NewChatSelectorPage = require('../../../pages/NewChatSelectorPage').default;
+            return NewChatSelectorPage;
         },
         name: 'NewChat_Root',
     },
@@ -300,6 +325,37 @@ const NewTaskModalStackNavigator = createModalStackNavigator([
             return NewTaskDescriptionPage;
         },
         name: 'NewTask_Description',
+    },
+]);
+
+const NewTeachersUniteNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const SaveTheWorldPage = require('../../../pages/TeachersUnite/SaveTheWorldPage').default;
+            return SaveTheWorldPage;
+        },
+        name: 'SaveTheWorld_Root',
+    },
+    {
+        getComponent: () => {
+            const KnowATeacherPage = require('../../../pages/TeachersUnite/KnowATeacherPage').default;
+            return KnowATeacherPage;
+        },
+        name: 'I_Know_A_Teacher',
+    },
+    {
+        getComponent: () => {
+            const IntroSchoolPrincipalPage = require('../../../pages/TeachersUnite/IntroSchoolPrincipalPage').default;
+            return IntroSchoolPrincipalPage;
+        },
+        name: 'Intro_School_Principal',
+    },
+    {
+        getComponent: () => {
+            const ImTeacherPage = require('../../../pages/TeachersUnite/ImTeacherPage').default;
+            return ImTeacherPage;
+        },
+        name: 'I_Am_A_Teacher',
     },
 ]);
 
@@ -615,13 +671,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const WorkspaceNewRoomPage = require('../../../pages/workspace/WorkspaceNewRoomPage').default;
-            return WorkspaceNewRoomPage;
-        },
-        name: 'Workspace_NewRoom',
-    },
-    {
-        getComponent: () => {
             const ReimbursementAccountPage = require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default;
             return ReimbursementAccountPage;
         },
@@ -711,6 +760,30 @@ const EditRequestStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const PrivateNotesModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const PrivateNotesPage = require('../../../pages/PrivateNotes/PrivateNotesViewPage').default;
+            return PrivateNotesPage;
+        },
+        name: 'PrivateNotes_View',
+    },
+    {
+        getComponent: () => {
+            const PrivateNotesListPage = require('../../../pages/PrivateNotes/PrivateNotesListPage').default;
+            return PrivateNotesListPage;
+        },
+        name: 'PrivateNotes_List',
+    },
+    {
+        getComponent: () => {
+            const PrivateNotesEditPage = require('../../../pages/PrivateNotes/PrivateNotesEditPage').default;
+            return PrivateNotesEditPage;
+        },
+        name: 'PrivateNotes_Edit',
+    },
+]);
+
 const SignInModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -732,7 +805,6 @@ export {
     ReportWelcomeMessageModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
-    NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     NewTaskModalStackNavigator,
     SettingsModalStackNavigator,
@@ -742,5 +814,7 @@ export {
     WalletStatementStackNavigator,
     FlagCommentStackNavigator,
     EditRequestStackNavigator,
+    PrivateNotesModalStackNavigator,
+    NewTeachersUniteNavigator,
     SignInModalStackNavigator,
 };

@@ -34,9 +34,9 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import BlockingView from '../components/BlockingViews/BlockingView';
 import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
-import ROUTES from '../ROUTES';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import Permissions from '../libs/Permissions';
+import ROUTES from '../ROUTES';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -139,11 +139,15 @@ function ProfilePage(props) {
     const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', '');
+
+    const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : 0;
+
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
+                onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
             />
             <View
                 pointerEvents="box-none"
@@ -234,6 +238,17 @@ function ProfilePage(props) {
                                 shouldShowRightIcon
                             />
                         )}
+                        {!_.isEmpty(chatReportWithCurrentUser) && (
+                            <MenuItem
+                                title={`${props.translate('privateNotes.title')}`}
+                                titleStyle={styles.flex1}
+                                icon={Expensicons.Pencil}
+                                onPress={() => Navigation.navigate(ROUTES.getPrivateNotesListRoute(chatReportWithCurrentUser.reportID))}
+                                wrapperStyle={styles.breakAll}
+                                shouldShowRightIcon
+                                brickRoadIndicator={Report.hasErrorInPrivateNotes(chatReportWithCurrentUser) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            />
+                        )}
                     </ScrollView>
                 )}
                 {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
@@ -243,6 +258,8 @@ function ProfilePage(props) {
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={props.translate('notFound.notHere')}
+                        shouldShowLink
+                        link={props.translate('notFound.goBackHome')}
                     />
                 )}
             </View>

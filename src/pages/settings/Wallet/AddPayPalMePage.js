@@ -68,7 +68,10 @@ function AddPayPalMePage(props) {
     );
 
     return (
-        <ScreenWrapper onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}
+        >
             <HeaderWithBackButton
                 title={props.translate('common.payPalMe')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}

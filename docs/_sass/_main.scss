@@ -267,8 +267,8 @@ button {
         }
 
         #header-button {
-            position: absolute;
             display: block;
+            padding-right: 24px;
             @include breakpoint($breakpoint-tablet) {
                 display: none;
             }
@@ -281,7 +281,7 @@ button {
             margin-left: auto;
             margin-right: auto;
 
-            @include breakpoint($breakpoint-tablet) {
+            @include breakpoint($breakpoint-desktop) {
                 width: 210px;
                 align-content: normal;
                 display: flex;

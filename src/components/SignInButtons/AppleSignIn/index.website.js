@@ -5,7 +5,6 @@ import get from 'lodash/get';
 import getUserLanguage from '../GetUserLanguage';
 import * as Session from '../../../libs/actions/Session';
 import Log from '../../../libs/Log';
-import * as Environment from '../../../libs/Environment/Environment';
 import CONFIG from '../../../CONFIG';
 import CONST from '../../../CONST';
 import withNavigationFocus from '../../withNavigationFocus';
@@ -51,7 +50,7 @@ const config = {
  */
 
 const successListener = (event) => {
-    const token = !Environment.isDevelopment() ? event.detail.id_token : lodashGet(Config, 'ASI_TOKEN_OVERRIDE', event.detail.id_token);
+    const token = event.detail.authorization.id_token;
     Session.beginAppleSignIn(token);
 };
 
