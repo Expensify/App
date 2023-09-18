@@ -17,11 +17,12 @@ import * as User from '../../libs/actions/User';
 import CONST from '../../CONST';
 
 const propTypes = {
-    /** The location error code from onyx */
-    locationErrorCode: PropTypes.number,
-
     /** A callback that runs when 'allow location permission' link is pressed */
     onAllowLocationLinkPress: PropTypes.func.isRequired,
+
+    /* Onyx Props */
+    /** The location error code from onyx */
+    locationErrorCode: PropTypes.number,
 
     ...withLocalizePropTypes,
 };
