@@ -77,7 +77,10 @@ function MoneyRequestConfirmPage(props) {
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-        if (typeof props.iou.defaultBillable !== 'boolean') IOU.setMoneyRequestDefaultBillable(lodashGet(props.policy, 'defaultBillable', false));
+        // Verification to reset billable with a default value, when value in IOU was changed
+        if (typeof props.iou.billable !== 'boolean') {
+            IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -136,7 +139,7 @@ function MoneyRequestConfirmPage(props) {
                 trimmedComment,
                 receipt,
                 props.iou.category,
-                props.iou.defaultBillable,
+                props.iou.billable,
             );
         },
         [
@@ -148,7 +151,7 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.login,
             props.currentUserPersonalDetails.accountID,
             props.iou.category,
-            props.iou.defaultBillable,
+            props.iou.billable,
         ],
     );
 
@@ -286,8 +289,8 @@ function MoneyRequestConfirmPage(props) {
                                 iouAmount={props.iou.amount}
                                 iouComment={props.iou.comment}
                                 iouCurrencyCode={props.iou.currency}
-                                iouIsBillable={props.iou.defaultBillable}
-                                onToggleBillable={IOU.setMoneyRequestDefaultBillable}
+                                iouIsBillable={props.iou.billable}
+                                onToggleBillable={IOU.setMoneyRequestBillable}
                                 iouCategory={props.iou.category}
                                 iouTag={props.iou.tag}
                                 onConfirm={createTransaction}
