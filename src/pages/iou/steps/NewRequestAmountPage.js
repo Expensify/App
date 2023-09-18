@@ -67,7 +67,8 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const currentCurrency = lodashGet(route, 'params.currency', '');
     const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
-    const currency = currentCurrency || iou.currency;
+    const policy = ReportUtils.getPolicy(report.policyID);
+    const currency = currentCurrency || lodashGet(policy, 'outputCurrency', undefined) || iou.currency;
 
     const focusTextInput = () => {
         // Component may not be initialized due to navigation transitions
