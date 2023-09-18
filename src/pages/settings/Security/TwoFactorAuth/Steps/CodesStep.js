@@ -47,7 +47,7 @@ function CodesStep({account = defaultAccount}) {
                 total: 3,
             }}
         >
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Section
                     title={translate('twoFactorAuth.keepCodesSafe')}
                     icon={Illustrations.ShieldYellow}
