@@ -3032,6 +3032,11 @@ const styles = (theme) => ({
         alignItems: 'center',
     },
 
+    locationErrorLinkText: {
+        textAlignVertical: 'center',
+        fontSize: variables.fontSizeLabel,
+    },
+
     sidebarPopover: {
         width: variables.sideBarWidth - 68,
     },
