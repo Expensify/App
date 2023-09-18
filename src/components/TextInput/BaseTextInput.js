@@ -20,6 +20,7 @@ import FormHelpMessage from '../FormHelpMessage';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import withLocalize from '../withLocalize';
+import useNativeDriver from '../../libs/useNativeDriver';
 
 function BaseTextInput(props) {
     const inputValue = props.value || props.defaultValue || '';
@@ -85,12 +86,12 @@ function BaseTextInput(props) {
                 Animated.spring(labelTranslateY, {
                     toValue: translateY,
                     duration: styleConst.LABEL_ANIMATION_DURATION,
-                    useNativeDriver: true,
+                    useNativeDriver,
                 }),
                 Animated.spring(labelScale, {
                     toValue: scale,
                     duration: styleConst.LABEL_ANIMATION_DURATION,
-                    useNativeDriver: true,
+                    useNativeDriver,
                 }),
             ]).start();
         },
