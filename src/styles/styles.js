@@ -225,11 +225,6 @@ const styles = (theme) => ({
         color: theme.textSupporting,
     },
 
-    appIconBorderRadius: {
-        overflow: 'hidden',
-        borderRadius: 12,
-    },
-
     webViewStyles: webViewStyles(theme),
 
     link: link(theme),
