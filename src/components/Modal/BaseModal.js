@@ -14,6 +14,7 @@ import variables from '../../styles/variables';
 import CONST from '../../CONST';
 import ComposerFocusManager from '../../libs/ComposerFocusManager';
 import useNativeDriver from '../../libs/useNativeDriver';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     ...modalPropTypes,
@@ -56,6 +57,7 @@ function BaseModal({
     const safeAreaInsets = useSafeAreaInsets();
 
     const isVisibleRef = useRef(isVisible);
+    const wasVisible = usePrevious(isVisible);
 
     /**
      * Hides modal
@@ -78,24 +80,16 @@ function BaseModal({
     );
 
     useEffect(() => {
-        if (!isVisible) {
-            return;
-        }
-        Modal.willAlertModalBecomeVisible(true);
-        // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-        Modal.setCloseModal(onClose);
-    }, [isVisible, onClose]);
-
-    useEffect(() => {
         isVisibleRef.current = isVisible;
-        return () => {
-            if (!isVisible) {
-                return;
-            }
+        if (isVisible) {
+            Modal.willAlertModalBecomeVisible(true);
+            // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
+            Modal.setCloseModal(onClose);
+        } else if (wasVisible && !isVisible) {
             Modal.willAlertModalBecomeVisible(false);
             Modal.setCloseModal(null);
-        };
-    }, [isVisible]);
+        }
+    }, [isVisible, wasVisible, onClose]);
 
     useEffect(
         () => () => {
