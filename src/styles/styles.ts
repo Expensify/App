@@ -73,6 +73,8 @@ type Styles = Record<
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+// to prevent vertical text offset in Safari for badges, new lineHeight values have been added
+const lineHeightBadge: Pick<ViewStyle, 'lineHeight'> = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme: ThemeDefault) =>
     ({
@@ -808,7 +810,7 @@ const styles = (theme: ThemeDefault) =>
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
+            ...lineHeightBadge,
             ...whiteSpace.noWrap,
         },
 
