@@ -98,6 +98,7 @@ function resetMoneyRequestInfo(id = '') {
         receiptPath: '',
         receiptSource: '',
         transactionID: '',
+        billable: null,
     });
 }
 
@@ -341,6 +342,7 @@ function buildOnyxDataForMoneyRequest(
  * @param {Object} [receipt]
  * @param {String} [existingTransactionID]
  * @param {String} [category]
+ * @param {Boolean} [billable]
  * @returns {Object} data
  * @returns {String} data.payerEmail
  * @returns {Object} data.iouReport
@@ -368,6 +370,7 @@ function getMoneyRequestInformation(
     receipt = undefined,
     existingTransactionID = undefined,
     category = undefined,
+    billable = undefined,
 ) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
@@ -433,6 +436,7 @@ function getMoneyRequestInformation(
         filename,
         existingTransactionID,
         category,
+        billable,
     );
 
     const uniquePolicyRecentlyUsedCategories = allRecentlyUsedCategories
@@ -600,8 +604,9 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {String} comment
  * @param {Object} [receipt]
  * @param {String} [category]
+ * @param {Boolean} [billable]
  */
-function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined, category = undefined) {
+function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined, category = undefined, billable = undefined) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
@@ -618,6 +623,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
         receipt,
         undefined,
         category,
+        billable,
     );
 
     API.write(
@@ -638,6 +644,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             receipt,
             category,
+            billable,
         },
         onyxData,
     );
@@ -1949,6 +1956,13 @@ function resetMoneyRequestCategory() {
 }
 
 /**
+ * @param {Boolean} billable
+ */
+function setMoneyRequestBillable(billable) {
+    Onyx.merge(ONYXKEYS.IOU, {billable});
+}
+
+/**
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
@@ -2032,6 +2046,7 @@ export {
     setMoneyRequestMerchant,
     setMoneyRequestCategory,
     resetMoneyRequestCategory,
+    setMoneyRequestBillable,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
     createEmptyTransaction,

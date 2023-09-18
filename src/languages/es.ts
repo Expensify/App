@@ -234,6 +234,7 @@ export default {
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
         category: 'Categoría',
+        billable: 'Facturable',
         tag: 'Etiqueta',
         receipt: 'Recibo',
         replace: 'Sustituir',
