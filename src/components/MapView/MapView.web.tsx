@@ -56,7 +56,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
 
             return () => {
                 resizeObserver?.disconnect();
-            }
+            };
         }, [mapRef]);
 
         useImperativeHandle(
