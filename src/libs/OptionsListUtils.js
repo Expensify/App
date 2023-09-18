@@ -364,6 +364,10 @@ function getAllReportErrors(report, reportActions) {
         if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
+    } else if (ReportUtils.isIOUReport(report)) {
+        if (ReportUtils.hasMissingSmartscanFields(report.reportID)) {
+            _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
+        }
     }
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
