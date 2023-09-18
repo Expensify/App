@@ -187,7 +187,7 @@ function ComposerWithSuggestions({
             if (commentValue !== newComment) {
                 // Reset emoji suggestions when an emoji is replaced.
                 // Important when emoji is replaced and the selection is not changed, more info issue #27156
-                if (suggestionsRef.current){
+                if (suggestionsRef.current) {
                     suggestionsRef.current.resetSuggestions();
                 }
 
