@@ -741,14 +741,13 @@ function isMoneyRequestReport(reportOrID) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
-function shouldDeleteReportOnCommentDeletion(reportOrID, reportAction, deletedMessage)
-{
+function shouldDeleteReportOnCommentDeletion(reportOrID, reportAction, deletedMessage) {
     const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
     // For now, this is applicable only for Money Request Reports
     if (!isMoneyRequestReport(report)) {
         return false;
     }
-    // Considering that we are deleting the current last visible action, 
+    // Considering that we are deleting the current last visible action,
     // let us find out if there are any more visible action count available in report
     const updatedReportAction = {
         [reportAction.reportActionID]: {

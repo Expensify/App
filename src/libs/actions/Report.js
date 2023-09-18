@@ -930,10 +930,10 @@ function deleteReportComment(reportID, reportAction) {
             isDeletedParentAction: ReportActionsUtils.isThreadParentMessage(reportAction, reportID),
         },
     ];
-    const shouldDeleteReport = ReportUtils.shouldDeleteReportOnCommentDeletion(originalReportID,reportAction, deletedMessage);
+    const shouldDeleteReport = ReportUtils.shouldDeleteReportOnCommentDeletion(originalReportID, reportAction, deletedMessage);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(originalReportID);
-    const iouChatReport = shouldDeleteReport && isMoneyRequestReport ? ReportUtils.getReport(originalReport.chatReportID) : null; 
-    const reportPreviewAction = shouldDeleteReport && isMoneyRequestReport ? ReportActionsUtils.getReportPreviewAction(originalReport.chatReportID, originalReport.reportID) : null; 
+    const iouChatReport = shouldDeleteReport && isMoneyRequestReport ? ReportUtils.getReport(originalReport.chatReportID) : null;
+    const reportPreviewAction = shouldDeleteReport && isMoneyRequestReport ? ReportActionsUtils.getReportPreviewAction(originalReport.chatReportID, originalReport.reportID) : null;
     const optimisticReportActions = {
         [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -987,22 +987,22 @@ function deleteReportComment(reportID, reportAction) {
         },
         ...(shouldDeleteReport
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
-                    value: originalReport,
-                },
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
+                      value: originalReport,
+                  },
               ]
-            : []),        
+            : []),
         ...(iouChatReport
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouChatReport.reportID}`,
-                    value: iouChatReport,
-                },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouChatReport.reportID}`,
+                      value: iouChatReport,
+                  },
               ]
-            : []),        
+            : []),
     ];
 
     const successData = [
@@ -1042,7 +1042,7 @@ function deleteReportComment(reportID, reportAction) {
                       },
                   },
               ]
-            : []),        
+            : []),
     ];
 
     // Update optimistic data for parent report action if the report is a child report
@@ -1075,7 +1075,7 @@ function deleteReportComment(reportID, reportAction) {
         // Pop the IOU Report and navigate to chat report.
         Navigation.goBack();
         Navigation.navigate(ROUTES.getReportRoute(originalReport.chatReportID));
-    }    
+    }
 }
 
 /**
