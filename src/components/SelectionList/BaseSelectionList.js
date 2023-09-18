@@ -168,28 +168,6 @@ function BaseSelectionList({
         listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
     };
 
-    const selectRow = (item, index) => {
-        // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
-        if (canSelectMultiple) {
-            if (sections.length === 1) {
-                // If the list has only 1 section (e.g. Workspace Members list), we always focus the next available item
-                const nextAvailableIndex = _.findIndex(flattenedSections.allOptions, (option, i) => i > index && !option.isDisabled);
-                setFocusedIndex(nextAvailableIndex);
-            } else {
-                // If the list has multiple sections (e.g. Workspace Invite list), we focus the first one after all the selected (selected items are always at the top)
-                const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
-                setFocusedIndex(selectedOptionsCount);
-
-                if (!item.isSelected) {
-                    // If we're selecting an item, scroll to it's position at the top, so we can see it
-                    scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
-                }
-            }
-        }
-
-        onSelectRow(item);
-    };
-
     const selectFocusedOption = () => {
         const focusedOption = flattenedSections.allOptions[focusedIndex];
 
@@ -197,7 +175,25 @@ function BaseSelectionList({
             return;
         }
 
-        selectRow(focusedOption, focusedIndex);
+        // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
+        if (canSelectMultiple) {
+            if (sections.length === 1) {
+                // If the list has only 1 section (e.g. Workspace Members list), we always focus the next available item
+                const nextAvailableIndex = _.findIndex(flattenedSections.allOptions, (option, i) => i > focusedIndex && !option.isDisabled);
+                setFocusedIndex(nextAvailableIndex);
+            } else {
+                // If the list has multiple sections (e.g. Workspace Invite list), we focus the first one after all the selected (selected items are always at the top)
+                const selectedOptionsCount = focusedOption.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
+                setFocusedIndex(selectedOptionsCount);
+
+                if (!focusedOption.isSelected) {
+                    // If we're selecting an item, scroll to it's position at the top, so we can see it
+                    scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
+                }
+            }
+        }
+
+        onSelectRow(focusedOption);
     };
 
     /**
