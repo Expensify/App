@@ -319,6 +319,7 @@ function ReportScreen({
             <ScreenWrapper
                 style={screenWrapperStyle}
                 shouldEnableKeyboardAvoidingView={isTopMostReportId}
+                shouldDisableFocusTrap
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundPage}
