@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import _ from 'underscore';
 import {deepEqual} from 'fast-equals';
 import {withOnyx} from 'react-native-onyx';
@@ -81,6 +81,10 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         return reportIDsRef.current || [];
     }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode, isLoading]);
 
+    const currentReportIDRef = useRef(currentReportID);
+    currentReportIDRef.current = currentReportID;
+    const isActiveReport = useCallback((reportID) => currentReportIDRef.current === reportID, []);
+
     return (
         <View
             accessibilityElementsHidden={!isFocused}
@@ -94,6 +98,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
                 isSmallScreenWidth={isSmallScreenWidth}
                 priorityMode={priorityMode}
                 // Data props:
+                isActiveReport={isActiveReport}
                 isLoading={isLoading}
                 optionListItems={optionListItems}
             />

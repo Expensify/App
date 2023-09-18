@@ -274,6 +274,7 @@ Form.js will automatically provide the following props to any input with the inp
 - onBlur: An onBlur handler that calls validate.
 - onTouched: An onTouched handler that marks the input as touched.
 - onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).
+- onFocus: An onFocus handler that marks the input as focused.
 
 ## Dynamic Form Inputs
 

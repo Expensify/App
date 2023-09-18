@@ -12,6 +12,7 @@ type AnchorOrigin = {
 type EmojiPickerRef = {
     showEmojiPicker: (onModalHideValue?: () => void, onEmojiSelectedValue?: () => void, emojiPopoverAnchor?: View, anchorOrigin?: AnchorOrigin, onWillShow?: () => void, id?: string) => void;
     isActive: (id: string) => boolean;
+    clearActive: () => void;
     hideEmojiPicker: (isNavigating: boolean) => void;
     isEmojiPickerVisible: boolean;
     resetEmojiPopoverAnchor: () => void;
@@ -59,6 +60,14 @@ function isActive(id: string): boolean {
     return emojiPickerRef.current.isActive(id);
 }
 
+function clearActive(): void {
+    if (!emojiPickerRef.current) {
+        return;
+    }
+
+    return emojiPickerRef.current.clearActive();
+}
+
 function isEmojiPickerVisible(): boolean {
     if (!emojiPickerRef.current) {
         return false;
@@ -75,4 +84,4 @@ function resetEmojiPopoverAnchor() {
     emojiPickerRef.current.resetEmojiPopoverAnchor();
 }
 
-export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};
+export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, clearActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};

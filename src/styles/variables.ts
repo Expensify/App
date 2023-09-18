@@ -25,7 +25,7 @@ export default {
     componentBorderRadiusLarge: 16,
     componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 24,
-    downloadAppModalAppIconSize: 48,
+    appModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
     avatarSizeLarge: 80,
@@ -74,7 +74,7 @@ export default {
     emojiLineHeight: 28,
     iouAmountTextSize: 40,
     extraSmallMobileResponsiveWidthBreakpoint: 320,
-    extraSmallMobileResponsiveHeightBreakpoint: 550,
+    extraSmallMobileResponsiveHeightBreakpoint: 667,
     mobileResponsiveWidthBreakpoint: 800,
     modalFullscreenBackdropOpacity: 0.5,
     tabletResponsiveWidthBreakpoint: 1024,
@@ -133,6 +133,8 @@ export default {
     signInLogoWidth: 120,
     signInLogoWidthLargeScreen: 144,
     signInLogoWidthPill: 132,
+    tabSelectorButtonHeight: 40,
+    tabSelectorButtonPadding: 12,
     lhnLogoWidth: 108,
     lhnLogoHeight: 28,
     signInLogoWidthLargeScreenPill: 162,
@@ -151,7 +153,7 @@ export default {
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
 
-    baseMenuItemHeight: 64,
-
     moneyRequestSkeletonHeight: 107,
+
+    distanceScrollEventThrottle: 16,
 } as const;

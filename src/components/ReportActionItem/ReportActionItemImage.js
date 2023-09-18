@@ -35,47 +35,44 @@ const defaultProps = {
 
 function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
     const {translate} = useLocalize();
+    const imageSource = tryResolveUrlFromApiRoot(image || '');
+    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
 
-    if (thumbnail) {
-        const imageSource = tryResolveUrlFromApiRoot(image);
-        const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail);
-        const thumbnailComponent = (
-            <ThumbnailImage
-                previewSourceURL={thumbnailSource}
-                style={[styles.w100, styles.h100]}
-                isAuthTokenRequired
-                shouldDynamicallyResize={false}
-            />
-        );
-
-        if (enablePreviewModal) {
-            return (
-                <ShowContextMenuContext.Consumer>
-                    {({report}) => (
-                        <PressableWithoutFocus
-                            style={[styles.noOutline, styles.w100, styles.h100]}
-                            onPress={() => {
-                                const route = ROUTES.getReportAttachmentRoute(report.reportID, imageSource);
-                                Navigation.navigate(route);
-                            }}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                            accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                        >
-                            {thumbnailComponent}
-                        </PressableWithoutFocus>
-                    )}
-                </ShowContextMenuContext.Consumer>
-            );
-        }
-        return thumbnailComponent;
-    }
-
-    return (
+    const receiptImageComponent = thumbnail ? (
+        <ThumbnailImage
+            previewSourceURL={thumbnailSource}
+            style={[styles.w100, styles.h100]}
+            isAuthTokenRequired
+            shouldDynamicallyResize={false}
+        />
+    ) : (
         <Image
             source={{uri: image}}
             style={[styles.w100, styles.h100]}
         />
     );
+
+    if (enablePreviewModal) {
+        return (
+            <ShowContextMenuContext.Consumer>
+                {({report}) => (
+                    <PressableWithoutFocus
+                        style={[styles.noOutline, styles.w100, styles.h100]}
+                        onPress={() => {
+                            const route = ROUTES.getReportAttachmentRoute(report.reportID, imageSource);
+                            Navigation.navigate(route);
+                        }}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                    >
+                        {receiptImageComponent}
+                    </PressableWithoutFocus>
+                )}
+            </ShowContextMenuContext.Consumer>
+        );
+    }
+
+    return receiptImageComponent;
 }
 
 ReportActionItemImage.propTypes = propTypes;

@@ -108,7 +108,6 @@ function ButtonWithDropdownMenu(props) {
                         isLoading={props.isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
-                        pressOnEnter
                         large={isButtonSizeLarge}
                         medium={!isButtonSizeLarge}
                         innerStyles={[innerStyleDropButton]}
@@ -144,7 +143,6 @@ function ButtonWithDropdownMenu(props) {
                     isLoading={props.isLoading}
                     text={selectedItem.text}
                     onPress={(event) => props.onPress(event, props.options[0].value)}
-                    pressOnEnter
                     large={isButtonSizeLarge}
                     medium={!isButtonSizeLarge}
                     innerStyles={[innerStyleDropButton]}
