@@ -1,6 +1,7 @@
 import {View, Text, PixelRatio} from 'react-native';
 import React, {useContext, useState} from 'react';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import * as IOU from '../../../libs/actions/IOU';
@@ -19,8 +20,8 @@ import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
-import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
+import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -62,13 +63,42 @@ const defaultProps = {
 function ReceiptSelector(props) {
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const iouType = lodashGet(props.route, 'params.iouType', '');
-    const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
-    const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
-    const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
+    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
+    const [attachmentInvalidReason, setAttachmentValidReason] = useState('');
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
+
+    /**
+     * Sets the upload receipt error modal content when an invalid receipt is uploaded
+     */
+    const setUploadReceiptError = (isInvalid, title, reason) => {
+        setIsAttachmentInvalid(isInvalid);
+        setAttachmentInvalidReasonTitle(title);
+        setAttachmentValidReason(reason);
+    }
+
+    function validateReceipt(file) {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+            return false;
+        }
+    
+        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
+            return false;
+        }
+    
+        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+            return false;
+        }
+    
+        return true;
+    }
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
@@ -77,7 +107,7 @@ function ReceiptSelector(props) {
      * @param {Object} report
      */
     const setReceiptAndNavigate = (file, iou, report) => {
-        if (!ReceiptUtils.validateReceipt(file)) {
+        if (!validateReceipt(file)) {
             return;
         }
 
@@ -142,8 +172,8 @@ function ReceiptSelector(props) {
             />
             <ConfirmModal
                 title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                onConfirm={Receipt.clearUploadReceiptError}
-                onCancel={Receipt.clearUploadReceiptError}
+                onConfirm={() => setIsAttachmentInvalid(false)}
+                onCancel={() => setIsAttachmentInvalid(false)}
                 isVisible={isAttachmentInvalid}
                 prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                 confirmText={translate('common.close')}
