@@ -3,6 +3,7 @@ import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {PickerAvoidingView} from 'react-native-picker-select';
+import FocusTrapView from '../FocusTrapView';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
@@ -124,20 +125,26 @@ class ScreenWrapper extends React.Component {
                                         style={styles.flex1}
                                         enabled={this.props.shouldEnablePickerAvoiding}
                                     >
-                                        <HeaderGap styles={this.props.headerGapStyles} />
-                                        {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
-                                        {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}
-                                        {
-                                            // If props.children is a function, call it to provide the insets to the children.
-                                            _.isFunction(this.props.children)
-                                                ? this.props.children({
-                                                      insets,
-                                                      safeAreaPaddingBottomStyle,
-                                                      didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                                  })
-                                                : this.props.children
-                                        }
-                                        {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={this.props.offlineIndicatorStyle} />}
+                                        <FocusTrapView
+                                            style={[styles.flex1, styles.noSelect]}
+                                            enabled={!this.props.shouldDisableFocusTrap}
+                                            shouldEnableAutoFocus={this.props.shouldEnableAutoFocus}
+                                        >
+                                            <HeaderGap styles={this.props.headerGapStyles} />
+                                            {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
+                                            {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}
+                                            {
+                                                // If props.children is a function, call it to provide the insets to the children.
+                                                _.isFunction(this.props.children)
+                                                    ? this.props.children({
+                                                          insets,
+                                                          safeAreaPaddingBottomStyle,
+                                                          didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                                      })
+                                                    : this.props.children
+                                            }
+                                            {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={this.props.offlineIndicatorStyle} />}
+                                        </FocusTrapView>
                                     </PickerAvoidingView>
                                 </KeyboardAvoidingView>
                             </View>
