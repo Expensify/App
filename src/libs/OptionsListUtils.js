@@ -600,6 +600,32 @@ function isCurrentUser(userDetails) {
 }
 
 /**
+ * Calculates count of all enabled options
+ *
+ * @param {Object[]} options - an initial strings array
+ * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
+ * @param {String} options[].name - a name of an option
+ * @returns {Boolean}
+ */
+function getEnabledCategoriesCount(options) {
+    return _.chain(options)
+        .filter((option) => Boolean(option.enabled))
+        .value().length;
+}
+
+/**
+ * Verifies that there is at least one enabled option
+ *
+ * @param {Object[]} options - an initial strings array
+ * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
+ * @param {String} options[].name - a name of an option
+ * @returns {Boolean}
+ */
+function hasEnabledOptions(options) {
+    return _.some(options, (option) => Boolean(option.enabled));
+}
+
+/**
  * Build the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial strings array
@@ -612,6 +638,10 @@ function getCategoryOptionTree(options, isOneLine = false) {
     const optionCollection = {};
 
     _.each(options, (option) => {
+        if (!option.enabled) {
+            return;
+        }
+
         if (isOneLine) {
             if (_.has(optionCollection, option.name)) {
                 return;
@@ -662,7 +692,11 @@ function getCategoryOptionTree(options, isOneLine = false) {
  */
 function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const categorySections = [];
-    const categoriesValues = _.values(categories);
+    const categoriesValues = _.chain(categories)
+        .values()
+        .filter((category) => category.enabled)
+        .value();
+
     const numberOfCategories = _.size(categoriesValues);
     let indexOffset = 0;
 
@@ -1342,6 +1376,8 @@ export {
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
+    getEnabledCategoriesCount,
+    hasEnabledOptions,
     getCategoryOptionTree,
     formatMemberForList,
 };
