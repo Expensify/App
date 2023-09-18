@@ -24,6 +24,7 @@ import * as CameraPermission from './CameraPermission';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import Navigation from '../../../libs/Navigation/Navigation';
+import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 
 const propTypes = {
     /** React Navigation route */
@@ -272,10 +273,13 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                     onPress={() => {
                         showImagePicker(launchImageLibrary)
                             .then((receiptImage) => {
-                                IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
+                                const filePath = receiptImage[0].uri;
+                                IOU.setMoneyRequestReceipt(filePath, receiptImage[0].fileName);
 
                                 if (transactionID) {
-                                    IOU.replaceReceipt(transactionID, receiptImage, receiptImage[0].uri);
+                                    FileUtils.readFileAsync(filePath, receiptImage[0].fileName).then((receipt) => {
+                                        IOU.replaceReceipt(transactionID, receipt, filePath);
+                                    });
                                     Navigation.dismissModal();
                                     return;
                                 }
