@@ -1,4 +1,4 @@
-type AdditionalData = {
+export type AdditionalData = {
     isP2PDebitCard?: boolean;
     beneficialOwners?: string[];
     currency?: string;
@@ -55,6 +55,9 @@ type BankAccount = {
     description?: string;
 
     isDefault?: boolean;
+
+    /** Date when the 3 micro amounts for validation were supposed to reach the bank account. */
+    validateCodeExpectedDate?: string;
 
     /** string like 'bankAccount-{<bankAccountID>}' where <bankAccountID> is the bankAccountID */
     key?: string;
