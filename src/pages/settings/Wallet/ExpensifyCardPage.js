@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
+import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import CardPreview from '../../../components/CardPreview';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
@@ -44,9 +45,11 @@ function ExpensifyCardPage({
     const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
     const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
 
-    const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
+    if (_.isEmpty(virtualCard) || _.isEmpty(physicalCard)) {
+        return <NotFoundPage />;
+    }
 
-    const virtualMaskedPan = virtualCard.maskedPan || '';
+    const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -69,7 +72,7 @@ function ExpensifyCardPage({
                         />
                         <MenuItemWithTopDescription
                             description={translate('cardPage.virtualCardNumber')}
-                            title={virtualMaskedPan}
+                            title={virtualCard.maskedPan}
                             interactive={false}
                             titleStyle={styles.walletCardNumber}
                         />
