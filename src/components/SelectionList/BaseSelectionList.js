@@ -2,7 +2,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
@@ -64,6 +64,7 @@ function BaseSelectionList({
     const shouldShowTextInput = Boolean(textInputLabel);
     const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElement = useActiveElement();
+    const isFocused = useIsFocused();
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -265,14 +266,14 @@ function BaseSelectionList({
     const renderItem = ({item, index, section}) => {
         const normalizedIndex = index + lodashGet(section, 'indexOffset', 0);
         const isDisabled = section.isDisabled || item.isDisabled;
-        const isFocused = !isDisabled && focusedIndex === normalizedIndex;
+        const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = normalizedIndex < 10;
 
         return (
             <BaseListItem
                 item={item}
-                isFocused={isFocused}
+                isFocused={isItemFocused}
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
@@ -301,14 +302,14 @@ function BaseSelectionList({
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        isActive: !disableKeyboardShortcuts && !activeElement,
+        isActive: !disableKeyboardShortcuts && !activeElement && isFocused,
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        isActive: !disableKeyboardShortcuts && Boolean(onConfirm),
+        isActive: !disableKeyboardShortcuts && Boolean(onConfirm) && isFocused,
     });
 
     return (
@@ -350,6 +351,7 @@ function BaseSelectionList({
                                     accessibilityRole="button"
                                     accessibilityState={{checked: flattenedSections.allSelected}}
                                     disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 >
                                     <Checkbox
                                         accessibilityLabel={translate('workspace.people.selectAll')}

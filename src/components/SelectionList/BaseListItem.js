@@ -30,6 +30,7 @@ function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip,
                 accessibilityRole="button"
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <View
                     style={[
