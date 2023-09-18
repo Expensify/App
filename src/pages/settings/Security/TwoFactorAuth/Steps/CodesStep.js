@@ -104,15 +104,15 @@ function CodesStep({account = defaultAccount}) {
                         )}
                     </View>
                 </Section>
+                <FixedFooter style={[styles.mtAuto, styles.pt2]}>
+                    <Button
+                        success
+                        text={translate('common.next')}
+                        onPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY)}
+                        isDisabled={!account.codesAreCopied}
+                    />
+                </FixedFooter>
             </ScrollView>
-            <FixedFooter style={[styles.mtAuto, styles.pt2]}>
-                <Button
-                    success
-                    text={translate('common.next')}
-                    onPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY)}
-                    isDisabled={!account.codesAreCopied}
-                />
-            </FixedFooter>
         </StepWrapper>
     );
 }
