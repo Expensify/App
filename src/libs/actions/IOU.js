@@ -599,15 +599,18 @@ function createDistanceRequest(report, participant, comment, created, transactio
  *
  */
 function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
+    // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = _.mapObject(transactionChanges, () => CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     const clearedPendingFields = _.mapObject(transactionChanges, () => null);
     const errorFields = _.mapObject(pendingFields, () => ({
         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage'),
     }));
 
+    // Step 2: Get all the collections being updated
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.parentReportID}`];
+    const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
@@ -617,6 +620,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
 
     const params = {transactionID, ...transactionDetails};
 
+    // Step 3: Build the modified expense report actions
     // We don't create a modified report action if we're updating the waypoints,
     // since there isn't actually any optimistic data we can create for them.
     const modifiedReportActionOptimisticData = [];
@@ -648,6 +652,11 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
             },
         });
     }
+
+    // Step 4: Comput the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
+    // Should only update if the transaction matches the currency of the report, else we wait for the update
+    // from the server with the currency conversion
+
 
     API.write(
         'UpdateDistanceRequest',
@@ -688,7 +697,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.report}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                     value: iouReport,
                 },
                 ...modifiedReportActionFailureData,
