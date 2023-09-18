@@ -364,7 +364,7 @@ function getAllReportErrors(report, reportActions) {
         if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
-    } else if (ReportUtils.isIOUReport(report)) {
+    } else if (ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) {
         if (ReportUtils.hasMissingSmartscanFields(report.reportID)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
