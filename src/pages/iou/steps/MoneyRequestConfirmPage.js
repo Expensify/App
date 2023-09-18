@@ -83,7 +83,7 @@ function MoneyRequestConfirmPage(props) {
         if (typeof props.iou.billable !== 'boolean') {
             IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
         }
-    }, [isOffline, participants]);
+    }, [isOffline, participants, props.iou.billable, props.policy]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
