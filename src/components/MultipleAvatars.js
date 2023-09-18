@@ -219,7 +219,6 @@ function MultipleAvatars(props) {
                                         ]}
                                     >
                                         <Text
-                                            selectable={false}
                                             style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size), styles.userSelectNone]}
                                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>

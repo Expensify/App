@@ -57,8 +57,7 @@ function CarouselItem({item, isFocused, onPress}) {
             onPress={() => setIsHidden(!isHidden)}
         >
             <Text
-                style={styles.buttonSmallText}
-                selectable={false}
+                style={[styles.buttonSmallText, styles.userSelectNone]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}

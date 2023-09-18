@@ -75,7 +75,6 @@ function FloatingMessageCounter(props) {
                                 fill={themeColors.textLight}
                             />
                             <Text
-                                selectable={false}
                                 style={[styles.ml2, styles.buttonSmallText, styles.textWhite, styles.userSelectNone]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
