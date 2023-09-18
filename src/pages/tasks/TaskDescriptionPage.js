@@ -1,6 +1,7 @@
 import React, {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -20,7 +21,6 @@ import Navigation from '../../libs/Navigation/Navigation';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
-import shouldDelayFocus from '../../libs/shouldDelayFocus';
 
 const propTypes = {
     /** Current user session */
@@ -58,66 +58,62 @@ function TaskDescriptionPage(props) {
         });
     }
     const inputRef = useRef(null);
+    const focusTimeoutRef = useRef(null);
 
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
     const isTaskNonEditable = ReportUtils.isTaskReport(props.report) && (!canModifyTask || !isOpen);
 
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                if (inputRef.current) inputRef.current.focus();
+                return () => {
+                    if (!focusTimeoutRef.current) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
+            }, CONST.ANIMATED_TRANSITION);
+        }, []),
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => {
-                if (!inputRef.current) {
-                    return;
-                }
-                UpdateMultilineInputRange(inputRef.current);
-                inputRef.current.focus();
-            }}
             shouldEnableMaxHeight
         >
-            {({didScreenTransitionEnd}) => (
-                <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                    <HeaderWithBackButton title={props.translate('task.task')} />
-                    <Form
-                        style={[styles.flexGrow1, styles.ph5]}
-                        formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
-                        validate={validate}
-                        onSubmit={submit}
-                        submitButtonText={props.translate('common.save')}
-                        enabledWhenOffline
-                    >
-                        <View style={[styles.mb4]}>
-                            <TextInput
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                inputID="description"
-                                name="description"
-                                label={props.translate('newTaskPage.descriptionOptional')}
-                                accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                                defaultValue={(props.report && props.report.description) || ''}
-                                ref={(el) => {
-                                    // if we wrap the page with FullPageNotFoundView we need to explicitly handle focusing on text input
-                                    if (!el) {
-                                        return;
-                                    }
-                                    UpdateMultilineInputRange(el);
-                                    if (!inputRef.current && didScreenTransitionEnd) {
-                                        if (shouldDelayFocus) {
-                                            setTimeout(() => {
-                                                el.focus();
-                                            }, CONST.ANIMATED_TRANSITION);
-                                        } else el.focus();
-                                    }
-                                    inputRef.current = el;
-                                }}
-                                autoGrowHeight
-                                submitOnEnter={!Browser.isMobile()}
-                                containerStyles={[styles.autoGrowHeightMultilineInput]}
-                                textAlignVertical="top"
-                            />
-                        </View>
-                    </Form>
-                </FullPageNotFoundView>
-            )}
+            <FullPageNotFoundView shouldShow={isTaskNonEditable}>
+                <HeaderWithBackButton title={props.translate('task.task')} />
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
+                    validate={validate}
+                    onSubmit={submit}
+                    submitButtonText={props.translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <View style={[styles.mb4]}>
+                        <TextInput
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            inputID="description"
+                            name="description"
+                            label={props.translate('newTaskPage.descriptionOptional')}
+                            accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
+                            defaultValue={(props.report && props.report.description) || ''}
+                            ref={(el) => {
+                                if (!el) return;
+                                inputRef.current = el;
+                                UpdateMultilineInputRange(inputRef.current);
+                            }}
+                            autoGrowHeight
+                            submitOnEnter={!Browser.isMobile()}
+                            containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            textAlignVertical="top"
+                        />
+                    </View>
+                </Form>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

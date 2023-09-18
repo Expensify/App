@@ -58,9 +58,8 @@ function ReportWelcomeMessagePage(props) {
 
     useFocusEffect(
         useCallback(() => {
-            
             focusTimeoutRef.current = setTimeout(() => {
-                welcomeMessageInputRef.current.focus();
+                if (welcomeMessageInputRef.current) welcomeMessageInputRef.current.focus();
                 return () => {
                     if (!focusTimeoutRef.current) {
                         return;
@@ -68,44 +67,43 @@ function ReportWelcomeMessagePage(props) {
                     clearTimeout(focusTimeoutRef.current);
                 };
             }, CONST.ANIMATED_TRANSITION);
-        }, [welcomeMessageInputRef])
-    )
+        }, []),
+    );
 
     return (
-        <ScreenWrapper
-        >
+        <ScreenWrapper>
             <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
-                    <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
-                    <Form
-                        style={[styles.flexGrow1, styles.ph5]}
-                        formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
-                        onSubmit={submitForm}
-                        submitButtonText={props.translate('common.save')}
-                        enabledWhenOffline
-                    >
-                        <Text style={[styles.mb5]}>{props.translate('welcomeMessagePage.explainerText')}</Text>
-                        <View style={[styles.mb6]}>
-                            <TextInput
-                                inputID="welcomeMessage"
-                                label={props.translate('welcomeMessagePage.welcomeMessage')}
-                                accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                autoGrowHeight
-                                maxLength={CONST.MAX_COMMENT_LENGTH}
-                                ref={(el) => {
-                                    if(!el) return;
-                                    welcomeMessageInputRef.current = el;
-                                    UpdateMultilineInputRange(welcomeMessageInputRef.current);
-                                }}
-                                value={welcomeMessage}
-                                onChangeText={handleWelcomeMessageChange}
-                                autoCapitalize="none"
-                                textAlignVertical="top"
-                                containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            />
-                        </View>
-                    </Form>
-                </FullPageNotFoundView>
+                <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
+                    onSubmit={submitForm}
+                    submitButtonText={props.translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <Text style={[styles.mb5]}>{props.translate('welcomeMessagePage.explainerText')}</Text>
+                    <View style={[styles.mb6]}>
+                        <TextInput
+                            inputID="welcomeMessage"
+                            label={props.translate('welcomeMessagePage.welcomeMessage')}
+                            accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            autoGrowHeight
+                            maxLength={CONST.MAX_COMMENT_LENGTH}
+                            ref={(el) => {
+                                if (!el) return;
+                                welcomeMessageInputRef.current = el;
+                                UpdateMultilineInputRange(welcomeMessageInputRef.current);
+                            }}
+                            value={welcomeMessage}
+                            onChangeText={handleWelcomeMessageChange}
+                            autoCapitalize="none"
+                            textAlignVertical="top"
+                            containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        />
+                    </View>
+                </Form>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

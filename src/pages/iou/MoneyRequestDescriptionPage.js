@@ -1,6 +1,7 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -18,7 +19,6 @@ import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import UpdateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
-import shouldDelayFocus from '../../libs/shouldDelayFocus';
 import * as Browser from '../../libs/Browser';
 
 const propTypes = {
@@ -55,9 +55,24 @@ const defaultProps = {
 function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
     const {translate} = useLocalize();
     const inputRef = useRef(null);
+    const focusTimeoutRef = useRef(null);
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
+
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                if (inputRef.current) inputRef.current.focus();
+                return () => {
+                    if (!focusTimeoutRef.current) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
+            }, CONST.ANIMATED_TRANSITION);
+        }, []),
+    );
 
     useEffect(() => {
         const moneyRequestId = `${iouType}${reportID}`;
@@ -98,50 +113,39 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                 inputRef.current.focus();
             }}
         >
-            {({didScreenTransitionEnd}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('common.description')}
-                        onBackButtonPress={() => navigateBack()}
-                    />
-                    <Form
-                        style={[styles.flexGrow1, styles.ph5]}
-                        formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
-                        onSubmit={(value) => updateComment(value)}
-                        submitButtonText={translate('common.save')}
-                        enabledWhenOffline
-                    >
-                        <View style={styles.mb4}>
-                            <TextInput
-                                inputID="moneyRequestComment"
-                                name="moneyRequestComment"
-                                defaultValue={iou.comment}
-                                label={translate('moneyRequestConfirmationList.whatsItFor')}
-                                accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                ref={(el) => {
-                                    if (!el) {
-                                        return;
-                                    }
-                                    UpdateMultilineInputRange(el);
-                                    if (!inputRef.current && didScreenTransitionEnd) {
-                                        if (shouldDelayFocus) {
-                                            setTimeout(() => {
-                                                el.focus();
-                                            }, CONST.ANIMATED_TRANSITION);
-                                        } else el.focus();
-                                    }
-                                    inputRef.current = el;
-                                }}
-                                autoGrowHeight
-                                containerStyles={[styles.autoGrowHeightMultilineInput]}
-                                textAlignVertical="top"
-                                submitOnEnter={!Browser.isMobile()}
-                            />
-                        </View>
-                    </Form>
-                </>
-            )}
+            <>
+                <HeaderWithBackButton
+                    title={translate('common.description')}
+                    onBackButtonPress={() => navigateBack()}
+                />
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
+                    onSubmit={(value) => updateComment(value)}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <View style={styles.mb4}>
+                        <TextInput
+                            inputID="moneyRequestComment"
+                            name="moneyRequestComment"
+                            defaultValue={iou.comment}
+                            label={translate('moneyRequestConfirmationList.whatsItFor')}
+                            accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            ref={(el) => {
+                                if (!el) return;
+                                inputRef.current = el;
+                                UpdateMultilineInputRange(inputRef.current);
+                            }}
+                            autoGrowHeight
+                            containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            textAlignVertical="top"
+                            submitOnEnter={!Browser.isMobile()}
+                        />
+                    </View>
+                </Form>
+            </>
         </ScreenWrapper>
     );
 }
