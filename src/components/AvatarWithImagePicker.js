@@ -244,7 +244,7 @@ class AvatarWithImagePicker extends React.Component {
                             <PressableWithoutFeedback
                                 onPress={() => this.setState((prev) => ({isMenuVisible: !prev.isMenuVisible}))}
                                 role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                                aria-label={this.props.translate('avatarWithImagePicker.editImage')}
+                                accessibilityLabel={this.props.translate('avatarWithImagePicker.editImage')}
                                 disabled={this.state.isAvatarCropModalOpen}
                                 ref={this.anchorRef}
                             >
