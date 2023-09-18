@@ -23,6 +23,7 @@ import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
+import RenderHTML from './RenderHTML';
 
 const propTypes = menuItemPropTypes;
 
@@ -73,6 +74,7 @@ const defaultProps = {
     title: '',
     numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
+    shouldRenderAsHTML: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -220,7 +222,9 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(props.title) && (
+                                            {Boolean(props.title) && Boolean(props.shouldRenderAsHTML) && <RenderHTML html={convertToLTR(props.title)} />}
+
+                                            {Boolean(props.title) && !props.shouldRenderAsHTML && (
                                                 <Text
                                                     style={titleTextStyle}
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
