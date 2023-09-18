@@ -735,6 +735,36 @@ function isMoneyRequestReport(reportOrID) {
 }
 
 /**
+ * Checks if this Report should be deleted on deletion of a report comment
+ *
+ * @param {Object|String} reportOrID
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function shouldDeleteReportOnCommentDeletion(reportOrID, reportAction, deletedMessage)
+{
+    const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
+    // For now, this is applicable only for Money Request Reports
+    if (!isMoneyRequestReport(report)) {
+        return false;
+    }
+    // Considering that we are deleting the current last visible action, 
+    // let us find out if there are any more visible action count available in report
+    const updatedReportAction = {
+        [reportAction.reportActionID]: {
+            message: deletedMessage,
+        },
+    };
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(report.reportID, updatedReportAction);
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID, updatedReportAction);
+    const isEmptyChat = !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    if (isEmptyChat && !ReportActionsUtils.isDeletedParentAction(lastVisibleAction)) {
+        return true;
+    }
+    return false;
+}
+
+/**
  * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
  * policy admin
  *
@@ -3628,4 +3658,5 @@ export {
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
     hasMissingSmartscanFields,
+    shouldDeleteReportOnCommentDeletion,
 };
