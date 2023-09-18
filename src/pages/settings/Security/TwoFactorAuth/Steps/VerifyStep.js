@@ -110,7 +110,7 @@ function VerifyStep({account = defaultAccount}) {
                 <View style={[styles.mt3, styles.mh5]}>
                     <TwoFactorAuthForm innerRef={formRef} />
                 </View>
-                <FixedFooter style={[styles.mtAuto, styles.pt2]}>
+                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     <Button
                         success
                         text={translate('common.next')}
