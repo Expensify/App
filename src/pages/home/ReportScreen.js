@@ -1,5 +1,6 @@
 import React, {useRef, useState, useEffect, useMemo, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -39,7 +40,6 @@ import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
-import {useFocusEffect} from '@react-navigation/native';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -278,6 +278,8 @@ function ReportScreen({
             }
             unsubscribeVisibilityListener();
         }
+        // The effect should run only on the first focus to attach listener
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []))
 
     useEffect(() => {
