@@ -289,6 +289,16 @@ function hasMissingSmartscanFields(transaction) {
 }
 
 /**
+ * Check if the transaction has a defined route
+ *
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
+function hasRoute(transaction) {
+    return !!lodashGet(transaction, 'routes.route0.geometry.coordinates');
+}
+
+/**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
@@ -382,6 +392,7 @@ export {
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
+    hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
