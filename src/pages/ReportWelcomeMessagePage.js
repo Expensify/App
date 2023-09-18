@@ -19,7 +19,8 @@ import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundVi
 import Form from '../components/Form';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import {policyPropTypes, policyDefaultProps} from './workspace/withPolicy';
-import focusAndUpdateMultilineInputRange from '../libs/focusAndUpdateMultilineInputRange';
+import UpdateMultilineInputRange from '../libs/UpdateMultilineInputRange';
+import shouldDelayFocus from '../libs/shouldDelayFocus';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -60,7 +61,8 @@ function ReportWelcomeMessagePage(props) {
                 if (!welcomeMessageInputRef.current) {
                     return;
                 }
-                focusAndUpdateMultilineInputRange(welcomeMessageInputRef.current);
+                UpdateMultilineInputRange(welcomeMessageInputRef.current);
+                welcomeMessageInputRef.current.focus();
             }}
         >
             {({didScreenTransitionEnd}) => (
@@ -88,8 +90,13 @@ function ReportWelcomeMessagePage(props) {
                                     if (!el) {
                                         return;
                                     }
+                                    UpdateMultilineInputRange(el);
                                     if (!welcomeMessageInputRef.current && didScreenTransitionEnd) {
-                                        focusAndUpdateMultilineInputRange(el);
+                                        if (shouldDelayFocus) {
+                                            setTimeout(() => {
+                                                el.focus();
+                                            }, CONST.ANIMATED_TRANSITION);
+                                        } else el.focus();
                                     }
                                     welcomeMessageInputRef.current = el;
                                 }}

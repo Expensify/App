@@ -23,7 +23,8 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import UpdateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
+import shouldDelayFocus from '../../libs/shouldDelayFocus';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -78,62 +79,83 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(privateNotesInput.current)}
+            onEntryTransitionEnd={() => {
+                if (!privateNotesInput.current) {
+                    return;
+                }
+                UpdateMultilineInputRange(privateNotesInput.current);
+                privateNotesInput.current.focus();
+            }}
         >
-            <FullPageNotFoundView
-                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || !isCurrentUserNote}
-                subtitleKey="privateNotes.notesUnavailable"
-                onBackButtonPress={() => Navigation.goBack()}
-            >
-                <HeaderWithBackButton
-                    title={translate('privateNotes.title')}
-                    subtitle="My note"
-                    shouldShowBackButton
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+            {(didScreenTransitionEnd) => (
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || !isCurrentUserNote}
+                    subtitleKey="privateNotes.notesUnavailable"
                     onBackButtonPress={() => Navigation.goBack()}
-                />
-                <View style={[styles.flexGrow1, styles.ph5]}>
-                    <View style={[styles.mb5]}>
-                        <Text>
-                            {translate(
-                                Str.extractEmailDomain(lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')) === CONST.EMAIL.GUIDES_DOMAIN
-                                    ? 'privateNotes.sharedNoteMessage'
-                                    : 'privateNotes.personalNoteMessage',
-                            )}
-                        </Text>
-                    </View>
-                    <Form
-                        formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
-                        onSubmit={savePrivateNote}
-                        submitButtonText={translate('common.save')}
-                        enabledWhenOffline
-                    >
-                        <OfflineWithFeedback
-                            errors={{
-                                ...lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], ''),
-                            }}
-                            onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
-                            style={[styles.mb3]}
+                >
+                    <HeaderWithBackButton
+                        title={translate('privateNotes.title')}
+                        subtitle="My note"
+                        shouldShowBackButton
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                        onBackButtonPress={() => Navigation.goBack()}
+                    />
+                    <View style={[styles.flexGrow1, styles.ph5]}>
+                        <View style={[styles.mb5]}>
+                            <Text>
+                                {translate(
+                                    Str.extractEmailDomain(lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')) === CONST.EMAIL.GUIDES_DOMAIN
+                                        ? 'privateNotes.sharedNoteMessage'
+                                        : 'privateNotes.personalNoteMessage',
+                                )}
+                            </Text>
+                        </View>
+                        <Form
+                            formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
+                            onSubmit={savePrivateNote}
+                            submitButtonText={translate('common.save')}
+                            enabledWhenOffline
                         >
-                            <TextInput
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                inputID="privateNotes"
-                                label={translate('privateNotes.composerLabel')}
-                                accessibilityLabel={translate('privateNotes.title')}
-                                autoCompleteType="off"
-                                autoCorrect={false}
-                                autoGrowHeight
-                                textAlignVertical="top"
-                                containerStyles={[styles.autoGrowHeightMultilineInput]}
-                                defaultValue={privateNote}
-                                value={privateNote}
-                                onChangeText={(text) => setPrivateNote(text)}
-                                ref={(el) => (privateNotesInput.current = el)}
-                            />
-                        </OfflineWithFeedback>
-                    </Form>
-                </View>
-            </FullPageNotFoundView>
+                            <OfflineWithFeedback
+                                errors={{
+                                    ...lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], ''),
+                                }}
+                                onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
+                                style={[styles.mb3]}
+                            >
+                                <TextInput
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    inputID="privateNotes"
+                                    label={translate('privateNotes.composerLabel')}
+                                    accessibilityLabel={translate('privateNotes.title')}
+                                    autoCompleteType="off"
+                                    autoCorrect={false}
+                                    autoGrowHeight
+                                    textAlignVertical="top"
+                                    containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                    defaultValue={privateNote}
+                                    value={privateNote}
+                                    onChangeText={(text) => setPrivateNote(text)}
+                                    ref={(el) => {
+                                        if (!el) {
+                                            return;
+                                        }
+                                        UpdateMultilineInputRange(el);
+                                        if (!privateNotesInput.current && didScreenTransitionEnd) {
+                                            if (shouldDelayFocus) {
+                                                setTimeout(() => {
+                                                    el.focus();
+                                                }, CONST.ANIMATED_TRANSITION);
+                                            } else el.focus();
+                                        }
+                                        privateNotesInput.current = el;
+                                    }}
+                                />
+                            </OfflineWithFeedback>
+                        </Form>
+                    </View>
+                </FullPageNotFoundView>
+            )}
         </ScreenWrapper>
     );
 }

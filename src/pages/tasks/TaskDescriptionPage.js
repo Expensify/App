@@ -14,12 +14,13 @@ import compose from '../../libs/compose';
 import * as Task from '../../libs/actions/Task';
 import * as ReportUtils from '../../libs/ReportUtils';
 import CONST from '../../CONST';
-import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import UpdateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
 import * as Browser from '../../libs/Browser';
 import Navigation from '../../libs/Navigation/Navigation';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
+import shouldDelayFocus from '../../libs/shouldDelayFocus';
 
 const propTypes = {
     /** Current user session */
@@ -65,7 +66,13 @@ function TaskDescriptionPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
+            onEntryTransitionEnd={() => {
+                if (!inputRef.current) {
+                    return;
+                }
+                UpdateMultilineInputRange(inputRef.current);
+                inputRef.current.focus();
+            }}
             shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd}) => (
@@ -92,8 +99,13 @@ function TaskDescriptionPage(props) {
                                     if (!el) {
                                         return;
                                     }
+                                    UpdateMultilineInputRange(el);
                                     if (!inputRef.current && didScreenTransitionEnd) {
-                                        focusAndUpdateMultilineInputRange(el);
+                                        if (shouldDelayFocus) {
+                                            setTimeout(() => {
+                                                el.focus();
+                                            }, CONST.ANIMATED_TRANSITION);
+                                        } else el.focus();
                                     }
                                     inputRef.current = el;
                                 }}

@@ -17,7 +17,8 @@ import * as IOU from '../../libs/actions/IOU';
 import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
-import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import UpdateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
+import shouldDelayFocus from '../../libs/shouldDelayFocus';
 import * as Browser from '../../libs/Browser';
 
 const propTypes = {
@@ -89,35 +90,58 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
+            onEntryTransitionEnd={() => {
+                if (!inputRef.current) {
+                    return;
+                }
+                UpdateMultilineInputRange(inputRef.current);
+                inputRef.current.focus();
+            }}
         >
-            <HeaderWithBackButton
-                title={translate('common.description')}
-                onBackButtonPress={() => navigateBack()}
-            />
-            <Form
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
-                onSubmit={(value) => updateComment(value)}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
-            >
-                <View style={styles.mb4}>
-                    <TextInput
-                        inputID="moneyRequestComment"
-                        name="moneyRequestComment"
-                        defaultValue={iou.comment}
-                        label={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={(el) => (inputRef.current = el)}
-                        autoGrowHeight
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
-                        submitOnEnter={!Browser.isMobile()}
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('common.description')}
+                        onBackButtonPress={() => navigateBack()}
                     />
-                </View>
-            </Form>
+                    <Form
+                        style={[styles.flexGrow1, styles.ph5]}
+                        formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
+                        onSubmit={(value) => updateComment(value)}
+                        submitButtonText={translate('common.save')}
+                        enabledWhenOffline
+                    >
+                        <View style={styles.mb4}>
+                            <TextInput
+                                inputID="moneyRequestComment"
+                                name="moneyRequestComment"
+                                defaultValue={iou.comment}
+                                label={translate('moneyRequestConfirmationList.whatsItFor')}
+                                accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                ref={(el) => {
+                                    if (!el) {
+                                        return;
+                                    }
+                                    UpdateMultilineInputRange(el);
+                                    if (!inputRef.current && didScreenTransitionEnd) {
+                                        if (shouldDelayFocus) {
+                                            setTimeout(() => {
+                                                el.focus();
+                                            }, CONST.ANIMATED_TRANSITION);
+                                        } else el.focus();
+                                    }
+                                    inputRef.current = el;
+                                }}
+                                autoGrowHeight
+                                containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                textAlignVertical="top"
+                                submitOnEnter={!Browser.isMobile()}
+                            />
+                        </View>
+                    </Form>
+                </>
+            )}
         </ScreenWrapper>
     );
 }
