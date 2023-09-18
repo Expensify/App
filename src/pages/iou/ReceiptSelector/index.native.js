@@ -201,10 +201,14 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                 flash: flash ? 'on' : 'off',
             })
             .then((photo) => {
-                IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
+                const filePath = `file://${photo.path}`;
+                IOU.setMoneyRequestReceipt(filePath, photo.path);
 
                 if (transactionID) {
-                    IOU.replaceReceipt(transactionID, photo, `file://${photo.path}`);
+                    FileUtils.readFileAsync(filePath, photo.path).then((receipt) => {
+                        IOU.replaceReceipt(transactionID, receipt, filePath);
+                    });
+
                     Navigation.dismissModal();
                     return;
                 }
