@@ -186,9 +186,17 @@ function ComposerWithSuggestions({
             setValue(newComment);
             if (commentValue !== newComment) {
                 const remainder = ComposerUtils.getCommonSuffixLength(commentRef.current, newComment);
+                const newSelectionPosition = newComment.length - remainder;
+
+                // Reset suggestions when an emoji is replaced and the selection is not changed.
+                // More info issue #27156
+                if (selection.end === newSelectionPosition){
+                    suggestionsRef.current.resetSuggestions();
+                }
+
                 setSelection({
-                    start: newComment.length - remainder,
-                    end: newComment.length - remainder,
+                    start: newSelectionPosition,
+                    end: newSelectionPosition,
                 });
             }
 
@@ -212,7 +220,7 @@ function ComposerWithSuggestions({
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty],
+        [selection.end, debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty],
     );
 
     /**
