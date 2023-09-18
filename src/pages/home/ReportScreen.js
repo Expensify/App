@@ -39,6 +39,7 @@ import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
+import {useIsFocused} from '@react-navigation/native';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -148,8 +149,10 @@ function ReportScreen({
 }) {
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
+    const unsubscribeVisibilityListener = useRef();
     const reactionListRef = useRef();
     const prevReport = usePrevious(report);
+    const isFocused = useIsFocused();
 
     const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(0);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -260,25 +263,28 @@ function ReportScreen({
     );
 
     useEffect(() => {
-        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
-            const isTopMostReportID = Navigation.getTopmostReportId() === getReportID(route);
-            // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
-            // we don't need to call openReport
-            if (!getIsReportFullyVisible(isTopMostReportID) || report.isOptimisticReport) {
+        if (isFocused) {
+            unsubscribeVisibilityListener.current = Visibility.onVisibilityChange(() => {
+                const isTopMostReportID = Navigation.getTopmostReportId() === getReportID(route);
+                // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
+                // we don't need to call openReport
+                if (!getIsReportFullyVisible(isTopMostReportID) || report.isOptimisticReport) {
+                    return;
+                }
+    
+                Report.openReport(report.reportID);
+            });
+        } else {
+            if (!unsubscribeVisibilityListener.current) {
                 return;
             }
+            unsubscribeVisibilityListener.current();
+        }
+    }, [isFocused]);
 
-            Report.openReport(report.reportID);
-        });
-
+    useEffect(() => {
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-        return () => {
-            if (!unsubscribeVisibilityListener) {
-                return;
-            }
-            unsubscribeVisibilityListener();
-        };
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
