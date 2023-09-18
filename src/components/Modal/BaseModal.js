@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
@@ -55,6 +55,8 @@ function BaseModal({
 
     const safeAreaInsets = useSafeAreaInsets();
 
+    const isVisibleRef = useRef(isVisible);
+
     /**
      * Hides modal
      * @param {Boolean} [callHideCallback=true] Should we call the onModalHide callback
@@ -76,20 +78,33 @@ function BaseModal({
     );
 
     useEffect(() => {
-        Modal.willAlertModalBecomeVisible(isVisible);
-
+        if (!isVisible) {
+            return;
+        }
+        Modal.willAlertModalBecomeVisible(true);
         // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-        Modal.setCloseModal(isVisible ? onClose : null);
+        Modal.setCloseModal(onClose);
     }, [isVisible, onClose]);
+
+    useEffect(() => {
+        isVisibleRef.current = isVisible;
+        return () => {
+            if (!isVisible) {
+                return;
+            }
+            Modal.willAlertModalBecomeVisible(false);
+            Modal.setCloseModal(null);
+        };
+    }, [isVisible]);
 
     useEffect(
         () => () => {
             // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
-            if (isVisible) {
-                hideModal(true);
-                Modal.willAlertModalBecomeVisible(false);
+            if (!isVisibleRef.current) {
+                return;
             }
-
+            hideModal(true);
+            Modal.willAlertModalBecomeVisible(false);
             // To prevent closing any modal already unmounted when this modal still remains as visible state
             Modal.setCloseModal(null);
         },
