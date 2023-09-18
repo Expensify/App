@@ -191,13 +191,19 @@ function MoneyRequestConfirmationList(props) {
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
-    const shouldCategoryBeEditable = !_.isEmpty(props.policyCategories) && Permissions.canUseCategories(props.betas);
+
+    // A flag for verifying that the current report is a sub-report of a workspace chat
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(ReportUtils.getReport(props.reportID))), [props.reportID]);
+
+    // A flag for showing the categories field
+    const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && !_.isEmpty(props.policyCategories);
 
     // Fetches the first tag list of the policy
     const tagListKey = _.first(_.keys(props.policyTags));
     const tagList = lodashGet(props.policyTags, [tagListKey, 'tags'], []);
     const tagListName = lodashGet(props.policyTags, [tagListKey, 'name'], '');
-    const canUseTags = Permissions.canUseTags(props.betas);
+    // A flag for showing the tags field
+    const shouldShowTags = isPolicyExpenseChat && Permissions.canUseTags(props.betas) && !_.isEmpty(tagList);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
         shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
@@ -510,7 +516,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}
-                    {shouldCategoryBeEditable && (
+                    {shouldShowCategories && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouCategory}
@@ -520,7 +526,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
-                    {canUseTags && !!tagList && (
+                    {shouldShowTags && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouTag}
