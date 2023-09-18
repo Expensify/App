@@ -159,38 +159,6 @@ class SearchPage extends Component {
         }
     }
 
-<<<<<<< HEAD
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
-    const headerMessage = OptionsListUtils.getHeaderMessage(
-        searchOptions.recentReports.length + searchOptions.personalDetails.length !== 0,
-        Boolean(searchOptions.userToInvite),
-        searchValue,
-    );
-    return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton title={translate('common.search')} />
-                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <OptionsSelector
-                            sections={getSections()}
-                            value={searchValue}
-                            onSelectRow={selectReport}
-                            onChangeText={onChangeText}
-                            headerMessage={headerMessage}
-                            hideSectionHeaders
-                            showTitleTooltip
-                            shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            onLayout={searchRendered}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                        />
-                    </View>
-                </>
-            )}
-        </ScreenWrapper>
-    );
-=======
     render() {
         const sections = this.getSections();
         const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
@@ -218,7 +186,6 @@ class SearchPage extends Component {
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                                autoFocus
                             />
                         </View>
                     </>
@@ -226,7 +193,6 @@ class SearchPage extends Component {
             </ScreenWrapper>
         );
     }
->>>>>>> 7876929 (Merge pull request #27476 from Expensify/revert-23076-fix/16251-SearchPage-refactoring)
 }
 
 SearchPage.propTypes = propTypes;
