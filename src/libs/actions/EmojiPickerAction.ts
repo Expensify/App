@@ -60,7 +60,7 @@ function isActive(id: string): boolean {
     return emojiPickerRef.current.isActive(id);
 }
 
-function clearActive(): void {
+function clearActive() {
     if (!emojiPickerRef.current) {
         return;
     }
