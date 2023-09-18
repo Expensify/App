@@ -237,7 +237,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             {Boolean(props.title) && Boolean(props.shouldRenderAsHTML) && <RenderHTML html={convertToLTR(props.title)} />}
 
-                                            {Boolean(html.length) && !props.shouldRenderAsHTML && <RenderHTML html={`<comment>${html}</comment>`} />}
+                                            {Boolean(props.shouldParseTitle) && Boolean(html.length) && !props.shouldRenderAsHTML && <RenderHTML html={`<comment>${html}</comment>`} />}
 
                                             {!props.shouldRenderAsHTML && !html.length && Boolean(props.title) && (
                                                 <Text
