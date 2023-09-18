@@ -41,12 +41,15 @@ function MentionUserRenderer(props) {
         accountID = parseInt(htmlAttribAccountID, 10);
         displayNameOrLogin = lodashGet(user, 'login', '') || lodashGet(user, 'displayName', '') || translate('common.hidden');
         navigationRoute = ROUTES.getProfileRoute(htmlAttribAccountID);
-    } else {
+    } else if (!_.isEmpty(props.tnode.data)) {
         // We need to remove the leading @ from data as it is not part of the login
-        displayNameOrLogin = props.tnode.data ? props.tnode.data.slice(1) : '';
+        displayNameOrLogin = props.tnode.data.slice(1);
 
         accountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([displayNameOrLogin]));
         navigationRoute = ROUTES.getDetailsRoute(displayNameOrLogin);
+    } else {
+        // If neither an account ID or email is provided, don't render anything
+        return null;
     }
 
     const isOurMention = accountID === props.currentUserPersonalDetails.accountID;
