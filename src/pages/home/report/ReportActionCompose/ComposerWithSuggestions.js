@@ -305,7 +305,7 @@ function ComposerWithSuggestions({
 
     const onSelectionChange = useCallback(
         (e) => {
-            if (suggestionsRef.current.onSelectionChange(e)) {
+            if (textInputRef.current && textInputRef.current.isFocused() && suggestionsRef.current.onSelectionChange(e)) {
                 return;
             }
 
