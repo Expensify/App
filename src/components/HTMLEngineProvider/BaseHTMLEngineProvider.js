@@ -55,7 +55,7 @@ const customHTMLElementModels = {
     'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
 };
 
-const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
+const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText, styles.dFlex, styles.flexShrink1]};
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing

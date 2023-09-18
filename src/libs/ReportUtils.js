@@ -1647,7 +1647,7 @@ function getThreadReportNameHtml(parentReportActionMessage) {
  */
 function getThreadReportName(parentReportActionMessage, shouldRenderHTML) {
     const threadReportNameHtml = getThreadReportNameHtml(parentReportActionMessage);
-    return shouldRenderHTML ? `<thread-title>${threadReportNameHtml}</thread-title>` : Str.stripHTML(threadReportNameHtml).trim();
+    return shouldRenderHTML ? `<body></body><thread-title>${threadReportNameHtml}</thread-title>` : Str.stripHTML(threadReportNameHtml).trim();
 }
 
 /**
