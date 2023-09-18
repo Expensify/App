@@ -218,9 +218,11 @@ function MultipleAvatars(props) {
                                             StyleUtils.getWidthStyle(oneAvatarSize.width),
                                         ]}
                                     >
-                                        <Text style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size), styles.userSelectNone]}>{`+${
-                                            avatars.length - props.maxAvatarsInRow
-                                        }`}</Text>
+                                        <Text
+                                            selectable={false}
+                                            style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size), styles.userSelectNone]}
+                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
                                     </View>
                                 </View>
                             </Tooltip>
@@ -274,7 +276,10 @@ function MultipleAvatars(props) {
                             ) : (
                                 <Tooltip text={tooltipTexts.slice(1).join(', ')}>
                                     <View style={[singleAvatarStyle, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                        <Text style={[styles.userSelectNone, props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}>
+                                        <Text
+                                            style={styles.userSelectNone, props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}
+                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        >
                                             {`+${props.icons.length - 1}`}
                                         </Text>
                                     </View>

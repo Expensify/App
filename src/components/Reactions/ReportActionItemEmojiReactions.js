@@ -42,7 +42,7 @@ const defaultProps = {
 
 function ReportActionItemEmojiReactions(props) {
     const {reactionListRef} = useContext(ReportScreenContext);
-    const popoverReactionListAnchor = useRef(null);
+    const popoverReactionListAnchors = useRef({});
     let totalReactionCount = 0;
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
@@ -95,7 +95,7 @@ function ReportActionItemEmojiReactions(props) {
         };
 
         const onReactionListOpen = (event) => {
-            reactionListRef.current.showReactionList(event, popoverReactionListAnchor.current, reactionEmojiName, props.reportActionID);
+            reactionListRef.current.showReactionList(event, popoverReactionListAnchors.current[reactionEmojiName], reactionEmojiName, props.reportActionID);
         };
 
         return {
@@ -112,10 +112,7 @@ function ReportActionItemEmojiReactions(props) {
 
     return (
         totalReactionCount > 0 && (
-            <View
-                ref={popoverReactionListAnchor}
-                style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
-            >
+            <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
                 {_.map(formattedReactions, (reaction) => {
                     if (reaction === null) {
                         return;
@@ -135,7 +132,7 @@ function ReportActionItemEmojiReactions(props) {
                         >
                             <View>
                                 <EmojiReactionBubble
-                                    ref={props.forwardedRef}
+                                    ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref)}
                                     count={reaction.reactionCount}
                                     emojiCodes={reaction.emojiCodes}
                                     onPress={reaction.onPress}

@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import _ from 'lodash';
 
 import * as NumberFormatUtils from './NumberFormatUtils';
 
@@ -8,12 +8,12 @@ const INDEX_DECIMAL = 10;
 const INDEX_MINUS_SIGN = 11;
 const INDEX_GROUP = 12;
 
-const getLocaleDigits = _.memoize((locale) => {
-    const localeDigits = _.clone(STANDARD_DIGITS);
+const getLocaleDigits = _.memoize((locale: string): string[] => {
+    const localeDigits = [...STANDARD_DIGITS];
     for (let i = 0; i <= 9; i++) {
         localeDigits[i] = NumberFormatUtils.format(locale, i);
     }
-    _.forEach(NumberFormatUtils.formatToParts(locale, 1000000.5), (part) => {
+    NumberFormatUtils.formatToParts(locale, 1000000.5).forEach((part) => {
         switch (part.type) {
             case 'decimal':
                 localeDigits[INDEX_DECIMAL] = part.value;
@@ -34,15 +34,13 @@ const getLocaleDigits = _.memoize((locale) => {
 /**
  * Gets the locale digit corresponding to a standard digit.
  *
- * @param {String} locale
- * @param {String} digit - Character of a single standard digit . It may be "0" ~ "9" (digits),
+ * @param digit - Character of a single standard digit . It may be "0" ~ "9" (digits),
  * "," (group separator), "." (decimal separator) or "-" (minus sign).
- * @returns {String}
  *
  * @throws If `digit` is not a valid standard digit.
  */
-function toLocaleDigit(locale, digit) {
-    const index = _.indexOf(STANDARD_DIGITS, digit);
+function toLocaleDigit(locale: string, digit: string): string {
+    const index = STANDARD_DIGITS.indexOf(digit);
     if (index < 0) {
         throw new Error(`"${digit}" must be in ${JSON.stringify(STANDARD_DIGITS)}`);
     }
@@ -52,15 +50,13 @@ function toLocaleDigit(locale, digit) {
 /**
  * Gets the standard digit corresponding to a locale digit.
  *
- * @param {String} locale
- * @param {String} localeDigit - Character of a single locale digit. It may be **the localized version** of
+ * @param localeDigit - Character of a single locale digit. It may be **the localized version** of
  * "0" ~ "9" (digits), "," (group separator), "." (decimal separator) or "-" (minus sign).
- * @returns {String}
  *
  * @throws If `localeDigit` is not a valid locale digit.
  */
-function fromLocaleDigit(locale, localeDigit) {
-    const index = _.indexOf(getLocaleDigits(locale), localeDigit);
+function fromLocaleDigit(locale: string, localeDigit: string): string {
+    const index = getLocaleDigits(locale).indexOf(localeDigit);
     if (index < 0) {
         throw new Error(`"${localeDigit}" must be in ${JSON.stringify(getLocaleDigits(locale))}`);
     }

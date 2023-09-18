@@ -152,7 +152,12 @@ function ReportActionItemFragment(props) {
                             color={themeColors.textSupporting}
                             style={[editedLabelStyles, ...props.style]}
                         >
-                            <Text style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.w1, styles.userSelectNone]}> </Text>
+                            <Text
+                                style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.w1, styles.userSelectNone]}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            >
+                                {' '}
+                            </Text>
                             {props.translate('reportActionCompose.edited')}
                         </Text>
                     )}

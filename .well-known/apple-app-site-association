@@ -69,8 +69,8 @@
                         "comment": "Workspace Details"
                     },
                     {
-                        "/": "/save-the-world/*",
-                        "comment": "Save the World"
+                        "/": "/teachersunite/*",
+                        "comment": "Teachers Unite!"
                     }
                 ]
             }

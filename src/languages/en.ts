@@ -71,6 +71,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    TagSelectionParams,
     TranslationBase,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
@@ -243,6 +244,7 @@ export default {
         showMore: 'Show more',
         merchant: 'Merchant',
         category: 'Category',
+        tag: 'Tag',
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
@@ -341,11 +343,6 @@ export default {
         newFaceEnterMagicCode: ({login}: NewFaceEnterMagicCodeParams) =>
             `It's always great to see a new face around here! Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
-    },
-    DownloadAppModal: {
-        downloadTheApp: 'Download the app',
-        keepTheConversationGoing: 'Keep the conversation going in New Expensify, download the app for an enhanced experience.',
-        noThanks: 'No thanks',
     },
     login: {
         hero: {
@@ -458,13 +455,10 @@ export default {
         },
     },
     sidebarScreen: {
-        fabAction: 'New chat',
-        newChat: 'New chat',
-        newGroup: 'New group',
-        newRoom: 'New room',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
-        fabNewChat: 'New chat (Floating action)',
+        fabNewChat: 'Send message',
+        fabNewChatExplained: 'Send message (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -472,6 +466,8 @@ export default {
         saveTheWorld: 'Save the world',
     },
     tabSelector: {
+        chat: 'Chat',
+        room: 'Room',
         manual: 'Manual',
         scan: 'Scan',
     },
@@ -498,9 +494,10 @@ export default {
         approved: 'Approved',
         cash: 'Cash',
         split: 'Split',
+        addToSplit: 'Add to split',
+        splitBill: 'Split bill',
         request: 'Request',
         participants: 'Participants',
-        splitBill: 'Split bill',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
@@ -544,6 +541,7 @@ export default {
             `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -750,6 +748,13 @@ export default {
     passwordConfirmationScreen: {
         passwordUpdated: 'Password updated!',
         allSet: 'You’re all set. Keep your new password safe.',
+    },
+    privateNotes: {
+        title: 'Private notes',
+        personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
+        sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
+        notesUnavailable: 'No notes found for the user',
+        composerLabel: 'Notes',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Get paid back via PayPal.',
@@ -985,7 +990,9 @@ export default {
         localTime: 'Local time',
     },
     newChatPage: {
+        createChat: 'Create chat',
         createGroup: 'Create group',
+        addToGroup: 'Add to group',
     },
     yearPickerPage: {
         year: 'Year',
@@ -1535,7 +1542,7 @@ export default {
             openShortcutDialog: 'Opens the keyboard shortcuts dialog',
             escape: 'Escape dialogs',
             search: 'Open search dialog',
-            newGroup: 'New group screen',
+            newChat: 'New chat screen',
             copy: 'Copy comment',
         },
     },

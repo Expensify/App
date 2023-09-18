@@ -148,6 +148,7 @@ class PDFView extends Component {
                 )}
                 {this.state.shouldAttemptPDFLoad && (
                     <PDF
+                        fitPolicy={0}
                         trustAllCerts={false}
                         renderActivityIndicator={() => <FullScreenLoadingIndicator />}
                         source={{uri: this.props.sourceURL}}

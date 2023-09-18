@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import CONST from '../../../CONST';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import Text from '../../Text';
@@ -25,7 +26,12 @@ function EditedRenderer(props) {
             style={[editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted]}
         >
             {/* Native devices do not support margin between nested text */}
-            <Text style={[styles.w1, styles.userSelectNone, styles.userSelectNone]}> </Text>
+            <Text
+                style={[styles.w1, styles.userSelectNone]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
+                {' '}
+            </Text>
             {props.translate('reportActionCompose.edited')}
         </Text>
     );

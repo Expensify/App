@@ -71,6 +71,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    TagSelectionParams,
     EnglishTranslation,
 } from './types';
 
@@ -233,6 +234,7 @@ export default {
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
         category: 'Categoría',
+        tag: 'Etiqueta',
         receipt: 'Recibo',
         replace: 'Sustituir',
         distance: 'Distancia',
@@ -332,11 +334,6 @@ export default {
         newFaceEnterMagicCode: ({login}: NewFaceEnterMagicCodeParams) =>
             `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
-    },
-    DownloadAppModal: {
-        downloadTheApp: 'Descarga la aplicación',
-        keepTheConversationGoing: 'Mantén la conversación en New Expensify, descarga la aplicación para una experiencia mejorada.',
-        noThanks: 'No, gracias',
     },
     login: {
         hero: {
@@ -450,13 +447,10 @@ export default {
         },
     },
     sidebarScreen: {
-        fabAction: 'Nuevo chat',
-        newChat: 'Nuevo chat',
-        newGroup: 'Nuevo grupo',
-        newRoom: 'Nueva sala de chat',
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
-        fabNewChat: 'Nuevo chat',
+        fabNewChat: 'Enviar mensaje',
+        fabNewChatExplained: 'Enviar mensaje',
         chatPinned: 'Chat fijado',
         draftedMessage: 'Mensaje borrador',
         listOfChatMessages: 'Lista de mensajes del chat',
@@ -464,6 +458,8 @@ export default {
         saveTheWorld: 'Salvar el mundo',
     },
     tabSelector: {
+        chat: 'Chat',
+        room: 'Sala',
         manual: 'Manual',
         scan: 'Escanear',
     },
@@ -490,9 +486,10 @@ export default {
         approved: 'Aprobado',
         cash: 'Efectivo',
         split: 'Dividir',
+        addToSplit: 'Añadir para dividir',
+        splitBill: 'Dividir factura',
         request: 'Solicitar',
         participants: 'Participantes',
-        splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
         pay: 'Pagar',
@@ -537,6 +534,7 @@ export default {
             `cambío ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
+        tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -745,6 +743,13 @@ export default {
     passwordConfirmationScreen: {
         passwordUpdated: 'Contraseña actualizada!',
         allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
+    },
+    privateNotes: {
+        title: 'Notas privadas',
+        personalNoteMessage: 'Guarda notas sobre este chat aquí. Usted es la única persona que puede añadir, editar o ver estas notas.',
+        sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
+        notesUnavailable: 'No se han encontrado notas para el usuario',
+        composerLabel: 'Notas',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Recibe pagos vía PayPal.',
@@ -983,7 +988,9 @@ export default {
         localTime: 'Hora local',
     },
     newChatPage: {
+        createChat: 'Crear chat',
         createGroup: 'Crear grupo',
+        addToGroup: 'Añadir al grupo',
     },
     yearPickerPage: {
         year: 'Año',
@@ -1557,7 +1564,7 @@ export default {
             openShortcutDialog: 'Abre el cuadro de diálogo de métodos abreviados de teclado',
             escape: 'Diálogos de escape',
             search: 'Abrir diálogo de búsqueda',
-            newGroup: 'Nueva pantalla de grupo',
+            newChat: 'Nueva pantalla de chat',
             copy: 'Copiar comentario',
         },
     },

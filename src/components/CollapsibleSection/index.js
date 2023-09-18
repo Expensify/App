@@ -48,7 +48,12 @@ class CollapsibleSection extends React.Component {
                     hoverDimmingValue={1}
                     pressDimmingValue={0.2}
                 >
-                    <Text style={[styles.flex1, styles.textStrong, styles.userSelectNone]}>{this.props.title}</Text>
+                    <Text
+                        style={[styles.flex1, styles.textStrong, styles.userSelectNone]}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                    >
+                        {this.props.title}
+                    </Text>
                     <Icon src={src} />
                 </PressableWithFeedback>
                 <View style={styles.collapsibleSectionBorder} />
