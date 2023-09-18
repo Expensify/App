@@ -27,9 +27,10 @@ function SidebarScreen(props) {
      * Method to hide popover when drag over.
      */
     const hidePopoverOnDragOver = useCallback(() => {
-        if (popoverModal.current !== null) {
-            popoverModal.current.hideCreateMenu();
+        if (popoverModal.current === null) {
+            return;
         }
+        popoverModal.current.hideCreateMenu();
     }, []);
 
     /**
