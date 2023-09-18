@@ -187,23 +187,37 @@ function isTaskReport(report) {
 }
 
 /**
- * Checks if a report is an open task report.
+ * Checks if a task has been cancelled
+ * When a task is deleted, the parentReportAction is updated to have a isDeletedParentAction deleted flag
+ * This is because when you delete a task, we still allow you to chat on the report itself
+ * There's another situation where you don't have access to the parentReportAction (because it was created in a chat you don't have access to)
+ * In this case, we have added the key to the report itself
  *
  * @param {Object} report
+ * @param {Object} parentReportAction
  * @returns {Boolean}
  */
-function isOpenTaskReport(report) {
-    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS.OPEN;
+function isCanceledTaskReport(report = {}, parentReportAction = {}) {
+    if (!_.isEmpty(parentReportAction) && lodashGet(parentReportAction, ['message', 0, 'isDeletedParentAction'], false)) {
+        return true;
+    }
+
+    if (!_.isEmpty(report) && report.isDeletedParentAction) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
- * Checks if the current user is assigned to the task report
+ * Checks if a report is an open task report.
  *
  * @param {Object} report
+ * @param {Object} parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  * @returns {Boolean}
  */
-function isCanceledTaskReport(report) {
-    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.CLOSED;
+function isOpenTaskReport(report, parentReportAction = {}) {
+    return isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
 /**
@@ -484,7 +498,7 @@ function shouldDisableDetailPage(report) {
  */
 function isExpensifyOnlyParticipantInReport(report) {
     const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
-    return lodashGet(report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
+    return reportParticipants.length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
 }
 
 /**
@@ -1610,8 +1624,8 @@ function getParentReport(report) {
  */
 function getReportName(report, policy = undefined) {
     let formattedName;
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     if (isChatThread(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return getTransactionReportName(parentReportAction);
         }
@@ -1629,6 +1643,11 @@ function getReportName(report, policy = undefined) {
         }
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
+
+    if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
+        return Localize.translateLocal('parentReportAction.deletedTask');
+    }
+
     if (isChatRoom(report) || isTaskReport(report)) {
         formattedName = report.reportName;
     }
