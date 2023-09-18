@@ -204,8 +204,12 @@ function MoneyRequestConfirmationList(props) {
     const tagListKey = _.first(_.keys(props.policyTags));
     const tagList = lodashGet(props.policyTags, [tagListKey, 'tags'], []);
     const tagListName = lodashGet(props.policyTags, [tagListKey, 'name'], '');
+    const canUseTags = Permissions.canUseTags(props.betas);
     // A flag for showing the tags field
-    const shouldShowTags = isPolicyExpenseChat && Permissions.canUseTags(props.betas) && !_.isEmpty(tagList);
+    const shouldShowTags = isPolicyExpenseChat && canUseTags && !_.isEmpty(tagList);
+
+    // A flag for showing the billable field
+    const shouldShowBillable = canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
         shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
@@ -539,7 +543,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
-                    {canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true) && (
+                    {shouldShowBillable && (
                         <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                             <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
                             <Switch
