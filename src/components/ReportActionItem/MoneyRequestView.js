@@ -105,6 +105,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
+
             {hasReceipt && (
                 <View style={styles.moneyRequestViewImage}>
                     <ReportActionItemImage
@@ -137,6 +138,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                    wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                    numberOfLinesTitle={0}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.created') || lodashGet(transaction, 'pendingAction')}>

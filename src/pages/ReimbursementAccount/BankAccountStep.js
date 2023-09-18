@@ -11,7 +11,7 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
 import Icon from '../../components/Icon';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 import withLocalize from '../../components/withLocalize';
 import Text from '../../components/Text';
@@ -146,7 +146,7 @@ function BankAccountStep(props) {
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                             <Icon
                                 src={Expensicons.Exclamation}
-                                fill={colors.red}
+                                fill={themeColors.danger}
                             />
                             <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{props.translate('bankAccount.validateAccountError')}</Text>
                         </View>
@@ -164,7 +164,7 @@ function BankAccountStep(props) {
                             <View style={[styles.ml1]}>
                                 <Icon
                                     src={Expensicons.Lock}
-                                    fill={colors.blue}
+                                    fill={themeColors.link}
                                 />
                             </View>
                         </PressableWithoutFeedback>
