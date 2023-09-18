@@ -1160,18 +1160,6 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         },
     ];
 
-    // STEP 5: Use the modifiedCategory as a category on success
-    if (!_.isUndefined(updatedTransaction.modifiedCategory)) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                category: updatedTransaction.modifiedCategory,
-                modifiedCategory: null,
-            },
-        });
-    }
-
     // STEP 6: Call the API endpoint
     const {created, amount, currency, comment, merchant, category} = ReportUtils.getTransactionDetails(updatedTransaction);
     API.write(

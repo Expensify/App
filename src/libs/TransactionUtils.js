@@ -142,8 +142,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     }
 
     if (_.has(transactionChanges, 'category')) {
-        updatedTransaction.modifiedCategory = transactionChanges.category;
-        shouldStopSmartscan = false;
+        updatedTransaction.category = transactionChanges.category;
     }
 
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
@@ -238,18 +237,12 @@ function getMerchant(transaction) {
 }
 
 /**
- * Return the category from the transaction, return the modifiedCategory if present.
+ * Return the category from the transaction. This "category" field has no "modified" complement.
  *
  * @param {Object} transaction
  * @return {String}
  */
 function getCategory(transaction) {
-    const modifiedCategory = lodashGet(transaction, 'modifiedCategory', null);
-
-    if (!_.isNull(modifiedCategory)) {
-        return modifiedCategory;
-    }
-
     return lodashGet(transaction, 'category', '');
 }
 
