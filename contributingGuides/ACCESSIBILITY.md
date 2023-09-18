@@ -2,7 +2,7 @@
 
 ### Base Components 
 
-- **GenericPressable**: A basic pressable component with generic functionality. It should be used in case of creating a new, custom pressable component rather than using it directly.
+- **GenericPressable**: A basic pressable component with generic functionality. It should generally only be used to creating a new, custom pressable components. Avoid using it directly.
 
 - **PressableWithFeedback**: A pressable component that provides standarised visual and haptic feedback upon pressing.
 
