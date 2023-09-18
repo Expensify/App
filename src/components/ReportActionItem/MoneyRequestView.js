@@ -152,6 +152,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
                     description={translate('common.description')}
+                    shouldParseTitle
                     title={transactionDescription}
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
