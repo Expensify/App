@@ -11,6 +11,7 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
     if (!reportAction.reportActionID) {
         return;
     }
+
     if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         // Delete the optimistic action
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
