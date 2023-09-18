@@ -110,8 +110,6 @@ lookfor_unused_keywords() {
 find_styles_object_and_store_keys() {
   local file="$1"
   local base_name="${2:-styles}" # Set styles as default
-  local parent_keys=()
-  local root_key=""
   local line_number=0
   local inside_arrow_function=false
 
@@ -127,7 +125,7 @@ find_styles_object_and_store_keys() {
     fi
 
     # Check if we are inside an arrow function
-    if [[ "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{ ]]; then
+    if [[ "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{ || "$line" =~ ^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\(.*\)[[:space:]]*'=>' ]]; then
       inside_arrow_function=true
       continue
     fi
@@ -138,27 +136,8 @@ find_styles_object_and_store_keys() {
     fi
     
     if [[ "$line" =~ ^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\{ ]]; then
-      root_key="${BASH_REMATCH[2]%%:*{*)}"
-    elif [[ "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-]+\.)?[a-zA-Z0-9_-]+:[[:space:]]*\{|^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{ ]]; then
-      # Removing all the extra lines after the ":"
-      local key="${line%%:*}"
-      key="${key// /}"  # Trim spaces
-      if [[ ${#parent_keys[@]} -gt 0 ]]; then
-        local parent_key_trimmed="${parent_keys[${#parent_keys[@]}-1]// /}"  # Trim spaces
-        key="$parent_key_trimmed.$key"
-      elif [[ -n "$root_key" ]]; then
-        local parent_key_trimmed="${root_key// /}"  # Trim spaces
-        key="$parent_key_trimmed.$key"
-      fi
-    
-      if [[ "$key" == "styles."* ]]; then
-        echo "${key}:${file}:${line_number}" >> "$STYLES_KEYS_FILE"
-      else
-        echo "styles.${key}|${base_name}.${key}:${file}:${line_number}" >> "$STYLES_KEYS_FILE"
-      fi
-      parent_keys+=("$key")
-    elif [[ "$line" =~ ^[[:space:]]*\} ]]; then
-      parent_keys=("${parent_keys[@]:0:${#parent_keys[@]}-1}")
+      key="${BASH_REMATCH[2]%%:*{*)}"
+      echo "styles.${key}|...${key}|${base_name}.${key}:${file}:${line_number}" >> "$STYLES_KEYS_FILE"    
     fi
   done < "$file"
 }
@@ -173,30 +152,141 @@ find_styles_functions_and_store_keys() {
   while IFS= read -r line; do
     ((line_number++))
 
-    # Check if we are inside an arrow function
-    if [[ "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{ ]]; then
-      inside_arrow_function=true
-      key="${line%%:*}"
-      key="${key// /}"  # Trim spaces
-      echo "styles.${key}:${file}:${line_number}" >> "$STYLES_KEYS_FILE"
-    fi
-
-    # If we are inside an arrow function and we find an opening curly brace,
-    # then set inside_object to true, indicating we are inside an object.
-    if [[ "$inside_arrow_function" == true && "$line" =~ ^[[:space:]]*\{ ]]; then
-      inside_object=true
-    fi
-
-    # If we are inside an object, continue to the next line.
-    if [[ "$inside_object" == true ]]; then
+    # Skip lines that are not key-related
+    if [[ "${line}" == *styles* ]]; then
       continue
     fi
 
-    # If we find a closing curly brace, reset the inside_object flag.
+    # Check if we are inside an arrow function and we find a closing curly brace
+    if [[ "$inside_arrow_function" == true ]]; then
+      if [[ "$line" =~ ^[[:space:]]*\}\) ]]; then
+        inside_arrow_function=false
+      fi
+      continue
+    fi
+
+    # Check if we are inside an arrow function
+    if [[ "${line}" =~ ^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\( ]]; then
+      inside_arrow_function=true
+      key="${line%%:*}"
+      key="${key// /}"  # Trim spaces
+      echo "styles.${key}|...${key}:${file}:${line_number}" >> "$STYLES_KEYS_FILE"
+      continue
+    fi
+
+    if [[ "$line" =~ ^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\(.*\)[[:space:]]*'=>' ]]; then
+      inside_arrow_function=true
+      key="${BASH_REMATCH[2]}"
+      key="${key// /}"  # Trim spaces
+      echo "styles.${key}|...${key}:${file}:${line_number}" >> "$STYLES_KEYS_FILE"
+      continue
+    fi
+
+  done < "$file"
+}
+
+find_theme_style_and_store_keys() {
+  local file="$1"
+  local start_line_number="$2"
+  local base_name="${3:-styles}" # Set styles as default
+  local parent_keys=()
+  local root_key=""
+  local line_number=0
+  local inside_arrow_function=false
+
+  while IFS= read -r line; do
+    ((line_number++))
+
+    if [ ! "$line_number" -ge "$start_line_number" ]; then
+      continue
+    fi
+
+    # Check if we are inside an arrow function and we find a closing curly brace
+    if [[ "$inside_arrow_function" == true ]]; then
+      if [[ "$line" =~ ^[[:space:]]*\}\) ]]; then
+        inside_arrow_function=false
+      fi
+      continue
+    fi
+
+    # Check if we are inside an arrow function
+    if [[ "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{ || "$line" =~ ^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\(.*\)[[:space:]]*'=>' ]]; then
+      inside_arrow_function=true
+      continue
+    fi
+
+    # Skip lines that are not key-related
+    if [[ ! "$line" =~ ^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\{|^[[:space:]]*([a-zA-Z0-9_-]+\.)?[a-zA-Z0-9_-]+:[[:space:]]*\{|^[[:space:]]*\} ]]; then
+
+      continue
+    fi
+    
+    if [[ "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-]+\.)?[a-zA-Z0-9_-]+:[[:space:]]*\{|^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{ ]]; then
+      # Removing all the extra lines after the ":"
+      local key="${line%%:*}"
+      key="${key// /}"  # Trim spaces
+
+      if [[ ${#parent_keys[@]} -gt 0 ]]; then
+        local parent_key_trimmed="${parent_keys[${#parent_keys[@]}-1]// /}"  # Trim spaces
+        key="$parent_key_trimmed.$key"
+      elif [[ -n "$root_key" ]]; then
+        local parent_key_trimmed="${root_key// /}"  # Trim spaces
+        key="$parent_key_trimmed.$key"
+      fi
+
+      echo "styles.${key}|...${key}|${base_name}.${key}:${file}:${line_number}" >> "$STYLES_KEYS_FILE"
+      parent_keys+=("$key")
+    elif [[ "$line" =~ ^[[:space:]]*\} ]]; then
+      parent_keys=("${parent_keys[@]:0:${#parent_keys[@]}-1}")
+    fi
+  done < "$file"
+}
+
+# Given that all the styles are inside of a function, we need to find the function and then look for the styles
+collect_theme_keys_from_styles() {
+  local file="$1"
+  local line_number=0
+  local inside_styles=false
+
+  while IFS= read -r line; do
+    ((line_number++))
+
+    if [[ "$inside_styles" == false ]]; then
+      if [[ "$line" =~ ^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\(.*\)[[:space:]]*'=>' ]]; then
+        key="${BASH_REMATCH[2]}"
+        key="${key// /}"  # Trim spaces
+        if [[ "$key" == "styles"* ]]; then
+          inside_styles=true
+          # Need to start within the style function
+          ((line_number++))
+          find_theme_style_and_store_keys "$file" "$line_number"
+        fi
+        continue
+      fi
+    fi
+  done < "$file"
+}
+
+lookfor_unused_spread_keywords() {
+  local inside_object=false
+
+  while IFS= read -r line; do
+    # Detect the start of an object
+    if [[ "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-]+\.)?[a-zA-Z0-9_-]+:[[:space:]]*\{ ]]; then
+      inside_object=true
+    fi
+
+    # Detect the end of an object
     if [[ "$line" =~ ^[[:space:]]*\},?$ ]]; then
       inside_object=false
     fi
-  done < "$file"
+
+    # If we're inside an object and the line starts with '...', capture the key
+    if [[ "$inside_object" == true && "$line" =~ ^[[:space:]]*\.\.\.([a-zA-Z0-9_]+)(\(.+\))?,?$ ]]; then
+      local key=("${BASH_REMATCH[1]}")
+      remove_keyword "...${key}"
+    fi
+  done < "$STYLES_FILE"
 }
 
 find_utility_styles_store_prefix() {
@@ -228,7 +318,7 @@ find_utility_usage_as_styles() {
       continue
     fi
 
-    find_styles_object_and_store_keys "${file}" "${root_key}"
+    find_theme_style_and_store_keys "${file}" 0 "${root_key}"
   done < <(find "${UTILITIES_STYLES_FILE}" -type f \( "${FILE_EXTENSIONS[@]}" \))
 }
 
@@ -260,11 +350,13 @@ find_utility_usage_as_styles
 # Find and store keys from styles.js
 find_styles_object_and_store_keys "$STYLES_FILE"
 find_styles_functions_and_store_keys "$STYLES_FILE"
+collect_theme_keys_from_styles "$STYLES_FILE"
 
 echo "🗄️ Now going through the codebase and looking for unused keys."
 
 # Look for usages of utilities into src/styles
 lookfor_unused_utilities
+lookfor_unused_spread_keywords
 lookfor_unused_keywords
 
 final_styles_line_count=$(count_lines "$STYLES_KEYS_FILE")
