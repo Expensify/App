@@ -38,6 +38,7 @@ type Transaction = {
         state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     };
     routes?: Routes;
+    tag: string;
 };
 
 export default Transaction;
