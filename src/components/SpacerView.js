@@ -2,6 +2,7 @@ import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
 import * as StyleUtils from '../styles/StyleUtils';
+import stylePropTypes from '../styles/stylePropTypes';
 import CONST from '../CONST';
 
 const propTypes = {
@@ -15,7 +16,7 @@ const propTypes = {
      * @default []
      */
     // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+    style: stylePropTypes,
 };
 
 const defaultProps = {
