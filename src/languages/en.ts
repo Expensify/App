@@ -1525,7 +1525,7 @@ export default {
         completed: 'Completed',
         messages: {
             completed: 'completed task',
-            canceled: 'canceled task',
+            canceled: 'deleted task',
             reopened: 'reopened task',
             error: 'You do not have the permission to do the requested action.',
         },
@@ -1697,6 +1697,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
+        deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {
