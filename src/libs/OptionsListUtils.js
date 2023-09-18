@@ -399,7 +399,6 @@ function getLastMessageTextForReport(report) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         const lastActorDisplayName = ReportUtils.isSettled(iouReport.reportID) ? `${ReportUtils.getPolicyName(report)} ` : ''
         lastMessageTextFromReport = lastActorDisplayName + ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getModifiedExpenseMessage(lastReportAction);
     } else {
