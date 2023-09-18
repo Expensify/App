@@ -116,7 +116,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                             style={[styles.mb3]}
                         >
                             <TextInput
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="privateNotes"
                                 label={translate('privateNotes.composerLabel')}
                                 accessibilityLabel={translate('privateNotes.title')}

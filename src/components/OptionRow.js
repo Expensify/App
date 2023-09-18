@@ -285,7 +285,7 @@ class OptionRow extends Component {
                                             ) : (
                                                 <PressableWithFeedback
                                                     onPress={() => this.props.onSelectedStatePressed(this.props.option)}
-                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                    role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                                     accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                                 >
                                                     <SelectCircle isChecked={this.props.isSelected} />
