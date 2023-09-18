@@ -190,7 +190,7 @@ function ComposerWithSuggestions({
 
                 // Reset suggestions when an emoji is replaced and the selection is not changed.
                 // More info issue #27156
-                if (selection.end === newSelectionPosition){
+                if (selection.end === newSelectionPosition && suggestionsRef.current){
                     suggestionsRef.current.resetSuggestions();
                 }
 
