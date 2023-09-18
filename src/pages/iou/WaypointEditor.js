@@ -116,6 +116,16 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         return errors;
     };
 
+    const saveWaypoint = (waypoint) => {
+        if (parsedWaypointIndex < _.size(allWaypoints)) {
+            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+        } else {
+            const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
+            Transaction.saveWaypoint(transactionID, waypointIndex, finishWaypoint);
+            Transaction.saveWaypoint(transactionID, waypointIndex - 1, waypoint);
+        }
+    }
+
     const onSubmit = (values) => {
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
 
@@ -132,13 +142,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                 lng: null,
                 address: waypointValue,
             };
-            if (parsedWaypointIndex < _.size(allWaypoints)) {
-                Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
-            } else {
-                const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
-                Transaction.saveWaypoint(transactionID, waypointIndex, finishWaypoint);
-                Transaction.saveWaypoint(transactionID, waypointIndex - 1, waypoint);
-            }
+            saveWaypoint(waypoint)
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
@@ -157,14 +161,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             lng: values.lng,
             address: values.address,
         };
-
-        if (parsedWaypointIndex < _.size(allWaypoints)) {
-            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
-        } else {
-            const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
-            Transaction.saveWaypoint(transactionID, waypointIndex, finishWaypoint);
-            Transaction.saveWaypoint(transactionID, waypointIndex - 1, waypoint);
-        }
+        saveWaypoint(waypoint)
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
