@@ -82,6 +82,10 @@ const lightTheme = {
     starDefaultBG: 'rgb(254, 228, 94)',
 };
 
+// Adding a color here will animate the status bar to the right color when the screen is opened.
+// Note that it needs to be a screen name, not a route url.
+// The route urls from ROUTES.ts are only used for deep linking and configuring URLs on web.
+// The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
 lightTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: lightTheme.sidebar,
     [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
