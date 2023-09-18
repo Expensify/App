@@ -7,15 +7,15 @@ import pkg from '../../package.json';
 import requireParameters from './requireParameters';
 import * as Network from './Network';
 
-let timeout = null;
+let timeout: NodeJS.Timeout | null = null;
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.expensifyCashAppVersion
- * @param {Object[]} parameters.logPacket
- * @returns {Promise}
+ * @param parameters
+ * @param parameters.expensifyCashAppVersion
+ * @param parameters.logPacket
+ * @returns Promise<unknown>
  */
-function LogCommand(parameters) {
+function LogCommand(parameters: Record<string, unknown>) {
     const commandName = 'Log';
     requireParameters(['logPacket', 'expensifyCashAppVersion'], parameters, commandName);
 
@@ -27,13 +27,13 @@ function LogCommand(parameters) {
 /**
  * Network interface for logger.
  *
- * @param {Logger} logger
- * @param {Object} params
- * @param {Object} params.parameters
- * @param {String} params.message
- * @return {Promise}
+ * @param logger
+ * @param params
+ * @param params.parameters
+ * @param params.message
+ * @return
  */
-function serverLoggingCallback(logger, params) {
+function serverLoggingCallback(logger: Logger, params: Record<string, unknown>) {
     const requestParams = params;
     requestParams.shouldProcessImmediately = false;
     requestParams.shouldRetry = false;
@@ -41,7 +41,9 @@ function serverLoggingCallback(logger, params) {
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(params.parameters);
     }
-    clearTimeout(timeout);
+    if(timeout) {
+        clearTimeout(timeout);
+    }
     timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
     return LogCommand(requestParams);
 }
