@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -10,6 +10,7 @@ import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
+import Permissions from '../../libs/Permissions';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
@@ -31,6 +32,9 @@ import OfflineWithFeedback from '../OfflineWithFeedback';
 import categoryPropTypes from '../categoryPropTypes';
 
 const propTypes = {
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
@@ -51,6 +55,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    betas: [],
     parentReport: {},
     policyCategories: {},
     transaction: {
@@ -60,7 +65,7 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction}) {
+function MoneyRequestView({betas, report, parentReport, policyCategories, shouldShowHorizontalRule, transaction}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -80,7 +85,10 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
-    const shouldShowCategory = !_.isEmpty(policyCategories) || !_.isEmpty(transactionCategory);
+    // A flag for verifying that the current report is a sub-report of a workspace chat
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+    // A flag for showing categories
+    const shouldShowCategory = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (!_.isEmpty(policyCategories) || !_.isEmpty(transactionCategory));
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
@@ -201,6 +209,9 @@ MoneyRequestView.displayName = 'MoneyRequestView';
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
         },
