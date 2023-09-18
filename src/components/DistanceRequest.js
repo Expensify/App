@@ -154,12 +154,9 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
     const scrollContainerMaxHeight = variables.optionRowHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
     useEffect(() => {
-        if (isOffline || mapboxAccessToken.token) {
-            return;
-        }
         MapboxToken.init();
         return MapboxToken.stop;
-    }, [mapboxAccessToken.token, isOffline]);
+    }, []);
 
     useEffect(() => {
         if (!iou.transactionID || !_.isEmpty(waypoints)) {
