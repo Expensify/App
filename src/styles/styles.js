@@ -22,7 +22,6 @@ import pointerEventsAuto from './pointerEventsAuto';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
-import getPlatform from '../libs/getPlatform';
 import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
@@ -31,8 +30,8 @@ import Colors from './colors';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
-// to prevent vertical text offset in browsers for badges, new lineHeight values have been added
-const lineHeightBadge = getPlatform() === CONST.PLATFORM.WEB ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
+// to prevent vertical text offset in Safari for badges, new lineHeight values have been added
+const lineHeightBadge = Browser.isSafari ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme) => ({
     backgroundColor: theme.transparent,
