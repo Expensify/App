@@ -64,8 +64,8 @@ function TaskView(props) {
                     {(hovered) => (
                         <PressableWithSecondaryInteraction
                             onPress={Session.checkIfActionIsAllowed((e) => {
-                                if (isDisableInteractive) {    
-                                    return
+                                if (isDisableInteractive) {
+                                    return;
                                 }
                                 if (e && e.type === 'click') {
                                     e.currentTarget.blur();
@@ -73,7 +73,12 @@ function TaskView(props) {
 
                                 Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
                             })}
-                            style={({pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true), isDisableInteractive && !disableState && styles.cursorDefault]}
+                            style={({pressed}) => [
+                                styles.ph5,
+                                styles.pv2,
+                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
+                                isDisableInteractive && !disableState && styles.cursorDefault,
+                            ]}
                             ref={props.forwardedRef}
                             disabled={disableState}
                             accessibilityLabel={taskTitle || props.translate('task.task')}
