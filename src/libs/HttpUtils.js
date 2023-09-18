@@ -5,6 +5,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
 import * as ApiUtils from './ApiUtils';
 import alert from '../components/Alert';
+import Log from './Log';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -104,6 +105,10 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
                 alert('Too many auth writes', message);
             }
             return response;
+        })
+        .catch(() => {
+            Log.hmmm(`Failed to fetch ${url}. Resolving promise to apply Onyx failure data`);
+            Promise.resolve({});
         });
 }
 
