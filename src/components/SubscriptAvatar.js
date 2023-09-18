@@ -26,6 +26,9 @@ const propTypes = {
 
     /** Removes margin from around the avatar, used for the chat view */
     noMargin: PropTypes.bool,
+
+    /** Whether to show the tooltip */
+    showTooltip: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -34,6 +37,7 @@ const defaultProps = {
     mainAvatar: {},
     secondaryAvatar: {},
     noMargin: false,
+    showTooltip: true,
 };
 
 function SubscriptAvatar(props) {
@@ -47,45 +51,60 @@ function SubscriptAvatar(props) {
     if (props.noMargin) {
         marginStyle = {};
     }
+
+    const mainAvatar = (
+        <Avatar
+            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(props.size || CONST.AVATAR_SIZE.DEFAULT))}
+            source={props.mainAvatar.source}
+            size={props.size || CONST.AVATAR_SIZE.DEFAULT}
+            name={props.mainAvatar.name}
+            type={props.mainAvatar.type}
+        />
+    );
+
+    const secondaryAvatar = (
+        <View
+            style={[props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle]}
+            // Hover on overflowed part of icon will not work on Electron if dragArea is true
+            // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
+            dataSet={{dragArea: false}}
+        >
+            <Avatar
+                iconAdditionalStyles={[
+                    StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
+                    StyleUtils.getBorderColorStyle(props.backgroundColor),
+                ]}
+                source={props.secondaryAvatar.source}
+                size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
+                fill={themeColors.iconSuccessFill}
+                name={props.secondaryAvatar.name}
+                type={props.secondaryAvatar.type}
+            />
+        </View>
+    );
+
     return (
         <View style={[containerStyle, marginStyle]}>
-            <UserDetailsTooltip
-                accountID={lodashGet(props.mainAvatar, 'id', -1)}
-                icon={props.mainAvatar}
-            >
-                <View>
-                    <Avatar
-                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(props.size || CONST.AVATAR_SIZE.DEFAULT))}
-                        source={props.mainAvatar.source}
-                        size={props.size || CONST.AVATAR_SIZE.DEFAULT}
-                        name={props.mainAvatar.name}
-                        type={props.mainAvatar.type}
-                    />
-                </View>
-            </UserDetailsTooltip>
-            <UserDetailsTooltip
-                accountID={lodashGet(props.secondaryAvatar, 'id', -1)}
-                icon={props.secondaryAvatar}
-            >
-                <View
-                    style={[props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle]}
-                    // Hover on overflowed part of icon will not work on Electron if dragArea is true
-                    // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
-                    dataSet={{dragArea: false}}
+            {props.showTooltip ? (
+                <UserDetailsTooltip
+                    accountID={lodashGet(props.mainAvatar, 'id', -1)}
+                    icon={props.mainAvatar}
                 >
-                    <Avatar
-                        iconAdditionalStyles={[
-                            StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
-                            StyleUtils.getBorderColorStyle(props.backgroundColor),
-                        ]}
-                        source={props.secondaryAvatar.source}
-                        size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
-                        fill={themeColors.iconSuccessFill}
-                        name={props.secondaryAvatar.name}
-                        type={props.secondaryAvatar.type}
-                    />
-                </View>
-            </UserDetailsTooltip>
+                    <View>{mainAvatar}</View>
+                </UserDetailsTooltip>
+            ) : (
+                mainAvatar
+            )}
+            {props.showTooltip ? (
+                <UserDetailsTooltip
+                    accountID={lodashGet(props.secondaryAvatar, 'id', -1)}
+                    icon={props.secondaryAvatar}
+                >
+                    {secondaryAvatar}
+                </UserDetailsTooltip>
+            ) : (
+                secondaryAvatar
+            )}
         </View>
     );
 }

@@ -2,7 +2,29 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../CONST';
 
+const commonListItemPropTypes = {
+    /** Whether this item is focused (for arrow key controls) */
+    isFocused: PropTypes.bool,
+
+    /** Whether this item is disabled */
+    isDisabled: PropTypes.bool,
+
+    /** Whether this item should show Tooltip */
+    showTooltip: PropTypes.bool.isRequired,
+
+    /** Whether to use the Checkbox (multiple selection) instead of the Checkmark (single selection) */
+    canSelectMultiple: PropTypes.bool,
+
+    /** Callback to fire when the item is pressed */
+    onSelectRow: PropTypes.func.isRequired,
+
+    /** Callback to fire when an error is dismissed */
+    onDismissError: PropTypes.func,
+};
+
 const userListItemPropTypes = {
+    ...commonListItemPropTypes,
+
     /** The section list item */
     item: PropTypes.shape({
         /** Text to display */
@@ -20,8 +42,17 @@ const userListItemPropTypes = {
         /** Whether this option is disabled for selection */
         isDisabled: PropTypes.bool,
 
+        /** True if the report is a Policy Expense chat */
+        isPolicyExpenseChat: PropTypes.bool,
+
         /** User accountID */
         accountID: PropTypes.number,
+
+        /** User reportID */
+        reportID: PropTypes.string,
+
+        /** User policyID */
+        policyID: PropTypes.string,
 
         /** User login */
         login: PropTypes.string,
@@ -30,11 +61,13 @@ const userListItemPropTypes = {
         rightElement: PropTypes.element,
 
         /** Avatar for the user */
-        avatar: PropTypes.shape({
-            source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
-            name: PropTypes.string,
-            type: PropTypes.string,
-        }),
+        icons: PropTypes.arrayOf(
+            PropTypes.shape({
+                source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+                name: PropTypes.string,
+                type: PropTypes.string,
+            }),
+        ),
 
         /** Errors that this user may contain */
         errors: PropTypes.objectOf(PropTypes.string),
@@ -42,21 +75,11 @@ const userListItemPropTypes = {
         /** The type of action that's pending  */
         pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
     }).isRequired,
-
-    /** Whether this item is focused (for arrow key controls) */
-    isFocused: PropTypes.bool,
-
-    /** Whether this item should show Tooltip */
-    showTooltip: PropTypes.bool.isRequired,
-
-    /** Callback to fire when the item is pressed */
-    onSelectRow: PropTypes.func.isRequired,
-
-    /** Callback to fire when an error is dismissed */
-    onDismissError: PropTypes.func,
 };
 
 const radioListItemPropTypes = {
+    ...commonListItemPropTypes,
+
     /** The section list item */
     item: PropTypes.shape({
         /** Text to display */
@@ -71,15 +94,11 @@ const radioListItemPropTypes = {
         /** Whether this option is selected */
         isSelected: PropTypes.bool,
     }).isRequired,
+};
 
-    /** Whether this item is focused (for arrow key controls) */
-    isFocused: PropTypes.bool,
-
-    /** Whether this item is disabled */
-    isDisabled: PropTypes.bool,
-
-    /** Callback to fire when the item is pressed */
-    onSelectRow: PropTypes.func.isRequired,
+const baseListItemPropTypes = {
+    ...commonListItemPropTypes,
+    item: PropTypes.oneOfType([PropTypes.shape(userListItemPropTypes.item), PropTypes.shape(radioListItemPropTypes.item)]),
 };
 
 const propTypes = {
@@ -158,4 +177,4 @@ const propTypes = {
     showConfirmButton: PropTypes.bool,
 };
 
-export {propTypes, radioListItemPropTypes, userListItemPropTypes};
+export {propTypes, baseListItemPropTypes, radioListItemPropTypes, userListItemPropTypes};

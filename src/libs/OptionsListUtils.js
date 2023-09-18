@@ -92,6 +92,40 @@ Onyx.connect({
 });
 
 /**
+ * Format personalDetails or userToInvite to be shown in the list
+ *
+ * @param {Object} member - personalDetails or userToInvite
+ * @param {Object} config - keys to overwrite the default values
+ * @returns {Object}
+ */
+function formatMemberForList(member, config = {}) {
+    if (!member) {
+        return undefined;
+    }
+
+    const accountID = lodashGet(member, 'accountID', '');
+    const reportID = lodashGet(member, 'reportID', '');
+    const policyID = lodashGet(member, 'policyID', '');
+
+    return {
+        text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
+        alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
+        keyForList: lodashGet(member, 'keyForList', '') || String(accountID) || String(reportID) || String(policyID),
+        isSelected: false,
+        isDisabled: false,
+        isPolicyExpenseChat: lodashGet(member, 'isPolicyExpenseChat', false),
+        accountID,
+        reportID,
+        policyID,
+        login: lodashGet(member, 'login', ''),
+        rightElement: null,
+        icons: lodashGet(member, 'icons'),
+        pendingAction: lodashGet(member, 'pendingAction'),
+        ...config,
+    };
+}
+
+/**
  * Get the options for a policy expense report.
  * @param {Object} report
  * @returns {Array}
@@ -100,21 +134,32 @@ function getPolicyExpenseReportOptions(report) {
     const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
     const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
     const reportName = ReportUtils.getReportName(expenseReport);
+
     return [
         {
             ...expenseReport,
-            keyForList: expenseReport.policyID,
-            text: reportName,
-            alternateText: Localize.translateLocal('workspace.common.workspace'),
-            icons: [
-                {
-                    source: policyExpenseChatAvatarSource,
-                    name: reportName,
-                    type: CONST.ICON_TYPE_WORKSPACE,
-                },
-            ],
-            selected: report.selected,
-            isPolicyExpenseChat: true,
+            ...formatMemberForList(report, {
+                icons: [
+                    {
+                        source: policyExpenseChatAvatarSource,
+                        name: reportName,
+                        type: CONST.ICON_TYPE_WORKSPACE,
+                    },
+                ],
+            }),
+            selected: true,
+            // keyForList: expenseReport.policyID,
+            // text: reportName,
+            // alternateText: Localize.translateLocal('workspace.common.workspace'),
+            // icons: [
+            //     {
+            //         source: policyExpenseChatAvatarSource,
+            //         name: reportName,
+            //         type: CONST.ICON_TYPE_WORKSPACE,
+            //     },
+            // ],
+            // selected: report.selected,
+            // isPolicyExpenseChat: true,
         },
     ];
 }
@@ -1104,20 +1149,6 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
 }
 
 /**
- * Build the IOUConfirmationOptions for showing participants
- *
- * @param {Array} participants
- * @param {String} amountText
- * @returns {Array}
- */
-function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
-    return _.map(participants, (participant) => ({
-        ...participant,
-        descriptiveText: amountText,
-    }));
-}
-
-/**
  * Build the options for the New Group view
  *
  * @param {Object} reports
@@ -1209,40 +1240,6 @@ function getShareDestinationOptions(
 }
 
 /**
- * Format personalDetails or userToInvite to be shown in the list
- *
- * @param {Object} member - personalDetails or userToInvite
- * @param {Object} config - keys to overwrite the default values
- * @returns {Object}
- */
-function formatMemberForList(member, config = {}) {
-    if (!member) {
-        return undefined;
-    }
-
-    const avatarSource = lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'icons[0].source', '') || lodashGet(member, 'avatar', '');
-    const accountID = lodashGet(member, 'accountID', '');
-
-    return {
-        text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
-        alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
-        keyForList: lodashGet(member, 'keyForList', '') || String(accountID),
-        isSelected: false,
-        isDisabled: false,
-        accountID,
-        login: lodashGet(member, 'login', ''),
-        rightElement: null,
-        avatar: {
-            source: UserUtils.getAvatar(avatarSource, accountID),
-            name: lodashGet(member, 'participantsList[0].login', '') || lodashGet(member, 'icons[0].name', '') || lodashGet(member, 'displayName', ''),
-            type: CONST.ICON_TYPE_AVATAR,
-        },
-        pendingAction: lodashGet(member, 'pendingAction'),
-        ...config,
-    };
-}
-
-/**
  * Build the options for the Workspace Member Invite view
  *
  * @param {Object} personalDetails
@@ -1323,7 +1320,6 @@ export {
     getHeaderMessage,
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
-    getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,
     getPolicyExpenseReportOptions,

@@ -4,18 +4,15 @@ import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import {userListItemPropTypes} from './selectionListPropTypes';
-import Avatar from '../Avatar';
-import CONST from '../../CONST';
 import Tooltip from '../Tooltip';
-import UserDetailsTooltip from '../UserDetailsTooltip';
+import SubscriptAvatar from '../SubscriptAvatar';
 
 function UserListItem({item, isFocused = false, showTooltip}) {
     const avatar = (
-        <Avatar
-            containerStyles={styles.pl3}
-            source={lodashGet(item, 'avatar.source', '')}
-            name={lodashGet(item, 'avatar.name', item.text)}
-            type={lodashGet(item, 'avatar.type', CONST.ICON_TYPE_AVATAR)}
+        <SubscriptAvatar
+            mainAvatar={lodashGet(item, 'icons[0]')}
+            secondaryAvatar={lodashGet(item, 'icons[1]')}
+            showTooltip={showTooltip}
         />
     );
 
@@ -39,18 +36,8 @@ function UserListItem({item, isFocused = false, showTooltip}) {
 
     return (
         <>
-            {Boolean(item.avatar) &&
-                (showTooltip ? (
-                    <UserDetailsTooltip
-                        accountID={item.accountID}
-                        shiftHorizontal={styles.pl5.paddingLeft / 2}
-                    >
-                        <View>{avatar}</View>
-                    </UserDetailsTooltip>
-                ) : (
-                    avatar
-                ))}
-            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStart, styles.pl3, styles.optionRow]}>
+            {Boolean(item.icons) && avatar}
+            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStart, styles.optionRow]}>
                 {showTooltip ? <Tooltip text={item.text}>{text}</Tooltip> : text}
                 {Boolean(item.alternateText) && (showTooltip ? <Tooltip text={item.alternateText}>{alternateText}</Tooltip> : alternateText)}
             </View>

@@ -100,7 +100,7 @@ class MoneyRequestParticipantsSelector extends Component {
     }
 
     /**
-     * Returns the sections needed for the OptionsSelector
+     * Returns the sections needed for the SelectionList
      *
      * @returns {Array}
      */
@@ -138,6 +138,7 @@ class MoneyRequestParticipantsSelector extends Component {
 
     updateOptionsWithSearchTerm(searchTerm = '') {
         const {recentReports, personalDetails, userToInvite} = this.getRequestOptions(searchTerm);
+
         const formattedRecentReports = _.map(recentReports, (report) => OptionsListUtils.formatMemberForList(report));
         const formattedPersonalDetails = _.map(personalDetails, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
         const formattedUserToInvite = OptionsListUtils.formatMemberForList(userToInvite);
@@ -156,7 +157,20 @@ class MoneyRequestParticipantsSelector extends Component {
      * @param {Object} option
      */
     addSingleParticipant(option) {
-        this.props.onAddParticipants([{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true}]);
+        this.props.onAddParticipants([
+            {
+                ...option,
+                selected: true,
+                icons: _.map(option.icons, (icon) => ({
+                    ...icon,
+                    // `participants` are stored in Onyx, under the `iou` key. Onyx can't merge the state
+                    // if one of the properties is not serializable, so we clean the avatar source when it is a function,
+                    // and restore when rendering the list.
+                    source: _.isFunction(icon.source) ? '' : icon.source,
+                })),
+            },
+        ]);
+
         this.props.onStepComplete(option);
     }
 

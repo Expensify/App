@@ -1,18 +1,19 @@
 import React from 'react';
 import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import themeColors from '../../styles/themes/default';
-import {radioListItemPropTypes} from './selectionListPropTypes';
+import {baseListItemPropTypes} from './selectionListPropTypes';
 import * as StyleUtils from '../../styles/StyleUtils';
 import UserListItem from './UserListItem';
 import RadioListItem from './RadioListItem';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 
 function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip, canSelectMultiple, onSelectRow, onDismissError = () => {}}) {
-    const isUserItem = Boolean(item.avatar);
+    const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
 
     return (
@@ -29,7 +30,6 @@ function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip,
                 accessibilityRole="button"
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
-                focusStyle={styles.hoveredComponentBG}
             >
                 <View
                     style={[
@@ -46,6 +46,7 @@ function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip,
                             <View
                                 style={[
                                     StyleUtils.getCheckboxContainerStyle(20, 4),
+                                    styles.mr3,
                                     item.isSelected && styles.checkedContainer,
                                     item.isSelected && styles.borderColorFocus,
                                     item.isDisabled && styles.cursorDisabled,
@@ -74,7 +75,7 @@ function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip,
 
                     {!canSelectMultiple && item.isSelected && (
                         <View
-                            style={[styles.flexRow, styles.alignItemsCenter]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
                         >
                             <View>
@@ -92,6 +93,6 @@ function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip,
 }
 
 BaseListItem.displayName = 'BaseListItem';
-BaseListItem.propTypes = radioListItemPropTypes;
+BaseListItem.propTypes = baseListItemPropTypes;
 
 export default BaseListItem;
