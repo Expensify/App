@@ -16,4 +16,12 @@ declare module '*.svg' {
     export default content;
 }
 
+declare global {
+    interface Window {
+        electron: Electron.IpcRenderer
+    }
+}
+
 declare module 'react-native-device-info/jest/react-native-device-info-mock';
+
+export {}

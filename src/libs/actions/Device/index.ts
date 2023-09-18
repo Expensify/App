@@ -1,15 +1,15 @@
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../Log';
-import generateDeviceID from './generateDeviceID';
-import getDeviceInfo from './getDeviceInfo';
+import generateDeviceID from './generateDeviceID/index.ios';
+import getDeviceInfo from './getDeviceInfo/index.ios';
 
-let deviceID;
+let deviceID: string | null = null;
 
 /**
  * @returns {Promise<String>}
  */
-function getDeviceID() {
+function getDeviceID(): Promise<string | null> {
     return new Promise((resolve) => {
         if (deviceID) {
             return resolve(deviceID);
@@ -17,7 +17,7 @@ function getDeviceID() {
 
         const connectionID = Onyx.connect({
             key: ONYXKEYS.DEVICE_ID,
-            callback: (ID) => {
+            callback: (ID: OnyxEntry<string>) => {
                 Onyx.disconnect(connectionID);
                 deviceID = ID;
                 return resolve(ID);
@@ -38,7 +38,7 @@ function setDeviceID() {
             throw new Error(existingDeviceID);
         })
         .then(generateDeviceID)
-        .then((uniqueID) => {
+        .then((uniqueID: string) => {
             Log.info('Got new deviceID', false, uniqueID);
             Onyx.set(ONYXKEYS.DEVICE_ID, uniqueID);
         })
@@ -47,9 +47,9 @@ function setDeviceID() {
 
 /**
  * Returns a string object with device info and uniqueID
- * @returns {Promise<string>}
+ * @returns - device info with ID
  */
-function getDeviceInfoWithID() {
+function getDeviceInfoWithID(): Promise<string> {
     return new Promise((resolve) => {
         getDeviceID().then((currentDeviceID) =>
             resolve(
