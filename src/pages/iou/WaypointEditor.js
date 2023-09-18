@@ -132,8 +132,13 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                 lng: null,
                 address: waypointValue,
             };
-
-            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+            if (parsedWaypointIndex < _.size(allWaypoints)) {
+                Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+            } else {
+                const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
+                Transaction.saveWaypoint(transactionID, waypointIndex, finishWaypoint);
+                Transaction.saveWaypoint(transactionID, waypointIndex - 1, waypoint);
+            }
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
@@ -153,7 +158,13 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             address: values.address,
         };
 
-        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+        if (parsedWaypointIndex < _.size(allWaypoints)) {
+            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+        } else {
+            const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
+            Transaction.saveWaypoint(transactionID, waypointIndex, finishWaypoint);
+            Transaction.saveWaypoint(transactionID, waypointIndex - 1, waypoint);
+        }
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
@@ -163,7 +174,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             shouldEnableMaxHeight
         >
-            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount - 1) && isFocused}>
+            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount) && isFocused}>
                 <HeaderWithBackButton
                     title={translate(wayPointDescriptionKey)}
                     shouldShowBackButton

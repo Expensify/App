@@ -260,7 +260,11 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => Transaction.addStop(iou.transactionID)}
+                    onPress={() => {
+                        const existingWaypoints = lodashGet(transaction, 'comment.waypoints', {});
+                        const newLastIndex = _.size(existingWaypoints);
+                        Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', newLastIndex));
+                    }}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
