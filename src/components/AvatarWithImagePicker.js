@@ -23,6 +23,8 @@ import getImageResolution from '../libs/fileDownload/getImageResolution';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as Browser from '../libs/Browser';
+import withNavigationFocus, {withNavigationFocusPropTypes} from './withNavigationFocus';
+import compose from '../libs/compose';
 
 const propTypes = {
     /** Avatar source to display */
@@ -80,6 +82,7 @@ const propTypes = {
     errors: PropTypes.object,
 
     ...withLocalizePropTypes,
+    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
@@ -129,6 +132,9 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!prevProps.isFocused && this.props.isFocused) {
+            this.setError(null, {});
+        }
         if (!prevProps.isUploading && this.props.isUploading) {
             this.animation.start();
         } else if (prevProps.isUploading && !this.props.isUploading) {
@@ -350,4 +356,4 @@ class AvatarWithImagePicker extends React.Component {
 AvatarWithImagePicker.propTypes = propTypes;
 AvatarWithImagePicker.defaultProps = defaultProps;
 
-export default withLocalize(AvatarWithImagePicker);
+export default compose(withLocalize, withNavigationFocus)(AvatarWithImagePicker);
