@@ -292,8 +292,8 @@ function extractEmojis(text) {
 
 /**
  * Take the current emojis and the former emojis and return the emojis that were added, if we add an already existing emoji, we also return it
- * @param {Object[]} The array of current emojis
- * @param {Object[]} The array of former emojis
+ * @param {Object[]} currentEmojis The array of current emojis
+ * @param {Object[]} formerEmojis The array of former emojis
  * @returns {Object[]} The array of added emojis 
  */
 function getAddedEmojis(currentEmojis, formerEmojis) {
