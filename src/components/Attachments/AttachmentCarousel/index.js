@@ -19,6 +19,7 @@ import BlockingView from '../../BlockingViews/BlockingView';
 import * as Illustrations from '../../Icon/Illustrations';
 import variables from '../../../styles/variables';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
@@ -38,13 +39,25 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     const [activeSource, setActiveSource] = useState(source);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
 
+    const compareImage = useCallback(
+        (attachment) => {
+            if (attachment.isReceipt) {
+                const action = ReportActionsUtils.getParentReportAction(report);
+                const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
+                return attachment.transactionID === transactionID;
+            }
+            return attachment.source === source;
+        },
+        [source, report],
+    );
+
     useEffect(() => {
         const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
 
-        const initialPage = _.findIndex(attachmentsFromReport, (a) => a.source === source);
+        const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
         // Dismiss the modal when deleting an attachment during its display in preview.
-        if (initialPage === -1 && _.find(attachments, (a) => a.source === source)) {
+        if (initialPage === -1 && _.find(attachments, compareImage)) {
             Navigation.dismissModal();
         } else {
             setPage(initialPage);
@@ -57,7 +70,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             if (!_.isUndefined(attachmentsFromReport[initialPage])) onNavigate(attachmentsFromReport[initialPage]);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report, reportActions, source]);
+    }, [reportActions, compareImage]);
 
     /**
      * Updates the page state when the user navigates between attachments
