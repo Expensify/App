@@ -202,7 +202,7 @@ function ReceiptSelector(props) {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, props.iou, props.report, reportID, translate]);
+    }, [flash, iouType, props.iou, props.report, translate]);
 
     CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);

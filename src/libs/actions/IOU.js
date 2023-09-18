@@ -610,7 +610,6 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.parentReportID}`];
-    const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
