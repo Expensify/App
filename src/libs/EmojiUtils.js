@@ -289,13 +289,12 @@ function extractEmojis(text) {
     return emojis;
 }
 
-function getAddedEmojis(currentEmojis, formerEmojis){
-    
+function getAddedEmojis(currentEmojis, formerEmojis) {
     const newEmojis = [...currentEmojis];
     // We are removing the emojis from the newEmojis array if they were already present before.
     formerEmojis.forEach((formerEmoji) => {
-        const indexOfAlreadyPresentEmoji = _.findIndex(newEmojis, newEmoji => newEmoji.code === formerEmoji.code);
-        if(indexOfAlreadyPresentEmoji >= 0) {
+        const indexOfAlreadyPresentEmoji = _.findIndex(newEmojis, (newEmoji) => newEmoji.code === formerEmoji.code);
+        if (indexOfAlreadyPresentEmoji >= 0) {
             newEmojis.splice(indexOfAlreadyPresentEmoji, 1);
         }
     });

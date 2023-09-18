@@ -131,7 +131,6 @@ function ComposerWithSuggestions({
 
     const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
-    
 
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
@@ -178,7 +177,7 @@ function ComposerWithSuggestions({
 
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore);
-                
+
                 insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
                 debouncedUpdateFrequentlyUsedEmojis();
             }

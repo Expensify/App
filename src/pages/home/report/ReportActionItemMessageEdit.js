@@ -115,7 +115,7 @@ function ReportActionItemMessageEdit(props) {
         const length = getInitialDraft().length;
         return {start: length, end: length};
     };
-    const emojisPresentBefore = useRef([]);;
+    const emojisPresentBefore = useRef([]);
     const [draft, setDraft] = useState(() => {
         const initialDraft = getInitialDraft();
         if (initialDraft) {
