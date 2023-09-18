@@ -5,7 +5,5 @@
         <color android:color="?attr/windowSplashScreenBackground" />
     </item>
 
-    <item android:gravity="fill">
-        <bitmap android:src="?windowSplashScreenAnimatedIcon" android:gravity="center" />
-    </item>
+    <item android:gravity="center" android:drawable="?windowSplashScreenAnimatedIcon" android:scaleType="fitXY" />
 </layer-list>
