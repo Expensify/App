@@ -27,7 +27,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    locationErrorCode: undefined,
+    locationErrorCode: null,
 };
 
 function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, translate}) {
