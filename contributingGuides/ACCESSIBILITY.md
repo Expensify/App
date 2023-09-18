@@ -10,7 +10,7 @@
 
 - **PressableWithoutFocus**: A pressable component without visible efect of focus.
 
-- **PressableWithDelayToggle**:  A pressable component that toggles after a short delay upon pressing.
+- **PressableWithDelayToggle**:  A pressable component that briefly disables then re-enables after a short delay upon pressing.
 
 Accessibility props are unified across all platforms.
 
