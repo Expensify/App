@@ -56,6 +56,9 @@ function BaseOptionsList({
     shouldDisableRowInnerPadding,
     disableFocusOptions,
     canSelectMultipleOptions,
+    shouldShowMultipleOptionSelectorAsButton,
+    multipleOptionSelectorButtonText,
+    onAddToSelection,
     highlightSelectedOptions,
     onSelectRow,
     boldStyle,
@@ -191,6 +194,9 @@ function BaseOptionsList({
                 onSelectRow={onSelectRow}
                 isSelected={isSelected}
                 showSelectedState={canSelectMultipleOptions}
+                shouldShowSelectedStateAsButton={shouldShowMultipleOptionSelectorAsButton}
+                selectedStateButtonText={multipleOptionSelectorButtonText}
+                onSelectedStatePressed={onAddToSelection}
                 highlightSelected={highlightSelectedOptions}
                 boldStyle={boldStyle}
                 isDisabled={isItemDisabled}

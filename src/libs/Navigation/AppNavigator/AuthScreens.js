@@ -159,7 +159,7 @@ class AuthScreens extends React.Component {
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
-        const groupShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_GROUP;
+        const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
 
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
@@ -178,18 +178,18 @@ class AuthScreens extends React.Component {
             searchShortcutConfig.modifiers,
             true,
         );
-        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(
-            groupShortcutConfig.shortcutKey,
+        this.unsubscribeChatShortcut = KeyboardShortcut.subscribe(
+            chatShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.NEW_GROUP)) {
+                    if (Navigation.isActiveRoute(ROUTES.NEW_CHAT)) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.NEW_GROUP);
+                    Navigation.navigate(ROUTES.NEW_CHAT);
                 });
             },
-            groupShortcutConfig.descriptionKey,
-            groupShortcutConfig.modifiers,
+            chatShortcutConfig.descriptionKey,
+            chatShortcutConfig.modifiers,
             true,
         );
     }
@@ -202,8 +202,8 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeSearchShortcut) {
             this.unsubscribeSearchShortcut();
         }
-        if (this.unsubscribeGroupShortcut) {
-            this.unsubscribeGroupShortcut();
+        if (this.unsubscribeChatShortcut) {
+            this.unsubscribeChatShortcut();
         }
         Session.cleanupSession();
         clearInterval(this.interval);
