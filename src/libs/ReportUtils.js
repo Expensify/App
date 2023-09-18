@@ -1582,7 +1582,7 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
 
     if (_.has(transactionChanges, 'category')) {
         originalMessage.oldCategory = TransactionUtils.getCategory(oldTransaction);
-        originalMessage.newCategory = transactionChanges.category;
+        originalMessage.category = transactionChanges.category;
     }
 
     return originalMessage;
