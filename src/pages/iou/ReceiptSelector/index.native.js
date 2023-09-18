@@ -85,7 +85,6 @@ function ReceiptSelector(props) {
     const appState = useRef(AppState.currentState);
 
     const iouType = lodashGet(props.route, 'params.iouType', '');
-    const reportID = lodashGet(props.route, 'params.reportID', '');
     const pageIndex = lodashGet(props.route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
