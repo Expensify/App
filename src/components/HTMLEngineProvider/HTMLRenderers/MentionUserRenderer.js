@@ -10,7 +10,6 @@ import UserDetailsTooltip from '../../UserDetailsTooltip';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withCurrentUserPersonalDetails from '../../withCurrentUserPersonalDetails';
 import personalDetailsPropType from '../../../pages/personalDetailsPropType';
-import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import compose from '../../../libs/compose';
@@ -40,13 +39,8 @@ function MentionUserRenderer(props) {
     if (!_.isEmpty(htmlAttribAccountID)) {
         const user = lodashGet(props.personalDetails, htmlAttribAccountID);
         accountID = parseInt(htmlAttribAccountID, 10);
-        displayNameOrLogin = lodashGet(user, 'login', '') || lodashGet(user, 'displayName', '');
-
-        if (_.isEmpty(displayNameOrLogin)) {
-            displayNameOrLogin = translate('common.hidden');
-        } else {
-            navigationRoute = ROUTES.getProfileRoute(htmlAttribAccountID);
-        }
+        displayNameOrLogin = lodashGet(user, 'login', '') || lodashGet(user, 'displayName', '') || translate('common.hidden');
+        navigationRoute = ROUTES.getProfileRoute(htmlAttribAccountID);
     } else {
         // We need to remove the leading @ from data as it is not part of the login
         displayNameOrLogin = props.tnode.data ? props.tnode.data.slice(1) : '';
@@ -56,33 +50,26 @@ function MentionUserRenderer(props) {
     }
 
     const isOurMention = accountID === props.currentUserPersonalDetails.accountID;
-    const TextLinkComponent = _.isEmpty(navigationRoute) ? Text : TextLink;
 
     return (
         <Text>
             <UserDetailsTooltip
                 accountID={accountID}
                 fallbackUserDetails={{
-                    // If there is no navigation route (i.e. user is hidden), empty the displayName here to ensure the tooltip is removed
-                    displayName: _.isEmpty(navigationRoute) ? '' : displayNameOrLogin,
+                    displayName: displayNameOrLogin,
                 }}
             >
-                <TextLinkComponent
+                <TextLink
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
-                    style={[
-                        _.omit(props.style, 'color'),
-                        StyleUtils.getMentionStyle(isOurMention),
-                        {color: StyleUtils.getMentionTextColor(isOurMention)},
-                        _.isEmpty(navigationRoute) ? styles.cursorDefault : {},
-                    ]}
-                    href={_.isEmpty(navigationRoute) ? undefined : `/${navigationRoute}`}
-                    onPress={_.isEmpty(navigationRoute) ? undefined : () => Navigation.navigate(navigationRoute)}
+                    href={`/${navigationRoute}`}
+                    style={[_.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
+                    onPress={() => Navigation.navigate(navigationRoute)}
                     // Add testID so it is NOT selected as an anchor tag by SelectionScraper
                     testID="span"
                 >
                     {!_.isEmpty(htmlAttribAccountID) ? `@${displayNameOrLogin}` : <TNodeChildrenRenderer tnode={props.tnode} />}
-                </TextLinkComponent>
+                </TextLink>
             </UserDetailsTooltip>
         </Text>
     );
