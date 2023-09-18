@@ -2,7 +2,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
@@ -61,6 +61,7 @@ function BaseSelectionList({
     const shouldShowTextInput = Boolean(textInputLabel);
     const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElement = useActiveElement();
+    const isFocused = useIsFocused();
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -244,7 +245,7 @@ function BaseSelectionList({
     const renderItem = ({item, index, section}) => {
         const normalizedIndex = index + lodashGet(section, 'indexOffset', 0);
         const isDisabled = section.isDisabled;
-        const isFocused = !isDisabled && focusedIndex === normalizedIndex;
+        const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = normalizedIndex < 10;
 
@@ -252,7 +253,7 @@ function BaseSelectionList({
             return (
                 <UserListItem
                     item={item}
-                    isFocused={isFocused}
+                    isFocused={isItemFocused}
                     onSelectRow={() => selectRow(item, index)}
                     onDismissError={onDismissError}
                     showTooltip={showTooltip}
@@ -263,7 +264,7 @@ function BaseSelectionList({
         return (
             <RadioListItem
                 item={item}
-                isFocused={isFocused}
+                isFocused={isItemFocused}
                 isDisabled={isDisabled}
                 onSelectRow={() => selectRow(item, index)}
             />
@@ -289,14 +290,14 @@ function BaseSelectionList({
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        isActive: !activeElement,
+        isActive: !activeElement && isFocused,
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        isActive: Boolean(onConfirm),
+        isActive: Boolean(onConfirm) && isFocused,
     });
 
     return (
@@ -355,7 +356,7 @@ function BaseSelectionList({
                                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         />
                                         <View style={[styles.flex1]}>
-                                            <Text style={[styles.textStrong, styles.ph5]}>{translate('workspace.people.selectAll')}</Text>
+                                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                                         </View>
                                     </PressableWithFeedback>
                                 )}

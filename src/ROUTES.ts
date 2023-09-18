@@ -13,7 +13,6 @@ type ParseReportRouteParams = {
 
 const REPORT = 'r';
 const IOU_REQUEST = 'request/new';
-const IOU_BILL = 'split/new';
 const IOU_SEND = 'send/new';
 const NEW_TASK = 'new/task';
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
@@ -67,11 +66,12 @@ export default {
     SETTINGS_2FA: 'settings/security/two-factor-auth',
     SETTINGS_STATUS,
     SETTINGS_STATUS_SET,
-    NEW_GROUP: 'new/group',
+    NEW: 'new',
     NEW_CHAT: 'new/chat',
+    NEW_ROOM: 'new/room',
     NEW_TASK,
     REPORT,
-    REPORT_WITH_ID: 'r/:reportID/:reportActionID?',
+    REPORT_WITH_ID: 'r/:reportID?/:reportActionID?',
     EDIT_REQUEST: 'r/:threadReportID/edit/:field',
     getEditRequestRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${threadReportID}/edit/${field}`,
     EDIT_CURRENCY_REQUEST: 'r/:threadReportID/edit/currency',
@@ -86,7 +86,6 @@ export default {
     CONCIERGE: 'concierge',
 
     IOU_REQUEST,
-    IOU_BILL,
     IOU_SEND,
 
     // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
@@ -104,6 +103,7 @@ export default {
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
     MONEY_REQUEST_DISTANCE_TAB: ':iouType/new/:reportID?/distance',
     MONEY_REQUEST_WAYPOINT: ':iouType/new/waypoint/:waypointIndex',
+    MONEY_REQUEST_ADDRESS: ':iouType/new/address/:reportID?',
     IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
     IOU_SEND_ADD_DEBIT_CARD: `${IOU_SEND}/add-debit-card`,
     IOU_SEND_ENABLE_PAYMENTS: `${IOU_SEND}/enable-payments`,
@@ -118,6 +118,7 @@ export default {
     getMoneyRequestMerchantRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}`,
     getMoneyRequestDistanceTabRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance`,
     getMoneyRequestWaypointRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}`,
+    getMoneyRequestAddressRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}`,
     getMoneyRequestTagRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}`,
     SPLIT_BILL_DETAILS: `r/:reportID/split/:reportActionID`,
     getSplitBillDetailsRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}`,
@@ -171,6 +172,14 @@ export default {
     APPLE_SIGN_IN: 'sign-in-with-apple',
     GOOGLE_SIGN_IN: 'sign-in-with-google',
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
+
+    // Routes related to private notes added to the report
+    PRIVATE_NOTES_VIEW: 'r/:reportID/notes/:accountID',
+    getPrivateNotesViewRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}`,
+    PRIVATE_NOTES_LIST: 'r/:reportID/notes',
+    getPrivateNotesListRoute: (reportID: string) => `r/${reportID}/notes`,
+    PRIVATE_NOTES_EDIT: 'r/:reportID/notes/:accountID/edit',
+    getPrivateNotesEditRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`,
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
