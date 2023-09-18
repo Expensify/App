@@ -23,7 +23,13 @@ type LangEmojis = Record<string, LangEmoji>;
 
 Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
 
-const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES];
+const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES] as const;
+
+type SupportedLanguage = (typeof supportedLanguages)[number];
+
+type EmojiTrie = {
+    [key in SupportedLanguage]?: Trie<MetaData>;
+};
 
 /**
  *
@@ -33,7 +39,7 @@ const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES];
  * @param name The localized name of the emoji.
  * @param shouldPrependKeyword Prepend the keyword (instead of append) to the suggestions
  */
-function addKeywordsToTrie(trie: Trie<MetaData>, keywords: string[], item: Emoji, name: string, shouldPrependKeyword = false): void {
+function addKeywordsToTrie(trie: Trie<MetaData>, keywords: string[], item: Emoji, name: string, shouldPrependKeyword = false) {
     keywords.forEach((keyword) => {
         const keywordNode = trie.search(keyword);
         if (!keywordNode) {
@@ -60,7 +66,7 @@ function getNameParts(name: string): string[] {
     return nameSplit.map((namePart, index) => nameSplit.slice(index).join('_'));
 }
 
-function createTrie(lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): Trie<MetaData> {
+function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<MetaData> {
     const trie = new Trie();
     const langEmojis: LangEmojis = localeEmojis[lang];
     const defaultLangEmojis: LangEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
@@ -101,7 +107,7 @@ function createTrie(lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): Trie<MetaData> {
     return trie;
 }
 
-const emojiTrie = supportedLanguages.reduce((prev, cur) => ({...prev, [cur]: createTrie(cur)}), {});
+const emojiTrie: EmojiTrie = supportedLanguages.reduce((prev, cur) => ({...prev, [cur]: createTrie(cur)}), {});
 
 Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 
