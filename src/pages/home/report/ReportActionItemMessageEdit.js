@@ -338,7 +338,6 @@ function ReportActionItemMessageEdit(props) {
                         <PressableWithFeedback
                             onPress={deleteDraft}
                             style={styles.chatItemSubmitButton}
-                            id={cancelButtonID}
                             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={translate('common.close')}
                             // disable dimming
@@ -424,7 +423,6 @@ function ReportActionItemMessageEdit(props) {
                             <PressableWithFeedback
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
-                                id={saveButtonID}
                                 disabled={hasExceededMaxCommentLength}
                                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}

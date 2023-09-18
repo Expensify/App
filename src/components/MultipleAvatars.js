@@ -276,7 +276,7 @@ function MultipleAvatars(props) {
                                 <Tooltip text={tooltipTexts.slice(1).join(', ')}>
                                     <View style={[singleAvatarStyle, styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Text
-                                            style={styles.userSelectNone, props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}
+                                            style={(styles.userSelectNone, props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText)}
                                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         >
                                             {`+${props.icons.length - 1}`}

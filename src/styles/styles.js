@@ -2870,7 +2870,7 @@ const styles = (theme) => ({
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        boxShadow: `${themeColors.shadow}`,
+        boxShadow: `${theme.shadow}`,
         ...spacing.p5,
     },
 
