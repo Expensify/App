@@ -259,7 +259,7 @@ collect_theme_keys_from_styles() {
           inside_styles=true
           # Need to start within the style function
           ((line_number++))
-          find_theme_style_and_store_keys "$file" "$line_number"
+          find_theme_style_and_store_keys "$STYLES_FILE" "$line_number"
         fi
         continue
       fi
@@ -269,6 +269,7 @@ collect_theme_keys_from_styles() {
 
 lookfor_unused_spread_keywords() {
   local inside_object=false
+  local key=""
 
   while IFS= read -r line; do
     # Detect the start of an object
@@ -283,7 +284,7 @@ lookfor_unused_spread_keywords() {
 
     # If we're inside an object and the line starts with '...', capture the key
     if [[ "$inside_object" == true && "$line" =~ ^[[:space:]]*\.\.\.([a-zA-Z0-9_]+)(\(.+\))?,?$ ]]; then
-      local key=("${BASH_REMATCH[1]}")
+      key="${BASH_REMATCH[1]}"
       remove_keyword "...${key}"
     fi
   done < "$STYLES_FILE"
