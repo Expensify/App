@@ -21,8 +21,14 @@ const propTypes = {
     onAllowLocationLinkPress: PropTypes.func.isRequired,
 
     /* Onyx Props */
-    /** The location error code from onyx */
-    locationErrorCode: PropTypes.number,
+    /**
+     * The location error code from onyx
+     * - code -1 = location not supported (web only)
+     * - code 1 = location permission is not enabled
+     * - code 2 = location is unavailable or there is some connection issue
+     * - code 3 = location fetch timeout
+     */
+    locationErrorCode: PropTypes.oneOf([-1, 1, 2, 3]),
 
     ...withLocalizePropTypes,
 };
@@ -47,13 +53,6 @@ function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, 
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
-                {/* 
-                  Show appropriate error msg on location issues
-                  - errorCode = -1 -> location not supported (web only)
-                  - errorCode = 1 -> location permission is not enabled
-                  - errorCode = 2 -> location is unavailable or there is some connection issue
-                  - errorCode = 3 -> location fetch timeout  
-                */}
                 {isPermissionDenied ? (
                     <Text>
                         <Text style={[styles.offlineFeedback.text]}>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
@@ -92,6 +91,7 @@ export default compose(
     withOnyx({
         locationErrorCode: {
             key: ONYXKEYS.LOCATION_ERROR_CODE,
+            initWithStoredValues: false,
         },
     }),
     withLocalize,
