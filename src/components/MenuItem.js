@@ -228,6 +228,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                 <Text
                                                     style={titleTextStyle}
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
+                                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.interactive && props.disabled}}
                                                 >
                                                     {convertToLTR(props.title)}
                                                 </Text>
