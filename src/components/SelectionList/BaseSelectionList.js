@@ -254,7 +254,7 @@ function BaseSelectionList({
                 <UserListItem
                     item={item}
                     isFocused={isItemFocused}
-                    onSelectRow={() => selectRow(item, index)}
+                    onSelectRow={() => onSelectRow(item)}
                     onDismissError={onDismissError}
                     showTooltip={showTooltip}
                 />
@@ -266,7 +266,7 @@ function BaseSelectionList({
                 item={item}
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
-                onSelectRow={() => selectRow(item, index)}
+                onSelectRow={() => onSelectRow(item)}
             />
         );
     };
