@@ -76,7 +76,6 @@ function VerifyStep({account = defaultAccount}) {
             onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
         >
             <ScrollView
-                style={styles.mb5}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.flexGrow1}
             >
