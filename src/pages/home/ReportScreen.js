@@ -38,6 +38,7 @@ import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
+import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
 
 const propTypes = {
@@ -119,6 +120,15 @@ const defaultProps = {
 };
 
 /**
+ *
+ * Function to check weather the report available in props is default
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+const checkDefaultReport = (report) => report === defaultProps.report;
+
+/**
  * Get the currently viewed report ID as number
  *
  * @param {Object} route
@@ -153,8 +163,6 @@ function ReportScreen({
     const flatListRef = useRef();
     const reactionListRef = useRef();
     const prevReport = usePrevious(report);
-
-    const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(0);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
 
     const reportID = getReportID(route);
@@ -163,6 +171,8 @@ function ReportScreen({
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingReportActions;
+
+    const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
 
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
@@ -175,6 +185,8 @@ function ReportScreen({
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
     const isTopMostReportId = currentReportID === getReportID(route);
+
+    const isDefaultReport = checkDefaultReport(report);
 
     let headerView = (
         <HeaderView
@@ -258,23 +270,12 @@ function ReportScreen({
         [route],
     );
 
-    const calculateSkeletonViewHeight = (event) => {
-        // Rounding this value for comparison because they can look like this: 411.9999694824219
-        const newSkeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
-
-        // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
-        // takes up so we can set the skeleton view container height.
-        if (newSkeletonViewContainerHeight === 0) {
-            return;
-        }
-        setSkeletonViewContainerHeight(newSkeletonViewContainerHeight);
-    };
-
     useEffect(() => {
         const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            const isTopMostReportID = Navigation.getTopmostReportId() === getReportID(route);
             // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
             // we don't need to call openReport
-            if (!getIsReportFullyVisible(isTopMostReportId) || report.isOptimisticReport) {
+            if (!getIsReportFullyVisible(isTopMostReportID) || report.isOptimisticReport) {
                 return;
             }
 
@@ -321,15 +322,22 @@ function ReportScreen({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(
+        () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading) || shouldHideReport,
+        [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete],
+    );
+
     return (
         <ActionListContext.Provider value={flatListRef}>
             <ReactionListContext.Provider value={reactionListRef}>
                 <ScreenWrapper
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
+                    shouldDisableFocusTrap
                 >
                     <FullPageNotFoundView
-                        shouldShow={(!report.reportID && !reportMetadata.isLoadingReportActions && !isLoading) || shouldHideReport}
+                        shouldShow={shouldShowNotFoundPage}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={isSmallScreenWidth}
@@ -364,10 +372,7 @@ function ReportScreen({
                             />
                         )}
                         <DragAndDropProvider isDisabled={!isReportReadyForDisplay}>
-                            <View
-                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                onLayout={calculateSkeletonViewHeight}
-                            >
+                            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
                                         reportActions={reportActions}
@@ -376,27 +381,25 @@ function ReportScreen({
                                         isLoadingReportActions={reportMetadata.isLoadingReportActions}
                                         isLoadingMoreReportActions={reportMetadata.isLoadingMoreReportActions}
                                         isComposerFullSize={isComposerFullSize}
-                                        parentViewHeight={skeletonViewContainerHeight}
                                         policy={policy}
                                     />
                                 )}
 
-                                {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
-                            we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView containerHeight={skeletonViewContainerHeight} />}
+                                {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
+                                    If we prevent rendering the report while they are loading then
+                                    we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                                {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
                                 {isReportReadyForDisplay ? (
-                                    <>
-                                        <ReportFooter
-                                            pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                            isOffline={network.isOffline}
-                                            reportActions={reportActions}
-                                            report={report}
-                                            isComposerFullSize={isComposerFullSize}
-                                            onSubmitComment={onSubmitComment}
-                                            policies={policies}
-                                        />
-                                    </>
+                                    <ReportFooter
+                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                        isOffline={network.isOffline}
+                                        reportActions={reportActions}
+                                        report={report}
+                                        isComposerFullSize={isComposerFullSize}
+                                        onSubmitComment={onSubmitComment}
+                                        policies={policies}
+                                    />
                                 ) : (
                                     <ReportFooter
                                         shouldDisableCompose
@@ -462,6 +465,6 @@ export default compose(
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             },
         },
-        true
+        true,
     ),
 )(ReportScreen);

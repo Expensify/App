@@ -84,6 +84,7 @@ function TimezoneSelectPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
             <SelectionList
+                headerMessage={timezoneInputText.trim() && !timezoneOptions.length ? translate('common.noResultsFound') : ''}
                 textInputLabel={translate('timezonePage.timezone')}
                 textInputValue={timezoneInputText}
                 onChangeText={filterShownTimezones}

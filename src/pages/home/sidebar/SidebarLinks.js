@@ -141,10 +141,7 @@ class SidebarLinks extends React.PureComponent {
         // or when clicking the active LHN row on large screens
         // or when continuously clicking different LHNs, only apply to small screen
         // since getTopmostReportId always returns on other devices
-        if (this.props.isCreateMenuOpen 
-            || option.reportID === Navigation.getTopmostReportId() 
-            || (this.props.isSmallScreenWidth && this.props.isActiveReport(option.reportID))
-            ) {
+        if (this.props.isCreateMenuOpen || option.reportID === Navigation.getTopmostReportId() || (this.props.isSmallScreenWidth && this.props.isActiveReport(option.reportID))) {
             return;
         }
         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
@@ -163,7 +160,7 @@ class SidebarLinks extends React.PureComponent {
                     <Header
                         title={
                             <LogoComponent
-                                fill={defaultTheme.textLight}
+                                fill={defaultTheme.text}
                                 width={variables.lhnLogoWidth}
                                 height={variables.lhnLogoHeight}
                             />
@@ -200,8 +197,6 @@ class SidebarLinks extends React.PureComponent {
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(SidebarLinks);
+export default compose(withLocalize, withWindowDimensions)(SidebarLinks);
+
 export {basePropTypes};
