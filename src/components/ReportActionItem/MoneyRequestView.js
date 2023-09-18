@@ -14,6 +14,7 @@ import Permissions from '../../libs/Permissions';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
@@ -88,7 +89,8 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
     // A flag for showing categories
-    const shouldShowCategory = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (!_.isEmpty(policyCategories) || !_.isEmpty(transactionCategory));
+    const shouldShowCategory =
+        isPolicyExpenseChat && Permissions.canUseCategories(betas) && (!_.isEmpty(transactionCategory) || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {

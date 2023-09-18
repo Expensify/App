@@ -14,7 +14,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const policyCategoriesCount = _.size(policyCategories);
+    const policyCategoriesCount = OptionsListUtils.getEnabledCategoriesCount(_.values(policyCategories));
     const isCategoriesCountBelowThreshold = policyCategoriesCount < CONST.CATEGORY_LIST_THRESHOLD;
 
     const selectedOptions = useMemo(() => {
