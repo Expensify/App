@@ -24,17 +24,26 @@ function SidebarScreen(props) {
     );
 
     /**
+     * Method to hide popover when drag over.
+     */
+    const hidePopoverOnDragOver = useCallback(() => {
+        if (popoverModal.current !== null) {
+            popoverModal.current.hideCreateMenu();
+        }
+    }, []);
+
+    /**
      * Method create event listener
      */
     const createDragoverListener = () => {
-        document.addEventListener('dragover', () => popoverModal.current.hideCreateMenu());
+        document.addEventListener('dragover', hidePopoverOnDragOver);
     };
 
     /**
      * Method remove event listener.
      */
     const removeDragoverListener = () => {
-        document.removeEventListener('dragover', () => popoverModal.current.hideCreateMenu());
+        document.removeEventListener('dragover', hidePopoverOnDragOver);
     };
 
     return (
