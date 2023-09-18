@@ -28,6 +28,10 @@ function validateCardNumber(val) {
     return sum % 10 === 0;
 }
 
+function isValidName(value) {
+    return /^[^\d\s!@#$%^&*(),.?":{}|<>]+$/.test(value);
+}
+
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
  *
@@ -489,4 +493,5 @@ export {
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
+    isValidName
 };
