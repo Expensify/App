@@ -115,8 +115,14 @@ function ReportActionItemMessageEdit(props) {
         const length = getInitialDraft().length;
         return {start: length, end: length};
     };
-
-    const [draft, setDraft] = useState(() => getInitialDraft());
+    var emojisPresentBefore = [];
+    const [draft, setDraft] = useState(() => {
+        const draft = getInitialDraft();
+        if (draft) {
+            emojisPresentBefore = EmojiUtils.extractEmojis(draft);
+        }
+        return draft;
+    });
     const [selection, setSelection] = useState(getInitialSelection());
     const [isFocused, setIsFocused] = useState(false);
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
@@ -193,9 +199,11 @@ function ReportActionItemMessageEdit(props) {
             const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
 
             if (!_.isEmpty(emojis)) {
-                insertedEmojis.current = [...insertedEmojis.current, ...emojis];
+                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore);
+                insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
                 debouncedUpdateFrequentlyUsedEmojis();
             }
+            emojisPresentBefore = emojis;
             setDraft((prevDraft) => {
                 if (newDraftInput !== newDraft) {
                     setSelection((prevSelection) => {
