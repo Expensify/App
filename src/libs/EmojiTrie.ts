@@ -1,8 +1,25 @@
-import _ from 'underscore';
+import React from 'react';
+import {SvgProps} from 'react-native-svg';
 import emojis, {localeEmojis} from '../../assets/emojis';
 import Trie from './Trie';
 import Timing from './actions/Timing';
 import CONST from '../CONST';
+import {MetaData} from './Trie/TrieNode';
+
+type Emoji = {
+    code: string;
+    header?: boolean;
+    icon?: React.FC<SvgProps>;
+    name?: string;
+    types?: string[];
+};
+
+type LangEmoji = {
+    name?: string;
+    keywords: string[];
+};
+
+type LangEmojis = Record<string, LangEmoji>;
 
 Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
 
@@ -10,20 +27,20 @@ const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES];
 
 /**
  *
- * @param {Trie} trie The Trie object.
- * @param {Array<String>} keywords An array containing the keywords.
- * @param {Object} item An object containing the properties of the emoji.
- * @param {String} name The localized name of the emoji.
- * @param {Boolean} shouldPrependKeyword Prepend the keyword (instead of append) to the suggestions
+ * @param trie The Trie object.
+ * @param keywords An array containing the keywords.
+ * @param item An object containing the properties of the emoji.
+ * @param name The localized name of the emoji.
+ * @param shouldPrependKeyword Prepend the keyword (instead of append) to the suggestions
  */
-function addKeywordsToTrie(trie, keywords, item, name, shouldPrependKeyword = false) {
-    _.forEach(keywords, (keyword) => {
+function addKeywordsToTrie(trie: Trie<MetaData>, keywords: string[], item: Emoji, name: string, shouldPrependKeyword = false): void {
+    keywords.forEach((keyword) => {
         const keywordNode = trie.search(keyword);
         if (!keywordNode) {
             trie.add(keyword, {suggestions: [{code: item.code, types: item.types, name}]});
         } else {
             const suggestion = {code: item.code, types: item.types, name};
-            const suggestions = shouldPrependKeyword ? [suggestion, ...keywordNode.metaData.suggestions] : [...keywordNode.metaData.suggestions, suggestion];
+            const suggestions = shouldPrependKeyword ? [suggestion, ...(keywordNode.metaData.suggestions ?? [])] : [...(keywordNode.metaData.suggestions ?? []), suggestion];
             trie.update(keyword, {
                 ...keywordNode.metaData,
                 suggestions,
@@ -35,26 +52,27 @@ function addKeywordsToTrie(trie, keywords, item, name, shouldPrependKeyword = fa
 /**
  * Allows searching based on parts of the name. This turns 'white_large_square' into ['white_large_square', 'large_square', 'square'].
  *
- * @param {String} name The emoji name
- * @returns {Array<String>} An array containing the name parts
+ * @param name The emoji name
+ * @returns An array containing the name parts
  */
-function getNameParts(name) {
+function getNameParts(name: string): string[] {
     const nameSplit = name.split('_');
-    return _.map(nameSplit, (_namePart, index) => nameSplit.slice(index).join('_'));
+    return nameSplit.map((namePart, index) => nameSplit.slice(index).join('_'));
 }
 
-function createTrie(lang = CONST.LOCALES.DEFAULT) {
+function createTrie(lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): Trie<MetaData> {
     const trie = new Trie();
-    const langEmojis = localeEmojis[lang];
+    const langEmojis: LangEmojis = localeEmojis[lang];
+    const defaultLangEmojis: LangEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
     const isDefaultLocale = lang === CONST.LOCALES.DEFAULT;
 
-    _.forEach(emojis, (item) => {
-        if (item.header) {
+    emojis.forEach((item: Emoji) => {
+        if (!item.name) {
             return;
         }
 
         const englishName = item.name;
-        const localeName = _.get(langEmojis, [item.code, 'name'], englishName);
+        const localeName = langEmojis?.[item.code]?.name ?? englishName;
 
         const node = trie.search(localeName);
         if (!node) {
@@ -67,7 +85,7 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
         addKeywordsToTrie(trie, nameParts, item, localeName);
 
         // Add keywords for both the locale language and English to enable users to search using either language.
-        const keywords = _.get(langEmojis, [item.code, 'keywords'], []).concat(isDefaultLocale ? [] : _.get(localeEmojis, [CONST.LOCALES.DEFAULT, item.code, 'keywords'], []));
+        const keywords = (langEmojis?.[item.code]?.keywords ?? []).concat(isDefaultLocale ? [] : defaultLangEmojis?.[item.code]?.keywords ?? []);
         addKeywordsToTrie(trie, keywords, item, localeName);
 
         /**
@@ -83,7 +101,7 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
     return trie;
 }
 
-const emojiTrie = _.reduce(supportedLanguages, (prev, cur) => ({...prev, [cur]: createTrie(cur)}), {});
+const emojiTrie = supportedLanguages.reduce((prev, cur) => ({...prev, [cur]: createTrie(cur)}), {});
 
 Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 
