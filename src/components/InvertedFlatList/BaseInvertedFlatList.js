@@ -129,18 +129,14 @@ function BaseInvertedFlatList(props) {
             {...props}
             ref={innerRef}
             renderItem={renderItemFromProp}
-            
             // Native platforms do not need to measure items and work fine without this.
             // Web requires that items be measured or else crazy things happen when scrolling.
+
             getItemLayout={shouldMeasureItems ? getItemLayout : undefined}
-            
             // We keep this property very low so that chat switching remains fast
+
             maxToRenderPerBatch={1}
             windowSize={15}
-
-            // Commenting the line below as it breaks the unread indicator test
-            // we will look at fixing/reusing this after RN v0.72
-            // maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
         />
     );
 }
