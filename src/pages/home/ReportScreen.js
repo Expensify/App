@@ -272,12 +272,7 @@ function ReportScreen({
             Report.openReport(report.reportID);
         });
 
-        return () => {
-            if (!unsubscribeVisibilityListener) {
-                return;
-            }
-            unsubscribeVisibilityListener();
-        }
+        return () => unsubscribeVisibilityListener();
         // The effect should run only on the first focus to attach listener
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []))
