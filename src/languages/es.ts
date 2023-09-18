@@ -38,7 +38,7 @@ import type {
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
     PaidUsingPaypalWithAmountParams,
-    PaidUsingExpensifyWithAmountParams,
+    PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     SizeExceededParams,
@@ -72,6 +72,8 @@ import type {
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
     RequestedAmountMessageParams,
+    TagSelectionParams,
+    EnglishTranslation,
 } from './types';
 
 /* eslint-disable max-len */
@@ -233,6 +235,7 @@ export default {
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
         category: 'Categoría',
+        tag: 'Etiqueta',
         receipt: 'Recibo',
         replace: 'Sustituir',
         distance: 'Distancia',
@@ -450,13 +453,10 @@ export default {
         },
     },
     sidebarScreen: {
-        fabAction: 'Nuevo chat',
-        newChat: 'Nuevo chat',
-        newGroup: 'Nuevo grupo',
-        newRoom: 'Nueva sala de chat',
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
-        fabNewChat: 'Nuevo chat',
+        fabNewChat: 'Enviar mensaje',
+        fabNewChatExplained: 'Enviar mensaje',
         chatPinned: 'Chat fijado',
         draftedMessage: 'Mensaje borrador',
         listOfChatMessages: 'Lista de mensajes del chat',
@@ -464,6 +464,8 @@ export default {
         saveTheWorld: 'Salvar el mundo',
     },
     tabSelector: {
+        chat: 'Chat',
+        room: 'Sala',
         manual: 'Manual',
         scan: 'Escanear',
     },
@@ -490,9 +492,10 @@ export default {
         approved: 'Aprobado',
         cash: 'Efectivo',
         split: 'Dividir',
+        addToSplit: 'Añadir para dividir',
+        splitBill: 'Dividir factura',
         request: 'Solicitar',
         participants: 'Participantes',
-        splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
         pay: 'Pagar',
@@ -500,6 +503,7 @@ export default {
         pending: 'Pendiente',
         deleteReceipt: 'Eliminar recibo',
         receiptScanning: 'Escaneo de recibo en curso…',
+        receiptMissingDetails: 'Recibo con campos vacíos',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
@@ -526,7 +530,7 @@ export default {
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `pagó ${amount} de otra forma`,
         paidUsingPaypalWithAmount: ({amount}: PaidUsingPaypalWithAmountParams) => `pagó ${amount} con PayPal.me`,
-        paidUsingExpensifyWithAmount: ({amount}: PaidUsingExpensifyWithAmountParams) => `pagó ${amount} con Expensify`,
+        paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `pagó ${amount} con Expensify`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheRequest: 'cambió la solicitud',
@@ -537,6 +541,7 @@ export default {
             `cambío ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
+        tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -745,6 +750,13 @@ export default {
     passwordConfirmationScreen: {
         passwordUpdated: 'Contraseña actualizada!',
         allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
+    },
+    privateNotes: {
+        title: 'Notas privadas',
+        personalNoteMessage: 'Guarda notas sobre este chat aquí. Usted es la única persona que puede añadir, editar o ver estas notas.',
+        sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
+        notesUnavailable: 'No se han encontrado notas para el usuario',
+        composerLabel: 'Notas',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Recibe pagos vía PayPal.',
@@ -983,7 +995,9 @@ export default {
         localTime: 'Hora local',
     },
     newChatPage: {
+        createChat: 'Crear chat',
         createGroup: 'Crear grupo',
+        addToGroup: 'Añadir al grupo',
     },
     yearPickerPage: {
         year: 'Año',
@@ -1557,7 +1571,7 @@ export default {
             openShortcutDialog: 'Abre el cuadro de diálogo de métodos abreviados de teclado',
             escape: 'Diálogos de escape',
             search: 'Abrir diálogo de búsqueda',
-            newGroup: 'Nueva pantalla de grupo',
+            newChat: 'Nueva pantalla de chat',
             copy: 'Copiar comentario',
         },
     },
@@ -2249,15 +2263,4 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
     },
-    demos: {
-        saastr: {
-            signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
-            heroBody: 'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales, ¡y para que te devuelvan el dinero de la comida!',
-        },
-        sbe: {
-            signInWelcome: '¡Bienvenido a Small Business Expo! Recupera el dinero de tu viaje.',
-            heroBody:
-                'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales y para que te paguen el viaje de ida y vuelta a la conferencia.',
-        },
-    },
-};
+} satisfies EnglishTranslation;

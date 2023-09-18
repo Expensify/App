@@ -36,25 +36,20 @@ const defaultProps = {
     },
 };
 
-const getIcon = (route) => {
+const getIconAndTitle = (route, translate) => {
     switch (route) {
+        case CONST.TAB.MANUAL:
+            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual')};
         case CONST.TAB.SCAN:
-            return Expensicons.Receipt;
+            return {icon: Expensicons.Receipt, title: translate('tabSelector.scan')};
+        case CONST.TAB.NEW_CHAT:
+            return {icon: Expensicons.User, title: translate('tabSelector.chat')};
+        case CONST.TAB.NEW_ROOM:
+            return {icon: Expensicons.Hashtag, title: translate('tabSelector.room')};
         case CONST.TAB.DISTANCE:
-            return Expensicons.Car;
+            return {icon: Expensicons.Car, title: translate('common.distance')};
         default:
-            return Expensicons.Pencil;
-    }
-};
-
-const getTitle = (route, translate) => {
-    switch (route) {
-        case CONST.TAB.SCAN:
-            return translate('tabSelector.scan');
-        case CONST.TAB.DISTANCE:
-            return translate('common.distance');
-        default:
-            return translate('tabSelector.manual');
+            throw new Error(`Route ${route} has no icon nor title set.`);
     }
 };
 
@@ -79,10 +74,10 @@ const getBackgroundColor = (position, routesLength, tabIndex) => {
 
         return position.interpolate({
             inputRange,
-            outputRange: _.map(inputRange, (i) => (i === tabIndex ? themeColors.midtone : themeColors.appBG)),
+            outputRange: _.map(inputRange, (i) => (i === tabIndex ? themeColors.border : themeColors.appBG)),
         });
     }
-    return themeColors.midtone;
+    return themeColors.border;
 };
 
 function TabSelector({state, navigation, onTabPress, position}) {
@@ -94,8 +89,8 @@ function TabSelector({state, navigation, onTabPress, position}) {
                 const activeOpacity = getOpacity(position, state.routes.length, index, true);
                 const inactiveOpacity = getOpacity(position, state.routes.length, index, false);
                 const backgroundColor = getBackgroundColor(position, state.routes.length, index);
-
                 const isFocused = index === state.index;
+                const {icon, title} = getIconAndTitle(route.name, translate);
 
                 const onPress = () => {
                     if (isFocused) {
@@ -119,8 +114,8 @@ function TabSelector({state, navigation, onTabPress, position}) {
                 return (
                     <TabSelectorItem
                         key={route.name}
-                        title={getTitle(route.name, translate)}
-                        icon={getIcon(route.name)}
+                        icon={icon}
+                        title={title}
                         onPress={onPress}
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}

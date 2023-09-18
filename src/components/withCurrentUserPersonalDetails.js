@@ -36,7 +36,8 @@ export default function (WrappedComponent) {
 
     function WithCurrentUserPersonalDetails(props) {
         const accountID = props.session.accountID;
-        const currentUserPersonalDetails = useMemo(() => ({...props.personalDetails[accountID], accountID}), [props.personalDetails, accountID]);
+        const accountPersonalDetails = props.personalDetails[accountID];
+        const currentUserPersonalDetails = useMemo(() => ({...accountPersonalDetails, accountID}), [accountPersonalDetails, accountID]);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading

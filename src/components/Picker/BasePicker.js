@@ -258,6 +258,7 @@ function BasePicker(props) {
                     }}
                     pickerProps={{
                         ref: picker,
+                        tabIndex: -1,
                         onFocus: enableHighlight,
                         onBlur: () => {
                             disableHighlight();
