@@ -29,6 +29,8 @@ import textUnderline from './utilities/textUnderline';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+// to prevent vertical text offset in Safari for badges, new lineHeight values have been added
+const lineHeightBadge = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme) => ({
     backgroundColor: theme.transparent,
@@ -759,7 +761,7 @@ const styles = (theme) => ({
     badgeText: {
         color: theme.text,
         fontSize: variables.fontSizeSmall,
-        lineHeight: variables.lineHeightNormal,
+        ...lineHeightBadge,
         ...whiteSpace.noWrap,
     },
 
@@ -1811,6 +1813,7 @@ const styles = (theme) => ({
         paddingTop: 2,
         paddingBottom: 2,
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        ...userSelect.userSelectNone,
     },
 
     emojiItemHighlighted: {
@@ -2721,6 +2724,10 @@ const styles = (theme) => ({
 
     moneyRequestPreviewBoxText: {
         padding: 16,
+    },
+
+    amountSplitPadding: {
+        paddingTop: 2,
     },
 
     moneyRequestPreviewBoxLoading: {
@@ -3722,8 +3729,8 @@ const styles = (theme) => ({
     },
 
     tabSelectorButton: {
-        height: 40,
-        padding: 12,
+        height: variables.tabSelectorButtonHeight,
+        padding: variables.tabSelectorButtonPadding,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -3757,6 +3764,15 @@ const styles = (theme) => ({
         left: 0,
         right: 0,
     }),
+
+    dualColorOverscrollSpacer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
+    },
 
     willChangeTransform: {
         willChange: 'transform',

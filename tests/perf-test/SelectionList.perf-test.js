@@ -37,6 +37,7 @@ jest.mock('../../src/components/withKeyboardState', () => (Component) => (props)
 
 jest.mock('@react-navigation/native', () => ({
     useFocusEffect: () => {},
+    useIsFocused: () => true,
     createNavigationContainerRef: jest.fn(),
 }));
 

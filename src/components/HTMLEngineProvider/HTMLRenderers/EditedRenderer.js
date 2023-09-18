@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import CONST from '../../../CONST';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import Text from '../../Text';
@@ -21,6 +22,7 @@ function EditedRenderer(props) {
             <Text
                 selectable={false}
                 style={styles.userSelectNone}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {' '}
             </Text>

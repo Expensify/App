@@ -150,6 +150,7 @@ function ReportActionItemFragment(props) {
                             <Text
                                 selectable={false}
                                 style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.userSelectNone]}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {' '}
                             </Text>
