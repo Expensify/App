@@ -1535,6 +1535,11 @@ function getModifiedExpenseMessage(reportAction) {
     if (hasModifiedMerchant) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, Localize.translateLocal('common.merchant'), true);
     }
+
+    const hasModifiedCategory = _.has(reportActionOriginalMessage, 'oldCategory') && _.has(reportActionOriginalMessage, 'category');
+    if (hasModifiedCategory) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.category, reportActionOriginalMessage.oldCategory, Localize.translateLocal('common.category'), true);
+    }
 }
 
 /**
@@ -1573,6 +1578,11 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
         originalMessage.amount = lodashGet(transactionChanges, 'amount', originalMessage.oldAmount);
         originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
         originalMessage.currency = lodashGet(transactionChanges, 'currency', originalMessage.oldCurrency);
+    }
+
+    if (_.has(transactionChanges, 'category')) {
+        originalMessage.oldCategory = TransactionUtils.getCategory(oldTransaction);
+        originalMessage.category = transactionChanges.category;
     }
 
     return originalMessage;

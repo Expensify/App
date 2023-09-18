@@ -1170,6 +1170,7 @@ const CONST = {
         SMALL_NORMAL: 'small-normal',
     },
     EXPENSIFY_CARD: {
+        BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
             INDIVIDUAL: 'individal',
