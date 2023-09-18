@@ -239,7 +239,7 @@ const MenuItem = React.forwardRef((props, ref) => {
 
                                             {Boolean(html.length) && !props.shouldRenderAsHTML && <RenderHTML html={`<comment>${html}</comment>`} />}
 
-                                            {!props.shouldRenderAsHTML && !Boolean(html.length) && Boolean(props.title) && (
+                                            {!props.shouldRenderAsHTML && !html.length && Boolean(props.title) && (
                                                 <Text
                                                     style={titleTextStyle}
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
