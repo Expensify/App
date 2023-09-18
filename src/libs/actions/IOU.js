@@ -641,7 +641,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             receipt,
             category,
-            billable: billable,
+            billable,
         },
         onyxData,
     );
