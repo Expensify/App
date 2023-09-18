@@ -58,7 +58,7 @@ function MoneyRequestTagPage({route, report, policyTags}) {
     const tagListName = lodashGet(tagList, 'name', '');
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, lodashGet(report, 'reportID', '')));
+        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, report.reportID));
     };
 
     return (
@@ -87,14 +87,8 @@ MoneyRequestTagPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        iou: {
-            key: ONYXKEYS.IOU,
-        },
-    }),
-    withOnyx({
         report: {
-            // Fetch report ID from IOU participants if no report ID is set in route
-            key: ({route, iou}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '') || lodashGet(iou, 'participants.0.reportID', '')}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
         },
     }),
     withOnyx({
