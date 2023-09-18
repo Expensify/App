@@ -16,7 +16,6 @@ import ReceiptDropUI from '../ReceiptDropUI';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import ConfirmModal from '../../../components/ConfirmModal';
 import ONYXKEYS from '../../../ONYXKEYS';
-import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
@@ -73,12 +72,15 @@ function ReceiptSelector(props) {
 
     /**
      * Sets the upload receipt error modal content when an invalid receipt is uploaded
+     * @param {*} isInvalid
+     * @param {*} title
+     * @param {*} reason
      */
     const setUploadReceiptError = (isInvalid, title, reason) => {
         setIsAttachmentInvalid(isInvalid);
         setAttachmentInvalidReasonTitle(title);
         setAttachmentValidReason(reason);
-    }
+    };
 
     function validateReceipt(file) {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
@@ -86,17 +88,17 @@ function ReceiptSelector(props) {
             setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
         }
-    
+
         if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
             return false;
         }
-    
+
         if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
             setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
             return false;
         }
-    
+
         return true;
     }
 
