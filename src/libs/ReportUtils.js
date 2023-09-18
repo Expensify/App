@@ -1535,6 +1535,11 @@ function getModifiedExpenseMessage(reportAction) {
     if (hasModifiedMerchant) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, Localize.translateLocal('common.merchant'), true);
     }
+
+    const hasModifiedCategory = _.has(reportActionOriginalMessage, 'oldCategory') && _.has(reportActionOriginalMessage, 'category');
+    if (hasModifiedCategory) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.category, reportActionOriginalMessage.oldCategory, Localize.translateLocal('common.category'), true);
+    }
 }
 
 /**
@@ -1575,6 +1580,11 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
         originalMessage.currency = lodashGet(transactionChanges, 'currency', originalMessage.oldCurrency);
     }
 
+    if (_.has(transactionChanges, 'category')) {
+        originalMessage.oldCategory = TransactionUtils.getCategory(oldTransaction);
+        originalMessage.category = transactionChanges.category;
+    }
+
     return originalMessage;
 }
 
@@ -1606,7 +1616,7 @@ function getReportName(report, policy = undefined) {
             return getTransactionReportName(parentReportAction);
         }
 
-        const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
+        const isAttachment = ReportActionsUtils.isReportActionAttachment(parentReportAction);
         const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
