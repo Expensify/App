@@ -8,7 +8,7 @@ type FocusWithDelay = (shouldDelay?: boolean) => void;
 function focusWithDelay(textInput: TextInput | null): FocusWithDelay {
     /**
      * Focus the text input
-     * Impose delay before focusing the text input
+     * @param [shouldDelay] Impose delay before focusing the text input
      */
     return (shouldDelay = false) => {
         // There could be other animations running while we trigger manual focus.
