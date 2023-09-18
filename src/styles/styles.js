@@ -1810,6 +1810,7 @@ const styles = (theme) => ({
         paddingTop: 2,
         paddingBottom: 2,
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        ...userSelect.userSelectNone,
     },
 
     emojiItemHighlighted: {
@@ -2720,6 +2721,10 @@ const styles = (theme) => ({
 
     moneyRequestPreviewBoxText: {
         padding: 16,
+    },
+
+    amountSplitPadding: {
+        paddingTop: 2,
     },
 
     moneyRequestPreviewBoxLoading: {
@@ -3721,8 +3726,8 @@ const styles = (theme) => ({
     },
 
     tabSelectorButton: {
-        height: 40,
-        padding: 12,
+        height: variables.tabSelectorButtonHeight,
+        padding: variables.tabSelectorButtonPadding,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -3756,6 +3761,15 @@ const styles = (theme) => ({
         left: 0,
         right: 0,
     }),
+
+    dualColorOverscrollSpacer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
+    },
 
     willChangeTransform: {
         willChange: 'transform',
