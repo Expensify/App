@@ -107,7 +107,11 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
             return response;
         })
         .catch(() => {
-            Log.hmmm(`Failed to fetch ${url}. Resolving promise to apply Onyx failure data`);
+            if (method !== 'get') {
+                return;
+            }
+
+            Log.hmmm(`READ request failed to fetch ${url}. Resolving promise to apply Onyx failure data`);
             return Promise.resolve({});
         });
 }
