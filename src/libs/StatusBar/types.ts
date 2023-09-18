@@ -2,7 +2,7 @@
 import {StatusBar as StatusBarRN} from 'react-native';
 
 type StatusBarExtended = typeof StatusBarRN & {
-    getBackgroundColor(): string | symbol | null;
+    getBackgroundColor(): string | null;
 };
 
 const StatusBar = StatusBarRN as StatusBarExtended;
