@@ -35,7 +35,7 @@ For iOS, you can use the `accessibility inspector` app to test for accessibility
 
 - **Android**  
 For Android, you can use the [accessibility scanner](https://support.google.com/accessibility/android/answer/6376570) app to test for accessibility. You can find it in the Google Play Store. This app allows you to inspect the accessibility properties of any element on the screen. You can also use it to simulate different accessibility settings, such as TalkBack, color blindness, and more. It's a great tool for testing whether created component has accessibility properties set correctly. The [result of the accessibility scanner](https://support.google.com/accessibility/android/answer/6376559) app has information about content labeling, implementation, touch target size and low contrast
-This tool require only an installed APK to test on. 
+This tool requires an installed APK to test on. 
 
 
 - **Web/Desktop**  
