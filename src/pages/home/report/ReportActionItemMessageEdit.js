@@ -199,7 +199,7 @@ function ReportActionItemMessageEdit(props) {
             const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
 
             if (!_.isEmpty(emojis)) {
-                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore);
+                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
                 debouncedUpdateFrequentlyUsedEmojis();
             }

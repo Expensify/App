@@ -176,7 +176,7 @@ function ComposerWithSuggestions({
             const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
-                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore);
+                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
 
                 insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
                 debouncedUpdateFrequentlyUsedEmojis();
