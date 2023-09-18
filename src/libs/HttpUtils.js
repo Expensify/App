@@ -108,7 +108,7 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
         })
         .catch(() => {
             Log.hmmm(`Failed to fetch ${url}. Resolving promise to apply Onyx failure data`);
-            Promise.resolve({});
+            return Promise.resolve({});
         });
 }
 
