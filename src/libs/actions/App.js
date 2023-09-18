@@ -1,4 +1,3 @@
-import moment from 'moment-timezone';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -385,7 +384,7 @@ function openProfile(personalDetails) {
     if (lodashGet(oldTimezoneData, 'automatic', true)) {
         newTimezoneData = {
             automatic: true,
-            selected: moment.tz.guess(true),
+            selected: Intl.DateTimeFormat().resolvedOptions().timeZone,
         };
     }
 
@@ -439,6 +438,15 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects('OpenOldDotLink', {shouldRetry: false}, {}).then((response) => {
+        if (!response) {
+            Log.alert(
+                'Trying to redirect via deep link, but the response is empty. User likely not authenticated.',
+                {response, shouldAuthenticateWithCurrentAccount, currentUserAccountID},
+                true,
+            );
+            return;
+        }
+
         Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail);
     });
 }

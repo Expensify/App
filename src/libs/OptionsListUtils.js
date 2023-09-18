@@ -652,12 +652,8 @@ function getCategoryOptionTree(options, isOneLine = false) {
 /**
  * Build the section list for categories
  *
- * @param {Object[]} categories
- * @param {String} categories[].name
- * @param {Boolean} categories[].enabled
- * @param {Object[]} recentlyUsedCategories
- * @param {String} recentlyUsedCategories[].name
- * @param {Boolean} recentlyUsedCategories[].enabled
+ * @param {Object<String, {name: String, enabled: Boolean}>} categories
+ * @param {String[]} recentlyUsedCategories
  * @param {Object[]} selectedOptions
  * @param {String} selectedOptions[].name
  * @param {String} searchInputValue
@@ -666,11 +662,12 @@ function getCategoryOptionTree(options, isOneLine = false) {
  */
 function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const categorySections = [];
-    const numberOfCategories = _.size(categories);
+    const categoriesValues = _.values(categories);
+    const numberOfCategories = _.size(categoriesValues);
     let indexOffset = 0;
 
     if (!_.isEmpty(searchInputValue)) {
-        const searchCategories = _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchCategories = _.filter(categoriesValues, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         categorySections.push({
             // "Search" section
@@ -689,15 +686,21 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(categories),
+            data: getCategoryOptionTree(categoriesValues),
         });
 
         return categorySections;
     }
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-    const filteredRecentlyUsedCategories = _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category.name));
-    const filteredCategories = _.filter(categories, (category) => !_.includes(selectedOptionNames, category.name));
+    const filteredRecentlyUsedCategories = _.map(
+        _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category)),
+        (category) => ({
+            name: category,
+            enabled: lodashGet(categories, `${category}.enabled`, false),
+        }),
+    );
+    const filteredCategories = _.filter(categoriesValues, (category) => !_.includes(selectedOptionNames, category.name));
 
     if (!_.isEmpty(selectedOptions)) {
         categorySections.push({
@@ -776,7 +779,7 @@ function getOptions(
     },
 ) {
     if (includeCategories) {
-        const categoryOptions = getCategoryListSections(_.values(categories), recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
+        const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
 
         return {
             recentReports: [],
@@ -1127,7 +1130,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {boolean} [includeP2P]
  * @param {boolean} [includeCategories]
  * @param {Object} [categories]
- * @param {Array<Object>} [recentlyUsedCategories]
+ * @param {Array<String>} [recentlyUsedCategories]
  * @param {boolean} [canInviteUser]
  * @returns {Object}
  */

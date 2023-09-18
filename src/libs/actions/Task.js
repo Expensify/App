@@ -187,6 +187,8 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
         value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
     });
 
+    clearOutTaskInfo();
+
     API.write(
         'CreateTask',
         {
@@ -269,12 +271,6 @@ function completeTask(taskReport, taskTitle) {
             },
         },
     ];
-
-    // Update optimistic data for parent report action
-    const optimisticDataForParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!_.isEmpty(optimisticDataForParentReportAction)) {
-        optimisticData.push(optimisticDataForParentReportAction);
-    }
 
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
@@ -362,12 +358,6 @@ function reopenTask(taskReport, taskTitle) {
             },
         },
     ];
-
-    // Update optimistic data for parent report action
-    const optimisticDataForParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!_.isEmpty(optimisticDataForParentReportAction)) {
-        optimisticData.push(optimisticDataForParentReportAction);
-    }
 
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717

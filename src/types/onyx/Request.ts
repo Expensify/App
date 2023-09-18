@@ -1,7 +1,7 @@
 import {OnyxUpdate} from 'react-native-onyx';
 
 type Request = {
-    command?: string;
+    command: string;
     data?: Record<string, unknown>;
     type?: string;
     shouldUseSecure?: boolean;

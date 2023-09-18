@@ -7,6 +7,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as App from '../../../libs/actions/App';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import CONST from '../../../CONST';
 import SelectionList from '../../../components/SelectionList';
 
 const propTypes = {
@@ -17,11 +18,11 @@ const propTypes = {
 };
 
 function LanguagePage(props) {
-    const localesToLanguages = _.map(props.translate('languagePage.languages'), (language, key) => ({
-        value: key,
-        text: language.label,
-        keyForList: key,
-        isSelected: props.preferredLocale === key,
+    const localesToLanguages = _.map(CONST.LANGUAGES, (language) => ({
+        value: language,
+        text: props.translate(`languagePage.languages.${language}.label`),
+        keyForList: language,
+        isSelected: props.preferredLocale === language,
     }));
 
     return (

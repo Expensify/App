@@ -126,12 +126,6 @@ function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined
     // since they can also be accessed by people who aren't in the workspace
     const policyName = lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
 
-    // The SBE and SAASTR policies have the user name in its name, however, we do not want to show that
-    if (lodashGet(finalPolicy, 'owner') === CONST.EMAIL.SBE || lodashGet(finalPolicy, 'owner') === CONST.EMAIL.SAASTR) {
-        const policyNameParts = policyName.split(' ');
-        if (!Str.isValidEmail(policyNameParts[0])) return policyName;
-        return policyNameParts.length > 1 ? policyNameParts.slice(1).join(' ') : policyName;
-    }
     return policyName;
 }
 
@@ -1292,6 +1286,7 @@ function getTransactionDetails(transaction) {
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
+        category: TransactionUtils.getCategory(transaction),
     };
 }
 
@@ -1405,6 +1400,10 @@ function getTransactionReportName(reportAction) {
         return Localize.translateLocal('iou.receiptScanning');
     }
 
+    if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
+        return Localize.translateLocal('iou.receiptMissingDetails');
+    }
+
     const {amount, currency, comment} = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
@@ -1417,7 +1416,7 @@ function getTransactionReportName(reportAction) {
  * Get money request message for an IOU report
  *
  * @param {Object} report
- * @param {Object} [reportAction={}]
+ * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
  * @returns  {String}
  */
@@ -1447,12 +1446,15 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     if (isSettled(report.reportID)) {
-        // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... using Expensify"
+        // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey = 'iou.paidElsewhereWithAmount';
-        if (reportActionMessage.match(/ Paypal.me$/)) {
+        if (reportAction.originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME || reportActionMessage.match(/ PayPal.me$/)) {
             translatePhraseKey = 'iou.paidUsingPaypalWithAmount';
-        } else if (reportActionMessage.match(/ using Expensify$/)) {
-            translatePhraseKey = 'iou.paidUsingExpensifyWithAmount';
+        } else if (
+            _.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], reportAction.originalMessage.paymentType) ||
+            reportActionMessage.match(/ (with Expensify|using Expensify)$/)
+        ) {
+            translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
         return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
     }
@@ -1533,6 +1535,11 @@ function getModifiedExpenseMessage(reportAction) {
     if (hasModifiedMerchant) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, Localize.translateLocal('common.merchant'), true);
     }
+
+    const hasModifiedCategory = _.has(reportActionOriginalMessage, 'oldCategory') && _.has(reportActionOriginalMessage, 'category');
+    if (hasModifiedCategory) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.category, reportActionOriginalMessage.oldCategory, Localize.translateLocal('common.category'), true);
+    }
 }
 
 /**
@@ -1573,6 +1580,11 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
         originalMessage.currency = lodashGet(transactionChanges, 'currency', originalMessage.oldCurrency);
     }
 
+    if (_.has(transactionChanges, 'category')) {
+        originalMessage.oldCategory = TransactionUtils.getCategory(oldTransaction);
+        originalMessage.category = transactionChanges.category;
+    }
+
     return originalMessage;
 }
 
@@ -1604,7 +1616,7 @@ function getReportName(report, policy = undefined) {
             return getTransactionReportName(parentReportAction);
         }
 
-        const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
+        const isAttachment = ReportActionsUtils.isReportActionAttachment(parentReportAction);
         const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
@@ -1951,6 +1963,7 @@ function buildOptimisticIOUReport(payeeAccountID, payerAccountID, total, chatRep
 
         // We don't translate reportName because the server response is always in English
         reportName: `${payerEmail} owes ${formattedTotal}`,
+        parentReportID: chatReportID,
     };
 }
 
@@ -1988,6 +2001,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
         total: storedTotal,
+        parentReportID: chatReportID,
     };
 }
 
@@ -2013,7 +2027,8 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
             paymentMethodMessage = ' elsewhere';
             break;
         case CONST.IOU.PAYMENT_TYPE.VBBA:
-            paymentMethodMessage = ' using Expensify';
+        case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            paymentMethodMessage = ' with Expensify';
             break;
         default:
             paymentMethodMessage = ` using ${paymentType}`;
@@ -2622,7 +2637,7 @@ function buildTransactionThread(reportAction, moneyRequestReportID) {
         participantAccountIDs,
         getTransactionReportName(reportAction),
         '',
-        lodashGet(getReport(reportAction.reportID), 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
+        lodashGet(getReport(moneyRequestReportID), 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
         CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
@@ -3104,8 +3119,8 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         return [];
     }
 
-    // Additional requests should be blocked for money request reports
-    if (isMoneyRequestReport(report)) {
+    // Additional requests should be blocked for money request reports if it is approved or reimbursed
+    if (isMoneyRequestReport(report) && (isReportApproved(report) || isSettled(report.reportID))) {
         return [];
     }
 
