@@ -257,7 +257,7 @@ export default {
     },
     location: {
         useCurrent: 'Use current location',
-        notFound: 'We were unable to find your location, please try again or enter an address manually',
+        notFound: 'We were unable to find your location, please try again or enter an address manually.',
         permissionDenied: 'It looks like you have denied permission to your location.',
         please: 'Please',
         allowPermission: 'allow location permission in settings',
