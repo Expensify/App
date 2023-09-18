@@ -1285,6 +1285,7 @@ export default {
     missingTag: 'Etiqueta requerida',
     overLimit: 'Monto excede el límite',
     cashExpenseWithNoReceipt: 'Cash expense sin recibo',
+    futureDate: 'Importe no puede ser en el futuro',
     beneficialOwnersStep: {
         additionalInformation: 'Información adicional',
         checkAllThatApply: 'Marca todos los que apliquen, en caso de que ninguno aplique dejar en blanco.',

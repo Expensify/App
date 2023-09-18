@@ -203,7 +203,7 @@ function MoneyRequestPreview(props) {
         }
 
         let message = props.translate('iou.cash');
-        if (props.transaction.violations) {
+        if (_.isArray(props.transaction.violations) && !_.isEmpty(props.transaction.violations)) {
             message +=  props.transaction.violations.length > 1 || props.translate(props.transaction.violations[0]).length > 15 ? ' • Review required' : `• ${props.translate(props.transaction.violations[0])}`;
         } else if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
             message += ` • ${props.translate('iou.approved')}`;

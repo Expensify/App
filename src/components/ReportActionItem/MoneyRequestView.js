@@ -59,7 +59,8 @@ const violations = {
     missingCategory: 'category',
     overLimit: 'amount',
     missingTag: 'amount',
-    cashExpenseWithNoReceipt: 'Cash expense with no receipt',
+    cashExpenseWithNoReceipt: 'amount',
+    futureDate: 'date',
 };
 
 const notes = [
@@ -190,6 +191,11 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     subtitle={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                     subtitleTextStyle={styles.textLabelError}
                 />
+            {Boolean(getViolationForField(transaction, 'date')) && (
+                <View>
+                    <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transaction, 'date')}</Text>
+                </View>
+            )}
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription

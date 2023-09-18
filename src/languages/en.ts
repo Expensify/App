@@ -1257,6 +1257,7 @@ export default {
     missingTag: 'Missing Tag',
     overLimit: 'Expense over limit',
     cashExpenseWithNoReceipt: 'Cash expense with no receipt',
+    futureDate: 'Date cannot be in the future',
     beneficialOwnersStep: {
         additionalInformation: 'Additional information',
         checkAllThatApply: 'Check all that apply, otherwise leave blank.',
