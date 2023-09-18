@@ -7,7 +7,7 @@ import Text from '../Text';
 import Icon from '../Icon';
 import * as Illustrations from '../Icon/Illustrations';
 import * as Expensicons from '../Icon/Expensicons';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -56,7 +56,7 @@ function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session
                 <Icon
                     width={154}
                     height={34}
-                    fill={colors.green}
+                    fill={themeColors.success}
                     src={Expensicons.ExpensifyWordmark}
                 />
             </View>

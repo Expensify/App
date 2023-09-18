@@ -24,6 +24,7 @@ class PopoverReportActionContextMenu extends React.Component {
             reportID: '0',
             reportActionID: '0',
             originalReportID: '0',
+            reportAction: {},
             selection: '',
             reportActionDraftMessage: '',
             isPopoverVisible: false,
@@ -58,6 +59,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.runAndResetOnPopoverHide = this.runAndResetOnPopoverHide.bind(this);
         this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
         this.isActiveReportAction = this.isActiveReportAction.bind(this);
+        this.clearActiveReportAction = this.clearActiveReportAction.bind(this);
 
         this.dimensionsEventListener = null;
 
@@ -114,7 +116,11 @@ class PopoverReportActionContextMenu extends React.Component {
      * @return {Boolean}
      */
     isActiveReportAction(actionID) {
-        return Boolean(actionID) && this.state.reportActionID === actionID;
+        return Boolean(actionID) && (this.state.reportActionID === actionID || this.state.reportAction.reportActionID === actionID);
+    }
+
+    clearActiveReportAction() {
+        this.setState({reportID: '0', reportAction: {}});
     }
 
     /**
@@ -333,10 +339,7 @@ class PopoverReportActionContextMenu extends React.Component {
                     shouldSetModalVisibility={this.state.shouldSetModalVisibilityForDeleteConfirmation}
                     onConfirm={this.confirmDeleteAndHideModal}
                     onCancel={this.hideDeleteModal}
-                    onModalHide={() => {
-                        this.setState({reportID: '0', reportAction: {}});
-                        this.callbackWhenDeleteModalHide();
-                    }}
+                    onModalHide={this.callbackWhenDeleteModalHide}
                     prompt={this.props.translate('reportActionContextMenu.deleteConfirmation', {action: this.state.reportAction})}
                     confirmText={this.props.translate('common.delete')}
                     cancelText={this.props.translate('common.cancel')}

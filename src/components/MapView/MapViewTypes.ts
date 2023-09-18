@@ -18,6 +18,8 @@ type MapViewProps = {
     waypoints?: WayPoint[];
     // List of coordinates which together forms a direction.
     directionCoordinates?: Array<[number, number]>;
+    // Callback to call when the map is idle / ready.
+    onMapReady?: () => void;
 };
 
 type DirectionProps = {
