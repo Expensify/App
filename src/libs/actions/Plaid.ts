@@ -6,13 +6,14 @@ import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropT
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
- * @param {Boolean} allowDebit
- * @param {Number} bankAccountID
  */
-function openPlaidBankLogin(allowDebit, bankAccountID) {
-    const params = getPlaidLinkTokenParameters();
-    params.allowDebit = allowDebit;
-    params.bankAccountID = bankAccountID;
+function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
+    const {redirect_uri} = getPlaidLinkTokenParameters();
+    const params = {
+        redirect_uri,
+        allowDebit,
+        bankAccountID,
+    };
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -36,13 +37,7 @@ function openPlaidBankLogin(allowDebit, bankAccountID) {
     API.read('OpenPlaidBankLogin', params, {optimisticData});
 }
 
-/**
- * @param {String} publicToken
- * @param {String} bankName
- * @param {Boolean} allowDebit
- * @param {Number} bankAccountID
- */
-function openPlaidBankAccountSelector(publicToken, bankName, allowDebit, bankAccountID) {
+function openPlaidBankAccountSelector(publicToken: string, bankName: string, allowDebit: boolean, bankAccountID: number) {
     API.read(
         'OpenPlaidBankAccountSelector',
         {
