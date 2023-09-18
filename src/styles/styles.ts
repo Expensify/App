@@ -67,6 +67,7 @@ type Styles = Record<
     | OfflineFeedbackStyle
     | MapDirectionStyle
     | MapDirectionLayerStyle
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     | ((...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomAnimation | CustomPickerStyle)
 >;
 
@@ -1140,6 +1141,7 @@ const styles = (theme: ThemeDefault) =>
                     color: theme.text,
                 },
                 doneDepressed: {
+                    // Extracted from react-native-picker-select, src/styles.js
                     fontSize: 17,
                 },
                 modalViewMiddle: {
@@ -1864,6 +1866,7 @@ const styles = (theme: ThemeDefault) =>
             paddingTop: 2,
             paddingBottom: 2,
             height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+            ...userSelect.userSelectNone,
         },
 
         emojiItemHighlighted: {
@@ -2777,6 +2780,10 @@ const styles = (theme: ThemeDefault) =>
 
         moneyRequestPreviewBoxText: {
             padding: 16,
+        },
+
+        amountSplitPadding: {
+            paddingTop: 2,
         },
 
         moneyRequestPreviewBoxLoading: {
