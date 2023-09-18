@@ -2,7 +2,6 @@ import {CSSProperties} from 'react';
 import {TextStyle, View, ViewStyle} from 'react-native';
 import spacing from './utilities/spacing';
 import styles from './styles';
-import colors from './colors';
 import themeColors from './themes/default';
 import fontFamily from './fontFamily';
 import variables from './variables';
@@ -267,13 +266,13 @@ export default function getTooltipStyles(
         pointerStyle: {
             width: 0,
             height: 0,
-            backgroundColor: colors.transparent,
+            backgroundColor: themeColors.transparent,
             borderStyle: 'solid',
             borderLeftWidth: POINTER_WIDTH / 2,
             borderRightWidth: POINTER_WIDTH / 2,
             borderTopWidth: POINTER_HEIGHT,
-            borderLeftColor: colors.transparent,
-            borderRightColor: colors.transparent,
+            borderLeftColor: themeColors.transparent,
+            borderRightColor: themeColors.transparent,
             borderTopColor: themeColors.heading,
             ...pointerAdditionalStyle,
         },
