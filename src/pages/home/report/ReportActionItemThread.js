@@ -62,6 +62,7 @@ function ReportActionItemThread(props) {
                         <Text
                             selectable={false}
                             style={[styles.link, styles.ml2, styles.h4, styles.noWrap]}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             {`${numberOfRepliesText} ${replyText}`}
                         </Text>
@@ -69,6 +70,7 @@ function ReportActionItemThread(props) {
                             selectable={false}
                             numberOfLines={1}
                             style={[styles.ml2, styles.textMicroSupporting, styles.flex1]}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             {timeStamp}
                         </Text>
