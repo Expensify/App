@@ -19,5 +19,5 @@ export default {
         xls: 'com.microsoft.excel.xls',
         xlsx: 'org.openxmlformats.spreadsheetml.sheet',
         zip: 'public.zip-archive',
-      })
+    }),
 };

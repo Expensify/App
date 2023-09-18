@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {Platform, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming, withDelay } from 'react-native-reanimated';
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming, withDelay} from 'react-native-reanimated';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
@@ -60,7 +60,7 @@ function ReportActionsViewWithSkeleton(props) {
 
     const skeletonStyle = useAnimatedStyle(() => ({
         opacity: skeletonOpacity.value,
-    }))
+    }));
 
     useEffect(() => {
         const loading = !props.isReportReadyForDisplay || props.isLoadingInitialReportActions || props.isLoading;
@@ -74,10 +74,13 @@ function ReportActionsViewWithSkeleton(props) {
             return;
         }
 
-        skeletonOpacity.value = withDelay(250, withTiming(0, {duration: 100}, () => {
-            runOnJS(setSkeletonVisible)(false);
-        }));
-    }, [isLoading, skeletonOpacity])
+        skeletonOpacity.value = withDelay(
+            250,
+            withTiming(0, {duration: 100}, () => {
+                runOnJS(setSkeletonVisible)(false);
+            }),
+        );
+    }, [isLoading, skeletonOpacity]);
 
     return (
         <>
@@ -93,12 +96,15 @@ function ReportActionsViewWithSkeleton(props) {
             {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
             {(isLoading || skeletonVisible) && (
-                <Animated.View style={[StyleSheet.absoluteFillObject, {backgroundColor: themeColors.appBG}, skeletonStyle]} pointerEvents="none">
+                <Animated.View
+                    style={[StyleSheet.absoluteFillObject, {backgroundColor: themeColors.appBG}, skeletonStyle]}
+                    pointerEvents="none"
+                >
                     <ReportActionsSkeletonView containerHeight={windowHeight} />
                 </Animated.View>
             )}
         </>
-    )
+    );
 }
 
 ReportActionsViewWithSkeleton.propTypes = propTypes;

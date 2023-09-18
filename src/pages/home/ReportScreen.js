@@ -354,37 +354,37 @@ function ReportScreen({
                         />
                     )}
                     <DragAndDropProvider isDisabled={!isReportReadyForDisplay}>
-                    <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                        <ReportActionsViewWithSkeleton
-                                    isReportReadyForDisplay={isReportReadyForDisplay}
-                                    isLoading={isLoading}
-                                    isLoadingInitialReportActions={isLoadingInitialReportActions}
-                                    report={report}
-                                    reportActions={reportActions}
-                                    isComposerFullSize={isComposerFullSize}
-                                    policy={policy}
-                                />
-                        {isReportReadyForDisplay && (
-                            <>
-                                <ReportFooter
-                                    pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                    isOffline={network.isOffline}
-                                    reportActions={reportActions}
-                                    report={report}
-                                    isComposerFullSize={isComposerFullSize}
-                                    onSubmitComment={onSubmitComment}
-                                    policies={policies}
-                                />
-                            </>
-                        )}
-
-                        {!isReportReadyForDisplay && (
-                            <ReportFooter
-                                shouldDisableCompose
-                                isOffline={network.isOffline}
+                        <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                            <ReportActionsViewWithSkeleton
+                                isReportReadyForDisplay={isReportReadyForDisplay}
+                                isLoading={isLoading}
+                                isLoadingInitialReportActions={isLoadingInitialReportActions}
+                                report={report}
+                                reportActions={reportActions}
+                                isComposerFullSize={isComposerFullSize}
+                                policy={policy}
                             />
-                        )}
-                    </View>
+                            {isReportReadyForDisplay && (
+                                <>
+                                    <ReportFooter
+                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                        isOffline={network.isOffline}
+                                        reportActions={reportActions}
+                                        report={report}
+                                        isComposerFullSize={isComposerFullSize}
+                                        onSubmitComment={onSubmitComment}
+                                        policies={policies}
+                                    />
+                                </>
+                            )}
+
+                            {!isReportReadyForDisplay && (
+                                <ReportFooter
+                                    shouldDisableCompose
+                                    isOffline={network.isOffline}
+                                />
+                            )}
+                        </View>
                     </DragAndDropProvider>
                 </FullPageNotFoundView>
             </ScreenWrapper>
