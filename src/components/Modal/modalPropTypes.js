@@ -66,6 +66,7 @@ const propTypes = {
      * */
     hideModalContentWhileAnimating: PropTypes.bool,
 
+    /** Should the modal use custom focus trap logic */
     shouldEnableFocusTrap: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
