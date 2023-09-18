@@ -31,7 +31,7 @@ import Colors from './colors';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
-
+// to prevent vertical text offset in browsers for badges, new lineHeight values have been added
 const lineHeightBadge = getPlatform() === CONST.PLATFORM.WEB ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme) => ({
