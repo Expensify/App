@@ -144,6 +144,9 @@ const propTypes = {
 
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled: PropTypes.bool,
+
+    /** Error to display below the title */
+    error: PropTypes.string,
 };
 
 export default propTypes;
