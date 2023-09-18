@@ -104,7 +104,7 @@ function CodesStep({account = defaultAccount}) {
                         )}
                     </View>
                 </Section>
-                <FixedFooter style={[styles.mtAuto, styles.pt2]}>
+                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     <Button
                         success
                         text={translate('common.next')}
