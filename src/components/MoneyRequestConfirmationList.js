@@ -5,6 +5,7 @@ import {format} from 'date-fns';
 import _ from 'underscore';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
+import Text from './Text';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -30,6 +31,7 @@ import Image from './Image';
 import useLocalize from '../hooks/useLocalize';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
 import categoryPropTypes from './categoryPropTypes';
+import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import transactionPropTypes from './transactionPropTypes';
@@ -536,6 +538,16 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
+                    {canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true) && (
+                        <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                            <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                            <Switch
+                                accessibilityLabel={translate('common.billable')}
+                                isOn={props.iouIsBillable}
+                                onToggle={props.onToggleBillable}
+                            />
+                        </View>
+                    )}
                 </>
             )}
         </OptionsSelector>
@@ -566,6 +578,9 @@ export default compose(
         },
         transaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        },
+        policy: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         },
     }),
 )(MoneyRequestConfirmationList);

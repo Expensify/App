@@ -79,7 +79,12 @@ function MoneyRequestConfirmPage(props) {
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-    }, [isOffline, participants]);
+        // Verification to reset billable with a default value, when value in IOU was changed
+        if (typeof props.iou.billable !== 'boolean') {
+            IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
@@ -136,6 +141,7 @@ function MoneyRequestConfirmPage(props) {
                 trimmedComment,
                 receipt,
                 props.iou.category,
+                props.iou.billable,
             );
         },
         [
@@ -147,6 +153,7 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.login,
             props.currentUserPersonalDetails.accountID,
             props.iou.category,
+            props.iou.billable,
         ],
     );
 
@@ -296,6 +303,8 @@ function MoneyRequestConfirmPage(props) {
                                 iouAmount={props.iou.amount}
                                 iouComment={props.iou.comment}
                                 iouCurrencyCode={props.iou.currency}
+                                iouIsBillable={props.iou.billable}
+                                onToggleBillable={IOU.setMoneyRequestBillable}
                                 iouCategory={props.iou.category}
                                 iouTag={props.iou.tag}
                                 onConfirm={createTransaction}
@@ -363,6 +372,11 @@ export default compose(
         },
         selectedTab: {
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+    }),
+    withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
     }),
 )(MoneyRequestConfirmPage);
