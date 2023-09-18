@@ -13,22 +13,20 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
+import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import * as TransactionUtils from '../libs/TransactionUtils';
+import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
     report: iouReportPropTypes.isRequired,
 
-    /** The expense report or iou report (only will have a value if this is a transaction thread) */
-    parentReport: iouReportPropTypes,
-
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
+    /** The policy which the report is tied to */
+    policy: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
     }).isRequired,
@@ -36,10 +34,23 @@ const propTypes = {
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
+    /** Onyx Props */
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
         email: PropTypes.string,
+    }),
+
+    /** The expense report or iou report (only will have a value if this is a transaction thread) */
+    parentReport: iouReportPropTypes,
+
+    /** The report action the transaction is tied to from the parent report */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
+
+    /** The transaction from the parent report action */
+    transaction: PropTypes.shape({
+        /** The ID of the transaction */
+        transactionID: PropTypes.string,
     }),
 
     ...windowDimensionsPropTypes,
@@ -50,6 +61,8 @@ const defaultProps = {
         email: null,
     },
     parentReport: {},
+    parentReportAction: {},
+    transaction: {},
 };
 
 function MoneyRequestHeader(props) {
@@ -57,18 +70,19 @@ function MoneyRequestHeader(props) {
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = props.parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
-    const isPayer =
-        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
+
+    // Only the requestor can take delete the request, admins can only edit it.
+    const isActionOwner = props.parentReportAction.actorAccountID === lodashGet(props.session, 'accountID', null);
     const report = props.report;
     report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
     report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
-    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
 
     const deleteTransaction = useCallback(() => {
-        IOU.deleteMoneyRequest(parentReportAction.originalMessage.IOUTransactionID, parentReportAction, true);
+        IOU.deleteMoneyRequest(props.parentReportAction.originalMessage.IOUTransactionID, props.parentReportAction, true);
         setIsDeleteModalVisible(false);
-    }, [parentReportAction, setIsDeleteModalVisible]);
+    }, [props.parentReportAction, setIsDeleteModalVisible]);
+
+    const isScanning = TransactionUtils.hasReceipt(props.transaction) && TransactionUtils.isReceiptBeingScanned(props.transaction);
 
     return (
         <>
@@ -76,22 +90,22 @@ function MoneyRequestHeader(props) {
                 <HeaderWithBackButton
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton={!isPayer && !isSettled}
+                    shouldShowThreeDotsButton={isActionOwner && !isSettled}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
-                            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                            text: translate('reportActionContextMenu.deleteAction', {action: props.parentReportAction}),
                             onSelected: () => setIsDeleteModalVisible(true),
                         },
                     ]}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
                     report={report}
-                    policies={props.policies}
+                    policy={props.policy}
                     personalDetails={props.personalDetails}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                    shouldShowBorderBottom
                 />
+                {isScanning && <MoneyRequestHeaderStatusBar />}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}
@@ -118,7 +132,16 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         parentReport: {
-            key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${props.report.parentReportID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        },
+        parentReportAction: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(report.parentReportID, report.parentReportActionID)}`,
+            selector: (reportActions, props) => props && props.parentReport && reportActions && reportActions[props.parentReport.parentReportActionID],
+            canEvict: false,
+        },
+        transaction: {
+            key: ({report, parentReportActions}) =>
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportActions, [report.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '')}`,
         },
     }),
 )(MoneyRequestHeader);

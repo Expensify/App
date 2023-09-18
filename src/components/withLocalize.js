@@ -2,7 +2,6 @@ import React, {createContext, forwardRef} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from '../libs/Localize';
@@ -63,6 +62,13 @@ const localeProviderDefaultProps = {
 };
 
 class LocaleContextProvider extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        return (
+            nextProps.preferredLocale !== this.props.preferredLocale ||
+            lodashGet(nextProps, 'currentUserPersonalDetails.timezone.selected') !== lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected')
+        );
+    }
+
     /**
      * The context this component exposes to child components
      * @returns {object} translation util functions and locale

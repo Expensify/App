@@ -88,7 +88,7 @@ function BankAccountPlaidStep(props) {
                 onBackButtonPress={onBackButtonPress}
             />
             <Form
-                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
                 onSubmit={submit}
                 scrollContextEnabled
@@ -103,6 +103,7 @@ function BankAccountPlaidStep(props) {
                     }}
                     plaidData={plaidData}
                     onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
+                    onBlurPlaid={() => BankAccounts.setBankAccountSubStep(null)}
                     receivedRedirectURI={receivedRedirectURI}
                     plaidLinkOAuthToken={plaidLinkOAuthToken}
                     allowDebit

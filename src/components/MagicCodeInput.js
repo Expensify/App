@@ -51,7 +51,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    value: undefined,
+    value: '',
     name: '',
     autoFocus: true,
     errorText: '',
@@ -114,35 +114,21 @@ function MagicCodeInput(props) {
         },
     }));
 
-    /**
-     * Validate the entered code and submit
-     *
-     * @param {String} value
-     */
-    const validateAndSubmit = (value) => {
-        const numbers = decomposeString(value, props.maxLength);
+    const validateAndSubmit = () => {
+        const numbers = decomposeString(props.value, props.maxLength);
         if (!props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== props.maxLength || props.network.isOffline) {
             return;
         }
         // Blurs the input and removes focus from the last input and, if it should submit
         // on complete, it will call the onFulfill callback.
         blurMagicCodeInput();
-        props.onFulfill(value);
+        props.onFulfill(props.value);
     };
 
-    useNetwork({onReconnect: () => validateAndSubmit(props.value)});
+    useNetwork({onReconnect: validateAndSubmit});
 
     useEffect(() => {
-        if (!props.hasError) {
-            return;
-        }
-
-        // Focus the last input if an error occurred to allow for corrections
-        inputRefs.current[props.maxLength - 1].focus();
-    }, [props.hasError, props.maxLength]);
-
-    useEffect(() => {
-        validateAndSubmit(props.value);
+        validateAndSubmit();
 
         // We have not added:
         // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
@@ -193,11 +179,6 @@ function MagicCodeInput(props) {
 
         const finalInput = composeToString(numbers);
         props.onChangeText(finalInput);
-
-        // If the same number is pressed, we cannot depend on props.value in useEffect for re-submitting
-        if (props.value === finalInput) {
-            validateAndSubmit(finalInput);
-        }
     };
 
     /**
@@ -277,7 +258,13 @@ function MagicCodeInput(props) {
                         {/* Hide the input above the text. Cannot set opacity to 0 as it would break pasting on iOS Safari. */}
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.bgTransparent]}>
                             <TextInput
-                                ref={(ref) => (inputRefs.current[index] = ref)}
+                                ref={(ref) => {
+                                    inputRefs.current[index] = ref;
+                                    // Setting attribute type to "search" to prevent Password Manager from appearing in Mobile Chrome
+                                    if (ref && ref.setAttribute) {
+                                        ref.setAttribute('type', 'search');
+                                    }
+                                }}
                                 autoFocus={index === 0 && props.autoFocus}
                                 inputMode="numeric"
                                 textContentType="oneTimeCode"

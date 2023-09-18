@@ -25,7 +25,7 @@ import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import reportPropTypes from '../pages/reportPropTypes';
-import tryResolveUrlFromApiRoot from '../libs/tryResolveUrlFromApiRoot';
+import useNativeDriver from '../libs/useNativeDriver';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -98,6 +98,7 @@ function AttachmentModal(props) {
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
+    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
@@ -118,12 +119,13 @@ function AttachmentModal(props) {
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
-     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string } }} attachment
+     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string }, isReceipt: Boolean }} attachment
      */
     const onNavigate = useCallback(
         (attachment) => {
             setSource(attachment.source);
             setFile(attachment.file);
+            setIsAttachmentReceipt(attachment.isReceipt);
             setIsAuthTokenRequired(attachment.isAuthTokenRequired);
             onCarouselAttachmentChange(attachment);
         },
@@ -293,7 +295,7 @@ function AttachmentModal(props) {
             Animated.timing(confirmButtonFadeAnimation, {
                 toValue,
                 duration: 100,
-                useNativeDriver: true,
+                useNativeDriver,
             }).start();
         },
         [confirmButtonFadeAnimation],
@@ -314,6 +316,7 @@ function AttachmentModal(props) {
     }, []);
 
     const sourceForAttachmentView = props.source || source;
+
     return (
         <>
             <Modal
@@ -334,7 +337,7 @@ function AttachmentModal(props) {
             >
                 {props.isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton
-                    title={props.headerTitle || translate('common.attachment')}
+                    title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
                     shouldShowBorderBottom
                     shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton}
                     onDownloadButtonPress={() => downloadAttachment(source)}
@@ -348,7 +351,7 @@ function AttachmentModal(props) {
                         <AttachmentCarousel
                             report={props.report}
                             onNavigate={onNavigate}
-                            source={tryResolveUrlFromApiRoot(props.source)}
+                            source={props.source}
                             onClose={closeModal}
                             onToggleKeyboard={updateConfirmButtonVisibility}
                             setDownloadButtonVisibility={setDownloadButtonVisibility}

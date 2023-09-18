@@ -10,6 +10,7 @@ import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as PolicyUtils from '../libs/PolicyUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
@@ -33,6 +34,15 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
     /* Onyx Props */
 
     /** All of the personal details for everyone */
@@ -46,6 +56,7 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
+    policy: {},
     personalDetails: {},
     betas: [],
 };
@@ -60,12 +71,16 @@ function ReportWelcomeText(props) {
         OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, props.personalDetails),
         isMultipleParticipant,
     );
-    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report);
+    const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(props.policy);
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, isUserPolicyAdmin);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs, props.betas);
+
     return (
         <>
             <View>
-                <Text style={[styles.textHero]}>{props.translate('reportActionsView.sayHello')}</Text>
+                <Text style={[styles.textHero]}>
+                    {isChatRoom ? props.translate('reportActionsView.welcomeToRoom', {roomName: ReportUtils.getReportName(props.report)}) : props.translate('reportActionsView.sayHello')}
+                </Text>
             </View>
             <Text style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat && (
@@ -84,14 +99,16 @@ function ReportWelcomeText(props) {
                 {isChatRoom && (
                     <>
                         <Text>{roomWelcomeMessage.phrase1}</Text>
-                        <Text
-                            style={[styles.textStrong]}
-                            onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
-                            suppressHighlighting
-                        >
-                            {ReportUtils.getReportName(props.report)}
-                        </Text>
-                        <Text>{roomWelcomeMessage.phrase2}</Text>
+                        {roomWelcomeMessage.showReportName && (
+                            <Text
+                                style={[styles.textStrong]}
+                                onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
+                                suppressHighlighting
+                            >
+                                {ReportUtils.getReportName(props.report)}
+                            </Text>
+                        )}
+                        {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
                     </>
                 )}
                 {isDefault && (

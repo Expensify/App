@@ -7,7 +7,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
 import Log from '../../Log';
-import PushNotification from '../../Notification/PushNotification';
 import Timing from '../Timing';
 import CONST from '../../../CONST';
 import Timers from '../../Timers';
@@ -18,45 +17,32 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import Navigation from '../../Navigation/Navigation';
 import * as Device from '../Device';
-import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
-import * as Report from '../Report';
 import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 
-let authTokenType = '';
+let sessionAuthTokenType = '';
+let sessionAuthToken = null;
+let authPromiseResolver = null;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (session) => (authTokenType = lodashGet(session, 'authTokenType')),
+    callback: (session) => {
+        sessionAuthTokenType = lodashGet(session, 'authTokenType');
+        sessionAuthToken = lodashGet(session, 'authToken');
+
+        if (sessionAuthToken && authPromiseResolver) {
+            authPromiseResolver(true);
+            authPromiseResolver = null;
+        }
+    },
 });
 
 let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => (credentials = val || {}),
-});
-
-/**
- * Manage push notification subscriptions on sign-in/sign-out.
- *
- * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
- * push subscription when the session changes here.
- */
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
-    callback: (notificationID) => {
-        if (notificationID) {
-            PushNotification.register(notificationID);
-
-            // Prevent issue where report linking fails after users switch accounts without closing the app
-            PushNotification.init();
-            subscribeToReportCommentPushNotifications();
-        } else {
-            PushNotification.deregister();
-            PushNotification.clearNotifications();
-        }
-    },
 });
 
 /**
@@ -85,7 +71,7 @@ function signOut() {
  * @return {boolean}
  */
 function isAnonymousUser() {
-    return authTokenType === 'anonymousAccount';
+    return sessionAuthTokenType === 'anonymousAccount';
 }
 
 function signOutAndRedirectToSignIn() {
@@ -99,7 +85,7 @@ function signOutAndRedirectToSignIn() {
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
-                Report.setLastOpenedPublicRoom(reportID);
+                Onyx.merge(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
             }
         });
     }
@@ -773,6 +759,29 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
     API.write('TwoFactorAuth_Validate', {twoFactorAuthCode}, {optimisticData, successData, failureData});
 }
 
+/**
+ * Waits for a user to sign in.
+ *
+ * If the user is already signed in (`authToken` is truthy), the promise resolves immediately.
+ * Otherwise, the promise will resolve when the `authToken` in `ONYXKEYS.SESSION` becomes truthy via the Onyx callback.
+ * The promise will not reject on failed login attempt.
+ *
+ * @returns {Promise<boolean>} A promise that resolves to `true` once the user is signed in.
+ * @example
+ * waitForUserSignIn().then(() => {
+ *   console.log('User is signed in!');
+ * });
+ */
+function waitForUserSignIn() {
+    return new Promise((resolve) => {
+        if (sessionAuthToken) {
+            resolve(true);
+        } else {
+            authPromiseResolver = resolve;
+        }
+    });
+}
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -800,4 +809,5 @@ export {
     isAnonymousUser,
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
+    waitForUserSignIn,
 };
