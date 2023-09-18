@@ -344,11 +344,6 @@ export default {
             `It's always great to see a new face around here! Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
     },
-    DownloadAppModal: {
-        downloadTheApp: 'Download the app',
-        keepTheConversationGoing: 'Keep the conversation going in New Expensify, download the app for an enhanced experience.',
-        noThanks: 'No thanks',
-    },
     login: {
         hero: {
             header: 'Split bills, request payments, and chat with friends.',
@@ -753,6 +748,13 @@ export default {
     passwordConfirmationScreen: {
         passwordUpdated: 'Password updated!',
         allSet: 'You’re all set. Keep your new password safe.',
+    },
+    privateNotes: {
+        title: 'Private notes',
+        personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
+        sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
+        notesUnavailable: 'No notes found for the user',
+        composerLabel: 'Notes',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Get paid back via PayPal.',

@@ -1170,6 +1170,7 @@ const CONST = {
         SMALL_NORMAL: 'small-normal',
     },
     EXPENSIFY_CARD: {
+        BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
             INDIVIDUAL: 'individal',
@@ -1342,6 +1343,7 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         WELCOME_MESSAGE: 'welcomeMessage',
+        PRIVATE_NOTES: 'privateNotes',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
