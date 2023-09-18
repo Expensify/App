@@ -39,7 +39,7 @@ import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useFocusEffect} from '@react-navigation/native';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -149,10 +149,8 @@ function ReportScreen({
 }) {
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
-    const unsubscribeVisibilityListener = useRef();
     const reactionListRef = useRef();
     const prevReport = usePrevious(report);
-    const isFocused = useIsFocused();
 
     const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(0);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -262,25 +260,25 @@ function ReportScreen({
         [route],
     );
 
-    useEffect(() => {
-        if (isFocused) {
-            unsubscribeVisibilityListener.current = Visibility.onVisibilityChange(() => {
-                const isTopMostReportID = Navigation.getTopmostReportId() === getReportID(route);
-                // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
-                // we don't need to call openReport
-                if (!getIsReportFullyVisible(isTopMostReportID) || report.isOptimisticReport) {
-                    return;
-                }
-    
-                Report.openReport(report.reportID);
-            });
-        } else {
-            if (!unsubscribeVisibilityListener.current) {
+    useFocusEffect(useCallback(() => {
+        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            const isTopMostReportID = Navigation.getTopmostReportId() === getReportID(route);
+            // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
+            // we don't need to call openReport
+            if (!getIsReportFullyVisible(isTopMostReportID) || report.isOptimisticReport) {
                 return;
             }
-            unsubscribeVisibilityListener.current();
+
+            Report.openReport(report.reportID);
+        });
+
+        return () => {
+            if (!unsubscribeVisibilityListener) {
+                return;
+            }
+            unsubscribeVisibilityListener();
         }
-    }, [isFocused]);
+    }, []))
 
     useEffect(() => {
         fetchReportIfNeeded();
