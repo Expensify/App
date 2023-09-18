@@ -49,6 +49,14 @@ function canUseCustomStatus(betas: OnyxTypes.Beta[]): boolean {
     return betas.includes(CONST.BETAS.CUSTOM_STATUS) || canUseAllBetas(betas);
 }
 
+function canUseCategories(betas: OnyxTypes.Beta[]): boolean {
+    return betas.includes(CONST.BETAS.NEW_DOT_CATEGORIES) || canUseAllBetas(betas);
+}
+
+function canUseTags(betas: OnyxTypes.Beta[]): boolean {
+    return betas.includes(CONST.BETAS.NEW_DOT_TAGS) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -66,5 +74,7 @@ export default {
     canUsePolicyRooms,
     canUseTasks,
     canUseCustomStatus,
+    canUseCategories,
+    canUseTags,
     canUseLinkPreviews,
 };
