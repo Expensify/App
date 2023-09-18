@@ -60,6 +60,7 @@ function EmojiReactionBubble(props) {
                 styles.emojiReactionBubble,
                 StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu),
                 props.shouldBlockReactions && styles.cursorDisabled,
+                styles.userSelectNone,
             ]}
             onPress={() => {
                 if (props.shouldBlockReactions) {
@@ -83,9 +84,10 @@ function EmojiReactionBubble(props) {
             }}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             accessibilityLabel={props.emojiCodes.join('')}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
-            <Text style={[styles.emojiReactionBubbleText, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{props.emojiCodes.join('')}</Text>
-            {props.count > 0 && <Text style={[styles.reactionCounterText, styles.userSelectNone, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.count}</Text>}
+            <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{props.emojiCodes.join('')}</Text>
+            {props.count > 0 && <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.count}</Text>}
         </PressableWithSecondaryInteraction>
     );
 }

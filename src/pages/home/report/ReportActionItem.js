@@ -67,6 +67,7 @@ import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import usePrevious from '../../../hooks/usePrevious';
 import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
+import ReportAttachmentsContext from './ReportAttachmentsContext';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -129,12 +130,31 @@ function ReportActionItem(props) {
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const {reactionListRef} = useContext(ReportScreenContext);
+    const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
+
+    // When active action changes, we need to update the `isContextMenuActive` state
+    const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID);
+    useEffect(() => {
+        setIsContextMenuActive(isActiveReportActionForMenu);
+    }, [isActiveReportActionForMenu]);
+
+    const updateHiddenState = useCallback(
+        (isHiddenValue) => {
+            setIsHidden(isHiddenValue);
+            const isAttachment = ReportUtils.isReportMessageAttachment(_.last(props.action.message));
+            if (!isAttachment) {
+                return;
+            }
+            updateHiddenAttachments(props.action.reportActionID, isHiddenValue);
+        },
+        [props.action.reportActionID, props.action.message, updateHiddenAttachments],
+    );
 
     useEffect(
         () => () => {
@@ -362,7 +382,7 @@ function ReportActionItem(props) {
                                 <Button
                                     small
                                     style={[styles.mt2, styles.alignSelfStart]}
-                                    onPress={() => setIsHidden(!isHidden)}
+                                    onPress={() => updateHiddenState(!isHidden)}
                                 >
                                     <Text
                                         style={styles.buttonSmallText}
@@ -585,7 +605,7 @@ function ReportActionItem(props) {
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
                             >
                                 {isWhisper && (
-                                    <View style={[styles.flexRow, styles.pl5, styles.pt2]}>
+                                    <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
                                         <View style={[styles.pl6, styles.mr3]}>
                                             <Icon
                                                 src={Expensicons.Eye}
@@ -601,7 +621,7 @@ function ReportActionItem(props) {
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
-                                            textStyles={[styles.chatItemMessageHeaderTimestamp]}
+                                            textStyles={[styles.chatItemMessageHeaderTimestamp, styles.flex1]}
                                             shouldUseFullTitle={isWhisperOnlyVisibleByUser}
                                         />
                                     </View>
