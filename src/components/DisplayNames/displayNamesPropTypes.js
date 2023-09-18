@@ -1,11 +1,12 @@
 import PropTypes from 'prop-types';
+import reportPropTypes from '../../pages/reportPropTypes';
 
 const propTypes = {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle: PropTypes.string,
 
-    /** The full title of the DisplayNames component in HTML */
-    fullTitleHtml: PropTypes.string,
+    /** The report currently being looked at */
+    report: reportPropTypes,
 
     /** Array of objects that map display names to their corresponding tooltip */
     displayNamesWithTooltips: PropTypes.arrayOf(
@@ -38,6 +39,7 @@ const defaultProps = {
     numberOfLines: 1,
     tooltipEnabled: false,
     titleStyles: [],
+    report: {},
 };
 
 export {propTypes, defaultProps};

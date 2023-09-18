@@ -10,7 +10,7 @@ function DisplayNames(props) {
                 textStyles={props.textStyles}
                 numberOfLines={props.numberOfLines}
                 fullTitle={props.fullTitle}
-                fullTitleHtml={props.fullTitleHtml}
+                report={props.report}
             />
         );
     }

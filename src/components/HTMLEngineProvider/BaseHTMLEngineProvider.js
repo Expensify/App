@@ -75,7 +75,6 @@ function BaseHTMLEngineProvider(props) {
             customHTMLElementModels={customHTMLElementModels}
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
-            enableCSSInlineProcessing={false}
             systemFonts={_.values(fontFamily)}
             fallbackFonts={fallbackFonts}
         >

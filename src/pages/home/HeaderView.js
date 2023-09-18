@@ -183,7 +183,7 @@ function HeaderView(props) {
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
                                     fullTitle={title}
-                                    fullTitleHtml={ReportUtils.containsHtml(title) ? title : ''}
+                                    report={reportHeaderData}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
