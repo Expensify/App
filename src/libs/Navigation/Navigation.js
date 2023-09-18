@@ -63,7 +63,7 @@ const getActiveRouteIndex = function (route, index) {
         return getActiveRouteIndex(childActiveRoute, route.state.index || 0);
     }
 
-    if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (lodashGet(route, 'state', false) && route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         return 0;
     }
 
@@ -115,7 +115,7 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
         return;
     }
 
-    const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
+    const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getRootState());
 
     if (isFirstRouteInNavigator) {
         const rootState = navigationRef.getRootState();
