@@ -235,7 +235,7 @@ function MoneyRequestPreview(props) {
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
             >
-                <View style={[styles.moneyRequestPreviewBox, isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined, ...props.containerStyles]}>
+                <View style={[styles.moneyRequestPreviewBox, isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={receiptImages}
@@ -342,7 +342,7 @@ function MoneyRequestPreview(props) {
             onLongPress={showContextMenu}
             accessibilityLabel={props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
-            style={styles.moneyRequestPreviewBox}
+            style={[styles.moneyRequestPreviewBox, ...props.containerStyles]}
         >
             {childContainer}
         </PressableWithFeedback>
