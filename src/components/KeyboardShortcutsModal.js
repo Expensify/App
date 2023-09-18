@@ -158,6 +158,7 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
             type={modalType}
             innerContainerStyle={{...styles.keyboardShortcutModalContainer, ...StyleUtils.getKeyboardShortcutsModalWidth(isSmallScreenWidth)}}
             onClose={KeyboardShortcutsActions.hideKeyboardShortcutModal}
+            shouldEnableFocusTrap
         >
             <HeaderWithBackButton
                 title={translate('keyboardShortcutModal.title')}

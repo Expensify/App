@@ -6,6 +6,8 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 import StatusBar from '../../libs/StatusBar';
 import CONST from '../../CONST';
+import FocusTrapView from '../FocusTrapView';
+import styles from '../../styles/styles';
 
 function Modal(props) {
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState();
@@ -41,7 +43,13 @@ function Modal(props) {
             onModalShow={showModal}
             avoidKeyboard={false}
         >
-            {props.children}
+            <FocusTrapView
+                enabled={props.shouldEnableFocusTrap}
+                active
+                style={[styles.noSelect]}
+            >
+                {props.children}
+            </FocusTrapView>
         </BaseModal>
     );
 }

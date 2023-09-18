@@ -66,6 +66,8 @@ const propTypes = {
      * */
     hideModalContentWhileAnimating: PropTypes.bool,
 
+    shouldEnableFocusTrap: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -84,6 +86,7 @@ const defaultProps = {
     statusBarTranslucent: true,
     avoidKeyboard: false,
     hideModalContentWhileAnimating: false,
+    shouldEnableFocusTrap: false,
 };
 
 export {propTypes, defaultProps};

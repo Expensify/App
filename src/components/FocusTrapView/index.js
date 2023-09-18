@@ -5,7 +5,6 @@ import React, {useEffect, useRef} from 'react';
 import FocusTrap from 'focus-trap-react';
 import {View} from 'react-native';
 import {PropTypes} from 'prop-types';
-import {useIsFocused} from '@react-navigation/native';
 
 const propTypes = {
     /** Children to wrap with FocusTrap */
@@ -19,16 +18,18 @@ const propTypes = {
      *  It is used when the component inside the FocusTrap have their own auto focus logic
      */
     shouldEnableAutoFocus: PropTypes.bool,
+
+    /** Whether the FocusTrap is active */
+    active: PropTypes.bool,
 };
 
 const defaultProps = {
     enabled: true,
     shouldEnableAutoFocus: false,
+    active: false,
 };
 
-function FocusTrapView({enabled, shouldEnableAutoFocus, ...props}) {
-    const isFocused = useIsFocused();
-
+function FocusTrapView({enabled = true, active = true, shouldEnableAutoFocus, ...props}) {
     /**
      * Focus trap always needs a focusable element.
      * In case that we don't have any focusable elements in the modal,
@@ -50,7 +51,7 @@ function FocusTrapView({enabled, shouldEnableAutoFocus, ...props}) {
 
     return enabled ? (
         <FocusTrap
-            active={isFocused}
+            active={active}
             focusTrapOptions={{
                 initialFocus: () => shouldEnableAutoFocus && ref.current,
                 fallbackFocus: () => ref.current,
