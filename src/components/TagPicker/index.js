@@ -42,7 +42,7 @@ function TagPicker({reportID, tag, iouType, policyTags, policyRecentlyUsedTags, 
         if (isTagsCountBelowThreshold && selectedOptions.length > 0) {
             return _.chain(policyTagList)
                 .values()
-                .findIndex((tag) => tag.name === selectedOptions[0].name, true)
+                .findIndex((policyTag) => policyTag.name === selectedOptions[0].name, true)
                 .value();
         }
 
@@ -61,11 +61,11 @@ function TagPicker({reportID, tag, iouType, policyTags, policyRecentlyUsedTags, 
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
     };
 
-    const updateTag = (tag) => {
-        if (tag.searchText === iou.tag) {
+    const updateTag = (selectedTag) => {
+        if (selectedTag.searchText === iou.tag) {
             IOU.resetMoneyRequestTag();
         } else {
-            IOU.setMoneyRequestTag(tag.searchText);
+            IOU.setMoneyRequestTag(selectedTag.searchText);
         }
         navigateBack();
     };
