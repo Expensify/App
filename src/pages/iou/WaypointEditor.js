@@ -165,9 +165,10 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     /**
      * Sets user current location as a waypoint
      * @param {Object} geolocationData
-     * @param {Object} geolocationData.coords.latitude
-     * @param {Object} geolocationData.coords.longitude
-     * @param {Object} geolocationData.timestamp
+     * @param {Object} geolocationData.coords
+     * @param {Number} geolocationData.coords.latitude
+     * @param {Number} geolocationData.coords.longitude
+     * @param {Number} geolocationData.timestamp
      */
     const selectWaypointFromCurrentLocation = (geolocationData) => {
         setIsFetchingLocation(false);
