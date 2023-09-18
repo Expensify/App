@@ -626,6 +626,8 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
     const modifiedReportActionOptimisticData = [];
     const modifiedReportActionSuccessData = [];
     const modifiedReportActionFailureData = [];
+    const modifiedMoneyRequestReportOptimisticData = [];
+    const modifiedMoneyRequestReportSuccessData = [];
     if (!_.has(transactionChanges, 'waypoints')) {
         const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
         params.reportActionID = updatedReportAction.reportActionID;
@@ -651,11 +653,32 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                 [updatedReportAction.reportActionID]: updatedReportAction,
             },
         });
-    }
 
-    // Step 4: Comput the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
-    // Should only update if the transaction matches the currency of the report, else we wait for the update
-    // from the server with the currency conversion
+        // Step 4: Comput the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
+        // Should only update if the transaction matches the currency of the report, else we wait for the update
+        // from the server with the currency conversion
+        let updatedMoneyRequestReport = {...iouReport};
+        if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount) {
+            const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+            if (ReportUtils.isExpenseReport(iouReport)) {
+                updatedMoneyRequestReport.total += diff;
+            } else {
+                updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID, diff, TransactionUtils.getCurrency(transaction), false);
+            }
+
+            updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction.currency);
+            modifiedMoneyRequestReportOptimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                value: updatedMoneyRequestReport,
+            });
+            modifiedMoneyRequestReportSuccessData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                value: {pendingAction: null},
+            });
+        }
+    }
 
 
     API.write(
@@ -673,6 +696,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                     },
                 },
                 ...modifiedReportActionOptimisticData,
+                ...modifiedMoneyRequestReportOptimisticData,
             ],
             successData: [
                 {
@@ -684,6 +708,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                     },
                 },
                 ...modifiedReportActionSuccessData,
+                ...modifiedMoneyRequestReportSuccessData,
             ],
             failureData: [
                 {
