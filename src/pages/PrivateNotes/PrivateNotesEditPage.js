@@ -123,8 +123,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 autoGrowHeight
-                                textAlignVertical="top"
-                                containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                containerStyles={[styles.autoGrowHeightMultilineInput, styles.verticalAlignTop]}
                                 defaultValue={privateNote}
                                 value={privateNote}
                                 onChangeText={(text) => setPrivateNote(text)}

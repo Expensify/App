@@ -4,14 +4,14 @@ import styles from '../styles/styles';
 import Text from './Text';
 import CONST from '../CONST';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import pointerEventsNone from '../styles/pointerEventsNone/index.native';
 
 function UnreadActionIndicator(props) {
     return (
         <View
             accessibilityLabel={props.translate('accessibilityHints.newMessageLineIndicator')}
             data-action-id={props.reportActionID}
-            pointerEvents="none"
-            style={[styles.unreadIndicatorContainer, styles.userSelectNone]}
+            style={[styles.unreadIndicatorContainer, styles.userSelectNone. styles.pointerEventsNone]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
             <View style={styles.unreadIndicatorLine} />
