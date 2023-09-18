@@ -460,6 +460,7 @@ function MoneyRequestConfirmationList(props) {
             )}
             <MenuItemWithTopDescription
                 shouldShowRightIcon={!props.isReadOnly}
+                shouldParseTitle
                 title={props.iouComment}
                 description={translate('common.description')}
                 onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID))}
