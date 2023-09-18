@@ -2,7 +2,6 @@ import _ from 'underscore';
 import Log from './Log';
 import AddEncryptedAuthToken from './migrations/AddEncryptedAuthToken';
 import RenameActiveClientsKey from './migrations/RenameActiveClientsKey';
-import RenamePriorityModeKey from './migrations/RenamePriorityModeKey';
 import MoveToIndexedDB from './migrations/MoveToIndexedDB';
 import RenameExpensifyNewsStatus from './migrations/RenameExpensifyNewsStatus';
 import AddLastVisibleActionCreated from './migrations/AddLastVisibleActionCreated';
@@ -18,7 +17,6 @@ export default function () {
         const migrationPromises = [
             MoveToIndexedDB,
             RenameActiveClientsKey,
-            RenamePriorityModeKey,
             AddEncryptedAuthToken,
             RenameExpensifyNewsStatus,
             AddLastVisibleActionCreated,
