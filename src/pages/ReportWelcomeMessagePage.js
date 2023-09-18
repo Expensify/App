@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {useFocusEffect} from '@react-navigation/native';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -20,7 +21,6 @@ import Form from '../components/Form';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import {policyPropTypes, policyDefaultProps} from './workspace/withPolicy';
 import UpdateMultilineInputRange from '../libs/UpdateMultilineInputRange';
-import shouldDelayFocus from '../libs/shouldDelayFocus';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -46,6 +46,7 @@ function ReportWelcomeMessagePage(props) {
     const parser = new ExpensiMark();
     const [welcomeMessage, setWelcomeMessage] = useState(parser.htmlToMarkdown(props.report.welcomeMessage));
     const welcomeMessageInputRef = useRef(null);
+    const focusTimeoutRef = useRef(null);
 
     const handleWelcomeMessageChange = useCallback((value) => {
         setWelcomeMessage(value);
@@ -55,18 +56,25 @@ function ReportWelcomeMessagePage(props) {
         Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage.trim());
     }, [props.report.reportID, props.report.welcomeMessage, welcomeMessage]);
 
+    useFocusEffect(
+        useCallback(() => {
+            
+            focusTimeoutRef.current = setTimeout(() => {
+                welcomeMessageInputRef.current.focus();
+                return () => {
+                    if (!focusTimeoutRef.current) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
+            }, CONST.ANIMATED_TRANSITION);
+        }, [welcomeMessageInputRef])
+    )
+
     return (
         <ScreenWrapper
-            onEntryTransitionEnd={() => {
-                if (!welcomeMessageInputRef.current) {
-                    return;
-                }
-                UpdateMultilineInputRange(welcomeMessageInputRef.current);
-                welcomeMessageInputRef.current.focus();
-            }}
         >
-            {({didScreenTransitionEnd}) => (
-                <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
+            <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
                     <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
                     <Form
                         style={[styles.flexGrow1, styles.ph5]}
@@ -85,20 +93,9 @@ function ReportWelcomeMessagePage(props) {
                                 autoGrowHeight
                                 maxLength={CONST.MAX_COMMENT_LENGTH}
                                 ref={(el) => {
-                                    // Before updating the DOM, React sets the affected ref.current values to null. After updating the DOM, React immediately sets them to the corresponding DOM nodes
-                                    // to avoid focus multiple time, we should early return if el is null.
-                                    if (!el) {
-                                        return;
-                                    }
-                                    UpdateMultilineInputRange(el);
-                                    if (!welcomeMessageInputRef.current && didScreenTransitionEnd) {
-                                        if (shouldDelayFocus) {
-                                            setTimeout(() => {
-                                                el.focus();
-                                            }, CONST.ANIMATED_TRANSITION);
-                                        } else el.focus();
-                                    }
+                                    if(!el) return;
                                     welcomeMessageInputRef.current = el;
+                                    UpdateMultilineInputRange(welcomeMessageInputRef.current);
                                 }}
                                 value={welcomeMessage}
                                 onChangeText={handleWelcomeMessageChange}
@@ -109,7 +106,6 @@ function ReportWelcomeMessagePage(props) {
                         </View>
                     </Form>
                 </FullPageNotFoundView>
-            )}
         </ScreenWrapper>
     );
 }
