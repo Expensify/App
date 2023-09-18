@@ -29,6 +29,7 @@ import * as Expensicons from './Icon/Expensicons';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import useNativeDriver from '../libs/useNativeDriver';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -301,7 +302,7 @@ function AttachmentModal(props) {
             Animated.timing(confirmButtonFadeAnimation, {
                 toValue,
                 duration: 100,
-                useNativeDriver: true,
+                useNativeDriver,
             }).start();
         },
         [confirmButtonFadeAnimation],

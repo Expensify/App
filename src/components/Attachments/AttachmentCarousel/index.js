@@ -2,7 +2,6 @@ import React, {useRef, useCallback, useState, useEffect} from 'react';
 import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import styles from '../../../styles/styles';
 import CarouselActions from './CarouselActions';
 import withWindowDimensions from '../../withWindowDimensions';
@@ -19,8 +18,9 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import BlockingView from '../../BlockingViews/BlockingView';
 import * as Illustrations from '../../Icon/Illustrations';
 import variables from '../../../styles/variables';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
-const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
     // more than 95% visible. When that happens we update the page index in the state.
@@ -31,6 +31,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     const scrollRef = useRef(null);
 
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const [containerWidth, setContainerWidth] = useState(0);
     const [page, setPage] = useState(0);
@@ -38,13 +39,25 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     const [activeSource, setActiveSource] = useState(source);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
 
+    const compareImage = useCallback(
+        (attachment) => {
+            if (attachment.isReceipt) {
+                const action = ReportActionsUtils.getParentReportAction(report);
+                const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
+                return attachment.transactionID === transactionID;
+            }
+            return attachment.source === source;
+        },
+        [source, report],
+    );
+
     useEffect(() => {
         const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
 
-        const initialPage = _.findIndex(attachmentsFromReport, (a) => a.source === source);
+        const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
         // Dismiss the modal when deleting an attachment during its display in preview.
-        if (initialPage === -1 && _.find(attachments, (a) => a.source === source)) {
+        if (initialPage === -1 && _.find(attachments, compareImage)) {
             Navigation.dismissModal();
         } else {
             setPage(initialPage);
@@ -57,7 +70,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             if (!_.isUndefined(attachmentsFromReport[initialPage])) onNavigate(attachmentsFromReport[initialPage]);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report, reportActions, source]);
+    }, [reportActions, compareImage]);
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -99,7 +112,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
-        [attachments, page],
+        [attachments, canUseTouchScreen, page],
     );
 
     /**
@@ -159,7 +172,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                 onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
             />
         ),
-        [activeSource, setShouldShowArrows, shouldShowArrows],
+        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
 
     return (

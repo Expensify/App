@@ -12,7 +12,6 @@ import NAVIGATORS from '../../../../NAVIGATORS';
 import SCREENS from '../../../../SCREENS';
 import Permissions from '../../../../libs/Permissions';
 import * as Policy from '../../../../libs/actions/Policy';
-import * as PolicyUtils from '../../../../libs/PolicyUtils';
 import PopoverMenu from '../../../../components/PopoverMenu';
 import CONST from '../../../../CONST';
 import FloatingActionButton from '../../../../components/FloatingActionButton';
@@ -180,8 +179,6 @@ function FloatingActionButtonAndPopover(props) {
         },
     }));
 
-    const workspaces = PolicyUtils.getActivePolicies(props.allPolicies);
-
     return (
         <View>
             <PopoverMenu
@@ -193,23 +190,9 @@ function FloatingActionButtonAndPopover(props) {
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,
-                        text: props.translate('sidebarScreen.newChat'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_CHAT)),
+                        text: props.translate('sidebarScreen.fabNewChat'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
-                    {
-                        icon: Expensicons.Users,
-                        text: props.translate('sidebarScreen.newGroup'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_GROUP)),
-                    },
-                    ...(Permissions.canUsePolicyRooms(props.betas) && workspaces.length
-                        ? [
-                              {
-                                  icon: Expensicons.Hashtag,
-                                  text: props.translate('sidebarScreen.newRoom'),
-                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM)),
-                              },
-                          ]
-                        : []),
                     ...(Permissions.canUseIOUSend(props.betas)
                         ? [
                               {
@@ -225,9 +208,9 @@ function FloatingActionButtonAndPopover(props) {
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
                     },
                     {
-                        icon: Expensicons.Receipt,
-                        text: props.translate('iou.splitBill'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
+                        icon: Expensicons.Heart,
+                        text: props.translate('sidebarScreen.saveTheWorld'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
                     },
                     ...(Permissions.canUseTasks(props.betas)
                         ? [
@@ -255,7 +238,7 @@ function FloatingActionButtonAndPopover(props) {
                 anchorRef={anchorRef}
             />
             <FloatingActionButton
-                accessibilityLabel={props.translate('sidebarScreen.fabNewChat')}
+                accessibilityLabel={props.translate('sidebarScreen.fabNewChatExplained')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 isActive={isCreateMenuActive}
                 ref={anchorRef}
