@@ -177,6 +177,22 @@ function MoneyRequestConfirmPage(props) {
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
+                if (props.iou.receiptPath && props.iou.receiptSource) {
+                    FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
+                        IOU.splitBill(
+                            selectedParticipants,
+                            props.currentUserPersonalDetails.login,
+                            props.currentUserPersonalDetails.accountID,
+                            props.iou.amount,
+                            trimmedComment,
+                            props.iou.currency,
+                            props.iou.merchant,
+                            receipt,
+                            reportID.current,
+                        );
+                    });
+                    return;
+                }
                 IOU.splitBill(
                     selectedParticipants,
                     props.currentUserPersonalDetails.login,
@@ -185,12 +201,28 @@ function MoneyRequestConfirmPage(props) {
                     trimmedComment,
                     props.iou.currency,
                     reportID.current,
+                    props.iou.merchant,
                 );
                 return;
             }
 
             // If the request is created from the global create menu, we also navigate the user to the group report
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
+                if (props.iou.receiptPath && props.iou.receiptSource) {
+                    FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
+                        IOU.splitBillAndOpenReport(
+                            selectedParticipants,
+                            props.currentUserPersonalDetails.login,
+                            props.currentUserPersonalDetails.accountID,
+                            props.iou.amount,
+                            trimmedComment,
+                            props.iou.currency,
+                            props.iou.merchant,
+                            receipt,
+                        );
+                    });
+                    return;
+                }
                 IOU.splitBillAndOpenReport(
                     selectedParticipants,
                     props.currentUserPersonalDetails.login,
@@ -198,6 +230,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.amount,
                     trimmedComment,
                     props.iou.currency,
+                    props.iou.merchant,
                 );
                 return;
             }
