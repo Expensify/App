@@ -1299,7 +1299,7 @@ describe('OptionsListUtils', () => {
     });
 
     it('formatMemberForList()', () => {
-        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, key === '1'));
+        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, {isSelected: key === '1'}));
 
         // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
         expect(formattedMembers[0].text).toBe('Mister Fantastic');

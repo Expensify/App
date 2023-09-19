@@ -1207,19 +1207,14 @@ function formatMemberForList(member, config = {}) {
     }
 
     const accountID = lodashGet(member, 'accountID', '');
-    const reportID = lodashGet(member, 'reportID', '');
-    const policyID = lodashGet(member, 'policyID', '');
 
     return {
         text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
         alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
-        keyForList: lodashGet(member, 'keyForList', '') || String(accountID) || String(reportID) || String(policyID),
+        keyForList: lodashGet(member, 'keyForList', '') || String(accountID),
         isSelected: false,
         isDisabled: false,
-        isPolicyExpenseChat: lodashGet(member, 'isPolicyExpenseChat', false),
         accountID,
-        reportID,
-        policyID,
         login: lodashGet(member, 'login', ''),
         rightElement: null,
         icons: lodashGet(member, 'icons'),
