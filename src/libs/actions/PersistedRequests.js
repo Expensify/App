@@ -11,7 +11,7 @@ Onyx.connect({
 
 /**
  * This promise is only used by tests. DO NOT USE THIS PROMISE IN THE APPLICATION CODE
- * @returns {void}
+ * @returns {Promise}
  */
 function clear() {
     return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
