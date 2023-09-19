@@ -147,6 +147,9 @@ const propTypes = {
 
     /** Error to display below the title */
     error: PropTypes.string,
+
+    /** Should render the content in HTML format */
+    shouldRenderAsHTML: PropTypes.bool,
 };
 
 export default propTypes;
