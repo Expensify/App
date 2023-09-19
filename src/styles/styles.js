@@ -29,6 +29,8 @@ import textUnderline from './utilities/textUnderline';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+// to prevent vertical text offset in Safari for badges, new lineHeight values have been added
+const lineHeightBadge = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme) => ({
     backgroundColor: theme.transparent,
@@ -78,6 +80,7 @@ const webViewStyles = (theme) => ({
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
+            flex: 1,
         },
 
         strong: {
@@ -758,7 +761,7 @@ const styles = (theme) => ({
     badgeText: {
         color: theme.text,
         fontSize: variables.fontSizeSmall,
-        lineHeight: variables.lineHeightNormal,
+        ...lineHeightBadge,
         ...whiteSpace.noWrap,
     },
 
@@ -2721,6 +2724,10 @@ const styles = (theme) => ({
 
     moneyRequestPreviewBoxText: {
         padding: 16,
+    },
+
+    amountSplitPadding: {
+        paddingTop: 2,
     },
 
     moneyRequestPreviewBoxLoading: {
