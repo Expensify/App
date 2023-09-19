@@ -24,7 +24,6 @@ $color-gray-label: $color-gray-label;
     background-color: $color-appBG;
     width: 375px;
     position: fixed;
-    display: block;
     display: flex;
     flex-direction: column;
     bottom: 0;
@@ -36,10 +35,11 @@ $color-gray-label: $color-gray-label;
 #sidebar-search > div:last-child {
     flex-grow: 1;
     overflow-y: auto;
-}
-
-#sidebar-search>div:last-child::-webkit-scrollbar {
-    display: none;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 @media only screen and (max-width: $breakpoint-tablet) {
