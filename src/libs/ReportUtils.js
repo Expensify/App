@@ -2797,6 +2797,18 @@ function canAccessReport(report, policies, betas, allReportActions) {
 
     return true;
 }
+/**
+ * Check if the report is the parent report of the currently viewed report or at least one child report has report action
+ * @param {Object} report
+ * @param {String} currentReportId
+ * @returns {Boolean}
+ */
+function shouldHideReport(report, currentReportId) {
+    const parentReport = getParentReport(getReport(currentReportId));
+    const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+    const isChildReportHasComment = _.some(reportActions, (reportAction) => (reportAction.childVisibleActionCount || 0) > 0);
+    return parentReport.reportID !== report.reportID && !isChildReportHasComment;
+}
 
 /**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
@@ -2847,9 +2859,10 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
 
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
     const isEmptyChat = !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    const canHideReport = shouldHideReport(report, currentReportId);
 
     // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (isChatThread(report) && isEmptyChat) {
+    if (isChatThread(report) && canHideReport && isEmptyChat) {
         return false;
     }
 
@@ -2875,7 +2888,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
-    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report)) {
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && canHideReport) {
         return false;
     }
 
