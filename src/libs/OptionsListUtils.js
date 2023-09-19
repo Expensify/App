@@ -13,6 +13,7 @@ import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
 import * as LoginUtils from './LoginUtils';
+import * as PolicyUtils from './PolicyUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
@@ -397,7 +398,8 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastActorDisplayName = ReportUtils.isSettled(iouReport.reportID) ? `${ReportUtils.getPolicyName(report)} ` : ''
+        const isPolicyAdmin = PolicyUtils.isPolicyAdmin(ReportUtils.getPolicy(report.policyID));
+        const lastActorDisplayName = ReportUtils.isSettled(iouReport.reportID) && !isPolicyAdmin ? `${ReportUtils.getPolicyName(report)} ` : ''
         lastMessageTextFromReport = lastActorDisplayName + ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getModifiedExpenseMessage(lastReportAction);
