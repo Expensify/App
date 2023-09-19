@@ -1,5 +1,4 @@
-import _ from 'underscore';
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../libs/Log';
@@ -39,8 +38,6 @@ const defaultProps = {
  *
  */
 function ImageWithSizeCalculation(props) {
-    const isLoadedRef = useRef(null);
-    const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
 
     const onError = () => {
@@ -48,26 +45,11 @@ function ImageWithSizeCalculation(props) {
     };
 
     const imageLoadedSuccessfully = (event) => {
-        isLoadedRef.current = true;
         props.onMeasure({
             width: event.nativeEvent.width,
             height: event.nativeEvent.height,
         });
     };
-
-    /** Delay the loader to detect whether the image is being loaded from the cache or the internet. */
-    useEffect(() => {
-        if (isLoadedRef.current || !isLoading) {
-            return;
-        }
-        const timeout = _.delay(() => {
-            if (!isLoading || isLoadedRef.current) {
-                return;
-            }
-            setIsImageCached(false);
-        }, 200);
-        return () => clearTimeout(timeout);
-    }, [isLoading]);
 
     return (
         <View style={[styles.w100, styles.h100, props.style]}>
@@ -77,19 +59,15 @@ function ImageWithSizeCalculation(props) {
                 isAuthTokenRequired={props.isAuthTokenRequired}
                 resizeMode={Image.resizeMode.cover}
                 onLoadStart={() => {
-                    if (isLoadedRef.current || isLoading) {
-                        return;
-                    }
                     setIsLoading(true);
                 }}
                 onLoadEnd={() => {
                     setIsLoading(false);
-                    setIsImageCached(true);
                 }}
                 onError={onError}
                 onLoad={imageLoadedSuccessfully}
             />
-            {isLoading && !isImageCached && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
         </View>
     );
 }
