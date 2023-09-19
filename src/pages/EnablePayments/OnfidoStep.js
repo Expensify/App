@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import Onfido from '../../components/Onfido';
 import ONYXKEYS from '../../ONYXKEYS';
