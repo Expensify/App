@@ -28,7 +28,6 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import * as Link from '../../libs/actions/Link';
-import { getBankAccountRoute } from '../../libs/ReportUtils';
 
 const propTypes = {
     ...StepPropTypes,
