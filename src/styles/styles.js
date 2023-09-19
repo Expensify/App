@@ -2553,6 +2553,12 @@ const styles = (theme) => ({
         opacity: 0,
     },
 
+    invisiblePopover: {
+        position: 'absolute',
+        opacity: 0,
+        left: -9999,
+    },
+
     containerWithSpaceBetween: {
         justifyContent: 'space-between',
         width: '100%',
