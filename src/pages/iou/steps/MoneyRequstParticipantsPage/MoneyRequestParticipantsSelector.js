@@ -201,7 +201,7 @@ function MoneyRequestParticipantsSelector({
         Boolean(newChatOptions.userToInvite),
         searchTerm.trim(),
         maxParticipantsReached,
-        _.some(participants, (participant) => participant.login.includes(searchTerm.trim().toLowerCase())),
+        _.some(participants, (participant) => participant.login.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
