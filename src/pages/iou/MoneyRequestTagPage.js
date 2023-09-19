@@ -5,6 +5,7 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
+import * as IOU from '../../libs/actions/IOU';
 import Navigation from '../../libs/Navigation/Navigation';
 import useLocalize from '../../hooks/useLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -15,6 +16,7 @@ import tagPropTypes from '../../components/tagPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportPropTypes from '../reportPropTypes';
 import styles from '../../styles/styles';
+import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -40,14 +42,18 @@ const propTypes = {
             tags: PropTypes.objectOf(tagPropTypes),
         }),
     ),
+
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
     report: {},
     policyTags: {},
+    iou: iouDefaultProps,
 };
 
-function MoneyRequestTagPage({route, report, policyTags}) {
+function MoneyRequestTagPage({route, report, policyTags, iou}) {
     const {translate} = useLocalize();
 
     const iouType = lodashGet(route, 'params.iouType', '');
@@ -59,6 +65,15 @@ function MoneyRequestTagPage({route, report, policyTags}) {
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, report.reportID));
+    };
+
+    const updateTag = (selectedTag) => {
+        if (selectedTag.searchText === iou.tag) {
+            IOU.resetMoneyRequestTag();
+        } else {
+            IOU.setMoneyRequestTag(selectedTag.searchText);
+        }
+        navigateBack();
     };
 
     return (
@@ -73,9 +88,9 @@ function MoneyRequestTagPage({route, report, policyTags}) {
             <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagListName} || translate('common.tag'))}</Text>
             <TagPicker
                 policyID={report.policyID}
-                reportID={report.reportID}
                 tag={tagListKey}
-                iouType={iouType}
+                selectedTag={iou.tag}
+                onSubmit={updateTag}
             />
         </ScreenWrapper>
     );
@@ -89,6 +104,9 @@ export default compose(
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
+        },
+        iou: {
+            key: ONYXKEYS.IOU,
         },
     }),
     withOnyx({

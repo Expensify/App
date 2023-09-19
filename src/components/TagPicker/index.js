@@ -4,16 +4,13 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import * as IOU from '../../libs/actions/IOU';
 import useLocalize from '../../hooks/useLocalize';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import OptionsSelector from '../OptionsSelector';
 import {propTypes, defaultProps} from './tagPickerPropTypes';
 
-function TagPicker({reportID, tag, iouType, policyTags, policyRecentlyUsedTags, iou}) {
+function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubmit}) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -25,18 +22,18 @@ function TagPicker({reportID, tag, iouType, policyTags, policyRecentlyUsedTags, 
     const shouldShowTextInput = !isTagsCountBelowThreshold;
 
     const selectedOptions = useMemo(() => {
-        if (!iou.tag) {
+        if (!selectedTag) {
             return [];
         }
 
         return [
             {
-                name: iou.tag,
+                name: selectedTag,
                 enabled: true,
                 accountID: null,
             },
         ];
-    }, [iou.tag]);
+    }, [selectedTag]);
 
     const initialFocusedIndex = useMemo(() => {
         if (isTagsCountBelowThreshold && selectedOptions.length > 0) {
@@ -57,19 +54,6 @@ function TagPicker({reportID, tag, iouType, policyTags, policyRecentlyUsedTags, 
 
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, '');
 
-    const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
-    };
-
-    const updateTag = (selectedTag) => {
-        if (selectedTag.searchText === iou.tag) {
-            IOU.resetMoneyRequestTag();
-        } else {
-            IOU.setMoneyRequestTag(selectedTag.searchText);
-        }
-        navigateBack();
-    };
-
     return (
         <OptionsSelector
             optionHoveredStyle={styles.hoveredComponentBG}
@@ -84,7 +68,7 @@ function TagPicker({reportID, tag, iouType, policyTags, policyRecentlyUsedTags, 
             value={searchValue}
             initialFocusedIndex={initialFocusedIndex}
             onChangeText={setSearchValue}
-            onSelectRow={updateTag}
+            onSelectRow={onSubmit}
         />
     );
 }
@@ -99,8 +83,5 @@ export default withOnyx({
     },
     policyRecentlyUsedTags: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
-    },
-    iou: {
-        key: ONYXKEYS.IOU,
     },
 })(TagPicker);
