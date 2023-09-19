@@ -2647,6 +2647,9 @@ const CONST = {
         HTTPS: 'https',
         PUSHER: 'pusher',
     },
+    EVENTS: {
+        SCROLLING: 'scrolling',
+    },
 } as const;
 
 export default CONST;
