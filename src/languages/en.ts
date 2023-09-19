@@ -1262,6 +1262,7 @@ export default {
     overLimit: 'Expense over limit',
     cashExpenseWithNoReceipt: 'Cash expense with no receipt',
     futureDate: 'Date cannot be in the future',
+    required: 'Required',
     beneficialOwnersStep: {
         additionalInformation: 'Additional information',
         checkAllThatApply: 'Check all that apply, otherwise leave blank.',
