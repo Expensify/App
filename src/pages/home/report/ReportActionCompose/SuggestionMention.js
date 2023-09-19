@@ -51,7 +51,6 @@ function SuggestionMention({
     personalDetails,
     updateComment,
     composerHeight,
-    shouldShowReportRecipientLocalTime,
     forwardedRef,
     isAutoSuggestionPickerLarge,
     measureParentContainer,
@@ -284,7 +283,6 @@ function SuggestionMention({
             isComposerFullSize={isComposerFullSize}
             isMentionPickerLarge={isAutoSuggestionPickerLarge}
             composerHeight={composerHeight}
-            shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
             measureParentContainer={measureParentContainer}
         />
     );
