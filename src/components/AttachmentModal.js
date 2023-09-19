@@ -25,7 +25,7 @@ import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import reportPropTypes from '../pages/reportPropTypes';
-import tryResolveUrlFromApiRoot from '../libs/tryResolveUrlFromApiRoot';
+import useNativeDriver from '../libs/useNativeDriver';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -295,7 +295,7 @@ function AttachmentModal(props) {
             Animated.timing(confirmButtonFadeAnimation, {
                 toValue,
                 duration: 100,
-                useNativeDriver: true,
+                useNativeDriver,
             }).start();
         },
         [confirmButtonFadeAnimation],
@@ -351,7 +351,7 @@ function AttachmentModal(props) {
                         <AttachmentCarousel
                             report={props.report}
                             onNavigate={onNavigate}
-                            source={tryResolveUrlFromApiRoot(props.source)}
+                            source={props.source}
                             onClose={closeModal}
                             onToggleKeyboard={updateConfirmButtonVisibility}
                             setDownloadButtonVisibility={setDownloadButtonVisibility}
