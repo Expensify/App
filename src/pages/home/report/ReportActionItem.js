@@ -500,9 +500,17 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        let isNormalCreatedAction = true;
+        let content = (
+            <ReportActionItemCreated
+                reportID={props.report.reportID}
+                policyID={props.report.policyID}
+            />
+        );
         const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            return (
+            isNormalCreatedAction = false;
+            content = (
                 <ShowContextMenuContext.Provider
                     value={{
                         anchor: popoverAnchorRef,
@@ -521,8 +529,9 @@ function ReportActionItem(props) {
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
+            isNormalCreatedAction = false;
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
-                return (
+                content = (
                     <>
                         <ReportActionItemSingle
                             action={parentReportAction}
@@ -537,7 +546,7 @@ function ReportActionItem(props) {
                 );
             }
 
-            return (
+            content = (
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <TaskView
                         report={props.report}
@@ -547,7 +556,8 @@ function ReportActionItem(props) {
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
-            return (
+            isNormalCreatedAction = false;
+            content = (
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <MoneyReportView
                         report={props.report}
@@ -556,12 +566,8 @@ function ReportActionItem(props) {
                 </OfflineWithFeedback>
             );
         }
-        return (
-            <ReportActionItemCreated
-                reportID={props.report.reportID}
-                policyID={props.report.policyID}
-            />
-        );
+
+        return <View style={[props.shouldHideThreadDividerLine && !isNormalCreatedAction && styles.mb2]}>{content}</View>;
     }
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return <RenameAction action={props.action} />;
