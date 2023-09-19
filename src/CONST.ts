@@ -2650,6 +2650,7 @@ const CONST = {
     EVENTS: {
         SCROLLING: 'scrolling',
     },
+    CHAT_HEADER_LOADER_HEIGHT: 36,
 } as const;
 
 export default CONST;

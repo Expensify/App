@@ -59,9 +59,8 @@ function ReportActionsView(props) {
     useCopySelectionHelper();
 
     const didLayout = useRef(false);
-    const isFirstRender = useRef(true);
     const didSubscribeToReportTypingEvents = useRef(false);
-    const [isFetchNewerWasCalled, setFetchNewerWasCalled] = React.useState(false);
+    const isFetchNewerWasCalled = useRef(false);
     const hasCachedActions = useRef(_.size(props.reportActions) > 0);
 
     const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
@@ -161,12 +160,12 @@ function ReportActionsView(props) {
     const loadNewerChats = ({distanceFromStart}) => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
         if (props.report.isLoadingNewerReportActions || props.report.isLoadingReportActions) {
-            isFirstRender.current = false;
             return;
         }
 
-        if ((!isFetchNewerWasCalled.current && !isFetchNewerWasCalled) || distanceFromStart <= 36) {
-            setFetchNewerWasCalled(true);
+        // ideally we do not need use distanceFromStart here but due maxToRenderPerBatch and windowSize we receive a lot of renders so          times we can se how loadNewerChats is called. we use CONST.CHAT_HEADER_LOADER_HEIGHT to prevent this
+        if (!isFetchNewerWasCalled.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
+            isFetchNewerWasCalled.current = true;
             return;
         }
         const newestReportAction = _.first(props.reportActions);

@@ -334,6 +334,41 @@ function ReportActionsList({
         [report.isLoadingNewerReportActions],
     );
 
+    const listFooterComponent = useCallback(() => {
+        if (report.isLoadingOlderReportActions) {
+            return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
+        }
+
+        // Make sure the oldest report action loaded is not the first. This is so we do not show the
+        // skeleton view above the created action in a newly generated optimistic chat or one with not
+        // that many comments.
+        const lastReportAction = _.last(sortedReportActions) || {};
+        if (report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return (
+                <ReportActionsSkeletonView
+                    containerHeight={skeletonViewHeight}
+                    animate={!isOffline}
+                />
+            );
+        }
+
+        return null;
+    }, [report.isLoadingOlderReportActions]);
+    const listHeaderComponent = useCallback(() => {
+        if (report.isLoadingNewerReportActions) {
+            return (
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.bottomReportLoader, styles.chatBottomLoader]}>
+                    <ActivityIndicator
+                        color={themeColors.spinner}
+                        size="small"
+                    />
+                </View>
+            );
+        }
+
+        return null;
+    }, [report.isLoadingNewerReportActions]);
+
     return (
         <>
             <FloatingMessageCounter
@@ -355,40 +390,42 @@ function ReportActionsList({
                     onEndReachedThreshold={0.75}
                     onStartReached={loadNewerChats}
                     onStartReachedThreshold={0.75}
-                    ListFooterComponent={() => {
-                        if (report.isLoadingOlderReportActions) {
-                            return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
-                        }
+                    ListFooterComponent={listFooterComponent}
+                    ListHeaderComponent={listHeaderComponent}
+                    // ListFooterComponent={() => {
+                    //     if (report.isLoadingOlderReportActions) {
+                    //         return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
+                    //     }
 
-                        // Make sure the oldest report action loaded is not the first. This is so we do not show the
-                        // skeleton view above the created action in a newly generated optimistic chat or one with not
-                        // that many comments.
-                        const lastReportAction = _.last(sortedReportActions) || {};
-                        if (report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-                            return (
-                                <ReportActionsSkeletonView
-                                    containerHeight={skeletonViewHeight}
-                                    animate={!isOffline}
-                                />
-                            );
-                        }
+                    //     // Make sure the oldest report action loaded is not the first. This is so we do not show the
+                    //     // skeleton view above the created action in a newly generated optimistic chat or one with not
+                    //     // that many comments.
+                    //     const lastReportAction = _.last(sortedReportActions) || {};
+                    //     if (report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                    //         return (
+                    //             <ReportActionsSkeletonView
+                    //                 containerHeight={skeletonViewHeight}
+                    //                 animate={!isOffline}
+                    //             />
+                    //         );
+                    //     }
 
-                        return null;
-                    }}
-                    ListHeaderComponent={() => {
-                        if (report.isLoadingNewerReportActions) {
-                            return (
-                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.bottomReportLoader, styles.chatBottomLoader]}>
-                                    <ActivityIndicator
-                                        color={themeColors.spinner}
-                                        size="small"
-                                    />
-                                </View>
-                            );
-                        }
+                    //     return null;
+                    // }}
+                    // ListHeaderComponent={() => {
+                    //     if (report.isLoadingNewerReportActions) {
+                    //         return (
+                    //             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.bottomReportLoader, styles.chatBottomLoader]}>
+                    //                 <ActivityIndicator
+                    //                     color={themeColors.spinner}
+                    //                     size="small"
+                    //                 />
+                    //             </View>
+                    //         );
+                    //     }
 
-                        return null;
-                    }}
+                    //     return null;
+                    // }}
                     keyboardShouldPersistTaps="handled"
                     onLayout={(event) => {
                         setSkeletonViewHeight(event.nativeEvent.layout.height);
