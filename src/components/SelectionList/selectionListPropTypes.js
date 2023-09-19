@@ -166,6 +166,9 @@ const propTypes = {
 
     /** Whether to show the default confirm button */
     showConfirmButton: PropTypes.bool,
+
+    /** Custom content to display in the footer */
+    footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 };
 
 export {propTypes, baseListItemPropTypes, radioListItemPropTypes, userListItemPropTypes};
