@@ -44,8 +44,7 @@ class ShareCodePage extends React.Component {
         const isReport = this.props.report != null && this.props.report.reportID != null;
         const title = isReport ? ReportUtils.getReportName(this.props.report) : this.props.currentUserPersonalDetails.displayName;
         const formattedEmail = this.props.formatPhoneNumber(this.props.session.email);
-        const subtitle = isReport ? ReportUtils.getChatRoomSubtitle(this.props.report) || ReportUtils.getParentNavigationSubtitle(this.props.report).rootReportName : formattedEmail;
-
+        const subtitle = isReport ? ReportUtils.getParentNavigationSubtitle(this.props.report).workspaceName || ReportUtils.getChatRoomSubtitle(this.props.report) : formattedEmail;
         const urlWithTrailingSlash = Url.addTrailingForwardSlash(this.props.environmentURL);
         const url = isReport
             ? `${urlWithTrailingSlash}${ROUTES.getReportRoute(this.props.report.reportID)}`
