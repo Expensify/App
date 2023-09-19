@@ -8,8 +8,6 @@ import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
 import * as Link from './Link';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
@@ -19,6 +17,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
 import * as OnyxUpdates from './OnyxUpdates';
+import redirectToSignIn from './SignInRedirect';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -70,6 +69,8 @@ function closeAccount(message) {
             ],
         },
     );
+    // Run cleanup actions to prevent reconnection callbacks from blocking logging in again
+    redirectToSignIn();
 }
 
 /**
@@ -460,64 +461,6 @@ function isBlockedFromConcierge(blockedFromConciergeNVP) {
     }
 
     return moment().isBefore(moment(blockedFromConciergeNVP.expiresAt), 'day');
-}
-
-/**
- * Adds a paypal.me address for the user
- *
- * @param {String} address
- */
-function addPaypalMeAddress(address) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PAYPAL,
-            value: {
-                title: 'PayPal.me',
-                description: address,
-                methodID: CONST.PAYMENT_METHODS.PAYPAL,
-                key: 'payPalMePaymentMethod',
-                accountType: CONST.PAYMENT_METHODS.PAYPAL,
-                accountData: {
-                    username: address,
-                },
-                isDefault: false,
-            },
-        },
-    ];
-    API.write(
-        'AddPaypalMeAddress',
-        {
-            value: address,
-        },
-        {optimisticData},
-    );
-}
-
-/**
- * Deletes a paypal.me address for the user
- *
- */
-function deletePaypalMeAddress() {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PAYPAL,
-            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-        },
-    ];
-
-    // Success data required for Android, more info here https://github.com/Expensify/App/pull/17903#discussion_r1175763081
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.PAYPAL,
-            value: {},
-        },
-    ];
-
-    API.write('DeletePaypalMeAddress', {}, {optimisticData, successData});
-    Growl.show(Localize.translateLocal('walletPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
 function triggerNotifications(onyxUpdates) {
@@ -918,8 +861,6 @@ export {
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
-    deletePaypalMeAddress,
-    addPaypalMeAddress,
     updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,
