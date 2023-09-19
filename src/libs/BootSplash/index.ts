@@ -1,6 +1,7 @@
 import Log from '../Log';
+import {VisibilityStatus} from './types';
 
-function resolveAfter(delay) {
+function resolveAfter(delay: number) {
     return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
@@ -9,16 +10,20 @@ function hide() {
 
     return document.fonts.ready.then(() => {
         const splash = document.getElementById('splash');
-        if (splash) splash.style.opacity = 0;
+        if (splash) {
+            splash.style.opacity = '0';
+        }
 
         return resolveAfter(250).then(() => {
-            if (!splash || !splash.parentNode) return;
+            if (!splash?.parentNode) {
+                return;
+            }
             splash.parentNode.removeChild(splash);
         });
     });
 }
 
-function getVisibilityStatus() {
+function getVisibilityStatus(): Promise<VisibilityStatus> {
     return Promise.resolve(document.getElementById('splash') ? 'visible' : 'hidden');
 }
 
