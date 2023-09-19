@@ -69,6 +69,7 @@ import Permissions from '../../../libs/Permissions';
 import themeColors from '../../../styles/themes/default';
 import withRoute from '../../../components/withRoute';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
+import RenderHTML from '../../../components/RenderHTML';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
 
 const propTypes = {
@@ -145,6 +146,12 @@ function ReportActionItem(props) {
         () => (reportActionID === props.action.reportActionID ? {backgroundColor: themeColors.highlightBG} : {}),
         [reportActionID, props.action.reportActionID],
     );
+
+    // When active action changes, we need to update the `isContextMenuActive` state
+    const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID);
+    useEffect(() => {
+        setIsContextMenuActive(isActiveReportActionForMenu);
+    }, [isActiveReportActionForMenu]);
 
     const updateHiddenState = useCallback(
         (isHiddenValue) => {
@@ -522,6 +529,22 @@ function ReportActionItem(props) {
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
+            if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
+                return (
+                    <>
+                        <ReportActionItemSingle
+                            action={parentReportAction}
+                            showHeader={!props.draftMessage}
+                            wrapperStyles={[styles.chatItem]}
+                            report={props.report}
+                        >
+                            <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                        </ReportActionItemSingle>
+                        <View style={styles.reportHorizontalRule} />
+                    </>
+                );
+            }
+
             return (
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <TaskView
@@ -578,7 +601,10 @@ function ReportActionItem(props) {
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={props.translate('accessibilityHints.chatMessage')}
         >
-            <Hoverable disabled={Boolean(props.draftMessage)}>
+            <Hoverable
+                shouldHandleScroll
+                disabled={Boolean(props.draftMessage)}
+            >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
@@ -605,9 +631,10 @@ function ReportActionItem(props) {
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
+                                shouldDisableStrikeThrough
                             >
                                 {isWhisper && (
-                                    <View style={[styles.flexRow, styles.pl5, styles.pt2]}>
+                                    <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
                                         <View style={[styles.pl6, styles.mr3]}>
                                             <Icon
                                                 src={Expensicons.Eye}
@@ -623,7 +650,7 @@ function ReportActionItem(props) {
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
-                                            textStyles={[styles.chatItemMessageHeaderTimestamp]}
+                                            textStyles={[styles.chatItemMessageHeaderTimestamp, styles.flex1]}
                                             shouldUseFullTitle={isWhisperOnlyVisibleByUser}
                                         />
                                     </View>
