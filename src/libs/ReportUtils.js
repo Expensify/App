@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/prefer-underscore-method */
 import _ from 'underscore';
 import {format, parseISO} from 'date-fns';
 import Str from 'expensify-common/lib/str';
@@ -86,8 +87,8 @@ function getChatType(report) {
  * @returns {Object}
  */
 function getPolicy(policyID) {
-    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
-    return policy;
+    if (!allPolicies || !policyID) return {};
+    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] || {};
 }
 
 /**
@@ -153,7 +154,7 @@ function getReportParticipantsTitle(accountIDs) {
  * @returns {Boolean}
  */
 function isChatReport(report) {
-    return lodashGet(report, 'type') === CONST.REPORT.TYPE.CHAT;
+    return report && report.type === CONST.REPORT.TYPE.CHAT;
 }
 
 /**
@@ -163,7 +164,7 @@ function isChatReport(report) {
  * @returns {Boolean}
  */
 function isExpenseReport(report) {
-    return lodashGet(report, 'type') === CONST.REPORT.TYPE.EXPENSE;
+    return report && report.type === CONST.REPORT.TYPE.EXPENSE;
 }
 
 /**
@@ -173,7 +174,7 @@ function isExpenseReport(report) {
  * @returns {Boolean}
  */
 function isIOUReport(report) {
-    return lodashGet(report, 'type') === CONST.REPORT.TYPE.IOU;
+    return report && report.type === CONST.REPORT.TYPE.IOU;
 }
 
 /**
@@ -183,7 +184,7 @@ function isIOUReport(report) {
  * @returns {Boolean}
  */
 function isTaskReport(report) {
-    return lodashGet(report, 'type') === CONST.REPORT.TYPE.TASK;
+    return report && report.type === CONST.REPORT.TYPE.TASK;
 }
 
 /**
@@ -237,7 +238,7 @@ function isCompletedTaskReport(report) {
  * @returns {Boolean}
  */
 function isReportManager(report) {
-    return lodashGet(report, 'managerID') === currentUserAccountID;
+    return report && report.managerID === currentUserAccountID;
 }
 
 /**
@@ -247,7 +248,7 @@ function isReportManager(report) {
  * @returns {Boolean}
  */
 function isReportApproved(report) {
-    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
+    return report && report.statusNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
 /**
@@ -271,9 +272,9 @@ function sortReportsByLastRead(reports) {
  * @returns {Boolean}
  */
 function isSettled(reportID) {
-    const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-
-    if (_.isEmpty(report) || report.isWaitingOnBankAccount) {
+    if (!allReports) return false;
+    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
+    if ((typeof report === 'object' && Object.keys(report).length === 0) || report.isWaitingOnBankAccount) {
         return false;
     }
 
@@ -287,7 +288,10 @@ function isSettled(reportID) {
  * @returns {Boolean}
  */
 function isCurrentUserSubmitter(reportID) {
-    const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+    if (!allReports) {
+        return false;
+    }
+    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
     return report && report.ownerEmail === currentUserEmail;
 }
 
@@ -394,8 +398,7 @@ function isChatRoom(report) {
  * @returns {Boolean}
  */
 function isPublicRoom(report) {
-    const visibility = lodashGet(report, 'visibility', '');
-    return visibility === CONST.REPORT.VISIBILITY.PUBLIC || visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
+    return report && (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC || report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE);
 }
 
 /**
@@ -405,8 +408,7 @@ function isPublicRoom(report) {
  * @returns {Boolean}
  */
 function isPublicAnnounceRoom(report) {
-    const visibility = lodashGet(report, 'visibility', '');
-    return visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
+    return report && report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
 }
 
 /**
@@ -576,7 +578,7 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
-    return lodashGet(report, ['statusNum']) === CONST.REPORT.STATUS.CLOSED && lodashGet(report, ['stateNum']) === CONST.REPORT.STATE_NUM.SUBMITTED;
+    return report && report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 /**
@@ -744,7 +746,7 @@ function isMoneyRequest(reportOrID) {
  * @returns {Boolean}
  */
 function isMoneyRequestReport(reportOrID) {
-    const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
+    const report = typeof reportOrID === 'object' ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
     return isIOUReport(report) || isExpenseReport(report);
 }
 
@@ -2836,7 +2838,13 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         !report ||
         !report.reportID ||
         report.isHidden ||
-        (_.isEmpty(report.participantAccountIDs) && !isChatThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report) && !isTaskReport(report))
+        (report.participantAccountIDs &&
+            report.participantAccountIDs.length === 0 &&
+            !isChatThread(report) &&
+            !isPublicRoom(report) &&
+            !isArchivedRoom(report) &&
+            !isMoneyRequestReport(report) &&
+            !isTaskReport(report))
     ) {
         return false;
     }
@@ -2856,7 +2864,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
         return true;
     }
-
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
     const isEmptyChat = !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
     const canHideReport = shouldHideReport(report, currentReportId);
@@ -2873,7 +2880,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
 
     // Include reports that have errors from trying to add a workspace
     // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
-    if (report.errorFields && !_.isEmpty(report.errorFields.addWorkspaceRoom)) {
+    if (report.errorFields && report.errorFields.addWorkspaceRoom) {
         return true;
     }
 
