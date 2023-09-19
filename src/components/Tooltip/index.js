@@ -154,6 +154,7 @@ function Tooltip(props) {
                 <Hoverable
                     onHoverIn={showTooltip}
                     onHoverOut={hideTooltip}
+                    shouldHandleScroll={props.shouldHandleScroll}
                 >
                     {children}
                 </Hoverable>

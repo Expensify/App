@@ -26,10 +26,11 @@ import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
-import Colors from './colors';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+// to prevent vertical text offset in Safari for badges, new lineHeight values have been added
+const lineHeightBadge = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme) => ({
     backgroundColor: theme.transparent,
@@ -79,6 +80,7 @@ const webViewStyles = (theme) => ({
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
+            flex: 1,
         },
 
         strong: {
@@ -154,6 +156,7 @@ const webViewStyles = (theme) => ({
         fontFamily: fontFamily.EXP_NEUE,
         flex: 1,
         lineHeight: variables.fontSizeNormalHeight,
+        ...writingDirection.ltr,
     },
 });
 
@@ -759,7 +762,7 @@ const styles = (theme) => ({
     badgeText: {
         color: theme.text,
         fontSize: variables.fontSizeSmall,
-        lineHeight: variables.lineHeightNormal,
+        ...lineHeightBadge,
         ...whiteSpace.noWrap,
     },
 
@@ -815,8 +818,8 @@ const styles = (theme) => ({
         borderRadius: 28,
         borderStyle: 'solid',
         borderWidth: 8,
-        backgroundColor: Colors.greenHighlightBackground,
-        borderColor: Colors.greenAppBackground,
+        backgroundColor: theme.highlightBG,
+        borderColor: theme.appBG,
     },
 
     permissionView: {
@@ -1550,7 +1553,7 @@ const styles = (theme) => ({
         top: 0,
         bottom: 0,
         right: 0,
-        backgroundColor: Colors.black,
+        backgroundColor: theme.shadow,
         opacity: current.progress.interpolate({
             inputRange: [0, 1],
             outputRange: [0, variables.overlayOpacity],
@@ -1811,6 +1814,7 @@ const styles = (theme) => ({
         paddingTop: 2,
         paddingBottom: 2,
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        ...userSelect.userSelectNone,
     },
 
     emojiItemHighlighted: {
@@ -2723,6 +2727,10 @@ const styles = (theme) => ({
         padding: 16,
     },
 
+    amountSplitPadding: {
+        paddingTop: 2,
+    },
+
     moneyRequestPreviewBoxLoading: {
         // When a new IOU request arrives it is very briefly in a loading state, so set the minimum height of the container to 94 to match the rendered height after loading.
         // Otherwise, the IOU request pay button will not be fully visible and the user will have to scroll up to reveal the entire IOU request container.
@@ -3429,7 +3437,7 @@ const styles = (theme) => ({
     },
 
     fontColorReactionLabel: {
-        color: '#586A64',
+        color: theme.tooltipSupportingText,
     },
 
     reactionEmojiTitle: {
@@ -3438,7 +3446,7 @@ const styles = (theme) => ({
     },
 
     textReactionSenders: {
-        color: theme.dark,
+        color: theme.tooltipPrimaryText,
         ...wordBreak.breakWord,
     },
 
@@ -3720,8 +3728,8 @@ const styles = (theme) => ({
     },
 
     tabSelectorButton: {
-        height: 40,
-        padding: 12,
+        height: variables.tabSelectorButtonHeight,
+        padding: variables.tabSelectorButtonPadding,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -3755,6 +3763,15 @@ const styles = (theme) => ({
         left: 0,
         right: 0,
     }),
+
+    dualColorOverscrollSpacer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
+    },
 
     willChangeTransform: {
         willChange: 'transform',
@@ -3929,19 +3946,31 @@ const styles = (theme) => ({
         overflow: 'hidden',
     },
 
+    mapViewOverlay: {
+        flex: 1,
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        borderRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
+        backgroundColor: theme.highlightBG,
+        ...sizing.w100,
+        ...sizing.h100,
+    },
+
     confirmationListMapItem: {
         ...spacing.m5,
         height: 200,
     },
 
     mapDirection: {
-        lineColor: Colors.green,
+        lineColor: theme.success,
         lineWidth: 7,
     },
 
     mapDirectionLayer: {
         layout: {'line-join': 'round', 'line-cap': 'round'},
-        paint: {'line-color': Colors.green, 'line-width': 7},
+        paint: {'line-color': theme.success, 'line-width': 7},
     },
 
     mapPendingView: {
