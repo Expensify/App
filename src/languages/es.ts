@@ -557,6 +557,8 @@ export default {
         uploadPhoto: 'Subir foto',
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
+        viewPhoto: 'Ver foto',
+        imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
@@ -576,6 +578,7 @@ export default {
         online: 'En línea',
         offline: 'Desconectado',
         syncing: 'Sincronizando',
+        profileAvatar: 'Perfil avatar',
     },
     loungeAccessPage: {
         loungeAccess: 'Acceso a la sala vip',
@@ -1318,6 +1321,7 @@ export default {
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
             notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte al espacio de trabajo? Comunícate con el propietario de este espacio de trabajo para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
+            workspaceAvatar: 'Espacio de trabajo avatar',
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
