@@ -139,7 +139,6 @@ class BaseInvertedFlatList extends Component {
                 // We keep this property very low so that chat switching remains fast
                 maxToRenderPerBatch={5}
                 windowSize={15}
-
                 // Commenting the line below as it breaks the unread indicator test
                 // we will look at fixing/reusing this after RN v0.72
                 maintainVisibleContentPosition={{
