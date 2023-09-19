@@ -5,7 +5,11 @@ import {propTypes} from './autoCompleteSuggestionsPropTypes';
 
 function AutoCompleteSuggestions({measureParentContainer, ...props}) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <Portal hostName='suggestions'><BaseAutoCompleteSuggestions {...props} /></Portal>
+    return (
+        <Portal hostName="suggestions">
+            <BaseAutoCompleteSuggestions {...props} />
+        </Portal>
+    );
 }
 
 AutoCompleteSuggestions.propTypes = propTypes;

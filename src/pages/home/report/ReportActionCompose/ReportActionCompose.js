@@ -326,7 +326,7 @@ function ReportActionCompose({
             ref={containerRef}
             style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}
         >
-            <PortalHost name='suggestions' />
+            <PortalHost name="suggestions" />
             <OfflineWithFeedback
                 pendingAction={pendingAction}
                 style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
