@@ -61,7 +61,7 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
     // Fetches the first tag list of the policy
     const tagListKey = _.first(_.keys(policyTags));
     const tagList = lodashGet(policyTags, tagListKey, {});
-    const tagListName = lodashGet(tagList, 'name', '');
+    const tagListName = lodashGet(tagList, 'name', translate('common.tag'));
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, report.reportID));
@@ -82,10 +82,10 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={tagListName || translate('common.tag')}
+                title={tagListName}
                 onBackButtonPress={navigateBack}
             />
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: tagListName || translate('common.tag')})}</Text>
+            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: tagListName})}</Text>
             <TagPicker
                 policyID={report.policyID}
                 tag={tagListKey}
