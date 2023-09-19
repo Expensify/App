@@ -14,12 +14,12 @@ type Emoji = {
     types?: string[];
 };
 
-type LangEmoji = {
+type LocalizedEmoji = {
     name?: string;
     keywords: string[];
 };
 
-type LangEmojis = Record<string, LangEmoji>;
+type LocalizedEmojis = Record<string, LocalizedEmoji>;
 
 Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
 
@@ -68,8 +68,8 @@ function getNameParts(name: string): string[] {
 
 function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<MetaData> {
     const trie = new Trie();
-    const langEmojis: LangEmojis = localeEmojis[lang];
-    const defaultLangEmojis: LangEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
+    const langEmojis: LocalizedEmojis = localeEmojis[lang];
+    const defaultLangEmojis: LocalizedEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
     const isDefaultLocale = lang === CONST.LOCALES.DEFAULT;
 
     emojis.forEach((item: Emoji) => {
