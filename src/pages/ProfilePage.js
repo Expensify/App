@@ -141,6 +141,8 @@ function ProfilePage(props) {
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
 
+    const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : 0;
+
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
@@ -234,6 +236,17 @@ function ProfilePage(props) {
                                 onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
+                            />
+                        )}
+                        {!_.isEmpty(chatReportWithCurrentUser) && (
+                            <MenuItem
+                                title={`${props.translate('privateNotes.title')}`}
+                                titleStyle={styles.flex1}
+                                icon={Expensicons.Pencil}
+                                onPress={() => Navigation.navigate(ROUTES.getPrivateNotesListRoute(chatReportWithCurrentUser.reportID))}
+                                wrapperStyle={styles.breakAll}
+                                shouldShowRightIcon
+                                brickRoadIndicator={Report.hasErrorInPrivateNotes(chatReportWithCurrentUser) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             />
                         )}
                     </ScrollView>

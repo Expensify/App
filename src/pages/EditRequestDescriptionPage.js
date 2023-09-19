@@ -9,6 +9,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     /** Transaction default description value */
@@ -47,6 +48,10 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(e) => (descriptionInputRef.current = e)}
+                        autoGrowHeight
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
+                        submitOnEnter={!Browser.isMobile()}
                     />
                 </View>
             </Form>
