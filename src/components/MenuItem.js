@@ -25,6 +25,10 @@ import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import RenderHTML from './RenderHTML';
+import getPlatform from '../libs/getPlatform';
+
+const platform = getPlatform();
+const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
 const propTypes = menuItemPropTypes;
 
@@ -247,11 +251,15 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(props.title) && (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) && (
-                                                <View style={styles.chatItemMessage}>
+                                            {Boolean(props.title) &&
+                                                (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) &&
+                                                (isNative ? (
                                                     <RenderHTML html={getProcessedTitle} />
-                                                </View>
-                                            )}
+                                                ) : (
+                                                    <View style={styles.chatItemMessage}>
+                                                        <RenderHTML html={getProcessedTitle} />
+                                                    </View>
+                                                ))}
                                             {!props.shouldRenderAsHTML && !html.length && Boolean(props.title) && (
                                                 <Text
                                                     style={titleTextStyle}
