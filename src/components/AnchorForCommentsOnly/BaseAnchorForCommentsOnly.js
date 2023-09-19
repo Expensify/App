@@ -77,7 +77,10 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
             accessibilityLabel={href}
         >
-            <Tooltip text={href}>
+            <Tooltip
+                text={href}
+                shouldUseMultilinePositioning
+            >
                 <Text
                     ref={(el) => (linkRef = el)}
                     style={StyleSheet.flatten([style, defaultTextStyle])}
