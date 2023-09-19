@@ -11,6 +11,7 @@ import CategoryPicker from '../../components/CategoryPicker';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportPropTypes from '../reportPropTypes';
 import * as IOU from '../../libs/actions/IOU';
+import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -25,19 +26,17 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /* Onyx Props */
     /** The report currently being used */
     report: reportPropTypes,
 
-    /* Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        category: PropTypes.string.isRequired,
-    }),
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
     report: {},
-    iou: {},
+    iou: iouDefaultProps,
 };
 
 function MoneyRequestCategoryPage({route, report, iou}) {
