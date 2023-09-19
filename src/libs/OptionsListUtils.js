@@ -92,31 +92,29 @@ Onyx.connect({
 });
 
 /**
- * Get the options for a policy expense report.
+ * Get the option for a policy expense report.
  * @param {Object} report
  * @returns {Array}
  */
-function getPolicyExpenseReportOptions(report) {
+function getPolicyExpenseReportOption(report) {
     const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
     const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
     const reportName = ReportUtils.getReportName(expenseReport);
-    return [
-        {
-            ...expenseReport,
-            keyForList: expenseReport.policyID,
-            text: reportName,
-            alternateText: Localize.translateLocal('workspace.common.workspace'),
-            icons: [
-                {
-                    source: policyExpenseChatAvatarSource,
-                    name: reportName,
-                    type: CONST.ICON_TYPE_WORKSPACE,
-                },
-            ],
-            selected: report.selected,
-            isPolicyExpenseChat: true,
-        },
-    ];
+    return {
+        ...expenseReport,
+        keyForList: expenseReport.policyID,
+        text: reportName,
+        alternateText: Localize.translateLocal('workspace.common.workspace'),
+        icons: [
+            {
+                source: policyExpenseChatAvatarSource,
+                name: reportName,
+                type: CONST.ICON_TYPE_WORKSPACE,
+            },
+        ],
+        selected: report.selected,
+        isPolicyExpenseChat: true,
+    };
 }
 
 /**
@@ -201,37 +199,34 @@ function isPersonalDetailsReady(personalDetails) {
 }
 
 /**
- * Get the participant options for a report.
- * @param {Array<Object>} participants
+ * Get the participant option for a report.
+ * @param {Object} participant
  * @param {Array<Object>} personalDetails
- * @returns {Array}
+ * @returns {Object}
  */
-function getParticipantsOptions(participants, personalDetails) {
-    const details = getPersonalDetailsForAccountIDs(_.pluck(participants, 'accountID'), personalDetails);
-    return _.map(participants, (participant) => {
-        const detail = details[participant.accountID];
-        const login = detail.login || participant.login;
-        const displayName = detail.displayName || LocalePhoneNumber.formatPhoneNumber(login);
-        return {
-            keyForList: String(detail.accountID),
-            login,
-            accountID: detail.accountID,
-            text: displayName,
-            firstName: lodashGet(detail, 'firstName', ''),
-            lastName: lodashGet(detail, 'lastName', ''),
-            alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
-            icons: [
-                {
-                    source: UserUtils.getAvatar(detail.avatar, detail.accountID),
-                    name: login,
-                    type: CONST.ICON_TYPE_AVATAR,
-                    id: detail.accountID,
-                },
-            ],
-            phoneNumber: lodashGet(detail, 'phoneNumber', ''),
-            selected: participant.selected,
-        };
-    });
+function getParticipantsOption(participant, personalDetails) {
+    const detail = getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID];
+    const login = detail.login || participant.login;
+    const displayName = detail.displayName || LocalePhoneNumber.formatPhoneNumber(login);
+    return {
+        keyForList: String(detail.accountID),
+        login,
+        accountID: detail.accountID,
+        text: displayName,
+        firstName: lodashGet(detail, 'firstName', ''),
+        lastName: lodashGet(detail, 'lastName', ''),
+        alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
+        icons: [
+            {
+                source: UserUtils.getAvatar(detail.avatar, detail.accountID),
+                name: login,
+                type: CONST.ICON_TYPE_AVATAR,
+                id: detail.accountID,
+            },
+        ],
+        phoneNumber: lodashGet(detail, 'phoneNumber', ''),
+        selected: participant.selected,
+    };
 }
 
 /**
@@ -1322,8 +1317,8 @@ export {
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,
-    getPolicyExpenseReportOptions,
-    getParticipantsOptions,
+    getPolicyExpenseReportOption,
+    getParticipantsOption,
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
