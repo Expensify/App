@@ -11,13 +11,13 @@ import FormHelpMessage from './FormHelpMessage';
 const propTypes = {
     /** Form error text. e.g when no country is selected */
     errorText: PropTypes.string,
-    
+
     /** Callback called when the country changes. */
     onInputChange: PropTypes.func.isRequired,
-    
+
     /** Current selected country  */
     value: PropTypes.string,
-    
+
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
     inputID: PropTypes.string.isRequired,
