@@ -92,9 +92,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-        >
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || !isCurrentUserNote}
                 subtitleKey="privateNotes.notesUnavailable"
