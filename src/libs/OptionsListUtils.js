@@ -1104,6 +1104,20 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
 }
 
 /**
+ * Build the IOUConfirmationOptions for showing participants
+ *
+ * @param {Array} participants
+ * @param {String} amountText
+ * @returns {Array}
+ */
+function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
+    return _.map(participants, (participant) => ({
+        ...participant,
+        descriptiveText: amountText,
+    }));
+}
+
+/**
  * Build the options for the New Group view
  *
  * @param {Object} reports
@@ -1304,6 +1318,7 @@ export {
     getHeaderMessage,
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
+    getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,
     getPolicyExpenseReportOptions,
