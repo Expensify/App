@@ -241,6 +241,7 @@ const CONST = {
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
         NEW_DOT_CATEGORIES: 'newDotCategories',
+        NEW_DOT_TAGS: 'newDotTags',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -292,8 +293,8 @@ const CONST = {
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
-        NEW_GROUP: {
-            descriptionKey: 'newGroup',
+        NEW_CHAT: {
+            descriptionKey: 'newChat',
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
@@ -791,6 +792,10 @@ const CONST = {
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
+    UNICODE: {
+        LTR: '\u2066',
+    },
+
     TOOLTIP_MAX_LINES: 3,
 
     LOGIN_TYPE: {
@@ -1025,7 +1030,6 @@ const CONST = {
     },
 
     PAYMENT_METHODS: {
-        PAYPAL: 'payPalMe',
         DEBIT_CARD: 'debitCard',
         BANK_ACCOUNT: 'bankAccount',
     },
@@ -1041,7 +1045,6 @@ const CONST = {
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
-            PAYPAL_ME: 'PayPal.me',
             VBBA: 'ACH',
         },
         MONEY_REQUEST_TYPE: {
@@ -1169,6 +1172,7 @@ const CONST = {
         SMALL_NORMAL: 'small-normal',
     },
     EXPENSIFY_CARD: {
+        BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
             INDIVIDUAL: 'individal',
@@ -1199,7 +1203,6 @@ const CONST = {
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
-        PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]{1,20}$/,
         ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
@@ -1341,6 +1344,7 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         WELCOME_MESSAGE: 'welcomeMessage',
+        PRIVATE_NOTES: 'privateNotes',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -1683,61 +1687,6 @@ const CONST = {
         ZM: 'Zambia',
         ZW: 'Zimbabwe',
     },
-
-    ALL_US_ISO_STATES: [
-        'AK',
-        'AL',
-        'AR',
-        'AZ',
-        'CA',
-        'CO',
-        'CT',
-        'DE',
-        'FL',
-        'GA',
-        'HI',
-        'IA',
-        'ID',
-        'IL',
-        'IN',
-        'KS',
-        'KY',
-        'LA',
-        'MA',
-        'MD',
-        'ME',
-        'MI',
-        'MN',
-        'MO',
-        'MS',
-        'MT',
-        'NC',
-        'ND',
-        'NE',
-        'NH',
-        'NJ',
-        'NM',
-        'NV',
-        'NY',
-        'OH',
-        'OK',
-        'OR',
-        'PA',
-        'PR',
-        'RI',
-        'SC',
-        'SD',
-        'TN',
-        'TX',
-        'UT',
-        'VA',
-        'VT',
-        'WA',
-        'WI',
-        'WV',
-        'WY',
-        'DC',
-    ],
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
     // https://github.com/Expensify/App/issues/14958#issuecomment-1456026810
@@ -2584,32 +2533,6 @@ const CONST = {
         SEARCH_ISSUES: 'https://github.com/Expensify/App/issues',
     },
 
-    PAYPAL_SUPPORTED_CURRENCIES: [
-        'AUD',
-        'BRL',
-        'CAD',
-        'CZK',
-        'DKK',
-        'EUR',
-        'HKD',
-        'HUF',
-        'ILS',
-        'JPY',
-        'MYR',
-        'MXN',
-        'TWD',
-        'NZD',
-        'NOK',
-        'PHP',
-        'PLN',
-        'GBP',
-        'RUB',
-        'SGD',
-        'SEK',
-        'CHF',
-        'THB',
-        'USD',
-    ],
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     SCREEN_READER_STATES: {
         ALL: 'all',
@@ -2678,6 +2601,9 @@ const CONST = {
         DISABLED: 'DISABLED',
     },
     TAB: {
+        NEW_CHAT_TAB_ID: 'NewChatTab',
+        NEW_CHAT: 'chat',
+        NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         MANUAL: 'manual',
         SCAN: 'scan',
@@ -2720,6 +2646,9 @@ const CONST = {
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
+    },
+    EVENTS: {
+        SCROLLING: 'scrolling',
     },
 } as const;
 

@@ -94,7 +94,7 @@ function KnowATeacherPage(props) {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iKnowATeacher')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SAVE_THE_WORLD)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
             />
             <Form
                 enabledWhenOffline
