@@ -123,7 +123,7 @@
     "react-native-fast-image": "^8.6.3",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "2.12.0",
-    "react-native-google-places-autocomplete": "git+https://github.com/Expensify/react-native-google-places-autocomplete.git#ee87343c3e827ff7818abc71b6bb04fcc1f120e0",
+    "react-native-google-places-autocomplete": "git+https://github.com/Expensify/react-native-google-places-autocomplete.git#fd212e1e93cad72e97efad03893bea6d074d3e07",
     "react-native-haptic-feedback": "^1.13.0",
     "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^5.1.0",
