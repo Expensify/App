@@ -35,7 +35,7 @@ function NewChatSelectorPage(props) {
                 title={props.translate('sidebarScreen.fabNewChat')}
                 onBackButtonPress={Navigation.dismissModal}
             />
-            {Permissions.canUsePolicyRooms(props.betas) ? (
+            {true ? (
                 <OnyxTabNavigator
                     id={CONST.TAB.NEW_CHAT_TAB_ID}
                     tabBar={({state, navigation, position}) => (
