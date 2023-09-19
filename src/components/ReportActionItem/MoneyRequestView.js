@@ -33,6 +33,10 @@ import OfflineWithFeedback from '../OfflineWithFeedback';
 import categoryPropTypes from '../categoryPropTypes';
 
 const propTypes = {
+    /** Whether we should display the horizontal rule below the component */
+    shouldShowHorizontalRule: PropTypes.bool.isRequired,
+
+    /* Onyx Props */
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -42,15 +46,11 @@ const propTypes = {
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
 
-    /* Onyx Props */
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 
     /** The transaction associated with the transactionThread */
     transaction: transactionPropTypes,
-
-    /** Whether we should display the horizontal rule below the component */
-    shouldShowHorizontalRule: PropTypes.bool.isRequired,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
