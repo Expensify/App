@@ -56,7 +56,6 @@ const defaultProps = {
     disabled: false,
     isSelected: false,
     subtitle: undefined,
-    subtitleTextStyle: {},
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
     onSecondaryInteraction: undefined,
