@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
@@ -162,12 +163,22 @@ function MoneyRequestParticipantsSelector({
      */
     const addParticipantToSelection = useCallback(
         (option) => {
-            const isOptionInList = _.some(participants, (selectedOption) => selectedOption.accountID === option.accountID);
+            const isOptionSelected = (selectedOption) => {
+                if (selectedOption.accountID && selectedOption.accountID === option.accountID) {
+                    return true;
+                }
 
+                if (selectedOption.reportID && selectedOption.reportID === option.reportID) {
+                    return true;
+                }
+
+                return false;
+            };
+            const isOptionInList = _.some(participants, isOptionSelected);
             let newSelectedOptions;
 
             if (isOptionInList) {
-                newSelectedOptions = _.reject(participants, (selectedOption) => selectedOption.accountID === option.accountID);
+                newSelectedOptions = _.reject(participants, isOptionSelected);
             } else {
                 newSelectedOptions = [
                     ...participants,
