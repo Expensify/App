@@ -56,12 +56,12 @@ const defaultProps = {
 function MoneyRequestTagPage({route, report, policyTags, iou}) {
     const {translate} = useLocalize();
 
-    const iouType = lodashGet(route, 'params.iouType', '');
-
     // Fetches the first tag list of the policy
     const tagListKey = _.first(_.keys(policyTags));
     const tagList = lodashGet(policyTags, tagListKey, {});
     const tagListName = lodashGet(tagList, 'name', '');
+
+    const iouType = lodashGet(route, 'params.iouType', '');
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, report.reportID));
