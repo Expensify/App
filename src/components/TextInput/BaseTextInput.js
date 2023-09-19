@@ -399,10 +399,13 @@ function BaseTextInput(props) {
                 This Text component is intentionally positioned out of the screen.
             */}
             {(props.autoGrow || props.autoGrowHeight) && (
+                // Add +32 to width so that text is not cut off due to the cursor or when changing the value
+                // https://github.com/Expensify/App/issues/8158
+                // https://github.com/Expensify/App/issues/26628
                 <Text
                     style={[...props.inputStyle, props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width, maxHeight), styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                     onLayout={(e) => {
-                        setTextInputWidth(e.nativeEvent.layout.width);
+                        setTextInputWidth(e.nativeEvent.layout.width + 32);
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
                 >
