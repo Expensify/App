@@ -4,6 +4,8 @@ import * as Session from './actions/Session';
 import Log from './Log';
 import CONST from '../CONST';
 
+type EventCallbackError = {type: ValueOf<typeof CONST.ERROR>; data: {code: number}};
+
 function init() {
     /**
      * When authTokens expire they will automatically be refreshed.
@@ -17,10 +19,7 @@ function init() {
         },
     }));
 
-    /**
-     * @params {string} eventName
-     */
-    Pusher.registerSocketEventCallback((eventName: string, error: {type: ValueOf<typeof CONST.ERROR>; data: {code: number}}) => {
+    Pusher.registerSocketEventCallback((eventName: string, error: EventCallbackError) => {
         switch (eventName) {
             case 'error': {
                 const errorType = error?.type;
