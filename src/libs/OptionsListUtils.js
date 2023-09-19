@@ -775,11 +775,12 @@ function getTagsOptions(tags) {
  */
 function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const tagSections = [];
-    const numberOfTags = _.size(tags);
+    const enabledTags = _.filter(tags, (tag) => tag.enabled);
+    const numberOfTags = _.size(enabledTags);
     let indexOffset = 0;
 
     if (!_.isEmpty(searchInputValue)) {
-        const searchTags = _.filter(tags, (tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchTags = _.filter(enabledTags, (tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         tagSections.push({
             // "Search" section
@@ -798,7 +799,7 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getTagsOptions(tags),
+            data: getTagsOptions(enabledTags),
         });
 
         return tagSections;
@@ -806,23 +807,20 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
     const filteredRecentlyUsedTags = _.map(
-        _.filter(recentlyUsedTags, (tag) => !_.includes(selectedOptionNames, tag)),
-        (tag) => {
+        _.filter(recentlyUsedTags, (tag) => {
             const tagObject = _.find(tags, (t) => t.name === tag);
-            return {
-                name: tag,
-                enabled: tagObject && tagObject.enabled,
-            };
-        },
+            return Boolean(tagObject && tagObject.enabled) && !_.includes(selectedOptionNames, tag);
+        }),
+        (tag) => ({name: tag, enabled: true}),
     );
-    const filteredTags = _.filter(tags, (tag) => !_.includes(selectedOptionNames, tag.name));
+    const filteredTags = _.filter(enabledTags, (tag) => !_.includes(selectedOptionNames, tag.name));
 
     if (!_.isEmpty(selectedOptions)) {
         const selectedTagOptions = _.map(selectedOptions, (option) => {
             const tagObject = _.find(tags, (t) => t.name === option.name);
             return {
                 name: option.name,
-                enabled: tagObject && tagObject.enabled,
+                enabled: Boolean(tagObject && tagObject.enabled),
             };
         });
 

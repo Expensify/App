@@ -201,6 +201,7 @@ function MoneyRequestConfirmationList(props) {
     const tagList = lodashGet(props.policyTags, [tagListKey, 'tags'], []);
     const tagListName = lodashGet(props.policyTags, [tagListKey, 'name'], '');
     const canUseTags = Permissions.canUseTags(props.betas);
+    const shouldShowTags = canUseTags && _.any(tagList, (tag) => tag.enabled);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const isDistanceRequestWithoutRoute = props.isDistanceRequest && !hasRoute;
@@ -526,7 +527,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
-                    {canUseTags && !_.isEmpty(tagList) && (
+                    {shouldShowTags && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouTag}

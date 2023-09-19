@@ -1092,13 +1092,6 @@ describe('OptionsListUtils', () => {
                 indexOffset: 0,
                 data: [
                     {
-                        text: 'Engineering',
-                        keyForList: 'Engineering',
-                        searchText: 'Engineering',
-                        tooltipText: 'Engineering',
-                        isDisabled: true,
-                    },
-                    {
                         text: 'Medical',
                         keyForList: 'Medical',
                         searchText: 'Medical',
@@ -1128,13 +1121,6 @@ describe('OptionsListUtils', () => {
                 shouldShow: false,
                 indexOffset: 0,
                 data: [
-                    {
-                        text: 'Engineering',
-                        keyForList: 'Engineering',
-                        searchText: 'Engineering',
-                        tooltipText: 'Engineering',
-                        isDisabled: true,
-                    },
                     {
                         text: 'Accounting',
                         keyForList: 'Accounting',
@@ -1220,13 +1206,6 @@ describe('OptionsListUtils', () => {
                 indexOffset: 1,
                 data: [
                     {
-                        text: 'Engineering',
-                        keyForList: 'Engineering',
-                        searchText: 'Engineering',
-                        tooltipText: 'Engineering',
-                        isDisabled: true,
-                    },
-                    {
                         text: 'HR',
                         keyForList: 'HR',
                         searchText: 'HR',
@@ -1238,15 +1217,8 @@ describe('OptionsListUtils', () => {
             {
                 title: 'All',
                 shouldShow: true,
-                indexOffset: 3,
+                indexOffset: 2,
                 data: [
-                    {
-                        text: 'Engineering',
-                        keyForList: 'Engineering',
-                        searchText: 'Engineering',
-                        tooltipText: 'Engineering',
-                        isDisabled: true,
-                    },
                     {
                         text: 'Accounting',
                         keyForList: 'Accounting',
@@ -1269,13 +1241,6 @@ describe('OptionsListUtils', () => {
                         isDisabled: false,
                     },
                     {
-                        text: 'Traveling',
-                        keyForList: 'Traveling',
-                        searchText: 'Traveling',
-                        tooltipText: 'Traveling',
-                        isDisabled: true,
-                    },
-                    {
                         text: 'Cleaning',
                         keyForList: 'Cleaning',
                         searchText: 'Cleaning',
@@ -1288,13 +1253,6 @@ describe('OptionsListUtils', () => {
                         searchText: 'Software',
                         tooltipText: 'Software',
                         isDisabled: false,
-                    },
-                    {
-                        text: 'Office Supplies',
-                        keyForList: 'Office Supplies',
-                        searchText: 'Office Supplies',
-                        tooltipText: 'Office Supplies',
-                        isDisabled: true,
                     },
                     {
                         text: 'Taxes',
@@ -1320,25 +1278,11 @@ describe('OptionsListUtils', () => {
                 indexOffset: 0,
                 data: [
                     {
-                        text: 'Engineering',
-                        keyForList: 'Engineering',
-                        searchText: 'Engineering',
-                        tooltipText: 'Engineering',
-                        isDisabled: true,
-                    },
-                    {
                         text: 'Accounting',
                         keyForList: 'Accounting',
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
                         isDisabled: false,
-                    },
-                    {
-                        text: 'Traveling',
-                        keyForList: 'Traveling',
-                        searchText: 'Traveling',
-                        tooltipText: 'Traveling',
-                        isDisabled: true,
                     },
                     {
                         text: 'Cleaning',

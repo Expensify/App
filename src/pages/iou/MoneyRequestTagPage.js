@@ -85,7 +85,7 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
                 title={tagListName || translate('common.tag')}
                 onBackButtonPress={navigateBack}
             />
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagListName} || translate('common.tag'))}</Text>
+            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: tagListName || translate('common.tag')})}</Text>
             <TagPicker
                 policyID={report.policyID}
                 tag={tagListKey}
