@@ -605,9 +605,7 @@ function isCurrentUser(userDetails) {
  * @returns {Boolean}
  */
 function getEnabledCategoriesCount(options) {
-    return _.chain(options)
-        .filter((option) => Boolean(option.enabled))
-        .value().length;
+    return _.filter(options, (option) => option.enabled).length;
 }
 
 /**
@@ -619,7 +617,7 @@ function getEnabledCategoriesCount(options) {
  * @returns {Boolean}
  */
 function hasEnabledOptions(options) {
-    return _.some(options, (option) => Boolean(option.enabled));
+    return _.some(options, (option) => option.enabled);
 }
 
 /**
