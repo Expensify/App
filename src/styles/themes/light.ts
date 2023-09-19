@@ -1,8 +1,8 @@
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
-import ThemeColors, {ThemeColorsWithoutPageBackgroundColors} from './ThemeColors';
+import ThemeColors from './ThemeColors';
 
-const lightThemeWithoutPageBackgroundColors = {
+const lightTheme = {
     // Figma keys
     appBG: colors.lightAppBackground,
     splashBG: colors.green400,
@@ -79,12 +79,9 @@ const lightThemeWithoutPageBackgroundColors = {
     skeletonLHNIn: colors.lightBorders,
     skeletonLHNOut: colors.lightDefaultButtonPressed,
     QRLogo: colors.green500,
-} satisfies ThemeColorsWithoutPageBackgroundColors;
 
-const lightTheme = {
-    ...lightThemeWithoutPageBackgroundColors,
     PAGE_BACKGROUND_COLORS: {
-        [SCREENS.HOME]: lightThemeWithoutPageBackgroundColors.sidebar,
+        [SCREENS.HOME]: colors.lightBorders,
         [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
     },
 } satisfies ThemeColors;

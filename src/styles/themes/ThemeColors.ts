@@ -1,6 +1,6 @@
 type Color = string;
 
-type ThemeColorsWithoutPageBackgroundColors = {
+type ThemeColors = {
     // Figma keys
     appBG: Color;
     splashBG: Color;
@@ -77,12 +77,10 @@ type ThemeColorsWithoutPageBackgroundColors = {
     skeletonLHNIn: Color;
     skeletonLHNOut: Color;
     QRLogo: Color;
-};
 
-type ThemeColors = ThemeColorsWithoutPageBackgroundColors & {
     PAGE_BACKGROUND_COLORS: Record<string, Color>;
 };
 
 export default ThemeColors;
 
-export {type Color, type ThemeColorsWithoutPageBackgroundColors};
+export {type Color};

@@ -3,9 +3,9 @@
 /* eslint-disable no-unused-vars */
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
-import ThemeColors, {ThemeColorsWithoutPageBackgroundColors} from './ThemeColors';
+import ThemeColors from './ThemeColors';
 
-const darkThemeWithoutPageBackgroundColors = {
+const darkTheme = {
     // Figma keys
     appBG: colors.darkAppBackground,
     splashBG: colors.green400,
@@ -82,12 +82,9 @@ const darkThemeWithoutPageBackgroundColors = {
     skeletonLHNIn: colors.darkBorders,
     skeletonLHNOut: colors.darkDefaultButton,
     QRLogo: colors.green400,
-} satisfies ThemeColorsWithoutPageBackgroundColors;
 
-const darkTheme = {
-    ...darkThemeWithoutPageBackgroundColors,
     PAGE_BACKGROUND_COLORS: {
-        [SCREENS.HOME]: darkThemeWithoutPageBackgroundColors.sidebar,
+        [SCREENS.HOME]: colors.darkHighlightBackground,
         [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
     },
 } satisfies ThemeColors;
