@@ -5,14 +5,12 @@ import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
-import * as Browser from '../../../../libs/Browser';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import NAVIGATORS from '../../../../NAVIGATORS';
 import SCREENS from '../../../../SCREENS';
 import Permissions from '../../../../libs/Permissions';
 import * as Policy from '../../../../libs/actions/Policy';
-import * as PolicyUtils from '../../../../libs/PolicyUtils';
 import PopoverMenu from '../../../../components/PopoverMenu';
 import CONST from '../../../../CONST';
 import FloatingActionButton from '../../../../components/FloatingActionButton';
@@ -62,21 +60,8 @@ const propTypes = {
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
-    /** For first time users, whether the download app banner should show */
-    shouldShowDownloadAppBanner: PropTypes.bool,
-
     /** Forwarded ref to FloatingActionButtonAndPopover */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
-
-    /** Information about any currently running demos */
-    demoInfo: PropTypes.shape({
-        saastr: PropTypes.shape({
-            isBeginningDemo: PropTypes.bool,
-        }),
-        sbe: PropTypes.shape({
-            isBeginningDemo: PropTypes.bool,
-        }),
-    }),
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -85,8 +70,6 @@ const defaultProps = {
     betas: [],
     isLoading: false,
     innerRef: null,
-    shouldShowDownloadAppBanner: true,
-    demoInfo: {},
 };
 
 /**
@@ -169,15 +152,9 @@ function FloatingActionButtonAndPopover(props) {
         if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
             return;
         }
-        // Avoid rendering the create menu for first-time users until they have dismissed the download app banner (mWeb only).
-        if (props.shouldShowDownloadAppBanner && Browser.isMobile()) {
-            return;
-        }
-        if (lodashGet(props.demoInfo, 'saastr.isBeginningDemo', false) || lodashGet(props.demoInfo, 'sbe.isBeginningDemo', false)) {
-            return;
-        }
         Welcome.show({routes, showCreateMenu});
-    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu, props.demoInfo]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
@@ -194,8 +171,6 @@ function FloatingActionButtonAndPopover(props) {
         },
     }));
 
-    const workspaces = PolicyUtils.getActivePolicies(props.allPolicies);
-
     return (
         <View>
             <PopoverMenu
@@ -207,23 +182,9 @@ function FloatingActionButtonAndPopover(props) {
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,
-                        text: props.translate('sidebarScreen.newChat'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_CHAT)),
+                        text: props.translate('sidebarScreen.fabNewChat'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
-                    {
-                        icon: Expensicons.Users,
-                        text: props.translate('sidebarScreen.newGroup'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_GROUP)),
-                    },
-                    ...(Permissions.canUsePolicyRooms(props.betas) && workspaces.length
-                        ? [
-                              {
-                                  icon: Expensicons.Hashtag,
-                                  text: props.translate('sidebarScreen.newRoom'),
-                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM)),
-                              },
-                          ]
-                        : []),
                     ...(Permissions.canUseIOUSend(props.betas)
                         ? [
                               {
@@ -237,11 +198,6 @@ function FloatingActionButtonAndPopover(props) {
                         icon: Expensicons.MoneyCircle,
                         text: props.translate('iou.requestMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
-                    },
-                    {
-                        icon: Expensicons.Receipt,
-                        text: props.translate('iou.splitBill'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
                     },
                     ...(Permissions.canUseTasks(props.betas)
                         ? [
@@ -269,7 +225,7 @@ function FloatingActionButtonAndPopover(props) {
                 anchorRef={anchorRef}
             />
             <FloatingActionButton
-                accessibilityLabel={props.translate('sidebarScreen.fabNewChat')}
+                accessibilityLabel={props.translate('sidebarScreen.fabNewChatExplained')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 isActive={isCreateMenuActive}
                 ref={anchorRef}
@@ -304,12 +260,6 @@ export default compose(
         },
         isLoading: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-        shouldShowDownloadAppBanner: {
-            key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
-        },
-        demoInfo: {
-            key: ONYXKEYS.DEMO_INFO,
         },
     }),
 )(

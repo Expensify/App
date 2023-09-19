@@ -25,7 +25,6 @@ import type {
     ReportArchiveReasonsPolicyDeletedParams,
     RequestCountParams,
     SettleExpensifyCardParams,
-    SettlePaypalMeParams,
     RequestAmountParams,
     SplitAmountParams,
     AmountEachParams,
@@ -37,7 +36,6 @@ import type {
     WaitingOnBankAccountParams,
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
-    PaidUsingPaypalWithAmountParams,
     PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -71,8 +69,19 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    TagSelectionParams,
+    TranslationBase,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+
+type StateValue = {
+    stateISO: string;
+    stateName: string;
+};
+
+type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
+
+type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
 
 /* eslint-disable max-len */
 export default {
@@ -195,7 +204,6 @@ export default {
         done: 'Done',
         more: 'More',
         debitCard: 'Debit card',
-        payPalMe: 'PayPal.me',
         bankAccount: 'Bank account',
         join: 'Join',
         decline: 'Decline',
@@ -233,6 +241,8 @@ export default {
         showMore: 'Show more',
         merchant: 'Merchant',
         category: 'Category',
+        billable: 'Billable',
+        tag: 'Tag',
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
@@ -242,6 +252,7 @@ export default {
         kilometers: 'kilometers',
         recent: 'Recent',
         all: 'All',
+        tbd: 'TBD',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -331,11 +342,6 @@ export default {
         newFaceEnterMagicCode: ({login}: NewFaceEnterMagicCodeParams) =>
             `It's always great to see a new face around here! Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
-    },
-    DownloadAppModal: {
-        downloadTheApp: 'Download the app',
-        keepTheConversationGoing: 'Keep the conversation going in New Expensify, download the app for an enhanced experience.',
-        noThanks: 'No thanks',
     },
     login: {
         hero: {
@@ -448,13 +454,10 @@ export default {
         },
     },
     sidebarScreen: {
-        fabAction: 'New chat',
-        newChat: 'New chat',
-        newGroup: 'New group',
-        newRoom: 'New room',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
-        fabNewChat: 'New chat (Floating action)',
+        fabNewChat: 'Send message',
+        fabNewChatExplained: 'Send message (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -462,6 +465,8 @@ export default {
         saveTheWorld: 'Save the world',
     },
     tabSelector: {
+        chat: 'Chat',
+        room: 'Room',
         manual: 'Manual',
         scan: 'Scan',
     },
@@ -488,9 +493,10 @@ export default {
         approved: 'Approved',
         cash: 'Cash',
         split: 'Split',
+        addToSplit: 'Add to split',
+        splitBill: 'Split bill',
         request: 'Request',
         participants: 'Participants',
-        splitBill: 'Split bill',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
@@ -498,6 +504,7 @@ export default {
         pending: 'Pending',
         deleteReceipt: 'Delete receipt',
         receiptScanning: 'Receipt scan in progress…',
+        receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
@@ -505,10 +512,8 @@ export default {
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
-        settledPaypalMe: 'Paid using Paypal.me',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount} with Expensify`,
         payElsewhere: 'Pay elsewhere',
-        settlePaypalMe: ({formattedAmount}: SettlePaypalMeParams) => `Pay ${formattedAmount} with PayPal.me`,
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} each`,
@@ -522,7 +527,6 @@ export default {
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `paid ${amount} elsewhere`,
-        paidUsingPaypalWithAmount: ({amount}: PaidUsingPaypalWithAmountParams) => `paid ${amount} using Paypal.me`,
         paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `paid ${amount} with Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
@@ -533,6 +537,7 @@ export default {
             `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -559,6 +564,8 @@ export default {
         uploadPhoto: 'Upload photo',
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
+        viewPhoto: 'View photo',
+        imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
@@ -578,6 +585,7 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
+        profileAvatar: 'Profile avatar',
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
@@ -740,17 +748,12 @@ export default {
         passwordUpdated: 'Password updated!',
         allSet: 'You’re all set. Keep your new password safe.',
     },
-    addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Get paid back via PayPal.',
-        payPalMe: 'PayPal.me/',
-        yourPayPalUsername: 'Your PayPal username',
-        addPayPalAccount: 'Add PayPal account',
-        growlMessageOnSave: 'Your PayPal username was successfully added',
-        updatePaypalAccount: 'Save PayPal account',
-        growlMessageOnUpdate: 'Your PayPal username was successfully saved',
-        formatError: 'Invalid PayPal.me username',
-        checkListOf: 'Check the list of ',
-        supportedCurrencies: 'supported currencies',
+    privateNotes: {
+        title: 'Private notes',
+        personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
+        sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
+        notesUnavailable: 'No notes found for the user',
+        composerLabel: 'Notes',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
@@ -781,7 +784,6 @@ export default {
         setDefaultSuccess: 'Default payment method set!',
         deleteAccount: 'Delete account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
-        deletePayPalSuccess: 'PayPal.me successfully deleted',
         error: {
             notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
             invalidBankAccount: 'This bank account is temporarily suspended.',
@@ -974,7 +976,9 @@ export default {
         localTime: 'Local time',
     },
     newChatPage: {
+        createChat: 'Create chat',
         createGroup: 'Create group',
+        addToGroup: 'Add to group',
     },
     yearPickerPage: {
         year: 'Year',
@@ -987,7 +991,7 @@ export default {
         notHere: "Hmm... it's not here",
         pageNotFound: 'Oops, this page cannot be found',
         noAccess: "You don't have access to this chat",
-        goBackHome: 'Go back to Home page',
+        goBackHome: 'Go back to home page',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -1298,6 +1302,7 @@ export default {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
+            workspaceAvatar: 'Workspace avatar',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1506,7 +1511,7 @@ export default {
         completed: 'Completed',
         messages: {
             completed: 'completed task',
-            canceled: 'canceled task',
+            canceled: 'deleted task',
             reopened: 'reopened task',
             error: 'You do not have the permission to do the requested action.',
         },
@@ -1524,7 +1529,7 @@ export default {
             openShortcutDialog: 'Opens the keyboard shortcuts dialog',
             escape: 'Escape dialogs',
             search: 'Open search dialog',
-            newGroup: 'New group screen',
+            newChat: 'New chat screen',
             copy: 'Copy comment',
         },
     },
@@ -1660,8 +1665,8 @@ export default {
         createAccount: 'Create A New Account',
         logIn: 'Log In',
     },
-    allStates: COMMON_CONST.STATES,
-    allCountries: CONST.ALL_COUNTRIES,
+    allStates: COMMON_CONST.STATES as States,
+    allCountries: CONST.ALL_COUNTRIES as AllCountries,
     accessibilityHints: {
         navigateToChatsList: 'Navigate back to chats list',
         chatWelcomeMessage: 'Chat welcome message',
@@ -1678,6 +1683,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
+        deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {
@@ -1755,14 +1761,4 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-    demos: {
-        saastr: {
-            signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
-            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for lunch!',
-        },
-        sbe: {
-            signInWelcome: 'Welcome to Small Business Expo! Get paid back for your ride.',
-            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for your ride to or from the show!',
-        },
-    },
-} as const;
+} satisfies TranslationBase;

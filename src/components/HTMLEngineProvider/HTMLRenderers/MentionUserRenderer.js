@@ -16,6 +16,7 @@ import compose from '../../../libs/compose';
 import TextLink from '../../TextLink';
 import ONYXKEYS from '../../../ONYXKEYS';
 import useLocalize from '../../../hooks/useLocalize';
+import CONST from '../../../CONST';
 
 const propTypes = {
     ...htmlRendererPropTypes,
@@ -42,8 +43,8 @@ function MentionUserRenderer(props) {
         displayNameOrLogin = lodashGet(user, 'login', '') || lodashGet(user, 'displayName', '') || translate('common.hidden');
         navigationRoute = ROUTES.getProfileRoute(htmlAttribAccountID);
     } else if (!_.isEmpty(props.tnode.data)) {
-        // We need to remove the leading @ from data as it is not part of the login
-        displayNameOrLogin = props.tnode.data.slice(1);
+        // We need to remove the LTR unicode and leading @ from data as it is not part of the login
+        displayNameOrLogin = props.tnode.data.replace(CONST.UNICODE.LTR, '').slice(1);
 
         accountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([displayNameOrLogin]));
         navigationRoute = ROUTES.getDetailsRoute(displayNameOrLogin);
