@@ -8,7 +8,6 @@ import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import Navigation from '../Navigation/Navigation';
 import * as Localize from '../Localize';
-import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as CurrencyUtils from '../CurrencyUtils';
@@ -484,7 +483,7 @@ function getMoneyRequestInformation(
 
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
-        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, comment, optimisticTransaction);
+        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
 
@@ -1055,8 +1054,8 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     // from the server with the currency conversion
     let updatedMoneyRequestReport = {...iouReport};
     const updatedChatReport = {...chatReport};
-    if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount) {
-        const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+    const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+    if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount && diff !== 0) {
         if (ReportUtils.isExpenseReport(iouReport)) {
             updatedMoneyRequestReport.total += diff;
         } else {
@@ -1405,16 +1404,6 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
 }
 
 /**
- * @param {Number} amount
- * @param {String} submitterPayPalMeAddress
- * @param {String} currency
- * @returns {String}
- */
-function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
-    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / 100}${currency}`;
-}
-
-/**
  * @param {Object} report
  * @param {Number} amount
  * @param {String} currency
@@ -1656,7 +1645,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     let optimisticReportPreviewAction = null;
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
-        optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction);
+        optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, true);
     }
 
     const optimisticData = [
@@ -1794,26 +1783,6 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-/**
- * @param {Object} report
- * @param {Number} amount
- * @param {String} currency
- * @param {String} comment
- * @param {String} managerID - Account ID of the person sending the money
- * @param {Object} recipient - The user receiving the money
- */
-function sendMoneyViaPaypal(report, amount, currency, comment, managerID, recipient) {
-    const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, managerID, recipient);
-
-    API.write('SendMoneyViaPaypal', params, {optimisticData, successData, failureData});
-
-    resetMoneyRequestInfo();
-    Navigation.dismissModal(params.chatReportID);
-    Report.notifyNewAction(params.chatReportID, managerID);
-
-    asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
-}
-
 function approveMoneyRequest(expenseReport) {
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
 
@@ -1877,7 +1846,6 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     const recipient = {
         login: iouReport.ownerEmail,
         accountID: iouReport.ownerAccountID,
-        payPalMeAddress: iouReport.submitterPayPalMeAddress,
     };
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
 
@@ -1887,9 +1855,6 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 
     API.write(apiCommand, params, {optimisticData, successData, failureData});
     Navigation.dismissModal(chatReport.reportID);
-    if (paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-        asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));
-    }
 }
 
 /**
@@ -2032,7 +1997,6 @@ export {
     splitBillAndOpenReport,
     requestMoney,
     sendMoneyElsewhere,
-    sendMoneyViaPaypal,
     approveMoneyRequest,
     payMoneyRequest,
     sendMoneyWithWallet,

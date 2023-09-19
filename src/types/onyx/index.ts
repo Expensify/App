@@ -1,7 +1,6 @@
 import Account from './Account';
 import Request from './Request';
 import Credentials from './Credentials';
-import QueuedOnyxUpdates from './QueuedOnyxUpdates';
 import IOU from './IOU';
 import Modal from './Modal';
 import Network from './Network';
@@ -15,7 +14,6 @@ import User from './User';
 import Login from './Login';
 import Session from './Session';
 import Beta from './Beta';
-import Paypal from './Paypal';
 import BlockedFromConcierge from './BlockedFromConcierge';
 import PlaidData from './PlaidData';
 import UserWallet from './UserWallet';
@@ -53,7 +51,6 @@ export type {
     Account,
     Request,
     Credentials,
-    QueuedOnyxUpdates,
     IOU,
     Modal,
     Network,
@@ -67,7 +64,6 @@ export type {
     Login,
     Session,
     Beta,
-    Paypal,
     BlockedFromConcierge,
     PlaidData,
     UserWallet,
