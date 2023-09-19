@@ -56,7 +56,7 @@ function Image(props) {
             onLoadStart();
         }, 200);
         return () => clearTimeout(timeout);
-    }, [isLoading, onLoadStart]);
+    }, [isLoading]);
 
     // Omit the props which the underlying RNImage won't use
     const forwardedProps = _.omit(props, ['source', 'onLoad', 'session', 'isAuthTokenRequired', 'onLoadStart', 'onLoadEnd']);
@@ -67,10 +67,13 @@ function Image(props) {
             {...forwardedProps}
             source={source}
             onLoadStart={() => setIsLoading(true)}
+            onLoad={() => {
+                isLoadedRef.current = true;
+            }}
             onLoadEnd={() => {
-                onLoadEnd();
                 setIsLoading(false);
                 isLoadedRef.current = true;
+                onLoadEnd();
             }}
         />
     );
