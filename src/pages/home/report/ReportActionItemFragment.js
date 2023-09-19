@@ -142,10 +142,11 @@ function ReportActionItemFragment(props) {
                     <Text
                         style={[
                             containsOnlyEmojis ? styles.onlyEmojisText : undefined,
-                        styles.ltr,
-                        ...props.style, isPendingDelete ? styles.offlineFeedback.deleted : undefined,
-                        !DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
-                    ]}
+                            styles.ltr,
+                            ...props.style,
+                            isPendingDelete ? styles.offlineFeedback.deleted : undefined,
+                            !DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                        ]}
                     >
                         {convertToLTR(props.iouMessage || text)}
                     </Text>
