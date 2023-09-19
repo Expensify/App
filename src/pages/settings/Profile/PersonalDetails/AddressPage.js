@@ -21,7 +21,7 @@ import ROUTES from '../../../../ROUTES';
 import useLocalize from '../../../../hooks/useLocalize';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import CountryPickerMenuItem from '../../../../components/CountryPickerMenuItem';
+import CountrySelector from '../../../../components/CountrySelector';
 
 const propTypes = {
     /* Onyx Props */
@@ -189,7 +189,7 @@ function AddressPage({privatePersonalDetails, route}) {
                     />
                     <View style={styles.formSpaceVertical} />
                     <View style={styles.mhn5}>
-                        <CountryPickerMenuItem
+                        <CountrySelector
                             inputID="country"
                             value={currentCountry}
                         />

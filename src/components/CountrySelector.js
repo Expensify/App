@@ -25,7 +25,7 @@ const defaultProps = {
     value: '',
 };
 
-function CountryPickerMenuItem({errorText, value: countryCode, onInputChange}, ref) {
+function CountrySelector({errorText, value: countryCode, onInputChange}, ref) {
     const {translate} = useLocalize();
 
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
@@ -56,8 +56,8 @@ function CountryPickerMenuItem({errorText, value: countryCode, onInputChange}, r
     );
 }
 
-CountryPickerMenuItem.propTypes = propTypes;
-CountryPickerMenuItem.defaultProps = defaultProps;
-CountryPickerMenuItem.displayName = 'CountryPickerMenuItem';
+CountrySelector.propTypes = propTypes;
+CountrySelector.defaultProps = defaultProps;
+CountrySelector.displayName = 'CountrySelector';
 
-export default React.forwardRef(CountryPickerMenuItem);
+export default React.forwardRef(CountrySelector);
