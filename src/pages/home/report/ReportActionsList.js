@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState, useRef, useMemo} from 'react';
-import {View} from 'react-native';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
@@ -276,21 +275,6 @@ function ReportActionsList({
         [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarked],
     );
 
-    const renderCell = useCallback(
-        ({index, style, ...rendererProps}) => {
-            const zIndexOffset = {zIndex: sortedReportActions.length - index};
-
-            return (
-                <View
-                    style={[style, zIndexOffset]}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rendererProps}
-                />
-            );
-        },
-        [sortedReportActions],
-    );
-
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [isSmallScreenWidth ? currentUnreadMarker.current : undefined, ReportUtils.isArchivedRoom(report)];
@@ -309,7 +293,6 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     data={sortedReportActions}
                     renderItem={renderItem}
-                    CellRendererComponent={renderCell}
                     contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialRowHeight={32}
