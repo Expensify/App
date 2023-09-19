@@ -26,7 +26,6 @@ import * as Policy from '../../../libs/actions/Policy';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
-import * as UserUtils from '../../../libs/UserUtils';
 
 const propTypes = {
     /** React Navigation route */
@@ -65,31 +64,13 @@ function MoneyRequestConfirmPage(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
-
-    const participants = useMemo(() => {
-        const firstParticipantIsPolicyExpenseChat = lodashGet(props.iou.participants, [0, 'isPolicyExpenseChat'], false);
-
-        if (firstParticipantIsPolicyExpenseChat) {
-            return OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0]);
-        }
-
-        const details = OptionsListUtils.getPersonalDetailsForAccountIDs(_.pluck(props.iou.participants, 'accountID'), props.personalDetails);
-
-        return _.map(props.iou.participants, (participant) => {
-            const detail = details[participant.accountID];
-
-            return {
-                ...participant,
-                // Restore the participant icon source, because Onyx can't serialize when avatars are SVGs
-                icons: _.map(participant.icons, (icon) => ({
-                    ...icon,
-                    source: icon.source === '' ? UserUtils.getAvatar(detail.avatar, participant.accountID) : icon.source,
-                })),
-            };
-        });
-    }, [props.iou.participants, props.personalDetails]);
-
-    console.log('participants', participants);
+    const participants = useMemo(
+        () =>
+            lodashGet(props.iou.participants, [0, 'isPolicyExpenseChat'], false)
+                ? OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0])
+                : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
+        [props.iou.participants, props.personalDetails],
+    );
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);

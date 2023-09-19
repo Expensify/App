@@ -10,6 +10,7 @@ import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Permissions from '../libs/Permissions';
+import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
 import CONST from '../CONST';
@@ -29,7 +30,6 @@ import themeColors from '../styles/themes/default';
 import Image from './Image';
 import useLocalize from '../hooks/useLocalize';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
-import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 import categoryPropTypes from './categoryPropTypes';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
@@ -37,7 +37,6 @@ import ConfirmedRoute from './ConfirmedRoute';
 import transactionPropTypes from './transactionPropTypes';
 import DistanceRequestUtils from '../libs/DistanceRequestUtils';
 import * as IOU from '../libs/actions/IOU';
-import SelectionList from './SelectionList';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -224,10 +223,7 @@ function MoneyRequestConfirmationList(props) {
     const getParticipantsWithAmount = useCallback(
         (participantsList) => {
             const iouAmount = IOUUtils.calculateAmount(participantsList.length, props.iouAmount, props.iouCurrencyCode);
-
-            return _.map(participantsList, (participant) =>
-                OptionsListUtils.formatMemberForList(participant, {descriptiveText: CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode)}),
-            );
+            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode));
         },
         [props.iouAmount, props.iouCurrencyCode],
     );
@@ -257,12 +253,10 @@ function MoneyRequestConfirmationList(props) {
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-
-        // TODO: REVIEW
         const unselectedParticipants = _.filter(props.selectedParticipants, (participant) => !participant.selected);
         if (props.hasMultipleParticipants) {
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
-            let formattedParticipantsList = _.map(_.union(formattedSelectedParticipants, unselectedParticipants), OptionsListUtils.formatMemberForList);
+            let formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
 
             if (!canModifyParticipants) {
                 formattedParticipantsList = _.map(formattedParticipantsList, (participant) => ({
@@ -272,10 +266,10 @@ function MoneyRequestConfirmationList(props) {
             }
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, props.iouCurrencyCode, true);
-            const formattedPayeeOption = OptionsListUtils.formatMemberForList(payeePersonalDetails, {
-                descriptiveText: CurrencyUtils.convertToDisplayString(myIOUAmount, props.iouCurrencyCode),
-                login: LocalePhoneNumber.formatPhoneNumber(payeePersonalDetails.login),
-            });
+            const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
+                payeePersonalDetails,
+                CurrencyUtils.convertToDisplayString(myIOUAmount, props.iouCurrencyCode),
+            );
 
             sections.push(
                 {
@@ -299,8 +293,7 @@ function MoneyRequestConfirmationList(props) {
             }));
             sections.push({
                 title: translate('common.to'),
-                // Here we know we only have 1 participant, so it's safe to get the first index
-                data: [OptionsListUtils.formatMemberForList(formattedSelectedParticipants[0])],
+                data: formattedSelectedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
             });
@@ -318,6 +311,13 @@ function MoneyRequestConfirmationList(props) {
         shouldDisablePaidBySection,
         canModifyParticipants,
     ]);
+
+    const selectedOptions = useMemo(() => {
+        if (!props.hasMultipleParticipants) {
+            return [];
+        }
+        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
+    }, [selectedParticipants, props.hasMultipleParticipants, payeePersonalDetails]);
 
     useEffect(() => {
         if (!props.isDistanceRequest) {
@@ -380,7 +380,6 @@ function MoneyRequestConfirmationList(props) {
         [selectedParticipants, onSendMoney, onConfirm, props.iouType],
     );
 
-    // TODO: See footer
     const footerContent = useMemo(() => {
         if (props.isReadOnly) {
             return;
@@ -389,8 +388,6 @@ function MoneyRequestConfirmationList(props) {
         const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = props.selectedParticipants[0] || {};
-
-        console.log('shouldShowSettlementButton', shouldShowSettlementButton);
 
         return shouldShowSettlementButton ? (
             <SettlementButton
@@ -420,16 +417,22 @@ function MoneyRequestConfirmationList(props) {
     }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
     return (
-        <SelectionList
+        <OptionsSelector
             sections={optionSelectorSections}
-            canSelectMultiple={canModifyParticipants}
+            value=""
             onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
-            onConfirm={confirm}
-            confirmButtonText={translate(props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-                amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode),
-            })}
-            disableKeyboardShortcuts={!canModifyParticipants}
+            onConfirmSelection={confirm}
+            selectedOptions={selectedOptions}
+            canSelectMultipleOptions={canModifyParticipants}
+            disableArrowKeysActions={!canModifyParticipants}
+            boldStyle
+            showTitleTooltip
+            shouldTextInputAppearBelowOptions
+            shouldShowTextInput={false}
+            shouldUseStyleForChildren={false}
+            optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
+            listStyles={props.listStyles}
         >
             {props.isDistanceRequest && (
                 <View style={styles.confirmationListMapItem}>
@@ -542,7 +545,7 @@ function MoneyRequestConfirmationList(props) {
                     )}
                 </>
             )}
-        </SelectionList>
+        </OptionsSelector>
     );
 }
 
