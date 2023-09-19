@@ -199,6 +199,11 @@ function FloatingActionButtonAndPopover(props) {
                         text: props.translate('iou.requestMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
                     },
+                    {
+                        icon: Expensicons.Heart,
+                        text: props.translate('sidebarScreen.saveTheWorld'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
+                    },
                     ...(Permissions.canUseTasks(props.betas)
                         ? [
                               {
