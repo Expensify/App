@@ -81,8 +81,8 @@ function getNotesCount(transaction) {
 }
 
 function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction, policy}) {
-    const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
