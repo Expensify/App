@@ -1,7 +1,7 @@
-type ActiveClientManagerModule = {
-    init: () => void;
-    isClientTheLeader: () => boolean;
-    isReady: () => Promise<void>;
-};
+type Init = () => void;
 
-export default ActiveClientManagerModule;
+type IsClientTheLeader = () => boolean;
+
+type IsReady = () => Promise<void>;
+
+export type {Init, IsClientTheLeader, IsReady};
