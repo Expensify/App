@@ -1,6 +1,7 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Text from './Text';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -24,6 +25,10 @@ import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import RenderHTML from './RenderHTML';
+import getPlatform from '../libs/getPlatform';
+
+const platform = getPlatform();
+const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
 const propTypes = menuItemPropTypes;
 
@@ -34,6 +39,7 @@ const defaultProps = {
     shouldShowBasicTitle: false,
     shouldShowDescriptionOnTop: false,
     shouldShowHeaderTitle: false,
+    shouldParseTitle: false,
     wrapperStyle: [],
     style: styles.popoverMenuItem,
     titleStyle: {},
@@ -79,6 +85,7 @@ const defaultProps = {
 
 const MenuItem = React.forwardRef((props, ref) => {
     const {isSmallScreenWidth} = useWindowDimensions();
+    const [html, setHtml] = React.useState('');
 
     const isDeleted = _.contains(props.style, styles.offlineFeedback.deleted);
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
@@ -105,6 +112,28 @@ const MenuItem = React.forwardRef((props, ref) => {
     ]);
 
     const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+
+    const titleRef = React.useRef('');
+    useEffect(() => {
+        if (!props.title || (titleRef.current.length && titleRef.current === props.title) || !props.shouldParseTitle) {
+            return;
+        }
+        const parser = new ExpensiMark();
+        setHtml(parser.replace(convertToLTR(props.title)));
+        titleRef.current = props.title;
+    }, [props.title, props.shouldParseTitle]);
+
+    const getProcessedTitle = useMemo(() => {
+        if (props.shouldRenderAsHTML) {
+            return convertToLTR(props.title);
+        }
+
+        if (props.shouldParseTitle) {
+            return html;
+        }
+
+        return '';
+    }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
 
     return (
         <Hoverable>
@@ -222,9 +251,16 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(props.title) && Boolean(props.shouldRenderAsHTML) && <RenderHTML html={convertToLTR(props.title)} />}
-
-                                            {Boolean(props.title) && !props.shouldRenderAsHTML && (
+                                            {Boolean(props.title) &&
+                                                (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) &&
+                                                (isNative ? (
+                                                    <RenderHTML html={getProcessedTitle} />
+                                                ) : (
+                                                    <View style={styles.chatItemMessage}>
+                                                        <RenderHTML html={getProcessedTitle} />
+                                                    </View>
+                                                ))}
+                                            {!props.shouldRenderAsHTML && !html.length && Boolean(props.title) && (
                                                 <Text
                                                     style={titleTextStyle}
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
