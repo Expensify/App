@@ -47,6 +47,9 @@ const ONYXKEYS = {
     /** Has information about the network status (offline/online) */
     NETWORK: 'network',
 
+    // status
+    CUSTOM_STATUS: 'customStatus',
+
     // draft status
     CUSTOM_STATUS_DRAFT: 'customStatusDraft',
 
@@ -314,6 +317,7 @@ type OnyxValues = {
     [ONYXKEYS.IOU]: OnyxTypes.IOU;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
+    [ONYXKEYS.CUSTOM_STATUS]: OnyxTypes.CustomStatusDraft;
     [ONYXKEYS.CUSTOM_STATUS_DRAFT]: OnyxTypes.CustomStatusDraft;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: Record<string, OnyxTypes.PersonalDetails>;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
