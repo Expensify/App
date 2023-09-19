@@ -46,7 +46,6 @@ const hasTokenExpired = () => moment().isAfter(currentToken.expiration);
 
 const clearToken = () => {
     console.debug('[MapboxToken] Deleting the token stored in Onyx');
-    currentToken = null;
     // Use Onyx.set() to delete the key from Onyx, which will trigger a new token to be retrieved from the API.
     Onyx.set(ONYXKEYS.MAPBOX_ACCESS_TOKEN, null);
 };
