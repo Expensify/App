@@ -105,12 +105,16 @@ describe('libs/removeInvisible', () => {
     });
     it('other tests', () => {
         expect(removeInvisible('\uD83D\uDE36\u200D\uD83C\uDF2B\uFE0F')).toBe('😶‍🌫️');
-        expect(removeInvisible('\u200D')).toBe('‍');
-        expect(removeInvisible('⁠')).toBe('');
         expect(removeInvisible('⁠test')).toBe('test');
         expect(removeInvisible('test⁠test')).toBe('testtest');
         expect(removeInvisible('  	 ‎ ‏ ⁠        　 ')).toBe('');
         expect(removeInvisible('te	‎‏⁠st')).toBe('test');
         expect(removeInvisible('\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F')).toBe('🏴󠁧󠁢󠁥󠁮󠁧󠁿');
+    });
+    it('special scenarios', () => {
+        // Normally we do not remove this character, because it is used in Emojis.
+        // But if the String consist of only invisible characters, we can safely remove it.
+        expect(removeInvisible('\u200D')).toBe('');
+        expect(removeInvisible('⁠')).toBe('');
     });
 });

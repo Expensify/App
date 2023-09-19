@@ -1,3 +1,5 @@
+import isEmptyString from './isEmptyString';
+
 /**
  *  Remove invisible characters from a string except for spaces and format characters for emoji, and trim it.
  */
@@ -19,6 +21,11 @@ function removeInvisibleCharacters(value: string): string {
 
     // Remove all characters from the 'Separator' (Z) category except for Space Separator (Zs)
     result = result.replace(/[\p{Zl}\p{Zp}]/gu, '');
+
+    // If the result consist of only invisible characters, return an empty string
+    if (isEmptyString(result)) {
+        return '';
+    }
 
     return result.trim();
 }
