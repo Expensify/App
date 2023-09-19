@@ -18,6 +18,7 @@ const lightTheme = {
     iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.lightSupportingText,
     text: colors.lightPrimaryText,
+    textColorfulBackground: colors.ivory,
     link: colors.blue600,
     linkHover: colors.blue500,
     buttonDefaultBG: colors.lightDefaultButton,
@@ -78,7 +79,8 @@ const lightTheme = {
     tooltipPrimaryText: colors.darkPrimaryText,
     skeletonLHNIn: colors.lightBorders,
     skeletonLHNOut: colors.lightDefaultButtonPressed,
-    QRLogo: colors.green500,
+    QRLogo: colors.green400,
+    starDefaultBG: 'rgb(254, 228, 94)',
 
     PAGE_BACKGROUND_COLORS: {
         [SCREENS.HOME]: colors.lightBorders,

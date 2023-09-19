@@ -16,6 +16,7 @@ type ThemeColors = {
     iconColorfulBackground: Color;
     textSupporting: Color;
     text: Color;
+    textColorfulBackground: Color;
     link: Color;
     linkHover: Color;
     buttonDefaultBG: Color;
@@ -59,7 +60,8 @@ type ThemeColors = {
     heroCard: Color;
     uploadPreviewActivityIndicator: Color;
     dropUIBG: Color;
-    dropTransparentOverlay: Color;
+    receiptDropUIBG?: Color;
+    dropTransparentOverlay?: Color;
     checkBox: Color;
     pickerOptionsTextColor: Color;
     imageCropBackgroundColor: Color;
@@ -77,6 +79,7 @@ type ThemeColors = {
     skeletonLHNIn: Color;
     skeletonLHNOut: Color;
     QRLogo: Color;
+    starDefaultBG: Color;
 
     PAGE_BACKGROUND_COLORS: Record<string, Color>;
 };

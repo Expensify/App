@@ -21,6 +21,7 @@ const darkTheme = {
     iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.darkSupportingText,
     text: colors.darkPrimaryText,
+    textColorfulBackground: colors.ivory,
     link: colors.blue300,
     linkHover: colors.blue100,
     buttonDefaultBG: colors.darkDefaultButton,
@@ -64,7 +65,7 @@ const darkTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.darkHighlightBackground,
     dropUIBG: 'rgba(6,27,9,0.92)',
-    dropTransparentOverlay: 'rgba(255,255,255,0)',
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.84)',
     checkBox: colors.green400,
     pickerOptionsTextColor: colors.darkPrimaryText,
     imageCropBackgroundColor: colors.darkIcons,
@@ -82,6 +83,7 @@ const darkTheme = {
     skeletonLHNIn: colors.darkBorders,
     skeletonLHNOut: colors.darkDefaultButton,
     QRLogo: colors.green400,
+    starDefaultBG: 'rgb(254, 228, 94)',
 
     PAGE_BACKGROUND_COLORS: {
         [SCREENS.HOME]: colors.darkHighlightBackground,
