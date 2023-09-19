@@ -13,12 +13,11 @@ const propTypes = {
     errorText: PropTypes.string,
     /** function from form to call when the country changes, important for revalidation */
     onInputChange: PropTypes.func.isRequired,
-    /** Prop which states when country value changed */
-    didCountryChange: PropTypes.bool.isRequired,
-    /** Function for setting didCountryChange to false  */
-    setDidCountryChange: PropTypes.func.isRequired,
     /** Current selected country  */
     value: PropTypes.string,
+    /** inputID used by the Form component */
+    // eslint-disable-next-line react/no-unused-prop-types
+    inputID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -26,7 +25,7 @@ const defaultProps = {
     value: '',
 };
 
-function CountryPickerMenuItem({errorText, value: countryCode, onInputChange, didCountryChange, setDidCountryChange}, ref) {
+function CountryPickerMenuItem({errorText, value: countryCode, onInputChange}, ref) {
     const {translate} = useLocalize();
 
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
@@ -34,10 +33,8 @@ function CountryPickerMenuItem({errorText, value: countryCode, onInputChange, di
 
     useEffect(() => {
         // This will cause the form to revalidate and remove any error related to country name
-        if (!didCountryChange) return;
         onInputChange(countryCode);
-        setDidCountryChange(false);
-    }, [didCountryChange, onInputChange, setDidCountryChange, countryCode]);
+    }, [countryCode]);
 
     return (
         <View>

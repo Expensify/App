@@ -72,7 +72,6 @@ function AddressPage({privatePersonalDetails, route}) {
     const {translate} = useLocalize();
     const countryFromUrl = lodashGet(route, 'params.country');
     const [currentCountry, setCurrentCountry] = useState(countryFromUrl || PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')));
-    const [didCountryChange, setDidCountryChange] = useState(false);
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
@@ -141,7 +140,6 @@ function AddressPage({privatePersonalDetails, route}) {
     useEffect(() => {
         if (!countryFromUrl) return;
         handleAddressChange(countryFromUrl, 'country');
-        setDidCountryChange(true);
     }, [countryFromUrl, handleAddressChange]);
 
     return (
@@ -192,8 +190,6 @@ function AddressPage({privatePersonalDetails, route}) {
                     <View style={styles.formSpaceVertical} />
                     <View style={styles.mhn5}>
                         <CountryPickerMenuItem
-                            didCountryChange={didCountryChange}
-                            setDidCountryChange={setDidCountryChange}
                             inputID="country"
                             value={currentCountry}
                         />
