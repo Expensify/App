@@ -15,7 +15,7 @@ import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
-import UpdateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '../../libs/updateMultilineInputRange';
 import CONST from '../../CONST';
 import * as Browser from '../../libs/Browser';
 
@@ -96,7 +96,7 @@ function NewTaskDescriptionPage(props) {
                             ref={(el) => {
                                 if (!el) return;
                                 inputRef.current = el;
-                                UpdateMultilineInputRange(inputRef.current);
+                                updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
                             submitOnEnter={!Browser.isMobile()}

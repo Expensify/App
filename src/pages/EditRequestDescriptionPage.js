@@ -12,7 +12,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
 import * as Browser from '../libs/Browser';
-import UpdateMultilineInputRange from '../libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '../libs/updateMultilineInputRange';
 
 const propTypes = {
     /** Transaction default description value */
@@ -70,7 +70,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                             ref={(el) => {
                                 if (!el) return;
                                 descriptionInputRef.current = el;
-                                UpdateMultilineInputRange(descriptionInputRef.current);
+                                updateMultilineInputRange(descriptionInputRef.current);
                             }}
                             autoGrowHeight
                             containerStyles={[styles.autoGrowHeightMultilineInput]}

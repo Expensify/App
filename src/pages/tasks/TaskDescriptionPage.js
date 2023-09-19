@@ -15,7 +15,7 @@ import compose from '../../libs/compose';
 import * as Task from '../../libs/actions/Task';
 import * as ReportUtils from '../../libs/ReportUtils';
 import CONST from '../../CONST';
-import UpdateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '../../libs/updateMultilineInputRange';
 import * as Browser from '../../libs/Browser';
 import Navigation from '../../libs/Navigation/Navigation';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -104,7 +104,7 @@ function TaskDescriptionPage(props) {
                             ref={(el) => {
                                 if (!el) return;
                                 inputRef.current = el;
-                                UpdateMultilineInputRange(inputRef.current);
+                                updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
                             submitOnEnter={!Browser.isMobile()}

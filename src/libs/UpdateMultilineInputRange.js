@@ -9,7 +9,7 @@
  *
  * @param {Object} input the input element
  */
-export default function UpdateMultilineInputRange(input) {
+export default function updateMultilineInputRange(input) {
     if (!input) {
         return;
     }

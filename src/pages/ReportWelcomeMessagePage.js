@@ -20,7 +20,7 @@ import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundVi
 import Form from '../components/Form';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import {policyPropTypes, policyDefaultProps} from './workspace/withPolicy';
-import UpdateMultilineInputRange from '../libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '../libs/updateMultilineInputRange';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -93,7 +93,7 @@ function ReportWelcomeMessagePage(props) {
                             ref={(el) => {
                                 if (!el) return;
                                 welcomeMessageInputRef.current = el;
-                                UpdateMultilineInputRange(welcomeMessageInputRef.current);
+                                updateMultilineInputRange(welcomeMessageInputRef.current);
                             }}
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}

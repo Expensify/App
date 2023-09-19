@@ -18,7 +18,7 @@ import * as IOU from '../../libs/actions/IOU';
 import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
-import UpdateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '../../libs/updateMultilineInputRange';
 import * as Browser from '../../libs/Browser';
 
 const propTypes = {
@@ -129,7 +129,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                             ref={(el) => {
                                 if (!el) return;
                                 inputRef.current = el;
-                                UpdateMultilineInputRange(inputRef.current);
+                                updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
                             containerStyles={[styles.autoGrowHeightMultilineInput]}

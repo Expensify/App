@@ -24,7 +24,7 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import UpdateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '../../libs/updateMultilineInputRange';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -144,7 +144,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                                 ref={(el) => {
                                     if (!el) return;
                                     privateNotesInput.current = el;
-                                    UpdateMultilineInputRange(privateNotesInput.current);
+                                    updateMultilineInputRange(privateNotesInput.current);
                                 }}
                             />
                         </OfflineWithFeedback>
