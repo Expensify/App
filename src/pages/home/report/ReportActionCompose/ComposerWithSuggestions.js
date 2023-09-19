@@ -185,8 +185,7 @@ function ComposerWithSuggestions({
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
-                // Reset emoji suggestions when an emoji is replaced.
-                // Important when emoji is replaced and the selection is not changed, more info issue #27156
+                // Ensure emoji suggestions are hidden even when the selection is not changed (so calculateEmojiSuggestion would not be called).
                 if (suggestionsRef.current) {
                     suggestionsRef.current.resetSuggestions();
                 }
