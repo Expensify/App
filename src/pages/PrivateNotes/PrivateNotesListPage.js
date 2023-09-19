@@ -107,7 +107,7 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
         const privateNoteBrickRoadIndicator = (accountID) => (!_.isEmpty(lodashGet(report, ['privateNotes', accountID, 'errors'], '')) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '');
         return _.chain(lodashGet(report, 'privateNotes', {}))
             .map((privateNote, accountID) => ({
-                title: Number(lodashGet(session, 'accountID', null)) === Number(accountID) ? 'My note' : lodashGet(personalDetailsList, [accountID, 'login'], ''),
+                title: Number(lodashGet(session, 'accountID', null)) === Number(accountID) ? translate('privateNotes.myNote') : lodashGet(personalDetailsList, [accountID, 'login'], ''),
                 icon: UserUtils.getAvatar(lodashGet(personalDetailsList, [accountID, 'avatar'], UserUtils.getDefaultAvatar(accountID)), accountID),
                 iconType: CONST.ICON_TYPE_AVATAR,
                 action: () => Navigation.navigate(ROUTES.getPrivateNotesViewRoute(report.reportID, accountID)),
