@@ -15,7 +15,6 @@ const propTypes = {
      * Array of style objects
      * @default []
      */
-    // eslint-disable-next-line react/forbid-prop-types
     style: stylePropTypes,
 };
 
