@@ -94,7 +94,7 @@ Onyx.connect({
 /**
  * Get the option for a policy expense report.
  * @param {Object} report
- * @returns {Array}
+ * @returns {Object}
  */
 function getPolicyExpenseReportOption(report) {
     const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
