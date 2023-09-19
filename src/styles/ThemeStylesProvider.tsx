@@ -2,10 +2,11 @@
 import React, {useMemo} from 'react';
 import useTheme from './themes/useTheme';
 import ThemeStylesContext from './ThemeStylesContext';
-// TODO: Rename this to "styles" once the app is migrated to theme switching hooks and HOCs
+// TODO: Rename this to "styles" once the styles are fully typed
 import {stylesGenerator as stylesUntyped} from './styles';
 import ThemeColors from './themes/ThemeColors';
 
+// TODO: Remove this once the styles are fully typed
 const styles = stylesUntyped as (theme: ThemeColors) => Record<string, unknown>;
 
 type ThemeStylesProviderProps = {
