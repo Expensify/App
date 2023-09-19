@@ -8,10 +8,8 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Form from '../components/Form';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
-import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Transaction default merchant value */
@@ -43,7 +41,6 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
         >
             <HeaderWithBackButton
                 title={translate('common.merchant')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}

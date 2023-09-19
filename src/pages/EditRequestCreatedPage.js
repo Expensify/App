@@ -5,10 +5,8 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Form from '../components/Form';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
 import useLocalize from '../hooks/useLocalize';
 import NewDatePicker from '../components/NewDatePicker';
-import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Transaction defailt created value */
@@ -28,7 +26,6 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
         >
             <HeaderWithBackButton
                 title={translate('common.date')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}

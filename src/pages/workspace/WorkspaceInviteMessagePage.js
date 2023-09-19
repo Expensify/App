@@ -171,7 +171,6 @@ class WorkspaceInviteMessagePage extends React.Component {
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
                     />
                     <Form
                         style={[styles.flexGrow1, styles.ph5]}
