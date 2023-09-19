@@ -23,6 +23,7 @@ const propTypes = {
             backTo: PropTypes.string,
         }),
     }).isRequired,
+    
     /** Navigation from react-navigation */
     navigation: PropTypes.shape({
         /** getState function retrieves the current navigation state from react-navigation's navigation property */
