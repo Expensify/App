@@ -4,9 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
-import compose from '../../compose';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
@@ -36,6 +34,7 @@ import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import DemoSetupPage from '../../../pages/DemoSetupPage';
 import getCurrentUrl from '../currentUrl';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default;
 const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default;
@@ -130,8 +129,6 @@ const propTypes = {
             isBeginningDemo: PropTypes.bool,
         }),
     }),
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -144,7 +141,8 @@ const defaultProps = {
     demoInfo: {},
 };
 
-function AuthScreens({isSmallScreenWidth, isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID}) {
+function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo}) {
+    const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
     const isInitialRender = useRef(true);
 
@@ -197,7 +195,7 @@ function AuthScreens({isSmallScreenWidth, isUsingMemoryOnlyKeys, lastUpdateIDApp
         App.redirectThirdPartyDesktopSignIn();
 
         // Check if we should be running any demos immediately after signing in.
-        if (lodashGet(this.props.demoInfo, 'money2020.isBeginningDemo', false)) {
+        if (lodashGet(demoInfo, 'money2020.isBeginningDemo', false)) {
             Navigation.navigate(ROUTES.MONEY2020, CONST.NAVIGATION.TYPE.FORCED_UP);
         }
         if (lastOpenedPublicRoomID) {
@@ -306,7 +304,8 @@ function AuthScreens({isSmallScreenWidth, isUsingMemoryOnlyKeys, lastUpdateIDApp
                         options={defaultScreenOptions}
                         component={DemoSetupPage}
                     />
-                    <RootStack.Screenname={SCREENS.REPORT_ATTACHMENTS}
+                <RootStack.Screen
+                    name={SCREENS.REPORT_ATTACHMENTS}
                     options={{
                         headerShown: false,
                         presentation: 'transparentModal',
@@ -340,8 +339,6 @@ AuthScreens.propTypes = propTypes;
 AuthScreens.defaultProps = defaultProps;
 
 export default memo(
-    compose(
-        withWindowDimensions,
         withOnyx({
             session: {
                 key: ONYXKEYS.SESSION,
@@ -355,9 +352,9 @@ export default memo(
             lastUpdateIDAppliedToClient: {
                 key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
             },
-        demoInfo: {
-            key: ONYXKEYS.DEMO_INFO,
-        },}),
-    )(AuthScreens),
+            demoInfo: {
+                key: ONYXKEYS.DEMO_INFO,
+            },
+        })(AuthScreens),
     (props, nextProps) => nextProps.windowHeight === props.windowHeight || nextProps.isSmallScreenWidth === props.isSmallScreenWidth,
 );
