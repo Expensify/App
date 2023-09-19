@@ -17,6 +17,7 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as ErrorUtils from './ErrorUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -227,7 +228,6 @@ function getParticipantsOptions(participants, personalDetails) {
                     id: detail.accountID,
                 },
             ],
-            payPalMeAddress: lodashGet(detail, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(detail, 'phoneNumber', ''),
             selected: participant.selected,
         };
@@ -350,11 +350,20 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 function getAllReportErrors(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
-    const reportActionErrors = _.reduce(
-        reportActions,
-        (prevReportActionErrors, action) => (!action || _.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
-        {},
-    );
+    const reportActionErrors = {};
+    _.each(reportActions, (action) => {
+        if (action && !_.isEmpty(action.errors)) {
+            _.extend(reportActionErrors, action.errors);
+        } else if (ReportActionUtils.isReportPreviewAction(action)) {
+            const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(action);
+
+            // Instead of adding all Smartscan errors, let's just add a generic error if there are any. This
+            // will be more performant and provide the same result in the UI
+            if (ReportUtils.hasMissingSmartscanFields(iouReportID)) {
+                _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
+            }
+        }
+    });
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
@@ -384,7 +393,7 @@ function getLastMessageTextForReport(report) {
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction);
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
@@ -436,7 +445,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         login: null,
         reportID: null,
         phoneNumber: null,
-        payPalMeAddress: null,
         hasDraftComment: false,
         keyForList: null,
         searchText: null,
@@ -452,6 +460,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
         isExpenseReport: false,
+        policyID: null,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -486,6 +495,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
         result.hasOutstandingIOU = report.hasOutstandingIOU;
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
+        result.policyID = report.policyID;
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -528,7 +538,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.login = personalDetail.login;
         result.accountID = Number(personalDetail.accountID);
         result.phoneNumber = personalDetail.phoneNumber;
-        result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
     result.text = reportName;
@@ -640,12 +649,8 @@ function getCategoryOptionTree(options, isOneLine = false) {
 /**
  * Build the section list for categories
  *
- * @param {Object[]} categories
- * @param {String} categories[].name
- * @param {Boolean} categories[].enabled
- * @param {Object[]} recentlyUsedCategories
- * @param {String} recentlyUsedCategories[].name
- * @param {Boolean} recentlyUsedCategories[].enabled
+ * @param {Object<String, {name: String, enabled: Boolean}>} categories
+ * @param {String[]} recentlyUsedCategories
  * @param {Object[]} selectedOptions
  * @param {String} selectedOptions[].name
  * @param {String} searchInputValue
@@ -654,11 +659,12 @@ function getCategoryOptionTree(options, isOneLine = false) {
  */
 function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const categorySections = [];
-    const numberOfCategories = _.size(categories);
+    const categoriesValues = _.values(categories);
+    const numberOfCategories = _.size(categoriesValues);
     let indexOffset = 0;
 
     if (!_.isEmpty(searchInputValue)) {
-        const searchCategories = _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchCategories = _.filter(categoriesValues, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         categorySections.push({
             // "Search" section
@@ -677,15 +683,21 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(categories),
+            data: getCategoryOptionTree(categoriesValues),
         });
 
         return categorySections;
     }
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-    const filteredRecentlyUsedCategories = _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category.name));
-    const filteredCategories = _.filter(categories, (category) => !_.includes(selectedOptionNames, category.name));
+    const filteredRecentlyUsedCategories = _.map(
+        _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category)),
+        (category) => ({
+            name: category,
+            enabled: lodashGet(categories, `${category}.enabled`, false),
+        }),
+    );
+    const filteredCategories = _.filter(categoriesValues, (category) => !_.includes(selectedOptionNames, category.name));
 
     if (!_.isEmpty(selectedOptions)) {
         categorySections.push({
@@ -764,7 +776,7 @@ function getOptions(
     },
 ) {
     if (includeCategories) {
-        const categoryOptions = getCategoryListSections(_.values(categories), recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
+        const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
 
         return {
             recentReports: [],
@@ -952,7 +964,7 @@ function getOptions(
     }
 
     let currentUserOption = _.find(allPersonalDetailsOptions, (personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
-    if (searchValue && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
+    if (searchValue && currentUserOption && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
         currentUserOption = null;
     }
 
@@ -1115,7 +1127,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {boolean} [includeP2P]
  * @param {boolean} [includeCategories]
  * @param {Object} [categories]
- * @param {Array<Object>} [recentlyUsedCategories]
+ * @param {Array<String>} [recentlyUsedCategories]
  * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
