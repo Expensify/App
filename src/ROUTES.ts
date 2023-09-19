@@ -50,7 +50,6 @@ export default {
     SETTINGS_WALLET: 'settings/wallet',
     SETTINGS_WALLET_DOMAINCARDS: '/settings/wallet/card/:domain',
     getWalletCardRoute: (domain: string) => `/settings/wallet/card/${domain}`,
-    SETTINGS_ADD_PAYPAL_ME: 'settings/wallet/add-paypal-me',
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',

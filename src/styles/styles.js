@@ -80,6 +80,7 @@ const webViewStyles = (theme) => ({
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
+            flex: 1,
         },
 
         strong: {
@@ -155,6 +156,7 @@ const webViewStyles = (theme) => ({
         fontFamily: fontFamily.EXP_NEUE,
         flex: 1,
         lineHeight: variables.fontSizeNormalHeight,
+        ...writingDirection.ltr,
     },
 });
 
