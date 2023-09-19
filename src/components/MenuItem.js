@@ -25,6 +25,7 @@ import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import MenuItemRenderHTMLTitle from './MenuItemRenderHTMLTitle';
+import {PressableWithoutFeedback} from './Pressable';
 
 const propTypes = menuItemPropTypes;
 
@@ -249,7 +250,9 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             {Boolean(props.title) && (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) && (
                                                 <ScrollView style={styles.menuItemHtmlRendererScrollView}>
-                                                    <MenuItemRenderHTMLTitle title={getProcessedTitle} />
+                                                    <PressableWithoutFeedback>
+                                                        <MenuItemRenderHTMLTitle title={getProcessedTitle} />
+                                                    </PressableWithoutFeedback>
                                                 </ScrollView>
                                             )}
                                             {!props.shouldRenderAsHTML && !props.shouldParseTitle && Boolean(props.title) && (
