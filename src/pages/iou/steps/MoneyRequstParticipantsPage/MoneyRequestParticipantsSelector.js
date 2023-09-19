@@ -166,7 +166,10 @@ function MoneyRequestParticipantsSelector({
             if (isOptionInList) {
                 newSelectedOptions = _.reject(participants, (selectedOption) => selectedOption.accountID === option.accountID);
             } else {
-                newSelectedOptions = [...participants, {accountID: option.accountID, login: option.login, selected: true}];
+                newSelectedOptions = [
+                    ...participants,
+                    {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true},
+                ];
             }
 
             onAddParticipants(newSelectedOptions);
