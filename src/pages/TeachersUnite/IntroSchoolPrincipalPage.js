@@ -34,6 +34,7 @@ const defaultProps = {
 
 function IntroSchoolPrincipalPage(props) {
     const {translate} = useLocalize();
+
     /**
      * @param {Object} values
      * @param {String} values.firstName
