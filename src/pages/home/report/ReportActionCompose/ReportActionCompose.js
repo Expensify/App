@@ -5,6 +5,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import {useAnimatedRef} from 'react-native-reanimated';
+import {PortalHost} from '@gorhom/portal';
 import styles from '../../../../styles/styles';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as Report from '../../../../libs/actions/Report';
@@ -325,6 +326,7 @@ function ReportActionCompose({
             ref={containerRef}
             style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}
         >
+            <PortalHost name='suggestions' />
             <OfflineWithFeedback
                 pendingAction={pendingAction}
                 style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
