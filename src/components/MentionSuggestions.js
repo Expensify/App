@@ -81,6 +81,7 @@ function MentionSuggestions(props) {
                         name={item.icons[0].name}
                         type={item.icons[0].type}
                         fill={themeColors.success}
+                        fallbackIcon={item.icons[0].fallbackIcon}
                     />
                 </View>
                 <Text

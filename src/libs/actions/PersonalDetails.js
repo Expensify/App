@@ -429,6 +429,7 @@ function updateAvatar(file) {
                         avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         originalFileName: null,
                     },
+                    fallbackIcon: file.uri
                 },
             },
         },

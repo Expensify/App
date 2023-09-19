@@ -353,6 +353,7 @@ function InitialSettingsPage(props) {
                                                     imageStyles={[styles.avatarLarge]}
                                                     source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
+                                                    fallbackIcon={props.currentUserPersonalDetails.fallbackIcon}
                                                 />
                                             </OfflineWithFeedback>
                                         </PressableWithoutFeedback>

@@ -103,7 +103,7 @@ function ProfilePage(props) {
     useEffect(() => {
         App.openProfile(props.currentUserPersonalDetails);
     }, [props.currentUserPersonalDetails]);
-
+    
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
@@ -124,6 +124,7 @@ function ProfilePage(props) {
                     errorRowStyles={[styles.mt6]}
                     onErrorClose={PersonalDetails.clearAvatarErrors}
                     style={[styles.mh5]}
+                    fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
                 />
                 <View style={[styles.mt4]}>
                     {_.map(profileSettingsOptions, (detail, index) => (

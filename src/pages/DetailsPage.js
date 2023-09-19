@@ -160,6 +160,7 @@ function DetailsPage(props) {
                                                     imageStyles={[styles.avatarLarge]}
                                                     source={UserUtils.getAvatar(details.avatar, details.accountID)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
+                                                    fallbackIcon={details.fallbackIcon}
                                                 />
                                             </OfflineWithFeedback>
                                         </PressableWithoutFocus>
