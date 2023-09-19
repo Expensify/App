@@ -4,6 +4,7 @@ import React, {useState, useRef, useEffect, memo, useCallback, useContext, useMe
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {useRoute} from '@react-navigation/native';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -67,7 +68,6 @@ import usePrevious from '../../../hooks/usePrevious';
 import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
 import themeColors from '../../../styles/themes/default';
-import withRoute from '../../../components/withRoute';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import RenderHTML from '../../../components/RenderHTML';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
@@ -129,6 +129,7 @@ const defaultProps = {
 };
 
 function ReportActionItem(props) {
+    const route = useRoute();
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -140,7 +141,7 @@ function ReportActionItem(props) {
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
-    const reportActionID = lodashGet(props.route, 'params.reportActionID');
+    const reportActionID = lodashGet(route, 'params.reportActionID');
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (reportActionID === props.action.reportActionID ? {backgroundColor: themeColors.highlightBG} : {}),
@@ -695,7 +696,6 @@ export default compose(
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
         },
     }),
-    withRoute,
 )(
     memo(
         ReportActionItem,
