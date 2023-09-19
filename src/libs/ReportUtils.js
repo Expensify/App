@@ -2297,12 +2297,13 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
  *
  * @param {Object} iouReport
  * @param {Object} reportPreviewAction
+ * @param {Boolean} isPayRequest
  * @param {String} [comment] - User comment for the IOU.
  * @param {Object} [transaction] - optimistic newest transaction of a report preview
  *
  * @returns {Object}
  */
-function updateReportPreview(iouReport, reportPreviewAction, comment = '', transaction = undefined) {
+function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = false, comment = '', transaction = undefined) {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const lastReceiptTransactionIDs = lodashGet(reportPreviewAction, 'childLastReceiptTransactionIDs', '');
     const previousTransactionIDs = lastReceiptTransactionIDs.split(',').slice(0, 2);
@@ -2320,7 +2321,7 @@ function updateReportPreview(iouReport, reportPreviewAction, comment = '', trans
             },
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
-        childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
+        childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + (isPayRequest ? 0 : 1),
         childLastReceiptTransactionIDs: hasReceipt ? [transaction.transactionID, ...previousTransactionIDs].join(',') : lastReceiptTransactionIDs,
         // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
         // so we remove the whisper
