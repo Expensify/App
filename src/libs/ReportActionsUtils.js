@@ -630,20 +630,6 @@ function isReportActionAttachment(reportAction) {
     return _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : isReportMessageAttachment(message);
 }
 
-/**
- *
- * @param {*} reportID
- * @returns {Boolean}
- */
-
-function isChildReportHasComment(reportID) {
-    const reportActions = allReportActions[reportID];
-    if (_.isEmpty(reportActions)) {
-        return false;
-    }
-    return _.some(reportActions, (reportAction) => (reportAction.childVisibleActionCount || 0) > 0);
-}
-
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -682,5 +668,4 @@ export {
     isTaskAction,
     getAllReportActions,
     isReportActionAttachment,
-    isChildReportHasComment,
 };
