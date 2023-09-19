@@ -203,6 +203,7 @@ export default [
                     const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+                    const originalMessage = _.get(reportAction, 'originalMessage', {});
                     const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
                     const {amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
                     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
