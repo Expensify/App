@@ -8,6 +8,7 @@ import getButtonState from '../libs/getButtonState';
 import variables from '../styles/variables';
 import Tooltip from './Tooltip';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import ReportActionComposeFocusManager from '../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /**
@@ -53,7 +54,11 @@ function BaseMiniContextMenuItem(props) {
             <PressableWithoutFeedback
                 ref={props.innerRef}
                 onPress={props.onPress}
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => {
+                    if (ReportActionComposeFocusManager.isFocused() || ReportActionComposeFocusManager.isEditFocused()) {
+                        e.preventDefault();
+                    }
+                }}
                 accessibilityLabel={props.tooltipText}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
