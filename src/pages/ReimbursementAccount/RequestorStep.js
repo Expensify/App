@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
+import _ from 'lodash';
 import styles from '../../styles/styles';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
@@ -89,7 +89,7 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
     const submit = useCallback(
         (values) => {
             const payload = {
-                bankAccountID: lodashGet(reimbursementAccount, 'achData.bankAccountID', 0),
+                bankAccountID: _.get(reimbursementAccount, 'achData.bankAccountID', 0),
                 ...values,
             };
 
