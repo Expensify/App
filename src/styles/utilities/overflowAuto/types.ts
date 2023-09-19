@@ -1,5 +1,5 @@
-import {CSSProperties} from 'react';
+import {ViewStyle} from 'react-native';
 
-type OverflowAutoStyles = Pick<CSSProperties, 'overflow'>;
+type OverflowAutoStyles = Pick<ViewStyle, 'overflow'>;
 
 export default OverflowAutoStyles;

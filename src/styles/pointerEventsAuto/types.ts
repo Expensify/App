@@ -1,5 +1,5 @@
-import {CSSProperties} from 'react';
+import {ViewStyle} from 'react-native';
 
-type PointerEventsAutoStyles = Partial<Pick<CSSProperties, 'pointerEvents'>>;
+type PointerEventsAutoStyles = Pick<ViewStyle, 'pointerEvents'>;
 
 export default PointerEventsAutoStyles;

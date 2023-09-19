@@ -1,5 +1,5 @@
-import {CSSProperties} from 'react';
+import {ViewStyle} from 'react-native';
 
-type VisibilityStyles = Record<'visible' | 'hidden', Partial<Pick<CSSProperties, 'visibility'>>>;
+type VisibilityStyles = Record<'visible' | 'hidden', Pick<ViewStyle, 'visibility'>>;
 
 export default VisibilityStyles;

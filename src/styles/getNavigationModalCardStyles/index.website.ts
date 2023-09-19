@@ -1,3 +1,4 @@
+import positioning from '../utilities/positioning';
 import GetNavigationModalCardStyles from './types';
 
 const getNavigationModalCardStyles: GetNavigationModalCardStyles = () => ({
@@ -8,7 +9,8 @@ const getNavigationModalCardStyles: GetNavigationModalCardStyles = () => ({
     // https://github.com/Expensify/App/issues/20709
     width: '100%',
     height: '100%',
-    position: 'fixed',
+
+    ...positioning.pFixed,
 });
 
 export default getNavigationModalCardStyles;

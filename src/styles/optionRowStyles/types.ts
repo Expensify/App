@@ -1,6 +1,5 @@
-import {CSSProperties} from 'react';
 import {ViewStyle} from 'react-native';
 
-type OptionRowStyles = CSSProperties | ViewStyle;
+type CompactContentContainerStyles = ViewStyle;
 
-export default OptionRowStyles;
+export default CompactContentContainerStyles;

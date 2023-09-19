@@ -63,7 +63,7 @@ const lightTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.lightHighlightBackground,
     dropUIBG: 'rgba(252, 251, 249, 0.92)',
-    dropTransparentOverlay: 'rgba(255,255,255,0)',
+    receiptDropUIBG: '', // TODO: add color
     checkBox: colors.green400,
     pickerOptionsTextColor: colors.lightPrimaryText,
     imageCropBackgroundColor: colors.lightIcons,
@@ -84,7 +84,7 @@ const lightTheme = {
     starDefaultBG: 'rgb(254, 228, 94)',
 
     PAGE_BACKGROUND_COLORS: {
-        [SCREENS.HOME]: colors.lightBorders,
+        [SCREENS.HOME]: colors.lightHighlightBackground,
         [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
         [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
         [ROUTES.SETTINGS_STATUS]: colors.green700,

@@ -1,3 +1,5 @@
+import {TextStyle} from 'react-native';
+
 type FontFamilyKeys =
     | 'EXP_NEUE_ITALIC'
     | 'EXP_NEUE_BOLD'
@@ -10,6 +12,6 @@ type FontFamilyKeys =
     | 'MONOSPACE_BOLD'
     | 'MONOSPACE_BOLD_ITALIC';
 
-type FontFamilyStyles = Record<FontFamilyKeys, string>;
+type FontFamilyStyles = Record<FontFamilyKeys, NonNullable<TextStyle['fontFamily']>>;
 
 export default FontFamilyStyles;

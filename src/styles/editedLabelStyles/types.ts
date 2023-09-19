@@ -1,6 +1,5 @@
-import {CSSProperties} from 'react';
 import {TextStyle} from 'react-native';
 
-type EditedLabelStyles = CSSProperties | TextStyle;
+type EditedLabelStyles = TextStyle;
 
 export default EditedLabelStyles;
