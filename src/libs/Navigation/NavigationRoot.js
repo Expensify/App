@@ -11,6 +11,8 @@ import Log from '../Log';
 import StatusBar from '../StatusBar';
 import useCurrentReportID from '../../hooks/useCurrentReportID';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as EmojiPickerAction from '../actions/EmojiPickerAction';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -121,6 +123,10 @@ function NavigationRoot(props) {
         if (!state) {
             return;
         }
+        ReportActionContextMenu.hideContextMenu();
+        ReportActionContextMenu.hideDeleteModal();
+        EmojiPickerAction.hideEmojiPicker(true);
+
         updateCurrentReportID(state);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();

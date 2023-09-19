@@ -593,7 +593,7 @@ PODS:
     - React-Core
   - react-native-pdf (6.7.1):
     - React-Core
-  - react-native-performance (4.0.0):
+  - react-native-performance (5.1.0):
     - React-Core
   - react-native-plaid-link-sdk (10.0.0):
     - Plaid (~> 4.1.0)
@@ -815,7 +815,7 @@ PODS:
   - RNScreens (3.21.0):
     - React-Core
     - React-RCTImage
-  - RNSVG (13.9.0):
+  - RNSVG (13.13.0):
     - React-Core
   - SDWebImage (5.11.1):
     - SDWebImage/Core (= 5.11.1)
@@ -1255,7 +1255,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: ccbe1085dffd16592791d550189772e13bf479e2
   react-native-pager-view: 0ccb8bf60e2ebd38b1f3669fa3650ecce81db2df
   react-native-pdf: 7c0e91ada997bac8bac3bb5bea5b6b81f5a3caae
-  react-native-performance: 224bd53e6a835fda4353302cf891d088a0af7406
+  react-native-performance: cef2b618d47b277fb5c3280b81a3aad1e72f2886
   react-native-plaid-link-sdk: 9eb0f71dad94b3bdde649c7a384cba93024af46c
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
@@ -1300,7 +1300,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNReanimated: 020859659f64be2d30849a1fe88c821a7c3e0cbf
   RNScreens: d037903436160a4b039d32606668350d2a808806
-  RNSVG: 53c661b76829783cdaf9b7a57258f3d3b4c28315
+  RNSVG: ed492aaf3af9ca01bc945f7a149d76d62e73ec82
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
