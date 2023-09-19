@@ -26,10 +26,16 @@ function PopoverReactionList(props) {
     const showReactionList = (event, reactionListAnchor, emojiName, reportActionID) => {
         setReactionListReportActionID(reportActionID);
         setReactionListEmojiName(emojiName);
+        if (!innerReactionListRef.current || !innerReactionListRef.current.hideReactionList) {
+            return;
+        }
         innerReactionListRef.current.showReactionList(event, reactionListAnchor);
     };
 
     const hideReactionList = () => {
+        if (!innerReactionListRef.current || !innerReactionListRef.current.hideReactionList) {
+            return;
+        }
         innerReactionListRef.current.hideReactionList();
     };
 
