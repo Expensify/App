@@ -1,7 +1,7 @@
 declare global {
     // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     interface Window {
-        electron: Electron;
+        electron: Electron.IpcRenderer;
     }
 }
 

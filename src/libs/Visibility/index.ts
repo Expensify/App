@@ -1,28 +1,25 @@
 import {AppState} from 'react-native';
+import {HasFocus, IsVisible, OnVisibilityChange} from './types';
 
 /**
  * Detects whether the app is visible or not.
  */
-function isVisible() {
-    return document.visibilityState === 'visible';
-}
+const isVisible: IsVisible = () => document.visibilityState === 'visible';
 
 /**
  * Whether the app is focused.
  */
-function hasFocus() {
-    return document.hasFocus();
-}
+const hasFocus: HasFocus = () => document.hasFocus();
 
 /**
  * Adds event listener for changes in visibility state
  */
-function onVisibilityChange(callback: () => void) {
+const onVisibilityChange: OnVisibilityChange = (callback) => {
     // Deliberately strip callback argument to be consistent across implementations
     const subscription = AppState.addEventListener('change', () => callback());
 
     return () => subscription.remove();
-}
+};
 
 export default {
     isVisible,
