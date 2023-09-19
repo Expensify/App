@@ -739,6 +739,7 @@ function isMoneyRequestReport(reportOrID) {
  *
  * @param {Object|String} reportOrID
  * @param {Object} reportAction
+ * @param {Object} deletedMessage
  * @returns {Boolean}
  */
 function shouldDeleteReportOnCommentDeletion(reportOrID, reportAction, deletedMessage) {
