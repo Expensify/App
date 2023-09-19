@@ -72,13 +72,15 @@ get_abs_path() {
     done
 
     # Remove any trailing '/'
-    abs_path=$(echo "$abs_path" | sed 's:/*$::')
+    while [[ $abs_path == */ ]]; do
+        abs_path=${abs_path%/}
+    done
 
     # Special case for root
     [ -z "$abs_path" ] && abs_path="/"
 
     # Special case to remove any starting '//' when the input path was absolute
-    abs_path=$(echo "$abs_path" | sed 's:^//:/:')
+    abs_path=${abs_path/#\/\//\/}
 
     echo "$abs_path"
 }
