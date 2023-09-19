@@ -50,7 +50,7 @@ Concierge is our automated system that answers member questions in real-time. Qu
 
 #### Who is invited to the Expensify Lounge?
 
-Everyone is invited to the Expensify Lounge! Whether you're an existing customer, or you're someone looking for a great space to Get Shit Done, we'd love to have you.
+Customers with an Expensify subscription can use Expensify’s lounge workplace.
 
 #### How do I escalate something that's making me or someone else uncomfortable?
 
