@@ -132,9 +132,7 @@ function signInAndGetAppWithUnreadChat() {
     return waitForPromisesToResolveWithAct()
         .then(() => {
             const hintText = Localize.translateLocal('loginForm.loginForm');
-            console.log(`hintText = `, hintText);
             const loginForm = screen.queryAllByLabelText(hintText);
-            console.log(`loginForm = `, loginForm);
             expect(loginForm).toHaveLength(1);
 
             return TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
