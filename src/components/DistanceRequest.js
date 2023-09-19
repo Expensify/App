@@ -103,7 +103,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
         const initialWaypoints = lodashGet(transaction, 'comment.waypoints', {});
         onWaypointsLoaded(initialWaypoints);
         return initialWaypoints;
-    }, [transaction]);
+    }, [transaction, onWaypointsLoaded]);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
     const numberOfPreviousWaypoints = _.size(previousWaypoints);
