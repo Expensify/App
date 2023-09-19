@@ -33,15 +33,15 @@ import OfflineWithFeedback from '../OfflineWithFeedback';
 import categoryPropTypes from '../categoryPropTypes';
 
 const propTypes = {
+    /** The report currently being looked at */
+    report: reportPropTypes.isRequired,
+
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
 
     /* Onyx Props */
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
 
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
