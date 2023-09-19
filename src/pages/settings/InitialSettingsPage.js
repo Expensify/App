@@ -330,7 +330,10 @@ function InitialSettingsPage(props) {
     const headerContent = (
         <View style={[styles.avatarSectionWrapper, styles.justifyContentCenter]}>
             {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
-                <CurrentUserPersonalDetailsSkeletonView />
+                <CurrentUserPersonalDetailsSkeletonView
+                    backgroundColor={themeColors.appBG}
+                    avatarSize={CONST.AVATAR_SIZE.XLARGE}
+                />
             ) : (
                 <>
                     <Tooltip text={translate('common.profile')}>
@@ -342,9 +345,9 @@ function InitialSettingsPage(props) {
                         >
                             <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                 <Avatar
-                                    imageStyles={[styles.avatarLarge]}
+                                    imageStyles={[styles.avatarXLarge]}
                                     source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
-                                    size={CONST.AVATAR_SIZE.LARGE}
+                                    size={CONST.AVATAR_SIZE.XLARGE}
                                 />
                             </OfflineWithFeedback>
                         </PressableWithoutFeedback>

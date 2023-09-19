@@ -1989,6 +1989,11 @@ const styles = (theme) => ({
         height: variables.avatarSizeLarge,
     },
 
+    avatarXLarge: {
+        width: variables.avatarSizeXLarge,
+        height: variables.avatarSizeXLarge,
+    },
+
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,

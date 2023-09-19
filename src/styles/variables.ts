@@ -28,6 +28,7 @@ export default {
     downloadAppModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
+    avatarSizeXLarge: 120,
     avatarSizeLarge: 80,
     avatarSizeMedium: 52,
     avatarSizeHeader: 40,
