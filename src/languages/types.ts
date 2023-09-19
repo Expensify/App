@@ -100,8 +100,6 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
-type SettlePaypalMeParams = {formattedAmount: string};
-
 type RequestAmountParams = {amount: number};
 
 type SplitAmountParams = {amount: number};
@@ -125,8 +123,6 @@ type WaitingOnBankAccountParams = {submitterDisplayName: string};
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
 type PaidElsewhereWithAmountParams = {payer: string; amount: string};
-
-type PaidUsingPaypalWithAmountParams = {payer: string; amount: string};
 
 type PaidWithExpensifyWithAmountParams = {payer: string; amount: string};
 
@@ -191,6 +187,8 @@ type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
+
+type TagSelectionParams = {tagName: string};
 
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -258,7 +256,6 @@ export type {
     ReportArchiveReasonsPolicyDeletedParams,
     RequestCountParams,
     SettleExpensifyCardParams,
-    SettlePaypalMeParams,
     RequestAmountParams,
     SplitAmountParams,
     AmountEachParams,
@@ -271,7 +268,6 @@ export type {
     WaitingOnBankAccountParams,
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
-    PaidUsingPaypalWithAmountParams,
     PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -304,4 +300,5 @@ export type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    TagSelectionParams,
 };

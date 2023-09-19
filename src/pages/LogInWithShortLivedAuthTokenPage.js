@@ -8,7 +8,7 @@ import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
-import colors from '../styles/colors';
+import themeColors from '../styles/themes/default';
 import Icon from '../components/Icon';
 import * as Expensicons from '../components/Icon/Expensicons';
 import * as Illustrations from '../components/Icon/Illustrations';
@@ -93,7 +93,7 @@ function LogInWithShortLivedAuthTokenPage(props) {
                 <Icon
                     width={154}
                     height={34}
-                    fill={colors.green}
+                    fill={themeColors.success}
                     src={Expensicons.ExpensifyWordmark}
                 />
             </View>

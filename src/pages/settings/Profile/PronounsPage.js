@@ -31,7 +31,7 @@ function PronounsPage({currentUserPersonalDetails}) {
             .find((_value) => _value === currentPronounsKey)
             .value();
 
-        return currentPronounsText || '';
+        return currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '';
     });
 
     const filteredPronounsList = useMemo(() => {
