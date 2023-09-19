@@ -890,10 +890,10 @@ function getOptions(
     }
 
     // Always exclude already selected options and the currently logged in user
-    const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+    const optionsToExclude = [...selectedOptions, {login: currentUserLogin}];
 
     _.each(excludeLogins, (login) => {
-        loginOptionsToExclude.push({login});
+        optionsToExclude.push({login});
     });
 
     if (includeRecentReports) {
@@ -914,7 +914,11 @@ function getOptions(
             }
 
             // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
-            if (!includeThreads && reportOption.login && _.some(loginOptionsToExclude, (option) => option.login === reportOption.login)) {
+            if (
+                !includeThreads &&
+                (reportOption.login || reportOption.reportID) &&
+                _.some(optionsToExclude, (option) => (option.login && option.login === reportOption.login) || (option.reportID && option.reportID === reportOption.reportID))
+            ) {
                 continue;
             }
 
@@ -938,7 +942,7 @@ function getOptions(
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
-                loginOptionsToExclude.push({login: reportOption.login});
+                optionsToExclude.push({login: reportOption.login});
             }
         }
     }
@@ -946,7 +950,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
-            if (_.some(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === personalDetailOption.login)) {
+            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -974,7 +978,7 @@ function getOptions(
         _.every(selectedOptions, (option) => option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
             (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number.input)))) &&
-        !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
+        !_.find(optionsToExclude, (optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
         !excludeUnknownUsers
     ) {
