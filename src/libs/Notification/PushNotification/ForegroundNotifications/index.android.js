@@ -6,7 +6,7 @@ function configureForegroundNotifications() {
 }
 
 function disableForegroundNotifications() {
-    Airship.push.android.setForegroundDisplayPredicate(() => Promise.resolve(() => false));
+    Airship.push.android.setForegroundDisplayPredicate(() => Promise.resolve(false);
 }
 
 export default {
