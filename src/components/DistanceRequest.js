@@ -1,5 +1,5 @@
-import React, {useEffect, useMemo, useState, useRef} from 'react';
-import {View, ScrollView} from 'react-native';
+import React, {useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashIsNil from 'lodash/isNil';
@@ -30,7 +30,6 @@ import * as IOUUtils from '../libs/IOUUtils';
 import Button from './Button';
 import DistanceMapView from './DistanceMapView';
 import DraggableList from './DraggableList';
-import LinearGradient from './LinearGradient';
 import * as Expensicons from './Icon/Expensicons';
 import PendingMapView from './MapView/PendingMapView';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -38,13 +37,11 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {iouPropTypes} from '../pages/iou/propTypes';
 import reportPropTypes from '../pages/reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
-import * as StyleUtils from '../styles/StyleUtils';
 import ScreenWrapper from './ScreenWrapper';
 import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from './HeaderWithBackButton';
 
 const MAX_WAYPOINTS = 25;
-const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
 const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
@@ -92,11 +89,6 @@ const defaultProps = {
 };
 
 function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, route}) {
-    const [shouldShowGradient, setShouldShowGradient] = useState(false);
-    const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
-    const [scrollContentHeight, setScrollContentHeight] = useState(0);
-    const [scrollContentOffset, setScrollContentOffset] = useState(0);
-
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
@@ -153,10 +145,6 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
         [waypoints, lastWaypointIndex],
     );
 
-    // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
-    const halfMenuItemHeight = Math.floor(variables.optionRowHeight / 2);
-    const scrollContainerMaxHeight = variables.optionRowHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
-
     useEffect(() => {
         MapboxToken.init();
         return MapboxToken.stop;
@@ -170,12 +158,6 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
         Transaction.createInitialWaypoints(iou.transactionID);
     }, [iou.transactionID, waypoints]);
 
-    const updateGradientVisibility = () => {
-        // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
-        const visibleAreaEnd = scrollContentOffset + scrollContainerHeight;
-        // TODO: Fix updating gradient visibility
-        setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
-    };
     useEffect(() => {
         if (isOffline || !shouldFetchRoute) {
             return;
@@ -191,8 +173,6 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
         scrollViewRef.current.scrollToEnd({animated: true});
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
-    useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight, scrollContentOffset]);
-
     const navigateBack = () => {
         Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
     };
@@ -206,79 +186,15 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
         IOU.navigateToNextPage(iou, iouType, reportID, report);
     };
 
-    const content = (
-        <ScrollView contentContainerStyle={styles.flexGrow1}>
-            <View
-                style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
-                onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
-            >
-                <DraggableList
-                    data={waypointsList}
-                    keyExtractor={(item) => item}
-                    shouldUsePortal
-                    onContentSizeChange={(width, height) => {
-                        if (scrollContentHeight < height && numberOfWaypoints > numberOfPreviousWaypoints) {
-                            scrollViewRef.current.scrollToEnd({animated: true});
-                        }
-                        setScrollContentHeight(height);
-                    }}
-                    onDragEnd={({data}) => {
-                        const newWaypoints = {};
-                        _.each(data, (waypoint, index) => {
-                            newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, null);
-                        });
-                        Transaction.updateWaypoints(iou.transactionID, newWaypoints);
-                    }}
-                    onScrollOffsetChange={setScrollContentOffset}
-                    scrollEventThrottle={variables.distanceScrollEventThrottle}
-                    ref={scrollViewRef}
-                    renderItem={({item, drag, getIndex, isActive}) => {
-                        // key is of the form waypoint0, waypoint1, ...
-                        const index = getIndex();
-                        let descriptionKey = 'distance.waypointDescription.';
-                        let waypointIcon;
-                        if (index === 0) {
-                            descriptionKey += 'start';
-                            waypointIcon = Expensicons.DotIndicatorUnfilled;
-                        } else if (index === lastWaypointIndex) {
-                            descriptionKey += 'finish';
-                            waypointIcon = Expensicons.Location;
-                        } else {
-                            descriptionKey += 'stop';
-                            waypointIcon = Expensicons.DotIndicator;
-                        }
-
-                        return (
-                            <MenuItemWithTopDescription
-                                description={translate(descriptionKey)}
-                                title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
-                                icon={Expensicons.DragHandles}
-                                iconFill={theme.icon}
-                                secondaryIcon={waypointIcon}
-                                secondaryIconFill={theme.icon}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', index))}
-                                onSecondaryInteraction={drag}
-                                focused={isActive}
-                                key={item}
-                            />
-                        );
-                    }}
+    const footer = (
+        <>
+            {hasRouteError && (
+                <DotIndicatorMessage
+                    style={[styles.mh5, styles.mv3]}
+                    messages={ErrorUtils.getLatestErrorField(transaction, 'route')}
+                    type="error"
                 />
-                {shouldShowGradient && (
-                    <LinearGradient
-                        style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, {height: halfMenuItemHeight}]}
-                        colors={[StyleUtils.getTransparentColor(theme.modalBackground), theme.modalBackground]}
-                    />
-                )}
-                {hasRouteError && (
-                    <DotIndicatorMessage
-                        style={[styles.mh5, styles.mv3]}
-                        messages={ErrorUtils.getLatestErrorField(transaction, 'route')}
-                        type="error"
-                    />
-                )}
-            </View>
+            )}
             <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                 <Button
                     small
@@ -312,14 +228,69 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                     />
                 )}
             </View>
-            <Button
-                success
-                style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                onPress={navigateToNextPage}
-                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline}
-                text={translate('common.next')}
-            />
-        </ScrollView>
+        </>
+    );
+
+    const content = (
+        <>
+            <View style={styles.flex1}>
+                <DraggableList
+                    data={waypointsList}
+                    keyExtractor={(item) => item}
+                    shouldUsePortal
+                    onDragEnd={({data}) => {
+                        const newWaypoints = {};
+                        _.each(data, (waypoint, index) => {
+                            newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, null);
+                        });
+                        Transaction.updateWaypoints(iou.transactionID, newWaypoints);
+                    }}
+                    scrollEventThrottle={variables.distanceScrollEventThrottle}
+                    ref={scrollViewRef}
+                    renderItem={({item, drag, getIndex, isActive}) => {
+                        const index = getIndex();
+                        let descriptionKey = 'distance.waypointDescription.';
+                        let waypointIcon;
+                        if (index === 0) {
+                            descriptionKey += 'start';
+                            waypointIcon = Expensicons.DotIndicatorUnfilled;
+                        } else if (index === lastWaypointIndex) {
+                            descriptionKey += 'finish';
+                            waypointIcon = Expensicons.Location;
+                        } else {
+                            descriptionKey += 'stop';
+                            waypointIcon = Expensicons.DotIndicator;
+                        }
+
+                        return (
+                            <MenuItemWithTopDescription
+                                description={translate(descriptionKey)}
+                                title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
+                                icon={Expensicons.DragHandles}
+                                iconFill={theme.icon}
+                                secondaryIcon={waypointIcon}
+                                secondaryIconFill={theme.icon}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', index))}
+                                onSecondaryInteraction={drag}
+                                focused={isActive}
+                                key={item}
+                            />
+                        );
+                    }}
+                    ListFooterComponent={footer}
+                />
+            </View>
+            <View style={[styles.w100, styles.pt2]}>
+                <Button
+                    success
+                    style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
+                    onPress={navigateToNextPage}
+                    isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline}
+                    text={translate('common.next')}
+                />
+            </View>
+        </>
     );
 
     if (!isEditing) {

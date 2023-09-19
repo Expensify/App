@@ -17,10 +17,7 @@ type DraggableListProps<T> = {
     onPlaceholderIndexChange?: (placeholderIndex: number) => void;
     renderClone?: DraggableChildrenFn;
     shouldUsePortal?: boolean;
-    onContentSizeChange?: ((w: number, h: number) => void) | undefined;
-    // TODO: implement on web
-    onScrollOffsetChange?: ((offset: number) => void) | undefined;
-    scrollEventThrottle?: number;
+    ListFooterComponent?: React.ReactNode | null;
 } & DraggableListData<T>;
 
 type RenderItemParams<T> = OriginalRenderItemParams<T>;

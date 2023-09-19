@@ -32,9 +32,8 @@ function DraggableList<T>(
         onPlaceholderIndexChange,
         renderClone,
         shouldUsePortal = false,
-        onContentSizeChange,
-        onScrollOffsetChange,
-        scrollEventThrottle = 16,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        ListFooterComponent,
     }: DraggableListProps<T>,
     ref: React.ForwardedRef<ScrollView>,
 ) {
@@ -80,26 +79,20 @@ function DraggableList<T>(
     const renderDraggable = useDraggableInPortal({shouldUsePortal});
 
     return (
-        <DragDropContext
-            onDragEnd={onDragEnd}
-            onDragStart={onDragBegin}
-            onDragUpdate={onDragUpdate}
+        <ScrollView
+            ref={ref}
+            style={{flex: 1}}
         >
-            <Droppable
-                droppableId="droppable"
-                renderClone={renderClone}
+            <DragDropContext
+                onDragEnd={onDragEnd}
+                onDragStart={onDragBegin}
+                onDragUpdate={onDragUpdate}
             >
-                {(droppableProvided) => (
-                    // We use ScrollView to match the native behavior of FlatList
-                    <ScrollView
-                        onContentSizeChange={onContentSizeChange}
-                        onScroll={(e) => {
-                            onScrollOffsetChange?.(e.nativeEvent.contentOffset.y);
-                        }}
-                        scrollEventThrottle={scrollEventThrottle}
-                        ref={ref}
-                    >
-                        {/* We can't use the react-native View here, because it doesn't support all props */}
+                <Droppable
+                    droppableId="droppable"
+                    renderClone={renderClone}
+                >
+                    {(droppableProvided) => (
                         <div
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...droppableProvided.droppableProps}
@@ -134,10 +127,11 @@ function DraggableList<T>(
                             })}
                             {droppableProvided.placeholder}
                         </div>
-                    </ScrollView>
-                )}
-            </Droppable>
-        </DragDropContext>
+                    )}
+                </Droppable>
+            </DragDropContext>
+            {ListFooterComponent}
+        </ScrollView>
     );
 }
 
