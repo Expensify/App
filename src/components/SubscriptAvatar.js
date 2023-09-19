@@ -40,31 +40,31 @@ const defaultProps = {
     showTooltip: true,
 };
 
-function SubscriptAvatar(props) {
-    const isSmall = props.size === CONST.AVATAR_SIZE.SMALL;
-    const subscriptStyle = props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
+function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, noMargin, showTooltip}) {
+    const isSmall = size === CONST.AVATAR_SIZE.SMALL;
+    const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
     const containerStyle = isSmall ? styles.emptyAvatarSmall : styles.emptyAvatar;
     // Default the margin style to what is normal for small or normal sized avatars
     let marginStyle = isSmall ? styles.emptyAvatarMarginSmall : styles.emptyAvatarMargin;
 
     // Some views like the chat view require that there be no margins
-    if (props.noMargin) {
+    if (noMargin) {
         marginStyle = {};
     }
 
-    const mainAvatar = (
+    const mainAvatarElement = (
         <Avatar
-            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(props.size || CONST.AVATAR_SIZE.DEFAULT))}
-            source={props.mainAvatar.source}
-            size={props.size || CONST.AVATAR_SIZE.DEFAULT}
-            name={props.mainAvatar.name}
-            type={props.mainAvatar.type}
+            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
+            source={mainAvatar.source}
+            size={size || CONST.AVATAR_SIZE.DEFAULT}
+            name={mainAvatar.name}
+            type={mainAvatar.type}
         />
     );
 
-    const secondaryAvatar = (
+    const secondaryAvatarElement = (
         <View
-            style={[props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle]}
+            style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle]}
             // Hover on overflowed part of icon will not work on Electron if dragArea is true
             // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
             dataSet={{dragArea: false}}
@@ -72,38 +72,38 @@ function SubscriptAvatar(props) {
             <Avatar
                 iconAdditionalStyles={[
                     StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
-                    StyleUtils.getBorderColorStyle(props.backgroundColor),
+                    StyleUtils.getBorderColorStyle(backgroundColor),
                 ]}
-                source={props.secondaryAvatar.source}
+                source={secondaryAvatar.source}
                 size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
                 fill={themeColors.iconSuccessFill}
-                name={props.secondaryAvatar.name}
-                type={props.secondaryAvatar.type}
+                name={secondaryAvatar.name}
+                type={secondaryAvatar.type}
             />
         </View>
     );
 
     return (
         <View style={[containerStyle, marginStyle]}>
-            {props.showTooltip ? (
+            {showTooltip ? (
                 <UserDetailsTooltip
-                    accountID={lodashGet(props.mainAvatar, 'id', -1)}
-                    icon={props.mainAvatar}
+                    accountID={lodashGet(mainAvatar, 'id', -1)}
+                    icon={mainAvatar}
                 >
-                    <View>{mainAvatar}</View>
+                    <View>{mainAvatarElement}</View>
                 </UserDetailsTooltip>
             ) : (
-                mainAvatar
+                mainAvatarElement
             )}
-            {props.showTooltip ? (
+            {showTooltip ? (
                 <UserDetailsTooltip
-                    accountID={lodashGet(props.secondaryAvatar, 'id', -1)}
-                    icon={props.secondaryAvatar}
+                    accountID={lodashGet(secondaryAvatar, 'id', -1)}
+                    icon={secondaryAvatar}
                 >
-                    {secondaryAvatar}
+                    {secondaryAvatarElement}
                 </UserDetailsTooltip>
             ) : (
-                secondaryAvatar
+                secondaryAvatarElement
             )}
         </View>
     );

@@ -13,7 +13,7 @@ import RadioListItem from './RadioListItem';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import CONST from '../../CONST';
 
-function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip, canSelectMultiple, onSelectRow, onDismissError = () => {}}) {
+function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip, canSelectMultiple = false, onSelectRow, onDismissError = () => {}}) {
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
 
@@ -28,7 +28,7 @@ function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip,
                 onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
                 accessibilityLabel={item.text}
-                accessibilityRole="button"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

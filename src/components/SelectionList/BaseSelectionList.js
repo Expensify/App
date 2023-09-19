@@ -23,6 +23,7 @@ import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import useActiveElement from '../../hooks/useActiveElement';
 import BaseListItem from './BaseListItem';
 import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -282,6 +283,14 @@ function BaseSelectionList({
         );
     };
 
+    const onLayout = () => {
+        if (!firstLayoutRef.current) {
+            return;
+        }
+        scrollToIndex(focusedIndex, false);
+        firstLayoutRef.current = false;
+    };
+
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
         useCallback(() => {
@@ -347,7 +356,7 @@ function BaseSelectionList({
                                     style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
                                     onPress={onSelectAll}
                                     accessibilityLabel={translate('workspace.people.selectAll')}
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityState={{checked: flattenedSections.allSelected}}
                                     disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -373,7 +382,7 @@ function BaseSelectionList({
                                 onScrollBeginDrag={onScrollBeginDrag}
                                 keyExtractor={(item) => item.keyForList}
                                 extraData={focusedIndex}
-                                indicatorStyle="white"
+                                indicatorStyle={themeColors.selectionListIndicatorColor}
                                 keyboardShouldPersistTaps="always"
                                 showsVerticalScrollIndicator={showScrollIndicator}
                                 initialNumToRender={12}
@@ -382,13 +391,7 @@ function BaseSelectionList({
                                 viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                 testID="selection-list"
                                 style={[styles.flexGrow0]}
-                                onLayout={() => {
-                                    if (!firstLayoutRef.current) {
-                                        return;
-                                    }
-                                    scrollToIndex(focusedIndex, false);
-                                    firstLayoutRef.current = false;
-                                }}
+                                onLayout={onLayout}
                             />
                             {children}
                         </>
