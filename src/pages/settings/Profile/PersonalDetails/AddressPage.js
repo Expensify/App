@@ -37,6 +37,7 @@ const propTypes = {
             country: PropTypes.string,
         }),
     }),
+
     /** Route from navigation */
     route: PropTypes.shape({
         /** Params from the route */
