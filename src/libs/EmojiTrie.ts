@@ -4,7 +4,6 @@ import emojis, {localeEmojis} from '../../assets/emojis';
 import Trie from './Trie';
 import Timing from './actions/Timing';
 import CONST from '../CONST';
-import {MetaData} from './Trie/TrieNode';
 
 type Emoji = {
     code: string;
@@ -21,6 +20,16 @@ type LocalizedEmoji = {
 
 type LocalizedEmojis = Record<string, LocalizedEmoji>;
 
+type Suggestion = {
+    code: string;
+    types?: string[];
+    name?: string;
+};
+
+type EmojiMetaData = {
+    suggestions?: Suggestion[];
+};
+
 Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
 
 const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES] as const;
@@ -28,7 +37,7 @@ const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES] as const;
 type SupportedLanguage = (typeof supportedLanguages)[number];
 
 type EmojiTrie = {
-    [key in SupportedLanguage]?: Trie<MetaData>;
+    [key in SupportedLanguage]?: Trie<EmojiMetaData>;
 };
 
 /**
@@ -39,7 +48,7 @@ type EmojiTrie = {
  * @param name The localized name of the emoji.
  * @param shouldPrependKeyword Prepend the keyword (instead of append) to the suggestions
  */
-function addKeywordsToTrie(trie: Trie<MetaData>, keywords: string[], item: Emoji, name: string, shouldPrependKeyword = false) {
+function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: Emoji, name: string, shouldPrependKeyword = false) {
     keywords.forEach((keyword) => {
         const keywordNode = trie.search(keyword);
         if (!keywordNode) {
@@ -66,7 +75,7 @@ function getNameParts(name: string): string[] {
     return nameSplit.map((namePart, index) => nameSplit.slice(index).join('_'));
 }
 
-function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<MetaData> {
+function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<EmojiMetaData> {
     const trie = new Trie();
     const langEmojis: LocalizedEmojis = localeEmojis[lang];
     const defaultLangEmojis: LocalizedEmojis = localeEmojis[CONST.LOCALES.DEFAULT];

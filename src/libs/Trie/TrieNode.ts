@@ -1,13 +1,4 @@
-type Suggestion = {
-    code: string;
-    types?: string[];
-    name?: string;
-};
-
-type MetaData = {
-    [key: string]: unknown;
-    suggestions?: Suggestion[];
-};
+type MetaData = Record<string, unknown>;
 
 class TrieNode<TMetadata extends MetaData> {
     children: Record<string, TrieNode<TMetadata>>;
