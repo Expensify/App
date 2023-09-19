@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Text from './Text';
 import styles from '../styles/styles';
@@ -248,7 +248,9 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             {Boolean(props.title) && (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) && (
-                                                <MenuItemRenderHTMLTitle title={getProcessedTitle} />
+                                                <ScrollView style={styles.menuItemHtmlRendererScrollView}>
+                                                    <MenuItemRenderHTMLTitle title={getProcessedTitle} />
+                                                </ScrollView>
                                             )}
                                             {!props.shouldRenderAsHTML && !props.shouldParseTitle && Boolean(props.title) && (
                                                 <Text
