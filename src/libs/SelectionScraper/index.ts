@@ -1,7 +1,7 @@
 import render from 'dom-serializer';
 import {parseDocument} from 'htmlparser2';
-import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import {DataNode, Element, Node} from 'domhandler';
 import CONST from '../../CONST';
 
 const elementsWillBeSkipped = ['html', 'body'];
@@ -9,17 +9,17 @@ const tagAttribute = 'data-testid';
 
 /**
  * Reads html of selection. If browser doesn't support Selection API, returns empty string.
- * @returns {String} HTML of selection as String
  */
-const getHTMLOfSelection = () => {
+const getHTMLOfSelection = (): string => {
     // If browser doesn't support Selection API, return an empty string.
-    if (!window.getSelection) {
-        return '';
-    }
     const selection = window.getSelection();
 
+    if (!selection || !window.getSelection) {
+        return '';
+    }
+
     if (selection.rangeCount <= 0) {
-        return window.getSelection().toString();
+        return window.getSelection()?.toString() ?? '';
     }
 
     const div = document.createElement('div');
@@ -64,17 +64,17 @@ const getHTMLOfSelection = () => {
             // and finally commonAncestorContainer.parentNode.closest('data-testid') is targeted dom.
             if (range.commonAncestorContainer instanceof HTMLElement) {
                 parent = range.commonAncestorContainer.closest(`[${tagAttribute}]`);
-            } else {
-                parent = range.commonAncestorContainer.parentNode.closest(`[${tagAttribute}]`);
+            } else if (range.commonAncestorContainer.parentNode) {
+                parent = (range.commonAncestorContainer.parentNode as HTMLElement).closest(`[${tagAttribute}]`);
             }
 
             // Keep traversing up to clone all parents with 'data-testid' attribute.
             while (parent) {
                 const cloned = parent.cloneNode();
                 cloned.appendChild(child);
-                child = cloned;
+                child = cloned as DocumentFragment;
 
-                parent = parent.parentNode.closest(`[${tagAttribute}]`);
+                parent = (parent.parentNode as HTMLElement).closest(`[${tagAttribute}]`);
             }
 
             div.appendChild(child);
@@ -96,58 +96,61 @@ const getHTMLOfSelection = () => {
 
 /**
  * Clears all attributes from dom elements
- * @param {Object} dom htmlparser2 dom representation
- * @param {Boolean} isChildOfEditorElement
- * @returns {Object} htmlparser2 dom representation
  */
-const replaceNodes = (dom, isChildOfEditorElement) => {
-    let domName = dom.name;
-    let domChildren;
-    const domAttribs = {};
-    let data;
+const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
+    const domElement = dom as Element;
+    let domName = domElement.name;
+    let domChildren: Node[] = [];
+    const domAttribs = {} as Element['attribs'];
+    let data = '';
 
     // Encoding HTML chars '< >' in the text, because any HTML will be removed in stripHTML method.
-    if (dom.type === 'text') {
-        data = Str.htmlEncode(dom.data);
+    if (dom.type.toString() === 'text') {
+        data = Str.htmlEncode((dom as DataNode).data);
     }
 
     // We are skipping elements which has html and body in data-testid, since ExpensiMark can't parse it. Also this data
     // has no meaning for us.
-    if (dom.attribs && dom.attribs[tagAttribute]) {
-        if (!elementsWillBeSkipped.includes(dom.attribs[tagAttribute])) {
-            domName = dom.attribs[tagAttribute];
+    if (domElement.attribs?.[tagAttribute]) {
+        if (!elementsWillBeSkipped.includes(domElement.attribs[tagAttribute])) {
+            domName = domElement.attribs[tagAttribute];
         }
-    } else if (dom.name === 'div' && dom.children.length === 1 && isChildOfEditorElement) {
+    } else if (domElement.name === 'div' && domElement.children.length === 1 && isChildOfEditorElement) {
         // We are excluding divs that are children of our editor element and have only one child to prevent
         // additional newlines from being added in the HTML to Markdown conversion process.
-        return replaceNodes(dom.children[0], isChildOfEditorElement);
+        return replaceNodes(domElement.children[0], isChildOfEditorElement);
     }
 
     // We need to preserve href attribute in order to copy links.
-    if (dom.attribs && dom.attribs.href) {
-        domAttribs.href = dom.attribs.href;
+    if (domElement.attribs?.href) {
+        domAttribs.href = domElement.attribs.href;
     }
 
-    if (dom.children) {
-        domChildren = _.map(dom.children, (c) => replaceNodes(c, isChildOfEditorElement || !_.isEmpty(dom.attribs && dom.attribs[tagAttribute])));
+    if (domElement.children) {
+        domChildren = domElement.children.map((c) => replaceNodes(c, isChildOfEditorElement || !!domElement.attribs?.[tagAttribute]));
+    }
+
+    if (data) {
+        return {
+            ...dom,
+            data,
+        } as DataNode;
     }
 
     return {
         ...dom,
-        data,
         name: domName,
         attribs: domAttribs,
         children: domChildren,
-    };
+    } as Element;
 };
 
 /**
  * Resolves the current selection to values and produces clean HTML.
- * @returns {String} resolved selection in the HTML format
  */
-const getCurrentSelection = () => {
+const getCurrentSelection = (): string => {
     const domRepresentation = parseDocument(getHTMLOfSelection());
-    domRepresentation.children = _.map(domRepresentation.children, replaceNodes);
+    domRepresentation.children = domRepresentation.children.map((item) => replaceNodes(item, false));
 
     // Newline characters need to be removed here because the HTML could contain both newlines and <br> tags, and when
     // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
