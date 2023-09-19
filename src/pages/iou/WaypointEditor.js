@@ -116,7 +116,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         return errors;
     };
 
-    const onSubmit = (values) => {
+    const submit = (values) => {
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
 
         // Allows letting you set a waypoint to an empty value
@@ -200,7 +200,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
-                    onSubmit={onSubmit}
+                    onSubmit={submit}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}

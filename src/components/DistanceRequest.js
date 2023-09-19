@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState, useRef} from 'react';
+import React, {useEffect, useMemo, useState, useRef, forwardRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -59,6 +59,9 @@ const propTypes = {
     /** Called on submit of this page */
     onSubmit: PropTypes.func.isRequired,
 
+    /** Called when the waypoints have been loaded for the transaction and passed the waypoints */
+    onWaypointsLoaded: PropTypes.func,
+
     /* Onyx Props */
     transaction: transactionPropTypes,
 
@@ -82,10 +85,11 @@ const defaultProps = {
     mapboxAccessToken: {
         token: '',
     },
+    onWaypointsLoaded: () => {},
     transaction: {},
 };
 
-function DistanceRequest({transactionID, report, transaction, mapboxAccessToken, route, isEditingRequest, onSubmit}) {
+const DistanceRequest = ({transactionID, report, transaction, mapboxAccessToken, route, isEditingRequest, onSubmit, onWaypointsLoaded}) => {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -95,7 +99,11 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
     const isEditing = lodashGet(route, 'path', '').includes('address');
     const reportID = lodashGet(report, 'reportID', '');
     const iouType = lodashGet(route, 'params.iouType', '');
-    const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
+    const waypoints = useMemo(() => {
+        const waypoints = lodashGet(transaction, 'comment.waypoints', {});
+        onWaypointsLoaded(waypoints);
+        return waypoints;
+    }, [transaction]);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
     const numberOfPreviousWaypoints = _.size(previousWaypoints);
@@ -314,7 +322,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
             )}
         </ScreenWrapper>
     );
-}
+};
 
 DistanceRequest.displayName = 'DistanceRequest';
 DistanceRequest.propTypes = propTypes;

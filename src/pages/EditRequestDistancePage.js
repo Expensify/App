@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../CONST';
@@ -9,6 +9,8 @@ import useLocalize from '../hooks/useLocalize';
 import DistanceRequest from '../components/DistanceRequest';
 import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
+import * as Transaction from '../libs/actions/Transaction';
+import {init} from 'onfido-sdk-ui';
 
 const propTypes = {
     /** The transactionID we're currently editing */
@@ -30,11 +32,40 @@ const propTypes = {
 };
 
 function EditRequestDistancePage({transactionID, report, route}) {
+    let initialWaypoints;
     useEffect(() => {
         IOU.setDistanceRequestTransactionID(transactionID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const {translate} = useLocalize();
+
+    /**
+     * When the back button is pressed, the waypoints need to be reset on the transaction back to what they
+     * were when the component first mounted.
+     */
+    const removeUnsavedWaypointsAndGoBack = () => {
+        Transaction.resetWaypoints(transactionID, initialWaypoints);
+        Navigation.goBack();
+    };
+
+    /**
+     * When waypoints are initially loaded from Onyx inside of DistanceRequest
+     * they are sent here so they can be remembered. That way if the user presses the back button
+     * after having edited the waypoints, then all of their changes can be reset on the transaction.
+     * If the data is not reset when going back, it can cause problems when the user edits another field like amount
+     * and the updated waypoints get sent in the request to update the distance without the user
+     * ever clicking the "save" button for waypoints. It's very unexpected for the user.
+     * @param {Object} waypoints
+     * @returns
+     */
+    const saveInitialWaypoints = (waypoints) => {
+        // Ignore any subsequent updates to the waypoints so that the initial waypoints are only updated once and
+        // never again.
+        if (initialWaypoints) {
+            return;
+        }
+        initialWaypoints = waypoints;
+    };
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -42,13 +73,14 @@ function EditRequestDistancePage({transactionID, report, route}) {
         >
             <HeaderWithBackButton
                 title={translate('common.distance')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={removeUnsavedWaypointsAndGoBack}
             />
             <DistanceRequest
                 report={report}
                 route={route}
                 transactionID={transactionID}
                 onSubmit={(waypoints) => IOU.updateDistanceRequest(transactionID, report.reportID, {waypoints})}
+                onWaypointsLoaded={saveInitialWaypoints}
                 isEditingRequest
             />
         </ScreenWrapper>
