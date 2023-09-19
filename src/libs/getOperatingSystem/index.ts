@@ -1,22 +1,21 @@
-import _ from 'underscore';
 import CONST from '../../CONST';
+import GetOperatingSystem from './types';
 
 /**
  * Reads the current operating system when running on Web/Mobile-Web/Desktop
- * @return {String | null}
  */
-export default () => {
+const getOperatingSystem: GetOperatingSystem = () => {
     const {userAgent, platform} = window.navigator;
     const macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'];
     const windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'];
     const iosPlatforms = ['iPhone', 'iPad', 'iPod'];
 
     let os = null;
-    if (_.contains(macosPlatforms, platform)) {
+    if (macosPlatforms.includes(platform)) {
         os = CONST.OS.MAC_OS;
-    } else if (_.contains(iosPlatforms, platform)) {
+    } else if (iosPlatforms.includes(platform)) {
         os = CONST.OS.IOS;
-    } else if (_.contains(windowsPlatforms, platform)) {
+    } else if (windowsPlatforms.includes(platform)) {
         os = CONST.OS.WINDOWS;
     } else if (/Android/.test(userAgent)) {
         os = CONST.OS.ANDROID;
@@ -25,3 +24,5 @@ export default () => {
     }
     return os;
 };
+
+export default getOperatingSystem;

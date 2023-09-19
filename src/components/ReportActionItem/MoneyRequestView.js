@@ -133,6 +133,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
                     description={translate('common.description')}
+                    shouldParseTitle
                     title={transactionDescription}
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
