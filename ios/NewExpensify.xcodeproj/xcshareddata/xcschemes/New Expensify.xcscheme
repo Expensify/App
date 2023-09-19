@@ -75,7 +75,7 @@
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Release Production"
+      buildConfiguration = "ReleaseProduction"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -96,7 +96,7 @@
       </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
-      buildConfiguration = "Release Production"
+      buildConfiguration = "ReleaseProduction"
       shouldUseLaunchSchemeArgsEnv = "YES"
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
@@ -113,10 +113,10 @@
       </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
-      buildConfiguration = "Debug Production">
+      buildConfiguration = "DebugProduction">
    </AnalyzeAction>
    <ArchiveAction
-      buildConfiguration = "Release Production"
+      buildConfiguration = "ReleaseProduction"
       customArchiveName = "New Expensify"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
