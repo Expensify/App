@@ -745,13 +745,13 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
-    return _.map(tags, tag => ({
+    return _.map(tags, (tag) => ({
         text: tag.name,
         keyForList: tag.name,
         searchText: tag.name,
         tooltipText: tag.name,
         isDisabled: !tag.enabled,
-    }))
+    }));
 }
 
 /**
