@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
@@ -50,10 +51,10 @@ function MoneyReportView(props) {
                 </View>
                 <View style={[styles.flexRow, styles.justifyContentCenter]}>
                     {isSettled && (
-                        <View style={[styles.defaultCheckmarkWrapper, styles.mh1]}>
+                        <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
                             <Icon
                                 src={Expensicons.Checkmark}
-                                fill={styles.success}
+                                fill={themeColors.success}
                             />
                         </View>
                     )}
