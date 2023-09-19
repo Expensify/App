@@ -25,7 +25,6 @@ import type {
     ReportArchiveReasonsPolicyDeletedParams,
     RequestCountParams,
     SettleExpensifyCardParams,
-    SettlePaypalMeParams,
     RequestAmountParams,
     SplitAmountParams,
     AmountEachParams,
@@ -37,7 +36,6 @@ import type {
     WaitingOnBankAccountParams,
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
-    PaidUsingPaypalWithAmountParams,
     PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -206,7 +204,6 @@ export default {
         done: 'Done',
         more: 'More',
         debitCard: 'Debit card',
-        payPalMe: 'PayPal.me',
         bankAccount: 'Bank account',
         join: 'Join',
         decline: 'Decline',
@@ -244,6 +241,7 @@ export default {
         showMore: 'Show more',
         merchant: 'Merchant',
         category: 'Category',
+        billable: 'Billable',
         tag: 'Tag',
         receipt: 'Receipt',
         replace: 'Replace',
@@ -254,6 +252,7 @@ export default {
         kilometers: 'kilometers',
         recent: 'Recent',
         all: 'All',
+        tbd: 'TBD',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -513,10 +512,8 @@ export default {
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
-        settledPaypalMe: 'Paid using Paypal.me',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount} with Expensify`,
         payElsewhere: 'Pay elsewhere',
-        settlePaypalMe: ({formattedAmount}: SettlePaypalMeParams) => `Pay ${formattedAmount} with PayPal.me`,
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} each`,
@@ -530,7 +527,6 @@ export default {
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `paid ${amount} elsewhere`,
-        paidUsingPaypalWithAmount: ({amount}: PaidUsingPaypalWithAmountParams) => `paid ${amount} using Paypal.me`,
         paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `paid ${amount} with Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
@@ -568,6 +564,8 @@ export default {
         uploadPhoto: 'Upload photo',
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
+        viewPhoto: 'View photo',
+        imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
@@ -587,6 +585,7 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
+        profileAvatar: 'Profile avatar',
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
@@ -756,18 +755,6 @@ export default {
         notesUnavailable: 'No notes found for the user',
         composerLabel: 'Notes',
     },
-    addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Get paid back via PayPal.',
-        payPalMe: 'PayPal.me/',
-        yourPayPalUsername: 'Your PayPal username',
-        addPayPalAccount: 'Add PayPal account',
-        growlMessageOnSave: 'Your PayPal username was successfully added',
-        updatePaypalAccount: 'Save PayPal account',
-        growlMessageOnUpdate: 'Your PayPal username was successfully saved',
-        formatError: 'Invalid PayPal.me username',
-        checkListOf: 'Check the list of ',
-        supportedCurrencies: 'supported currencies',
-    },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
         nameOnCard: 'Name on card',
@@ -797,7 +784,6 @@ export default {
         setDefaultSuccess: 'Default payment method set!',
         deleteAccount: 'Delete account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
-        deletePayPalSuccess: 'PayPal.me successfully deleted',
         error: {
             notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
             invalidBankAccount: 'This bank account is temporarily suspended.',
@@ -1316,6 +1302,7 @@ export default {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
+            workspaceAvatar: 'Workspace avatar',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1524,7 +1511,7 @@ export default {
         completed: 'Completed',
         messages: {
             completed: 'completed task',
-            canceled: 'canceled task',
+            canceled: 'deleted task',
             reopened: 'reopened task',
             error: 'You do not have the permission to do the requested action.',
         },
@@ -1696,6 +1683,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
+        deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {
