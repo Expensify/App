@@ -71,7 +71,7 @@ Onyx.connect({
         if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
             PersonalDetails.updateAutomaticTimezone({
                 automatic: true,
-                selected: currentTimezone
+                selected: currentTimezone,
             });
         }
     },
