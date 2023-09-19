@@ -144,7 +144,7 @@ function ProfilePage(props) {
     const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : 0;
 
     return (
-        <ScreenWrapper shouldEnableAutoFocus>
+        <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
