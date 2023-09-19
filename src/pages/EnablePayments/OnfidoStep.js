@@ -35,11 +35,11 @@ function OnfidoStep({walletOnfidoData}) {
         Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
     }, []);
 
-    const onOnfidoError = useCallback(() => {
+    const reportError = useCallback(() => {
         Growl.error(translate('onfidoStep.genericError'), 10_000);
     }, [translate]);
 
-    const onOnfidoSuccess = useCallback((data) => {
+    const verifyIdentity = useCallback((data) => {
         BankAccounts.verifyIdentity({
             onfidoData: JSON.stringify({
                 ...data,
@@ -59,8 +59,8 @@ function OnfidoStep({walletOnfidoData}) {
                     <Onfido
                         sdkToken={walletOnfidoData.sdkToken}
                         onUserExit={Navigation.goBack}
-                        onError={onOnfidoError}
-                        onSuccess={onOnfidoSuccess}
+                        onError={reportError}
+                        onSuccess={verifyIdentity}
                     />
                 ) : (
                     <OnfidoPrivacy walletOnfidoData={walletOnfidoData} />
