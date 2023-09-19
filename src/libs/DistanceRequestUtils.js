@@ -89,9 +89,9 @@ const getDistanceMerchant = (hasRoute, distanceInMeters, unit, rate, currency, t
     const unitString = distanceInUnits === 1 ? singularDistanceUnit : distanceUnit;
 
     const ratePerUnit = rate * 0.01;
-    const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
+    const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency}`;
 
-    return `${distanceInUnits} ${unitString} @ ${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
+    return `${distanceInUnits} ${unitString} @ ${currencySymbol} ${ratePerUnit} / ${singularDistanceUnit}`;
 };
 
 /**
