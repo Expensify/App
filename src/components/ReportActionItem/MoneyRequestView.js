@@ -66,6 +66,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
         comment: transactionDescription,
         merchant: transactionMerchant,
     } = ReportUtils.getTransactionDetails(transaction);
+    const isEmptyMerchant =
+        transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
@@ -86,8 +88,10 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
 
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
+    let hasErrors = false;
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+        hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -101,6 +105,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
+
             {hasReceipt && (
                 <View style={styles.moneyRequestViewImage}>
                     <ReportActionItemImage
@@ -120,16 +125,22 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                    brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    subtitle={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
+                    subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
                     description={translate('common.description')}
+                    shouldParseTitle
                     title={transactionDescription}
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                    wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                    numberOfLinesTitle={0}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.created') || lodashGet(transaction, 'pendingAction')}>
@@ -140,6 +151,9 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                    brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    subtitle={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
+                    subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
@@ -150,6 +164,9 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
+                    brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    subtitle={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                    subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}

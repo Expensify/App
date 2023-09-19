@@ -38,7 +38,7 @@ const defaultProps = {
 
 function SubscriptAvatar(props) {
     const isSmall = props.size === CONST.AVATAR_SIZE.SMALL;
-    const subscriptSyle = props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
+    const subscriptStyle = props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
     const containerStyle = isSmall ? styles.emptyAvatarSmall : styles.emptyAvatar;
     // Default the margin style to what is normal for small or normal sized avatars
     let marginStyle = isSmall ? styles.emptyAvatarMarginSmall : styles.emptyAvatarMargin;
@@ -67,9 +67,13 @@ function SubscriptAvatar(props) {
                 accountID={lodashGet(props.secondaryAvatar, 'id', -1)}
                 icon={props.secondaryAvatar}
             >
-                <View style={props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}}>
+                <View
+                    style={[props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle]}
+                    // Hover on overflowed part of icon will not work on Electron if dragArea is true
+                    // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
+                    dataSet={{dragArea: false}}
+                >
                     <Avatar
-                        containerStyles={[isSmall ? styles.secondAvatarSubscriptCompact : subscriptSyle]}
                         iconAdditionalStyles={[
                             StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
                             StyleUtils.getBorderColorStyle(props.backgroundColor),

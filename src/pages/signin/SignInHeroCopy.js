@@ -13,13 +13,18 @@ const propTypes = {
     /** Override the green headline copy */
     customHeadline: PropTypes.string,
 
+    /** Override the smaller hero body copy below the headline */
+    customHeroBody: PropTypes.string,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     customHeadline: '',
+    customHeroBody: '',
 };
+
 function SignInHeroCopy(props) {
     return (
         <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>
@@ -32,7 +37,7 @@ function SignInHeroCopy(props) {
             >
                 {props.customHeadline || props.translate('login.hero.header')}
             </Text>
-            <Text style={[styles.loginHeroBody]}>{props.translate('login.hero.body')}</Text>
+            <Text style={[styles.loginHeroBody]}>{props.customHeroBody || props.translate('login.hero.body')}</Text>
         </View>
     );
 }
