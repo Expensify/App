@@ -1054,8 +1054,8 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     // from the server with the currency conversion
     let updatedMoneyRequestReport = {...iouReport};
     const updatedChatReport = {...chatReport};
-    if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount) {
-        const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+    const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+    if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount && diff !== 0) {
         if (ReportUtils.isExpenseReport(iouReport)) {
             updatedMoneyRequestReport.total += diff;
         } else {
