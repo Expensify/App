@@ -1,7 +1,6 @@
 import React from 'react';
-import styles from './styles';
+import styles, {type Styles} from './styles';
 
-// TODO: Change "unknown" once "styles.js" is typed
-const ThemeStylesContext = React.createContext<unknown>(styles);
+const ThemeStylesContext = React.createContext<Styles>(styles);
 
 export default ThemeStylesContext;

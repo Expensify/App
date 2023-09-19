@@ -4054,4 +4054,4 @@ const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
 export default defaultStyles;
-export {stylesGenerator};
+export {stylesGenerator, type Styles};
