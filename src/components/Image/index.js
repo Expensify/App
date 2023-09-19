@@ -56,6 +56,7 @@ function Image(props) {
             onLoadStart();
         }, 200);
         return () => clearTimeout(timeout);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoading]);
 
     // Omit the props which the underlying RNImage won't use
