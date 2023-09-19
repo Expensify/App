@@ -1,4 +1,5 @@
 import Str from 'expensify-common/lib/str';
+import GenerateDeviceID from './types';
 
 const uniqueID = Str.guid();
 
@@ -14,8 +15,6 @@ const uniqueID = Str.guid();
  * While this isn't perfect, it's just as good as any other obvious web solution, such as this one https://developer.mozilla.org/en-US/docs/Web/API/MediaDeviceInfo/deviceId
  * which is also different/reset under the same circumstances
  */
-function generateDeviceID(): Promise<string> {
-    return Promise.resolve(uniqueID);
-}
+const generateDeviceID: GenerateDeviceID = () => Promise.resolve(uniqueID);
 
 export default generateDeviceID;
