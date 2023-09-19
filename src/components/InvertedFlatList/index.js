@@ -43,7 +43,7 @@ function InvertedFlatList(props) {
             if (scrollEndTimeout.current) {
                 clearTimeout(scrollEndTimeout.current);
             }
-    
+
             if (eventHandler.current) {
                 eventHandler.current.remove();
             }
@@ -63,7 +63,7 @@ function InvertedFlatList(props) {
             updateInProgress.current = true;
             eventHandler.current = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, true);
         }
-    }
+    };
 
     /**
      * Emits when the scrolling has ended.
@@ -71,7 +71,7 @@ function InvertedFlatList(props) {
     const onScrollEnd = () => {
         eventHandler.current = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
         updateInProgress.current = false;
-    }
+    };
 
     /**
      * Decides whether the scrolling has ended or not. If it has ended,
@@ -108,7 +108,7 @@ function InvertedFlatList(props) {
         }
 
         lastScrollEvent.current = timestamp;
-    }
+    };
 
     return (
         <BaseInvertedFlatList
