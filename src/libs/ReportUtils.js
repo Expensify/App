@@ -1460,11 +1460,9 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     if (isSettled(report.reportID)) {
-        // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... with Expensify"
+        // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey = 'iou.paidElsewhereWithAmount';
-        if (reportAction.originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME || reportActionMessage.match(/ PayPal.me$/)) {
-            translatePhraseKey = 'iou.paidUsingPaypalWithAmount';
-        } else if (
+        if (
             _.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], reportAction.originalMessage.paymentType) ||
             reportActionMessage.match(/ (with Expensify|using Expensify)$/)
         ) {
@@ -2053,7 +2051,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
  * @param {Number} total - IOU total in cents
  * @param {String} comment - IOU comment
  * @param {String} currency - IOU currency
- * @param {String} paymentType - IOU paymentMethodType. Can be oneOf(Elsewhere, Expensify, PayPal.me)
+ * @param {String} paymentType - IOU paymentMethodType. Can be oneOf(Elsewhere, Expensify)
  * @param {Boolean} isSettlingUp - Whether we are settling up an IOU
  * @returns {Array}
  */
@@ -2065,15 +2063,12 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
 
     let paymentMethodMessage;
     switch (paymentType) {
-        case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-            paymentMethodMessage = ' elsewhere';
-            break;
         case CONST.IOU.PAYMENT_TYPE.VBBA:
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             paymentMethodMessage = ' with Expensify';
             break;
         default:
-            paymentMethodMessage = ` using ${paymentType}`;
+            paymentMethodMessage = ` elsewhere`;
             break;
     }
 
@@ -2117,7 +2112,7 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
  * @param {String} comment - User comment for the IOU.
  * @param {Array}  participants - An array with participants details.
  * @param {String} [transactionID] - Not required if the IOUReportAction type is 'pay'
- * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
+ * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, Expensify).
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
@@ -2325,12 +2320,13 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
  *
  * @param {Object} iouReport
  * @param {Object} reportPreviewAction
+ * @param {Boolean} isPayRequest
  * @param {String} [comment] - User comment for the IOU.
  * @param {Object} [transaction] - optimistic newest transaction of a report preview
  *
  * @returns {Object}
  */
-function updateReportPreview(iouReport, reportPreviewAction, comment = '', transaction = undefined) {
+function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = false, comment = '', transaction = undefined) {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const lastReceiptTransactionIDs = lodashGet(reportPreviewAction, 'childLastReceiptTransactionIDs', '');
     const previousTransactionIDs = lastReceiptTransactionIDs.split(',').slice(0, 2);
@@ -2348,7 +2344,7 @@ function updateReportPreview(iouReport, reportPreviewAction, comment = '', trans
             },
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
-        childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
+        childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + (isPayRequest ? 0 : 1),
         childLastReceiptTransactionIDs: hasReceipt ? [transaction.transactionID, ...previousTransactionIDs].join(',') : lastReceiptTransactionIDs,
         // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
         // so we remove the whisper
@@ -2824,6 +2820,18 @@ function canAccessReport(report, policies, betas, allReportActions) {
 
     return true;
 }
+/**
+ * Check if the report is the parent report of the currently viewed report or at least one child report has report action
+ * @param {Object} report
+ * @param {String} currentReportId
+ * @returns {Boolean}
+ */
+function shouldHideReport(report, currentReportId) {
+    const parentReport = getParentReport(getReport(currentReportId));
+    const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+    const isChildReportHasComment = _.some(reportActions, (reportAction) => (reportAction.childVisibleActionCount || 0) > 0);
+    return parentReport.reportID !== report.reportID && !isChildReportHasComment;
+}
 
 /**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
@@ -2873,10 +2881,11 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     }
 
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
-    const isEmptyChat = !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    const isEmptyChat = !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    const canHideReport = shouldHideReport(report, currentReportId);
 
     // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (isChatThread(report) && isEmptyChat) {
+    if (isChatThread(report) && canHideReport && isEmptyChat) {
         return false;
     }
 
@@ -2902,7 +2911,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
-    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report)) {
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && canHideReport) {
         return false;
     }
 

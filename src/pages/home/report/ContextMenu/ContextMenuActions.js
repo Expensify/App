@@ -21,6 +21,7 @@ import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReac
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import * as Task from '../../../../libs/actions/Task';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -182,10 +183,11 @@ export default [
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
+            const isCreateTaskAction = ReportActionsUtils.isCreatedTaskReportAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const originalMessage = _.get(reportAction, 'originalMessage', {});
-            const messageHtml = isTaskAction ? lodashGet(originalMessage, 'html', '') : lodashGet(message, 'html', '');
+            const reportID = lodashGet(reportAction, 'originalMessage.taskReportID', '').toString();
+            const messageHtml = isTaskAction || isCreateTaskAction ? Task.getTaskReportActionMessage(reportAction.actionName, reportID, isCreateTaskAction) : lodashGet(message, 'html', '');
 
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             if (!isAttachment) {
