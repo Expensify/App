@@ -3,14 +3,9 @@ import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
+import {ChronosOOOEvent} from '../../types/onyx/OriginalMessage';
 
-/**
- * @param {String} reportID
- * @param {String} reportActionID
- * @param {String} eventID
- * @param {Object[]} events
- */
-const removeEvent = (reportID, reportActionID, eventID, events) => {
+const removeEvent = (reportID: string, reportActionID: string, eventID: string, events: ChronosOOOEvent[]) => {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
