@@ -18,7 +18,6 @@ import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsNone from './pointerEventsNone';
 import defaultTheme from './themes/default';
-import {ThemeDefault} from './themes/types';
 import cursor from './utilities/cursor';
 import display from './utilities/display';
 import flex from './utilities/flex';
@@ -33,6 +32,7 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
+import ThemeColors from './themes/ThemeColors';
 
 type AnchorPosition = {
     horizontal: number;
@@ -76,7 +76,7 @@ const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobile
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<ViewStyle, 'lineHeight'> = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
-const picker = (theme: ThemeDefault) =>
+const picker = (theme: ThemeColors) =>
     ({
         backgroundColor: theme.transparent,
         color: theme.text,
@@ -92,14 +92,14 @@ const picker = (theme: ThemeDefault) =>
         textAlign: 'left',
     } satisfies TextStyle);
 
-const link = (theme: ThemeDefault) =>
+const link = (theme: ThemeColors) =>
     ({
         color: theme.link,
         textDecorationColor: theme.link,
         fontFamily: fontFamily.EXP_NEUE,
     } satisfies ViewStyle & MixedStyleDeclaration);
 
-const baseCodeTagStyles = (theme: ThemeDefault) =>
+const baseCodeTagStyles = (theme: ThemeColors) =>
     ({
         borderWidth: 1,
         borderRadius: 5,
@@ -112,7 +112,7 @@ const headlineFont = {
     fontWeight: '500',
 } satisfies TextStyle;
 
-const webViewStyles = (theme: ThemeDefault) =>
+const webViewStyles = (theme: ThemeColors) =>
     ({
         // As of react-native-render-html v6, don't declare distinct styles for
         // custom renderers, the API for custom renderers has changed. Declare the
@@ -206,7 +206,7 @@ const webViewStyles = (theme: ThemeDefault) =>
         },
     } satisfies WebViewStyle);
 
-const styles = (theme: ThemeDefault) =>
+const styles = (theme: ThemeColors) =>
     ({
         // Add all of our utility and helper styles
         ...spacing,
