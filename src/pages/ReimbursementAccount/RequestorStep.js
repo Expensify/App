@@ -69,7 +69,7 @@ const validate = (values) => {
     return errors;
 };
 
-function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}, ref) {
+function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}) {
     const {translate} = useLocalize();
 
     const defaultValues = useMemo(
