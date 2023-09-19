@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {withOnyx} from 'react-native-onyx';
 import Onfido from '../../components/Onfido';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -29,32 +29,38 @@ const defaultProps = {
 function OnfidoStep({walletOnfidoData}) {
     const {translate} = useLocalize();
     
-    const canShowOnfido = walletOnfidoData.hasAcceptedPrivacyPolicy && !walletOnfidoData.isLoading && !walletOnfidoData.error && walletOnfidoData.sdkToken;
+    const shouldShowOnfido = walletOnfidoData.hasAcceptedPrivacyPolicy && !walletOnfidoData.isLoading && !walletOnfidoData.error && walletOnfidoData.sdkToken;
+
+    const goBack = useCallback(() => {
+        Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
+    }, []);
+
+    const onOnfidoError = useCallback(() => {
+        Growl.error(translate('onfidoStep.genericError'), 10_000);
+    }, [translate]);
+
+    const onOnfidoSuccess = useCallback((data) => {
+        BankAccounts.verifyIdentity({
+            onfidoData: JSON.stringify({
+                ...data,
+                applicantID: walletOnfidoData.applicantID,
+            }),
+        });
+    }, [walletOnfidoData.applicantID]);
 
     return (
         <>
             <HeaderWithBackButton
                 title={translate('onfidoStep.verifyIdentity')}
-                onBackButtonPress={() => Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS)}
+                onBackButtonPress={goBack}
             />
             <FullPageOfflineBlockingView>
-                {canShowOnfido ? (
+                {shouldShowOnfido ? (
                     <Onfido
                         sdkToken={walletOnfidoData.sdkToken}
-                        onError={() => {
-                            Growl.error(translate('onfidoStep.genericError'), 10000);
-                        }}
-                        onUserExit={() => {
-                            Navigation.goBack();
-                        }}
-                        onSuccess={(data) => {
-                            BankAccounts.verifyIdentity({
-                                onfidoData: JSON.stringify({
-                                    ...data,
-                                    applicantID: walletOnfidoData.applicantID,
-                                }),
-                            });
-                        }}
+                        onUserExit={Navigation.goBack}
+                        onError={onOnfidoError}
+                        onSuccess={onOnfidoSuccess}
                     />
                 ) : (
                     <OnfidoPrivacy walletOnfidoData={walletOnfidoData} />
