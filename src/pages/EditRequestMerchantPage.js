@@ -39,9 +39,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => merchantInputRef.current && merchantInputRef.current.focus()}
         >
-            <HeaderWithBackButton
-                title={translate('common.merchant')}
-            />
+            <HeaderWithBackButton title={translate('common.merchant')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}

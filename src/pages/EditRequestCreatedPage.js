@@ -24,9 +24,7 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('common.date')}
-            />
+            <HeaderWithBackButton title={translate('common.date')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}

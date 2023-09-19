@@ -128,9 +128,7 @@ function DetailsPage(props) {
     return (
         <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
-                <HeaderWithBackButton
-                    title={props.translate('common.details')}
-                />
+                <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}

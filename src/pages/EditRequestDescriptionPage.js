@@ -28,9 +28,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => descriptionInputRef.current && descriptionInputRef.current.focus()}
         >
-            <HeaderWithBackButton
-                title={translate('common.description')}
-            />
+            <HeaderWithBackButton title={translate('common.description')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}

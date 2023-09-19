@@ -57,9 +57,7 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, report
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('iou.amount')}
-            />
+            <HeaderWithBackButton title={translate('iou.amount')} />
             <MoneyRequestAmountForm
                 isEditing
                 currency={defaultCurrency}
