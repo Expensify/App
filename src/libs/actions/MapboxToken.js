@@ -6,7 +6,7 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
-import * as ActiveClientManager from '../ActiveClientManager';
+import ActiveClientManager from '../ActiveClientManager';
 
 let authToken;
 Onyx.connect({

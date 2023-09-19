@@ -6,7 +6,7 @@ import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import * as Report from './libs/actions/Report';
 import BootSplash from './libs/BootSplash';
-import * as ActiveClientManager from './libs/ActiveClientManager';
+import ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import migrateOnyx from './libs/migrateOnyx';

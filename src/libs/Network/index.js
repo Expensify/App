@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import * as ActiveClientManager from '../ActiveClientManager';
+import ActiveClientManager from '../ActiveClientManager';
 import CONST from '../../CONST';
 import * as MainQueue from './MainQueue';
 import * as SequentialQueue from './SequentialQueue';

@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import * as NetworkStore from './NetworkStore';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as ActiveClientManager from '../ActiveClientManager';
+import ActiveClientManager from '../ActiveClientManager';
 import * as Request from '../Request';
 import * as RequestThrottle from '../RequestThrottle';
 import CONST from '../../CONST';

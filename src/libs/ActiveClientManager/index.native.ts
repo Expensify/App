@@ -3,6 +3,8 @@
  * client running at a time, so this lib is a big no-op
  */
 
+import ActiveClientManagerModule from './types';
+
 function init() {}
 function isClientTheLeader() {
     return true;
@@ -11,4 +13,10 @@ function isReady() {
     return Promise.resolve();
 }
 
-export {init, isReady, isClientTheLeader};
+const ActiveClientManager: ActiveClientManagerModule = {
+    init,
+    isClientTheLeader,
+    isReady,
+};
+
+export default ActiveClientManager;
