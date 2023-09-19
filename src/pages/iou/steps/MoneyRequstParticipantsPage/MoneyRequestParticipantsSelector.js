@@ -105,7 +105,10 @@ function MoneyRequestParticipantsSelector({
 
         newSections.push({
             title: undefined,
-            data: OptionsListUtils.getParticipantsOptions(participants, personalDetails),
+            data: _.map(participants, (participant) => {
+                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+            }),
             shouldShow: true,
             indexOffset,
         });
