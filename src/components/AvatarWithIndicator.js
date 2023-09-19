@@ -16,7 +16,7 @@ const propTypes = {
     tooltipText: PropTypes.string,
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.oneOfType([PropTypes.func,PropTypes.string]),
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
 };
 
 const defaultProps = {
@@ -28,7 +28,10 @@ function AvatarWithIndicator(props) {
     return (
         <Tooltip text={props.tooltipText}>
             <View style={[styles.sidebarAvatar]}>
-                <Avatar source={UserUtils.getSmallSizeAvatar(props.source)} fallbackIcon={props.fallbackIcon}/>
+                <Avatar
+                    source={UserUtils.getSmallSizeAvatar(props.source)}
+                    fallbackIcon={props.fallbackIcon}
+                />
                 <Indicator />
             </View>
         </Tooltip>

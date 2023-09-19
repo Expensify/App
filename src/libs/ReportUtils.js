@@ -939,7 +939,7 @@ function getIconsForParticipants(participants, personalDetails) {
             source: sortedParticipantDetails[i][3],
             type: CONST.ICON_TYPE_AVATAR,
             name: sortedParticipantDetails[i][1],
-            fallBackIcon: sortedParticipantDetails[i][4]
+            fallBackIcon: sortedParticipantDetails[i][4],
         };
         avatars.push(userIcon);
     }
@@ -997,7 +997,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
             id: parentReportAction.actorAccountID,
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [parentReportAction.actorAccountID, 'displayName'], ''),
-            fallbackIcon:lodashGet(personalDetails, [parentReportAction.actorAccountID, 'fallbackIcon'])
+            fallbackIcon: lodashGet(personalDetails, [parentReportAction.actorAccountID, 'fallbackIcon']),
         };
 
         return [memberIcon, workspaceIcon];
@@ -1012,7 +1012,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
             source: UserUtils.getAvatar(lodashGet(personalDetails, [actorAccountID, 'avatar']), actorAccountID),
             name: actorDisplayName,
             type: CONST.ICON_TYPE_AVATAR,
-            fallbackIcon: lodashGet(personalDetails, [parentReportAction.actorAccountID, 'fallbackIcon'])
+            fallbackIcon: lodashGet(personalDetails, [parentReportAction.actorAccountID, 'fallbackIcon']),
         };
 
         if (isWorkspaceThread(report)) {
@@ -1027,7 +1027,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [report.ownerAccountID, 'displayName'], ''),
-            fallbackIcon: lodashGet(personalDetails, [report.ownerAccountID, 'fallbackIcon'])
+            fallbackIcon: lodashGet(personalDetails, [report.ownerAccountID, 'fallbackIcon']),
         };
 
         if (isWorkspaceTaskReport(report)) {
@@ -1060,7 +1060,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
             id: report.ownerAccountID,
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [report.ownerAccountID, 'displayName'], ''),
-            fallbackIcon: lodashGet(personalDetails, [report.ownerAccountID, 'fallbackIcon'])
+            fallbackIcon: lodashGet(personalDetails, [report.ownerAccountID, 'fallbackIcon']),
         };
         return isExpenseReport(report) ? [memberIcon, workspaceIcon] : [workspaceIcon, memberIcon];
     }
@@ -1070,7 +1070,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
             id: report.managerID,
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [report.managerID, 'displayName'], ''),
-            fallbackIcon: lodashGet(personalDetails, [report.managerID, 'fallbackIcon'])
+            fallbackIcon: lodashGet(personalDetails, [report.managerID, 'fallbackIcon']),
         };
 
         const ownerIcon = {
@@ -1078,7 +1078,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [report.ownerAccountID, 'displayName'], ''),
-            fallbackIcon: lodashGet(personalDetails, [report.ownerAccountID, 'fallbackIcon'])
+            fallbackIcon: lodashGet(personalDetails, [report.ownerAccountID, 'fallbackIcon']),
         };
 
         return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];

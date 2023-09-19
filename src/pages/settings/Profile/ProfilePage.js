@@ -103,7 +103,7 @@ function ProfilePage(props) {
     useEffect(() => {
         App.openProfile(props.currentUserPersonalDetails);
     }, [props.currentUserPersonalDetails]);
-    
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton

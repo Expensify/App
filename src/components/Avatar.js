@@ -40,7 +40,7 @@ const propTypes = {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL.
      * If the avatar is type === workspace, this fallback icon will be ignored and decided based on the name prop.
      */
-    fallbackIcon: PropTypes.oneOfType([PropTypes.func,PropTypes.string]),
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
 
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
@@ -106,7 +106,7 @@ function Avatar(props) {
             ) : (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type), ...props.iconAdditionalStyles]}>
                     <Image
-                        source={{uri: imageError?fallbackAvatar:props.source}}
+                        source={{uri: imageError ? fallbackAvatar : props.source}}
                         style={imageStyle}
                         onError={() => setImageError(true)}
                     />
