@@ -5,8 +5,14 @@ import * as API from '../API';
 import * as CollectionUtils from '../CollectionUtils';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import * as OnyxTypes from '../../types/onyx';
+import CONST from '../../CONST';
 
-const allTransactionData = {};
+type TransactionMap = {
+    [key: string]: OnyxTypes.Transaction;
+};
+
+const allTransactionData: TransactionMap = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     callback: (data, key) => {
@@ -42,11 +48,8 @@ function clearUploadReceiptError() {
 
 /**
  * Detaches the receipt from a transaction
- *
- * @param {String} transactionID
- * @param {String} reportID
  */
-function detachReceipt(transactionID, reportID) {
+function detachReceipt(transactionID: string, reportID: string) {
     API.write(
         'DetachReceipt',
         {transactionID},
@@ -71,7 +74,7 @@ function detachReceipt(transactionID, reportID) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.getReportRoute(reportID));
+    Navigation.navigate(ROUTES.getReportRoute(reportID), CONST.NAVIGATION.TYPE.UP);
 }
 
 export default {
