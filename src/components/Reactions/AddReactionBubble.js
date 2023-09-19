@@ -67,7 +67,7 @@ function AddReactionBubble(props) {
                 refParam || ref.current,
                 anchorOrigin,
                 props.onWillShowPicker,
-                props.reportAction,
+                props.reportAction.reportActionID,
             );
         };
 
@@ -94,6 +94,7 @@ function AddReactionBubble(props) {
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 // disable dimming
                 pressDimmingValue={1}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {({hovered, pressed}) => (
                     <>

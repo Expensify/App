@@ -2,7 +2,7 @@ import React from 'react';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
 import {propTypes} from './autoCompleteSuggestionsPropTypes';
 
-function AutoCompleteSuggestions(props) {
+function AutoCompleteSuggestions({parentContainerRef, ...props}) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <BaseAutoCompleteSuggestions {...props} />;
 }

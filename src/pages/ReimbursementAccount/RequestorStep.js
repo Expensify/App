@@ -99,7 +99,7 @@ class RequestorStep extends React.Component {
                     onBackButtonPress={this.props.onBackButtonPress}
                 />
                 <Form
-                    formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                    formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                     submitButtonText={this.props.translate('common.saveAndContinue')}
                     validate={this.validate}
                     scrollContextEnabled

@@ -82,7 +82,7 @@ function BankAccountManualStep(props) {
                 onBackButtonPress={props.onBackButtonPress}
             />
             <Form
-                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 onSubmit={submit}
                 validate={validate}
                 submitButtonText={translate('common.continue')}

@@ -7,7 +7,6 @@ import wrapOnyxWithWaitForPromisesToResolve from '../utils/wrapOnyxWithWaitForPr
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as Localize from '../../src/libs/Localize';
-import * as Report from '../../src/libs/actions/Report';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -123,54 +122,6 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(1);
-                    })
-            );
-        });
-
-        it('includes or excludes policy expensechats depending on the beta', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            // Given a policy expense report
-            // and the user not being in any betas
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            };
-
-            return (
-                waitForPromisesToResolve()
-                    // When Onyx is updated to contain that data and the sidebar re-renders
-                    .then(() =>
-                        Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: [],
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                        }),
-                    )
-
-                    // When the report has at least one ADDCOMMENT action to be rendered in the LNH
-                    .then(() => Report.addComment(report.reportID, 'Hi, this is a comment'))
-
-                    // Then no reports are rendered in the LHN
-                    .then(() => {
-                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                        expect(optionRows).toHaveLength(0);
-                    })
-
-                    // When the user is added to the policy expense beta and the sidebar re-renders
-                    .then(() =>
-                        Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: [CONST.BETAS.POLICY_EXPENSE_CHAT],
-                        }),
-                    )
-
-                    // Then there is one report rendered in the LHN
-                    .then(() => {
-                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                        expect(optionRows).toHaveLength(1);
                     })
             );
         });
@@ -335,7 +286,7 @@ describe('Sidebar', () => {
             };
 
             // Given the user is in all betas
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
             // Given there are 6 boolean variables tested in the filtering logic:
             // 1. isArchived
@@ -539,7 +490,7 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
             return (
                 waitForPromisesToResolve()
@@ -602,7 +553,7 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
             return (
                 waitForPromisesToResolve()
@@ -660,7 +611,7 @@ describe('Sidebar', () => {
         };
 
         // Given the user is in all betas
-        const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+        const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
         // Given there are 6 boolean variables tested in the filtering logic:
         // 1. isArchived
@@ -753,7 +704,7 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
                 return (
                     waitForPromisesToResolve()
@@ -804,7 +755,7 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
                 return (
                     waitForPromisesToResolve()
@@ -853,7 +804,7 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
                 return (
                     waitForPromisesToResolve()
@@ -898,7 +849,7 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
                 return (
                     waitForPromisesToResolve()

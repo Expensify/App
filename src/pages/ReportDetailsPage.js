@@ -112,6 +112,18 @@ function ReportDetailsPage(props) {
             });
         }
 
+        // Prevent displaying private notes option for threads and task reports
+        if (!isThread && !ReportUtils.isTaskReport(props.report)) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
+                translationKey: 'privateNotes.title',
+                icon: Expensicons.Pencil,
+                isAnonymousAction: false,
+                action: () => Navigation.navigate(ROUTES.getPrivateNotesListRoute(props.report.reportID)),
+                brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+            });
+        }
+
         if (isUserCreatedPolicyRoom || canLeaveRoom || isThread) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
@@ -123,7 +135,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [props.report.reportID, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
+    }, [props.report, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -154,8 +166,8 @@ function ReportDetailsPage(props) {
                                     fullTitle={ReportUtils.getReportName(props.report)}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
-                                    numberOfLines={isChatRoom ? 0 : 1}
-                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom ? undefined : styles.pre]}
+                                    numberOfLines={isChatRoom && !isThread ? 0 : 1}
+                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isThread ? undefined : styles.pre]}
                                     shouldUseFullTitle={shouldUseFullTitle}
                                 />
                             </View>
@@ -187,7 +199,7 @@ function ReportDetailsPage(props) {
                                 onPress={item.action}
                                 isAnonymousAction={item.isAnonymousAction}
                                 shouldShowRightIcon
-                                brickRoadIndicator={brickRoadIndicator}
+                                brickRoadIndicator={brickRoadIndicator || item.brickRoadIndicator}
                             />
                         );
                     })}

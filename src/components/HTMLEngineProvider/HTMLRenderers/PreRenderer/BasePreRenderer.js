@@ -35,7 +35,7 @@ const BasePreRenderer = forwardRef((props, ref) => {
         <ScrollView
             ref={ref}
             horizontal
-            style={[!isLast && styles.mb2, styles.overscrollBehaviorNone]}
+            style={[!isLast && styles.mb2, styles.overscrollBehaviorXNone]}
             bounces={false}
         >
             <ShowContextMenuContext.Consumer>

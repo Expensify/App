@@ -35,6 +35,7 @@ function Popover(props) {
         } else {
             props.onModalHide();
             close(props.anchorRef);
+            Modal.onModalDidClose();
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
         Modal.setCloseModal(props.isVisible ? () => props.onClose(props.anchorRef) : null);

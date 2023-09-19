@@ -82,4 +82,15 @@ function replaceAllDigits(text, convertFn) {
         .value();
 }
 
-export {stripCommaFromAmount, stripSpacesFromAmount, addLeadingZero, validateAmount, replaceAllDigits};
+/**
+ * Check if distance request or not
+ *
+ * @param {String} iouType - `send` | `split` | `request`
+ * @param {String} selectedTab - `manual` | `scan` | `distance`
+ * @returns {Boolean}
+ */
+function isDistanceRequest(iouType, selectedTab) {
+    return iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && selectedTab === CONST.TAB.DISTANCE;
+}
+
+export {stripCommaFromAmount, stripSpacesFromAmount, addLeadingZero, validateAmount, replaceAllDigits, isDistanceRequest};
