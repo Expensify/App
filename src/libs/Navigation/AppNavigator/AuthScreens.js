@@ -1,4 +1,4 @@
-import React, {memo, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -338,23 +338,20 @@ AuthScreens.displayName = 'AuthScreens';
 AuthScreens.propTypes = propTypes;
 AuthScreens.defaultProps = defaultProps;
 
-export default memo(
-        withOnyx({
-            session: {
-                key: ONYXKEYS.SESSION,
-            },
-            lastOpenedPublicRoomID: {
-                key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-            },
-            isUsingMemoryOnlyKeys: {
-                key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
-            },
-            lastUpdateIDAppliedToClient: {
-                key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-            },
-            demoInfo: {
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    lastOpenedPublicRoomID: {
+        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
+    },
+    isUsingMemoryOnlyKeys: {
+        key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
+    },
+    lastUpdateIDAppliedToClient: {
+        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    },
+demoInfo: {
                 key: ONYXKEYS.DEMO_INFO,
             },
-        })(AuthScreens),
-    (props, nextProps) => nextProps.windowHeight === props.windowHeight || nextProps.isSmallScreenWidth === props.isSmallScreenWidth,
-);
+        })(AuthScreens);
