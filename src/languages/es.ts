@@ -749,6 +749,7 @@ export default {
         sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
         notesUnavailable: 'No se han encontrado notas para el usuario',
         composerLabel: 'Notas',
+        myNote: 'Mi notas',
     },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',
