@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState, useRef, forwardRef} from 'react';
+import React, {useEffect, useMemo, useState, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -89,7 +89,7 @@ const defaultProps = {
     transaction: {},
 };
 
-const DistanceRequest = ({transactionID, report, transaction, mapboxAccessToken, route, isEditingRequest, onSubmit, onWaypointsLoaded}) => {
+function DistanceRequest({transactionID, report, transaction, mapboxAccessToken, route, isEditingRequest, onSubmit, onWaypointsLoaded}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -100,9 +100,9 @@ const DistanceRequest = ({transactionID, report, transaction, mapboxAccessToken,
     const reportID = lodashGet(report, 'reportID', '');
     const iouType = lodashGet(route, 'params.iouType', '');
     const waypoints = useMemo(() => {
-        const waypoints = lodashGet(transaction, 'comment.waypoints', {});
-        onWaypointsLoaded(waypoints);
-        return waypoints;
+        const initialWaypoints = lodashGet(transaction, 'comment.waypoints', {});
+        onWaypointsLoaded(initialWaypoints);
+        return initialWaypoints;
     }, [transaction]);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
@@ -322,7 +322,7 @@ const DistanceRequest = ({transactionID, report, transaction, mapboxAccessToken,
             )}
         </ScreenWrapper>
     );
-};
+}
 
 DistanceRequest.displayName = 'DistanceRequest';
 DistanceRequest.propTypes = propTypes;

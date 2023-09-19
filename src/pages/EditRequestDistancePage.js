@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../CONST';
@@ -10,7 +10,6 @@ import DistanceRequest from '../components/DistanceRequest';
 import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
 import * as Transaction from '../libs/actions/Transaction';
-import {init} from 'onfido-sdk-ui';
 
 const propTypes = {
     /** The transactionID we're currently editing */
@@ -56,7 +55,6 @@ function EditRequestDistancePage({transactionID, report, route}) {
      * and the updated waypoints get sent in the request to update the distance without the user
      * ever clicking the "save" button for waypoints. It's very unexpected for the user.
      * @param {Object} waypoints
-     * @returns
      */
     const saveInitialWaypoints = (waypoints) => {
         // Ignore any subsequent updates to the waypoints so that the initial waypoints are only updated once and
