@@ -602,7 +602,7 @@ function isCurrentUser(userDetails) {
  * @param {Object[]} options - an initial strings array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
  * @param {String} options[].name - a name of an option
- * @returns {Boolean}
+ * @returns {Number}
  */
 function getEnabledCategoriesCount(options) {
     return _.filter(options, (option) => option.enabled).length;
