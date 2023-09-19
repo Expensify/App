@@ -9,12 +9,15 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import FormHelpMessage from './FormHelpMessage';
 
 const propTypes = {
-    /** Error text from form, e.g when no country is selected */
+    /** Form error text. e.g when no country is selected */
     errorText: PropTypes.string,
-    /** function from form to call when the country changes, important for revalidation */
+    
+    /** Callback called when the country changes. */
     onInputChange: PropTypes.func.isRequired,
+    
     /** Current selected country  */
     value: PropTypes.string,
+    
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
     inputID: PropTypes.string.isRequired,
