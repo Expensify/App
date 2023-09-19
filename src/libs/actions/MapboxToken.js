@@ -50,6 +50,12 @@ const clearToken = () => {
     Onyx.set(ONYXKEYS.MAPBOX_ACCESS_TOKEN, null);
 };
 
+const fetchToken = () => {
+    console.debug('[MapboxToken] Token does not exist so fetching one');
+    API.read('GetMapboxAccessToken');
+    isCurrentlyFetchingToken = true;
+};
+
 const init = () => {
     if (connectionIDForToken) {
         console.debug('[MapboxToken] init() is already listening to Onyx so returning early');
@@ -82,9 +88,7 @@ const init = () => {
             // If the token is falsy or an empty object, the token needs to be retrieved from the API.
             // The API sets a token in Onyx with a 30 minute expiration.
             if (_.isEmpty(token)) {
-                console.debug('[MapboxToken] Token does not exist so fetching one');
-                API.read('GetMapboxAccessToken');
-                isCurrentlyFetchingToken = true;
+                fetchToken();
                 return;
             }
 
@@ -127,10 +131,7 @@ const init = () => {
                 // trigger the fetch of a new one
                 if (network && network.isOffline && val && !val.isOffline) {
                     if (_.isEmpty(currentToken)) {
-                        console.debug('[MapboxToken] Token does not exist so fetching one');
-                        // eslint-disable-next-line rulesdir/no-multiple-api-calls
-                        API.read('GetMapboxAccessToken');
-                        isCurrentlyFetchingToken = true;
+                        fetchToken();
                     } else if (!isCurrentlyFetchingToken && hasTokenExpired()) {
                         console.debug('[MapboxToken] Token is expired after network came online');
                         clearToken();
