@@ -20,6 +20,12 @@ const propTypes = {
 function EditRequestCategoryPage({defaultCategory, policyID, onSubmit}) {
     const {translate} = useLocalize();
 
+    const selectCategory = (category) => {
+        onSubmit({
+            category: category.searchText,
+        });
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -33,11 +39,7 @@ function EditRequestCategoryPage({defaultCategory, policyID, onSubmit}) {
             <CategoryPicker
                 selectedCategory={defaultCategory}
                 policyID={policyID}
-                onSubmit={(category) =>
-                    onSubmit({
-                        category: category.searchText,
-                    })
-                }
+                onSubmit={selectCategory}
             />
         </ScreenWrapper>
     );
