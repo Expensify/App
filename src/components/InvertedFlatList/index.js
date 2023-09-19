@@ -1,4 +1,4 @@
-import React, {forwardRef} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {DeviceEventEmitter, FlatList, StyleSheet} from 'react-native';
 import _ from 'underscore';
@@ -22,39 +22,33 @@ const propTypes = {
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
-class InvertedFlatList extends React.Component {
-    constructor(props) {
-        super(props);
+function InvertedFlatList(props) {
+    const {innerRef, contentContainerStyle} = props;
+    const listRef = React.createRef();
 
-        this.list = undefined;
-        this.lastScrollEvent = null;
-        this.scrollEndTimeout = null;
-        this.updateInProgress = false;
-        this.eventHandler = null;
+    const lastScrollEvent = useRef(null);
+    const scrollEndTimeout = useRef(null);
+    const updateInProgress = useRef(false);
+    const eventHandler = useRef(null);
 
-        this.handleScroll = this.handleScroll.bind(this);
-        this.onScroll = this.onScroll.bind(this);
-        this.onScrollEnd = this.onScrollEnd.bind(this);
-    }
-
-    componentDidMount() {
-        if (!_.isFunction(this.props.innerRef)) {
+    useEffect(() => {
+        if (!_.isFunction(innerRef)) {
             // eslint-disable-next-line no-param-reassign
-            this.props.innerRef.current = this.list;
+            innerRef.current = listRef.current;
         } else {
-            this.props.innerRef(this.list);
-        }
-    }
-
-    componentWillUnmount() {
-        if (this.scrollEndTimeout) {
-            clearTimeout(this.scrollEndTimeout);
+            innerRef(listRef);
         }
 
-        if (this.eventHandler) {
-            this.eventHandler.remove();
-        }
-    }
+        return () => {
+            if (scrollEndTimeout.current) {
+                clearTimeout(scrollEndTimeout.current);
+            }
+    
+            if (eventHandler.current) {
+                eventHandler.current.remove();
+            }
+        };
+    }, [innerRef, listRef]);
 
     /**
      * Emits when the scrolling is in progress. Also,
@@ -62,21 +56,21 @@ class InvertedFlatList extends React.Component {
      *
      * @param {Event} event - The onScroll event from the FlatList
      */
-    onScroll(event) {
-        this.props.onScroll(event);
+    const onScroll = (event) => {
+        props.onScroll(event);
 
-        if (!this.updateInProgress) {
-            this.updateInProgress = true;
-            this.eventHandler = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, true);
+        if (!updateInProgress.current) {
+            updateInProgress.current = true;
+            eventHandler.current = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, true);
         }
     }
 
     /**
      * Emits when the scrolling has ended.
      */
-    onScrollEnd() {
-        this.eventHandler = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
-        this.updateInProgress = false;
+    const onScrollEnd = () => {
+        eventHandler.current = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
+        updateInProgress.current = false;
     }
 
     /**
@@ -94,41 +88,39 @@ class InvertedFlatList extends React.Component {
      *
      * @param {Event} event - The onScroll event from the FlatList
      */
-    handleScroll(event) {
-        this.onScroll(event);
+    const handleScroll = (event) => {
+        onScroll(event);
         const timestamp = Date.now();
 
-        if (this.scrollEndTimeout) {
-            clearTimeout(this.scrollEndTimeout);
+        if (scrollEndTimeout.current) {
+            clearTimeout(scrollEndTimeout.current);
         }
 
-        if (this.lastScrollEvent) {
-            this.scrollEndTimeout = setTimeout(() => {
-                if (this.lastScrollEvent !== timestamp) {
+        if (lastScrollEvent.current) {
+            scrollEndTimeout.current = setTimeout(() => {
+                if (lastScrollEvent.current !== timestamp) {
                     return;
                 }
                 // Scroll has ended
-                this.lastScrollEvent = null;
-                this.onScrollEnd();
+                lastScrollEvent.current = null;
+                onScrollEnd();
             }, 250);
         }
 
-        this.lastScrollEvent = timestamp;
+        lastScrollEvent.current = timestamp;
     }
 
-    render() {
-        return (
-            <BaseInvertedFlatList
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                inverted
-                ref={(el) => (this.list = el)}
-                shouldMeasureItems
-                contentContainerStyle={StyleSheet.compose(this.props.contentContainerStyle, styles.justifyContentEnd)}
-                onScroll={this.handleScroll}
-            />
-        );
-    }
+    return (
+        <BaseInvertedFlatList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            inverted
+            ref={listRef}
+            shouldMeasureItems
+            contentContainerStyle={StyleSheet.compose(contentContainerStyle, styles.justifyContentEnd)}
+            onScroll={handleScroll}
+        />
+    );
 }
 
 InvertedFlatList.propTypes = propTypes;
