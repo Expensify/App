@@ -114,7 +114,7 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
             }))
             .value();
-    }, [report, personalDetailsList, session]);
+    }, [report, personalDetailsList, session, translate]);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
