@@ -1460,11 +1460,9 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     if (isSettled(report.reportID)) {
-        // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... with Expensify"
+        // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey = 'iou.paidElsewhereWithAmount';
-        if (reportAction.originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME || reportActionMessage.match(/ PayPal.me$/)) {
-            translatePhraseKey = 'iou.paidUsingPaypalWithAmount';
-        } else if (
+        if (
             _.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], reportAction.originalMessage.paymentType) ||
             reportActionMessage.match(/ (with Expensify|using Expensify)$/)
         ) {
@@ -2030,7 +2028,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
  * @param {Number} total - IOU total in cents
  * @param {String} comment - IOU comment
  * @param {String} currency - IOU currency
- * @param {String} paymentType - IOU paymentMethodType. Can be oneOf(Elsewhere, Expensify, PayPal.me)
+ * @param {String} paymentType - IOU paymentMethodType. Can be oneOf(Elsewhere, Expensify)
  * @param {Boolean} isSettlingUp - Whether we are settling up an IOU
  * @returns {Array}
  */
@@ -2042,15 +2040,12 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
 
     let paymentMethodMessage;
     switch (paymentType) {
-        case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-            paymentMethodMessage = ' elsewhere';
-            break;
         case CONST.IOU.PAYMENT_TYPE.VBBA:
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             paymentMethodMessage = ' with Expensify';
             break;
         default:
-            paymentMethodMessage = ` using ${paymentType}`;
+            paymentMethodMessage = ` elsewhere`;
             break;
     }
 
@@ -2094,7 +2089,7 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
  * @param {String} comment - User comment for the IOU.
  * @param {Array}  participants - An array with participants details.
  * @param {String} [transactionID] - Not required if the IOUReportAction type is 'pay'
- * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
+ * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, Expensify).
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow

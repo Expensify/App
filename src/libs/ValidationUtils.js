@@ -191,15 +191,6 @@ function isValidSSNFullNine(ssnFull9) {
 }
 
 /**
- *
- * @param {String} paypalUsername
- * @returns {Boolean}
- */
-function isValidPaypalUsername(paypalUsername) {
-    return Boolean(paypalUsername) && CONST.REGEX.PAYPAL_ME_USERNAME.test(paypalUsername);
-}
-
-/**
  * Validate that a date meets the minimum age requirement.
  *
  * @param {String} date
@@ -475,7 +466,6 @@ export {
     validateIdentity,
     isValidTwoFactorCode,
     isNumericWithSpecialChars,
-    isValidPaypalUsername,
     isValidRoutingNumber,
     isValidSSNLastFour,
     isValidSSNFullNine,

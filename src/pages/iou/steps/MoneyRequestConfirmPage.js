@@ -253,11 +253,6 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                IOU.sendMoneyViaPaypal(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
-                return;
-            }
-
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 IOU.sendMoneyWithWallet(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
             }

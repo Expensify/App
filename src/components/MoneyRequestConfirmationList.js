@@ -392,13 +392,11 @@ function MoneyRequestConfirmationList(props) {
 
         const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
-        const recipient = props.selectedParticipants[0] || {};
 
         return shouldShowSettlementButton ? (
             <SettlementButton
                 isDisabled={shouldDisableButton}
                 onPress={confirm}
-                shouldShowPaypal={Boolean(recipient && recipient.payPalMeAddress)}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={props.bankAccountRoute}
                 addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
@@ -419,7 +417,7 @@ function MoneyRequestConfirmationList(props) {
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
             />
         );
-    }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
+    }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
     return (
         <OptionsSelector
