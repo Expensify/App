@@ -55,9 +55,11 @@ function BaseMiniContextMenuItem(props) {
                 ref={props.innerRef}
                 onPress={props.onPress}
                 onMouseDown={(e) => {
-                    if (ReportActionComposeFocusManager.isFocused() || ReportActionComposeFocusManager.isEditFocused()) {
-                        e.preventDefault();
+                    if (!ReportActionComposeFocusManager.isFocused() && !ReportActionComposeFocusManager.isEditFocused()) {
+                        return;
                     }
+
+                    e.preventDefault();
                 }}
                 accessibilityLabel={props.tooltipText}
                 style={({hovered, pressed}) => [
