@@ -46,15 +46,15 @@ type OnyxDataWithErrors = {
 };
 
 function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): string {
-    if (Object.keys(onyxData.errors).length === 0) {
+    const errors = onyxData.errors ?? {};
+
+    if (Object.keys(errors).length === 0) {
         return '';
     }
 
-    const key = Object.keys(onyxData.errors ?? {})
-        .sort()
-        .reverse()[0];
+    const key = Object.keys(errors).sort().reverse()[0];
 
-    return onyxData.errors[key];
+    return errors[key];
 }
 
 type OnyxDataWithErrorFields = {
