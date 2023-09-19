@@ -150,7 +150,7 @@ function MoneyRequestParticipantsSelector({
      */
     const addSingleParticipant = (option) => {
         onAddParticipants([{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true}]);
-        navigateToRequest();
+        navigateToRequest(option);
     };
 
     /**
