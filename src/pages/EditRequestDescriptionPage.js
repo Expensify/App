@@ -45,13 +45,6 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => {
-                if (!descriptionInputRef.current) {
-                    return;
-                }
-                UpdateMultilineInputRange(descriptionInputRef.current);
-                descriptionInputRef.current.focus();
-            }}
         >
             <>
                 <HeaderWithBackButton

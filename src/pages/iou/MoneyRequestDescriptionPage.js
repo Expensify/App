@@ -105,13 +105,6 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => {
-                if (!inputRef.current) {
-                    return;
-                }
-                UpdateMultilineInputRange(inputRef.current);
-                inputRef.current.focus();
-            }}
         >
             <>
                 <HeaderWithBackButton
