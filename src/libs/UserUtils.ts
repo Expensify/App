@@ -3,7 +3,7 @@ import CONST from '../CONST';
 import hashCode from './hashCode';
 import {ConciergeAvatar, FallbackAvatar} from '../components/Icon/Expensicons';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
-import Login from '../types/onyx/Login';
+import LoginList from '../types/onyx/LoginList';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
@@ -28,11 +28,9 @@ type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 
  *      }
  * }}
  */
-function hasLoginListError(loginList: Login[]) {
-    return loginList?.some((login) => {
-        const errorFields = login?.errorFields ?? {};
-        return Object.values(errorFields).some((field) => Object.keys(field).length > 0);
-    });
+function hasLoginListError(loginList: LoginList): boolean {
+    const errorFields = loginList?.errorFields ?? {};
+    return Object.values(errorFields).some((field) => Object.keys(field).length > 0);
 }
 
 /**
@@ -40,8 +38,8 @@ function hasLoginListError(loginList: Login[]) {
  * an Info brick road status indicator. Currently this only applies if the user
  * has an unvalidated contact method.
  */
-function hasLoginListInfo(loginList: Login[]) {
-    return loginList?.some((login) => !login.validatedDate);
+function hasLoginListInfo(loginList: LoginList): boolean {
+    return !loginList.validatedDate;
 }
 
 /**
@@ -51,7 +49,7 @@ function hasLoginListInfo(loginList: Login[]) {
  * @param loginList
  * @returns
  */
-function getLoginListBrickRoadIndicator(loginList: Login[]): '' | 'error' | 'info' {
+function getLoginListBrickRoadIndicator(loginList: LoginList): '' | 'error' | 'info' {
     if (hasLoginListError(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
