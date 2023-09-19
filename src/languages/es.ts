@@ -69,6 +69,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    RequestedAmountMessageParams,
     TagSelectionParams,
     EnglishTranslation,
 } from './types';
@@ -507,6 +508,7 @@ export default {
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount} con Expensify`,
         payElsewhere: 'Pagar de otra forma',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
+        requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} debe ${amount}`,
