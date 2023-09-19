@@ -72,6 +72,11 @@ function TaskPreview(props) {
     const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
     const taskAssignee = assigneeLogin || assigneeDisplayName;
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
+    const isDeletedParentAction = ReportUtils.isCanceledTaskReport(props.taskReport, props.action);
+
+    if (isDeletedParentAction) {
+        return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />;
+    }
 
     return (
         <View style={[styles.chatItemMessage]}>

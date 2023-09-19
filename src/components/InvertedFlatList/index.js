@@ -1,4 +1,4 @@
-import React, {forwardRef} from 'react';
+import React, {forwardRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList} from 'react-native';
 import _ from 'underscore';
@@ -17,34 +17,29 @@ const propTypes = {
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
-class InvertedFlatList extends React.Component {
-    constructor(props) {
-        super(props);
+function InvertedFlatList(props) {
+    const {innerRef, contentContainerStyle} = props;
+    const listRef = React.createRef();
 
-        this.list = undefined;
-    }
-
-    componentDidMount() {
-        if (!_.isFunction(this.props.innerRef)) {
+    useEffect(() => {
+        if (!_.isFunction(innerRef)) {
             // eslint-disable-next-line no-param-reassign
-            this.props.innerRef.current = this.list;
+            innerRef.current = listRef.current;
         } else {
-            this.props.innerRef(this.list);
+            innerRef(listRef);
         }
-    }
+    }, [innerRef, listRef]);
 
-    render() {
-        return (
-            <BaseInvertedFlatList
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                inverted
-                ref={(el) => (this.list = el)}
-                shouldMeasureItems
-                contentContainerStyle={this.props.contentContainerStyle}
-            />
-        );
-    }
+    return (
+        <BaseInvertedFlatList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            inverted
+            ref={listRef}
+            shouldMeasureItems
+            contentContainerStyle={contentContainerStyle}
+        />
+    );
 }
 
 InvertedFlatList.propTypes = propTypes;

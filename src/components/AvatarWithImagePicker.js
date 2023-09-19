@@ -21,8 +21,11 @@ import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import getImageResolution from '../libs/fileDownload/getImageResolution';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import AttachmentModal from './AttachmentModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as Browser from '../libs/Browser';
+import withNavigationFocus, {withNavigationFocusPropTypes} from './withNavigationFocus';
+import compose from '../libs/compose';
 
 const propTypes = {
     /** Avatar source to display */
@@ -79,7 +82,17 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     errors: PropTypes.object,
 
+    /** Title for avatar preview modal */
+    headerTitle: PropTypes.string,
+
+    /** Avatar source for avatar preview modal */
+    previewSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+
+    /** File name of the avatar */
+    originalFileName: PropTypes.string,
+
     ...withLocalizePropTypes,
+    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
@@ -98,6 +111,9 @@ const defaultProps = {
     onErrorClose: () => {},
     pendingAction: null,
     errors: null,
+    headerTitle: '',
+    previewSource: '',
+    originalFileName: '',
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -129,6 +145,9 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!prevProps.isFocused && this.props.isFocused) {
+            this.setError(null, {});
+        }
         if (!prevProps.isUploading && this.props.isUploading) {
             this.animation.start();
         } else if (prevProps.isUploading && !this.props.isUploading) {
@@ -273,58 +292,72 @@ class AvatarWithImagePicker extends React.Component {
                             </PressableWithoutFeedback>
                         </Tooltip>
                     </OfflineWithFeedback>
-                    <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
-                        {({openPicker}) => {
-                            const menuItems = [
-                                {
-                                    icon: Expensicons.Upload,
-                                    text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
-                                    onSelected: () => {
-                                        if (Browser.isSafari()) {
-                                            return;
-                                        }
-                                        openPicker({
-                                            onPicked: this.showAvatarCropModal,
-                                        });
-                                    },
-                                },
-                            ];
+                    <AttachmentModal
+                        headerTitle={this.props.headerTitle}
+                        source={this.props.previewSource}
+                        originalFileName={this.props.originalFileName}
+                    >
+                        {({show}) => (
+                            <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
+                                {({openPicker}) => {
+                                    const menuItems = [
+                                        {
+                                            icon: Expensicons.Upload,
+                                            text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
+                                            onSelected: () => {
+                                                if (Browser.isSafari()) {
+                                                    return;
+                                                }
+                                                openPicker({
+                                                    onPicked: this.showAvatarCropModal,
+                                                });
+                                            },
+                                        },
+                                    ];
 
-                            // If current avatar isn't a default avatar, allow Remove Photo option
-                            if (!this.props.isUsingDefaultAvatar) {
-                                menuItems.push({
-                                    icon: Expensicons.Trashcan,
-                                    text: this.props.translate('avatarWithImagePicker.removePhoto'),
-                                    onSelected: () => {
-                                        this.setError(null, {});
-                                        this.props.onImageRemoved();
-                                    },
-                                });
-                            }
-                            return (
-                                <PopoverMenu
-                                    isVisible={this.state.isMenuVisible}
-                                    onClose={() => this.setState({isMenuVisible: false})}
-                                    onItemSelected={(item, index) => {
-                                        this.setState({isMenuVisible: false});
-                                        // In order for the file picker to open dynamically, the click
-                                        // function must be called from within a event handler that was initiated
-                                        // by the user on Safari.
-                                        if (index === 0 && Browser.isSafari()) {
-                                            openPicker({
-                                                onPicked: this.showAvatarCropModal,
-                                            });
-                                        }
-                                    }}
-                                    menuItems={menuItems}
-                                    anchorPosition={this.props.anchorPosition}
-                                    withoutOverlay
-                                    anchorRef={this.anchorRef}
-                                    anchorAlignment={this.props.anchorAlignment}
-                                />
-                            );
-                        }}
-                    </AttachmentPicker>
+                                    // If current avatar isn't a default avatar, allow Remove Photo option
+                                    if (!this.props.isUsingDefaultAvatar) {
+                                        menuItems.push({
+                                            icon: Expensicons.Trashcan,
+                                            text: this.props.translate('avatarWithImagePicker.removePhoto'),
+                                            onSelected: () => {
+                                                this.setError(null, {});
+                                                this.props.onImageRemoved();
+                                            },
+                                        });
+
+                                        menuItems.push({
+                                            icon: Expensicons.Eye,
+                                            text: this.props.translate('avatarWithImagePicker.viewPhoto'),
+                                            onSelected: () => show(),
+                                        });
+                                    }
+                                    return (
+                                        <PopoverMenu
+                                            isVisible={this.state.isMenuVisible}
+                                            onClose={() => this.setState({isMenuVisible: false})}
+                                            onItemSelected={(item, index) => {
+                                                this.setState({isMenuVisible: false});
+                                                // In order for the file picker to open dynamically, the click
+                                                // function must be called from within a event handler that was initiated
+                                                // by the user on Safari.
+                                                if (index === 0 && Browser.isSafari()) {
+                                                    openPicker({
+                                                        onPicked: this.showAvatarCropModal,
+                                                    });
+                                                }
+                                            }}
+                                            menuItems={menuItems}
+                                            anchorPosition={this.props.anchorPosition}
+                                            withoutOverlay
+                                            anchorRef={this.anchorRef}
+                                            anchorAlignment={this.props.anchorAlignment}
+                                        />
+                                    );
+                                }}
+                            </AttachmentPicker>
+                        )}
+                    </AttachmentModal>
                 </View>
                 {this.state.validationError && (
                     <DotIndicatorMessage
@@ -350,4 +383,4 @@ class AvatarWithImagePicker extends React.Component {
 AvatarWithImagePicker.propTypes = propTypes;
 AvatarWithImagePicker.defaultProps = defaultProps;
 
-export default withLocalize(AvatarWithImagePicker);
+export default compose(withLocalize, withNavigationFocus)(AvatarWithImagePicker);
