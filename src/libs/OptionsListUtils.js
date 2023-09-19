@@ -92,40 +92,6 @@ Onyx.connect({
 });
 
 /**
- * Format personalDetails or userToInvite to be shown in the list
- *
- * @param {Object} member - personalDetails or userToInvite
- * @param {Object} config - keys to overwrite the default values
- * @returns {Object}
- */
-function formatMemberForList(member, config = {}) {
-    if (!member) {
-        return undefined;
-    }
-
-    const accountID = lodashGet(member, 'accountID', '');
-    const reportID = lodashGet(member, 'reportID', '');
-    const policyID = lodashGet(member, 'policyID', '');
-
-    return {
-        text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
-        alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
-        keyForList: lodashGet(member, 'keyForList', '') || String(accountID) || String(reportID) || String(policyID),
-        isSelected: false,
-        isDisabled: false,
-        isPolicyExpenseChat: lodashGet(member, 'isPolicyExpenseChat', false),
-        accountID,
-        reportID,
-        policyID,
-        login: lodashGet(member, 'login', ''),
-        rightElement: null,
-        icons: lodashGet(member, 'icons'),
-        pendingAction: lodashGet(member, 'pendingAction'),
-        ...config,
-    };
-}
-
-/**
  * Get the options for a policy expense report.
  * @param {Object} report
  * @returns {Array}
@@ -134,32 +100,21 @@ function getPolicyExpenseReportOptions(report) {
     const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
     const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
     const reportName = ReportUtils.getReportName(expenseReport);
-
     return [
         {
             ...expenseReport,
-            ...formatMemberForList(report, {
-                icons: [
-                    {
-                        source: policyExpenseChatAvatarSource,
-                        name: reportName,
-                        type: CONST.ICON_TYPE_WORKSPACE,
-                    },
-                ],
-            }),
-            selected: true,
-            // keyForList: expenseReport.policyID,
-            // text: reportName,
-            // alternateText: Localize.translateLocal('workspace.common.workspace'),
-            // icons: [
-            //     {
-            //         source: policyExpenseChatAvatarSource,
-            //         name: reportName,
-            //         type: CONST.ICON_TYPE_WORKSPACE,
-            //     },
-            // ],
-            // selected: report.selected,
-            // isPolicyExpenseChat: true,
+            keyForList: expenseReport.policyID,
+            text: reportName,
+            alternateText: Localize.translateLocal('workspace.common.workspace'),
+            icons: [
+                {
+                    source: policyExpenseChatAvatarSource,
+                    name: reportName,
+                    type: CONST.ICON_TYPE_WORKSPACE,
+                },
+            ],
+            selected: report.selected,
+            isPolicyExpenseChat: true,
         },
     ];
 }
@@ -1237,6 +1192,40 @@ function getShareDestinationOptions(
         includeOwnedWorkspaceChats,
         excludeUnknownUsers,
     });
+}
+
+/**
+ * Format personalDetails or userToInvite to be shown in the list
+ *
+ * @param {Object} member - personalDetails or userToInvite
+ * @param {Object} config - keys to overwrite the default values
+ * @returns {Object}
+ */
+function formatMemberForList(member, config = {}) {
+    if (!member) {
+        return undefined;
+    }
+
+    const accountID = lodashGet(member, 'accountID', '');
+    const reportID = lodashGet(member, 'reportID', '');
+    const policyID = lodashGet(member, 'policyID', '');
+
+    return {
+        text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
+        alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
+        keyForList: lodashGet(member, 'keyForList', '') || String(accountID) || String(reportID) || String(policyID),
+        isSelected: false,
+        isDisabled: false,
+        isPolicyExpenseChat: lodashGet(member, 'isPolicyExpenseChat', false),
+        accountID,
+        reportID,
+        policyID,
+        login: lodashGet(member, 'login', ''),
+        rightElement: null,
+        icons: lodashGet(member, 'icons'),
+        pendingAction: lodashGet(member, 'pendingAction'),
+        ...config,
+    };
 }
 
 /**

@@ -42,17 +42,8 @@ const userListItemPropTypes = {
         /** Whether this option is disabled for selection */
         isDisabled: PropTypes.bool,
 
-        /** True if the report is a Policy Expense chat */
-        isPolicyExpenseChat: PropTypes.bool,
-
         /** User accountID */
         accountID: PropTypes.number,
-
-        /** User reportID */
-        reportID: PropTypes.string,
-
-        /** User policyID */
-        policyID: PropTypes.string,
 
         /** User login */
         login: PropTypes.string,
