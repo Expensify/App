@@ -306,6 +306,7 @@ function BaseTextInput(props) {
                                         pointerEvents="none"
                                         selectable={false}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0]}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {props.prefixCharacter}
                                     </Text>

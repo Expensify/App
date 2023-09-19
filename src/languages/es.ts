@@ -234,6 +234,7 @@ export default {
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
         category: 'Categoría',
+        billable: 'Facturable',
         tag: 'Etiqueta',
         receipt: 'Recibo',
         replace: 'Sustituir',
@@ -244,6 +245,7 @@ export default {
         kilometers: 'kilómetros',
         recent: 'Reciente',
         all: 'Todo',
+        tbd: 'Por determinar',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
@@ -334,11 +336,6 @@ export default {
         newFaceEnterMagicCode: ({login}: NewFaceEnterMagicCodeParams) =>
             `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
-    },
-    DownloadAppModal: {
-        downloadTheApp: 'Descarga la aplicación',
-        keepTheConversationGoing: 'Mantén la conversación en New Expensify, descarga la aplicación para una experiencia mejorada.',
-        noThanks: 'No, gracias',
     },
     login: {
         hero: {
@@ -1551,7 +1548,7 @@ export default {
         completed: 'Completada',
         messages: {
             completed: 'tarea completada',
-            canceled: 'tarea cancelada',
+            canceled: 'tarea eliminado',
             reopened: 'tarea reabrir',
             error: 'No tiene permiso para realizar la acción solicitada.',
         },
@@ -2183,6 +2180,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Pedido eliminado]',
+        deletedTask: '[Tarea eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
