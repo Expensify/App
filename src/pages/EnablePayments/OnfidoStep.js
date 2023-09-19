@@ -7,8 +7,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as Wallet from '../../libs/actions/Wallet';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
+import useLocalize from '../../hooks/useLocalize';
 import Growl from '../../libs/Growl';
 import OnfidoPrivacy from './OnfidoPrivacy';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
@@ -18,8 +17,6 @@ import ROUTES from '../../ROUTES';
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
     walletOnfidoData: walletOnfidoDataPropTypes,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -29,60 +26,52 @@ const defaultProps = {
     },
 };
 
-class OnfidoStep extends React.Component {
-    /**
-     * @returns {boolean|*}
-     */
-    canShowOnfido() {
-        return this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && !this.props.walletOnfidoData.isLoading && !this.props.walletOnfidoData.error && this.props.walletOnfidoData.sdkToken;
-    }
+function OnfidoStep({walletOnfidoData}) {
+    const {translate} = useLocalize();
+    
+    const canShowOnfido = walletOnfidoData.hasAcceptedPrivacyPolicy && !walletOnfidoData.isLoading && !walletOnfidoData.error && walletOnfidoData.sdkToken;
 
-    render() {
-        return (
-            <>
-                <HeaderWithBackButton
-                    title={this.props.translate('onfidoStep.verifyIdentity')}
-                    onBackButtonPress={() => Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS)}
-                />
-                <FullPageOfflineBlockingView>
-                    {this.canShowOnfido() ? (
-                        <Onfido
-                            sdkToken={this.props.walletOnfidoData.sdkToken}
-                            onError={() => {
-                                Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
-                            }}
-                            onUserExit={() => {
-                                Navigation.goBack(ROUTES.HOME);
-                            }}
-                            onSuccess={(data) => {
-                                BankAccounts.verifyIdentity({
-                                    onfidoData: JSON.stringify({
-                                        ...data,
-                                        applicantID: this.props.walletOnfidoData.applicantID,
-                                    }),
-                                });
-                            }}
-                        />
-                    ) : (
-                        <OnfidoPrivacy walletOnfidoData={this.props.walletOnfidoData} />
-                    )}
-                </FullPageOfflineBlockingView>
-            </>
-        );
-    }
+    return (
+        <>
+            <HeaderWithBackButton
+                title={translate('onfidoStep.verifyIdentity')}
+                onBackButtonPress={() => Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS)}
+            />
+            <FullPageOfflineBlockingView>
+                {canShowOnfido ? (
+                    <Onfido
+                        sdkToken={walletOnfidoData.sdkToken}
+                        onError={() => {
+                            Growl.error(translate('onfidoStep.genericError'), 10000);
+                        }}
+                        onUserExit={() => {
+                            Navigation.goBack();
+                        }}
+                        onSuccess={(data) => {
+                            BankAccounts.verifyIdentity({
+                                onfidoData: JSON.stringify({
+                                    ...data,
+                                    applicantID: walletOnfidoData.applicantID,
+                                }),
+                            });
+                        }}
+                    />
+                ) : (
+                    <OnfidoPrivacy walletOnfidoData={walletOnfidoData} />
+                )}
+            </FullPageOfflineBlockingView>
+        </>
+    );
 }
 
 OnfidoStep.propTypes = propTypes;
 OnfidoStep.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        walletOnfidoData: {
-            key: ONYXKEYS.WALLET_ONFIDO,
+export default withOnyx({
+    walletOnfidoData: {
+        key: ONYXKEYS.WALLET_ONFIDO,
 
-            // Let's get a new onfido token each time the user hits this flow (as it should only be once)
-            initWithStoredValues: false,
-        },
-    }),
-)(OnfidoStep);
+        // Let's get a new onfido token each time the user hits this flow (as it should only be once)
+        initWithStoredValues: false,
+    },
+})(OnfidoStep);
