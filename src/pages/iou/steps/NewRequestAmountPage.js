@@ -69,24 +69,17 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
     const currency = currentCurrency || iou.currency;
 
-    const focusTextInput = () => {
-        // Component may not be initialized due to navigation transitions
-        // Wait until interactions are complete before trying to focus
-        InteractionManager.runAfterInteractions(() => {
-            // Focus text input
-            if (!textInput.current) {
+    const focusTimeoutRef = useRef(null);
+
+    useFocusEffect(useCallback(() => {
+        focusTimeoutRef.current = setTimeout(() => textInput.current && textInput.current.focus(), CONST.ANIMATED_TRANSITION);
+        return () => {
+            if (!focusTimeoutRef.current) {
                 return;
             }
-
-            textInput.current.focus();
-        });
-    };
-
-    useFocusEffect(
-        useCallback(() => {
-            focusTextInput();
-        }, []),
-    );
+            clearTimeout(focusTimeoutRef.current);
+        };
+    }, []));
 
     // Check and dismiss modal
     useEffect(() => {
@@ -175,7 +168,6 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            onEntryTransitionEnd={focusTextInput}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
