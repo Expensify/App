@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -14,6 +13,7 @@ const removeEvent = (reportID: string, reportActionID: string, eventID: string, 
                 [reportActionID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     originalMessage: {
+                        // TODO: remove underscore
                         events: _.reject(events, (event) => event.id === eventID),
                     },
                 },
