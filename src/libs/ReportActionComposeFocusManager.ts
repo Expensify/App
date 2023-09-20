@@ -57,6 +57,10 @@ function clear(isMainComposer = false) {
 function isFocused(): boolean {
     return !!composerRef.current?.isFocused();
 }
+
+/**
+ * Exposes the current focus state of the edit message composer.
+ */
 function isEditFocused(): boolean {
     return !!editComposerRef.current?.isFocused();
 }
