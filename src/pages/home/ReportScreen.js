@@ -290,9 +290,11 @@ function ReportScreen({
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
         return () => {
-            if (didSubscribeToReportLeavingEvents) {
-                Report.unsubscribeFromLeavingRoomReportChannel(report.reportID);
+            if (!didSubscribeToReportLeavingEvents) {
+                return;
             }
+
+            Report.unsubscribeFromLeavingRoomReportChannel(report.reportID);
         };
 
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
