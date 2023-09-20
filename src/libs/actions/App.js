@@ -141,10 +141,11 @@ function getPolicyParamsForOpenOrReconnect() {
 
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
+ * @param {Boolean} isOpenApp
  * @returns {Object}
  */
-function getOnyxDataForOpenOrReconnect() {
-    return {
+function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
+    const defaultData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -167,6 +168,33 @@ function getOnyxDataForOpenOrReconnect() {
             },
         ],
     };
+    if (!isOpenApp) return defaultData;
+    return {
+        optimisticData: [
+            ...defaultData.optimisticData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: true,
+            },
+        ],
+        successData: [
+            ...defaultData.successData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: false,
+            },
+        ],
+        failureData: [
+            ...defaultData.failureData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: false,
+            },
+        ],
+    };
 }
 
 /**
@@ -174,7 +202,7 @@ function getOnyxDataForOpenOrReconnect() {
  */
 function openApp() {
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect());
+        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect(true));
     });
 }
 
