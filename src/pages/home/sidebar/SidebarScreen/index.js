@@ -5,12 +5,13 @@ import sidebarPropTypes from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 import FreezeWrapper from '../../../../libs/Navigation/FreezeWrapper';
-import withWindowDimensions from '../../../../components/withWindowDimensions';
+import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import StatusBar from '../../../../libs/StatusBar';
 import themeColors from '../../../../styles/themes/default';
 
 function SidebarScreen(props) {
     const popoverModal = useRef(null);
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     useFocusEffect(
         useCallback(() => {
@@ -38,7 +39,7 @@ function SidebarScreen(props) {
     };
 
     return (
-        <FreezeWrapper keepVisible={!props.isSmallScreenWidth}>
+        <FreezeWrapper keepVisible={!isSmallScreenWidth}>
             <BaseSidebarScreen
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
@@ -56,4 +57,4 @@ function SidebarScreen(props) {
 SidebarScreen.propTypes = sidebarPropTypes;
 SidebarScreen.displayName = 'SidebarScreen';
 
-export default withWindowDimensions(SidebarScreen);
+export default SidebarScreen;
