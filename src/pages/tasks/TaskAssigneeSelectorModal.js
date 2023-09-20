@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -79,6 +79,8 @@ function TaskAssigneeSelectorModal(props) {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
     const [filteredCurrentUserOption, setFilteredCurrentUserOption] = useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
+
+    const optionRef = useRef();
 
     const updateOptions = useCallback(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getNewChatOptions(
@@ -201,7 +203,10 @@ function TaskAssigneeSelectorModal(props) {
     const isTaskNonEditable = report && ReportUtils.isTaskReport(props.task.report) && (!canModifyTask || !isOpen);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
+        >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton
@@ -219,6 +224,8 @@ function TaskAssigneeSelectorModal(props) {
                             shouldShowOptions={didScreenTransitionEnd && !isLoading}
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            autoFocus={false}
+                            ref={optionRef}
                         />
                     </View>
                 </FullPageNotFoundView>
