@@ -669,11 +669,12 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
  * @param {Number} amount - always in the smallest unit of the currency
  * @param {String} comment
  * @param {String} currency
+ * @param {String} category
  * @param {String} existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingSplitChatReportID = '') {
+function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID = '') {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -697,6 +698,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         '',
         '',
         `${Localize.translateLocal('iou.splitBill')} ${Localize.translateLocal('common.with')} ${formattedParticipants} [${DateUtils.getDBTime().slice(0, 10)}]`,
+        undefined,
+        undefined,
+        undefined,
+        category,
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
@@ -824,8 +829,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
         // In case the participant is a worskapce, email & accountID should remain undefined and won't be used in the rest of this code
-        const email = isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
-        const accountID = isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
+        const email = isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || '').toLowerCase();
+        const accountID = isOwnPolicyExpenseChat ? 0 : Number(participant.accountID) || 0;
         if (email === currentUserEmailForIOUSplit) {
             return;
         }
@@ -877,6 +882,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             '',
             CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
             splitTransaction.transactionID,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            category,
         );
 
         // STEP 4: Build optimistic reportActions. We need:
@@ -976,10 +986,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
  * @param {Number} amount - always in smallest currency unit
  * @param {String} comment
  * @param {String} currency
+ * @param {String} category
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
  */
-function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingSplitChatReportID = '') {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingSplitChatReportID);
+function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID = '') {
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID);
 
     API.write(
         'SplitBill',
@@ -989,6 +1000,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
             splits: JSON.stringify(splits),
             currency,
             comment,
+            category,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
             createdReportActionID: splitData.createdReportActionID,
@@ -1009,9 +1021,10 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  * @param {Number} amount - always in smallest currency unit
  * @param {String} comment
  * @param {String} currency
+ * @param {String} category
  */
-function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency);
+function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category) {
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category);
 
     API.write(
         'SplitBillAndOpenReport',
@@ -1021,6 +1034,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
             splits: JSON.stringify(splits),
             currency,
             comment,
+            category,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
             createdReportActionID: splitData.createdReportActionID,
