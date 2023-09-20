@@ -350,6 +350,7 @@ export default compose(
             key: ONYXKEYS.IOU,
         },
     }),
+    // eslint-disable-next-line
     withOnyx({
         report: {
             key: ({route, iou}) => {
@@ -369,6 +370,7 @@ export default compose(
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
         },
     }),
+    // eslint-disable-next-line
     withOnyx({
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,

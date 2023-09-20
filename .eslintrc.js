@@ -39,6 +39,7 @@ module.exports = {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
             rules: {
                 'rulesdir/onyx-props-must-have-default': 'off',
+                'rulesdir/no-multiple-onyx-in-file': 'error',
                 'react-native-a11y/has-accessibility-hint': ['off'],
                 'react-native-a11y/has-valid-accessibility-descriptors': [
                     'error',
