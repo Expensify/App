@@ -11,6 +11,8 @@ import Log from '../Log';
 import StatusBar from '../StatusBar';
 import useCurrentReportID from '../../hooks/useCurrentReportID';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as EmojiPickerAction from '../actions/EmojiPickerAction';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -86,7 +88,12 @@ function NavigationRoot(props) {
     const updateStatusBarBackgroundColor = (color) => StatusBar.setBackgroundColor(color);
     useAnimatedReaction(
         () => statusBarAnimation.value,
-        () => {
+        (current, previous) => {
+            // Do not run if either of the animated value is null
+            // or previous animated value is greater than or equal to the current one
+            if ([current, previous].includes(null) || current <= previous) {
+                return;
+            }
             const color = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
             runOnJS(updateStatusBarBackgroundColor)(color);
         },
@@ -116,6 +123,10 @@ function NavigationRoot(props) {
         if (!state) {
             return;
         }
+        ReportActionContextMenu.hideContextMenu();
+        ReportActionContextMenu.hideDeleteModal();
+        EmojiPickerAction.hideEmojiPicker(true);
+
         updateCurrentReportID(state);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();

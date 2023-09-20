@@ -18,11 +18,21 @@ type MapViewProps = {
     waypoints?: WayPoint[];
     // List of coordinates which together forms a direction.
     directionCoordinates?: Array<[number, number]>;
+    // Callback to call when the map is idle / ready.
+    onMapReady?: () => void;
 };
 
 type DirectionProps = {
     // Coordinates of points that constitute the direction
     coordinates: Array<[number, number]>;
+};
+
+type PendingMapViewProps = {
+    /** Title message below the icon */
+    title?: string;
+
+    /** Subtitle message below the title */
+    subtitle?: string;
 };
 
 // Initial state of the map
@@ -53,4 +63,4 @@ type MapViewHandle = {
     fitBounds: (ne: [number, number], sw: [number, number], paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {DirectionStyle, WayPoint, MapViewProps, DirectionProps, MapViewHandle};
+export type {DirectionStyle, WayPoint, MapViewProps, DirectionProps, PendingMapViewProps, MapViewHandle};
