@@ -365,7 +365,7 @@ function ReportActionItem(props) {
                 >
                     {!props.draftMessage ? (
                         <View style={props.displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
-                        <ReportActionItemMessage
+                            <ReportActionItemMessage
                                 reportID={props.report.reportID}
                                 action={props.action}
                                 displayAsGroup={props.displayAsGroup}
