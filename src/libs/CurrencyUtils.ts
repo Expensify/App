@@ -1,13 +1,10 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
+import ONYXKEYS, {OnyxValues} from '../ONYXKEYS';
 import CONST from '../CONST';
 import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import * as NumberFormatUtils from './NumberFormatUtils';
-import {Currency} from '../types/onyx';
 
-type CurrencyList = Record<string, Currency>;
-
-let currencyList: CurrencyList = {};
+let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
 Onyx.connect({
     key: ONYXKEYS.CURRENCY_LIST,
