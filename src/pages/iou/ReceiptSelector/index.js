@@ -24,13 +24,6 @@ import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
-    /** Information shown to the user when a receipt is not valid */
-    receiptModal: PropTypes.shape({
-        isAttachmentInvalid: PropTypes.bool,
-        attachmentInvalidReasonTitle: PropTypes.string,
-        attachmentInvalidReason: PropTypes.string,
-    }),
-
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
@@ -54,11 +47,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    receiptModal: {
-        isAttachmentInvalid: false,
-        attachmentInvalidReasonTitle: '',
-        attachmentInvalidReason: '',
-    },
     report: {},
     iou: iouDefaultProps,
     transactionID: '',
@@ -207,7 +195,6 @@ ReceiptSelector.displayName = 'ReceiptSelector';
 
 export default withOnyx({
     iou: {key: ONYXKEYS.IOU},
-    receiptModal: {key: ONYXKEYS.RECEIPT_MODAL},
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
     },
