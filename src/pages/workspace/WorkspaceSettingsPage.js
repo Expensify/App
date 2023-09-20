@@ -27,10 +27,10 @@ import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescript
 import Text from '../../components/Text';
 
 const propTypes = {
-    // The currency list constant object from Onyx
+    /** Constant, list of available currencies */
     currencyList: PropTypes.objectOf(
         PropTypes.shape({
-            // Symbol for the currency
+            /** Symbol of the currency */
             symbol: PropTypes.string,
         }),
     ),

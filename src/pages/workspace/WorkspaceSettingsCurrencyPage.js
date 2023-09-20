@@ -14,10 +14,10 @@ import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import * as Policy from '../../libs/actions/Policy';
 
 const propTypes = {
-    // List of available currencies
+    /** Constant, list of available currencies */
     currencyList: PropTypes.objectOf(
         PropTypes.shape({
-            // Symbol for the currency
+            /** Symbol of the currency */
             symbol: PropTypes.string,
         }),
     ),
@@ -88,8 +88,8 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy}) {
                 onChangeText={setSearchText}
                 onSelectRow={onSelectCurrency}
                 headerMessage={headerMessage}
-                showScrollIndicator
                 initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                showScrollIndicator
             />
         </ScreenWrapper>
     );
