@@ -255,9 +255,13 @@ function BaseTextInput(props) {
     const isMultiline = props.multiline || props.autoGrowHeight;
 
     const lineHeight = useMemo(() => {
-        return  Browser.isSafari() ? _.isArray(props.inputStyle) ?
-            _.find(props.inputStyle, function (f) { return f.lineHeight !== undefined; })?.lineHeight :
-            props.inputStyle?.lineHeight : Browser.isMobileChrome() ? height : undefined;
+        if (Browser.isSafari() && _.isArray(props.inputStyle)) {
+            return _.find(props.inputStyle,  (f) => f.lineHeight !== undefined)?.lineHeight
+        } else if (Browser.isSafari() || Browser.isMobileChrome()) {
+            return height;
+        } else {
+            return undefined;
+        }
     }, [props.inputStyle, height])
        
     return (
