@@ -34,6 +34,9 @@ const propTypes = {
 
     /** The action accept for anonymous user or not */
     isAnonymousAction: PropTypes.bool,
+
+    /** Whether the menu item is focused or not */
+    focused: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -42,9 +45,10 @@ const defaultProps = {
     successText: '',
     description: '',
     isAnonymousAction: false,
+    focused: false,
 };
 
-function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction}) {
+function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, focused}) {
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
@@ -89,6 +93,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             descriptionTextStyle={styles.breakAll}
             style={getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
+            focused={focused}
         />
     );
 }
