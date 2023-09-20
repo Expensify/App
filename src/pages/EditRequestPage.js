@@ -15,9 +15,11 @@ import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestAmountPage from './EditRequestAmountPage';
+import EditRequestReceiptPage from './EditRequestReceiptPage';
 import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /** Route from navigation */
@@ -88,7 +90,9 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
         if (canEdit) {
             return;
         }
-        Navigation.dismissModal();
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal();
+        });
     }, [canEdit]);
 
     // Update the transaction object and close the modal
@@ -168,7 +172,16 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
         );
     }
 
-    return null;
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
+        return (
+            <EditRequestReceiptPage
+                route={route}
+                transactionID={transaction.transactionID}
+            />
+        );
+    }
+
+    return <FullPageNotFoundView shouldShow />;
 }
 
 EditRequestPage.displayName = 'EditRequestPage';

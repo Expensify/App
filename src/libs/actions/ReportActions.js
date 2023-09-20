@@ -2,20 +2,23 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as ReportActionUtils from '../ReportActionsUtils';
+import * as ReportUtils from '../ReportUtils';
 
 /**
  * @param {String} reportID
  * @param {Object} reportAction
  */
 function clearReportActionErrors(reportID, reportAction) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+
     if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         // Delete the optimistic action
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
             [reportAction.reportActionID]: null,
         });
 
         // If there's a linked transaction, delete that too
-        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportID, reportAction.reportActionID);
+        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(originalReportID, reportAction.reportActionID);
         if (linkedTransactionID) {
             Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
         }
@@ -23,7 +26,7 @@ function clearReportActionErrors(reportID, reportAction) {
         return;
     }
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         [reportAction.reportActionID]: {
             errors: null,
         },
