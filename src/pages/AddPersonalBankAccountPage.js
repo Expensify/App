@@ -132,7 +132,7 @@ class AddPersonalBankAccountPage extends React.Component {
                                     this.setState({selectedPlaidAccountID});
                                 }}
                                 plaidData={this.props.plaidData}
-                                onExitPlaid={Navigation.goBack}
+                                onExitPlaid={() => Navigation.goBack(ROUTES.HOME)}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                                 selectedPlaidAccountID={this.state.selectedPlaidAccountID}
                             />
