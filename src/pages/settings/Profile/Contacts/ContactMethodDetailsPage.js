@@ -285,25 +285,14 @@ class ContactMethodDetailsPage extends Component {
                         </OfflineWithFeedback>
                     ) : null}
                     {isDefaultContactMethod ? (
-                        <>
-                            <OfflineWithFeedback
-                                pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
-                                errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
-                                errorRowStyles={[styles.ml8, styles.mr5]}
-                                onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
-                            >
-                                <Text style={[styles.ph5, styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
-                            </OfflineWithFeedback>
-                            {isFailedRemovedContactMethod && (
-                                <OfflineWithFeedback
-                                    errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
-                                    errorRowStyles={[styles.ml8, styles.mr5]}
-                                    onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
-                                >
-                                    <></>
-                                </OfflineWithFeedback>
-                            )}
-                        </>
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
+                            errors={ErrorUtils.getLatestErrorField(loginData, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
+                            errorRowStyles={[styles.ml8, styles.mr5]}
+                            onClose={() => User.clearContactMethodErrors(contactMethod, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
+                        >
+                            <Text style={[styles.ph5, styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
+                        </OfflineWithFeedback>
                     ) : (
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
