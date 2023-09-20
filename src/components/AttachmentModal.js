@@ -18,7 +18,6 @@ import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import ReceiptAttachmentHeader from './ReceiptAttachmentHeader';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';

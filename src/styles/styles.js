@@ -2197,10 +2197,6 @@ const styles = (theme) => ({
         width: '100%',
     },
 
-    receiptAttachmentHeaderThreeDotsMenuStyles: {
-        zIndex: variables.popoverModalzIndex,
-    },
-
     defaultAttachmentView: {
         backgroundColor: theme.sidebar,
         borderRadius: variables.componentBorderRadiusNormal,
