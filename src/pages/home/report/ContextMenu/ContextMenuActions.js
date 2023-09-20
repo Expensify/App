@@ -204,13 +204,12 @@ export default [
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const originalMessage = _.get(reportAction, 'originalMessage', {});
-                    const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
-                    const {amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
-                    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
                     let displayMessage;
                     if (ReportActionsUtils.isSentMoneyReportAction(reportAction)) {
-                        const iouReport = ReportUtils.getReport(originalMessage.IOUReportID);
-                        const payerName = ReportUtils.getDisplayNameForParticipant(iouReport.managerID, true);
+                        const {amount, currency, IOUReportID} = originalMessage;
+                        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+                        const iouReport = ReportUtils.getReport(IOUReportID);
+                        const payerName = ReportActionsUtils.getDisplayNameForParticipant(iouReport.managerID, true);
                         let translationKey;
                         switch (originalMessage.paymentType) {
                             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -229,6 +228,9 @@ export default [
                         }
                         displayMessage = Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
                     } else {
+                        const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
+                        const {amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
+                        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
                         displayMessage = Localize.translateLocal('iou.requestedAmount', {
                             formattedAmount,
                             comment,
