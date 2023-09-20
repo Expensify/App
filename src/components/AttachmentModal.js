@@ -1,6 +1,7 @@
 import React, {useState, useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, Animated, Keyboard} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
@@ -30,6 +31,8 @@ import useWindowDimensions from '../hooks/useWindowDimensions';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import useNativeDriver from '../libs/useNativeDriver';
+import Receipt from '../libs/actions/Receipt';
+import ONYXKEYS from '../ONYXKEYS';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -79,6 +82,13 @@ const propTypes = {
 
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
+
+    /* Onyx Props */
+    /** The parent report */
+    parentReport: reportPropTypes,
+
+    /** The report action this report is tied to from the parent report */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 };
 
 const defaultProps = {
@@ -95,6 +105,8 @@ const defaultProps = {
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
     isWorkspaceAvatar: false,
+    parentReport: {},
+    parentReportAction: {},
 };
 
 function AttachmentModal(props) {
@@ -372,6 +384,14 @@ function AttachmentModal(props) {
                             text: props.translate('common.download'),
                             onSelected: () => downloadAttachment(source),
                         },
+                        {
+                            icon: Expensicons.Trashcan,
+                            text: props.translate('receipt.deleteReceipt'),
+                            onSelected: () => {
+                                const transactionID = lodashGet(props.parentReportAction, 'originalMessage.IOUTransactionID', '');
+                                Receipt.detachReceipt(transactionID, props.report.reportID)
+                            },
+                        },
                     ]}
                     shouldOverlay
                 />
@@ -441,4 +461,17 @@ function AttachmentModal(props) {
 AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
 AttachmentModal.displayName = 'AttachmentModal';
-export default compose(withWindowDimensions, withLocalize)(AttachmentModal);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withOnyx({
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        },
+        parentReportAction: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(report.parentReportID, report.parentReportActionID)}`,
+            selector: (reportActions, props) => props && props.parentReport && reportActions && reportActions[props.parentReport.parentReportActionID],
+            canEvict: false,
+        },
+    }),
+)(AttachmentModal);
