@@ -25,7 +25,6 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
 import * as Environment from '../Environment/Environment';
 import * as Session from './Session';
 
