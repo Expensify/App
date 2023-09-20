@@ -9,7 +9,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
-import { getEnvironmentURL } from './Environment/Environment';
+import {getEnvironmentURL} from './Environment/Environment';
 
 const allReports = {};
 Onyx.connect({
@@ -44,7 +44,7 @@ Onyx.connect({
 });
 
 let environmentURL;
-getEnvironmentURL().then((url) => environmentURL = url);
+getEnvironmentURL().then((url) => (environmentURL = url));
 
 /**
  * @param {Object} reportAction
@@ -384,8 +384,8 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
 /**
  * For invite to room and remove from room policy change logs, report URLs are generated in the server,
  * which includes a baseURL placeholder that's replaced in the client.
- * @param {*} reportAction 
- * @returns 
+ * @param {*} reportAction
+ * @returns
  */
 function replaceBaseURL(reportAction) {
     if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVEFROMROOM) {
