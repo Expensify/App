@@ -6,12 +6,15 @@ import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
+import Permissions from '../../libs/Permissions';
 import Navigation from '../../libs/Navigation/Navigation';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as IOU from '../../libs/actions/IOU';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
@@ -24,6 +27,8 @@ import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import transactionPropTypes from '../transactionPropTypes';
 import Image from '../Image';
+import Text from '../Text';
+import Switch from '../Switch';
 import ReportActionItemImage from './ReportActionItemImage';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
@@ -45,6 +50,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    betas: [],
     parentReport: {},
     transaction: {
         amount: 0,
@@ -53,10 +59,9 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction}) {
+function MoneyRequestView({betas, report, parentReport, shouldShowHorizontalRule, transaction}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
-
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
     const {
@@ -65,6 +70,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
         currency: transactionCurrency,
         comment: transactionDescription,
         merchant: transactionMerchant,
+        billable: transactionBillable,
     } = ReportUtils.getTransactionDetails(transaction);
     const isEmptyMerchant =
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -72,6 +78,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+    const shouldShowBillable = Permissions.canUseTags(betas);
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
@@ -169,6 +176,17 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
+            {shouldShowBillable && (
+                <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <Text color={!transactionBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                    <Switch
+                        accessibilityLabel={translate('common.billable')}
+                        isOn={transactionBillable}
+                        onToggle={(value) => IOU.editMoneyRequest(transaction.transactionID, transaction.reportID, {billable: value})}
+                    />
+                </View>
+            )}
+
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
@@ -181,6 +199,9 @@ MoneyRequestView.displayName = 'MoneyRequestView';
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
         },

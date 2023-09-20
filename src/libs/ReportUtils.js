@@ -1303,6 +1303,7 @@ function getTransactionDetails(transaction) {
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
         category: TransactionUtils.getCategory(transaction),
+        billable: TransactionUtils.getBillable(transaction),
     };
 }
 
