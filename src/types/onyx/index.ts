@@ -29,7 +29,6 @@ import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import ReimbursementAccount from './ReimbursementAccount';
 import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import WalletTransfer from './WalletTransfer';
-import ReceiptModal from './ReceiptModal';
 import MapboxAccessToken from './MapboxAccessToken';
 import {OnyxUpdatesFromServer, OnyxUpdateEvent} from './OnyxUpdatesFromServer';
 import Download from './Download';
@@ -79,7 +78,6 @@ export type {
     ReimbursementAccountDraft,
     FrequentlyUsedEmoji,
     WalletTransfer,
-    ReceiptModal,
     MapboxAccessToken,
     Download,
     PolicyMember,
