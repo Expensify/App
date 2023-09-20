@@ -3,7 +3,7 @@ import _ from 'underscore';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as ReportUtils from '../../src/libs/ReportUtils';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -51,9 +51,9 @@ describe('ReportUtils', () => {
             [ONYXKEYS.COUNTRY_CODE]: 1,
             [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
         });
-        return waitForPromisesToResolve();
+        return waitForBatchedUpdates();
     });
-    beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForPromisesToResolve));
+    beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
 
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {

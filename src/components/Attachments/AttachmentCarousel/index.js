@@ -67,7 +67,9 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             setDownloadButtonVisibility(initialPage !== -1);
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (!_.isUndefined(attachmentsFromReport[initialPage])) onNavigate(attachmentsFromReport[initialPage]);
+            if (!_.isUndefined(attachmentsFromReport[initialPage])) {
+                onNavigate(attachmentsFromReport[initialPage]);
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportActions, compareImage]);
