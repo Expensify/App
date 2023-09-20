@@ -21,8 +21,12 @@ const propTypes = {
     }).isRequired,
 
     /** The id of the transaction we're editing */
-    transactionID: PropTypes.string.isRequired,
+    transactionID: PropTypes.string,
 };
+
+const defaultProps = {
+    transactionID: '',
+}
 
 function EditRequestReceiptPage({route, transactionID}) {
     const {translate} = useLocalize();
@@ -47,6 +51,7 @@ function EditRequestReceiptPage({route, transactionID}) {
 }
 
 EditRequestReceiptPage.propTypes = propTypes;
+EditRequestReceiptPage.defaultProps = defaultProps;
 EditRequestReceiptPage.displayName = 'EditRequestReceiptPage';
 
 export default EditRequestReceiptPage;
