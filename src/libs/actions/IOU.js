@@ -695,7 +695,10 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
-                        ...updatedTransaction,
+                        comment: {
+                            waypoints: null,
+                        },
+                        errorFields: null,
                     },
                 },
                 {
@@ -704,7 +707,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                     value: {
                         pendingFields,
                         isLoading: true,
-                        errorFields,
+                        errorFields: null,
                     },
                 },
                 ...modifiedReportActionOptimisticData,
@@ -712,11 +715,24 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
             ],
             successData: [
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        comment: {
+                            waypoints: {
+                                ...transactionDetails.comment.waypoints,
+                            },
+                        },
+                        errorFields: null,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
                     value: {
                         pendingFields: clearedPendingFields,
                         isLoading: false,
+                        errorFields: null,
                     },
                 },
                 ...modifiedReportActionSuccessData,
