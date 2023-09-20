@@ -17,6 +17,8 @@ import * as IOU from '../../../../libs/actions/IOU';
 import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 import useLocalize from '../../../../hooks/useLocalize';
+import * as TransactionUtils from '../../../../libs/TransactionUtils';
+
 
 const propTypes = {
     /** React Navigation route */
@@ -52,7 +54,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
-    const transaction = TransactionUtils.getTransaction(props.iou.transactionID);
+    const transaction = TransactionUtils.getTransaction(iou.transactionID);
     const isEmptyWaypoint = _.isEmpty(lodashGet(transaction, 'comment.waypoint.waypoint0', {}));
 
     useEffect(() => {
