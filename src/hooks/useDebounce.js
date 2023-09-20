@@ -1,5 +1,5 @@
 import {useEffect, useRef} from 'react';
-import _ from 'underscore';
+import lodashDebounce from 'lodash/debounce';
 
 /**
  * @param {*} func Function to debounce `waitMS` ms.
@@ -11,7 +11,7 @@ export default function useDebounce(func, wait, immediate) {
     const debouncedFnRef = useRef();
 
     useEffect(() => {
-        const debouncedFn = _.debounce(func, wait, immediate);
+        const debouncedFn = lodashDebounce(func, wait, immediate);
 
         debouncedFnRef.current = debouncedFn;
 
