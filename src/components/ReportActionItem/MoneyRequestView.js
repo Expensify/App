@@ -47,6 +47,10 @@ const propTypes = {
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
 
+    /* Onyx Props */
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
