@@ -13,7 +13,6 @@ type ParseReportRouteParams = {
 
 const REPORT = 'r';
 const IOU_REQUEST = 'request/new';
-const IOU_BILL = 'split/new';
 const IOU_SEND = 'send/new';
 const NEW_TASK = 'new/task';
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
@@ -49,7 +48,6 @@ export default {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_ADD_PAYPAL_ME: 'settings/wallet/add-paypal-me',
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
@@ -67,11 +65,12 @@ export default {
     SETTINGS_2FA: 'settings/security/two-factor-auth',
     SETTINGS_STATUS,
     SETTINGS_STATUS_SET,
-    NEW_GROUP: 'new/group',
+    NEW: 'new',
     NEW_CHAT: 'new/chat',
+    NEW_ROOM: 'new/room',
     NEW_TASK,
     REPORT,
-    REPORT_WITH_ID: 'r/:reportID/:reportActionID?',
+    REPORT_WITH_ID: 'r/:reportID?/:reportActionID?',
     EDIT_REQUEST: 'r/:threadReportID/edit/:field',
     getEditRequestRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${threadReportID}/edit/${field}`,
     EDIT_CURRENCY_REQUEST: 'r/:threadReportID/edit/currency',
@@ -86,7 +85,6 @@ export default {
     CONCIERGE: 'concierge',
 
     IOU_REQUEST,
-    IOU_BILL,
     IOU_SEND,
 
     // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
@@ -173,6 +171,14 @@ export default {
     APPLE_SIGN_IN: 'sign-in-with-apple',
     GOOGLE_SIGN_IN: 'sign-in-with-google',
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
+
+    // Routes related to private notes added to the report
+    PRIVATE_NOTES_VIEW: 'r/:reportID/notes/:accountID',
+    getPrivateNotesViewRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}`,
+    PRIVATE_NOTES_LIST: 'r/:reportID/notes',
+    getPrivateNotesListRoute: (reportID: string) => `r/${reportID}/notes`,
+    PRIVATE_NOTES_EDIT: 'r/:reportID/notes/:accountID/edit',
+    getPrivateNotesEditRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`,
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
