@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState, useRef, useEffect, useCallback} from 'react';
+import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import {Animated, View, AppState, Keyboard, StyleSheet} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
@@ -243,9 +243,11 @@ function BaseTextInput(props) {
     ]);
     const isMultiline = props.multiline || props.autoGrowHeight;
 
-    const lineHeight = _.isArray(props.inputStyle) ?
-        _.find(props.inputStyle, function (f) { return f.lineHeight !== undefined; })?.lineHeight
-        : props.inputStyle?.lineHeight;
+    const lineHeight = useMemo(() => {
+        return  Browser.isSafari() ? _.isArray(props.inputStyle) ?
+            _.find(props.inputStyle, function (f) { return f.lineHeight !== undefined; })?.lineHeight :
+            props.inputStyle?.lineHeight : Browser.isMobileChrome() ? height : undefined;
+    }, [props.inputStyle, height])
        
     return (
         <>
@@ -332,7 +334,7 @@ function BaseTextInput(props) {
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
                                     // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
-                                    !isMultiline && { height, lineHeight: Browser.isSafari() ? lineHeight : Browser.isMobileChrome() ? height : undefined},
+                                    !isMultiline && { height, lineHeight },
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
                                     // Add disabled color theme when field is not editable.
