@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useState, useRef, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -14,6 +14,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Text from '../../components/Text';
+import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
@@ -85,7 +86,9 @@ function WorkspaceNewRoomPage(props) {
      */
     const submit = (values) => {
         const policyMembers = _.map(_.keys(props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
-        Report.addPolicyReport(values.policyID, values.roomName, values.visibility, policyMembers, values.writeCapability);
+        debugger;
+        console.log(values.welcomeMessage);
+        Report.addPolicyReport(values.policyID, values.roomName, values.visibility, policyMembers, values.writeCapability, values.welcomeMessage);
     };
 
     /**
@@ -174,6 +177,20 @@ function WorkspaceNewRoomPage(props) {
                                     isFocused={props.isFocused}
                                     shouldDelayFocus
                                     autoFocus
+                                />
+                            </View>
+                            <View style={[styles.mb6]}>
+                                <TextInput
+                                    inputID="welcomeMessage"
+                                    label={translate('welcomeMessagePage.welcomeMessage')}
+                                    accessibilityLabel={translate('welcomeMessagePage.welcomeMessage')}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    autoGrowHeight
+                                    placeholder={translate('welcomeMessagePage.welcomeMessage')}
+                                    maxLength={CONST.MAX_COMMENT_LENGTH}
+                                    autoCapitalize="none"
+                                    textAlignVertical="top"
+                                    containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 />
                             </View>
                             <View style={styles.mb2}>
