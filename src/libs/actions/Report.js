@@ -1241,7 +1241,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
 function updateWelcomeMessage(reportID, previousValue, newValue) {
     // No change needed, navigate back
     if (previousValue === newValue) {
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
         return;
     }
 
@@ -1261,7 +1261,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateWelcomeMessage', {reportID, welcomeMessage: parsedWelcomeMessage}, {optimisticData, failureData});
-    Navigation.goBack();
+    Navigation.goBack(ROUTES.HOME);
 }
 
 /**
@@ -1438,7 +1438,7 @@ function deleteReport(reportID) {
  */
 function navigateToConciergeChatAndDeleteReport(reportID) {
     // Dismiss the current report screen and replace it with Concierge Chat
-    Navigation.goBack();
+    Navigation.goBack(ROUTES.HOME);
     navigateToConciergeChat();
     deleteReport(reportID);
 }
@@ -1820,7 +1820,7 @@ function leaveRoom(reportID) {
     );
     Navigation.dismissModal();
     if (Navigation.getTopmostReportId() === reportID) {
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
     }
     navigateToConciergeChat();
 }
