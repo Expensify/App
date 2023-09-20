@@ -136,6 +136,7 @@ function ProfilePage(props) {
 
     const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : 0;
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (ValidationUtils.isValidAccountRoute(accountID) && !hasMinimumDetails) {
             PersonalDetails.openPublicProfilePage(accountID);
