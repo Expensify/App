@@ -92,12 +92,12 @@ function run() {
 
     if (expensifyClassicArticleHubs.length !== expensifyClassicRoute.hubs.length) {
         console.error(warnMessage(platformNames.expensifyClassic));
-        return 1;
+        exit(1);
     }
 
     if (newExpensifyArticleHubs.length !== newExpensifyRoute.hubs.length) {
         console.error(warnMessage(platformNames.newExpensify));
-        return 1;
+        exit(1);
     }
 
     createHubsWithArticles(expensifyClassicArticleHubs, platformNames.expensifyClassic, expensifyClassicRoute.hubs);
@@ -113,5 +113,5 @@ try {
     run();
 } catch (error) {
     console.error('A problem occurred while trying to read the directories.', error);
-    return 1;
+    exit(1);
 }
