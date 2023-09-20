@@ -221,6 +221,7 @@ function MultipleAvatars(props) {
                                         <Text
                                             selectable={false}
                                             style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}
+                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
                                     </View>
                                 </View>
@@ -278,6 +279,7 @@ function MultipleAvatars(props) {
                                         <Text
                                             selectable={false}
                                             style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}
+                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         >
                                             {`+${props.icons.length - 1}`}
                                         </Text>

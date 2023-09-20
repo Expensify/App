@@ -228,7 +228,6 @@ function getParticipantsOptions(participants, personalDetails) {
                     id: detail.accountID,
                 },
             ],
-            payPalMeAddress: lodashGet(detail, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(detail, 'phoneNumber', ''),
             selected: participant.selected,
         };
@@ -448,7 +447,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         login: null,
         reportID: null,
         phoneNumber: null,
-        payPalMeAddress: null,
         hasDraftComment: false,
         keyForList: null,
         searchText: null,
@@ -562,7 +560,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.login = personalDetail.login;
         result.accountID = Number(personalDetail.accountID);
         result.phoneNumber = personalDetail.phoneNumber;
-        result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
     result.text = reportName;

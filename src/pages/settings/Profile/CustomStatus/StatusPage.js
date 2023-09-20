@@ -2,7 +2,6 @@ import React, {useMemo, useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import moment from 'moment';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import StaticHeaderPageLayout from '../../../../components/StaticHeaderPageLayout';
@@ -44,8 +43,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const navigateBackToSettingsPage = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
     const updateStatus = useCallback(() => {
-        const endOfDay = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
-        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay});
+        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji});
 
         User.clearDraftCustomStatus();
         Navigation.goBack(ROUTES.SETTINGS_PROFILE);
@@ -68,7 +66,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         <StaticHeaderPageLayout
             title={localize.translate('statusPage.status')}
             onBackButtonPress={navigateBackToSettingsPage}
-            backgroundColor={themeColors.midtone}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.SETTINGS_STATUS]}
             image={MobileBackgroundImage}
             footer={footerComponent}
         >
