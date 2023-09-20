@@ -9,6 +9,7 @@ import variables from '../styles/variables';
 import Tooltip from './Tooltip';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReportActionComposeFocusManager from '../libs/ReportActionComposeFocusManager';
+import DomUtils from '../libs/DomUtils';
 
 const propTypes = {
     /**
@@ -56,6 +57,7 @@ function BaseMiniContextMenuItem(props) {
                 onPress={props.onPress}
                 onMouseDown={(e) => {
                     if (!ReportActionComposeFocusManager.isFocused() && !ReportActionComposeFocusManager.isEditFocused()) {
+                        DomUtils.getActiveElement().blur();
                         return;
                     }
 
