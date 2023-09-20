@@ -8,7 +8,7 @@ import lodashDebounce from 'lodash/debounce';
  * @param {Boolean} options.leading Specify invoking on the leading edge of the timeout.
  * @param {Number} options.maxWait The maximum time func is allowed to be delayed before it’s invoked.
  * @param {Boolean} options.trailing Specify invoking on the trailing edge of the timeout.
- * @returns Returns a function to call the debounced function.
+ * @returns {Function} Returns a function to call the debounced function.
  */
 export default function useDebounce(func, wait, options) {
     const debouncedFnRef = useRef();
