@@ -145,20 +145,13 @@ function getPolicyParamsForOpenOrReconnect() {
  * @returns {Object}
  */
 function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
-    return {
+    const defaultData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: true,
             },
-            isOpenApp
-                ? {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.IS_LOADING_APP,
-                      value: true,
-                  }
-                : undefined,
         ],
         successData: [
             {
@@ -166,13 +159,6 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: false,
             },
-            isOpenApp
-                ? {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.IS_LOADING_APP,
-                      value: false,
-                  }
-                : undefined,
         ],
         failureData: [
             {
@@ -180,13 +166,33 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: false,
             },
-            isOpenApp
-                ? {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.IS_LOADING_APP,
-                      value: false,
-                  }
-                : undefined,
+        ],
+    };
+    if (!isOpenApp) return defaultData;
+    return {
+        optimisticData: [
+            ...defaultData.optimisticData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: true,
+            },
+        ],
+        successData: [
+            ...defaultData.successData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: false,
+            },
+        ],
+        failureData: [
+            ...defaultData.failureData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: false,
+            },
         ],
     };
 }
