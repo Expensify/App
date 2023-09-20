@@ -3,6 +3,7 @@ import {DragDropContext, Droppable, Draggable, type OnDragEndResponder, type OnD
 import {ScrollView} from 'react-native';
 import useDraggableInPortal from './useDraggableInPortal';
 import type {DraggableListProps, DraggableListType} from './types';
+import styles from '../../styles/styles';
 
 type ReorderParams<T> = {
     list: T[];
@@ -81,7 +82,7 @@ function DraggableList<T>(
     return (
         <ScrollView
             ref={ref}
-            style={{flex: 1}}
+            style={styles.flex1}
         >
             <DragDropContext
                 onDragEnd={onDragEnd}

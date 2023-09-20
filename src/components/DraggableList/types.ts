@@ -17,7 +17,7 @@ type DraggableListProps<T> = {
     onPlaceholderIndexChange?: (placeholderIndex: number) => void;
     renderClone?: DraggableChildrenFn;
     shouldUsePortal?: boolean;
-    ListFooterComponent?: React.ReactNode | null;
+    ListFooterComponent?: React.ReactElement;
 } & DraggableListData<T>;
 
 type RenderItemParams<T> = OriginalRenderItemParams<T>;
