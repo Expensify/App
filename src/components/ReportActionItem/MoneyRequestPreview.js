@@ -232,7 +232,12 @@ function MoneyRequestPreview(props) {
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
             >
-                <View style={[isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                <View
+                    style={[
+                        isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined,
+                        !props.onPreviewPressed ? [styles.moneyRequestPreviewBox, ...props.containerStyles] : {},
+                    ]}
+                >
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={receiptImages}
