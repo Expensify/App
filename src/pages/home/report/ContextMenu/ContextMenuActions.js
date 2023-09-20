@@ -207,11 +207,34 @@ export default [
                     const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
                     const {amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
                     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
-                    const displaymessage = Localize.translateLocal('iou.requestedAmount', {
-                        formattedAmount,
-                        comment,
-                    });
-                    Clipboard.setString(displaymessage);
+                    let displayMessage;
+                    if (ReportActionsUtils.isSentMoneyReportAction(reportAction)) {
+                        const iouReport = ReportUtils.getReport(originalMessage.IOUReportID);
+                        const payerName = ReportUtils.getDisplayNameForParticipant(iouReport.managerID, true);
+                        let translationKey;
+                        switch (originalMessage.paymentType) {
+                            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+                                translationKey = 'iou.paidElsewhereWithAmount';
+                                break;
+                            case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
+                                translationKey = 'iou.paidUsingPaypalWithAmount';
+                                break;
+                            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+                            case CONST.IOU.PAYMENT_TYPE.VBBA:
+                                translationKey = 'iou.paidUsingExpensifyWithAmount';
+                                break;
+                            default:
+                                translationKey = '';
+                                break;
+                        }
+                        displayMessage = Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
+                    } else {
+                        displayMessage = Localize.translateLocal('iou.requestedAmount', {
+                            formattedAmount,
+                            comment,
+                        });
+                    }
+                    Clipboard.setString(displayMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
