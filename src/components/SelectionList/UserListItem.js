@@ -21,7 +21,7 @@ function UserListItem({item, isFocused = false, showTooltip, onSelectRow, onDism
 
     const avatar = (
         <Avatar
-            containerStyles={styles.pl5}
+            containerStyles={styles.pl3}
             source={lodashGet(item, 'avatar.source', '')}
             name={lodashGet(item, 'avatar.name', item.text)}
             type={lodashGet(item, 'avatar.type', CONST.ICON_TYPE_AVATAR)}
@@ -64,29 +64,31 @@ function UserListItem({item, isFocused = false, showTooltip, onSelectRow, onDism
                 hoverStyle={styles.hoveredComponentBG}
                 focusStyle={styles.hoveredComponentBG}
             >
-                <View
-                    style={[
-                        StyleUtils.getCheckboxContainerStyle(20, 4),
-                        item.isSelected && styles.checkedContainer,
-                        item.isSelected && styles.borderColorFocus,
-                        item.isDisabled && styles.cursorDisabled,
-                        item.isDisabled && styles.buttonOpacityDisabled,
-                    ]}
-                >
-                    {item.isSelected && (
-                        <Icon
-                            src={Expensicons.Checkmark}
-                            fill={themeColors.textLight}
-                            height={14}
-                            width={14}
-                        />
-                    )}
+                <View style={styles.checkboxPressable}>
+                    <View
+                        style={[
+                            StyleUtils.getCheckboxContainerStyle(20, 4),
+                            item.isSelected && styles.checkedContainer,
+                            item.isSelected && styles.borderColorFocus,
+                            item.isDisabled && styles.cursorDisabled,
+                            item.isDisabled && styles.buttonOpacityDisabled,
+                        ]}
+                    >
+                        {item.isSelected && (
+                            <Icon
+                                src={Expensicons.Checkmark}
+                                fill={themeColors.textLight}
+                                height={14}
+                                width={14}
+                            />
+                        )}
+                    </View>
                 </View>
                 {Boolean(item.avatar) &&
                     (showTooltip ? (
                         <UserDetailsTooltip
                             accountID={item.accountID}
-                            shiftHorizontal={styles.pl5.paddingLeft / 2}
+                            shiftHorizontal={styles.pl3.paddingLeft / 2}
                         >
                             <View>{avatar}</View>
                         </UserDetailsTooltip>

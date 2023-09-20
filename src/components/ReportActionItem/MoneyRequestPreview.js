@@ -33,7 +33,6 @@ import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import transactionPropTypes from '../transactionPropTypes';
 import * as StyleUtils from '../../styles/StyleUtils';
-import colors from '../../styles/colors';
 import variables from '../../styles/variables';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import MoneyRequestSkeletonView from '../MoneyRequestSkeletonView';
@@ -265,7 +264,7 @@ function MoneyRequestPreview(props) {
                                 {hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        fill={colors.red}
+                                        fill={themeColors.danger}
                                     />
                                 )}
                             </View>
