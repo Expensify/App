@@ -27,6 +27,7 @@ import getButtonState from '../../libs/getButtonState';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as Session from '../../libs/actions/Session';
 import * as Expensicons from '../Icon/Expensicons';
+import SpacerView from '../SpacerView';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -119,6 +120,7 @@ function TaskView(props) {
                 </Hoverable>
                 <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.description')}>
                     <MenuItemWithTopDescription
+                        shouldParseTitle
                         description={props.translate('task.description')}
                         title={props.report.description || ''}
                         onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
@@ -157,7 +159,10 @@ function TaskView(props) {
                     />
                 )}
             </OfflineWithFeedback>
-            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
+            <SpacerView
+                shouldShow={props.shouldShowHorizontalRule}
+                style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+            />
         </View>
     );
 }

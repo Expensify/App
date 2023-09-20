@@ -8,7 +8,6 @@ import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import Navigation from '../Navigation/Navigation';
 import * as Localize from '../Localize';
-import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as CurrencyUtils from '../CurrencyUtils';
@@ -89,13 +88,16 @@ function resetMoneyRequestInfo(id = '') {
         amount: 0,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
+        // TODO: remove participants after all instances of iou.participants will be replaced with iou.participantAccountIDs
         participants: [],
+        participantAccountIDs: [],
         merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
         category: '',
         created,
         receiptPath: '',
         receiptSource: '',
         transactionID: '',
+        billable: null,
     });
 }
 
@@ -339,6 +341,7 @@ function buildOnyxDataForMoneyRequest(
  * @param {Object} [receipt]
  * @param {String} [existingTransactionID]
  * @param {String} [category]
+ * @param {Boolean} [billable]
  * @returns {Object} data
  * @returns {String} data.payerEmail
  * @returns {Object} data.iouReport
@@ -366,6 +369,7 @@ function getMoneyRequestInformation(
     receipt = undefined,
     existingTransactionID = undefined,
     category = undefined,
+    billable = undefined,
 ) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
@@ -431,6 +435,7 @@ function getMoneyRequestInformation(
         filename,
         existingTransactionID,
         category,
+        billable,
     );
 
     const uniquePolicyRecentlyUsedCategories = allRecentlyUsedCategories
@@ -478,7 +483,7 @@ function getMoneyRequestInformation(
 
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
-        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, comment, optimisticTransaction);
+        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
 
@@ -557,8 +562,8 @@ function createDistanceRequest(report, participant, comment, created, transactio
         currency,
         created,
         merchant,
-        null,
-        null,
+        userAccountID,
+        currentUserEmail,
         optimisticReceipt,
         transactionID,
         category,
@@ -598,8 +603,9 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {String} comment
  * @param {Object} [receipt]
  * @param {String} [category]
+ * @param {Boolean} [billable]
  */
-function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined, category = undefined) {
+function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined, category = undefined, billable = undefined) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
@@ -616,6 +622,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
         receipt,
         undefined,
         category,
+        billable,
     );
 
     API.write(
@@ -636,6 +643,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             receipt,
             category,
+            billable,
         },
         onyxData,
     );
@@ -1046,8 +1054,8 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     // from the server with the currency conversion
     let updatedMoneyRequestReport = {...iouReport};
     const updatedChatReport = {...chatReport};
-    if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount) {
-        const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+    const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+    if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount && diff !== 0) {
         if (ReportUtils.isExpenseReport(iouReport)) {
             updatedMoneyRequestReport.total += diff;
         } else {
@@ -1396,16 +1404,6 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
 }
 
 /**
- * @param {Number} amount
- * @param {String} submitterPayPalMeAddress
- * @param {String} currency
- * @returns {String}
- */
-function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
-    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / 100}${currency}`;
-}
-
-/**
  * @param {Object} report
  * @param {Number} amount
  * @param {String} currency
@@ -1647,7 +1645,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     let optimisticReportPreviewAction = null;
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
-        optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction);
+        optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, true);
     }
 
     const optimisticData = [
@@ -1785,26 +1783,6 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-/**
- * @param {Object} report
- * @param {Number} amount
- * @param {String} currency
- * @param {String} comment
- * @param {String} managerID - Account ID of the person sending the money
- * @param {Object} recipient - The user receiving the money
- */
-function sendMoneyViaPaypal(report, amount, currency, comment, managerID, recipient) {
-    const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, managerID, recipient);
-
-    API.write('SendMoneyViaPaypal', params, {optimisticData, successData, failureData});
-
-    resetMoneyRequestInfo();
-    Navigation.dismissModal(params.chatReportID);
-    Report.notifyNewAction(params.chatReportID, managerID);
-
-    asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
-}
-
 function approveMoneyRequest(expenseReport) {
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
 
@@ -1868,7 +1846,6 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     const recipient = {
         login: iouReport.ownerEmail,
         accountID: iouReport.ownerAccountID,
-        payPalMeAddress: iouReport.submitterPayPalMeAddress,
     };
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
 
@@ -1878,9 +1855,6 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 
     API.write(apiCommand, params, {optimisticData, successData, failureData});
     Navigation.dismissModal(chatReport.reportID);
-    if (paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-        asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));
-    }
 }
 
 /**
@@ -1947,10 +1921,19 @@ function resetMoneyRequestCategory() {
 }
 
 /**
+ * @param {Boolean} billable
+ */
+function setMoneyRequestBillable(billable) {
+    Onyx.merge(ONYXKEYS.IOU, {billable});
+}
+
+/**
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
-    Onyx.merge(ONYXKEYS.IOU, {participants});
+    // TODO: temporarily we want to save both participants and participantAccountIDs, then we can remove participants (and rename the function)
+    // more info: https://github.com/Expensify/App/issues/25714#issuecomment-1712924903 and https://github.com/Expensify/App/issues/25714#issuecomment-1716335802
+    Onyx.merge(ONYXKEYS.IOU, {participants, participantAccountIDs: _.map(participants, 'accountID')});
 }
 
 /**
@@ -2014,7 +1997,6 @@ export {
     splitBillAndOpenReport,
     requestMoney,
     sendMoneyElsewhere,
-    sendMoneyViaPaypal,
     approveMoneyRequest,
     payMoneyRequest,
     sendMoneyWithWallet,
@@ -2028,6 +2010,7 @@ export {
     setMoneyRequestMerchant,
     setMoneyRequestCategory,
     resetMoneyRequestCategory,
+    setMoneyRequestBillable,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
     createEmptyTransaction,

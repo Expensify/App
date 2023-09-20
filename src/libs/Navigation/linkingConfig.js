@@ -85,10 +85,6 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
-                            Settings_Add_Paypal_Me: {
-                                path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
-                                exact: true,
-                            },
                             Settings_Add_Debit_Card: {
                                 path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
                                 exact: true,
@@ -204,9 +200,6 @@ export default {
                             Workspace_Invite_Message: {
                                 path: ROUTES.WORKSPACE_INVITE_MESSAGE,
                             },
-                            Workspace_NewRoom: {
-                                path: ROUTES.WORKSPACE_NEW_ROOM,
-                            },
                             ReimbursementAccount: {
                                 path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                                 exact: true,
@@ -214,6 +207,13 @@ export default {
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE,
                             },
+                        },
+                    },
+                    Private_Notes: {
+                        screens: {
+                            PrivateNotes_View: ROUTES.PRIVATE_NOTES_VIEW,
+                            PrivateNotes_List: ROUTES.PRIVATE_NOTES_LIST,
+                            PrivateNotes_Edit: ROUTES.PRIVATE_NOTES_EDIT,
                         },
                     },
                     Report_Details: {
@@ -243,14 +243,22 @@ export default {
                             Report_WelcomeMessage_Root: ROUTES.REPORT_WELCOME_MESSAGE,
                         },
                     },
-                    NewGroup: {
-                        screens: {
-                            NewGroup_Root: ROUTES.NEW_GROUP,
-                        },
-                    },
                     NewChat: {
                         screens: {
-                            NewChat_Root: ROUTES.NEW_CHAT,
+                            NewChat_Root: {
+                                path: ROUTES.NEW,
+                                exact: true,
+                                screens: {
+                                    chat: {
+                                        path: ROUTES.NEW_CHAT,
+                                        exact: true,
+                                    },
+                                    room: {
+                                        path: ROUTES.NEW_ROOM,
+                                        exact: true,
+                                    },
+                                },
+                            },
                         },
                     },
                     NewTask: {
