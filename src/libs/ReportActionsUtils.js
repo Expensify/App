@@ -9,6 +9,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import { getEnvironmentURL } from './Environment/Environment';
 
 const allReports = {};
 Onyx.connect({
@@ -378,6 +379,21 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
 }
 
 /**
+ * For invite to room and remove from room policy change logs, report URLs are generated in the server,
+ * which includes a baseURL placeholder that's replaced in the client.
+ * @param {*} reportAction 
+ * @returns 
+ */
+function replaceBaseURL(reportAction) {
+    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVEFROMROOM) {
+        return reportAction;
+    }
+
+    reportAction.message[0].html = _.replace(reportAction.message[0].html, '%baseURL', getEnvironmentURL());
+    return reportAction;
+}
+
+/**
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
  * @return {Object}
@@ -453,7 +469,8 @@ function filterOutDeprecatedReportActions(reportActions) {
  */
 function getSortedReportActionsForDisplay(reportActions) {
     const filteredReportActions = _.filter(reportActions, (reportAction, key) => shouldReportActionBeVisible(reportAction, key));
-    return getSortedReportActions(filteredReportActions, true);
+    const baseURLAdjustedReportActions = _.map(filteredReportActions, (reportAction) => replaceBaseURL(reportAction));
+    return getSortedReportActions(baseURLAdjustedReportActions, true);
 }
 
 /**
