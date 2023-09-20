@@ -2063,29 +2063,33 @@ function clearPrivateNotesError(reportID, accountID) {
  * @param {string} searchInput
  */
 function searchInServer(searchInput) {
-    API.read('SearchForReports', {searchInput}, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-                value: true,
-            }
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-                value: false,
-            }
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-                value: false,
-            }
-        ]
-    });
+    API.read(
+        'SearchForReports',
+        {searchInput},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+                    value: true,
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+                    value: false,
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+                    value: false,
+                },
+            ],
+        },
+    );
 }
 
 export {

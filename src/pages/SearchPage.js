@@ -238,6 +238,6 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
-        }
+        },
     }),
 )(SearchPage);

@@ -375,13 +375,16 @@ class BaseOptionsSelector extends Component {
                         isError={false}
                     />
                 )}
-
             </>
-
         );
         const optionsList = (
             <>
-                {this.props.shouldShowLoader && <OptionsListSkeletonRow lineWidth="100%" shouldAnimate />}
+                {this.props.shouldShowLoader && (
+                    <OptionsListSkeletonRow
+                        lineWidth="100%"
+                        shouldAnimate
+                    />
+                )}
                 <OptionsList
                     ref={(el) => (this.list = el)}
                     optionHoveredStyle={this.props.optionHoveredStyle}
