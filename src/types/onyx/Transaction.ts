@@ -9,11 +9,11 @@ type Comment = {
     waypoints?: WaypointCollection;
 };
 
-type GeometryType = 'LineString' | '';
+type GeometryType = 'LineString';
 
 type Geometry = {
     coordinates: number[][] | null;
-    type: GeometryType;
+    type?: GeometryType;
 };
 
 type Route = {

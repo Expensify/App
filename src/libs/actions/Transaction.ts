@@ -133,7 +133,6 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
                 route0: {
                     distance: null,
                     geometry: {
-                        type: '',
                         coordinates: null,
                     },
                 },
