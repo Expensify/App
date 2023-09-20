@@ -303,7 +303,7 @@ function doesContainReservedWord(value: string, reservedWords: string[]): boolea
  * and should not be used for policy rooms.
  */
 function isReservedRoomName(roomName: string): boolean {
-    return CONST.REPORT.RESERVED_ROOM_NAMES.includes(roomName);
+    return (CONST.REPORT.RESERVED_ROOM_NAMES as readonly string[]).includes(roomName);
 }
 
 /**
