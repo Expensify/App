@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useEffect, useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Text from './Text';
 import styles from '../styles/styles';
@@ -25,7 +25,6 @@ import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import MenuItemRenderHTMLTitle from './MenuItemRenderHTMLTitle';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = menuItemPropTypes;
 
@@ -249,11 +248,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             {Boolean(props.title) && (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) && (
-                                                <ScrollView style={styles.menuItemHtmlRendererScrollView}>
-                                                    <PressableWithoutFeedback accessibilityRole={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}>
-                                                        <MenuItemRenderHTMLTitle title={getProcessedTitle} />
-                                                    </PressableWithoutFeedback>
-                                                </ScrollView>
+                                                <MenuItemRenderHTMLTitle title={getProcessedTitle} />
                                             )}
                                             {!props.shouldRenderAsHTML && !props.shouldParseTitle && Boolean(props.title) && (
                                                 <Text

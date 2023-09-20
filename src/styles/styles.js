@@ -3998,10 +3998,6 @@ const styles = (theme) => ({
         height: 30,
         width: '100%',
     },
-
-    menuItemHtmlRendererScrollView: {
-        maxHeight: 115,
-    },
 });
 
 // For now we need to export the styles function that takes the theme as an argument
