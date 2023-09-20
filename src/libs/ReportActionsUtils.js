@@ -43,6 +43,9 @@ Onyx.connect({
     callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
 });
 
+let environmentURL;
+getEnvironmentURL().then((url) => environmentURL = url);
+
 /**
  * @param {Object} reportAction
  * @returns {Boolean}
@@ -389,7 +392,7 @@ function replaceBaseURL(reportAction) {
         return reportAction;
     }
 
-    reportAction.message[0].html = _.replace(reportAction.message[0].html, '%baseURL', getEnvironmentURL());
+    reportAction.message[0].html = reportAction.message[0].html.replace('%baseURL', environmentURL);
     return reportAction;
 }
 
