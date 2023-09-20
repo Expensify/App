@@ -53,7 +53,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
     const transaction = TransactionUtils.getTransaction(props.iou.transactionID);
-    const isEmptyWaypoint = _.isEmpty(lodashGet(transaction, 'comment.waypoint.waypoint0', {}))
+    const isEmptyWaypoint = _.isEmpty(lodashGet(transaction, 'comment.waypoint.waypoint0', {}));
 
     useEffect(() => {
         if (isDistanceRequest) {
