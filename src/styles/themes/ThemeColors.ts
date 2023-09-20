@@ -61,7 +61,6 @@ type ThemeColors = {
     uploadPreviewActivityIndicator: Color;
     dropUIBG: Color;
     receiptDropUIBG?: Color;
-    dropTransparentOverlay?: Color;
     checkBox: Color;
     pickerOptionsTextColor: Color;
     imageCropBackgroundColor: Color;
