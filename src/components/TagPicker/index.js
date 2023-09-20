@@ -15,7 +15,7 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
     const [searchValue, setSearchValue] = useState('');
 
     const policyRecentlyUsedTagsList = lodashGet(policyRecentlyUsedTags, tag, []);
-    const policyTagList = lodashGet(policyTags, [tag, 'tags'], []);
+    const policyTagList = lodashGet(policyTags, [tag, 'tags'], {});
     const policyTagsCount = _.size(_.filter(policyTagList, (policyTag) => policyTag.enabled));
     const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
 

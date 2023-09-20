@@ -467,9 +467,10 @@ function getMoneyRequestInformation(
     const optimisticPolicyRecentlyUsedCategories = [category, ...uniquePolicyRecentlyUsedCategories];
 
     const optimisticPolicyRecentlyUsedTags = {};
-    if (allRecentlyUsedTags) {
+    const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
+
+    if (recentlyUsedPolicyTags) {
         // For now it only uses the first tag of the policy, since multi-tags are not yet supported
-        const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
         const recentlyUsedTagListKey = _.first(_.keys(recentlyUsedPolicyTags));
         const uniquePolicyRecentlyUsedTags = _.filter(recentlyUsedPolicyTags[recentlyUsedTagListKey], (recentlyUsedPolicyTag) => recentlyUsedPolicyTag !== tag);
         optimisticPolicyRecentlyUsedTags[recentlyUsedTagListKey] = [tag, ...uniquePolicyRecentlyUsedTags];
