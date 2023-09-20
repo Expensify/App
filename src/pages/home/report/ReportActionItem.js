@@ -67,6 +67,7 @@ import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import usePrevious from '../../../hooks/usePrevious';
 import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
+import RenderHTML from '../../../components/RenderHTML';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
 
 const propTypes = {
@@ -520,6 +521,22 @@ function ReportActionItem(props) {
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
+            if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
+                return (
+                    <>
+                        <ReportActionItemSingle
+                            action={parentReportAction}
+                            showHeader={!props.draftMessage}
+                            wrapperStyles={[styles.chatItem]}
+                            report={props.report}
+                        >
+                            <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                        </ReportActionItemSingle>
+                        <View style={styles.reportHorizontalRule} />
+                    </>
+                );
+            }
+
             return (
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <TaskView
@@ -576,7 +593,10 @@ function ReportActionItem(props) {
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={props.translate('accessibilityHints.chatMessage')}
         >
-            <Hoverable disabled={Boolean(props.draftMessage)}>
+            <Hoverable
+                shouldHandleScroll
+                disabled={Boolean(props.draftMessage)}
+            >
                 {(hovered) => (
                     <View>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
@@ -603,6 +623,7 @@ function ReportActionItem(props) {
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
+                                shouldDisableStrikeThrough
                             >
                                 {isWhisper && (
                                     <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
