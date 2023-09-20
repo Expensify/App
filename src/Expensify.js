@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import * as Encryptify from 'react-native-encryptify';
 import * as Report from './libs/actions/Report';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -181,6 +182,28 @@ function Expensify(props) {
             appStateChangeListener.current.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, []);
+
+    useEffect(() => {
+        console.log({Encryptify});
+
+        const kemKeys = Encryptify.KEMGenKeys();
+
+        const publicKeys = {kyber1024: kemKeys.kyber1024.publicKey, rsa4096: kemKeys.rsa4096.publicKey};
+        const privateKeys = {kyber1024: kemKeys.kyber1024.privateKey, rsa4096: kemKeys.rsa4096.privateKey};
+
+        const data = 'Hello World! 123';
+        const {sharedSecret, cipherText} = Encryptify.KEMEncrypt(publicKeys);
+        const encryptedData = Encryptify.AESEncrypt('some iv value', sharedSecret, data);
+
+        // After encryption on the sender side, the message is sent to the receiver:
+        // Only the encryptedData an the cipherText must be sent to the receiver
+        // The receiver can then decrypt the cipherText with his private keys
+
+        const decryptedSharedSecret = Encryptify.KEMDecrypt(privateKeys, cipherText);
+        const decryptedData = Encryptify.AESDecrypt('some iv value', decryptedSharedSecret, encryptedData);
+
+        console.log({encryptedData, decryptedData});
     }, []);
 
     // Display a blank page until the onyx migration completes
