@@ -58,7 +58,7 @@ const getNewSelection = (oldSelection, prevLength, newLength) => {
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const checkAmount = (amount) => !amount.length || parseFloat(amount) < 0.01;
+const isAmountValid = (amount) => !amount.length || parseFloat(amount) < 0.01;
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -73,7 +73,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
-    const [isInvaidAmount, setIsInvalidAmount] = useState(checkAmount(selectedAmountAsString));
+    const [isInvalidAmount, setIsInvalidAmount] = useState(isAmountValid(selectedAmountAsString));
     const [firstPress, setFirstPress] = useState(false);
     const [formError, setFormError] = useState('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -133,9 +133,9 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
-        const checkInValidAmount = checkAmount(newAmountWithoutSpaces);
-        setIsInvalidAmount(checkInValidAmount);
-        setFormError(checkInValidAmount ? 'iou.error.invalidAmount' : '');
+        const checkInvalidAmount = isAmountValid(newAmountWithoutSpaces);
+        setIsInvalidAmount(checkInvalidAmount);
+        setFormError(checkInvalidAmount ? 'iou.error.invalidAmount' : '');
         setCurrentAmount((prevAmount) => {
             const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
             const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
@@ -186,13 +186,13 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(() => {
-        if (isInvaidAmount) {
+        if (isInvalidAmount) {
             setFirstPress(true);
             setFormError('iou.error.invalidAmount');
             return;
         }
         onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount, isInvaidAmount]);
+    }, [onSubmitButtonPress, currentAmount, isInvalidAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
