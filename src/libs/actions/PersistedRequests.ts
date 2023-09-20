@@ -1,22 +1,23 @@
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
+import isEqual from 'lodash/isEqual';
 import ONYXKEYS from '../../ONYXKEYS';
+import {Request} from '../../types/onyx';
 
-let persistedRequests = [];
+let persistedRequests: Request[] = [];
 
 Onyx.connect({
     key: ONYXKEYS.PERSISTED_REQUESTS,
-    callback: (val) => (persistedRequests = val || []),
+    callback: (val) => (persistedRequests = val ?? []),
 });
 
+/**
+ * This promise is only used by tests. DO NOT USE THIS PROMISE IN THE APPLICATION CODE
+ */
 function clear() {
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
+    return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 
-/**
- * @param {Array} requestsToPersist
- */
-function save(requestsToPersist) {
+function save(requestsToPersist: Request[]) {
     if (persistedRequests.length) {
         persistedRequests = persistedRequests.concat(requestsToPersist);
     } else {
@@ -25,16 +26,13 @@ function save(requestsToPersist) {
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
-/**
- * @param {Object} requestToRemove
- */
-function remove(requestToRemove) {
+function remove(requestToRemove: Request) {
     /**
      * We only remove the first matching request because the order of requests matters.
      * If we were to remove all matching requests, we can end up with a final state that is different than what the user intended.
      */
     const requests = [...persistedRequests];
-    const index = _.findIndex(requests, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
+    const index = requests.findIndex((persistedRequest) => isEqual(persistedRequest, requestToRemove));
     if (index !== -1) {
         requests.splice(index, 1);
     }
@@ -43,10 +41,7 @@ function remove(requestToRemove) {
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
-/**
- * @returns {Array}
- */
-function getAll() {
+function getAll(): Request[] {
     return persistedRequests;
 }
 

@@ -2,26 +2,10 @@ import Str from 'expensify-common/lib/str';
 import {ImageSourcePropType} from 'react-native';
 import * as FileUtils from './fileDownload/FileUtils';
 import CONST from '../CONST';
-import Receipt from './actions/Receipt';
 import ReceiptHTML from '../../assets/images/receipt-html.png';
 import ReceiptDoc from '../../assets/images/receipt-doc.png';
 import ReceiptGeneric from '../../assets/images/receipt-generic.png';
 import ReceiptSVG from '../../assets/images/receipt-svg.png';
-
-function validateReceipt(file: File): boolean {
-    const fileSize = file?.size ?? 0;
-    if (fileSize > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-        Receipt.setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
-        return false;
-    }
-
-    if (fileSize < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-        Receipt.setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-        return false;
-    }
-
-    return true;
-}
 
 type ThumbnailAndImageURI = {
     thumbnail: string | null;
@@ -63,4 +47,5 @@ function getThumbnailAndImageURIs(path: string, filename: string): ThumbnailAndI
     return {thumbnail: null, image};
 }
 
-export {validateReceipt, getThumbnailAndImageURIs};
+// eslint-disable-next-line import/prefer-default-export
+export {getThumbnailAndImageURIs};
