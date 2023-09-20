@@ -757,6 +757,9 @@ const CONST = {
     // 6 numeric digits
     VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
 
+    // 8 alphanumeric characters
+    RECOVERY_CODE_REGEX_STRING: /^[a-zA-Z0-9]{8}$/,
+
     // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
@@ -805,6 +808,8 @@ const CONST = {
 
     MAGIC_CODE_LENGTH: 6,
     MAGIC_CODE_EMPTY_CHAR: ' ',
+
+    RECOVERY_CODE_LENGTH: 8,
 
     KEYBOARD_TYPE: {
         PHONE_PAD: 'phone-pad',
