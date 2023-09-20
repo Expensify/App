@@ -65,11 +65,9 @@ function CloseAccountPage(props) {
     /**
      * Removes spaces and transform the input string to lowercase.
      * @param {String} phoneOrEmail - The input string to be sanitized.
-     * @returns The sanitized string
+     * @returns {String} The sanitized string
      */
-    const sanitizePhoneOrEmail = (phoneOrEmail) => {
-        return phoneOrEmail.replace(/\s+/g, '').toLowerCase();
-    }
+    const sanitizePhoneOrEmail = (phoneOrEmail) => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
 
     const validate = (values) => {
         const requiredFields = ['phoneOrEmail'];
