@@ -72,6 +72,7 @@ function OnfidoStep({walletOnfidoData}) {
 
 OnfidoStep.propTypes = propTypes;
 OnfidoStep.defaultProps = defaultProps;
+OnfidoStep.displayName = 'OnfidoStep';
 
 export default withOnyx({
     walletOnfidoData: {
