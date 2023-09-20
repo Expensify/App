@@ -1024,6 +1024,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
             createdReportActionID: splitData.createdReportActionID,
+            policyID: splitData.policyID,
         },
         onyxData,
     );
