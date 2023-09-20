@@ -21,7 +21,7 @@ const canUseTouchScreen: CanUseTouchScreen = () => {
         hasTouchScreen = (navigator as ExtendedNavigator).msMaxTouchPoints > 0;
     } else {
         // Same case as for Navigator - TypeScript thinks that matchMedia is obligatory property of window although it may not be
-        const mQ = (window as Partial<Window & typeof globalThis>).matchMedia && matchMedia('(pointer:coarse)');
+        const mQ = window.matchMedia?.('(pointer:coarse)');
         if (mQ && mQ.media === '(pointer:coarse)') {
             hasTouchScreen = !!mQ.matches;
         } else if ('orientation' in window) {
