@@ -290,10 +290,6 @@ function ReportScreen({
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
         return () => {
-            if (!unsubscribeVisibilityListener) {
-                return;
-            }
-            unsubscribeVisibilityListener();
             if (didSubscribeToReportLeavingEvents) {
                 Report.unsubscribeFromLeavingRoomReportChannel(report.reportID);
             }
