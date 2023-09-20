@@ -792,6 +792,10 @@ const CONST = {
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
+    UNICODE: {
+        LTR: '\u2066',
+    },
+
     TOOLTIP_MAX_LINES: 3,
 
     LOGIN_TYPE: {
@@ -1026,7 +1030,6 @@ const CONST = {
     },
 
     PAYMENT_METHODS: {
-        PAYPAL: 'payPalMe',
         DEBIT_CARD: 'debitCard',
         BANK_ACCOUNT: 'bankAccount',
     },
@@ -1042,7 +1045,6 @@ const CONST = {
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
-            PAYPAL_ME: 'PayPal.me',
             VBBA: 'ACH',
         },
         MONEY_REQUEST_TYPE: {
@@ -1201,7 +1203,6 @@ const CONST = {
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
-        PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]{1,20}$/,
         ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
@@ -2532,32 +2533,6 @@ const CONST = {
         SEARCH_ISSUES: 'https://github.com/Expensify/App/issues',
     },
 
-    PAYPAL_SUPPORTED_CURRENCIES: [
-        'AUD',
-        'BRL',
-        'CAD',
-        'CZK',
-        'DKK',
-        'EUR',
-        'HKD',
-        'HUF',
-        'ILS',
-        'JPY',
-        'MYR',
-        'MXN',
-        'TWD',
-        'NZD',
-        'NOK',
-        'PHP',
-        'PLN',
-        'GBP',
-        'RUB',
-        'SGD',
-        'SEK',
-        'CHF',
-        'THB',
-        'USD',
-    ],
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     SCREEN_READER_STATES: {
         ALL: 'all',
@@ -2671,6 +2646,15 @@ const CONST = {
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
+    },
+    EVENTS: {
+        SCROLLING: 'scrolling',
+    },
+    HORIZONTAL_SPACER: {
+        DEFAULT_BORDER_BOTTOM_WIDTH: 1,
+        DEFAULT_MARGIN_VERTICAL: 8,
+        HIDDEN_MARGIN_VERTICAL: 0,
+        HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
 } as const;
 

@@ -65,6 +65,8 @@ function ProfilePage(props) {
     };
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
+    const avatarURL = lodashGet(currentUserDetails, 'avatar', '');
+    const accountID = lodashGet(currentUserDetails, 'accountID', '');
     const emojiCode = lodashGet(props, 'currentUserPersonalDetails.status.emojiCode', '');
 
     const profileSettingsOptions = [
@@ -113,7 +115,7 @@ function ProfilePage(props) {
             <ScrollView>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
-                    source={UserUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'accountID', ''))}
+                    source={UserUtils.getAvatar(avatarURL, accountID)}
                     onImageSelected={PersonalDetails.updateAvatar}
                     onImageRemoved={PersonalDetails.deleteAvatar}
                     anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
@@ -123,6 +125,9 @@ function ProfilePage(props) {
                     errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
                     errorRowStyles={[styles.mt6]}
                     onErrorClose={PersonalDetails.clearAvatarErrors}
+                    previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
+                    originalFileName={currentUserDetails.originalFileName}
+                    headerTitle={props.translate('profilePage.profileAvatar')}
                     style={[styles.mh5]}
                 />
                 <View style={[styles.mt4]}>
