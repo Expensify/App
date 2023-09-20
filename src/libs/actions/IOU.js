@@ -704,6 +704,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                     value: {
                         pendingFields,
                         isLoading: true,
+                        errorFields,
                     },
                 },
                 ...modifiedReportActionOptimisticData,
@@ -728,7 +729,6 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                     value: {
                         pendingFields: clearedPendingFields,
                         isLoading: false,
-                        errorFields,
                     },
                 },
                 {

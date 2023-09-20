@@ -399,7 +399,6 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
 
 export {
     buildOptimisticTransaction,
-    createTemporaryTransaction,
     getUpdatedTransaction,
     getTransaction,
     getDescription,
@@ -419,5 +418,4 @@ export {
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
-    removeTemporaryTransaction,
 };

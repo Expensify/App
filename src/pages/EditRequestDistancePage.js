@@ -51,7 +51,6 @@ function EditRequestDistancePage({report, route, transaction}) {
 
     useEffect(
         () => {
-            TransactionEdit.startErrorSync(transaction.transactionID, transactionIDToApplyChangesTo.current);
             return () => {
                 // When this component is unmounted, the temporary transaction is removed.
                 // This works for both saving a transaction or cancelling out of the flow somehow.
@@ -68,6 +67,7 @@ function EditRequestDistancePage({report, route, transaction}) {
      * @param {Object} waypoints
      */
     const saveTransaction = (waypoints) => {
+        TransactionEdit.startErrorSync(transaction.transactionID, transactionIDToApplyChangesTo.current);
         // Pass the transactionID of the original transaction so that is updated on the server
         IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints}, transactionIDToApplyChangesTo.current);
     };
