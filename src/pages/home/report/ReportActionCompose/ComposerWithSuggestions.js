@@ -141,7 +141,7 @@ function ComposerWithSuggestions({
 
     /**
      * Reset isScrollLikelyLayoutTriggered to false.
-     * 
+     *
      * The function is debounced with a handpicked wait time to address 2 issues:
      * 1. There is a slight delay between onChangeText and onScroll
      * 2. Layout change will trigger onScroll multiple times
