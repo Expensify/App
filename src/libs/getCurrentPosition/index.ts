@@ -1,7 +1,8 @@
 import {GeolocationErrorCode, GetCurrentPosition} from './getCurrentPosition.types';
+import _ from 'lodash';
 
 const getCurrentPosition: GetCurrentPosition = (success, error, options) => {
-    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+    if (_.isUndefined(navigator) || !('geolocation' in navigator)) {
         error({
             code: GeolocationErrorCode.NOT_SUPPORTED,
             message: 'Geolocation is not supported by this environment.',
