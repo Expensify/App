@@ -114,6 +114,7 @@ function getPolicyExpenseReportOption(report) {
         ],
         selected: report.selected,
         isPolicyExpenseChat: true,
+        searchText: report.searchText,
     };
 }
 
@@ -226,6 +227,7 @@ function getParticipantsOption(participant, personalDetails) {
         ],
         phoneNumber: lodashGet(detail, 'phoneNumber', ''),
         selected: participant.selected,
+        searchText: participant.searchText,
     };
 }
 
