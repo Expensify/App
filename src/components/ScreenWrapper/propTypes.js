@@ -42,10 +42,6 @@ const propTypes = {
     /** Array of additional styles for header gap */
     headerGapStyles: PropTypes.arrayOf(PropTypes.object),
 
-    ...windowDimensionsPropTypes,
-
-    ...environmentPropTypes,
-
     /** Whether to show offline indicator */
     shouldShowOfflineIndicator: PropTypes.bool,
 
