@@ -25,9 +25,6 @@ import ROUTES from '../../ROUTES';
 import transactionPropTypes from '../../components/transactionPropTypes';
 
 const propTypes = {
-    /** The transactionID of the IOU */
-    transactionID: PropTypes.string.isRequired,
-
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
@@ -36,6 +33,9 @@ const propTypes = {
 
             /** Thread reportID */
             threadReportID: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
+            /** ID of the transaction being edited */
+            transactionID: PropTypes.string,
 
             /** Index of the waypoint being edited */
             waypointIndex: PropTypes.string,
@@ -71,7 +71,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
+function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const isFocused = useIsFocused();
@@ -168,7 +168,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             shouldEnableMaxHeight
         >
-            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount - 1) && isFocused}>
+            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount) && isFocused}>
                 <HeaderWithBackButton
                     title={translate(wayPointDescriptionKey)}
                     shouldShowBackButton
@@ -241,7 +241,7 @@ WaypointEditor.propTypes = propTypes;
 WaypointEditor.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
         selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
     },
     recentWaypoints: {

@@ -102,7 +102,7 @@ export default {
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
     MONEY_REQUEST_DISTANCE_TAB: ':iouType/new/:reportID?/distance',
     MONEY_REQUEST_WAYPOINT: ':iouType/new/waypoint/:waypointIndex',
-    MONEY_REQUEST_EDIT_WAYPOINT: 'r/:threadReportID/edit/distance/waypoint/:waypointIndex',
+    MONEY_REQUEST_EDIT_WAYPOINT: 'r/:threadReportID/edit/distance/:transactionID/waypoint/:waypointIndex',
     MONEY_REQUEST_ADDRESS: ':iouType/new/address/:reportID?',
     IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
     IOU_SEND_ADD_DEBIT_CARD: `${IOU_SEND}/add-debit-card`,
@@ -118,7 +118,8 @@ export default {
     getMoneyRequestMerchantRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}`,
     getMoneyRequestDistanceTabRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance`,
     getMoneyRequestWaypointRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}`,
-    getMoneyRequestEditWaypointRoute: (threadReportID: number, waypointIndex: number) => `r/${threadReportID}/edit/distance/waypoint/${waypointIndex}`,
+    getMoneyRequestEditWaypointRoute: (threadReportID: number, transactionID: string, waypointIndex: number) =>
+        `r/${threadReportID}/edit/distance/${transactionID}/waypoint/${waypointIndex}`,
     getMoneyRequestAddressRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}`,
     getMoneyRequestTagRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}`,
     SPLIT_BILL_DETAILS: `r/:reportID/split/:reportActionID`,

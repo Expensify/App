@@ -85,7 +85,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function DistanceRequest({transactionID, report, transaction, mapboxAccessToken, route, isEditingRequest, onSubmit, onWaypointsLoaded}) {
+function DistanceRequest({transactionID, report, transaction, mapboxAccessToken, route, isEditingRequest, onSubmit}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -226,7 +226,9 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
                                 shouldShowRightIcon
                                 onPress={() =>
                                     Navigation.navigate(
-                                        isEditingRequest ? ROUTES.getMoneyRequestEditWaypointRoute(report.reportID, index) : ROUTES.getMoneyRequestWaypointRoute('request', index),
+                                        isEditingRequest
+                                            ? ROUTES.getMoneyRequestEditWaypointRoute(report.reportID, transactionID, index)
+                                            : ROUTES.getMoneyRequestWaypointRoute('request', index),
                                     )
                                 }
                                 key={key}
@@ -321,7 +323,7 @@ DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
-        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
+        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
     },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,

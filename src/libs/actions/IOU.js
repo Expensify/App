@@ -2094,13 +2094,6 @@ function createEmptyTransaction() {
 }
 
 /**
- * @param {String} transactionID
- */
-function setDistanceRequestTransactionID(transactionID) {
-    Onyx.set(ONYXKEYS.DISTANCE_REQUEST, {transactionID});
-}
-
-/**
  * Navigates to the next IOU page based on where the IOU request was started
  *
  * @param {Object} iou
@@ -2163,7 +2156,6 @@ export {
     setMoneyRequestBillable,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
-    setDistanceRequestTransactionID,
     createEmptyTransaction,
     navigateToNextPage,
     updateDistanceRequest,

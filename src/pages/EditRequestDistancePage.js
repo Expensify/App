@@ -1,6 +1,8 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
@@ -9,7 +11,6 @@ import useLocalize from '../hooks/useLocalize';
 import DistanceRequest from '../components/DistanceRequest';
 import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
-import * as Transaction from '../libs/actions/Transaction';
 import * as TransactionUtils from '../libs/TransactionUtils';
 import transactionPropTypes from '../components/transactionPropTypes';
 
@@ -40,20 +41,24 @@ const defaultProps = {
     transaction: {},
 };
 
-function EditRequestDistancePage({transactionID, report, route, transaction}) {
+function EditRequestDistancePage({report, route, transaction}) {
     const {translate} = useLocalize();
 
     // This temporary transaction will be the one that all changes are made to. This keeps the original transaction unmodified until
     // the user takes an explicit action to save it.
-    const transactionToEdit = TransactionUtils.createTemporaryTransaction(transaction);
-    useEffect(() => {
-        IOU.setDistanceRequestTransactionID(transactionID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const transactionToApplyChangesTo = useRef(TransactionUtils.createTemporaryTransaction(transaction), [transaction]);
 
-    // When this component is unmounted, the temporary transaction is removed.
-    // This works for both saving a transaction or cancelling out of the flow somehow.
-    useEffect(() => () => TransactionUtils.removeTemporaryTransaction(transactionToEdit.transactionID), [transactionToEdit]);
+    useEffect(
+        () => {
+            return () => {
+                // When this component is unmounted, the temporary transaction is removed.
+                // This works for both saving a transaction or cancelling out of the flow somehow.
+                TransactionUtils.removeTemporaryTransaction(transactionToApplyChangesTo.current.transactionID);
+            };
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
+    );
 
     /**
      * Save the changes to the original transaction object
@@ -77,7 +82,7 @@ function EditRequestDistancePage({transactionID, report, route, transaction}) {
                 report={report}
                 route={route}
                 // Pass the ID of the cloned transaction so that the original transaction is not being changed
-                transactionID={transactionToEdit.transactionID}
+                transactionID={transactionToApplyChangesTo.current.transactionID}
                 onSubmit={saveTransaction}
                 isEditingRequest
             />
