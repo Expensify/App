@@ -254,12 +254,12 @@ function MoneyRequestParticipantsSelector({
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowConfirmButton = !(participants.length > 1 && hasPolicyExpenseChatParticipant);
-    const shouldAllowSplit = !isDistanceRequest && !isScanRequest;
+    const isAllowedToSplit = !isDistanceRequest && !isScanRequest;
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <OptionsSelector
-                canSelectMultipleOptions={shouldAllowSplit}
+                canSelectMultipleOptions={isAllowedToSplit}
                 shouldShowMultipleOptionSelectorAsButton
                 multipleOptionSelectorButtonText={translate('iou.split')}
                 onAddToSelection={addParticipantToSelection}
@@ -271,7 +271,7 @@ function MoneyRequestParticipantsSelector({
                 ref={forwardedRef}
                 headerMessage={headerMessage}
                 boldStyle
-                shouldShowConfirmButton={shouldShowConfirmButton && shouldAllowSplit}
+                shouldShowConfirmButton={shouldShowConfirmButton && isAllowedToSplit}
                 confirmButtonText={translate('iou.addToSplit')}
                 onConfirmSelection={navigateToSplit}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
