@@ -879,7 +879,8 @@ const styles = (theme) => ({
     offlineIndicatorMobile: {
         paddingLeft: 20,
         paddingTop: 5,
-        paddingBottom: 5,
+        paddingBottom: 30,
+        marginBottom: -25,
     },
 
     offlineIndicatorRow: {

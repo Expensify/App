@@ -141,6 +141,7 @@ function MoneyRequestConfirmPage(props) {
                 trimmedComment,
                 receipt,
                 props.iou.category,
+                props.iou.tag,
                 props.iou.billable,
             );
         },
@@ -153,6 +154,7 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.login,
             props.currentUserPersonalDetails.accountID,
             props.iou.category,
+            props.iou.tag,
             props.iou.billable,
         ],
     );
@@ -170,12 +172,13 @@ function MoneyRequestConfirmPage(props) {
                 props.iou.created,
                 props.iou.transactionID,
                 props.iou.category,
+                props.iou.tag,
                 props.iou.amount,
                 props.iou.currency,
                 props.iou.merchant,
             );
         },
-        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.amount, props.iou.currency, props.iou.merchant],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.tag, props.iou.amount, props.iou.currency, props.iou.merchant],
     );
 
     const createTransaction = useCallback(
