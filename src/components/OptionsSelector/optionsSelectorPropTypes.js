@@ -53,6 +53,15 @@ const propTypes = {
     /** Whether we can select multiple options */
     canSelectMultipleOptions: PropTypes.bool,
 
+    /** Whether to show a button pill instead of a standard tickbox */
+    shouldShowMultipleOptionSelectorAsButton: PropTypes.bool,
+
+    /** Text for button pill */
+    multipleOptionSelectorButtonText: PropTypes.string,
+
+    /** Callback to fire when the multiple selector (tickbox or button) is clicked */
+    onAddToSelection: PropTypes.func,
+
     /** Whether we highlight selected options */
     highlightSelectedOptions: PropTypes.bool,
 
@@ -125,6 +134,9 @@ const defaultProps = {
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
+    shouldShowMultipleOptionSelectorAsButton: false,
+    multipleOptionSelectorButtonText: '',
+    onAddToSelection: () => {},
     highlightSelectedOptions: false,
     hideSectionHeaders: false,
     boldStyle: false,

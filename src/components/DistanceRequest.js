@@ -2,8 +2,7 @@ import React, {useEffect, useMemo, useState, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import lodashHas from 'lodash/has';
-import lodashIsNull from 'lodash/isNull';
+import lodashIsNil from 'lodash/isNil';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -26,18 +25,22 @@ import Navigation from '../libs/Navigation/Navigation';
 import * as MapboxToken from '../libs/actions/MapboxToken';
 import * as Transaction from '../libs/actions/Transaction';
 import * as TransactionUtils from '../libs/TransactionUtils';
+import * as IOUUtils from '../libs/IOUUtils';
 
 import Button from './Button';
-import MapView from './MapView';
+import DistanceMapView from './DistanceMapView';
 import LinearGradient from './LinearGradient';
 import * as Expensicons from './Icon/Expensicons';
-import BlockingView from './BlockingViews/BlockingView';
+import PendingMapView from './MapView/PendingMapView';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {iouPropTypes} from '../pages/iou/propTypes';
 import reportPropTypes from '../pages/reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
 import * as StyleUtils from '../styles/StyleUtils';
+import ScreenWrapper from './ScreenWrapper';
+import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from './HeaderWithBackButton';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -63,6 +66,18 @@ const propTypes = {
         /** Time when the token will expire in ISO 8601 */
         expiration: PropTypes.string,
     }),
+
+    /** React Navigation route */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -75,13 +90,14 @@ const defaultProps = {
     },
 };
 
-function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken}) {
+function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, route}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
+    const isEditing = lodashGet(route, 'path', '').includes('address');
     const reportID = lodashGet(report, 'reportID', '');
     const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
     const previousWaypoints = usePrevious(waypoints);
@@ -92,15 +108,17 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
-    const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
-    const doesRouteExist = lodashHas(transaction, 'routes.route0.geometry.coordinates');
+    const hasRoute = TransactionUtils.hasRoute(transaction);
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
-    const shouldFetchRoute = (!doesRouteExist || haveWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
+    const previousValidatedWaypoints = usePrevious(validatedWaypoints);
+    const haveValidatedWaypointsChanged = !_.isEqual(previousValidatedWaypoints, validatedWaypoints);
+    const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
+    const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
     const waypointMarkers = useMemo(
         () =>
             _.filter(
                 _.map(waypoints, (waypoint, key) => {
-                    if (!waypoint || !lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng') || lodashIsNull(waypoint.lat) || lodashIsNull(waypoint.lng)) {
+                    if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
                         return;
                     }
 
@@ -170,7 +188,20 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
-    return (
+    const navigateBack = () => {
+        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : ROUTES.HOME);
+    };
+
+    const navigateToNextPage = () => {
+        if (isEditing) {
+            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+            return;
+        }
+
+        IOU.navigateToNextPage(iou, iouType, reportID, report);
+    };
+
+    const content = (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
@@ -238,7 +269,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
             </View>
             <View style={styles.mapViewContainer}>
                 {!isOffline && Boolean(mapboxAccessToken.token) ? (
-                    <MapView
+                    <DistanceMapView
                         accessToken={mapboxAccessToken.token}
                         mapPadding={CONST.MAPBOX.PADDING}
                         pitchEnabled={false}
@@ -250,26 +281,46 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                         style={styles.mapView}
                         waypoints={waypointMarkers}
                         styleURL={CONST.MAPBOX.STYLE_URL}
+                        overlayStyle={styles.m4}
                     />
                 ) : (
-                    <View style={[styles.mapPendingView]}>
-                        <BlockingView
-                            icon={Expensicons.EmptyStateRoutePending}
-                            title={translate('distance.mapPending.title')}
-                            subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                            shouldShowLink={false}
-                        />
-                    </View>
+                    <PendingMapView
+                        title={translate('distance.mapPending.title')}
+                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                    />
                 )}
             </View>
             <Button
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                onPress={() => IOU.navigateToNextPage(iou, iouType, reportID, report)}
+                onPress={navigateToNextPage}
                 isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline}
                 text={translate('common.next')}
             />
         </ScrollView>
+    );
+
+    if (!isEditing) {
+        return content;
+    }
+
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableKeyboardAvoidingView={false}
+        >
+            {({safeAreaPaddingBottomStyle}) => (
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
+                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                        <HeaderWithBackButton
+                            title={translate('common.distance')}
+                            onBackButonBackButtonPress={navigateBack}
+                        />
+                        {content}
+                    </View>
+                </FullPageNotFoundView>
+            )}
+        </ScreenWrapper>
     );
 }
 

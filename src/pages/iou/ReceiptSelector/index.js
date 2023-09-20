@@ -21,6 +21,7 @@ import useLocalize from '../../../hooks/useLocalize';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
 import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
+import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -47,6 +48,9 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
+
+    /** The id of the transaction we're editing */
+    transactionID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -57,6 +61,7 @@ const defaultProps = {
     },
     report: {},
     iou: iouDefaultProps,
+    transactionID: '',
 };
 
 function ReceiptSelector(props) {
@@ -83,6 +88,13 @@ function ReceiptSelector(props) {
 
         const filePath = URL.createObjectURL(file);
         IOU.setMoneyRequestReceipt(filePath, file.name);
+
+        if (props.transactionID) {
+            IOU.replaceReceipt(props.transactionID, file, filePath);
+            Navigation.dismissModal();
+            return;
+        }
+
         IOU.navigateToNextPage(iou, iouType, reportID, report);
     };
 
@@ -142,12 +154,13 @@ function ReceiptSelector(props) {
             />
             <ConfirmModal
                 title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                onConfirm={Receipt.clearUploadReceiptError}
-                onCancel={Receipt.clearUploadReceiptError}
+                onConfirm={Receipt.closeUploadReceiptModal}
+                onCancel={Receipt.closeUploadReceiptModal}
                 isVisible={isAttachmentInvalid}
                 prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
+                onModalHide={Receipt.clearUploadReceiptError}
             />
         </View>
     );
