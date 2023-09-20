@@ -11,7 +11,7 @@ import styles from '../styles/styles';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
 import * as Browser from '../libs/Browser';
-import updateMultilineInputRange from '../libs/updateMultilineInputRange';
+import updateMultilineInputRange from '../libs/UpdateMultilineInputRange';
 
 const propTypes = {
     /** Transaction default description value */

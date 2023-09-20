@@ -15,7 +15,7 @@ import compose from '../../libs/compose';
 import * as Task from '../../libs/actions/Task';
 import * as ReportUtils from '../../libs/ReportUtils';
 import CONST from '../../CONST';
-import updateMultilineInputRange from '../../libs/updateMultilineInputRange';
+import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
 import * as Browser from '../../libs/Browser';
 import Navigation from '../../libs/Navigation/Navigation';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';

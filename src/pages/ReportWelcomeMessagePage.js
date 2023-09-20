@@ -20,7 +20,7 @@ import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundVi
 import Form from '../components/Form';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import {policyPropTypes, policyDefaultProps} from './workspace/withPolicy';
-import updateMultilineInputRange from '../libs/updateMultilineInputRange';
+import updateMultilineInputRange from '../libs/UpdateMultilineInputRange';
 
 const propTypes = {
     ...withLocalizePropTypes,

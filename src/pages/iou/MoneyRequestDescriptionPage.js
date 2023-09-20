@@ -18,7 +18,7 @@ import * as IOU from '../../libs/actions/IOU';
 import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
-import updateMultilineInputRange from '../../libs/updateMultilineInputRange';
+import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
 import * as Browser from '../../libs/Browser';
 
 const propTypes = {

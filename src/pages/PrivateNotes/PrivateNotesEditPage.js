@@ -24,7 +24,7 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import updateMultilineInputRange from '../../libs/updateMultilineInputRange';
+import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
 import ROUTES from '../../ROUTES';
 
 const propTypes = {
