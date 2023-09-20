@@ -4,7 +4,8 @@ import lodashDebounce from 'lodash/debounce';
 /**
  * Create and return a debounced function.
  *
- * Make sure to pass a stable function reference to prevent recreating the debounced function on each render.
+ * Every time the identity of any of the arguments changes, the debounce operation will restart (canceling any ongoing debounce).
+ * This is especially important in the case of func. To prevent that, pass stable references.
  *
  * @param {Function} func The function to debounce.
  * @param {Number} wait The number of milliseconds to delay.
