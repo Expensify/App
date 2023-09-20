@@ -71,9 +71,9 @@ function ReceiptSelector(props) {
     const {isDraggingOver} = useContext(DragAndDropContext);
 
     const hideReciptModal = () => {
-       setIsAttachmentInvalid(false);
-    }
-    
+        setIsAttachmentInvalid(false);
+    };
+
     /**
      * Sets the upload receipt error modal content when an invalid receipt is uploaded
      * @param {*} isInvalid
