@@ -66,7 +66,7 @@ function EditRequestDistancePage({report, route, transaction}) {
      */
     const saveTransaction = (waypoints) => {
         // Pass the transactionID of the original transaction so that is updated on the server
-        IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints});
+        IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints}, transactionToApplyChangesTo.current.transactionID);
     };
 
     return (

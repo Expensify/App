@@ -599,9 +599,10 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {Number} [transactionChanges.amount]
  * @param {Object} [transactionChanges.comment]
  * @param {Object} [transactionChanges.waypoints]
+ * @param {String} temporaryTransactionID the ID of the transaction that all of the edits were changed to. This is needed because it is what determines the loading state of the save button in DistanceRequest
  *
  */
-function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
+function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges, temporaryTransactionID) {
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = _.mapObject(transactionChanges, () => CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     const clearedPendingFields = _.mapObject(transactionChanges, () => null);
@@ -691,8 +692,14 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
-                        pendingFields,
                         ...updatedTransaction,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
+                    value: {
+                        pendingFields,
                         isLoading: true,
                     },
                 },
@@ -701,8 +708,8 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
             ],
             successData: [
                 {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
                     value: {
                         pendingFields: clearedPendingFields,
                         isLoading: false,
@@ -714,11 +721,11 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
                     value: {
                         pendingFields: clearedPendingFields,
-                        errorFields,
                         isLoading: false,
+                        errorFields,
                     },
                 },
                 {
