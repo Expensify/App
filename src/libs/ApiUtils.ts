@@ -5,6 +5,7 @@ import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import * as Environment from './Environment/Environment';
 import proxyConfig from '../../config/proxyConfig';
+import {Request} from '../types/onyx';
 
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
@@ -37,7 +38,7 @@ Environment.getEnvironment().then((envName) => {
  * @param {Boolean} [request.shouldUseSecure]
  * @returns {String}
  */
-function getApiRoot(request) {
+function getApiRoot(request?: Request) {
     const shouldUseSecure = lodashGet(request, 'shouldUseSecure', false);
 
     if (shouldUseStagingServer) {
