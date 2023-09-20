@@ -1,12 +1,16 @@
 import RNFetchBlob from 'react-native-blob-util';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
+import lodashGet from 'lodash/get';
 import * as FileUtils from './FileUtils';
 import CONST from '../../CONST';
 
 /**
  * Downloads the file to Documents section in iOS
+ * @param {String} fileUrl
+ * @param {String} fileName
+ * @returns {Promise}
  */
-function downloadFile(fileUrl: string, fileName: string) {
+function downloadFile(fileUrl, fileName) {
     const dirs = RNFetchBlob.fs.dirs;
 
     // The iOS files will download to documents directory
@@ -27,25 +31,29 @@ function downloadFile(fileUrl: string, fileName: string) {
 
 /**
  * Download the image to photo lib in iOS
- * @returns URI
+ * @param {String} fileUrl
+ * @param {String} fileName
+ * @returns {String} URI
  */
-function downloadImage(fileUrl: string) {
+function downloadImage(fileUrl) {
     return CameraRoll.save(fileUrl);
 }
 
 /**
  * Download the video to photo lib in iOS
- * @returns URI
+ * @param {String} fileUrl
+ * @param {String} fileName
+ * @returns {String} URI
  */
-function downloadVideo(fileUrl: string, fileName: string): Promise<string | null> {
+function downloadVideo(fileUrl, fileName) {
     return new Promise((resolve, reject) => {
-        let documentPathUri: string;
-        let cameraRollUri: string;
+        let documentPathUri = null;
+        let cameraRollUri = null;
 
         // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download as documents, then copy to photo lib and unlink the original file.
         downloadFile(fileUrl, fileName)
             .then((attachment) => {
-                documentPathUri = attachment?.data;
+                documentPathUri = lodashGet(attachment, 'data');
                 return CameraRoll.save(documentPathUri);
             })
             .then((attachment) => {
@@ -59,16 +67,19 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<string | null
 
 /**
  * Download the file based on type(image, video, other file types)for iOS
+ * @param {String} fileUrl
+ * @param {String} fileName
+ * @returns {Promise<Void>}
  */
-export default function fileDownload(fileUrl: string, fileName: string) {
-    return new Promise<void>((resolve) => {
+export default function fileDownload(fileUrl, fileName) {
+    return new Promise((resolve) => {
         let fileDownloadPromise = null;
         const fileType = FileUtils.getFileType(fileUrl);
         const attachmentName = FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(fileUrl);
 
         switch (fileType) {
             case CONST.ATTACHMENT_FILE_TYPE.IMAGE:
-                fileDownloadPromise = downloadImage(fileUrl);
+                fileDownloadPromise = downloadImage(fileUrl, attachmentName);
                 break;
             case CONST.ATTACHMENT_FILE_TYPE.VIDEO:
                 fileDownloadPromise = downloadVideo(fileUrl, attachmentName);
