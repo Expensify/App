@@ -9,10 +9,13 @@ export default {
     REPORT_ATTACHMENTS: 'ReportAttachments',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
+    VALIDATE_LOGIN: 'ValidateLogin',
+    CONCIERGE: 'Concierge',
     SETTINGS: {
         PREFERENCES: 'Settings_Preferences',
         WORKSPACES: 'Settings_Workspaces',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
+    DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
 } as const;

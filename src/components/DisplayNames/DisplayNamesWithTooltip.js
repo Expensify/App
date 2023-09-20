@@ -51,7 +51,7 @@ function DisplayNamesWithToolTip(props) {
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text
-            style={[...props.textStyles, styles.pRelative]}
+            style={[...props.textStyles, styles.pRelative, props.numberOfLines === 1 ? styles.noWrap : {}]}
             numberOfLines={props.numberOfLines || undefined}
             ref={(el) => (containerRef.current = el)}
         >

@@ -186,6 +186,7 @@ class SearchPage extends Component {
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                                autoFocus
                             />
                         </View>
                     </>

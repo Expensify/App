@@ -55,6 +55,7 @@ import Gear from '../../../assets/images/gear.svg';
 import Globe from '../../../assets/images/globe.svg';
 import GoogleLogo from '../../../assets/images/signIn/google-logo.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
+import Heart from '../../../assets/images/heart.svg';
 import History from '../../../assets/images/history.svg';
 import Hourglass from '../../../assets/images/hourglass.svg';
 import ImageCropCircleMask from '../../../assets/images/image-crop-circle-mask.svg';
@@ -81,7 +82,6 @@ import NewWorkspace from '../../../assets/images/new-workspace.svg';
 import Offline from '../../../assets/images/offline.svg';
 import OfflineCloud from '../../../assets/images/offline-cloud.svg';
 import Paperclip from '../../../assets/images/paperclip.svg';
-import PayPal from '../../../assets/images/paypal.svg';
 import Paycheck from '../../../assets/images/paycheck.svg';
 import Pencil from '../../../assets/images/pencil.svg';
 import Phone from '../../../assets/images/phone.svg';
@@ -188,6 +188,7 @@ export {
     Globe,
     GoogleLogo,
     Hashtag,
+    Heart,
     History,
     Hourglass,
     ImageCropCircleMask,
@@ -214,7 +215,6 @@ export {
     Offline,
     OfflineCloud,
     Paperclip,
-    PayPal,
     Paycheck,
     Pencil,
     Phone,

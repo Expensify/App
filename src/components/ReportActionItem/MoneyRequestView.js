@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import * as Policy from '../../libs/actions/Policy';
 import Navigation from '../../libs/Navigation/Navigation';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
@@ -36,21 +35,6 @@ const propTypes = {
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
 
-    /** The policy object for the current route */
-    policy: PropTypes.shape({
-        /** The name of the policy */
-        name: PropTypes.string,
-
-        /** The URL for the policy avatar */
-        avatar: PropTypes.string,
-    }),
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
-
     /** The transaction associated with the transactionThread */
     transaction: transactionPropTypes,
 
@@ -62,10 +46,6 @@ const propTypes = {
 
 const defaultProps = {
     parentReport: {},
-    policy: null,
-    session: {
-        email: null,
-    },
     transaction: {
         amount: 0,
         currency: CONST.CURRENCY.USD,
@@ -73,7 +53,7 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, policy, session, transaction}) {
+function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -86,12 +66,12 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
         comment: transactionDescription,
         merchant: transactionMerchant,
     } = ReportUtils.getTransactionDetails(transaction);
+    const isEmptyMerchant =
+        transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const isAdmin = Policy.isAdminOfFreePolicy([policy]) && ReportUtils.isExpenseReport(moneyRequestReport);
-    const isRequestor = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === parentReportAction.actorAccountID;
-    const canEdit = !isSettled && (isAdmin || isRequestor);
+    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
@@ -108,8 +88,10 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
 
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
+    let hasErrors = false;
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+        hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -123,6 +105,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
+
             {hasReceipt && (
                 <View style={styles.moneyRequestViewImage}>
                     <ReportActionItemImage
@@ -139,39 +122,51 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     titleIcon={Expensicons.Checkmark}
                     description={description}
                     titleStyle={styles.newKansasLarge}
-                    disabled={isSettled || !canEdit}
+                    interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                    brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    subtitle={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
+                    subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
                     description={translate('common.description')}
+                    shouldParseTitle
                     title={transactionDescription}
-                    disabled={isSettled || !canEdit}
+                    interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                    wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                    numberOfLinesTitle={0}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.created') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
                     description={translate('common.date')}
                     title={transactionDate}
-                    disabled={isSettled || !canEdit}
+                    interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                    brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    subtitle={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
+                    subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
-                    description={isDistanceRequest ? translate('tabSelector.distance') : translate('common.merchant')}
+                    description={isDistanceRequest ? translate('common.distance') : translate('common.merchant')}
                     title={transactionMerchant}
-                    disabled={isSettled || !canEdit}
+                    interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
+                    brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    subtitle={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                    subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}

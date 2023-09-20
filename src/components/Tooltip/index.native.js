@@ -11,7 +11,9 @@ const propTypes = {
  * @param {propTypes} props
  * @returns {ReactNodeLike}
  */
-const Tooltip = (props) => props.children;
+function Tooltip(props) {
+    return props.children;
+}
 
 Tooltip.propTypes = propTypes;
 Tooltip.displayName = 'Tooltip';

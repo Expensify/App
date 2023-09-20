@@ -1,7 +1,8 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
@@ -11,7 +12,7 @@ import CONST from '../../CONST';
 import variables from '../../styles/variables';
 import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
 import RadioListItem from './RadioListItem';
-import CheckboxListItem from './CheckboxListItem';
+import UserListItem from './UserListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
@@ -22,6 +23,7 @@ import Button from '../Button';
 import useLocalize from '../../hooks/useLocalize';
 import Log from '../../libs/Log';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
+import useActiveElement from '../../hooks/useActiveElement';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -41,7 +43,6 @@ function BaseSelectionList({
     keyboardType = CONST.KEYBOARD_TYPE.DEFAULT,
     onChangeText,
     initiallyFocusedOptionKey = '',
-    shouldDelayFocus = false,
     onScroll,
     onScrollBeginDrag,
     headerMessage = '',
@@ -49,6 +50,7 @@ function BaseSelectionList({
     onConfirm,
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
+    showConfirmButton = false,
     isKeyboardShown = false,
 }) {
     const {translate} = useLocalize();
@@ -58,7 +60,8 @@ function BaseSelectionList({
     const focusTimeoutRef = useRef(null);
     const shouldShowTextInput = Boolean(textInputLabel);
     const shouldShowSelectAll = Boolean(onSelectAll);
-    const shouldShowConfirmButton = Boolean(onConfirm);
+    const activeElement = useActiveElement();
+    const isFocused = useIsFocused();
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -133,17 +136,8 @@ function BaseSelectionList({
         };
     }, [canSelectMultiple, sections]);
 
-    const [focusedIndex, setFocusedIndex] = useState(() => {
-        const defaultIndex = 0;
-
-        const indexOfInitiallyFocusedOption = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey);
-
-        if (indexOfInitiallyFocusedOption >= 0) {
-            return indexOfInitiallyFocusedOption;
-        }
-
-        return defaultIndex;
-    });
+    // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
+    const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
 
     /**
      * Scrolls to the desired item index in the section list
@@ -171,7 +165,7 @@ function BaseSelectionList({
             }
         }
 
-        listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
+        listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
     };
 
     const selectRow = (item, index) => {
@@ -185,6 +179,11 @@ function BaseSelectionList({
                 // If the list has multiple sections (e.g. Workspace Invite list), we focus the first one after all the selected (selected items are always at the top)
                 const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
                 setFocusedIndex(selectedOptionsCount);
+
+                if (!item.isSelected) {
+                    // If we're selecting an item, scroll to it's position at the top, so we can see it
+                    scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
+                }
             }
         }
 
@@ -244,16 +243,20 @@ function BaseSelectionList({
     };
 
     const renderItem = ({item, index, section}) => {
+        const normalizedIndex = index + lodashGet(section, 'indexOffset', 0);
         const isDisabled = section.isDisabled;
-        const isFocused = !isDisabled && focusedIndex === index + lodashGet(section, 'indexOffset', 0);
+        const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
+        // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+        const showTooltip = normalizedIndex < 10;
 
         if (canSelectMultiple) {
             return (
-                <CheckboxListItem
+                <UserListItem
                     item={item}
-                    isFocused={isFocused}
+                    isFocused={isItemFocused}
                     onSelectRow={() => selectRow(item, index)}
                     onDismissError={onDismissError}
+                    showTooltip={showTooltip}
                 />
             );
         }
@@ -261,35 +264,40 @@ function BaseSelectionList({
         return (
             <RadioListItem
                 item={item}
-                isFocused={isFocused}
+                isFocused={isItemFocused}
                 isDisabled={isDisabled}
                 onSelectRow={() => selectRow(item, index)}
             />
         );
     };
 
-    /** Focuses the text input when the component mounts. If `props.shouldDelayFocus` is true, we wait for the animation to finish */
-    useEffect(() => {
-        if (shouldShowTextInput) {
-            if (shouldDelayFocus) {
+    /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
+    useFocusEffect(
+        useCallback(() => {
+            if (shouldShowTextInput) {
                 focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
-            } else {
-                textInputRef.current.focus();
             }
-        }
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, [shouldShowTextInput]),
+    );
 
-        return () => {
-            if (!focusTimeoutRef.current) {
-                return;
-            }
-            clearTimeout(focusTimeoutRef.current);
-        };
-    }, [shouldDelayFocus, shouldShowTextInput]);
-
-    /** Selects row when pressing enter */
+    /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+        isActive: !activeElement && isFocused,
+    });
+
+    /** Calls confirm action when pressing CTRL (CMD) + Enter */
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm, {
+        captureOnInputs: true,
+        shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+        isActive: Boolean(onConfirm) && isFocused,
     });
 
     return (
@@ -339,14 +347,17 @@ function BaseSelectionList({
                                         accessibilityLabel={translate('workspace.people.selectAll')}
                                         accessibilityRole="button"
                                         accessibilityState={{checked: flattenedSections.allSelected}}
+                                        disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         <Checkbox
                                             accessibilityLabel={translate('workspace.people.selectAll')}
                                             isChecked={flattenedSections.allSelected}
                                             onPress={onSelectAll}
+                                            disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         />
                                         <View style={[styles.flex1]}>
-                                            <Text style={[styles.textStrong, styles.ph5]}>{translate('workspace.people.selectAll')}</Text>
+                                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                                         </View>
                                     </PressableWithFeedback>
                                 )}
@@ -378,7 +389,7 @@ function BaseSelectionList({
                                 />
                             </>
                         )}
-                        {shouldShowConfirmButton && (
+                        {showConfirmButton && (
                             <FixedFooter>
                                 <Button
                                     success

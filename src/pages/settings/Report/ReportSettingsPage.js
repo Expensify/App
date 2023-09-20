@@ -65,7 +65,10 @@ function ReportSettingsPage(props) {
 
     const shouldDisableSettings = _.isEmpty(report) || ReportUtils.shouldDisableSettings(report) || ReportUtils.isArchivedRoom(report);
     const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
-    const notificationPreference = translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}`);
+    const notificationPreference =
+        report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
+            ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}`)
+            : '';
     const writeCapability = ReportUtils.isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
@@ -79,12 +82,14 @@ function ReportSettingsPage(props) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.getReportDetailsRoute(report.reportID))}
                 />
                 <ScrollView style={[styles.flex1]}>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={notificationPreference}
-                        description={translate('notificationPreferencesPage.label')}
-                        onPress={() => Navigation.navigate(ROUTES.getReportSettingsNotificationPreferencesRoute(report.reportID))}
-                    />
+                    {report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={notificationPreference}
+                            description={translate('notificationPreferencesPage.label')}
+                            onPress={() => Navigation.navigate(ROUTES.getReportSettingsNotificationPreferencesRoute(report.reportID))}
+                        />
+                    )}
                     {shouldShowRoomName && (
                         <OfflineWithFeedback
                             pendingAction={lodashGet(report, 'pendingFields.reportName', null)}
