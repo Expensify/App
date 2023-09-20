@@ -1,4 +1,4 @@
-import {Animated, FlexStyle, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
+import {Animated, DimensionValue, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
@@ -272,7 +272,7 @@ function getZoomCursorStyle(isZoomed: boolean, isDragging: boolean): ViewStyle {
     return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
 }
 
-// NOTE: asserting some web style properties to a valid type, because isn't possible to augment them.
+// NOTE: asserting some web style properties to a valid type, because it isn't possible to augment them.
 function getZoomSizingStyle(
     isZoomed: boolean,
     imgWidth: number,
@@ -286,23 +286,23 @@ function getZoomSizingStyle(
     if (isLoading || imgWidth === 0 || imgHeight === 0) {
         return undefined;
     }
-    const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px` as ViewStyle['top'];
-    const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px` as ViewStyle['left'];
+    const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px` as DimensionValue;
+    const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px` as DimensionValue;
 
     // Return different size and offset style based on zoomScale and isZoom.
     if (isZoomed) {
         // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
         if (zoomScale >= 1) {
             return {
-                height: `${imgHeight * zoomScale}px` as FlexStyle['height'],
-                width: `${imgWidth * zoomScale}px` as FlexStyle['width'],
+                height: `${imgHeight * zoomScale}px` as DimensionValue,
+                width: `${imgWidth * zoomScale}px` as DimensionValue,
             };
         }
 
         // If image height and width are bigger than container size, display image with original size because original size is bigger and position absolute.
         return {
-            height: `${imgHeight}px` as FlexStyle['height'],
-            width: `${imgWidth}px` as FlexStyle['width'],
+            height: `${imgHeight}px` as DimensionValue,
+            width: `${imgWidth}px` as DimensionValue,
             top,
             left,
         };
@@ -311,8 +311,8 @@ function getZoomSizingStyle(
     // If image is not zoomed in and image size is smaller than container size, display with original size based on offset and position absolute.
     if (zoomScale > 1) {
         return {
-            height: `${imgHeight}px` as FlexStyle['height'],
-            width: `${imgWidth}px` as FlexStyle['width'],
+            height: `${imgHeight}px` as DimensionValue,
+            width: `${imgWidth}px` as DimensionValue,
             top,
             left,
         };
@@ -320,11 +320,11 @@ function getZoomSizingStyle(
 
     // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
     // top, left offset should be different when displaying long or wide image.
-    const scaledTop = `${Math.max((containerHeight - imgHeight * zoomScale) / 2, 0)}px` as ViewStyle['top'];
-    const scaledLeft = `${Math.max((containerWidth - imgWidth * zoomScale) / 2, 0)}px` as ViewStyle['left'];
+    const scaledTop = `${Math.max((containerHeight - imgHeight * zoomScale) / 2, 0)}px` as DimensionValue;
+    const scaledLeft = `${Math.max((containerWidth - imgWidth * zoomScale) / 2, 0)}px` as DimensionValue;
     return {
-        height: `${imgHeight * zoomScale}px` as FlexStyle['height'],
-        width: `${imgWidth * zoomScale}px` as FlexStyle['width'],
+        height: `${imgHeight * zoomScale}px` as DimensionValue,
+        width: `${imgWidth * zoomScale}px` as DimensionValue,
         top: scaledTop,
         left: scaledLeft,
     };
@@ -448,8 +448,8 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
 /**
  * Generate a style for the background color of the Badge
  */
-function getBadgeColorStyle(success: boolean, error: boolean, isPressed = false, isAdHoc = false): ViewStyle {
-    if (success) {
+function getBadgeColorStyle(isSuccess: boolean, isError: boolean, isPressed = false, isAdHoc = false): ViewStyle {
+    if (isSuccess) {
         if (isAdHoc) {
             // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -459,7 +459,7 @@ function getBadgeColorStyle(success: boolean, error: boolean, isPressed = false,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
-    if (error) {
+    if (isError) {
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
@@ -516,7 +516,7 @@ function getAnimatedFABStyle(rotate: Animated.Value, backgroundColor: Animated.V
     };
 }
 
-function getWidthAndHeightStyle(width: number, height: number | undefined = undefined): ViewStyle {
+function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
     return {
         width,
         height: height ?? width,
@@ -909,12 +909,12 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean): ViewStyle 
 /**
  * Gets styles for AutoCompleteSuggestion row
  */
-function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex: number, rowHeight: number, hovered: boolean, currentEmojiIndex: number): ViewStyle[] {
+function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex: number, rowHeight: number, isHovered: boolean, currentEmojiIndex: number): ViewStyle[] {
     let backgroundColor;
 
     if (currentEmojiIndex === highlightedEmojiIndex) {
         backgroundColor = themeColors.activeComponentBG;
-    } else if (hovered) {
+    } else if (isHovered) {
         backgroundColor = themeColors.hoverComponentBG;
     }
 
@@ -1023,7 +1023,7 @@ function getEmojiReactionCounterTextStyle(hasUserReacted: boolean): TextStyle {
  *
  * @param direction - The direction of the rotation (CONST.DIRECTION.LEFT or CONST.DIRECTION.RIGHT).
  */
-function getDirectionStyle(direction: string): ViewStyle {
+function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
         return {transform: [{rotate: '180deg'}]};
     }

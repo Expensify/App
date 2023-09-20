@@ -15,7 +15,7 @@ export default {
      * Web-only style.
      */
     pFixed: {
-        // NOTE: asserting "position" to a valid type, because isn't possible to augment "position".
+        // NOTE: asserting "position" to a valid type, because it isn't possible to augment "position".
         position: 'fixed' as ViewStyle['position'],
     },
 
