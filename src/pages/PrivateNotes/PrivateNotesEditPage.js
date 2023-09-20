@@ -87,7 +87,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
-                    subtitle="My note"
+                    subtitle={translate('privateNotes.myNote')}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack()}

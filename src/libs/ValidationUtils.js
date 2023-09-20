@@ -1,4 +1,4 @@
-import {subYears, addYears, startOfDay, endOfMonth, isAfter, isBefore, isValid, isWithinInterval, isSameDay, format} from 'date-fns';
+import {subYears, addYears, startOfDay, endOfMonth, parse, isAfter, isBefore, isValid, isWithinInterval, isSameDay, format} from 'date-fns';
 import _ from 'underscore';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import {parsePhoneNumber} from 'awesome-phonenumber';
@@ -191,15 +191,6 @@ function isValidSSNFullNine(ssnFull9) {
 }
 
 /**
- *
- * @param {String} paypalUsername
- * @returns {Boolean}
- */
-function isValidPaypalUsername(paypalUsername) {
-    return Boolean(paypalUsername) && CONST.REGEX.PAYPAL_ME_USERNAME.test(paypalUsername);
-}
-
-/**
  * Validate that a date meets the minimum age requirement.
  *
  * @param {String} date
@@ -233,19 +224,24 @@ function meetsMaximumAgeRequirement(date) {
  */
 function getAgeRequirementError(date, minimumAge, maximumAge) {
     const currentDate = startOfDay(new Date());
-    const recentDate = subYears(currentDate, minimumAge);
-    const longAgoDate = subYears(currentDate, maximumAge);
-    const testDate = new Date(date);
+    const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
+
     if (!isValid(testDate)) {
         return 'common.error.dateInvalid';
     }
-    if (isWithinInterval(testDate, {start: longAgoDate, end: recentDate})) {
+
+    const maximalDate = subYears(currentDate, minimumAge);
+    const minimalDate = subYears(currentDate, maximumAge);
+
+    if (isWithinInterval(testDate, {start: minimalDate, end: maximalDate})) {
         return '';
     }
-    if (isSameDay(testDate, recentDate) || isAfter(testDate, recentDate)) {
-        return ['privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(recentDate, CONST.DATE.FNS_FORMAT_STRING)}];
+
+    if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
+        return ['privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)}];
     }
-    return ['privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(longAgoDate, CONST.DATE.FNS_FORMAT_STRING)}];
+
+    return ['privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)}];
 }
 
 /**
@@ -475,7 +471,6 @@ export {
     validateIdentity,
     isValidTwoFactorCode,
     isNumericWithSpecialChars,
-    isValidPaypalUsername,
     isValidRoutingNumber,
     isValidSSNLastFour,
     isValidSSNFullNine,
