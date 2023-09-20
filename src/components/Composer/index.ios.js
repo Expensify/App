@@ -98,7 +98,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
      */
     const maxNumberOfLines = useMemo(() => {
         if (isComposerFullSize) {
-            return undefined;
+            return;
         }
         return maxLines;
     }, [isComposerFullSize, maxLines]);
