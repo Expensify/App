@@ -2650,6 +2650,12 @@ const CONST = {
     EVENTS: {
         SCROLLING: 'scrolling',
     },
+    HORIZONTAL_SPACER: {
+        DEFAULT_BORDER_BOTTOM_WIDTH: 1,
+        DEFAULT_MARGIN_VERTICAL: 8,
+        HIDDEN_MARGIN_VERTICAL: 0,
+        HIDDEN_BORDER_BOTTOM_WIDTH: 0,
+    },
 } as const;
 
 export default CONST;
