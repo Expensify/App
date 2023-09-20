@@ -61,6 +61,7 @@ const propTypes = {
         }),
     ),
 
+    /* Onyx props */
     /** The optimistic transaction for this request */
     transaction: transactionPropTypes,
 };

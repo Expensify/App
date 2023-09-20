@@ -35,8 +35,14 @@ const defaultProps = {
 function NewDistanceRequestWaypointEditorPage({transactionID, route}) {
     return (
         <WaypointEditor
-            transactionID={transactionID}
-            route={route}
+            // Put the transactionID into the route params so that WaypointEdit behaves the same when creating a new waypoint
+            // or editing an existing waypoint.
+            route={{
+                params: {
+                    ...route.params,
+                    transactionID,
+                },
+            }}
         />
     );
 }
