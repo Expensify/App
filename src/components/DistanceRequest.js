@@ -190,7 +190,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
+        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : ROUTES.HOME);
     };
 
     const navigateToNextPage = () => {

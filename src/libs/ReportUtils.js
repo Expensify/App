@@ -87,7 +87,9 @@ function getChatType(report) {
  * @returns {Object}
  */
 function getPolicy(policyID) {
-    if (!allPolicies || !policyID) return {};
+    if (!allPolicies || !policyID) {
+        return {};
+    }
     return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] || {};
 }
 
@@ -248,7 +250,7 @@ function isReportManager(report) {
  * @returns {Boolean}
  */
 function isReportApproved(report) {
-    return report && report.statusNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
+    return report && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
 /**
@@ -272,7 +274,9 @@ function sortReportsByLastRead(reports) {
  * @returns {Boolean}
  */
 function isSettled(reportID) {
-    if (!allReports) return false;
+    if (!allReports) {
+        return false;
+    }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
     if ((typeof report === 'object' && Object.keys(report).length === 0) || report.isWaitingOnBankAccount) {
         return false;
