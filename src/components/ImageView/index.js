@@ -143,6 +143,7 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
         if (!isZoomed && !isDragging) {
             if (e.nativeEvent) {
                 const {offsetX, offsetY} = e.nativeEvent;
+
                 // Dividing clicked positions by the zoom scale to get coordinates
                 // so that once we zoom we will scroll to the clicked location.
                 const delta = getScrollOffset(offsetX / zoomScale, offsetY / zoomScale);
