@@ -13,14 +13,7 @@ export default function () {
 
     return new Promise((resolve) => {
         // Add all migrations to an array so they are executed in order
-        const migrationPromises = [
-            RenameActiveClientsKey,
-            RenamePriorityModeKey,
-            AddEncryptedAuthToken,
-            RenameExpensifyNewsStatus,
-            AddLastVisibleActionCreated,
-            PersonalDetailsByAccountID,
-        ];
+        const migrationPromises = [RenameActiveClientsKey, RenamePriorityModeKey, AddEncryptedAuthToken, RenameExpensifyNewsStatus, AddLastVisibleActionCreated, PersonalDetailsByAccountID];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
         // previous promise to finish before moving onto the next one.
