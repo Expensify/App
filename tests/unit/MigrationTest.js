@@ -4,7 +4,6 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import Log from '../../src/libs/Log';
 import getPlatform from '../../src/libs/getPlatform';
-import AddLastVisibleActionCreated from '../../src/libs/migrations/AddLastVisibleActionCreated';
 import MoveToIndexedDB from '../../src/libs/migrations/MoveToIndexedDB';
 import KeyReportActionsByReportActionID from '../../src/libs/migrations/KeyReportActionsByReportActionID';
 import PersonalDetailsByAccountID from '../../src/libs/migrations/PersonalDetailsByAccountID';
@@ -92,62 +91,6 @@ describe('Migrations', () => {
                 expect(localStorage.getItem('non-onyx-item')).toEqual('MOCK');
             });
         });
-    });
-
-    describe('AddLastVisibleActionCreated', () => {
-        it('Should add lastVisibleActionCreated wherever lastActionCreated currently is', () =>
-            Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
-                    lastActionCreated: '2022-11-16 01:31:13.702',
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: {
-                    lastActionCreated: '2022-11-16 01:31:54.821',
-                },
-            })
-                .then(AddLastVisibleActionCreated)
-                .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Adding lastVisibleActionCreated field to 2 reports');
-                    const connectionID = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.REPORT,
-                        waitForCollectionCallback: true,
-                        callback: (allReports) => {
-                            Onyx.disconnect(connectionID);
-                            expect(_.keys(allReports).length).toBe(2);
-                            _.each(allReports, (report) => {
-                                expect(_.has(report, 'lastVisibleActionCreated')).toBe(true);
-                            });
-                            expect(allReports.report_1.lastVisibleActionCreated).toBe('2022-11-16 01:31:13.702');
-                            expect(allReports.report_2.lastVisibleActionCreated).toBe('2022-11-16 01:31:54.821');
-                        },
-                    });
-                }));
-
-        it('Should skip if the report data already has the correct fields', () =>
-            Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
-                    lastVisibleActionCreated: '2022-11-16 01:31:13.702',
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: {
-                    lastVisibleActionCreated: '2022-11-16 01:31:54.821',
-                },
-            })
-                .then(AddLastVisibleActionCreated)
-                .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
-                }));
-
-        it('Should work even if there is no report data', () =>
-            AddLastVisibleActionCreated().then(() => {
-                expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
-                const connectionID = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
-                    callback: (allReports) => {
-                        Onyx.disconnect(connectionID);
-                        expect(_.compact(_.values(allReports))).toEqual([]);
-                    },
-                });
-            }));
     });
 
     describe('KeyReportActionsByReportActionID', () => {
