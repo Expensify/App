@@ -141,10 +141,11 @@ function getPolicyParamsForOpenOrReconnect() {
 
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
+ * @param {Boolean} isOpenApp
  * @returns {Object}
  */
-function getOnyxDataForOpenOrReconnect() {
-    return {
+function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
+    const defaultData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -167,6 +168,33 @@ function getOnyxDataForOpenOrReconnect() {
             },
         ],
     };
+    if (!isOpenApp) return defaultData;
+    return {
+        optimisticData: [
+            ...defaultData.optimisticData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: true,
+            },
+        ],
+        successData: [
+            ...defaultData.successData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: false,
+            },
+        ],
+        failureData: [
+            ...defaultData.failureData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: false,
+            },
+        ],
+    };
 }
 
 /**
@@ -174,7 +202,7 @@ function getOnyxDataForOpenOrReconnect() {
  */
 function openApp() {
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect());
+        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect(true));
     });
 }
 
@@ -291,7 +319,7 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
         .then(() => {
             if (transitionFromOldDot) {
                 // We must call goBack() to remove the /transition route from history
-                Navigation.goBack();
+                Navigation.goBack(ROUTES.HOME);
             }
 
             if (shouldNavigateToAdminChat) {
@@ -355,7 +383,7 @@ function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
         Navigation.isNavigationReady()
             .then(() => {
                 // We must call goBack() to remove the /transition route from history
-                Navigation.goBack();
+                Navigation.goBack(ROUTES.HOME);
                 Navigation.navigate(exitTo);
             })
             .then(endSignOnTransition);
@@ -371,7 +399,7 @@ function redirectThirdPartyDesktopSignIn() {
 
     if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.HOME);
             Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
         });
     }
