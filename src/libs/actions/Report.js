@@ -1824,6 +1824,10 @@ function leaveRoom(reportID, shouldNavigate = true) {
         if (Navigation.getTopmostReportId() === reportID) {
             Navigation.goBack(ROUTES.HOME);
         }
+        if (report.parentReportID) {
+            Navigation.navigate(ROUTES.getReportRoute(report.parentReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
+            return;
+        }
         navigateToConciergeChat();
     }
 }
