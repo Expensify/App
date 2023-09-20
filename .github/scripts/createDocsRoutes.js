@@ -87,8 +87,8 @@ function run() {
     const expensifyClassicArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.expensifyClassic}`);
     const newExpensifyArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.newExpensify}`);
 
-    const expensifyClassicRoute = routes.platforms.find((platform) => platform.href === platformNames.expensifyClassic);
-    const newExpensifyRoute = routes.platforms.find((platform) => platform.href === platformNames.newExpensify);
+    const expensifyClassicRoute = _.find(routes.platforms, (platform) => platform.href === platformNames.expensifyClassic);
+    const newExpensifyRoute = _.find(routes.platforms, (platform) => platform.href === platformNames.newExpensify);
 
     if (expensifyClassicArticleHubs.length !== expensifyClassicRoute.hubs.length) {
         console.error(warn(platformNames.expensifyClassic));
