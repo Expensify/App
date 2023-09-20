@@ -36,7 +36,7 @@ function OnfidoStep({walletOnfidoData}) {
     }, []);
 
     const reportError = useCallback(() => {
-        Growl.error(translate('onfidoStep.genericError'), 10_000);
+        Growl.error(translate('onfidoStep.genericError'), 10000);
     }, [translate]);
 
     const verifyIdentity = useCallback((data) => {
