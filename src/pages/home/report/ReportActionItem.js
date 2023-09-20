@@ -511,12 +511,10 @@ function ReportActionItem(props) {
                         checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
                     }}
                 >
-                    <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                        <MoneyRequestView
-                            report={props.report}
-                            shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                        />
-                    </OfflineWithFeedback>
+                    <MoneyRequestView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
                 </ShowContextMenuContext.Provider>
             );
         }
@@ -538,12 +536,10 @@ function ReportActionItem(props) {
             }
 
             return (
-                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                    <TaskView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
-                </OfflineWithFeedback>
+                <TaskView
+                    report={props.report}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                />
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {

@@ -108,13 +108,15 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
             </View>
 
             {hasReceipt && (
-                <View style={styles.moneyRequestViewImage}>
-                    <ReportActionItemImage
-                        thumbnail={receiptURIs.thumbnail}
-                        image={receiptURIs.image}
-                        enablePreviewModal
-                    />
-                </View>
+                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingAction')}>
+                    <View style={styles.moneyRequestViewImage}>
+                        <ReportActionItemImage
+                            thumbnail={receiptURIs.thumbnail}
+                            image={receiptURIs.image}
+                            enablePreviewModal
+                        />
+                    </View>
+                </OfflineWithFeedback>
             )}
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.amount') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
