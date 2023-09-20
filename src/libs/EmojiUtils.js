@@ -289,12 +289,11 @@ function extractEmojis(text) {
     return emojis;
 }
 
-
 /**
  * Take the current emojis and the former emojis and return the emojis that were added, if we add an already existing emoji, we also return it
  * @param {Object[]} currentEmojis The array of current emojis
  * @param {Object[]} formerEmojis The array of former emojis
- * @returns {Object[]} The array of added emojis 
+ * @returns {Object[]} The array of added emojis
  */
 function getAddedEmojis(currentEmojis, formerEmojis) {
     const newEmojis = [...currentEmojis];
