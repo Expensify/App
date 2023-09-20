@@ -18,7 +18,6 @@ import setSelection from '../../libs/setSelection';
 import compose from '../../libs/compose';
 import getPlatform from '../../libs/getPlatform';
 import OptionsListSkeletonRow from '../OptionsListSkeletonRow';
-import Text from '../Text';
 import FormHelpMessage from '../FormHelpMessage';
 
 const propTypes = {
