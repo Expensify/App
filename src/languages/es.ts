@@ -520,8 +520,8 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
-        paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `pagó ${amount} de otra forma`,
-        paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `pagó ${amount} con Expensify`,
+        paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer} pagó ${amount} de otra forma`,
+        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer} pagó ${amount} con Expensify`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheRequest: 'cambió la solicitud',

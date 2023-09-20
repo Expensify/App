@@ -528,8 +528,8 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
-        paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `paid ${amount} elsewhere`,
-        paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `paid ${amount} with Expensify`,
+        paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer} paid ${amount} elsewhere`,
+        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer} paid ${amount} using Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         changedTheRequest: 'changed the request',
