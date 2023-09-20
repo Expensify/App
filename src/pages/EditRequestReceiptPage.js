@@ -26,7 +26,7 @@ const propTypes = {
 
 const defaultProps = {
     transactionID: '',
-}
+};
 
 function EditRequestReceiptPage({route, transactionID}) {
     const {translate} = useLocalize();
