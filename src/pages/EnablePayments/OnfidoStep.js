@@ -13,6 +13,7 @@ import Growl from '../../libs/Growl';
 import OnfidoPrivacy from './OnfidoPrivacy';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
 import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
@@ -51,7 +52,7 @@ class OnfidoStep extends React.Component {
                                 Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
                             }}
                             onUserExit={() => {
-                                Navigation.goBack();
+                                Navigation.goBack(ROUTES.HOME);
                             }}
                             onSuccess={(data) => {
                                 BankAccounts.verifyIdentity({

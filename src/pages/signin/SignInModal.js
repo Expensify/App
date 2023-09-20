@@ -23,7 +23,7 @@ function SignInModal() {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton onBackButtonPress={() => Navigation.goBack()} />
+            <HeaderWithBackButton />
             <SignInPage isInModal />
         </ScreenWrapper>
     );
