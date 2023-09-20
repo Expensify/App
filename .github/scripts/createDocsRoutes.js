@@ -48,32 +48,6 @@ function pushOrCreateEntry(hubs, hub, key, entry) {
     }
 }
 
-function run() {
-    const expensifyClassicArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.expensifyClassic}`);
-    const newExpensifyArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.newExpensify}`);
-
-    const expensifyClassicRoute = routes.platforms.find((platform) => platform.href === platformNames.expensifyClassic);
-    const newExpensifyRoute = routes.platforms.find((platform) => platform.href === platformNames.newExpensify);
-
-    if (expensifyClassicArticleHubs.length !== expensifyClassicRoute.hubs.length) {
-        console.error(warn(platformNames.expensifyClassic));
-        return 1;
-    }
-
-    if (newExpensifyArticleHubs.length !== newExpensifyRoute.hubs.length) {
-        console.error(warn(platformNames.newExpensify));
-        return 1;
-    }
-
-    createHubsWithArticles(expensifyClassicArticleHubs, platformNames.expensifyClassic, expensifyClassicRoute.hubs);
-    createHubsWithArticles(newExpensifyArticleHubs, platformNames.newExpensify, newExpensifyRoute.hubs);
-
-    // Convert the object to YAML and write it to the file
-    let yamlString = yaml.dump(routes);
-    yamlString = disclaimer + yamlString;
-    fs.writeFileSync(`${docsDir}/_data/routes.yml`, yamlString);
-}
-
 /**
  * Add articles and sections to hubs
  * @param {Array} hubs - The hubs inside docs/articles/ for a platform
@@ -107,6 +81,32 @@ function createHubsWithArticles(hubs, platformName, routeHubs) {
             });
         });
     });
+}
+
+function run() {
+    const expensifyClassicArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.expensifyClassic}`);
+    const newExpensifyArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.newExpensify}`);
+
+    const expensifyClassicRoute = routes.platforms.find((platform) => platform.href === platformNames.expensifyClassic);
+    const newExpensifyRoute = routes.platforms.find((platform) => platform.href === platformNames.newExpensify);
+
+    if (expensifyClassicArticleHubs.length !== expensifyClassicRoute.hubs.length) {
+        console.error(warn(platformNames.expensifyClassic));
+        return 1;
+    }
+
+    if (newExpensifyArticleHubs.length !== newExpensifyRoute.hubs.length) {
+        console.error(warn(platformNames.newExpensify));
+        return 1;
+    }
+
+    createHubsWithArticles(expensifyClassicArticleHubs, platformNames.expensifyClassic, expensifyClassicRoute.hubs);
+    createHubsWithArticles(newExpensifyArticleHubs, platformNames.newExpensify, newExpensifyRoute.hubs);
+
+    // Convert the object to YAML and write it to the file
+    let yamlString = yaml.dump(routes);
+    yamlString = disclaimer + yamlString;
+    fs.writeFileSync(`${docsDir}/_data/routes.yml`, yamlString);
 }
 
 try {
