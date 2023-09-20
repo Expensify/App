@@ -2,7 +2,7 @@ const yaml = require('js-yaml');
 const fs = require('fs');
 const _ = require('underscore');
 
-const warn = (platform) => `Number of hubs in _routes.yml does not match number of hubs in docs/${platform}/articles. Please update _routes.yml with hub info.`;
+const warnMessage = (platform) => `Number of hubs in _routes.yml does not match number of hubs in docs/${platform}/articles. Please update _routes.yml with hub info.`;
 const disclaimer = '# This file is auto-generated. Do not edit it directly. Use npm run createDocsRoutes instead.\n';
 const docsDir = `${process.cwd()}/docs`;
 const routes = yaml.load(fs.readFileSync(`${docsDir}/_data/_routes.yml`, 'utf8'));
@@ -91,12 +91,12 @@ function run() {
     const newExpensifyRoute = _.find(routes.platforms, (platform) => platform.href === platformNames.newExpensify);
 
     if (expensifyClassicArticleHubs.length !== expensifyClassicRoute.hubs.length) {
-        console.error(warn(platformNames.expensifyClassic));
+        console.error(warnMessage(platformNames.expensifyClassic));
         return 1;
     }
 
     if (newExpensifyArticleHubs.length !== newExpensifyRoute.hubs.length) {
-        console.error(warn(platformNames.newExpensify));
+        console.error(warnMessage(platformNames.newExpensify));
         return 1;
     }
 
