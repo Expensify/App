@@ -1,6 +1,6 @@
 import React, {useRef, useState, useEffect, useMemo, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -151,6 +151,7 @@ function ReportScreen({
     const flatListRef = useRef();
     const reactionListRef = useRef();
     const prevReport = usePrevious(report);
+    const isFocused = useIsFocused();
 
     const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(0);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -311,6 +312,18 @@ function ReportScreen({
         () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading) || shouldHideReport,
         [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete],
     );
+
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+
+        if (ReportUtils.isThread(report) && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+            Report.leaveRoom(report.reportID, false);
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFocused]);
 
     return (
         <ReportScreenContext.Provider

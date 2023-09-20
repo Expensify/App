@@ -1777,8 +1777,9 @@ function getCurrentUserAccountID() {
  * Leave a report by setting the state to submitted and closed
  *
  * @param {String} reportID
+ * @param {Boolean} shouldNavigate should navigate after leaving room or not
  */
-function leaveRoom(reportID) {
+function leaveRoom(reportID, shouldNavigate = true) {
     const report = lodashGet(allReports, [reportID], {});
     const reportKeys = _.keys(report);
     API.write(
@@ -1819,10 +1820,12 @@ function leaveRoom(reportID) {
         },
     );
     Navigation.dismissModal();
-    if (Navigation.getTopmostReportId() === reportID) {
-        Navigation.goBack();
+    if (shouldNavigate) {
+        if (Navigation.getTopmostReportId() === reportID) {
+            Navigation.goBack();
+        }
+        navigateToConciergeChat();
     }
-    navigateToConciergeChat();
 }
 
 /**
