@@ -685,7 +685,10 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
 
     API.write(
         'UpdateDistanceRequest',
-        {transactionID, ...transactionDetails},
+        {
+            transactionID,
+            ...transactionDetails,
+        },
         {
             optimisticData: [
                 {

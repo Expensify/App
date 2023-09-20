@@ -13,6 +13,7 @@ import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
 import * as TransactionUtils from '../libs/TransactionUtils';
 import transactionPropTypes from '../components/transactionPropTypes';
+import * as TransactionEdit from '../libs/actions/TransactionEdit';
 
 const propTypes = {
     /** The transactionID we're currently editing */
@@ -46,14 +47,16 @@ function EditRequestDistancePage({report, route, transaction}) {
 
     // This temporary transaction will be the one that all changes are made to. This keeps the original transaction unmodified until
     // the user takes an explicit action to save it.
-    const transactionToApplyChangesTo = useRef(TransactionUtils.createTemporaryTransaction(transaction), [transaction]);
+    const transactionIDToApplyChangesTo = useRef(TransactionEdit.createTemporaryTransaction(transaction), [transaction]);
 
     useEffect(
         () => {
+            TransactionEdit.startErrorSync(transaction.transactionID, transactionIDToApplyChangesTo.current);
             return () => {
                 // When this component is unmounted, the temporary transaction is removed.
                 // This works for both saving a transaction or cancelling out of the flow somehow.
-                TransactionUtils.removeTemporaryTransaction(transactionToApplyChangesTo.current.transactionID);
+                TransactionEdit.removeTemporaryTransaction(transactionIDToApplyChangesTo.current);
+                TransactionEdit.stopErrorSync();
             };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,7 +69,7 @@ function EditRequestDistancePage({report, route, transaction}) {
      */
     const saveTransaction = (waypoints) => {
         // Pass the transactionID of the original transaction so that is updated on the server
-        IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints}, transactionToApplyChangesTo.current.transactionID);
+        IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints}, transactionIDToApplyChangesTo.current);
     };
 
     return (
@@ -82,7 +85,7 @@ function EditRequestDistancePage({report, route, transaction}) {
                 report={report}
                 route={route}
                 // Pass the ID of the cloned transaction so that the original transaction is not being changed
-                transactionID={transactionToApplyChangesTo.current.transactionID}
+                transactionID={transactionIDToApplyChangesTo.current}
                 onSubmit={saveTransaction}
                 isEditingRequest
             />
