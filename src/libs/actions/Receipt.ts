@@ -23,7 +23,17 @@ function clearUploadReceiptError() {
     });
 }
 
+/**
+ * Close the receipt modal
+ */
+function closeUploadReceiptModal() {
+    Onyx.merge(ONYXKEYS.RECEIPT_MODAL, {
+        isAttachmentInvalid: false,
+    });
+}
+
 export default {
     setUploadReceiptError,
     clearUploadReceiptError,
+    closeUploadReceiptModal,
 };

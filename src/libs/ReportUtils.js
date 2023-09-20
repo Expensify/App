@@ -248,7 +248,7 @@ function isReportManager(report) {
  * @returns {Boolean}
  */
 function isReportApproved(report) {
-    return report && report.statusNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
+    return report && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
 /**
@@ -843,8 +843,30 @@ function hasAutomatedExpensifyAccountIDs(accountIDs) {
  * @returns {Array}
  */
 function getReportRecipientAccountIDs(report, currentLoginAccountID) {
-    const participantAccountIDs = isTaskReport(report) ? [report.managerID] : lodashGet(report, 'participantAccountIDs');
-    const reportParticipants = _.without(participantAccountIDs, currentLoginAccountID);
+    let finalReport = report;
+    // In 1:1 chat threads, the participants will be the same as parent report. If a report is specifically a 1:1 chat thread then we will
+    // get parent report and use its participants array.
+    if (isThread(report) && !(isTaskReport(report) || isMoneyRequestReport(report))) {
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        if (hasSingleParticipant(parentReport)) {
+            finalReport = parentReport;
+        }
+    }
+
+    let finalParticipantAccountIDs = [];
+    if (isMoneyRequestReport(report)) {
+        // For money requests i.e the IOU (1:1 person) and Expense (1:* person) reports, use the full `initialParticipantAccountIDs` array
+        // and add the `ownerAccountId`. Money request reports don't add `ownerAccountId` in `participantAccountIDs` array
+        finalParticipantAccountIDs = _.union(lodashGet(finalReport, 'participantAccountIDs'), [report.ownerAccountID]);
+    } else if (isTaskReport(report)) {
+        // Task reports `managerID` will change when assignee is changed, in that case the old `managerID` is still present in `participantAccountIDs`
+        // array along with the new one. We only need the `managerID` as a participant here.
+        finalParticipantAccountIDs = [report.managerID];
+    } else {
+        finalParticipantAccountIDs = lodashGet(finalReport, 'participantAccountIDs');
+    }
+
+    const reportParticipants = _.without(finalParticipantAccountIDs, currentLoginAccountID);
     const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
     return participantsWithoutExpensifyAccountIDs;
 }
@@ -1470,7 +1492,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
-        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
+        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerName});
     }
 
     if (report.isWaitingOnBankAccount) {
