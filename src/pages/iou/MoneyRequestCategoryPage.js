@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
+import compose from '../../libs/compose';
 import useLocalize from '../../hooks/useLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -65,8 +66,23 @@ MoneyRequestCategoryPage.displayName = 'MoneyRequestCategoryPage';
 MoneyRequestCategoryPage.propTypes = propTypes;
 MoneyRequestCategoryPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-    },
-})(MoneyRequestCategoryPage);
+export default compose(
+    withOnyx({
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
+    }),
+    withOnyx({
+        report: {
+            key: ({route, iou}) => {
+                let reportID = lodashGet(route, 'params.reportID', '');
+                if (!reportID) {
+                    // When the money request creation flow is initialized on Global Create, the reportID is not passed as a navigation parameter.
+                    // Get the report id from the participants list on the IOU object stored in Onyx.
+                    reportID = lodashGet(iou, 'participants.0.reportID', '');
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            },
+        },
+    }),
+)(MoneyRequestCategoryPage);
