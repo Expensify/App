@@ -5,7 +5,6 @@ import RenameActiveClientsKey from './migrations/RenameActiveClientsKey';
 import RenamePriorityModeKey from './migrations/RenamePriorityModeKey';
 import RenameExpensifyNewsStatus from './migrations/RenameExpensifyNewsStatus';
 import AddLastVisibleActionCreated from './migrations/AddLastVisibleActionCreated';
-import KeyReportActionsByReportActionID from './migrations/KeyReportActionsByReportActionID';
 import PersonalDetailsByAccountID from './migrations/PersonalDetailsByAccountID';
 
 export default function () {
@@ -20,7 +19,6 @@ export default function () {
             AddEncryptedAuthToken,
             RenameExpensifyNewsStatus,
             AddLastVisibleActionCreated,
-            KeyReportActionsByReportActionID,
             PersonalDetailsByAccountID,
         ];
 
