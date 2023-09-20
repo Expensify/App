@@ -19,7 +19,7 @@ type ACHData = {
 };
 
 class BankAccount {
-    public static readonly STATE = {
+    static readonly STATE = {
         PENDING: 'PENDING',
         OPEN: 'OPEN',
         DELETED: 'DELETED',
@@ -182,28 +182,28 @@ class BankAccount {
      * @returns - country of the bank account.
      */
     getCountry(): string {
-        return this.json.accountData?.additionalData?.country as string || CONST.COUNTRY.US;
+        return this.json.accountData?.additionalData?.country ?? CONST.COUNTRY.US;
     }
 
     /**
      * @returns - currency of the bank account.
      */
     getCurrency(): string {
-        return this.json.accountData?.additionalData?.currency as string || "USD";
+        return this.json.accountData?.additionalData?.currency ?? "USD";
     }
 
     /**
      * @returns - bank name of the bank account.
      */
     getBankName(): string {
-        return this.json.accountData?.additionalData?.bankName as string || "";
+        return this.json.accountData?.additionalData?.bankName ?? "";
     }
 
     /**
      * @returns - Information if did we get bank account details for local transfer or international wire.
      */
     hasInternationalWireDetails(): boolean {
-        return this.json.accountData?.additionalData?.fieldsType as string === 'international';
+        return this.json.accountData?.additionalData?.fieldsType === 'international';
     }
 
     /**
