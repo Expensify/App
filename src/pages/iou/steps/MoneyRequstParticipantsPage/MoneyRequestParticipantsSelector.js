@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
@@ -58,6 +59,9 @@ const propTypes = {
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
 
+    /** Whether the money request is a scan request or not */
+    isScanRequest: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -69,6 +73,7 @@ const defaultProps = {
     reports: {},
     betas: [],
     isDistanceRequest: false,
+    isScanRequest: false,
 };
 
 function MoneyRequestParticipantsSelector({
@@ -84,6 +89,7 @@ function MoneyRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
+    isScanRequest,
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
@@ -105,7 +111,10 @@ function MoneyRequestParticipantsSelector({
 
         newSections.push({
             title: undefined,
-            data: OptionsListUtils.getParticipantsOptions(participants, personalDetails),
+            data: _.map(participants, (participant) => {
+                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+            }),
             shouldShow: true,
             indexOffset,
         });
@@ -159,14 +168,27 @@ function MoneyRequestParticipantsSelector({
      */
     const addParticipantToSelection = useCallback(
         (option) => {
-            const isOptionInList = _.some(participants, (selectedOption) => selectedOption.accountID === option.accountID);
+            const isOptionSelected = (selectedOption) => {
+                if (selectedOption.accountID && selectedOption.accountID === option.accountID) {
+                    return true;
+                }
 
+                if (selectedOption.reportID && selectedOption.reportID === option.reportID) {
+                    return true;
+                }
+
+                return false;
+            };
+            const isOptionInList = _.some(participants, isOptionSelected);
             let newSelectedOptions;
 
             if (isOptionInList) {
-                newSelectedOptions = _.reject(participants, (selectedOption) => selectedOption.accountID === option.accountID);
+                newSelectedOptions = _.reject(participants, isOptionSelected);
             } else {
-                newSelectedOptions = [...participants, {accountID: option.accountID, login: option.login, selected: true}];
+                newSelectedOptions = [
+                    ...participants,
+                    {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true},
+                ];
             }
 
             onAddParticipants(newSelectedOptions);
@@ -227,10 +249,17 @@ function MoneyRequestParticipantsSelector({
         });
     }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, isDistanceRequest]);
 
+    // Right now you can't split a request with a workspace and other additional participants
+    // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
+    // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
+    const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
+    const shouldShowConfirmButton = !(participants.length > 1 && hasPolicyExpenseChatParticipant);
+    const isAllowedToSplit = !isDistanceRequest && !isScanRequest;
+
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <OptionsSelector
-                canSelectMultipleOptions
+                canSelectMultipleOptions={isAllowedToSplit}
                 shouldShowMultipleOptionSelectorAsButton
                 multipleOptionSelectorButtonText={translate('iou.split')}
                 onAddToSelection={addParticipantToSelection}
@@ -242,7 +271,7 @@ function MoneyRequestParticipantsSelector({
                 ref={forwardedRef}
                 headerMessage={headerMessage}
                 boldStyle
-                shouldShowConfirmButton
+                shouldShowConfirmButton={shouldShowConfirmButton && isAllowedToSplit}
                 confirmButtonText={translate('iou.addToSplit')}
                 onConfirmSelection={navigateToSplit}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
