@@ -1813,8 +1813,8 @@ describe('actions/IOU', () => {
 
             // Then the report should have 2 actions
             expect(_.size(reportActions)).toBe(2);
-            const resultActionAfter = reportActions[reportActionID];
             await waitForBatchedUpdates();
+            const resultActionAfter = reportActions[reportActionID];
             expect(resultActionAfter.pendingAction).toBeNull();
 
             fetch.pause();
