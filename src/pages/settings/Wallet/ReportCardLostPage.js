@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -22,7 +22,7 @@ const OPTIONS = [
         label: 'reportCardLostOrDamaged.cardDamaged',
     },
     {
-        key: 'lost_or_stolen',
+        key: 'stolen',
         label: 'reportCardLostOrDamaged.cardLostOrStolen',
     },
 ];
@@ -64,22 +64,7 @@ function ReportCardLostPage({privatePersonalDetails}) {
 
     const [reason, setReason] = useState(OPTIONS[0]);
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
-
-    const validate = (values) => {
-        if (!isReasonConfirmed) {
-            return {};
-        }
-
-        return {};
-    };
-
-    const onSubmit = () => {
-        setIsReasonConfirmed(true);
-    };
-
-    const handleOptionSelect = (option) => {
-        setReason(option);
-    };
+    const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
 
     /**
      * Applies common formatting to each piece of an address
@@ -94,13 +79,39 @@ function ReportCardLostPage({privatePersonalDetails}) {
      *
      * @returns {String}
      */
-    const getFormattedAddress = () => {
+    const formattedAddress = useMemo(() => {
         const [street1, street2] = (address.street || '').split('\n');
-        const formattedAddress =
-            formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
+        const formatted = formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
 
         // Remove the last comma of the address
-        return formattedAddress.trim().replace(/,$/, '');
+        return formatted.trim().replace(/,$/, '');
+    }, [address.city, address.country, address.state, address.street, address.zip]);
+
+    const validate = () => {
+        if (!isReasonConfirmed) {
+            setShouldShowAddressError(false);
+            return {};
+        }
+
+        if (!formattedAddress) {
+            setShouldShowAddressError(true);
+            return {};
+        }
+    };
+
+    const onSubmit = () => {
+        if (!isReasonConfirmed) {
+            setIsReasonConfirmed(true);
+            return;
+        }
+
+        if (!formattedAddress) {
+            // TODO: submit
+        }
+    };
+
+    const handleOptionSelect = (option) => {
+        setReason(option);
     };
 
     return (
@@ -121,12 +132,14 @@ function ReportCardLostPage({privatePersonalDetails}) {
                     <>
                         <Text style={[styles.textHeadline, styles.mb3, styles.mh5]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
                         <MenuItemWithTopDescription
-                            title={getFormattedAddress()}
+                            inputID="address"
+                            title={formattedAddress}
                             description={translate('reportCardLostOrDamaged.address')}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
                             numberOfLinesTitle={2}
                         />
+                        {shouldShowAddressError && <Text style={styles.mh5}>Address missing</Text>}
                         <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.currentCardInfo')}</Text>
                     </>
                 ) : (
