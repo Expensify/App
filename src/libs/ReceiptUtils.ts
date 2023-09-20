@@ -8,8 +8,8 @@ import ReceiptGeneric from '../../assets/images/receipt-generic.png';
 import ReceiptSVG from '../../assets/images/receipt-svg.png';
 
 type ThumbnailAndImageURI = {
-    thumbnail: string | null;
     image: ImageSourcePropType | string;
+    thumbnail: string | null;
 };
 
 /**
