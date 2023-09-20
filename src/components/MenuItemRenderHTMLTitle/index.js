@@ -10,7 +10,7 @@ const defaultProps = {};
 
 function MenuItemRenderHTMLTitle(props) {
     return (
-        <View style={styles.chatItemMessage}>
+        <View style={styles.renderHTMLTitle}>
             <RenderHTML html={props.title} />
         </View>
     );
