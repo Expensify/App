@@ -3614,10 +3614,8 @@ const styles = (theme) => ({
     },
 
     reportHorizontalRule: {
-        borderBottomWidth: 1,
         borderColor: theme.border,
         ...spacing.mh5,
-        ...spacing.mv2,
     },
 
     assigneeTextStyle: {

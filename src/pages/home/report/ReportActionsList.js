@@ -115,7 +115,7 @@ function ReportActionsList({
     const {isOffline} = useNetwork();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
-    const currentUnreadMarker = useRef(null);
+    const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
@@ -158,12 +158,12 @@ function ReportActionsList({
             }
         }
 
-        if (currentUnreadMarker.current || reportActionSize.current === sortedReportActions.length) {
+        if (currentUnreadMarker || reportActionSize.current === sortedReportActions.length) {
             return;
         }
 
         reportActionSize.current = sortedReportActions.length;
-        currentUnreadMarker.current = null;
+        setCurrentUnreadMarker(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sortedReportActions.length, report.reportID]);
 
@@ -175,7 +175,7 @@ function ReportActionsList({
         }
 
         // Clearing the current unread marker so that it can be recalculated
-        currentUnreadMarker.current = null;
+        setCurrentUnreadMarker(null);
         setMessageManuallyMarked({read: true});
 
         // We only care when a new lastReadTime is set in the report
@@ -224,7 +224,7 @@ function ReportActionsList({
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
     const handleUnreadFloatingButton = () => {
-        if (scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!currentUnreadMarker.current) {
+        if (scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!currentUnreadMarker) {
             setIsFloatingMessageCounterVisible(true);
         }
 
@@ -261,6 +261,15 @@ function ReportActionsList({
     }, [windowHeight]);
 
     /**
+     * Thread's divider line should hide when the first chat in the thread is marked as unread.
+     * This is so that it will not be conflicting with header's separator line.
+     */
+    const shouldHideThreadDividerLine = useMemo(
+        () => sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === currentUnreadMarker,
+        [sortedReportActions, currentUnreadMarker],
+    );
+
+    /**
      * @param {Object} args
      * @param {Number} args.index
      * @returns {React.Component}
@@ -269,7 +278,7 @@ function ReportActionsList({
         ({item: reportAction, index}) => {
             let shouldDisplayNewMarker = false;
 
-            if (!currentUnreadMarker.current) {
+            if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
                 shouldDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
@@ -279,18 +288,17 @@ function ReportActionsList({
                 }
                 const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
 
-                if (!currentUnreadMarker.current && shouldDisplayNewMarker && canDisplayMarker) {
-                    currentUnreadMarker.current = reportAction.reportActionID;
+                if (!currentUnreadMarker && shouldDisplayNewMarker && canDisplayMarker) {
+                    setCurrentUnreadMarker(reportAction.reportActionID);
                 }
             } else {
-                shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker.current;
+                shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker;
             }
 
             const shouldDisplayParentAction =
                 reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 ReportUtils.isChatThread(report) &&
                 !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
-            const shouldHideThreadDividerLine = sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === currentUnreadMarker.current;
 
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction
@@ -316,19 +324,19 @@ function ReportActionsList({
                 />
             );
         },
-        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarked],
+        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarked, shouldHideThreadDividerLine, currentUnreadMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = [isSmallScreenWidth ? currentUnreadMarker.current : undefined, ReportUtils.isArchivedRoom(report)];
+    const extraData = [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)];
     const hideComposer = ReportUtils.shouldDisableWriteActions(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
     return (
         <>
             <FloatingMessageCounter
-                isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker.current}
+                isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
