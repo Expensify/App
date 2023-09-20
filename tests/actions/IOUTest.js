@@ -1799,6 +1799,8 @@ describe('actions/IOU', () => {
                 });
             });
 
+            jest.advanceTimersByTime(10);
+
             // When a comment is added
             Report.addComment(thread.reportID, 'Testing a comment');
             await waitForBatchedUpdates();
@@ -1813,7 +1815,6 @@ describe('actions/IOU', () => {
 
             // Then the report should have 2 actions
             expect(_.size(reportActions)).toBe(2);
-            await waitForBatchedUpdates();
             const resultActionAfter = reportActions[reportActionID];
             expect(resultActionAfter.pendingAction).toBeNull();
 
