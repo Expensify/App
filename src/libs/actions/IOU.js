@@ -1393,14 +1393,14 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     if (isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
         // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
         Navigation.navigate(ROUTES.getReportRoute(iouReport.reportID));
         return;
     }
 
     if (shouldDeleteIOUReport) {
         // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
         Navigation.navigate(ROUTES.getReportRoute(iouReport.chatReportID));
     }
 }
