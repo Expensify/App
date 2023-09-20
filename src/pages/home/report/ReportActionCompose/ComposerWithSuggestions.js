@@ -177,9 +177,10 @@ function ComposerWithSuggestions({
 
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
-
-                insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
-                debouncedUpdateFrequentlyUsedEmojis();
+                if (!_.isEmpty(newEmojis)) {
+                    insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
+                    debouncedUpdateFrequentlyUsedEmojis();
+                }
             }
             emojisPresentBefore.current = emojis;
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));

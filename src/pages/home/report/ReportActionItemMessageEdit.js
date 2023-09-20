@@ -210,8 +210,10 @@ function ReportActionItemMessageEdit(props) {
 
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
-                insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
-                debouncedUpdateFrequentlyUsedEmojis();
+                if (!_.isEmpty(newEmojis)) {
+                    insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
+                    debouncedUpdateFrequentlyUsedEmojis();
+                }
             }
             emojisPresentBefore.current = emojis;
             setDraft((prevDraft) => {
