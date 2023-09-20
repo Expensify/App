@@ -254,7 +254,7 @@ function getCategory(transaction) {
 }
 
 /**
- * Return the category from the transaction. This "category" field has no "modified" complement.
+ * Return the billable from the transaction. This "billable" field has no "modified" complement.
  *
  * @param {Object} transaction
  * @return {String}
