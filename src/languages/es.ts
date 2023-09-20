@@ -69,6 +69,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    RequestedAmountMessageParams,
     TagSelectionParams,
     EnglishTranslation,
 } from './types';
@@ -508,6 +509,7 @@ export default {
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount} con Expensify`,
         payElsewhere: 'Pagar de otra forma',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
+        requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} debe ${amount}`,
@@ -519,8 +521,8 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
-        paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `pagó ${amount} de otra forma`,
-        paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `pagó ${amount} con Expensify`,
+        paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer} pagó ${amount} de otra forma`,
+        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer} pagó ${amount} con Expensify`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheRequest: 'cambió la solicitud',
@@ -558,6 +560,8 @@ export default {
         uploadPhoto: 'Subir foto',
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
+        viewPhoto: 'Ver foto',
+        imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
@@ -577,6 +581,7 @@ export default {
         online: 'En línea',
         offline: 'Desconectado',
         syncing: 'Sincronizando',
+        profileAvatar: 'Perfil avatar',
     },
     loungeAccessPage: {
         loungeAccess: 'Acceso a la sala vip',
@@ -731,6 +736,15 @@ export default {
         copy: 'Copiar',
         disable: 'Deshabilitar',
     },
+    recoveryCodeForm: {
+        error: {
+            pleaseFillRecoveryCode: 'Por favor, introduce tu código de recuperación',
+            incorrectRecoveryCode: 'Código de recuperación incorrecto. Por favor, inténtalo de nuevo',
+        },
+        useRecoveryCode: 'Usar código de recuperación',
+        recoveryCode: 'Código de recuperación',
+        use2fa: 'Usar autenticación de dos factores',
+    },
     twoFactorAuthForm: {
         error: {
             pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
@@ -747,6 +761,7 @@ export default {
         sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
         notesUnavailable: 'No se han encontrado notas para el usuario',
         composerLabel: 'Notas',
+        myNote: 'Mi notas',
     },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',
@@ -884,6 +899,7 @@ export default {
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
+        enterRecoveryCode: 'Por favor, introduce tu código de recuperación',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         requestNewCode: 'Pedir un código nuevo en ',
         requestNewCodeAfterErrorOccurred: 'Solicitar un nuevo código',
@@ -1319,6 +1335,7 @@ export default {
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
             notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte al espacio de trabajo? Comunícate con el propietario de este espacio de trabajo para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
+            workspaceAvatar: 'Espacio de trabajo avatar',
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',

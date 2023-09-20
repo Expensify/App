@@ -48,6 +48,7 @@ function HeaderWithBackButton({
     threeDotsMenuItems = [],
     outerThreeDotsMenuStyle = {},
     children = null,
+    shouldOverlay = false,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
@@ -138,7 +139,7 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
-                            outerStyle={outerThreeDotsMenuStyle}
+                            shouldOverlay={shouldOverlay}
                         />
                     )}
                     {shouldShowCloseButton && (

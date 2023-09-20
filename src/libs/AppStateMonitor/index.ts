@@ -1,20 +1,15 @@
-import {AppState} from 'react-native';
+import {AppState, AppStateStatus} from 'react-native';
 import CONST from '../../CONST';
 import shouldReportActivity from './shouldReportActivity';
 
-let appState = CONST.APP_STATE.ACTIVE;
+let appState: AppStateStatus = CONST.APP_STATE.ACTIVE;
 
 /**
  * Listener that will only fire the callback when the user has become active.
- *
- * @param {Function} callback
- * @returns {Function} to unsubscribe
+ * @returns callback to unsubscribe
  */
-function addBecameActiveListener(callback) {
-    /**
-     * @param {String} state
-     */
-    function appStateChangeCallback(state) {
+function addBecameActiveListener(callback: () => void): () => void {
+    function appStateChangeCallback(state: AppStateStatus) {
         if (shouldReportActivity && (appState === CONST.APP_STATE.INACTIVE || appState === CONST.APP_STATE.BACKGROUND) && state === CONST.APP_STATE.ACTIVE) {
             callback();
         }

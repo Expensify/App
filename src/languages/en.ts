@@ -69,6 +69,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    RequestedAmountMessageParams,
     TagSelectionParams,
     TranslationBase,
 } from './types';
@@ -516,6 +517,7 @@ export default {
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount} with Expensify`,
         payElsewhere: 'Pay elsewhere',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
+        requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} each`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} owes ${amount}`,
@@ -527,8 +529,8 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
-        paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `paid ${amount} elsewhere`,
-        paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `paid ${amount} with Expensify`,
+        paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer} paid ${amount} elsewhere`,
+        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer} paid ${amount} using Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         changedTheRequest: 'changed the request',
@@ -565,6 +567,8 @@ export default {
         uploadPhoto: 'Upload photo',
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
+        viewPhoto: 'View photo',
+        imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
@@ -584,6 +588,7 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
+        profileAvatar: 'Profile avatar',
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
@@ -736,6 +741,15 @@ export default {
         copy: 'Copy',
         disable: 'Disable',
     },
+    recoveryCodeForm: {
+        error: {
+            pleaseFillRecoveryCode: 'Please enter your recovery code',
+            incorrectRecoveryCode: 'Incorrect recovery code. Please try again.',
+        },
+        useRecoveryCode: 'Use recovery code',
+        recoveryCode: 'Recovery code',
+        use2fa: 'Use two-factor authentication code',
+    },
     twoFactorAuthForm: {
         error: {
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
@@ -752,6 +766,7 @@ export default {
         sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
         notesUnavailable: 'No notes found for the user',
         composerLabel: 'Notes',
+        myNote: 'My note',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
@@ -888,6 +903,7 @@ export default {
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
         enterAuthenticatorCode: 'Please enter your authenticator code',
+        enterRecoveryCode: 'Please enter your recovery code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: 'Request a new code in ',
         requestNewCodeAfterErrorOccurred: 'Request a new code',
@@ -1300,6 +1316,7 @@ export default {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
+            workspaceAvatar: 'Workspace avatar',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',

@@ -77,8 +77,18 @@ function detachReceipt(transactionID: string, reportID: string) {
     Navigation.navigate(ROUTES.getReportRoute(reportID), CONST.NAVIGATION.TYPE.UP);
 }
 
+/*
+ * Close the receipt modal
+ */
+function closeUploadReceiptModal() {
+    Onyx.merge(ONYXKEYS.RECEIPT_MODAL, {
+        isAttachmentInvalid: false,
+    });
+}
+
 export default {
     setUploadReceiptError,
     clearUploadReceiptError,
     detachReceipt,
+    closeUploadReceiptModal,
 };
