@@ -24,6 +24,7 @@ import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -72,7 +73,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
         Keyboard.dismiss();
 
         // Take user back to the PrivateNotesView page
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
     };
 
     return (
@@ -83,14 +84,12 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || !isCurrentUserNote}
                 subtitleKey="privateNotes.notesUnavailable"
-                onBackButtonPress={() => Navigation.goBack()}
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     subtitle={translate('privateNotes.myNote')}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flexGrow1, styles.ph5]}>
                     <View style={[styles.mb5]}>
