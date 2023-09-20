@@ -185,6 +185,11 @@ function FloatingActionButtonAndPopover(props) {
                         text: props.translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
+                    {
+                        icon: Expensicons.Heart,
+                        text: props.translate('sidebarScreen.saveTheWorld'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
+                    },
                     ...(Permissions.canUseIOUSend(props.betas)
                         ? [
                               {

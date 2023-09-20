@@ -228,16 +228,23 @@ function MoneyRequestConfirmationList(props) {
     const getParticipantsWithAmount = useCallback(
         (participantsList) => {
             const iouAmount = IOUUtils.calculateAmount(participantsList.length, props.iouAmount, props.iouCurrencyCode);
-            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode));
+            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
+                participantsList,
+                CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode),
+                !_.isEmpty(props.receiptPath),
+            );
         },
-        [props.iouAmount, props.iouCurrencyCode],
+        [props.iouAmount, props.iouCurrencyCode, props.receiptPath],
     );
 
     const [didConfirm, setDidConfirm] = useState(false);
 
     const splitOrRequestOptions = useMemo(() => {
+        console.log(props.hasMultipleParticipants);
         let text;
-        if (props.receiptPath || isDistanceRequestWithoutRoute) {
+        if (props.receiptPath && props.hasMultipleParticipants) {
+            text = translate('iou.split');
+        } else if (props.receiptPath || isDistanceRequestWithoutRoute) {
             text = translate('iou.request');
         } else {
             const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
@@ -274,6 +281,7 @@ function MoneyRequestConfirmationList(props) {
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
                 payeePersonalDetails,
                 CurrencyUtils.convertToDisplayString(myIOUAmount, props.iouCurrencyCode),
+                !_.isEmpty(props.receiptPath),
             );
 
             sections.push(

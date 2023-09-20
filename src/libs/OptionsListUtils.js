@@ -1079,9 +1079,10 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
  *
  * @param {Object} personalDetail
  * @param {String} amountText
+ * @param {Boolen} isScanRequest - If this is coming from Scan then we shouldn't display '$0' as the amount
  * @returns {Object}
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText, isScanRequest) {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     return {
         text: personalDetail.displayName || formattedLogin,
@@ -1094,7 +1095,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
                 id: personalDetail.accountID,
             },
         ],
-        descriptiveText: amountText,
+        descriptiveText: isScanRequest ? '' : amountText,
         login: personalDetail.login,
         accountID: personalDetail.accountID,
     };
@@ -1107,10 +1108,10 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
  * @param {String} amountText
  * @returns {Array}
  */
-function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
+function getIOUConfirmationOptionsFromParticipants(participants, amountText, isScanRequest) {
     return _.map(participants, (participant) => ({
         ...participant,
-        descriptiveText: amountText,
+        descriptiveText: isScanRequest ? '' : amountText,
     }));
 }
 
