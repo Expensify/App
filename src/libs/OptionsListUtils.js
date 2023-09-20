@@ -92,31 +92,29 @@ Onyx.connect({
 });
 
 /**
- * Get the options for a policy expense report.
+ * Get the option for a policy expense report.
  * @param {Object} report
- * @returns {Array}
+ * @returns {Object}
  */
-function getPolicyExpenseReportOptions(report) {
+function getPolicyExpenseReportOption(report) {
     const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
     const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
     const reportName = ReportUtils.getReportName(expenseReport);
-    return [
-        {
-            ...expenseReport,
-            keyForList: expenseReport.policyID,
-            text: reportName,
-            alternateText: Localize.translateLocal('workspace.common.workspace'),
-            icons: [
-                {
-                    source: policyExpenseChatAvatarSource,
-                    name: reportName,
-                    type: CONST.ICON_TYPE_WORKSPACE,
-                },
-            ],
-            selected: report.selected,
-            isPolicyExpenseChat: true,
-        },
-    ];
+    return {
+        ...expenseReport,
+        keyForList: expenseReport.policyID,
+        text: reportName,
+        alternateText: Localize.translateLocal('workspace.common.workspace'),
+        icons: [
+            {
+                source: policyExpenseChatAvatarSource,
+                name: reportName,
+                type: CONST.ICON_TYPE_WORKSPACE,
+            },
+        ],
+        selected: report.selected,
+        isPolicyExpenseChat: true,
+    };
 }
 
 /**
@@ -201,38 +199,34 @@ function isPersonalDetailsReady(personalDetails) {
 }
 
 /**
- * Get the participant options for a report.
- * @param {Array<Object>} participants
+ * Get the participant option for a report.
+ * @param {Object} participant
  * @param {Array<Object>} personalDetails
- * @returns {Array}
+ * @returns {Object}
  */
-function getParticipantsOptions(participants, personalDetails) {
-    const details = getPersonalDetailsForAccountIDs(_.pluck(participants, 'accountID'), personalDetails);
-    return _.map(participants, (participant) => {
-        const detail = details[participant.accountID];
-        const login = detail.login || participant.login;
-        const displayName = detail.displayName || LocalePhoneNumber.formatPhoneNumber(login);
-        return {
-            keyForList: String(detail.accountID),
-            login,
-            accountID: detail.accountID,
-            text: displayName,
-            firstName: lodashGet(detail, 'firstName', ''),
-            lastName: lodashGet(detail, 'lastName', ''),
-            alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
-            icons: [
-                {
-                    source: UserUtils.getAvatar(detail.avatar, detail.accountID),
-                    name: login,
-                    type: CONST.ICON_TYPE_AVATAR,
-                    id: detail.accountID,
-                },
-            ],
-            payPalMeAddress: lodashGet(detail, 'payPalMeAddress', ''),
-            phoneNumber: lodashGet(detail, 'phoneNumber', ''),
-            selected: participant.selected,
-        };
-    });
+function getParticipantsOption(participant, personalDetails) {
+    const detail = getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID];
+    const login = detail.login || participant.login;
+    const displayName = detail.displayName || LocalePhoneNumber.formatPhoneNumber(login);
+    return {
+        keyForList: String(detail.accountID),
+        login,
+        accountID: detail.accountID,
+        text: displayName,
+        firstName: lodashGet(detail, 'firstName', ''),
+        lastName: lodashGet(detail, 'lastName', ''),
+        alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
+        icons: [
+            {
+                source: UserUtils.getAvatar(detail.avatar, detail.accountID),
+                name: login,
+                type: CONST.ICON_TYPE_AVATAR,
+                id: detail.accountID,
+            },
+        ],
+        phoneNumber: lodashGet(detail, 'phoneNumber', ''),
+        selected: participant.selected,
+    };
 }
 
 /**
@@ -451,7 +445,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         login: null,
         reportID: null,
         phoneNumber: null,
-        payPalMeAddress: null,
         hasDraftComment: false,
         keyForList: null,
         searchText: null,
@@ -545,7 +538,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.login = personalDetail.login;
         result.accountID = Number(personalDetail.accountID);
         result.phoneNumber = personalDetail.phoneNumber;
-        result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
     result.text = reportName;
@@ -657,12 +649,8 @@ function getCategoryOptionTree(options, isOneLine = false) {
 /**
  * Build the section list for categories
  *
- * @param {Object[]} categories
- * @param {String} categories[].name
- * @param {Boolean} categories[].enabled
- * @param {Object[]} recentlyUsedCategories
- * @param {String} recentlyUsedCategories[].name
- * @param {Boolean} recentlyUsedCategories[].enabled
+ * @param {Object<String, {name: String, enabled: Boolean}>} categories
+ * @param {String[]} recentlyUsedCategories
  * @param {Object[]} selectedOptions
  * @param {String} selectedOptions[].name
  * @param {String} searchInputValue
@@ -671,11 +659,12 @@ function getCategoryOptionTree(options, isOneLine = false) {
  */
 function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const categorySections = [];
-    const numberOfCategories = _.size(categories);
+    const categoriesValues = _.values(categories);
+    const numberOfCategories = _.size(categoriesValues);
     let indexOffset = 0;
 
     if (!_.isEmpty(searchInputValue)) {
-        const searchCategories = _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchCategories = _.filter(categoriesValues, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         categorySections.push({
             // "Search" section
@@ -694,15 +683,21 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(categories),
+            data: getCategoryOptionTree(categoriesValues),
         });
 
         return categorySections;
     }
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-    const filteredRecentlyUsedCategories = _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category.name));
-    const filteredCategories = _.filter(categories, (category) => !_.includes(selectedOptionNames, category.name));
+    const filteredRecentlyUsedCategories = _.map(
+        _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category)),
+        (category) => ({
+            name: category,
+            enabled: lodashGet(categories, `${category}.enabled`, false),
+        }),
+    );
+    const filteredCategories = _.filter(categoriesValues, (category) => !_.includes(selectedOptionNames, category.name));
 
     if (!_.isEmpty(selectedOptions)) {
         categorySections.push({
@@ -781,7 +776,7 @@ function getOptions(
     },
 ) {
     if (includeCategories) {
-        const categoryOptions = getCategoryListSections(_.values(categories), recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
+        const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
 
         return {
             recentReports: [],
@@ -900,10 +895,10 @@ function getOptions(
     }
 
     // Always exclude already selected options and the currently logged in user
-    const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+    const optionsToExclude = [...selectedOptions, {login: currentUserLogin}];
 
     _.each(excludeLogins, (login) => {
-        loginOptionsToExclude.push({login});
+        optionsToExclude.push({login});
     });
 
     if (includeRecentReports) {
@@ -924,7 +919,11 @@ function getOptions(
             }
 
             // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
-            if (!includeThreads && reportOption.login && _.some(loginOptionsToExclude, (option) => option.login === reportOption.login)) {
+            if (
+                !includeThreads &&
+                (reportOption.login || reportOption.reportID) &&
+                _.some(optionsToExclude, (option) => (option.login && option.login === reportOption.login) || (option.reportID && option.reportID === reportOption.reportID))
+            ) {
                 continue;
             }
 
@@ -948,7 +947,7 @@ function getOptions(
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
-                loginOptionsToExclude.push({login: reportOption.login});
+                optionsToExclude.push({login: reportOption.login});
             }
         }
     }
@@ -956,7 +955,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
-            if (_.some(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === personalDetailOption.login)) {
+            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -984,7 +983,7 @@ function getOptions(
         _.every(selectedOptions, (option) => option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
             (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number.input)))) &&
-        !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
+        !_.find(optionsToExclude, (optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
         !excludeUnknownUsers
     ) {
@@ -1132,7 +1131,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {boolean} [includeP2P]
  * @param {boolean} [includeCategories]
  * @param {Object} [categories]
- * @param {Array<Object>} [recentlyUsedCategories]
+ * @param {Array<String>} [recentlyUsedCategories]
  * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
@@ -1327,8 +1326,8 @@ export {
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,
-    getPolicyExpenseReportOptions,
-    getParticipantsOptions,
+    getPolicyExpenseReportOption,
+    getParticipantsOption,
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
