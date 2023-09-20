@@ -1649,7 +1649,7 @@ function getRootParentReport(report) {
         return {};
     }
 
-    // Returns the founded root report, because it does not have a parentReportID
+    // Returns the current report as the root report, because it does not have a parentReportID
     if (!report.parentReportID) {
         return report;
     }
