@@ -210,10 +210,6 @@ export default {
     getWorkspaceTravelRoute: (policyID: string) => `workspace/${policyID}/travel`,
     getWorkspaceMembersRoute: (policyID: string) => `workspace/${policyID}/members`,
 
-    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
-    SAASTR: 'saastr',
-    SBE: 'sbe',
-
     parseReportRouteParams: (route: string): ParseReportRouteParams => {
         let parsingRoute = route;
         if (parsingRoute.at(0) === '/') {
