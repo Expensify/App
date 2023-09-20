@@ -3837,6 +3837,7 @@ const styles = (theme) => ({
     reportPreviewBoxHoverBorder: {
         borderColor: theme.border,
         backgroundColor: theme.border,
+        borderRadius: variables.componentBorderRadiusLarge,
     },
 
     reportPreviewBoxBody: {
