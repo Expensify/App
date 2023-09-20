@@ -9,13 +9,6 @@ import ReceiptGeneric from '../../assets/images/receipt-generic.png';
 import ReceiptSVG from '../../assets/images/receipt-svg.png';
 
 function validateReceipt(file: File): boolean {
-    const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '') as {fileExtension: string};
-
-    if ((CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS as readonly string[]).includes(fileExtension.toLowerCase())) {
-        Receipt.setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-        return false;
-    }
-
     const fileSize = file?.size ?? 0;
     if (fileSize > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
         Receipt.setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');

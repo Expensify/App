@@ -45,10 +45,6 @@ const CONST = {
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
-        // This is a list of file extensions that are not allowed to be uploaded to the server.
-        // TODO: This list should be updated to include all file types that are not allowed to be uploaded to the server.
-        UNALLOWED_EXTENSIONS: [''],
-
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
 
