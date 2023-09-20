@@ -3,12 +3,9 @@ import * as Link from '../actions/Link';
 
 /**
  * Downloading attachment in web, desktop
- * @param {String} url
- * @param {String} fileName
- * @returns {Promise}
  */
-export default function fileDownload(url, fileName) {
-    return new Promise((resolve) => {
+export default function fileDownload(url: string, fileName: string) {
+    return new Promise<void>((resolve) => {
         fetch(url)
             .then((response) => response.blob())
             .then((blob) => {
@@ -34,7 +31,7 @@ export default function fileDownload(url, fileName) {
 
                 // Clean up and remove the link
                 URL.revokeObjectURL(link.href);
-                link.parentNode.removeChild(link);
+                link.parentNode?.removeChild(link);
                 return resolve();
             })
             .catch(() => {
