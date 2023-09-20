@@ -51,13 +51,13 @@ function run() {
     const newExpensifyRoute = routes.platforms.find((platform) => platform.href === "new-expensify");
     const expensifyClassicRoute = routes.platforms.find((platform) => platform.href === "expensify-classic");
 
-    if (newExpensifyHubs.length !== newExpensifyRoute.hubs.length) {
-        console.error(warn("new-expensify"));
+    if (expensifyClassicHubs.length !== expensifyClassicRoute.hubs.length) {
+        console.error(warn("expensify-classic"));
         return 1;
     }
 
-    if (expensifyClassicHubs.length !== expensifyClassicRoute.hubs.length) {
-        console.error(warn("expensify-classic"));
+    if (newExpensifyHubs.length !== newExpensifyRoute.hubs.length) {
+        console.error(warn("new-expensify"));
         return 1;
     }
 
