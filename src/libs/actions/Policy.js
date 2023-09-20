@@ -714,15 +714,15 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         },
     ];
 
-    const newCustomUnitParam = _.omit(newCustomUnit, ['pendingAction', 'errors']);
-    const newCustomUnitRateParam = _.omit(newCustomUnit.rates, ['pendingAction', 'errors']);
+    const newCustomUnitParam = _.clone(newCustomUnit);
+    newCustomUnitParam.rates = _.omit(newCustomUnitParam.rates, ['pendingAction', 'errors']);
     API.write(
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
             lastModified,
             customUnit: JSON.stringify(newCustomUnitParam),
-            customUnitRate: JSON.stringify(newCustomUnitRateParam),
+            customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },
         {optimisticData, successData, failureData},
     );
