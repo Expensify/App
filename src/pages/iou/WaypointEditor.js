@@ -150,7 +150,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
-    const selectWaypoint = (values, shouldAddToRecentWaypoints = true) => {
+    const selectWaypoint = (values) => {
         const waypoint = {
             lat: values.lat,
             lng: values.lng,
@@ -158,7 +158,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         };
 
         User.clearLocationError();
-        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, shouldAddToRecentWaypoints);
+        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
@@ -176,7 +176,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         const waypoint = {
             lat: geolocationData.coords.latitude,
             lng: geolocationData.coords.longitude,
-            address: 'Your Location',
+            address: CONST.YOUR_LOCATION_TEXT,
         };
 
         // We want to select current location waypoint without saving it as a recent waypoint

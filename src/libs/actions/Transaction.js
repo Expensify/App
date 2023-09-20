@@ -5,6 +5,7 @@ import lodashHas from 'lodash/has';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
+import CONST from '../../CONST';
 
 let recentWaypoints = [];
 Onyx.connect({
@@ -72,9 +73,8 @@ function addStop(transactionID) {
  * @param {String} transactionID
  * @param {String} index
  * @param {Object} waypoint
- * @param {Boolean} shouldAddToRecentWaypoints
  */
-function saveWaypoint(transactionID, index, waypoint, shouldAddToRecentWaypoints = true) {
+function saveWaypoint(transactionID, index, waypoint) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
@@ -105,7 +105,7 @@ function saveWaypoint(transactionID, index, waypoint, shouldAddToRecentWaypoints
 
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
     // text from showing up in the address search suggestions
-    if (!shouldAddToRecentWaypoints) {
+    if (_.isEqual(lodashGet(waypoint, 'address', ''), CONST.YOUR_LOCATION_TEXT)) {
         return;
     }
 
