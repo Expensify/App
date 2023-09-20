@@ -10,6 +10,8 @@ import DistanceRequest from '../components/DistanceRequest';
 import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
 import * as Transaction from '../libs/actions/Transaction';
+import * as TransactionUtils from '../libs/TransactionUtils';
+import transactionPropTypes from '../components/transactionPropTypes';
 
 const propTypes = {
     /** The transactionID we're currently editing */
@@ -28,9 +30,18 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
+
+    /* Onyx props */
+    /** The original transaction that is being edited */
+    transaction: transactionPropTypes,
 };
 
-function EditRequestDistancePage({transactionID, report, route}) {
+const defaultProps = {
+    transaction: {},
+};
+
+function EditRequestDistancePage({transactionID, report, route, transaction}) {
+    const transactionToEdit = TransactionUtils.createTemporaryTransaction(transaction);
     let initialWaypoints;
     useEffect(() => {
         IOU.setDistanceRequestTransactionID(transactionID);
@@ -64,6 +75,15 @@ function EditRequestDistancePage({transactionID, report, route}) {
         }
         initialWaypoints = waypoints;
     };
+
+    /**
+     * Save the changes to the original transaction object
+     * @param {Object} waypoints
+     */
+    const saveTransaction = (waypoints) => {
+        // Pass the transactionID of the original transaction so that is the one updated on the server
+        IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints});
+    };
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -76,8 +96,9 @@ function EditRequestDistancePage({transactionID, report, route}) {
             <DistanceRequest
                 report={report}
                 route={route}
-                transactionID={transactionID}
-                onSubmit={(waypoints) => IOU.updateDistanceRequest(transactionID, report.reportID, {waypoints})}
+                // Pass the ID of the cloned transaction so that the original transaction is not being changed
+                transactionID={transactionToEdit.transactionID}
+                onSubmit={(waypoints) => }
                 onWaypointsLoaded={saveInitialWaypoints}
                 isEditingRequest
             />
@@ -86,5 +107,10 @@ function EditRequestDistancePage({transactionID, report, route}) {
 }
 
 EditRequestDistancePage.propTypes = propTypes;
+EditRequestDistancePage.defaultProps = defaultProps;
 EditRequestDistancePage.displayName = 'EditRequestDistancePage';
-export default EditRequestDistancePage;
+export default withOnyx({
+    transaction: {
+        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
+    },
+})(EditRequestDistancePage);
