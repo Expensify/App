@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import FormContext from './FormContext';
 
 const propTypes = {
-    RenderInput: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
+    RenderInput: PropTypes.oneOfType([PropTypes.func, PropTypes.elementType]).isRequired,
     inputID: PropTypes.string.isRequired,
     valueType: PropTypes.string,
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),

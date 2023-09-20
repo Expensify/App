@@ -99,7 +99,7 @@ function getInitialValueByType(valueType) {
 }
 
 function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}) {
-    const inputRefs = useRef({});
+    const inputRefs = useRef(null);
     const touchedInputs = useRef({});
     const [inputValues, setInputValues] = useState({});
     const [errors, setErrors] = useState({});

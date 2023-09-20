@@ -61,7 +61,7 @@ const propTypes = {
 
     errors: PropTypes.objectOf(PropTypes.string).isRequired,
 
-    inputRefs: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.element})])).isRequired,
+    inputRefs: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.func, PropTypes.object])).isRequired,
 };
 
 const defaultProps = {
@@ -77,10 +77,9 @@ const defaultProps = {
 };
 
 function FormWrapper(props) {
+    const {onSubmit, children, formState, errors, inputRefs, submitButtonText, footerContent, isSubmitButtonVisible, style, enabledWhenOffline, isSubmitActionDangerous, formID} = props;
     const formRef = useRef(null);
     const formContentRef = useRef(null);
-    const {onSubmit, children, formState, errors, inputRefs, submitButtonText, footerContent, isSubmitButtonVisible, style, enabledWhenOffline, isSubmitActionDangerous, formID} = props;
-
     const errorMessage = useMemo(() => {
         const latestErrorMessage = ErrorUtils.getLatestErrorMessage(formState);
         return typeof latestErrorMessage === 'string' ? latestErrorMessage : '';
