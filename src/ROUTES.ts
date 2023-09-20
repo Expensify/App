@@ -56,6 +56,8 @@ export default {
     getSettingsAddLoginRoute: (type: string) => `settings/addlogin/${type}`,
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
+    SETTINGS_WALLET_CARD_ACTIVATE: 'settings/wallet/cards/:domain/activate',
+    getSettingsWalletCardActivateRoute: (domain: string) => `settings/wallet/cards/${domain}/activate`,
     SETTINGS_PERSONAL_DETAILS,
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: `${SETTINGS_PERSONAL_DETAILS}/legal-name`,
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth`,

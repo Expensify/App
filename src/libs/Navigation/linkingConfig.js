@@ -85,6 +85,10 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
+                            Settings_Wallet_Card_Activate: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE,
+                                exact: true,
+                            },
                             Settings_Add_Paypal_Me: {
                                 path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
                                 exact: true,

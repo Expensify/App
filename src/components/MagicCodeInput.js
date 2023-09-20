@@ -30,7 +30,7 @@ const propTypes = {
     errorText: PropTypes.string,
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
-    autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code']).isRequired,
+    autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code', 'off']).isRequired,
 
     /* Should submit when the input is complete */
     shouldSubmitOnComplete: PropTypes.bool,
@@ -48,6 +48,12 @@ const propTypes = {
 
     /** Specifies the max length of the input */
     maxLength: PropTypes.number,
+
+    /** Specifies if the keyboard should be disabled */
+    disableKeyboard: PropTypes.bool,
+
+    /** Last pressed digit on BigDigitPad */
+    lastPressedDigit: PropTypes.string,
 };
 
 const defaultProps = {
@@ -61,6 +67,8 @@ const defaultProps = {
     onFulfill: () => {},
     hasError: false,
     maxLength: CONST.MAGIC_CODE_LENGTH,
+    disableKeyboard: false,
+    lastPressedDigit: '',
 };
 
 /**
@@ -190,7 +198,7 @@ function MagicCodeInput(props) {
      * @param {Object} event
      */
     const onKeyPress = ({nativeEvent: {key: keyValue}}) => {
-        if (keyValue === 'Backspace') {
+        if (keyValue === 'Backspace' || keyValue === '<') {
             let numbers = decomposeString(props.value, props.maxLength);
 
             // If the currently focused index already has a value, it will delete
@@ -237,6 +245,27 @@ function MagicCodeInput(props) {
         }
     };
 
+    /**
+     *  If disableKeyboard is true we will have to call onKeyPress and onChangeText manually
+     *  as the press on digit pad will not trigger native events. We take lastPressedDigit from props
+     *  as it stores the last pressed digit pressed on digit pad. We take only the first character
+     *  as anything after that is added to differentiate between two same digits passed in a row.
+     */
+
+    useEffect(() => {
+        if (!props.disableKeyboard) {
+            return;
+        }
+
+        const value = props.lastPressedDigit.charAt(0);
+        onKeyPress({nativeEvent: {key: value}});
+        onChangeText(value);
+
+        // We have not added:
+        // + the onChangeText and onKeyPress as the dependencies because we only want to run this when lastPressedDigit changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.lastPressedDigit, props.disableKeyboard]);
+
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
@@ -258,9 +287,10 @@ function MagicCodeInput(props) {
                         {/* Hide the input above the text. Cannot set opacity to 0 as it would break pasting on iOS Safari. */}
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.bgTransparent]}>
                             <TextInput
+                                disableKeyboard={props.disableKeyboard}
                                 ref={(ref) => (inputRefs.current[index] = ref)}
                                 autoFocus={index === 0 && props.autoFocus}
-                                inputMode="numeric"
+                                inputMode={props.disableKeyboard ? 'none' : 'numeric'}
                                 textContentType="oneTimeCode"
                                 name={props.name}
                                 maxLength={props.maxLength}

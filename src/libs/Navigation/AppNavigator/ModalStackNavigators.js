@@ -534,6 +534,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsWalletCardActivate = require('../../../pages/settings/Wallet/ActivateCardPage').default;
+            return SettingsWalletCardActivate;
+        },
+        name: 'Settings_Wallet_Card_Activate',
+    },
+    {
+        getComponent: () => {
             const TransferBalancePage = require('../../../pages/settings/Wallet/TransferBalancePage').default;
             return TransferBalancePage;
         },
