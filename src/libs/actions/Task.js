@@ -69,7 +69,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
 
     // Parent ReportAction indicating that a task has been created
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `Created a task: ${title}`, parentReportID);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `task for ${title}`, parentReportID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTime();
@@ -222,7 +222,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
  */
 function completeTask(taskReport, taskTitle) {
     const taskReportID = taskReport.reportID;
-    const message = `completed task: ${taskTitle}`;
+    const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
 
     const optimisticData = [
@@ -306,7 +306,7 @@ function completeTask(taskReport, taskTitle) {
  */
 function reopenTask(taskReport, taskTitle) {
     const taskReportID = taskReport.reportID;
-    const message = `reopened task: ${taskTitle}`;
+    const message = `marked as incomplete`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
     const optimisticData = [

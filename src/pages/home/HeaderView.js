@@ -106,7 +106,7 @@ function HeaderView(props) {
         if (ReportUtils.isOpenTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                text: props.translate('task.markAsDone'),
+                text: props.translate('task.markAsComplete'),
                 onSelected: () => Task.completeTask(props.report, title),
             });
         }

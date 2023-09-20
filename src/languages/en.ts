@@ -1518,7 +1518,7 @@ export default {
             reopened: 'reopened task',
             error: 'You do not have the permission to do the requested action.',
         },
-        markAsDone: 'Mark as done',
+        markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
     },
