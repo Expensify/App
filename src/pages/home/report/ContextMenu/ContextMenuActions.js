@@ -205,11 +205,11 @@ export default [
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const originalMessage = _.get(reportAction, 'originalMessage', {});
                     let displayMessage;
-                    if (ReportActionsUtils.isSentMoneyReportAction(reportAction)) {
+                    if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
                         const {amount, currency, IOUReportID} = originalMessage;
                         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
                         const iouReport = ReportUtils.getReport(IOUReportID);
-                        const payerName = ReportActionsUtils.getDisplayNameForParticipant(iouReport.managerID, true);
+                        const payerName = ReportUtils.getDisplayNameForParticipant(iouReport.managerID, true);
                         let translationKey;
                         switch (originalMessage.paymentType) {
                             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
