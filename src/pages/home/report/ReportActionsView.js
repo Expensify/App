@@ -132,6 +132,13 @@ function ReportActionsView(props) {
         }
     }, [props.report, didSubscribeToReportTypingEvents, reportID]);
 
+    useEffect(() => {
+        if (isFocused || !context.reactionListRef || !context.reactionListRef.current) {
+            return;
+        }
+        context.reactionListRef.current.hideReactionList();
+    }, [isFocused, context.reactionListRef]);
+
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
@@ -272,6 +279,10 @@ function arePropsEqual(oldProps, newProps) {
     }
 
     if (lodashGet(newProps, 'report.writeCapability') !== lodashGet(oldProps, 'report.writeCapability')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.participantAccountIDs', 0) !== lodashGet(oldProps, 'report.participantAccountIDs', 0)) {
         return false;
     }
 

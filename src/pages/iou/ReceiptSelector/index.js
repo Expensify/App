@@ -141,13 +141,14 @@ function ReceiptSelector(props) {
                 receiptImageTopPosition={receiptImageTopPosition}
             />
             <ConfirmModal
-                title={attachmentInvalidReasonTitle}
-                onConfirm={Receipt.clearUploadReceiptError}
-                onCancel={Receipt.clearUploadReceiptError}
+                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                onConfirm={Receipt.closeUploadReceiptModal}
+                onCancel={Receipt.closeUploadReceiptModal}
                 isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason}
+                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
+                onModalHide={Receipt.clearUploadReceiptError}
             />
         </View>
     );

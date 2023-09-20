@@ -68,6 +68,7 @@ function AddressPage({privatePersonalDetails}) {
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
     const address = lodashGet(privatePersonalDetails, 'address') || {};
+    const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
     /**
@@ -127,10 +128,6 @@ function AddressPage({privatePersonalDetails}) {
         setState(value);
     };
 
-    if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
-        return <FullscreenLoadingIndicator />;
-    }
-
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
@@ -138,92 +135,96 @@ function AddressPage({privatePersonalDetails}) {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
-            <Form
-                style={[styles.flexGrow1, styles.mh5]}
-                formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-                validate={validate}
-                onSubmit={updateAddress}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
-            >
-                <View>
-                    <AddressSearch
-                        inputID="addressLine1"
-                        label={translate('common.addressLine', {lineNumber: 1})}
-                        defaultValue={street1 || ''}
-                        onValueChange={handleAddressChange}
-                        renamedInputKeys={{
-                            street: 'addressLine1',
-                            street2: 'addressLine2',
-                            city: 'city',
-                            state: 'state',
-                            zipCode: 'zipPostCode',
-                            country: 'country',
-                        }}
-                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+            {isLoadingPersonalDetails ? (
+                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            ) : (
+                <Form
+                    style={[styles.flexGrow1, styles.mh5]}
+                    formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+                    validate={validate}
+                    onSubmit={updateAddress}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <View>
+                        <AddressSearch
+                            inputID="addressLine1"
+                            label={translate('common.addressLine', {lineNumber: 1})}
+                            defaultValue={street1 || ''}
+                            onValueChange={handleAddressChange}
+                            renamedInputKeys={{
+                                street: 'addressLine1',
+                                street2: 'addressLine2',
+                                city: 'city',
+                                state: 'state',
+                                zipCode: 'zipPostCode',
+                                country: 'country',
+                            }}
+                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                        />
+                    </View>
+                    <View style={styles.formSpaceVertical} />
+                    <TextInput
+                        inputID="addressLine2"
+                        label={translate('common.addressLine', {lineNumber: 2})}
+                        accessibilityLabel={translate('common.addressLine')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        defaultValue={street2 || ''}
+                        maxLength={CONST.FORM_CHARACTER_LIMIT}
+                        spellCheck={false}
                     />
-                </View>
-                <View style={styles.formSpaceVertical} />
-                <TextInput
-                    inputID="addressLine2"
-                    label={translate('common.addressLine', {lineNumber: 2})}
-                    accessibilityLabel={translate('common.addressLine')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    defaultValue={street2 || ''}
-                    maxLength={CONST.FORM_CHARACTER_LIMIT}
-                    spellCheck={false}
-                />
-                <View style={styles.formSpaceVertical} />
-                <View style={styles.mhn5}>
-                    <CountryPicker
-                        inputID="country"
-                        defaultValue={currentCountry}
-                        onValueChange={handleAddressChange}
-                    />
-                </View>
-                <View style={styles.formSpaceVertical} />
-                {isUSAForm ? (
+                    <View style={styles.formSpaceVertical} />
                     <View style={styles.mhn5}>
-                        <StatePicker
-                            inputID="state"
-                            defaultValue={state}
+                        <CountryPicker
+                            inputID="country"
+                            defaultValue={currentCountry}
                             onValueChange={handleAddressChange}
                         />
                     </View>
-                ) : (
+                    <View style={styles.formSpaceVertical} />
+                    {isUSAForm ? (
+                        <View style={styles.mhn5}>
+                            <StatePicker
+                                inputID="state"
+                                defaultValue={state}
+                                onValueChange={handleAddressChange}
+                            />
+                        </View>
+                    ) : (
+                        <TextInput
+                            inputID="state"
+                            label={translate('common.stateOrProvince')}
+                            accessibilityLabel={translate('common.stateOrProvince')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            value={state || ''}
+                            maxLength={CONST.FORM_CHARACTER_LIMIT}
+                            spellCheck={false}
+                            onValueChange={handleAddressChange}
+                        />
+                    )}
+                    <View style={styles.formSpaceVertical} />
                     <TextInput
-                        inputID="state"
-                        label={translate('common.stateOrProvince')}
-                        accessibilityLabel={translate('common.stateOrProvince')}
+                        inputID="city"
+                        label={translate('common.city')}
+                        accessibilityLabel={translate('common.city')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        value={state || ''}
+                        defaultValue={address.city || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
-                        onValueChange={handleAddressChange}
                     />
-                )}
-                <View style={styles.formSpaceVertical} />
-                <TextInput
-                    inputID="city"
-                    label={translate('common.city')}
-                    accessibilityLabel={translate('common.city')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    defaultValue={address.city || ''}
-                    maxLength={CONST.FORM_CHARACTER_LIMIT}
-                    spellCheck={false}
-                />
-                <View style={styles.formSpaceVertical} />
-                <TextInput
-                    inputID="zipPostCode"
-                    label={translate('common.zipPostCode')}
-                    accessibilityLabel={translate('common.zipPostCode')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    autoCapitalize="characters"
-                    defaultValue={address.zip || ''}
-                    maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                    hint={zipFormat}
-                />
-            </Form>
+                    <View style={styles.formSpaceVertical} />
+                    <TextInput
+                        inputID="zipPostCode"
+                        label={translate('common.zipPostCode')}
+                        accessibilityLabel={translate('common.zipPostCode')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        autoCapitalize="characters"
+                        defaultValue={address.zip || ''}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                        hint={zipFormat}
+                    />
+                </Form>
+            )}
         </ScreenWrapper>
     );
 }

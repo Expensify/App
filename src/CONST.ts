@@ -4,6 +4,11 @@ import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
+// Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
+// Freezing the array ensures that it cannot be unintentionally modified.
+const EMPTY_ARRAY = Object.freeze([]);
+const EMPTY_OBJECT = Object.freeze({});
+
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
@@ -235,6 +240,8 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
+        NEW_DOT_CATEGORIES: 'newDotCategories',
+        NEW_DOT_TAGS: 'newDotTags',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -286,8 +293,8 @@ const CONST = {
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
-        NEW_GROUP: {
-            descriptionKey: 'newGroup',
+        NEW_CHAT: {
+            descriptionKey: 'newChat',
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
@@ -408,6 +415,8 @@ const CONST = {
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
+    EMPTY_ARRAY,
+    EMPTY_OBJECT,
     USE_EXPENSIFY_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
@@ -755,6 +764,10 @@ const CONST = {
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
+    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+[\s\w~!@#$%^&*(){}[\];':"`|?.,/\\+\-=<]+.*[\s]*)>/g,
+
+    WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
+
     PASSWORD_PAGE: {
         ERROR: {
             ALREADY_VALIDATED: 'Account already validated',
@@ -781,6 +794,10 @@ const CONST = {
     EMOJI_DEFAULT_SKIN_TONE: -1,
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
+
+    UNICODE: {
+        LTR: '\u2066',
+    },
 
     TOOLTIP_MAX_LINES: 3,
 
@@ -883,8 +900,6 @@ const CONST = {
         QA: 'qa@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         RECEIPTS: 'receipts@expensify.com',
-        SAASTR: 'saastr@expensify.com',
-        SBE: 'sbe@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
     },
@@ -1020,7 +1035,6 @@ const CONST = {
     },
 
     PAYMENT_METHODS: {
-        PAYPAL: 'payPalMe',
         DEBIT_CARD: 'debitCard',
         BANK_ACCOUNT: 'bankAccount',
     },
@@ -1036,7 +1050,6 @@ const CONST = {
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
-            PAYPAL_ME: 'PayPal.me',
             VBBA: 'ACH',
         },
         MONEY_REQUEST_TYPE: {
@@ -1084,6 +1097,29 @@ const CONST = {
 
         DEFAULT: 'en',
     },
+
+    LANGUAGES: ['en', 'es'],
+
+    PRONOUNS_LIST: [
+        'coCos',
+        'eEyEmEir',
+        'heHimHis',
+        'heHimHisTheyThemTheirs',
+        'sheHerHers',
+        'sheHerHersTheyThemTheirs',
+        'merMers',
+        'neNirNirs',
+        'neeNerNers',
+        'perPers',
+        'theyThemTheirs',
+        'thonThons',
+        'veVerVis',
+        'viVir',
+        'xeXemXyr',
+        'zeZieZirHir',
+        'zeHirHirs',
+        'callMeByMyName',
+    ],
 
     POLICY: {
         TYPE: {
@@ -1141,6 +1177,7 @@ const CONST = {
         SMALL_NORMAL: 'small-normal',
     },
     EXPENSIFY_CARD: {
+        BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
             INDIVIDUAL: 'individal',
@@ -1171,7 +1208,6 @@ const CONST = {
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
-        PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]{1,20}$/,
         ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
@@ -1313,6 +1349,7 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         WELCOME_MESSAGE: 'welcomeMessage',
+        PRIVATE_NOTES: 'privateNotes',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -2501,32 +2538,6 @@ const CONST = {
         SEARCH_ISSUES: 'https://github.com/Expensify/App/issues',
     },
 
-    PAYPAL_SUPPORTED_CURRENCIES: [
-        'AUD',
-        'BRL',
-        'CAD',
-        'CZK',
-        'DKK',
-        'EUR',
-        'HKD',
-        'HUF',
-        'ILS',
-        'JPY',
-        'MYR',
-        'MXN',
-        'TWD',
-        'NZD',
-        'NOK',
-        'PHP',
-        'PLN',
-        'GBP',
-        'RUB',
-        'SGD',
-        'SEK',
-        'CHF',
-        'THB',
-        'USD',
-    ],
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     SCREEN_READER_STATES: {
         ALL: 'all',
@@ -2595,6 +2606,9 @@ const CONST = {
         DISABLED: 'DISABLED',
     },
     TAB: {
+        NEW_CHAT_TAB_ID: 'NewChatTab',
+        NEW_CHAT: 'chat',
+        NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         MANUAL: 'manual',
         SCAN: 'scan',
@@ -2633,6 +2647,19 @@ const CONST = {
         DEFAULT_ZOOM: 10,
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
+    },
+    ONYX_UPDATE_TYPES: {
+        HTTPS: 'https',
+        PUSHER: 'pusher',
+    },
+    EVENTS: {
+        SCROLLING: 'scrolling',
+    },
+    HORIZONTAL_SPACER: {
+        DEFAULT_BORDER_BOTTOM_WIDTH: 1,
+        DEFAULT_MARGIN_VERTICAL: 8,
+        HIDDEN_MARGIN_VERTICAL: 0,
+        HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
 } as const;
 
