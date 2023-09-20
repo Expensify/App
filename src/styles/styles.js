@@ -4001,7 +4001,7 @@ const styles = (theme) => ({
         height: CONST.CHAT_HEADER_LOADER_HEIGHT,
     },
     chatBottomLoaderAndroid: {
-        top: - CONST.CHAT_HEADER_LOADER_HEIGHT,
+        top: -CONST.CHAT_HEADER_LOADER_HEIGHT,
     },
 });
 
