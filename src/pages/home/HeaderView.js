@@ -132,6 +132,24 @@ function HeaderView(props) {
         }
     }
 
+    if (isChatThread) {
+        if (props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+            threeDotMenuItems.push({
+                icon: Expensicons.Exit,
+                iconFill: themeColors.icon,
+                text: props.translate('common.leaveThread'),
+                onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
+            });
+        } else {
+            threeDotMenuItems.push({
+                icon: Expensicons.ChatBubble,
+                iconFill: themeColors.icon,
+                text: props.translate('common.joinThread'),
+                onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
+            });
+        }
+    }
+
     if (!props.report.isPinned) {
         threeDotMenuItems.push({
             icon: Expensicons.Pin,
