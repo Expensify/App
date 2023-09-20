@@ -182,10 +182,10 @@ class AuthScreens extends React.Component {
             chatShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.NEW_CHAT)) {
+                    if (Navigation.isActiveRoute(ROUTES.NEW)) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.NEW_CHAT);
+                    Navigation.navigate(ROUTES.NEW);
                 });
             },
             chatShortcutConfig.descriptionKey,

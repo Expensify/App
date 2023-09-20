@@ -70,6 +70,10 @@ function ReceiptSelector(props) {
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
 
+    const hideReciptModal = () => {
+       setIsAttachmentInvalid(false);
+    }
+    
     /**
      * Sets the upload receipt error modal content when an invalid receipt is uploaded
      * @param {*} isInvalid
@@ -174,8 +178,8 @@ function ReceiptSelector(props) {
             />
             <ConfirmModal
                 title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                onConfirm={() => setIsAttachmentInvalid(false)}
-                onCancel={() => setIsAttachmentInvalid(false)}
+                onConfirm={hideReciptModal}
+                onCancel={hideReciptModal}
                 isVisible={isAttachmentInvalid}
                 prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                 confirmText={translate('common.close')}
