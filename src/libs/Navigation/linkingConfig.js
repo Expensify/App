@@ -85,10 +85,6 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
-                            Settings_Add_Paypal_Me: {
-                                path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
-                                exact: true,
-                            },
                             Settings_Add_Debit_Card: {
                                 path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
                                 exact: true,
@@ -211,6 +207,13 @@ export default {
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE,
                             },
+                        },
+                    },
+                    Private_Notes: {
+                        screens: {
+                            PrivateNotes_View: ROUTES.PRIVATE_NOTES_VIEW,
+                            PrivateNotes_List: ROUTES.PRIVATE_NOTES_LIST,
+                            PrivateNotes_Edit: ROUTES.PRIVATE_NOTES_EDIT,
                         },
                     },
                     Report_Details: {
