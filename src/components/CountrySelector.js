@@ -21,14 +21,18 @@ const propTypes = {
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
     inputID: PropTypes.string.isRequired,
+
+    /** React ref being forwarded to the MenuItemWithTopDescription */
+    forwardedRef: PropTypes.func,
 };
 
 const defaultProps = {
     errorText: '',
     value: '',
+    forwardedRef: () => {},
 };
 
-function CountrySelector({errorText, value: countryCode, onInputChange}, ref) {
+function CountrySelector({errorText, value: countryCode, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
 
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
@@ -45,7 +49,7 @@ function CountrySelector({errorText, value: countryCode, onInputChange}, ref) {
             <MenuItemWithTopDescription
                 shouldShowRightIcon
                 title={title}
-                ref={ref}
+                ref={forwardedRef}
                 descriptionTextStyle={countryTitleDescStyle}
                 description={translate('common.country')}
                 onPress={() => {
@@ -64,4 +68,10 @@ CountrySelector.propTypes = propTypes;
 CountrySelector.defaultProps = defaultProps;
 CountrySelector.displayName = 'CountrySelector';
 
-export default React.forwardRef(CountrySelector);
+export default React.forwardRef((props, ref) => (
+    <CountrySelector
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
