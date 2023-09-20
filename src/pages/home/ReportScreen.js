@@ -352,7 +352,7 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading) || shouldHideReport,
+        () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
         [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete],
     );
 
@@ -368,11 +368,7 @@ function ReportScreen({
                 shouldEnableKeyboardAvoidingView={isTopMostReportId}
             >
                 <FullPageNotFoundView
-<<<<<<< HEAD
-                    shouldShow={(!report.reportID && !report.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport}
-=======
                     shouldShow={shouldShowNotFoundPage}
->>>>>>> d0b49122d07ed51b974acce3981883e9b049a30c
                     subtitleKey="notFound.noAccess"
                     shouldShowCloseButton={false}
                     shouldShowBackButton={isSmallScreenWidth}
