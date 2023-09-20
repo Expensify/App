@@ -1860,6 +1860,43 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 }
 
 /**
+ * @param {String} transactionID
+ * @param {Object} receipt
+ * @param {String} filePath
+ */
+function replaceReceipt(transactionID, receipt, filePath) {
+    const transaction = lodashGet(allTransactions, 'transactionID', {});
+    const oldReceipt = lodashGet(transaction, 'receipt', {});
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                receipt: {
+                    source: filePath,
+                    state: CONST.IOU.RECEIPT_STATE.OPEN,
+                },
+                filename: receipt.name,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                receipt: oldReceipt,
+                filename: transaction.filename,
+            },
+        },
+    ];
+
+    API.write('ReplaceReceipt', {transactionID, receipt}, {optimisticData, failureData});
+}
+
+/**
  * Initialize money request info and navigate to the MoneyRequest page
  * @param {String} iouType
  * @param {String} reportID
@@ -2017,4 +2054,5 @@ export {
     setMoneyRequestReceipt,
     createEmptyTransaction,
     navigateToNextPage,
+    replaceReceipt,
 };
