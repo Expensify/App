@@ -1172,6 +1172,17 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
 }
 
 /**
+ * Get the report given a reportID
+ *
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReport(reportID) {
+    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
+}
+
+/**
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
@@ -1179,6 +1190,10 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
  */
 function isWaitingForIOUActionFromCurrentUser(report) {
     if (!report) {
+        return false;
+    }
+
+    if (isArchivedRoom(getReport(report.parentReportID))) {
         return false;
     }
 
@@ -1297,17 +1312,6 @@ function getMoneyRequestReportName(report, policy = undefined) {
     }
 
     return payerPaidAmountMesssage;
-}
-
-/**
- * Get the report given a reportID
- *
- * @param {String} reportID
- * @returns {Object}
- */
-function getReport(reportID) {
-    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
 }
 
 /**
