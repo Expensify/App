@@ -2,6 +2,10 @@ import {useEffect, useRef} from 'react';
 import lodashDebounce from 'lodash/debounce';
 
 /**
+ * Create and return a debounced function.
+ * 
+ * Make sure to pass a stable function reference to prevent recreating the debounced function on each render.
+ * 
  * @param {Function} func The function to debounce.
  * @param {Number} wait The number of milliseconds to delay.
  * @param {Object} options The options object.
