@@ -63,7 +63,9 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
-                if (inputRef.current) inputRef.current.focus();
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                }
                 return () => {
                     if (!focusTimeoutRef.current) {
                         return;
@@ -127,7 +129,9 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                             accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             ref={(el) => {
-                                if (!el) return;
+                                if (!el) {
+                                    return;
+                                }
                                 inputRef.current = el;
                                 updateMultilineInputRange(inputRef.current);
                             }}

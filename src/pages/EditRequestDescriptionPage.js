@@ -29,7 +29,9 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
-                if (descriptionInputRef.current) descriptionInputRef.current.focus();
+                if (descriptionInputRef.current) {
+                    descriptionInputRef.current.focus();
+                }
                 return () => {
                     if (!focusTimeoutRef.current) {
                         return;
@@ -63,7 +65,9 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => {
-                            if (!el) return;
+                            if (!el) {
+                                return;
+                            }
                             descriptionInputRef.current = el;
                             updateMultilineInputRange(descriptionInputRef.current);
                         }}

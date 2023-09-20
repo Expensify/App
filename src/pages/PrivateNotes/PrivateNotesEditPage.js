@@ -72,7 +72,9 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
-                if (privateNotesInput.current) privateNotesInput.current.focus();
+                if (privateNotesInput.current) {
+                    privateNotesInput.current.focus();
+                }
                 return () => {
                     if (!focusTimeoutRef.current) {
                         return;
@@ -141,7 +143,9 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                                 value={privateNote}
                                 onChangeText={(text) => setPrivateNote(text)}
                                 ref={(el) => {
-                                    if (!el) return;
+                                    if (!el) {
+                                        return;
+                                    }
                                     privateNotesInput.current = el;
                                     updateMultilineInputRange(privateNotesInput.current);
                                 }}

@@ -59,7 +59,9 @@ function ReportWelcomeMessagePage(props) {
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
-                if (welcomeMessageInputRef.current) welcomeMessageInputRef.current.focus();
+                if (welcomeMessageInputRef.current) {
+                    welcomeMessageInputRef.current.focus();
+                }
                 return () => {
                     if (!focusTimeoutRef.current) {
                         return;
@@ -91,7 +93,9 @@ function ReportWelcomeMessagePage(props) {
                             autoGrowHeight
                             maxLength={CONST.MAX_COMMENT_LENGTH}
                             ref={(el) => {
-                                if (!el) return;
+                                if (!el) {
+                                    return;
+                                }
                                 welcomeMessageInputRef.current = el;
                                 updateMultilineInputRange(welcomeMessageInputRef.current);
                             }}

@@ -48,7 +48,9 @@ function NewTaskDescriptionPage(props) {
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
-                if (inputRef.current) inputRef.current.focus();
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                }
                 return () => {
                     if (!focusTimeoutRef.current) {
                         return;
@@ -94,7 +96,9 @@ function NewTaskDescriptionPage(props) {
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             ref={(el) => {
-                                if (!el) return;
+                                if (!el) {
+                                    return;
+                                }
                                 inputRef.current = el;
                                 updateMultilineInputRange(inputRef.current);
                             }}
