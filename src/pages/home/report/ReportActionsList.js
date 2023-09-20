@@ -74,6 +74,12 @@ const MSG_VISIBLE_THRESHOLD = 250;
 // the useRef value gets reset when the reportID changes, so we use a global variable to keep track
 let prevReportID = null;
 
+// In the component we are subscribing to the arrival of new actions.
+// As there is the possibility that there are multiple instances of a ReportScreen
+// for the same report, we only ever want one subscription to be active, as
+// the subscriptions could otherwise be conflicting.
+const newActionUnsubscribeMap = {};
+
 /**
  * Create a unique key for each action in the FlatList.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
@@ -175,6 +181,44 @@ function ReportActionsList({
         // We only care when a new lastReadTime is set in the report
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastReadTime]);
+
+    useEffect(() => {
+        // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
+        // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
+        //         meaning that the cleanup might not get called. When we then open a report we had open already previosuly, a new
+        //         ReportScreen will get created. Thus, we have to cancel the earlier subscription of the previous screen,
+        //         because the two subscriptions could conflict!
+        //         In case we return to the previous screen (e.g. by web back navigation) the useEffect for that screen would
+        //         fire again, as the focus has changed and will set up the subscription correctly again.
+        const previousSubUnsubscribe = newActionUnsubscribeMap[report.reportID];
+        if (previousSubUnsubscribe) {
+            previousSubUnsubscribe();
+        }
+
+        // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
+        // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
+        const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, (isFromCurrentUser) => {
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+            // they are now in the list.
+            if (!isFromCurrentUser) {
+                return;
+            }
+            reportScrollManager.scrollToBottom();
+        });
+
+        const cleanup = () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+            Report.unsubscribeFromReportChannel(report.reportID);
+        };
+
+        newActionUnsubscribeMap[report.reportID] = cleanup;
+
+        return cleanup;
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [report.reportID]);
 
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.

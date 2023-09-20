@@ -792,6 +792,10 @@ const CONST = {
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
+    UNICODE: {
+        LTR: '\u2066',
+    },
+
     TOOLTIP_MAX_LINES: 3,
 
     LOGIN_TYPE: {
@@ -2642,6 +2646,9 @@ const CONST = {
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
+    },
+    EVENTS: {
+        SCROLLING: 'scrolling',
     },
 } as const;
 
