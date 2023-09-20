@@ -552,13 +552,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsAddPayPalMePage = require('../../../pages/settings/Wallet/AddPayPalMePage').default;
-            return SettingsAddPayPalMePage;
-        },
-        name: 'Settings_Add_Paypal_Me',
-    },
-    {
-        getComponent: () => {
             const EnablePaymentsPage = require('../../../pages/EnablePayments/EnablePaymentsPage').default;
             return EnablePaymentsPage;
         },

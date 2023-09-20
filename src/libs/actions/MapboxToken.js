@@ -140,12 +140,15 @@ const stop = () => {
     console.debug('[MapboxToken] Stopping all listeners and timers');
     if (connectionIDForToken) {
         Onyx.disconnect(connectionIDForToken);
+        connectionIDForToken = null;
     }
     if (connectionIDForNetwork) {
         Onyx.disconnect(connectionIDForNetwork);
+        connectionIDForNetwork = null;
     }
     if (appStateSubscription) {
         appStateSubscription.remove();
+        appStateSubscription = null;
     }
     clearTimeout(refreshTimeoutID);
 };

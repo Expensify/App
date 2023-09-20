@@ -29,6 +29,8 @@ import textUnderline from './utilities/textUnderline';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+// to prevent vertical text offset in Safari for badges, new lineHeight values have been added
+const lineHeightBadge = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme) => ({
     backgroundColor: theme.transparent,
@@ -78,6 +80,7 @@ const webViewStyles = (theme) => ({
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
+            flex: 1,
         },
 
         strong: {
@@ -153,6 +156,7 @@ const webViewStyles = (theme) => ({
         fontFamily: fontFamily.EXP_NEUE,
         flex: 1,
         lineHeight: variables.fontSizeNormalHeight,
+        ...writingDirection.ltr,
     },
 });
 
@@ -758,7 +762,7 @@ const styles = (theme) => ({
     badgeText: {
         color: theme.text,
         fontSize: variables.fontSizeSmall,
-        lineHeight: variables.lineHeightNormal,
+        ...lineHeightBadge,
         ...whiteSpace.noWrap,
     },
 
@@ -1810,6 +1814,7 @@ const styles = (theme) => ({
         paddingTop: 2,
         paddingBottom: 2,
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        ...userSelect.userSelectNone,
     },
 
     emojiItemHighlighted: {
@@ -2555,6 +2560,12 @@ const styles = (theme) => ({
         opacity: 0,
     },
 
+    invisiblePopover: {
+        position: 'absolute',
+        opacity: 0,
+        left: -9999,
+    },
+
     containerWithSpaceBetween: {
         justifyContent: 'space-between',
         width: '100%',
@@ -2725,6 +2736,10 @@ const styles = (theme) => ({
 
     moneyRequestPreviewBoxText: {
         padding: 16,
+    },
+
+    amountSplitPadding: {
+        paddingTop: 2,
     },
 
     moneyRequestPreviewBoxLoading: {
@@ -3177,6 +3192,11 @@ const styles = (theme) => ({
         horizontal: windowWidth - 10,
     }),
 
+    threeDotsPopoverOffsetAttachmentModal: (windowWidth) => ({
+        ...getPopOverVerticalOffset(80),
+        horizontal: windowWidth - 140,
+    }),
+
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
         transform: [{scaleX: -1}, {scaleY: -1}],
@@ -3610,10 +3630,8 @@ const styles = (theme) => ({
     },
 
     reportHorizontalRule: {
-        borderBottomWidth: 1,
         borderColor: theme.border,
         ...spacing.mh5,
-        ...spacing.mv2,
     },
 
     assigneeTextStyle: {
@@ -3680,27 +3698,26 @@ const styles = (theme) => ({
     },
 
     loginButtonRow: {
-        justifyContent: 'center',
         width: '100%',
+        gap: 12,
         ...flex.flexRow,
+        ...flex.justifyContentCenter,
     },
 
     loginButtonRowSmallScreen: {
-        justifyContent: 'center',
         width: '100%',
-        marginBottom: 10,
+        gap: 12,
         ...flex.flexRow,
+        ...flex.justifyContentCenter,
+        marginBottom: 10,
     },
 
-    appleButtonContainer: {
+    desktopSignInButtonContainer: {
         width: 40,
         height: 40,
-        marginRight: 20,
     },
 
     signInIconButton: {
-        margin: 10,
-        marginTop: 0,
         padding: 2,
     },
 
@@ -3708,7 +3725,6 @@ const styles = (theme) => ({
         colorScheme: 'light',
         width: 40,
         height: 40,
-        marginLeft: 12,
         alignItems: 'center',
         overflow: 'hidden',
     },
