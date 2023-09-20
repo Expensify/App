@@ -126,6 +126,8 @@ function ComposerWithSuggestions({
 
     const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
+
+    // A flag to indicate whether onScroll callback is likely triggered by layout change or not
     const isScrollLikelyLayoutTriggered = useRef(false);
 
     /**
