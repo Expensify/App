@@ -17,6 +17,9 @@ import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDe
 import setSelection from '../../libs/setSelection';
 import compose from '../../libs/compose';
 import getPlatform from '../../libs/getPlatform';
+import OptionsListSkeletonRow from '../OptionsListSkeletonRow';
+import Text from '../Text';
+import FormHelpMessage from '../FormHelpMessage';
 
 const propTypes = {
     /** padding bottom style of safe area */
@@ -344,63 +347,77 @@ class BaseOptionsSelector extends Component {
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
         const textInput = (
-            <TextInput
-                ref={(el) => (this.textInput = el)}
-                value={this.props.value}
-                label={this.props.textInputLabel}
-                accessibilityLabel={this.props.textInputLabel}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                onChangeText={this.props.onChangeText}
-                onSubmitEditing={this.selectFocusedOption}
-                placeholder={this.props.placeholderText}
-                maxLength={this.props.maxLength}
-                keyboardType={this.props.keyboardType}
-                onBlur={(e) => {
-                    if (!this.props.shouldFocusOnSelectRow) {
-                        return;
-                    }
-                    this.relatedTarget = e.relatedTarget;
-                }}
-                selectTextOnFocus
-                blurOnSubmit={Boolean(this.state.allOptions.length)}
-                spellCheck={false}
-            />
+            <>
+                <TextInput
+                    ref={(el) => (this.textInput = el)}
+                    value={this.props.value}
+                    label={this.props.textInputLabel}
+                    accessibilityLabel={this.props.textInputLabel}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    onChangeText={this.props.onChangeText}
+                    onSubmitEditing={this.selectFocusedOption}
+                    placeholder={this.props.placeholderText}
+                    maxLength={this.props.maxLength}
+                    keyboardType={this.props.keyboardType}
+                    onBlur={(e) => {
+                        if (!this.props.shouldFocusOnSelectRow) {
+                            return;
+                        }
+                        this.relatedTarget = e.relatedTarget;
+                    }}
+                    selectTextOnFocus
+                    blurOnSubmit={Boolean(this.state.allOptions.length)}
+                    spellCheck={false}
+                />
+                {this.props.textInputAlert && (
+                    <FormHelpMessage
+                        message={this.props.textInputAlert}
+                        style={[styles.mb3]}
+                        isError={false}
+                    />
+                )}
+
+            </>
+
         );
         const optionsList = (
-            <OptionsList
-                ref={(el) => (this.list = el)}
-                optionHoveredStyle={this.props.optionHoveredStyle}
-                onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
-                sections={this.props.sections}
-                focusedIndex={this.state.focusedIndex}
-                selectedOptions={this.props.selectedOptions}
-                canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                shouldShowMultipleOptionSelectorAsButton={this.props.shouldShowMultipleOptionSelectorAsButton}
-                multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
-                onAddToSelection={this.props.onAddToSelection}
-                hideSectionHeaders={this.props.hideSectionHeaders}
-                headerMessage={this.props.headerMessage}
-                boldStyle={this.props.boldStyle}
-                showTitleTooltip={this.props.showTitleTooltip}
-                isDisabled={this.props.isDisabled}
-                shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
-                highlightSelectedOptions={this.props.highlightSelectedOptions}
-                onLayout={() => {
-                    if (this.props.selectedOptions.length === 0) {
-                        this.scrollToIndex(this.state.focusedIndex, false);
-                    }
+            <>
+                {this.props.shouldShowLoader && <OptionsListSkeletonRow lineWidth="100%" shouldAnimate />}
+                <OptionsList
+                    ref={(el) => (this.list = el)}
+                    optionHoveredStyle={this.props.optionHoveredStyle}
+                    onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
+                    sections={this.props.sections}
+                    focusedIndex={this.state.focusedIndex}
+                    selectedOptions={this.props.selectedOptions}
+                    canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                    shouldShowMultipleOptionSelectorAsButton={this.props.shouldShowMultipleOptionSelectorAsButton}
+                    multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
+                    onAddToSelection={this.props.onAddToSelection}
+                    hideSectionHeaders={this.props.hideSectionHeaders}
+                    headerMessage={this.props.headerMessage}
+                    boldStyle={this.props.boldStyle}
+                    showTitleTooltip={this.props.showTitleTooltip}
+                    isDisabled={this.props.isDisabled}
+                    shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
+                    highlightSelectedOptions={this.props.highlightSelectedOptions}
+                    onLayout={() => {
+                        if (this.props.selectedOptions.length === 0) {
+                            this.scrollToIndex(this.state.focusedIndex, false);
+                        }
 
-                    if (this.props.onLayout) {
-                        this.props.onLayout();
-                    }
-                }}
-                contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
-                listContainerStyles={this.props.listContainerStyles}
-                listStyles={this.props.listStyles}
-                isLoading={!this.props.shouldShowOptions}
-                showScrollIndicator={this.props.showScrollIndicator}
-                isRowMultilineSupported={this.props.isRowMultilineSupported}
-            />
+                        if (this.props.onLayout) {
+                            this.props.onLayout();
+                        }
+                    }}
+                    contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
+                    listContainerStyles={this.props.listContainerStyles}
+                    listStyles={this.props.listStyles}
+                    isLoading={!this.props.shouldShowOptions}
+                    showScrollIndicator={this.props.showScrollIndicator}
+                    isRowMultilineSupported={this.props.isRowMultilineSupported}
+                />
+            </>
         );
         return (
             <ArrowKeyFocusManager

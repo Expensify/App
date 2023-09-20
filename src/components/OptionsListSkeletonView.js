@@ -1,11 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {Rect, Circle} from 'react-native-svg';
-import SkeletonViewContentLoader from 'react-content-loader/native';
 import CONST from '../CONST';
-import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
+import OptionsListSkeletonRow from './OptionsListSkeletonRow';
 
 const propTypes = {
     /** Whether to animate the skeleton view */
@@ -56,32 +54,11 @@ class OptionsListSkeletonView extends React.Component {
                     lineWidth = '25%';
             }
             skeletonViewItems.push(
-                <SkeletonViewContentLoader
+                <OptionsListSkeletonRow
                     key={`skeletonViewItems${i}`}
-                    animate={this.props.shouldAnimate}
-                    height={CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT}
-                    backgroundColor={themeColors.skeletonLHNIn}
-                    foregroundColor={themeColors.skeletonLHNOut}
-                    style={styles.mr5}
-                >
-                    <Circle
-                        cx="40"
-                        cy="32"
-                        r="20"
-                    />
-                    <Rect
-                        x="72"
-                        y="18"
-                        width="20%"
-                        height="8"
-                    />
-                    <Rect
-                        x="72"
-                        y="38"
-                        width={lineWidth}
-                        height="8"
-                    />
-                </SkeletonViewContentLoader>,
+                    shouldAnimate={this.props.shouldAnimate}
+                    lineWidth={lineWidth}
+                />,
             );
         }
 

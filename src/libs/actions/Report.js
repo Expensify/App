@@ -2059,7 +2059,37 @@ function clearPrivateNotesError(reportID, accountID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
+/**
+ * @param {string} searchInput
+ */
+function searchInServer(searchInput) {
+    API.read('SearchForReports', {searchInput}, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+                value: true,
+            }
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+                value: false,
+            }
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+                value: false,
+            }
+        ]
+    });
+}
+
 export {
+    searchInServer,
     addComment,
     addAttachment,
     reconnect,

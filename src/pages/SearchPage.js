@@ -59,6 +59,8 @@ class SearchPage extends Component {
 
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
 
+        this.throttledSearchInServer = _.throttle(this.searchInServer.bind(this), 300, {leading: false});
+
         this.state = {
             searchValue: '',
             recentReports,
@@ -75,6 +77,11 @@ class SearchPage extends Component {
     }
 
     onChangeText(searchValue = '') {
+        if (searchValue.length > 0) {
+            this.throttledSearchInServer(searchValue);
+        }
+
+        // When the user searches we will
         this.setState({searchValue}, this.debouncedUpdateOptions);
     }
 
@@ -114,6 +121,17 @@ class SearchPage extends Component {
         }
 
         return sections;
+    }
+
+    /**
+     * @param {string} searchValue
+     */
+    searchInServer(searchValue) {
+        if (this.props.network.isOffline) {
+            return;
+        }
+
+        Report.searchInServer(searchValue);
     }
 
     searchRendered() {
@@ -184,9 +202,11 @@ class SearchPage extends Component {
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                textInputAlert={this.props.network.isOffline ? 'You appear to be offline. Search results are limited until you come back online.' : ''}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                 autoFocus
+                                shouldShowLoader={this.props.isSearchingForReports}
                             />
                         </View>
                     </>
@@ -212,5 +232,12 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
+        isSearchingForReports: {
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            initWithStoredValues: false,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
+        }
     }),
 )(SearchPage);
