@@ -17,14 +17,15 @@ import lodashDebounce from 'lodash/debounce';
  */
 export default function useDebounce(func, wait, options) {
     const debouncedFnRef = useRef();
+    const {leading, maxWait, trailing} = options || {};
 
     useEffect(() => {
-        const debouncedFn = lodashDebounce(func, wait, options);
+        const debouncedFn = lodashDebounce(func, wait, {leading, maxWait, trailing});
 
         debouncedFnRef.current = debouncedFn;
 
         return debouncedFn.cancel;
-    }, [func, wait, options]);
+    }, [func, wait, leading, maxWait, trailing]);
 
     return (...args) => {
         const debouncedFn = debouncedFnRef.current;
