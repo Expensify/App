@@ -59,6 +59,7 @@ function clearOutTaskInfo() {
  * @param {String} assigneeEmail
  * @param {Number} assigneeAccountID
  * @param {Object} assigneeChatReport - The chat report between you and the assignee
+ * @param {Number} policyID - Policy ID of the share destination report
  */
 function createTaskAndNavigate(parentReportID, title, description, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null, policyID = CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
