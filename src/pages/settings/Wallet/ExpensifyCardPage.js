@@ -10,7 +10,7 @@ import CardPreview from '../../../components/CardPreview';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import cardPropTypes from '../../../components/cardPropTypes';
+import assignedCardPropTypes from './assignedCardPropTypes';
 import useLocalize from '../../../hooks/useLocalize';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -19,7 +19,7 @@ import * as CardUtils from '../../../libs/CardUtils';
 
 const propTypes = {
     /* Onyx Props */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    cardList: PropTypes.objectOf(assignedCardPropTypes),
 
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
