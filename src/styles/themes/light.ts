@@ -1,6 +1,6 @@
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
-import ThemeColors from './ThemeColors';
+import {ThemeColors} from './types';
 import ROUTES from '../../ROUTES';
 
 const lightTheme = {

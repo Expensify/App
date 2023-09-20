@@ -1,6 +1,6 @@
 import {useContext} from 'react';
 import ThemeContext from './ThemeContext';
-import ThemeColors from './ThemeColors';
+import {ThemeColors} from './types';
 
 function useTheme(): ThemeColors {
     const theme = useContext(ThemeContext);

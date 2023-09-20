@@ -32,7 +32,7 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
-import ThemeColors from './themes/ThemeColors';
+import {ThemeColors} from './themes/types';
 
 type AnchorPosition = {
     horizontal: number;
