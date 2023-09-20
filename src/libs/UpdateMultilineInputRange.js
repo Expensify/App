@@ -1,5 +1,5 @@
 /**
- * Focus a multiline text input and place the cursor at the end of the value (if there is a value in the input).
+ * Place the cursor at the end of the value (if there is a value in the input).
  *
  * When a multiline input contains a text value that goes beyond the scroll height, the cursor will be placed
  * at the end of the text value, and automatically scroll the input field to this position after the field gains
