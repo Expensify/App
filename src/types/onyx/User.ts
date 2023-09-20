@@ -25,7 +25,6 @@ type User = {
 
     /** Whether the form is being submitted */
     loading?: boolean;
-    expensifyNewsStatus?: boolean | null;
 };
 
 export default User;
