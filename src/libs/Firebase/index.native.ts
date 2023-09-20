@@ -26,6 +26,7 @@ const startTrace: StartTrace = (customEventName) => {
 };
 
 const stopTrace: StopTrace = (customEventName) => {
+    // Uncomment to inspect logs on release builds
     // const stop = global.performance.now();
     if (Environment.isDevelopment()) {
         return;
