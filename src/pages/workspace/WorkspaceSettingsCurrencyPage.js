@@ -61,7 +61,7 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy}) {
 
     const sections = [{data: currencyItems, indexOffset: 0}];
 
-    const headerMessage = searchText.trim() && !sections[0].data.length ? translate('common.noResultsFound') : '';
+    const headerMessage = searchText.trim() && !currencyItems.length ? translate('common.noResultsFound') : '';
 
     const onBackButtonPress = useCallback(() => Navigation.goBack(ROUTES.getWorkspaceSettingsRoute(policy.id)), [policy.id]);
 
