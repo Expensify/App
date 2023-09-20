@@ -641,7 +641,7 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
     let chatReport;
 
     if (!isCurrentUser) {
-        chatReport = ReportUtils.getChatByParticipantsByLoginList([assigneeEmail]) || ReportUtils.getChatByParticipants([assigneeAccountID]);
+        chatReport = ReportUtils.getChatByParticipants([assigneeAccountID]);
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
             chatReport.isOptimisticReport = true;

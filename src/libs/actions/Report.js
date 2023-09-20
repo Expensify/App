@@ -559,10 +559,11 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
  */
 function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
     let newChat = {};
-    const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
-    const chat = ReportUtils.getChatByParticipantsByLoginList(formattedUserLogins);
+
+    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+
     if (!chat) {
-        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
         newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
     const reportID = chat ? chat.reportID : newChat.reportID;
