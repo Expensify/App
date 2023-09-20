@@ -230,7 +230,7 @@ class ContactMethodDetailsPage extends Component {
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
-        const isFailedRemovedContactMethod = !!lodashGet(loginData, 'errorFields.deletedLogin');
+        const isFailedRemovedContactMethod = Boolean(lodashGet(loginData, 'errorFields.deletedLogin'));
 
         return (
             <ScreenWrapper onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}>
