@@ -30,10 +30,10 @@ index 6f69329..d531bee 100644
      maxLength: true,
      autoCapitalize: true,
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-index ff029fb..0835135 100644
+index 8badb2a..b19f197 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-@@ -338,12 +338,6 @@ export interface TextInputAndroidProps {
+@@ -347,12 +347,6 @@ export interface TextInputAndroidProps {
     */
    inlineImagePadding?: number | undefined;
  
@@ -46,7 +46,7 @@ index ff029fb..0835135 100644
    /**
     * Sets the return key to the label. Use it instead of `returnKeyType`.
     * @platform android
-@@ -654,11 +648,29 @@ export interface TextInputProps
+@@ -663,11 +657,30 @@ export interface TextInputProps
     */
    maxLength?: number | undefined;
  
@@ -72,6 +72,7 @@ index ff029fb..0835135 100644
 +   * Use it with multiline set to true to be able to fill the lines.
 +   */
 +  rows?: number | undefined;
++
 +
    /**
     * Callback that is called when the text input is blurred
@@ -147,10 +148,10 @@ index 7ed4579..b1d994e 100644
     * If `true`, the text input obscures the text entered so that sensitive text
     * like passwords stay secure. The default value is `false`. Does not work with 'multiline={true}'.
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-index df89097..3b223ec 100644
+index 2127191..542fc06 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-@@ -387,7 +387,6 @@ type AndroidProps = $ReadOnly<{|
+@@ -390,7 +390,6 @@ type AndroidProps = $ReadOnly<{|
    /**
     * Sets the number of lines for a `TextInput`. Use it with multiline set to
     * `true` to be able to fill the lines.
@@ -158,7 +159,7 @@ index df89097..3b223ec 100644
     */
    numberOfLines?: ?number,
  
-@@ -400,10 +399,14 @@ type AndroidProps = $ReadOnly<{|
+@@ -403,10 +402,14 @@ type AndroidProps = $ReadOnly<{|
    /**
     * Sets the number of rows for a `TextInput`. Use it with multiline set to
     * `true` to be able to fill the lines.
@@ -174,7 +175,7 @@ index df89097..3b223ec 100644
    /**
     * When `false`, it will prevent the soft keyboard from showing when the field is focused.
     * Defaults to `true`.
-@@ -1066,6 +1069,9 @@ function InternalTextInput(props: Props): React.Node {
+@@ -1069,6 +1072,9 @@ function InternalTextInput(props: Props): React.Node {
      accessibilityState,
      id,
      tabIndex,
@@ -184,7 +185,7 @@ index df89097..3b223ec 100644
      selection: propsSelection,
      ...otherProps
    } = props;
-@@ -1422,6 +1428,8 @@ function InternalTextInput(props: Props): React.Node {
+@@ -1427,6 +1433,8 @@ function InternalTextInput(props: Props): React.Node {
          focusable={tabIndex !== undefined ? !tabIndex : focusable}
          mostRecentEventCount={mostRecentEventCount}
          nativeID={id ?? props.nativeID}
@@ -193,7 +194,7 @@ index df89097..3b223ec 100644
          onBlur={_onBlur}
          onKeyPressSync={props.unstable_onKeyPressSync}
          onChange={_onChange}
-@@ -1477,6 +1485,7 @@ function InternalTextInput(props: Props): React.Node {
+@@ -1482,6 +1490,7 @@ function InternalTextInput(props: Props): React.Node {
          mostRecentEventCount={mostRecentEventCount}
          nativeID={id ?? props.nativeID}
          numberOfLines={props.rows ?? props.numberOfLines}
@@ -549,7 +550,7 @@ index 190bc27..c2bcdc1 100644
              : mEllipsizeLocation;
      setEllipsize(ellipsizeLocation);
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.java
-index 561a2d0..017be13 100644
+index 561a2d0..9409cfc 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.java
 @@ -18,6 +18,7 @@ import android.text.SpannableStringBuilder;
@@ -568,7 +569,7 @@ index 561a2d0..017be13 100644
    private static final LruCache<ReadableNativeMap, Spannable> sSpannableCache =
        new LruCache<>(spannableCacheSize);
    private static final ConcurrentHashMap<Integer, Spannable> sTagToSpannableCache =
-@@ -385,6 +387,47 @@ public class TextLayoutManager {
+@@ -385,6 +387,48 @@ public class TextLayoutManager {
              ? paragraphAttributes.getInt(MAXIMUM_NUMBER_OF_LINES_KEY)
              : UNSET;
  
@@ -613,11 +614,12 @@ index 561a2d0..017be13 100644
 +      maximumNumberOfLines = numberOfLines;
 +    }
 +
++
      int calculatedLineCount =
          maximumNumberOfLines == UNSET || maximumNumberOfLines == 0
              ? layout.getLineCount()
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManagerMapBuffer.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManagerMapBuffer.java
-index 0d118f0..f29f069 100644
+index 0d118f0..0ae44b7 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManagerMapBuffer.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManagerMapBuffer.java
 @@ -18,6 +18,7 @@ import android.text.SpannableStringBuilder;
@@ -636,7 +638,7 @@ index 0d118f0..f29f069 100644
  
    private static final boolean ENABLE_MEASURE_LOGGING = ReactBuildConfig.DEBUG && false;
  
-@@ -399,6 +401,46 @@ public class TextLayoutManagerMapBuffer {
+@@ -399,6 +401,47 @@ public class TextLayoutManagerMapBuffer {
              ? paragraphAttributes.getInt(PA_KEY_MAX_NUMBER_OF_LINES)
              : UNSET;
  
@@ -680,14 +682,15 @@ index 0d118f0..f29f069 100644
 +      maximumNumberOfLines = numberOfLines;
 +    }
 +
++
      int calculatedLineCount =
          maximumNumberOfLines == UNSET || maximumNumberOfLines == 0
              ? layout.getLineCount()
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-index 1b5e0f4..67d0b73 100644
+index ced37be..ef2f321 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-@@ -483,7 +483,13 @@ public class ReactEditText extends AppCompatEditText
+@@ -548,7 +548,13 @@ public class ReactEditText extends AppCompatEditText
       * href='https://android.googlesource.com/platform/frameworks/base/+/jb-release/core/java/android/widget/TextView.java'>TextView.java</a>}
       */
      if (isMultiline()) {
@@ -807,10 +810,10 @@ index f5f87c6..b7d1e90 100644
          attributes.ellipsizeMode,
          attributes.textBreakStrategy,
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
-index 8687b89..26379f4 100644
+index 8687b89..eab75f4 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
-@@ -835,12 +835,18 @@ inline ParagraphAttributes convertRawProp(
+@@ -835,10 +835,16 @@ inline ParagraphAttributes convertRawProp(
      ParagraphAttributes const &defaultParagraphAttributes) {
    auto paragraphAttributes = ParagraphAttributes{};
  
@@ -819,19 +822,15 @@ index 8687b89..26379f4 100644
        context,
        rawProps,
        "numberOfLines",
--      sourceParagraphAttributes.maximumNumberOfLines,
--      defaultParagraphAttributes.maximumNumberOfLines);
 +      sourceParagraphAttributes.numberOfLines,
 +      defaultParagraphAttributes.numberOfLines);
 +  paragraphAttributes.maximumNumberOfLines = convertRawProp(
-+       context,
-+       rawProps,
-+       "maximumNumberOfLines",
-+       sourceParagraphAttributes.maximumNumberOfLines,
-+       defaultParagraphAttributes.maximumNumberOfLines);
++      context,
++      rawProps,
++      "maximumNumberOfLines",
+       sourceParagraphAttributes.maximumNumberOfLines,
+       defaultParagraphAttributes.maximumNumberOfLines);
    paragraphAttributes.ellipsizeMode = convertRawProp(
-       context,
-       rawProps,
 @@ -913,6 +919,7 @@ inline std::string toString(AttributedString::Range const &range) {
  inline folly::dynamic toDynamic(
      const ParagraphAttributes &paragraphAttributes) {
@@ -853,7 +852,7 @@ index 8687b89..26379f4 100644
        PA_KEY_HYPHENATION_FREQUENCY,
        toString(paragraphAttributes.android_hyphenationFrequency));
 +  builder.putInt(
-+       PA_KEY_NUMBER_OF_LINES, paragraphAttributes.numberOfLines);
++      PA_KEY_NUMBER_OF_LINES, paragraphAttributes.numberOfLines);
  
    return builder.build();
  }
@@ -914,15 +913,15 @@ index ba39ebb..ead28e3 100644
    std::string textBreakStrategy{};
    SharedColor underlineColorAndroid{};
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-index 368c334..2a98ad0 100644
+index 368c334..a1bb33e 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-@@ -244,26 +244,50 @@ - (void)getRectWithAttributedString:(AttributedString)attributedString
+@@ -244,26 +244,51 @@ - (void)getRectWithAttributedString:(AttributedString)attributedString
  
  #pragma mark - Private
  
 -- (NSTextStorage *)_textStorageForNSAttributesString:(NSAttributedString *)attributedString
-+- (NSTextStorage *)_textStorageForNSAttributesString:(NSAttributedString *)inputAttributedString
+++- (NSTextStorage *)_textStorageForNSAttributesString:(NSAttributedString *)inputAttributedString
                                   paragraphAttributes:(ParagraphAttributes)paragraphAttributes
                                                  size:(CGSize)size
  {
@@ -950,7 +949,6 @@ index 368c334..2a98ad0 100644
 -      ? RCTNSLineBreakModeFromEllipsizeMode(paragraphAttributes.ellipsizeMode)
 -      : NSLineBreakByClipping;
 -  textContainer.maximumNumberOfLines = paragraphAttributes.maximumNumberOfLines;
-+
 +    [attributedString insertAttributedString:[[NSAttributedString alloc] initWithString:newLines attributes:attributesOfFirstCharacter] atIndex:0];
 +  }
 +
@@ -959,7 +957,7 @@ index 368c334..2a98ad0 100644
    NSLayoutManager *layoutManager = [NSLayoutManager new];
    layoutManager.usesFontLeading = NO;
    [layoutManager addTextContainer:textContainer];
--
+ 
 -  NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString:attributedString];
 +  NSTextStorage *textStorage = [NSTextStorage new];
  
@@ -973,6 +971,7 @@ index 368c334..2a98ad0 100644
 +  textContainer.maximumNumberOfLines = paragraphAttributes.maximumNumberOfLines;
 +
 +  [textStorage replaceCharactersInRange:(NSRange){0, textStorage.length} withAttributedString:attributedString];
++
 +
    if (paragraphAttributes.adjustsFontSizeToFit) {
      CGFloat minimumFontSize = !isnan(paragraphAttributes.minimumFontSize) ? paragraphAttributes.minimumFontSize : 4.0;
