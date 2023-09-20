@@ -1,4 +1,4 @@
-import React, {useMemo, useState, memo} from 'react';
+import React, {useRef, useMemo, useState, memo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -48,6 +48,7 @@ const defaultProps = {
     ...GenericReportActionContextMenuDefaultProps,
 };
 function BaseReportActionContextMenu(props) {
+    const menuItemRefs = useRef([]);
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth);
 
@@ -94,35 +95,13 @@ function BaseReportActionContextMenu(props) {
         }
     };
 
-    const shouldClosePopupOnSelectItem = !props.isMini;
-    const selectItemPayload = {
-        reportAction,
-        reportID: props.reportID,
-        draftMessage: props.draftMessage,
-        selection: props.selection,
-        close: () => setShouldKeepOpen(false),
-        openContextMenu: () => setShouldKeepOpen(true),
-        interceptAnonymousUser,
-    };
-
-    /**
-     * Handles the selection of an item from the context menu
-     *
-     * @param {Object} contextAction
-     * @param {Function} contextAction.onPress
-     * @param {Boolean} contextAction.isAnonymousAction
-     */
-    const selectItem = (contextAction) => {
-        interceptAnonymousUser(() => contextAction.onPress(shouldClosePopupOnSelectItem, selectItemPayload), contextAction.isAnonymousAction);
-    };
-
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
         () => {
-            if (focusedIndex === -1) {
+            if (!menuItemRefs.current[focusedIndex]) {
                 return;
             }
-            selectItem(filteredContextMenuActions[focusedIndex]);
+            menuItemRefs.current[focusedIndex].triggerPressAndUpdateSuccess();
             setFocusedIndex(-1);
         },
         {isActive: shouldEnableArrowNavigation},
@@ -135,24 +114,38 @@ function BaseReportActionContextMenu(props) {
                 style={wrapperStyle}
             >
                 {_.map(_.filter(ContextMenuActions, shouldShowFilter), (contextAction, index) => {
+                    const closePopup = !props.isMini;
+                    const payload = {
+                        reportAction,
+                        reportID: props.reportID,
+                        draftMessage: props.draftMessage,
+                        selection: props.selection,
+                        close: () => setShouldKeepOpen(false),
+                        openContextMenu: () => setShouldKeepOpen(true),
+                        interceptAnonymousUser,
+                    };
+
                     if (contextAction.renderContent) {
                         // make sure that renderContent isn't mixed with unsupported props
                         if (__DEV__ && (contextAction.text != null || contextAction.icon != null)) {
                             throw new Error('Dev error: renderContent() and text/icon cannot be used together.');
                         }
 
-                        return contextAction.renderContent(shouldClosePopupOnSelectItem, selectItemPayload);
+                        return contextAction.renderContent(closePopup, payload);
                     }
 
                     return (
                         <ContextMenuItem
+                            ref={(ref) => {
+                                menuItemRefs.current[index] = ref;
+                            }}
                             icon={contextAction.icon}
                             text={props.translate(contextAction.textTranslateKey, {action: reportAction})}
                             successIcon={contextAction.successIcon}
                             successText={contextAction.successTextTranslateKey ? props.translate(contextAction.successTextTranslateKey) : undefined}
                             isMini={props.isMini}
                             key={contextAction.textTranslateKey}
-                            onPress={() => selectItem(contextAction)}
+                            onPress={() => interceptAnonymousUser(() => contextAction.onPress(closePopup, payload), contextAction.isAnonymousAction)}
                             description={contextAction.getDescription(props.selection, props.isSmallScreenWidth)}
                             isAnonymousAction={contextAction.isAnonymousAction}
                             focused={focusedIndex === index}
