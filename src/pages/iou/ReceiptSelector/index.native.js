@@ -23,6 +23,8 @@ import Log from '../../../libs/Log';
 import * as CameraPermission from './CameraPermission';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import NavigationAwareCamera from './NavigationAwareCamera';
+import Navigation from '../../../libs/Navigation/Navigation';
+import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 
 const propTypes = {
     /** React Navigation route */
@@ -45,11 +47,15 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
+
+    /** The id of the transaction we're editing */
+    transactionID: PropTypes.string,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
+    transactionID: '',
 };
 
 /**
@@ -77,7 +83,7 @@ function getImagePickerOptions(type) {
     };
 }
 
-function ReceiptSelector(props) {
+function ReceiptSelector({route, report, iou, transactionID}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -87,9 +93,9 @@ function ReceiptSelector(props) {
     const isAndroidBlockedPermissionRef = useRef(false);
     const appState = useRef(AppState.currentState);
 
-    const iouType = lodashGet(props.route, 'params.iouType', '');
-    const reportID = lodashGet(props.route, 'params.reportID', '');
-    const pageIndex = lodashGet(props.route, 'params.pageIndex', 1);
+    const iouType = lodashGet(route, 'params.iouType', '');
+    const reportID = lodashGet(route, 'params.reportID', '');
+    const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
 
@@ -198,21 +204,32 @@ function ReceiptSelector(props) {
                 flash: flash ? 'on' : 'off',
             })
             .then((photo) => {
-                IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report, props.route.path);
+                const filePath = `file://${photo.path}`;
+                IOU.setMoneyRequestReceipt(filePath, photo.path);
+
+                if (transactionID) {
+                    FileUtils.readFileAsync(filePath, photo.path).then((receipt) => {
+                        IOU.replaceReceipt(transactionID, receipt, filePath);
+                    });
+
+                    Navigation.dismissModal();
+                    return;
+                }
+
+                IOU.navigateToNextPage(iou, iouType, reportID, report, );
             })
             .catch((error) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, props.iou, props.report, reportID, translate, props.route.path]);
+    }, [flash, iouType, iou, report, reportID, translate, transactionID, route.path]);
 
     CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
     });
 
     return (
-        <View style={styles.flex1}>
+        <View style={styles.flex1}> 
             {permissions !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView]}>
                     <Hand
@@ -263,8 +280,18 @@ function ReceiptSelector(props) {
                     onPress={() => {
                         showImagePicker(launchImageLibrary)
                             .then((receiptImage) => {
-                                IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report, props.route.path);
+                                const filePath = receiptImage[0].uri;
+                                IOU.setMoneyRequestReceipt(filePath, receiptImage[0].fileName);
+
+                                if (transactionID) {
+                                    FileUtils.readFileAsync(filePath, receiptImage[0].fileName).then((receipt) => {
+                                        IOU.replaceReceipt(transactionID, receipt, filePath);
+                                    });
+                                    Navigation.dismissModal();
+                                    return;
+                                }
+
+                                IOU.navigateToNextPage(iou, iouType, reportID, report, route.path);
                             })
                             .catch(() => {
                                 Log.info('User did not select an image from gallery');

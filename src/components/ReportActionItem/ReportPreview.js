@@ -30,7 +30,6 @@ import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import * as ReportActionUtils from '../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import ReportActionItemImages from './ReportActionItemImages';
-import colors from '../../styles/colors';
 
 const propTypes = {
     /** All the data of the action */
@@ -178,7 +177,7 @@ function ReportPreview(props) {
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
-                style={[styles.flexRow, styles.justifyContentBetween]}
+                style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                 accessibilityRole="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
@@ -199,7 +198,7 @@ function ReportPreview(props) {
                             {hasErrors && (
                                 <Icon
                                     src={Expensicons.DotIndicator}
-                                    fill={colors.red}
+                                    fill={themeColors.danger}
                                 />
                             )}
                         </View>
@@ -230,7 +229,7 @@ function ReportPreview(props) {
                                 chatReportID={props.chatReportID}
                                 iouReport={props.iouReport}
                                 onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
-                                enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
                                 style={[styles.requestPreviewBox]}
                             />

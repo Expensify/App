@@ -20,15 +20,11 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** The callback fired when we confirm to replace the receipt */
-    replaceReceipt: PropTypes.func,
+    /** The id of the transaction we're editing */
+    transactionID: PropTypes.string.isRequired,
 };
 
-const defaultProps = {
-    replaceReceipt: () => {},
-};
-
-function EditRequestReceiptPage({route, replaceReceipt}) {
+function EditRequestReceiptPage({route, transactionID}) {
     const {translate} = useLocalize();
 
     return (
@@ -43,7 +39,7 @@ function EditRequestReceiptPage({route, replaceReceipt}) {
             <DragAndDropProvider>
                 <ReceiptSelector
                     route={route}
-                    replaceReceipt={replaceReceipt}
+                    transactionID={transactionID}
                 />
             </DragAndDropProvider>
         </ScreenWrapper>
@@ -51,7 +47,6 @@ function EditRequestReceiptPage({route, replaceReceipt}) {
 }
 
 EditRequestReceiptPage.propTypes = propTypes;
-EditRequestReceiptPage.defaultProps = defaultProps;
 EditRequestReceiptPage.displayName = 'EditRequestReceiptPage';
 
 export default EditRequestReceiptPage;
