@@ -46,7 +46,6 @@ function HeaderWithBackButton({
         horizontal: 0,
     },
     threeDotsMenuItems = [],
-    outerThreeDotsMenuStyle = {},
     children = null,
     shouldOverlay = false,
 }) {

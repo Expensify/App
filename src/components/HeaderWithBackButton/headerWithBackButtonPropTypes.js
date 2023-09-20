@@ -48,9 +48,6 @@ const propTypes = {
         left: PropTypes.number,
     }),
 
-    /** Outer style that gets passed down to Modal */
-    outerThreeDotsMenuStyle: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
-
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
 

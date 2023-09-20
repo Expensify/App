@@ -3177,8 +3177,8 @@ const styles = (theme) => ({
         flex: 1,
     },
 
-    threeDotsPopoverOffset: (windowWidth, isWithinFullScreenModal) => ({
-        ...getPopOverVerticalOffset(60 + (isWithinFullScreenModal ? 20 : 0)),
+    threeDotsPopoverOffset: (windowWidth) => ({
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 60,
     }),
 
