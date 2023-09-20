@@ -1270,7 +1270,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
-function getNewChatOptions(
+function getFilteredOptions(
     reports,
     personalDetails,
     betas = [],
@@ -1458,7 +1458,7 @@ export {
     isCurrentUser,
     isPersonalDetailsReady,
     getSearchOptions,
-    getNewChatOptions,
+    getFilteredOptions,
     getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,

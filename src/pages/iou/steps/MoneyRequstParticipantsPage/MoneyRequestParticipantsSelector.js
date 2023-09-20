@@ -193,7 +193,7 @@ function MoneyRequestParticipantsSelector({
 
             onAddParticipants(newSelectedOptions);
 
-            const chatOptions = OptionsListUtils.getNewChatOptions(
+            const chatOptions = OptionsListUtils.getFilteredOptions(
                 reports,
                 personalDetails,
                 betas,
@@ -228,7 +228,7 @@ function MoneyRequestParticipantsSelector({
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     useEffect(() => {
-        const chatOptions = OptionsListUtils.getNewChatOptions(
+        const chatOptions = OptionsListUtils.getFilteredOptions(
             reports,
             personalDetails,
             betas,
