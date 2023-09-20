@@ -1,5 +1,6 @@
 import React, {useRef, useState, useEffect, useMemo, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -113,6 +114,15 @@ const defaultProps = {
 };
 
 /**
+ *
+ * Function to check weather the report available in props is default
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+const checkDefaultReport = (report) => report === defaultProps.report;
+
+/**
  * Get the currently viewed report ID as number
  *
  * @param {Object} route
@@ -158,6 +168,8 @@ function ReportScreen({
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = _.isEmpty(reportActions) && report.isLoadingReportActions;
 
+    const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
+
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails) || firstRenderRef.current;
@@ -170,6 +182,8 @@ function ReportScreen({
 
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
+
+    const isDefaultReport = checkDefaultReport(report);
 
     let headerView = (
         <HeaderView
@@ -253,17 +267,26 @@ function ReportScreen({
         [route],
     );
 
+    useFocusEffect(
+        useCallback(() => {
+            const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+                const isTopMostReportID = Navigation.getTopmostReportId() === getReportID(route);
+                // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
+                // we don't need to call openReport
+                if (!getIsReportFullyVisible(isTopMostReportID) || report.isOptimisticReport) {
+                    return;
+                }
+
+                Report.openReport(report.reportID);
+            });
+
+            return () => unsubscribeVisibilityListener();
+            // The effect should run only on the first focus to attach listener
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, []),
+    );
+
     useEffect(() => {
-        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
-            // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
-            // we don't need to call openReport
-            if (!getIsReportFullyVisible(isTopMostReportId) || report.isOptimisticReport) {
-                return;
-            }
-
-            Report.openReport(report.reportID);
-        });
-
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
         return () => {
@@ -327,6 +350,12 @@ function ReportScreen({
         }
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(
+        () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading) || shouldHideReport,
+        [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete],
+    );
+
     return (
         <ReportScreenContext.Provider
             value={{
@@ -337,10 +366,13 @@ function ReportScreen({
             <ScreenWrapper
                 style={screenWrapperStyle}
                 shouldEnableKeyboardAvoidingView={isTopMostReportId}
-                shouldDisableFocusTrap
             >
                 <FullPageNotFoundView
+<<<<<<< HEAD
                     shouldShow={(!report.reportID && !report.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport}
+=======
+                    shouldShow={shouldShowNotFoundPage}
+>>>>>>> d0b49122d07ed51b974acce3981883e9b049a30c
                     subtitleKey="notFound.noAccess"
                     shouldShowCloseButton={false}
                     shouldShowBackButton={isSmallScreenWidth}
@@ -354,7 +386,7 @@ function ReportScreen({
                         needsOffscreenAlphaCompositing
                     >
                         {headerView}
-                        {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report) && (
+                        {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
                             <View style={[styles.borderBottom]}>
                                 <View style={[styles.appBG, styles.pl0]}>
                                     <View style={[styles.ph5, styles.pb3]}>
