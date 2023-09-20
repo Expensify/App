@@ -168,7 +168,9 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
             },
         ],
     };
-    if (!isOpenApp) return defaultData;
+    if (!isOpenApp) {
+        return defaultData;
+    }
     return {
         optimisticData: [
             ...defaultData.optimisticData,
