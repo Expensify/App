@@ -3998,7 +3998,10 @@ const styles = (theme) => ({
         bottom: 0,
         left: 0,
         right: 0,
-        height: 36,
+        height: CONST.CHAT_HEADER_LOADER_HEIGHT,
+    },
+    chatBottomLoaderAndroid: {
+        top: - CONST.CHAT_HEADER_LOADER_HEIGHT,
     },
 });
 

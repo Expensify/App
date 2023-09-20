@@ -25,6 +25,7 @@ import DateUtils from '../../../libs/DateUtils';
 import themeColors from '../../../styles/themes/default';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
+import ListHeaderComponentLoader from './ListHeaderComponentLoader/ListHeaderComponentLoader';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -385,14 +386,7 @@ function ReportActionsList({
                     }}
                     ListHeaderComponent={() => {
                         if (report.isLoadingNewerReportActions) {
-                            return (
-                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.bottomReportLoader, styles.chatBottomLoader]}>
-                                    <ActivityIndicator
-                                        color={themeColors.spinner}
-                                        size="small"
-                                    />
-                                </View>
-                            );
+                            return <ListHeaderComponentLoader />;
                         }
 
                         return null;
