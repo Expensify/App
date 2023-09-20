@@ -170,6 +170,9 @@ const ONYXKEYS = {
     /** Is report data loading? */
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
+    /** Is report data loading? */
+    IS_LOADING_APP: 'isLoadingApp',
+
     /** Is Keyboard shortcuts modal open? */
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
