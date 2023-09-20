@@ -3743,27 +3743,26 @@ const styles = (theme: ThemeColors) =>
         },
 
         loginButtonRow: {
-            justifyContent: 'center',
             width: '100%',
+            gap: 12,
             ...flex.flexRow,
+            ...flex.justifyContentCenter,
         },
 
         loginButtonRowSmallScreen: {
-            justifyContent: 'center',
             width: '100%',
-            marginBottom: 10,
+            gap: 12,
             ...flex.flexRow,
+            ...flex.justifyContentCenter,
+            marginBottom: 10,
         },
 
-        appleButtonContainer: {
+        desktopSignInButtonContainer: {
             width: 40,
             height: 40,
-            marginRight: 20,
         },
 
         signInIconButton: {
-            margin: 10,
-            marginTop: 0,
             padding: 2,
         },
 
@@ -3771,7 +3770,6 @@ const styles = (theme: ThemeColors) =>
             colorScheme: 'light',
             width: 40,
             height: 40,
-            marginLeft: 12,
             alignItems: 'center',
             overflow: 'hidden',
         },
