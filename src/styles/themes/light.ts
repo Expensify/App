@@ -1,6 +1,6 @@
-import colors from '../colors';
-import SCREENS from '../../SCREENS';
 import ROUTES from '../../ROUTES';
+import SCREENS from '../../SCREENS';
+import colors from '../colors';
 import type {ThemeDefault} from './types';
 
 const lightTheme = {
@@ -82,6 +82,7 @@ const lightTheme = {
     skeletonLHNOut: colors.lightDefaultButtonPressed,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
+    loungeAccessOverlay: colors.blue800,
     PAGE_BACKGROUND_COLORS: {
         [SCREENS.HOME]: colors.lightHighlightBackground,
         [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,

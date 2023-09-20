@@ -128,6 +128,7 @@ const webViewStyles = (theme: ThemeDefault) =>
             del: {
                 textDecorationLine: 'line-through',
                 textDecorationStyle: 'solid',
+                flex: 1,
             },
 
             strong: {
@@ -203,6 +204,7 @@ const webViewStyles = (theme: ThemeDefault) =>
             fontFamily: fontFamily.EXP_NEUE,
             flex: 1,
             lineHeight: variables.fontSizeNormalHeight,
+            ...writingDirection.ltr,
         },
     } satisfies WebViewStyle);
 
@@ -2611,6 +2613,12 @@ const styles = (theme: ThemeDefault) =>
             opacity: 0,
         },
 
+        invisiblePopover: {
+            position: 'absolute',
+            opacity: 0,
+            left: -9999,
+        },
+
         containerWithSpaceBetween: {
             justifyContent: 'space-between',
             width: '100%',
@@ -3243,6 +3251,12 @@ const styles = (theme: ThemeDefault) =>
                 horizontal: windowWidth - 10,
             } satisfies AnchorPosition),
 
+        threeDotsPopoverOffsetAttachmentModal: (windowWidth: number) =>
+            ({
+                ...getPopOverVerticalOffset(80),
+                horizontal: windowWidth - 140,
+            } satisfies AnchorPosition),
+
         invert: {
             // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
             transform: [{scaleX: -1}, {scaleY: -1}],
@@ -3675,10 +3689,8 @@ const styles = (theme: ThemeDefault) =>
         },
 
         reportHorizontalRule: {
-            borderBottomWidth: 1,
             borderColor: theme.border,
             ...spacing.mh5,
-            ...spacing.mv2,
         },
 
         assigneeTextStyle: {
@@ -3743,27 +3755,26 @@ const styles = (theme: ThemeDefault) =>
         },
 
         loginButtonRow: {
-            justifyContent: 'center',
             width: '100%',
+            gap: 12,
             ...flex.flexRow,
+            ...flex.justifyContentCenter,
         },
 
         loginButtonRowSmallScreen: {
-            justifyContent: 'center',
             width: '100%',
-            marginBottom: 10,
+            gap: 12,
             ...flex.flexRow,
+            ...flex.justifyContentCenter,
+            marginBottom: 10,
         },
 
-        appleButtonContainer: {
+        desktopSignInButtonContainer: {
             width: 40,
             height: 40,
-            marginRight: 20,
         },
 
         signInIconButton: {
-            margin: 10,
-            marginTop: 0,
             padding: 2,
         },
 
@@ -3771,7 +3782,6 @@ const styles = (theme: ThemeDefault) =>
             colorScheme: 'light',
             width: 40,
             height: 40,
-            marginLeft: 12,
             alignItems: 'center',
             overflow: 'hidden',
         },

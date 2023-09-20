@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
-import colors from '../colors';
-import SCREENS from '../../SCREENS';
 import ROUTES from '../../ROUTES';
+import SCREENS from '../../SCREENS';
+import colors from '../colors';
 import type {ThemeBase} from './types';
 
 const darkTheme = {
@@ -83,6 +83,7 @@ const darkTheme = {
     skeletonLHNOut: colors.darkDefaultButton,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
+    loungeAccessOverlay: colors.blue800,
     PAGE_BACKGROUND_COLORS: {
         [SCREENS.HOME]: colors.darkHighlightBackground,
         [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
