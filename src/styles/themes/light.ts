@@ -63,7 +63,7 @@ const lightTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.lightHighlightBackground,
     dropUIBG: 'rgba(252, 251, 249, 0.92)',
-    receiptDropUIBG: '', // TODO: add color
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.84)',
     checkBox: colors.green400,
     pickerOptionsTextColor: colors.lightPrimaryText,
     imageCropBackgroundColor: colors.lightIcons,
