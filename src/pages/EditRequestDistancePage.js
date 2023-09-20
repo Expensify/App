@@ -41,49 +41,29 @@ const defaultProps = {
 };
 
 function EditRequestDistancePage({transactionID, report, route, transaction}) {
+    const {translate} = useLocalize();
+
+    // This temporary transaction will be the one that all changes are made to. This keeps the original transaction unmodified until
+    // the user takes an explicit action to save it.
     const transactionToEdit = TransactionUtils.createTemporaryTransaction(transaction);
-    let initialWaypoints;
     useEffect(() => {
         IOU.setDistanceRequestTransactionID(transactionID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-    const {translate} = useLocalize();
 
-    /**
-     * When the back button is pressed, the waypoints need to be reset on the transaction back to what they
-     * were when the component first mounted.
-     */
-    const removeUnsavedWaypointsAndGoBack = () => {
-        Transaction.resetWaypoints(transactionID, initialWaypoints);
-        Navigation.goBack();
-    };
-
-    /**
-     * When waypoints are initially loaded from Onyx inside of DistanceRequest
-     * they are sent here so they can be remembered. That way if the user presses the back button
-     * after having edited the waypoints, then all of their changes can be reset on the transaction.
-     * If the data is not reset when going back, it can cause problems when the user edits another field like amount
-     * and the updated waypoints get sent in the request to update the distance without the user
-     * ever clicking the "save" button for waypoints. It's very unexpected for the user.
-     * @param {Object} waypoints
-     */
-    const saveInitialWaypoints = (waypoints) => {
-        // Ignore any subsequent updates to the waypoints so that the initial waypoints are only updated once and
-        // never again.
-        if (initialWaypoints) {
-            return;
-        }
-        initialWaypoints = waypoints;
-    };
+    // When this component is unmounted, the temporary transaction is removed.
+    // This works for both saving a transaction or cancelling out of the flow somehow.
+    useEffect(() => () => TransactionUtils.removeTemporaryTransaction(transactionToEdit.transactionID), [transactionToEdit]);
 
     /**
      * Save the changes to the original transaction object
      * @param {Object} waypoints
      */
     const saveTransaction = (waypoints) => {
-        // Pass the transactionID of the original transaction so that is the one updated on the server
+        // Pass the transactionID of the original transaction so that is updated on the server
         IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints});
     };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -91,15 +71,14 @@ function EditRequestDistancePage({transactionID, report, route, transaction}) {
         >
             <HeaderWithBackButton
                 title={translate('common.distance')}
-                onBackButtonPress={removeUnsavedWaypointsAndGoBack}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <DistanceRequest
                 report={report}
                 route={route}
                 // Pass the ID of the cloned transaction so that the original transaction is not being changed
                 transactionID={transactionToEdit.transactionID}
-                onSubmit={(waypoints) => }
-                onWaypointsLoaded={saveInitialWaypoints}
+                onSubmit={saveTransaction}
                 isEditingRequest
             />
         </ScreenWrapper>

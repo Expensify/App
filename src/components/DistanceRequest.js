@@ -59,9 +59,6 @@ const propTypes = {
     /** Called on submit of this page */
     onSubmit: PropTypes.func.isRequired,
 
-    /** Called when the waypoints have been loaded for the transaction and passed the waypoints */
-    onWaypointsLoaded: PropTypes.func,
-
     /* Onyx Props */
     transaction: transactionPropTypes,
 
@@ -85,7 +82,6 @@ const defaultProps = {
     mapboxAccessToken: {
         token: '',
     },
-    onWaypointsLoaded: () => {},
     transaction: {},
 };
 
@@ -99,11 +95,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
     const isEditing = lodashGet(route, 'path', '').includes('address');
     const reportID = lodashGet(report, 'reportID', '');
     const iouType = lodashGet(route, 'params.iouType', '');
-    const waypoints = useMemo(() => {
-        const initialWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-        onWaypointsLoaded(initialWaypoints);
-        return initialWaypoints;
-    }, [transaction, onWaypointsLoaded]);
+    const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
     const numberOfPreviousWaypoints = _.size(previousWaypoints);

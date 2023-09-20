@@ -61,21 +61,6 @@ function addStop(transactionID) {
 }
 
 /**
- * Fully reset the waypoints of a transaction to some other value. This is used when
- * cancelling the edits to a distance request.
- *
- * @param {String} transactionID of the transaction
- * @param {Object} waypoints to reset
- */
-function resetWaypoints(transactionID, waypoints) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            waypoints,
-        },
-    });
-}
-
-/**
  * Saves the selected waypoint to the transaction
  * @param {String} transactionID
  * @param {String} index
@@ -227,4 +212,4 @@ function getRoute(transactionID, waypoints) {
     );
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, resetWaypoints};
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute};
