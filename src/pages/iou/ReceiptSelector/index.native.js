@@ -216,7 +216,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                     return;
                 }
 
-                IOU.navigateToNextPage(iou, iouType, reportID, report, );
+                IOU.navigateToNextPage(iou, iouType, reportID, report, route.path);
             })
             .catch((error) => {
                 showCameraAlert();
@@ -229,7 +229,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
     });
 
     return (
-        <View style={styles.flex1}> 
+        <View style={styles.flex1}>
             {permissions !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView]}>
                     <Hand

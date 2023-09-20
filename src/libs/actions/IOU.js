@@ -2009,7 +2009,7 @@ function navigateToNextPage(iou, iouType, reportID, report, route = '') {
         resetMoneyRequestInfo(moneyRequestID);
     }
 
-    // If we're adding a receipt, that means the user came from the confirmation page and we navigate back to it.
+    // If we're adding a receipt, that means the user came from the confirmation page and we need to navigate back to it.
     if (route.slice(1) === ROUTES.getMoneyRequestReceiptRoute(iouType, reportID)) {
         Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
         return;
