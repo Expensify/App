@@ -101,7 +101,6 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
     const isEditing = lodashGet(route, 'path', '').includes('address');
     const reportID = lodashGet(report, 'reportID', '');
     const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
-    const isEmptyWaypoint = _.some(waypoints, (waypoint) => _.isEmpty(waypoint));
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
     const numberOfPreviousWaypoints = _.size(previousWaypoints);
@@ -113,6 +112,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
     const doesRouteExist = lodashHas(transaction, 'routes.route0.geometry.coordinates');
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
+    const hasInvalidWaypoint = _.size(validatedWaypoints) < numberOfWaypoints;
     const shouldFetchRoute = (!doesRouteExist || haveWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
     const waypointMarkers = useMemo(
         () =>
@@ -301,7 +301,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={navigateToNextPage}
-                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline || isEmptyWaypoint}
+                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline || hasInvalidWaypoint}
                 text={translate('common.next')}
             />
         </ScrollView>
