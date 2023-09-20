@@ -32,6 +32,7 @@ type Policy = {
     isFromFullPolicy?: boolean;
     lastModified?: string;
     customUnits?: Record<string, unknown>;
+    isPolicyExpenseChatEnabled: boolean;
 };
 
 export default Policy;
