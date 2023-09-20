@@ -8,8 +8,11 @@ import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropT
  * Gets the Plaid Link token used to initialize the Plaid SDK
  */
 function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
+    // redirect_uri need to be in kebab case convention because its how its passed to backend
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     const {redirect_uri} = getPlaidLinkTokenParameters();
     const params = {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         redirect_uri,
         allowDebit,
         bankAccountID,
