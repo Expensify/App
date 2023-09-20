@@ -87,7 +87,9 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
     };
 
     const imageLoadingStart = () => {
-        if (!isLoading) return;
+        if (!isLoading) {
+            return;
+        }
         setIsLoading(true);
         setZoomScale(0);
         setIsZoomed(false);

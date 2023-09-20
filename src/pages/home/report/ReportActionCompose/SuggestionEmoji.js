@@ -39,12 +39,6 @@ const propTypes = {
     /** Function to clear the input */
     resetKeyboardInput: PropTypes.func.isRequired,
 
-    /** The current selection */
-    selection: PropTypes.shape({
-        start: PropTypes.number.isRequired,
-        end: PropTypes.number.isRequired,
-    }).isRequired,
-
     ...SuggestionProps.baseProps,
 };
 
