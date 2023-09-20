@@ -48,12 +48,12 @@
   import { forwardRef, useRef, ReactNode, ForwardedRef } from "react";
   import { TextInput, View } from "react-native";
 
-  export type CustomTextInputProps = {
-    label: string;
+  export type CustomTextInputProps<T> = {
+    label: T;
     children?: ReactNode;
   };
 
-  function CustomTextInput(props: CustomTextInputProps, ref: ForwardedRef<TextInput>) {
+  function CustomTextInput<T>(props: CustomTextInputProps<T>, ref: ForwardedRef<TextInput>) {
     return (
       <View>
         <TextInput ref={ref} />
