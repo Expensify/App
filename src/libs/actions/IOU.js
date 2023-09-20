@@ -55,7 +55,14 @@ let allRecentlyUsedTags = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
     waitForCollectionCallback: true,
-    callback: (value) => (allRecentlyUsedTags = value),
+    callback: (value) => {
+        if (!value) {
+            allRecentlyUsedTags = {};
+            return;
+        }
+
+        allRecentlyUsedTags = value;
+    },
 });
 
 let userAccountID = '';
