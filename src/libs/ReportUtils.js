@@ -943,7 +943,8 @@ function getIconsForParticipants(participants, personalDetails) {
     for (let i = 0; i < participantsList.length; i++) {
         const accountID = participantsList[i];
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
-        participantDetails.push([accountID, lodashGet(personalDetails, [accountID, 'displayName']) || lodashGet(personalDetails, [accountID, 'login'], ''), avatarSource]);
+        const displayNameLogin = lodashGet(personalDetails, [accountID, 'displayName']) || lodashGet(personalDetails, [accountID, 'login'], '');
+        participantDetails.push([accountID, displayNameLogin, avatarSource]);
     }
 
     const sortedParticipantDetails = _.chain(participantDetails)
