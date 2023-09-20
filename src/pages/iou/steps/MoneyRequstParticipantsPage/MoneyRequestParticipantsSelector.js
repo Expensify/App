@@ -244,6 +244,12 @@ function MoneyRequestParticipantsSelector({
         });
     }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, isDistanceRequest]);
 
+    // Right now you can't split a request with a workspace and other additional participants
+    // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
+    // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
+    const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
+    const shouldShowConfirmButton = !(participants.length > 1 && hasPolicyExpenseChatParticipant);
+
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <OptionsSelector
@@ -259,7 +265,7 @@ function MoneyRequestParticipantsSelector({
                 ref={forwardedRef}
                 headerMessage={headerMessage}
                 boldStyle
-                shouldShowConfirmButton
+                shouldShowConfirmButton={shouldShowConfirmButton}
                 confirmButtonText={translate('iou.addToSplit')}
                 onConfirmSelection={navigateToSplit}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
