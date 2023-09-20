@@ -55,7 +55,7 @@ function SaveTheWorldPage(props) {
             shouldShowBackButton
             title={translate('sidebarScreen.saveTheWorld')}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SAVE_THE_WORLD.ROOT]}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)
+            onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             illustration={LottieAnimations.SaveTheWorld}
         >
             <View style={[styles.mb4, styles.justifyContentBetween, styles.mh5]}>
