@@ -5,6 +5,7 @@ import Log from './Log';
 import CONST from '../CONST';
 
 type EventCallbackError = {type: ValueOf<typeof CONST.ERROR>; data: {code: number}};
+type CustomAuthorizerChannel = {name: string};
 
 function init() {
     /**
@@ -13,7 +14,7 @@ function init() {
      * current valid token to generate the signed auth response
      * needed to subscribe to Pusher channels.
      */
-    Pusher.registerCustomAuthorizer((channel: {name: string}) => ({
+    Pusher.registerCustomAuthorizer((channel: CustomAuthorizerChannel) => ({
         authorize: (socketID: string, callback: () => void) => {
             Session.authenticatePusher(socketID, channel.name, callback);
         },
