@@ -1,15 +1,10 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
 /**
  * Set whether an attachment is being downloaded so that a spinner can be shown.
- *
- * @param {String} sourceID
- * @param {Boolean} isDownloading
- * @returns {Promise}
  */
-function setDownload(sourceID, isDownloading) {
+function setDownload(sourceID: string, isDownloading: boolean): Promise<void> {
     return Onyx.merge(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {isDownloading});
 }
 
@@ -19,9 +14,12 @@ function clearDownloads() {
         waitForCollectionCallback: true,
         callback: (records) => {
             Onyx.disconnect(connectionID);
-            const downloadsToDelete = {};
-            _.each(_.keys(records), (recordKey) => (downloadsToDelete[recordKey] = null));
-            if (!_.isEmpty(downloadsToDelete)) {
+            const downloadsToDelete: Record<string, null> = {};
+            Object.keys(records ?? {}).forEach((recordKey) => {
+                downloadsToDelete[recordKey] = null;
+            });
+
+            if (Object.keys(downloadsToDelete).length > 0) {
                 Onyx.multiSet(downloadsToDelete);
             }
         },

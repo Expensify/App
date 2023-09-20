@@ -4,17 +4,9 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
-import * as User from './User';
 import ROUTES from '../../ROUTES';
-
-function deletePayPalMe() {
-    User.deletePaypalMeAddress();
-    Growl.show(Localize.translateLocal('walletPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
-}
 
 /**
  * Sets up a ref to an instance of the KYC Wall component.
@@ -344,7 +336,6 @@ function deletePaymentCard(fundID) {
 }
 
 export {
-    deletePayPalMe,
     deletePaymentCard,
     addPaymentCard,
     openWalletPage,

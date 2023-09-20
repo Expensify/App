@@ -13,6 +13,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
+import * as Localize from '../Localize';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -913,6 +914,35 @@ function clearEditTaskErrors(reportID) {
     });
 }
 
+/**
+ * @param {string} actionName
+ * @param {string} reportID
+ * @param {boolean} isCreateTaskAction
+ * @returns {string}
+ */
+function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
+    const report = ReportUtils.getReport(reportID);
+    if (isCreateTaskAction) {
+        return `Created a task: ${report.reportName}`;
+    }
+    let taskStatusText = '';
+    switch (actionName) {
+        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
+            taskStatusText = Localize.translateLocal('task.messages.completed');
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED:
+            taskStatusText = Localize.translateLocal('task.messages.canceled');
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
+            taskStatusText = Localize.translateLocal('task.messages.reopened');
+            break;
+        default:
+            taskStatusText = Localize.translateLocal('task.task');
+    }
+
+    return `${taskStatusText} ${report.reportName}`;
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -934,4 +964,5 @@ export {
     getTaskAssigneeAccountID,
     clearEditTaskErrors,
     canModifyTask,
+    getTaskReportActionMessage,
 };
