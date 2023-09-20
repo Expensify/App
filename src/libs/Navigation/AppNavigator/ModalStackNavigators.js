@@ -552,13 +552,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsAddPayPalMePage = require('../../../pages/settings/Wallet/AddPayPalMePage').default;
-            return SettingsAddPayPalMePage;
-        },
-        name: 'Settings_Add_Paypal_Me',
-    },
-    {
-        getComponent: () => {
             const EnablePaymentsPage = require('../../../pages/EnablePayments/EnablePaymentsPage').default;
             return EnablePaymentsPage;
         },
@@ -760,6 +753,30 @@ const EditRequestStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const PrivateNotesModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const PrivateNotesPage = require('../../../pages/PrivateNotes/PrivateNotesViewPage').default;
+            return PrivateNotesPage;
+        },
+        name: 'PrivateNotes_View',
+    },
+    {
+        getComponent: () => {
+            const PrivateNotesListPage = require('../../../pages/PrivateNotes/PrivateNotesListPage').default;
+            return PrivateNotesListPage;
+        },
+        name: 'PrivateNotes_List',
+    },
+    {
+        getComponent: () => {
+            const PrivateNotesEditPage = require('../../../pages/PrivateNotes/PrivateNotesEditPage').default;
+            return PrivateNotesEditPage;
+        },
+        name: 'PrivateNotes_Edit',
+    },
+]);
+
 const SignInModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -790,6 +807,7 @@ export {
     WalletStatementStackNavigator,
     FlagCommentStackNavigator,
     EditRequestStackNavigator,
+    PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
     SignInModalStackNavigator,
 };
