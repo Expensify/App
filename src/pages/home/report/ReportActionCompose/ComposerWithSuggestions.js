@@ -207,6 +207,11 @@ function ComposerWithSuggestions({
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
+                // Ensure emoji suggestions are hidden even when the selection is not changed (so calculateEmojiSuggestion would not be called).
+                if (suggestionsRef.current) {
+                    suggestionsRef.current.resetSuggestions();
+                }
+
                 const remainder = ComposerUtils.getCommonSuffixLength(commentRef.current, newComment);
                 setSelection({
                     start: newComment.length - remainder,
@@ -234,7 +239,7 @@ function ComposerWithSuggestions({
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty, raiseIsScrollLikelyLayoutTriggered],
+        [debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty, suggestionsRef, raiseIsScrollLikelyLayoutTriggered],
     );
 
     /**

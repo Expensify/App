@@ -2555,6 +2555,12 @@ const styles = (theme) => ({
         opacity: 0,
     },
 
+    invisiblePopover: {
+        position: 'absolute',
+        opacity: 0,
+        left: -9999,
+    },
+
     containerWithSpaceBetween: {
         justifyContent: 'space-between',
         width: '100%',
@@ -3181,6 +3187,11 @@ const styles = (theme) => ({
         horizontal: windowWidth - 10,
     }),
 
+    threeDotsPopoverOffsetAttachmentModal: (windowWidth) => ({
+        ...getPopOverVerticalOffset(80),
+        horizontal: windowWidth - 140,
+    }),
+
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
         transform: [{scaleX: -1}, {scaleY: -1}],
@@ -3614,10 +3625,8 @@ const styles = (theme) => ({
     },
 
     reportHorizontalRule: {
-        borderBottomWidth: 1,
         borderColor: theme.border,
         ...spacing.mh5,
-        ...spacing.mv2,
     },
 
     assigneeTextStyle: {

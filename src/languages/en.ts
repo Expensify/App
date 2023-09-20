@@ -740,6 +740,15 @@ export default {
         copy: 'Copy',
         disable: 'Disable',
     },
+    recoveryCodeForm: {
+        error: {
+            pleaseFillRecoveryCode: 'Please enter your recovery code',
+            incorrectRecoveryCode: 'Incorrect recovery code. Please try again.',
+        },
+        useRecoveryCode: 'Use recovery code',
+        recoveryCode: 'Recovery code',
+        use2fa: 'Use two-factor authentication code',
+    },
     twoFactorAuthForm: {
         error: {
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
@@ -893,6 +902,7 @@ export default {
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
         enterAuthenticatorCode: 'Please enter your authenticator code',
+        enterRecoveryCode: 'Please enter your recovery code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: 'Request a new code in ',
         requestNewCodeAfterErrorOccurred: 'Request a new code',
