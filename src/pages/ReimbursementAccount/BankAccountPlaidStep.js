@@ -1,4 +1,5 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
+import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -41,6 +42,7 @@ const defaultProps = {
 
 function BankAccountPlaidStep(props) {
     const {plaidData, receivedRedirectURI, plaidLinkOAuthToken, reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField, translate} = props;
+    const isFocused = useIsFocused();
 
     const validate = useCallback((values) => {
         const errorFields = {};
@@ -50,6 +52,14 @@ function BankAccountPlaidStep(props) {
 
         return errorFields;
     }, []);
+
+    useEffect(() => {
+        const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts') || [];
+        if (isFocused || plaidBankAccounts.length) {
+            return;
+        }
+        BankAccounts.setBankAccountSubStep(null);
+    }, [isFocused, plaidData]);
 
     const submit = useCallback(() => {
         const selectedPlaidBankAccount = _.findWhere(lodashGet(plaidData, 'bankAccounts', []), {
@@ -103,7 +113,6 @@ function BankAccountPlaidStep(props) {
                     }}
                     plaidData={plaidData}
                     onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
-                    onBlurPlaid={() => BankAccounts.setBankAccountSubStep(null)}
                     receivedRedirectURI={receivedRedirectURI}
                     plaidLinkOAuthToken={plaidLinkOAuthToken}
                     allowDebit
