@@ -18,7 +18,7 @@ const propTypes = {
     currencyList: PropTypes.objectOf(
         PropTypes.shape({
             /** Symbol of the currency */
-            symbol: PropTypes.string,
+            symbol: PropTypes.string.isRequired,
         }),
     ),
     ...policyPropTypes,
@@ -29,45 +29,41 @@ const defaultProps = {
     ...policyDefaultProps,
 };
 
+const getDisplayText = (currencyCode, currencySymbol) => `${currencyCode} - ${currencySymbol}`;
+
 function WorkspaceSettingsCurrencyPage({currencyList, policy}) {
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
+    const trimmedText = searchText.trim().toLowerCase();
+    const currencyListKeys = _.keys(currencyList);
 
-    const getDisplayText = useCallback((currencyCode, currencySymbol) => `${currencyCode} - ${currencySymbol}`, []);
+    const filteredItems = _.filter(currencyListKeys, (currencyCode) => {
+        const currency = currencyList[currencyCode];
+        return getDisplayText(currencyCode, currency.symbol).toLowerCase().includes(trimmedText);
+    });
 
-    const {sections, initiallyFocusedOptionKey} = useMemo(() => {
-        const trimmedText = searchText.trim().toLowerCase();
-        const currencyListKeys = _.keys(currencyList);
+    let initiallyFocusedOptionKey;
 
-        const filteredItems = _.filter(currencyListKeys, (currencyCode) => {
-            const currency = currencyList[currencyCode];
-            return getDisplayText(currencyCode, currency.symbol).toLowerCase().includes(trimmedText);
-        });
+    const currencyItems = _.map(filteredItems, (currencyCode) => {
+        const currency = currencyList[currencyCode];
+        const isSelected = policy.outputCurrency === currencyCode;
 
-        let selectedCurrencyCode;
-
-        const currencyItems = _.map(filteredItems, (currencyCode) => {
-            const currency = currencyList[currencyCode];
-            const isSelected = policy.outputCurrency === currencyCode;
-
-            if (isSelected) {
-                selectedCurrencyCode = currencyCode;
-            }
-
-            return {
-                text: getDisplayText(currencyCode, currency.symbol),
-                keyForList: currencyCode,
-                isSelected,
-            };
-        });
+        if (isSelected) {
+            initiallyFocusedOptionKey = currencyCode;
+        }
 
         return {
-            sections: [{data: currencyItems, indexOffset: 0}],
-            initiallyFocusedOptionKey: selectedCurrencyCode,
+            text: getDisplayText(currencyCode, currency.symbol),
+            keyForList: currencyCode,
+            isSelected,
         };
-    }, [getDisplayText, currencyList, policy.outputCurrency, searchText]);
+    });
 
-    const headerMessage = Boolean(searchText.trim()) && !sections[0].data.length ? translate('common.noResultsFound') : '';
+    const sections = [{data: currencyItems, indexOffset: 0}];
+
+    const headerMessage = searchText.trim() && !sections[0].data.length ? translate('common.noResultsFound') : '';
+
+    const onBackButtonPress = useCallback(() => Navigation.goBack(ROUTES.getWorkspaceSettingsRoute(policy.id)), [policy.id]);
 
     const onSelectCurrency = (item) => {
         Policy.updateGeneralSettings(policy.id, policy.name, item.keyForList);
@@ -78,7 +74,7 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy}) {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={translate('workspace.editor.currencyInputLabel')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.getWorkspaceSettingsRoute(policy.id))}
+                onBackButtonPress={onBackButtonPress}
             />
 
             <SelectionList

@@ -31,7 +31,7 @@ const propTypes = {
     currencyList: PropTypes.objectOf(
         PropTypes.shape({
             /** Symbol of the currency */
-            symbol: PropTypes.string,
+            symbol: PropTypes.string.isRequired,
         }),
     ),
     ...policyPropTypes,
@@ -45,7 +45,7 @@ const defaultProps = {
 };
 
 function WorkspaceSettingsPage(props) {
-    const formattedCurrency = `${props.policy.outputCurrency} - ${props.currencyList[props.policy.outputCurrency].symbol}`;
+    const formattedCurrency = props.policy ? `${props.policy.outputCurrency} - ${props.currencyList[props.policy.outputCurrency].symbol}` : '';
 
     const submit = useCallback(
         (values) => {
@@ -87,7 +87,7 @@ function WorkspaceSettingsPage(props) {
                 <Form
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                     submitButtonText={props.translate('workspace.editor.save')}
-                    style={[styles.flexGrow1]}
+                    style={styles.flexGrow1}
                     scrollContextEnabled
                     validate={validate}
                     onSubmit={submit}
