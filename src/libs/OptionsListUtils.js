@@ -801,9 +801,9 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
     const filteredRecentlyUsedTags = _.map(
-        _.filter(recentlyUsedTags, (tag) => {
-            const tagObject = _.find(tags, (t) => t.name === tag);
-            return Boolean(tagObject && tagObject.enabled) && !_.includes(selectedOptionNames, tag);
+        _.filter(recentlyUsedTags, (recentlyUsedTag) => {
+            const tagObject = _.find(tags, (tag) => tag.name === recentlyUsedTag);
+            return Boolean(tagObject && tagObject.enabled) && !_.includes(selectedOptionNames, recentlyUsedTag);
         }),
         (tag) => ({name: tag, enabled: true}),
     );
@@ -811,7 +811,7 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
 
     if (!_.isEmpty(selectedOptions)) {
         const selectedTagOptions = _.map(selectedOptions, (option) => {
-            const tagObject = _.find(tags, (t) => t.name === option.name);
+            const tagObject = _.find(tags, (tag) => tag.name === option.name);
             return {
                 name: option.name,
                 enabled: Boolean(tagObject && tagObject.enabled),
