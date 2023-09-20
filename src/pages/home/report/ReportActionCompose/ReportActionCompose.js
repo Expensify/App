@@ -37,6 +37,7 @@ import getModalState from '../../../../libs/getModalState';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
 import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
+import useStateWithCallback from '../../../../hooks/useStateWithCallback';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -128,6 +129,8 @@ function ReportActionCompose({
         const draftComment = getDraftComment(reportID);
         return !draftComment || !!draftComment.match(/^(\s)*$/);
     });
+
+    const setIsCommentEmptyWithCallback = useStateWithCallback(isCommentEmpty, setIsCommentEmpty);
 
     /**
      * Updates the visibility state of the menu
@@ -380,7 +383,7 @@ function ReportActionCompose({
                                     disabled={disabled}
                                     isFullComposerAvailable={isFullComposerAvailable}
                                     setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                    setIsCommentEmpty={setIsCommentEmpty}
+                                    setIsCommentEmpty={setIsCommentEmptyWithCallback}
                                     submitForm={submitForm}
                                     shouldShowComposeInput={shouldShowComposeInput}
                                     onFocus={onFocus}

@@ -203,7 +203,20 @@ function ComposerWithSuggestions({
                 debouncedUpdateFrequentlyUsedEmojis();
             }
 
-            setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
+            const previousCommentLength = commentRef.current.length;
+
+            setIsCommentEmpty(!!newComment.match(/^(\s)*$/), () => {
+                // Indicate that draft has been created.
+                if (previousCommentLength === 0 && newComment.length !== 0) {
+                    Report.setReportWithDraft(reportID, true);
+                }
+
+                // The draft has been deleted.
+                if (newComment.length === 0) {
+                    Report.setReportWithDraft(reportID, false);
+                }
+            });
+
             setValue(newComment);
             if (commentValue !== newComment) {
                 // Ensure emoji suggestions are hidden even when the selection is not changed (so calculateEmojiSuggestion would not be called).
@@ -216,16 +229,6 @@ function ComposerWithSuggestions({
                     start: newComment.length - remainder,
                     end: newComment.length - remainder,
                 });
-            }
-
-            // Indicate that draft has been created.
-            if (commentRef.current.length === 0 && newComment.length !== 0) {
-                Report.setReportWithDraft(reportID, true);
-            }
-
-            // The draft has been deleted.
-            if (newComment.length === 0) {
-                Report.setReportWithDraft(reportID, false);
             }
 
             commentRef.current = newComment;
