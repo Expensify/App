@@ -113,7 +113,7 @@ export default {
                                 path: ROUTES.SETTINGS_TIMEZONE_SELECT,
                                 exact: true,
                             },
-                            Settings_About: {
+                            [SCREENS.SETTINGS.ABOUT]: {
                                 path: ROUTES.SETTINGS_ABOUT,
                                 exact: true,
                             },

@@ -14,6 +14,7 @@ export default {
     SETTINGS: {
         PREFERENCES: 'Settings_Preferences',
         WORKSPACES: 'Settings_Workspaces',
+        ABOUT: 'Settings_About',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',

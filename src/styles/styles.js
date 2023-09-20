@@ -410,6 +410,10 @@ const styles = (theme) => ({
         color: theme.link,
     },
 
+    textIvoryLight: {
+        color: theme.iconColorfulBackground,
+    },
+
     textUppercase: {
         textTransform: 'uppercase',
     },
@@ -3985,9 +3989,6 @@ const styles = (theme) => ({
     draggableTopBar: {
         height: 30,
         width: '100%',
-    },
-    versionTextColor: {
-        color: `${Colors.ivory}cc`,
     },
 });
 

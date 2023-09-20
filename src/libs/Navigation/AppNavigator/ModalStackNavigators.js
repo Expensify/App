@@ -513,7 +513,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsAboutPage = require('../../../pages/settings/AboutPage/AboutPage').default;
             return SettingsAboutPage;
         },
-        name: 'Settings_About',
+        name: SCREENS.SETTINGS.ABOUT,
     },
     {
         getComponent: () => {

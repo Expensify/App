@@ -91,7 +91,7 @@ darkTheme.PAGE_BACKGROUND_COLORS = {
     [ROUTES.SETTINGS_STATUS]: colors.green700,
     [ROUTES.I_KNOW_A_TEACHER]: colors.tangerine800,
     [ROUTES.SETTINGS_SECURITY]: colors.ice500,
-    [ROUTES.SETTINGS_ABOUT]: colors.yellow600,
+    [SCREENS.SETTINGS.ABOUT]: colors.yellow600,
 };
 
 export default darkTheme;
