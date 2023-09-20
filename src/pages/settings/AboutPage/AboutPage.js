@@ -100,24 +100,23 @@ function AboutPage(props) {
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ABOUT]}
             overlayContent={overlayContent}
         >
-            <View style={[styles.flex1]}>
-                <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter, styles.ph5]}>
-                    <Text style={[styles.baseFontStyle]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
-                </View>
-                {_.map(menuItems, (item) => (
-                    <MenuItem
-                        key={item.translationKey}
-                        title={props.translate(item.translationKey)}
-                        icon={item.icon}
-                        iconRight={item.iconRight}
-                        onPress={() => item.action()}
-                        shouldBlockSelection={Boolean(item.link)}
-                        onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined}
-                        ref={(el) => (popoverAnchor = el)}
-                        shouldShowRightIcon
-                    />
-                ))}
+            <View style={[styles.settingsPageBody, styles.ph5]}>
+                <Text style={[styles.textHeadline, styles.mb1]}>{props.translate('footer.aboutExpensify')}</Text>
+                <Text style={[styles.baseFontStyle, styles.mb4]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
             </View>
+            {_.map(menuItems, (item) => (
+                <MenuItem
+                    key={item.translationKey}
+                    title={props.translate(item.translationKey)}
+                    icon={item.icon}
+                    iconRight={item.iconRight}
+                    onPress={() => item.action()}
+                    shouldBlockSelection={Boolean(item.link)}
+                    onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined}
+                    ref={(el) => (popoverAnchor = el)}
+                    shouldShowRightIcon
+                />
+            ))}
             <View style={[styles.sidebarFooter]}>
                 <Text
                     style={[styles.chatItemMessageHeaderTimestamp]}
