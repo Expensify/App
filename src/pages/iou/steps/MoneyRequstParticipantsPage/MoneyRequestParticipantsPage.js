@@ -19,7 +19,6 @@ import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import * as TransactionUtils from '../../../../libs/TransactionUtils';
 
-
 const propTypes = {
     /** React Navigation route */
     route: PropTypes.shape({
@@ -98,7 +97,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
         return () => {
             prevMoneyRequestId.current = iou.id;
         };
-    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest]);
+    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, isEmptyWaypoint]);
 
     return (
         <ScreenWrapper
