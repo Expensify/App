@@ -1,4 +1,4 @@
-import waitForPromisesToResolve from './waitForPromisesToResolve';
+import waitForBatchedUpdates from './waitForBatchedUpdates';
 
 /**
  * When we change data in onyx, the listeners (components) will be notified
@@ -10,11 +10,11 @@ import waitForPromisesToResolve from './waitForPromisesToResolve';
  *
  * @param {Object} onyxInstance
  */
-export default function wrapOnyxWithWaitForPromisesToResolve(onyxInstance) {
+export default function wrapOnyxWithWaitForBatchedUpdates(onyxInstance) {
     const multiSetImpl = onyxInstance.multiSet;
     // eslint-disable-next-line no-param-reassign
-    onyxInstance.multiSet = (...args) => multiSetImpl(...args).then((result) => waitForPromisesToResolve().then(() => result));
+    onyxInstance.multiSet = (...args) => multiSetImpl(...args).then((result) => waitForBatchedUpdates().then(() => result));
     const mergeImpl = onyxInstance.merge;
     // eslint-disable-next-line no-param-reassign
-    onyxInstance.merge = (...args) => mergeImpl(...args).then((result) => waitForPromisesToResolve().then(() => result));
+    onyxInstance.merge = (...args) => mergeImpl(...args).then((result) => waitForBatchedUpdates().then(() => result));
 }

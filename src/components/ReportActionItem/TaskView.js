@@ -27,6 +27,7 @@ import getButtonState from '../../libs/getButtonState';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as Session from '../../libs/actions/Session';
 import * as Expensicons from '../Icon/Expensicons';
+import SpacerView from '../SpacerView';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -158,7 +159,10 @@ function TaskView(props) {
                     />
                 )}
             </OfflineWithFeedback>
-            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
+            <SpacerView
+                shouldShow={props.shouldShowHorizontalRule}
+                style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+            />
         </View>
     );
 }
