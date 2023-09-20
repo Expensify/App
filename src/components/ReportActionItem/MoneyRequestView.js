@@ -64,7 +64,7 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({betas, report, parentReport, shouldShowHorizontalRule, transaction}) {
+function MoneyRequestView({betas, report, parentReport, shouldShowHorizontalRule, transaction, policy}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -83,7 +83,7 @@ function MoneyRequestView({betas, report, parentReport, shouldShowHorizontalRule
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
-    const shouldShowBillable = Permissions.canUseTags(betas);
+    const shouldShowBillable = Permissions.canUseTags(betas) && !lodashGet(policy, 'disabledFields.defaultBillable', true);
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
