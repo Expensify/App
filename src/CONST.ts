@@ -2638,6 +2638,7 @@ const CONST = {
     INDENTS: '    ',
     PARENT_CHILD_SEPARATOR: ': ',
     CATEGORY_LIST_THRESHOLD: 8,
+    TAG_LIST_THRESHOLD: 8,
     DEMO_PAGES: {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',
