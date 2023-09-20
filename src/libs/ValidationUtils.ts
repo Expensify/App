@@ -1,6 +1,9 @@
 import {subYears, addYears, startOfDay, endOfMonth, parse, isAfter, isBefore, isValid, isWithinInterval, isSameDay, format} from 'date-fns';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import isDate from 'lodash/isDate';
+import isEmpty from 'lodash/isEmpty';
+import isObject from 'lodash/isObject';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
@@ -67,16 +70,16 @@ function isValidPastDate(date: string | Date): boolean {
 /**
  * Used to validate a value that is "required".
  */
-// TODO: Ask Fabio about this
-function isRequiredFulfilled(value: string | Date | Array<any> | Object): boolean {
+function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
     if (typeof value === 'string') {
         return value.trim().length > 0;
     }
-    if (Object.prototype.toString.call(value) === '[object Date]') {
+
+    if (isDate(value)) {
         return isValidDate(value);
     }
-    if (_.isArray(value) || _.isObject(value)) {
-        return !_.isEmpty(value);
+    if (Array.isArray(value) || isObject(value)) {
+        return !isEmpty(value);
     }
     return Boolean(value);
 }
@@ -234,7 +237,7 @@ function validateIdentity(identity: Record<string, string>): Record<string, bool
 
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean) {
     const phone = phoneNumber || '';
-    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : null;
+    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
 
     const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
     return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
