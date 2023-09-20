@@ -1,7 +1,7 @@
 import {PanResponder} from 'react-native';
 
 const responder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
     onPanResponderTerminationRequest: () => false,
 });
 
