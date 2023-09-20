@@ -13,8 +13,7 @@ const removeEvent = (reportID: string, reportActionID: string, eventID: string, 
                 [reportActionID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     originalMessage: {
-                        // TODO: remove underscore
-                        events: _.reject(events, (event) => event.id === eventID),
+                        events: events.filter((event) => event.id !== eventID),
                     },
                 },
             },
