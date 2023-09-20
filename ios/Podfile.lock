@@ -783,7 +783,7 @@ PODS:
     - React-Core
   - RNReactNativeHapticFeedback (1.14.0):
     - React-Core
-  - RNReanimated (3.5.2):
+  - RNReanimated (3.5.3):
     - DoubleConversion
     - FBLazyVector
     - glog
@@ -1298,7 +1298,7 @@ SPEC CHECKSUMS:
   rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
   RNPermissions: dcdb7b99796bbeda6975a6e79ad519c41b251b1c
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
-  RNReanimated: 2491645f0883526f4470d8b5c761308709ba31f8
+  RNReanimated: e037aac4d8b0055a399f5af065e8210f6c8cc900
   RNScreens: d037903436160a4b039d32606668350d2a808806
   RNSVG: 53c661b76829783cdaf9b7a57258f3d3b4c28315
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
