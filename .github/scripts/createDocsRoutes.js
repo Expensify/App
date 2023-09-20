@@ -6,6 +6,10 @@ const warn = (platform) => `Number of hubs in _routes.yml does not match number 
 const disclaimer = '# This file is auto-generated. Do not edit it directly. Use npm run createDocsRoutes instead.\n';
 const docsDir = `${process.cwd()}/docs`;
 const routes = yaml.load(fs.readFileSync(`${docsDir}/_data/_routes.yml`, 'utf8'));
+const platformNames = {
+    expensifyClassic: 'expensify-classic',
+    newExpensify: 'new-expensify',
+};
 
 /**
  * @param {String} str - The string to convert to title case
@@ -45,24 +49,24 @@ function pushOrCreateEntry(hubs, hub, key, entry) {
 }
 
 function run() {
-    const newExpensifyHubs = fs.readdirSync(`${docsDir}/articles/new-expensify`);
-    const expensifyClassicHubs = fs.readdirSync(`${docsDir}/articles/expensify-classic`);
+    const expensifyClassicArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.expensifyClassic}`);
+    const newExpensifyArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.newExpensify}`);
 
-    const newExpensifyRoute = routes.platforms.find((platform) => platform.href === "new-expensify");
-    const expensifyClassicRoute = routes.platforms.find((platform) => platform.href === "expensify-classic");
+    const expensifyClassicRoute = routes.platforms.find((platform) => platform.href === platformNames.expensifyClassic);
+    const newExpensifyRoute = routes.platforms.find((platform) => platform.href === platformNames.newExpensify);
 
-    if (expensifyClassicHubs.length !== expensifyClassicRoute.hubs.length) {
-        console.error(warn("expensify-classic"));
+    if (expensifyClassicArticleHubs.length !== expensifyClassicRoute.hubs.length) {
+        console.error(warn(platformNames.expensifyClassic));
         return 1;
     }
 
-    if (newExpensifyHubs.length !== newExpensifyRoute.hubs.length) {
-        console.error(warn("new-expensify"));
+    if (newExpensifyArticleHubs.length !== newExpensifyRoute.hubs.length) {
+        console.error(warn(platformNames.newExpensify));
         return 1;
     }
 
-    createHubsWithArticles(expensifyClassicHubs, "expensify-classic", expensifyClassicRoute.hubs);
-    createHubsWithArticles(newExpensifyHubs, "new-expensify", newExpensifyRoute.hubs);
+    createHubsWithArticles(expensifyClassicArticleHubs, platformNames.expensifyClassic, expensifyClassicRoute.hubs);
+    createHubsWithArticles(newExpensifyArticleHubs, platformNames.newExpensify, newExpensifyRoute.hubs);
 
     // Convert the object to YAML and write it to the file
     let yamlString = yaml.dump(routes);
@@ -70,7 +74,12 @@ function run() {
     fs.writeFileSync(`${docsDir}/_data/routes.yml`, yamlString);
 }
 
-
+/**
+ * Add articles and sections to hubs
+ * @param {Array} hubs - The hubs inside docs/articles/ for a platform
+ * @param {String} platformName - Expensify Classic or New Expensify
+ * @param {Array} routeHubs - The hubs insude docs/data/_routes.yml for a platform
+ */
 function createHubsWithArticles(hubs, platformName, routeHubs) {
     _.each(hubs, (hub) => {
         // Iterate through each directory in articles
