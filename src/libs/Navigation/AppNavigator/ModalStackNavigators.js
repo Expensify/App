@@ -601,6 +601,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const WorkspaceSettingsCurrencyPage = require('../../../pages/workspace/WorkspaceSettingsCurrencyPage').default;
+            return WorkspaceSettingsCurrencyPage;
+        },
+        name: 'Workspace_Settings_Currency',
+    },
+    {
+        getComponent: () => {
             const WorkspaceCardPage = require('../../../pages/workspace/card/WorkspaceCardPage').default;
             return WorkspaceCardPage;
         },

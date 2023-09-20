@@ -1,8 +1,7 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -12,7 +11,6 @@ import * as Policy from '../../libs/actions/Policy';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import CONST from '../../CONST';
-import Picker from '../../components/Picker';
 import TextInput from '../../components/TextInput';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
@@ -25,6 +23,8 @@ import Avatar from '../../components/Avatar';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
+import Text from '../../components/Text';
 
 const propTypes = {
     // The currency list constant object from Onyx
@@ -45,25 +45,19 @@ const defaultProps = {
 };
 
 function WorkspaceSettingsPage(props) {
-    const currencyItems = useMemo(() => {
-        const currencyListKeys = _.keys(props.currencyList);
-        return _.map(currencyListKeys, (currencyCode) => ({
-            value: currencyCode,
-            label: `${currencyCode} - ${props.currencyList[currencyCode].symbol}`,
-        }));
-    }, [props.currencyList]);
+    const formattedCurrency = `${props.policy.outputCurrency} - ${props.currencyList[props.policy.outputCurrency].symbol}`;
 
     const submit = useCallback(
         (values) => {
             if (props.policy.isPolicyUpdating) {
                 return;
             }
-            const outputCurrency = values.currency;
-            Policy.updateGeneralSettings(props.policy.id, values.name.trim(), outputCurrency);
+
+            Policy.updateGeneralSettings(props.policy.id, values.name.trim(), props.policy.outputCurrency);
             Keyboard.dismiss();
             Navigation.goBack(ROUTES.getWorkspaceInitialRoute(props.policy.id));
         },
-        [props.policy.id, props.policy.isPolicyUpdating],
+        [props.policy.id, props.policy.isPolicyUpdating, props.policy.outputCurrency],
     );
 
     const validate = useCallback((values) => {
@@ -93,7 +87,7 @@ function WorkspaceSettingsPage(props) {
                 <Form
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                     submitButtonText={props.translate('workspace.editor.save')}
-                    style={[styles.mh5, styles.flexGrow1]}
+                    style={[styles.flexGrow1]}
                     scrollContextEnabled
                     validate={validate}
                     onSubmit={submit}
@@ -136,20 +130,22 @@ function WorkspaceSettingsPage(props) {
                             inputID="name"
                             label={props.translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={props.translate('workspace.editor.nameInputLabel')}
-                            containerStyles={[styles.mt4]}
+                            containerStyles={[styles.mt4, styles.mh5]}
                             defaultValue={props.policy.name}
                             maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                             spellCheck={false}
                         />
                         <View style={[styles.mt4]}>
-                            <Picker
-                                inputID="currency"
-                                label={props.translate('workspace.editor.currencyInputLabel')}
-                                items={currencyItems}
-                                isDisabled={hasVBA}
-                                defaultValue={props.policy.outputCurrency}
-                                hintText={hasVBA ? props.translate('workspace.editor.currencyInputDisabledText') : props.translate('workspace.editor.currencyInputHelpText')}
+                            <MenuItemWithTopDescription
+                                title={formattedCurrency}
+                                description={props.translate('workspace.editor.currencyInputLabel')}
+                                shouldShowRightIcon
+                                disabled={hasVBA}
+                                onPress={() => Navigation.navigate(ROUTES.getWorkspaceSettingsCurrencyRoute(props.policy.id))}
                             />
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.mt2, styles.mh5]}>
+                                {hasVBA ? props.translate('workspace.editor.currencyInputDisabledText') : props.translate('workspace.editor.currencyInputHelpText')}
+                            </Text>
                         </View>
                     </OfflineWithFeedback>
                 </Form>
