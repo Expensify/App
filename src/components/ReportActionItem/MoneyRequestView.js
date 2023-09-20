@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -90,8 +90,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
     // A flag for showing categories
-    const shouldShowCategory =
-        isPolicyExpenseChat && Permissions.canUseCategories(betas) && (!_.isEmpty(transactionCategory) || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
+    const shouldShowCategory = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
