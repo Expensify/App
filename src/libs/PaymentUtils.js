@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import BankAccount from './models/BankAccount';
-import * as Expensicons from '../components/Icon/Expensicons';
 import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -26,14 +25,11 @@ function hasExpensifyPaymentMethod(fundList = [], bankAccountList = []) {
 }
 
 /**
- * @param {String} [accountType] - one of {'bankAccount', 'debitCard', 'payPalMe'}
+ * @param {String} [accountType] - one of {'bankAccount', 'debitCard'}
  * @param {Object} account
  * @returns {String}
  */
 function getPaymentMethodDescription(accountType, account) {
-    if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
-        return account.username;
-    }
     if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
         return `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber.slice(-4)}`;
     }
@@ -47,10 +43,9 @@ function getPaymentMethodDescription(accountType, account) {
  * Get the PaymentMethods list
  * @param {Array} bankAccountList
  * @param {Array} fundList
- * @param {Object} [payPalMeData = null]
  * @returns {Array<PaymentMethod>}
  */
-function formatPaymentMethods(bankAccountList, fundList, payPalMeData = null) {
+function formatPaymentMethods(bankAccountList, fundList) {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
@@ -81,14 +76,6 @@ function formatPaymentMethods(bankAccountList, fundList, payPalMeData = null) {
             pendingAction: card.pendingAction,
         });
     });
-
-    if (!_.isEmpty(payPalMeData)) {
-        combinedPaymentMethods.push({
-            ...payPalMeData,
-            description: getPaymentMethodDescription(payPalMeData.accountType, payPalMeData.accountData),
-            icon: Expensicons.PayPal,
-        });
-    }
 
     return combinedPaymentMethods;
 }
