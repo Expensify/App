@@ -97,10 +97,14 @@ function BaseReportActionContextMenu(props) {
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
-        () => {
+        (event) => {
+            // Ensures the event does not cause side-effects beyond the context menu, e.g. when an outside element is focused
+            event.stopPropagation();
+
             if (!menuItemRefs.current[focusedIndex]) {
                 return;
             }
+
             menuItemRefs.current[focusedIndex].triggerPressAndUpdateSuccess();
             setFocusedIndex(-1);
         },
