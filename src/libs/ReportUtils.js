@@ -87,7 +87,9 @@ function getChatType(report) {
  * @returns {Object}
  */
 function getPolicy(policyID) {
-    if (!allPolicies || !policyID) return {};
+    if (!allPolicies || !policyID) {
+        return {};
+    }
     return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] || {};
 }
 
@@ -272,7 +274,9 @@ function sortReportsByLastRead(reports) {
  * @returns {Boolean}
  */
 function isSettled(reportID) {
-    if (!allReports) return false;
+    if (!allReports) {
+        return false;
+    }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
     if ((typeof report === 'object' && Object.keys(report).length === 0) || report.isWaitingOnBankAccount) {
         return false;
@@ -2644,11 +2648,12 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @param {String} parentReportID - Report ID of the chat where the Task is.
  * @param {String} title - Task title.
  * @param {String} description - Task description.
+ * @param {String | undefined} policyID - PolicyID of the parent report
  *
  * @returns {Object}
  */
 
-function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parentReportID, title, description) {
+function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parentReportID, title, description, policyID = undefined) {
     return {
         reportID: generateReportID(),
         reportName: title,
@@ -2660,6 +2665,7 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
         parentReportID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS.OPEN,
+        ...(_.isUndefined(policyID) ? {} : {policyID}),
     };
 }
 
