@@ -334,7 +334,7 @@ const NewTeachersUniteNavigator = createModalStackNavigator([
             const SaveTheWorldPage = require('../../../pages/TeachersUnite/SaveTheWorldPage').default;
             return SaveTheWorldPage;
         },
-        name: 'SaveTheWorld_Root',
+        name: SCREENS.SAVE_THE_WORLD.ROOT,
     },
     {
         getComponent: () => {
@@ -365,7 +365,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsInitialPage = require('../../../pages/settings/InitialSettingsPage').default;
             return SettingsInitialPage;
         },
-        name: 'Settings_Root',
+        name: SCREENS.SETTINGS.ROOT,
     },
     {
         getComponent: () => {
@@ -506,7 +506,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsSecurityPage = require('../../../pages/settings/Security/SecuritySettingsPage').default;
             return SettingsSecurityPage;
         },
-        name: 'Settings_Security',
+        name: SCREENS.SETTINGS.SECURITY,
     },
     {
         getComponent: () => {
@@ -576,7 +576,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsStatus = require('../../../pages/settings/Profile/CustomStatus/StatusPage').default;
             return SettingsStatus;
         },
-        name: 'Settings_Status',
+        name: SCREENS.SETTINGS.STATUS,
     },
     {
         getComponent: () => {
