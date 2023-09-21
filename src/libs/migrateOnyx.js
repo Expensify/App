@@ -18,7 +18,6 @@ export default function () {
             MoveToIndexedDB,
             RenameActiveClientsKey,
             RenamePriorityModeKey,
-
             AddEncryptedAuthToken,
             AddLastVisibleActionCreated,
             KeyReportActionsByReportActionID,
