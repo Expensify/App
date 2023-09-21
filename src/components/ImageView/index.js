@@ -143,11 +143,16 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
      */
     const onContainerPress = (e) => {
         if (!isZoomed && !isDragging) {
-            const {offsetX, offsetY} = e.nativeEvent;
-            // Dividing clicked positions by the zoom scale to get coordinates
-            // so that once we zoom we will scroll to the clicked location.
-            const delta = getScrollOffset(offsetX / zoomScale, offsetY / zoomScale);
-            setZoomDelta(delta);
+            if (e.nativeEvent) {
+                const {offsetX, offsetY} = e.nativeEvent;
+
+                // Dividing clicked positions by the zoom scale to get coordinates
+                // so that once we zoom we will scroll to the clicked location.
+                const delta = getScrollOffset(offsetX / zoomScale, offsetY / zoomScale);
+                setZoomDelta(delta);
+            } else {
+                setZoomDelta({offsetX: 0, offsetY: 0});
+            }
         }
 
         if (isZoomed && isDragging && isMouseDown) {
