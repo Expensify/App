@@ -21,6 +21,10 @@ import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReac
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import * as Task from '../../../../libs/actions/Task';
+import * as Localize from '../../../../libs/Localize';
+import * as TransactionUtils from '../../../../libs/TransactionUtils';
+import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -182,10 +186,11 @@ export default [
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
+            const isCreateTaskAction = ReportActionsUtils.isCreatedTaskReportAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const originalMessage = _.get(reportAction, 'originalMessage', {});
-            const messageHtml = isTaskAction ? lodashGet(originalMessage, 'html', '') : lodashGet(message, 'html', '');
+            const reportID = lodashGet(reportAction, 'originalMessage.taskReportID', '').toString();
+            const messageHtml = isTaskAction || isCreateTaskAction ? Task.getTaskReportActionMessage(reportAction.actionName, reportID, isCreateTaskAction) : lodashGet(message, 'html', '');
 
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             if (!isAttachment) {
@@ -197,6 +202,16 @@ export default [
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
+                } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+                    const originalMessage = _.get(reportAction, 'originalMessage', {});
+                    const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
+                    const {amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
+                    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+                    const displaymessage = Localize.translateLocal('iou.requestedAmount', {
+                        formattedAmount,
+                        comment,
+                    });
+                    Clipboard.setString(displaymessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {

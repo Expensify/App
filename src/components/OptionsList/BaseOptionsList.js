@@ -174,7 +174,11 @@ function BaseOptionsList({
     const renderItem = ({item, index, section}) => {
         const isItemDisabled = isDisabled || section.isDisabled || !!item.isDisabled;
         const isSelected = _.some(selectedOptions, (option) => {
-            if (option.accountID === item.accountID) {
+            if (option.accountID && option.accountID === item.accountID) {
+                return true;
+            }
+
+            if (option.reportID && option.reportID === item.reportID) {
                 return true;
             }
 
