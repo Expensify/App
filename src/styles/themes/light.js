@@ -34,7 +34,7 @@ const lightTheme = {
     signInPage: colors.green800,
 
     // Additional keys
-    overlay: colors.lightHighlightBackground,
+    overlay: colors.lightRightHandPanelOverlay,
     inverse: colors.lightPrimaryText,
     shadow: colors.black,
     componentBG: colors.lightAppBackground,
@@ -80,7 +80,6 @@ const lightTheme = {
     skeletonLHNOut: colors.lightDefaultButtonPressed,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
-    overlayBG: colors.lightRightHandSideOverlay,
     loungeAccessOverlay: colors.blue800,
 };
 

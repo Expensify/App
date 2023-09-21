@@ -36,7 +36,7 @@ const darkTheme = {
     signInPage: colors.green800,
 
     // Additional keys
-    overlay: colors.darkHighlightBackground,
+    overlay: colors.darkRightHandPanelOverlay,
     inverse: colors.darkPrimaryText,
     shadow: colors.black,
     componentBG: colors.darkAppBackground,
@@ -82,7 +82,6 @@ const darkTheme = {
     skeletonLHNOut: colors.darkDefaultButton,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
-    overlayBG: colors.darkRightHandSideOverlay,
     loungeAccessOverlay: colors.blue800,
 };
 
