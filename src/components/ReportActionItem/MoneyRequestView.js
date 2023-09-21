@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
@@ -18,6 +17,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
@@ -104,8 +104,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
 
     // Fetches only the first tag, for now
-    const policyTagKey = _.first(_.keys(policyTags));
-    const policyTagsList = lodashGet(policyTags, [policyTagKey, 'tags'], {});
+    const policyTag = PolicyUtils.getTag(policyTags);
+    const policyTagsList = lodashGet(policyTag, 'tags', {});
 
     // Flags for showing categories and tags
     const shouldShowCategory = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
@@ -222,7 +222,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
             {shouldShowTag && (
                 <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
                     <MenuItemWithTopDescription
-                        description={policyTagKey || translate('common.tag')}
+                        description={lodashGet(policyTag, 'name') || translate('common.tag')}
                         title={transactionTag}
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}

@@ -166,6 +166,39 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
     return memberEmailsToExclude;
 }
 
+/**
+ * Fetches the tag from policy tags, defaults to the first if no key is provided.
+ *
+ * @param {Object} policyTags
+ * @param {String} [tagKey]
+ * @returns {String}
+ */
+function getTag(policyTags, tagKey) {
+    if (!policyTags) {
+        return '';
+    }
+
+    const policyTagKey = tagKey || _.first(_.keys(policyTags));
+
+    return lodashGet(policyTags, policyTagKey);
+}
+
+/**
+ * Fetches the first tag name from policy tags.
+ *
+ * @param {Object} policyTags
+ * @returns {String}
+ */
+function getTagListName(policyTags) {
+    if (!policyTags) {
+        return '';
+    }
+
+    const policyTagKeys = _.keys(policyTags) || [];
+
+    return lodashGet(policyTags, [_.first(policyTagKeys), 'name'], '');
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -179,4 +212,6 @@ export {
     isPolicyAdmin,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
+    getTag,
+    getTagListName,
 };

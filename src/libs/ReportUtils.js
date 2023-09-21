@@ -1584,7 +1584,12 @@ function getModifiedExpenseMessage(reportAction) {
 
     const hasModifiedTag = _.has(reportActionOriginalMessage, 'oldTag') && _.has(reportActionOriginalMessage, 'tag');
     if (hasModifiedTag) {
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.tag, reportActionOriginalMessage.oldTag, Localize.translateLocal('common.tag'), true);
+        return getProperSchemaForModifiedExpenseMessage(
+            reportActionOriginalMessage.tag,
+            reportActionOriginalMessage.oldTag,
+            reportActionOriginalMessage.tagListName || Localize.translateLocal('common.tag'),
+            true,
+        );
     }
 }
 
@@ -1634,6 +1639,7 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     if (_.has(transactionChanges, 'tag')) {
         originalMessage.oldTag = TransactionUtils.getTag(oldTransaction);
         originalMessage.tag = transactionChanges.tag;
+        originalMessage.tagListName = transactionChanges.tagListName;
     }
 
     return originalMessage;

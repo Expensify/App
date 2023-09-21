@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import useLocalize from '../../hooks/useLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -60,8 +61,7 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
 
     // Fetches the first tag list of the policy
     const tagListKey = _.first(_.keys(policyTags));
-    const tagList = lodashGet(policyTags, tagListKey, {});
-    const tagListName = lodashGet(tagList, 'name', translate('common.tag'));
+    const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, report.reportID));
@@ -82,10 +82,10 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={tagListName}
+                title={policyTagListName}
                 onBackButtonPress={navigateBack}
             />
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: tagListName})}</Text>
+            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
             <TagPicker
                 policyID={report.policyID}
                 tag={tagListKey}

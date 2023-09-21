@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
@@ -9,6 +8,7 @@ import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as PolicyUtils from '../libs/PolicyUtils';
 import * as TransactionUtils from '../libs/TransactionUtils';
 import * as Policy from '../libs/actions/Policy';
 import * as IOU from '../libs/actions/IOU';
@@ -108,7 +108,7 @@ function EditRequestPage({report, route, parentReport, policy, session, policyTa
     const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
 
     // For now, it always defaults to the first tag of the policy
-    const tagName = _.first(_.keys(policyTags));
+    const tagListName = PolicyUtils.getTagListName(policyTags);
 
     // Dismiss the modal when the request is paid or deleted
     useEffect(() => {
@@ -218,7 +218,7 @@ function EditRequestPage({report, route, parentReport, policy, session, policyTa
         return (
             <EditRequestTagPage
                 defaultTag={transactionTag}
-                tagName={tagName}
+                tagName={tagListName}
                 policyID={lodashGet(report, 'policyID', '')}
                 onSubmit={(transactionChanges) => {
                     let updatedTag = transactionChanges.tag;
@@ -227,7 +227,7 @@ function EditRequestPage({report, route, parentReport, policy, session, policyTa
                     if (transactionTag === updatedTag) {
                         updatedTag = '';
                     }
-                    editMoneyRequest({tag: updatedTag});
+                    editMoneyRequest({tag: updatedTag, tagListName});
                 }}
             />
         );
