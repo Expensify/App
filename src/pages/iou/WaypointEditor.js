@@ -26,6 +26,7 @@ import transactionPropTypes from '../../components/transactionPropTypes';
 import * as User from '../../libs/actions/User';
 import UserCurrentLocationButton from '../../components/UserCurrentLocationButton';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** The transactionID of the IOU */
@@ -108,16 +109,26 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         const errors = {};
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
-            errors[`waypoint${waypointIndex}`] = 'bankAccount.error.address';
+            ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'bankAccount.error.address');
         }
 
         // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
-            errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
+            ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'distance.errors.selectSuggestedAddress');
         }
 
         return errors;
+    };
+
+    const saveWaypoint = (waypoint) => {
+        if (parsedWaypointIndex < _.size(allWaypoints)) {
+            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+        } else {
+            const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
+            Transaction.saveWaypoint(transactionID, waypointIndex, finishWaypoint);
+            Transaction.saveWaypoint(transactionID, waypointIndex - 1, waypoint);
+        }
     };
 
     const onSubmit = (values) => {
@@ -136,8 +147,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                 lng: null,
                 address: waypointValue,
             };
-
-            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+            saveWaypoint(waypoint);
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
@@ -156,9 +166,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             lng: values.lng,
             address: values.address,
         };
-
         User.clearLocationError();
-        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+        saveWaypoint(waypoint);
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
@@ -189,7 +198,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             shouldEnableMaxHeight
         >
-            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount - 1) && isFocused}>
+            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount) && isFocused}>
                 <HeaderWithBackButton
                     title={translate(wayPointDescriptionKey)}
                     shouldShowBackButton
@@ -230,7 +239,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                         <AddressSearch
                             inputID={`waypoint${waypointIndex}`}
                             ref={(e) => (textInput.current = e)}
-                            hint={!isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
+                            hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}

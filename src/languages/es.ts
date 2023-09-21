@@ -69,6 +69,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    FormattedMaxLengthParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
     EnglishTranslation,
@@ -280,6 +281,7 @@ export default {
     composer: {
         noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
+        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `El comentario debe tener máximo ${formattedMaxLength} caracteres.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Actualizar app',
@@ -542,6 +544,7 @@ export default {
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero`,
         error: {
+            invalidAmount: 'Por favor ingresa un monto válido antes de continuar.',
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
@@ -732,6 +735,7 @@ export default {
         keepCodesSafe: '¡Guarda los códigos de recuperación en un lugar seguro!',
         codesLoseAccess:
             'Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta. \n\nNota: Configurar la autenticación de dos factores cerrará la sesión de todas las demás sesiones activas.',
+        errorStepCodes: 'Copia o descarga los códigos antes de continuar.',
         stepVerify: 'Verificar',
         scanCode: 'Escanea el código QR usando tu',
         authenticatorApp: 'aplicación de autenticación',
@@ -742,6 +746,15 @@ export default {
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
         disable: 'Deshabilitar',
+    },
+    recoveryCodeForm: {
+        error: {
+            pleaseFillRecoveryCode: 'Por favor, introduce tu código de recuperación',
+            incorrectRecoveryCode: 'Código de recuperación incorrecto. Por favor, inténtalo de nuevo',
+        },
+        useRecoveryCode: 'Usar código de recuperación',
+        recoveryCode: 'Código de recuperación',
+        use2fa: 'Usar autenticación de dos factores',
     },
     twoFactorAuthForm: {
         error: {
@@ -897,6 +910,7 @@ export default {
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
+        enterRecoveryCode: 'Por favor, introduce tu código de recuperación',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         requestNewCode: 'Pedir un código nuevo en ',
         requestNewCodeAfterErrorOccurred: 'Solicitar un nuevo código',

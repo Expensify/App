@@ -69,6 +69,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    FormattedMaxLengthParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
     TranslationBase,
@@ -290,6 +291,7 @@ export default {
     composer: {
         noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
+        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum comment length is ${formattedMaxLength} characters.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',
@@ -549,6 +551,7 @@ export default {
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
         error: {
+            invalidAmount: 'Please enter a valid amount before continuing.',
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
@@ -737,6 +740,7 @@ export default {
         keepCodesSafe: 'Keep these recovery codes safe!',
         codesLoseAccess:
             'If you lose access to your authenticator app and don’t have these codes, you will lose access to your account. \n\nNote: Setting up two-factor authentication will log you out of all other active sessions.',
+        errorStepCodes: 'Please copy or download codes before continuing.',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',
@@ -747,6 +751,15 @@ export default {
         congrats: 'Congrats, now you’ve got that extra security.',
         copy: 'Copy',
         disable: 'Disable',
+    },
+    recoveryCodeForm: {
+        error: {
+            pleaseFillRecoveryCode: 'Please enter your recovery code',
+            incorrectRecoveryCode: 'Incorrect recovery code. Please try again.',
+        },
+        useRecoveryCode: 'Use recovery code',
+        recoveryCode: 'Recovery code',
+        use2fa: 'Use two-factor authentication code',
     },
     twoFactorAuthForm: {
         error: {
@@ -901,6 +914,7 @@ export default {
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
         enterAuthenticatorCode: 'Please enter your authenticator code',
+        enterRecoveryCode: 'Please enter your recovery code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: 'Request a new code in ',
         requestNewCodeAfterErrorOccurred: 'Request a new code',

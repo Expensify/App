@@ -83,7 +83,7 @@ function TaskAssigneeSelectorModal(props) {
     const optionRef = useRef();
 
     const updateOptions = useCallback(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getNewChatOptions(
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
             props.reports,
             props.personalDetails,
             props.betas,
@@ -92,6 +92,9 @@ function TaskAssigneeSelectorModal(props) {
             CONST.EXPENSIFY_EMAILS,
             false,
             true,
+            false,
+            {},
+            [],
             false,
             {},
             [],
