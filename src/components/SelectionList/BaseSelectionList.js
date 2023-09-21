@@ -171,20 +171,34 @@ function BaseSelectionList({
         listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
     };
 
-    const selectRow = (item) => {
+    /**
+     * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
+     *
+     * @param item - the list item
+     * @param {Boolean} shouldUnfocusRow - flag to decide if we should unfocus all rows. True when selecting a row with click or press (not keyboard)
+     */
+    const selectRow = (item, shouldUnfocusRow = false) => {
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
             if (sections.length > 1) {
                 // If the list has only 1 section (e.g. Workspace Members list), we do nothing.
-                // If the list has multiple sections (e.g. Workspace Invite list), we focus the first one after all the selected (selected items are always at the top).
-
+                // If the list has multiple sections (e.g. Workspace Invite list), and `shouldUnfocusRow` is false,
+                // we focus the first one after all the selected (selected items are always at the top).
                 const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
-                setFocusedIndex(selectedOptionsCount);
+
+                if (!shouldUnfocusRow) {
+                    setFocusedIndex(selectedOptionsCount);
+                }
 
                 if (!item.isSelected) {
                     // If we're selecting an item, scroll to it's position at the top, so we can see it
                     scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
                 }
+            }
+
+            if (shouldUnfocusRow) {
+                // Unfocus all rows when selecting row with click/press
+                setFocusedIndex(-1);
             }
         }
 
@@ -255,7 +269,7 @@ function BaseSelectionList({
                 <UserListItem
                     item={item}
                     isFocused={isItemFocused}
-                    onSelectRow={selectRow}
+                    onSelectRow={() => selectRow(item, true)}
                     onDismissError={onDismissError}
                     showTooltip={showTooltip}
                 />
@@ -267,7 +281,7 @@ function BaseSelectionList({
                 item={item}
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
-                onSelectRow={selectRow}
+                onSelectRow={() => selectRow(item, true)}
             />
         );
     };
