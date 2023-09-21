@@ -20,6 +20,13 @@ platform :android do
     ENV["ENTRY_FILE"] = File.expand_path("../src/libs/E2E/reactNativeLaunchingTest.js", Dir.pwd)
     ENV["E2E_TESTING"]="true"
 
+    # Test if the entry file exists, otherwise fail early. If its there, log that we are good to proceed
+    if !File.file?(ENV["ENTRY_FILE"])
+      UI.user_error!("E2E entry file not found at #{ENV["ENTRY_FILE"]}")
+    else
+      UI.success("E2E entry file found at #{ENV["ENTRY_FILE"]}")
+    end
+
     gradle(
       project_dir: './android',
       task: ':app:assemble',
