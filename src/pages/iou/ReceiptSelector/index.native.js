@@ -92,7 +92,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
 
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
-    const pageIndex = lodashGet(route, 'params.pageIndex', 1);
+    const pageIndex = lodashGet(route, 'params.pageIndex', -1);
 
     const {translate} = useLocalize();
 

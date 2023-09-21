@@ -19,12 +19,19 @@ function NavigationAwareCamera({cameraTabIndex, forwardedRef, ...props}) {
     const navigation = useNavigation();
     const [isCameraActive, setIsCameraActive] = useState(navigation.isFocused());
 
+    const isInTabNavigator = cameraTabIndex > -1;
     // Get the animation value from the tab navigator. Its a value between 0 and the
     // number of pages we render in the tab navigator. When we even just slightly start to scroll to the camera page,
     // (value is e.g. 0.001 on animation start) we want to activate the camera, so its as fast as possible active.
-    const tabPositionAnimation = useTabAnimation();
+    // We can use a condition to call a hook here because otherwise the hook throws
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const tabPositionAnimation = isInTabNavigator ? useTabAnimation() : null;
 
     useEffect(() => {
+        if (!isInTabNavigator) {
+            return;
+        }
+
         const listenerId = tabPositionAnimation.addListener(({value}) => {
             // Activate camera as soon the index is animating towards the `cameraTabIndex`
             setIsCameraActive(value > cameraTabIndex - 1 && value < cameraTabIndex + 1);
@@ -33,7 +40,7 @@ function NavigationAwareCamera({cameraTabIndex, forwardedRef, ...props}) {
         return () => {
             tabPositionAnimation.removeListener(listenerId);
         };
-    }, [cameraTabIndex, tabPositionAnimation]);
+    }, [cameraTabIndex, isInTabNavigator, tabPositionAnimation]);
 
     // Note: The useEffect can be removed once VisionCamera V3 is used.
     // Its only needed for android, because there is a native cameraX android bug. With out this flow would break the camera:
