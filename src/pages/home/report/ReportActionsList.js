@@ -12,7 +12,6 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
-import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -23,8 +22,6 @@ import useNetwork from '../../../hooks/useNetwork';
 import DateUtils from '../../../libs/DateUtils';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
-import ListHeaderComponentLoader from './ListBoundaryLoader/ListHeaderComponentLoader/ListHeaderComponentLoader';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 
 const propTypes = {
@@ -348,8 +345,8 @@ function ReportActionsList({
         [report.isLoadingNewerReportActions],
     );
 
-    const listFooterComponent = useCallback(() => {
-        return (
+    const listFooterComponent = useCallback(
+        () => (
             <ListBoundaryLoader
                 type={CONST.LIST_COMPONENTS.FOOTER}
                 isLoadingOlderReportActions={report.isLoadingOlderReportActions}
@@ -357,17 +354,19 @@ function ReportActionsList({
                 skeletonViewHeight={availableContentHeight}
                 lastReportActionName={lastReportAction.actionName}
             />
-        );
-    }, [report.isLoadingInitialReportActions, report.isLoadingOlderReportActions, availableContentHeight, lastReportAction.actionName]);
+        ),
+        [report.isLoadingInitialReportActions, report.isLoadingOlderReportActions, availableContentHeight, lastReportAction.actionName],
+    );
 
-    const listHeaderComponent = useCallback(() => {
-        return (
+    const listHeaderComponent = useCallback(
+        () => (
             <ListBoundaryLoader
                 type={CONST.LIST_COMPONENTS.HEADER}
                 isLoadingNewerReportActions={report.isLoadingNewerReportActions}
             />
-        );
-    }, [report.isLoadingNewerReportActions]);
+        ),
+        [report.isLoadingNewerReportActions],
+    );
 
     return (
         <>
