@@ -387,6 +387,7 @@ export default {
         deleteConfirmation: ({action}: DeleteConfirmationParams) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
+        subscribeToThread: 'NEED TO TRANSLATE',
         flagAsOffensive: 'Marcar como ofensivo',
     },
     emojiReactions: {

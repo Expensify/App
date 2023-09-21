@@ -631,6 +631,42 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
 }
 
 /**
+ * This will subscribe to an existing thread, or create a new one and then subsribe to it if necessary
+ *
+ * @param {String} childReportID The reportID we are trying to open
+ * @param {Object} parentReportAction the parent comment of a thread
+ * @param {String} parentReportID The reportID of the parent
+ *
+ */
+function subscribeToChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0') {
+    if (childReportID !== '0') {
+        openReport(childReportID);
+        Navigation.navigate(ROUTES.getReportRoute(childReportID));
+    } else {
+        const participantAccountIDs = _.uniq([currentUserAccountID, Number(parentReportAction.actorAccountID)]);
+        const parentReport = allReports[parentReportID];
+        const newChat = ReportUtils.buildOptimisticChatReport(
+            participantAccountIDs,
+            lodashGet(parentReportAction, ['message', 0, 'text']),
+            lodashGet(parentReport, 'chatType', ''),
+            lodashGet(parentReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
+            CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+            false,
+            '',
+            undefined,
+            undefined,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            parentReportAction.reportActionID,
+            parentReportID,
+        );
+
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat.participantAccountIDs);
+        openReport(newChat.reportID, participantLogins, newChat, parentReportAction.reportActionID);
+        Navigation.navigate(ROUTES.getReportRoute(newChat.reportID));
+    }
+}
+
+/**
  * Get the latest report history without marking the report as read.
  *
  * @param {String} reportID

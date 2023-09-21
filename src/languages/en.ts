@@ -396,6 +396,7 @@ export default {
         deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
+        subscribeToThread: 'Subscribe to thread',
         flagAsOffensive: 'Flag as offensive',
     },
     emojiReactions: {

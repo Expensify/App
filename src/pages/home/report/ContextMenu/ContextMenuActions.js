@@ -148,6 +148,34 @@ export default [
     },
     {
         isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.subscribeToThread',
+        icon: Expensicons.ChatBubble,
+        successTextTranslateKey: '',
+        successIcon: null,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
+            if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
+                return false;
+            }
+            const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+            const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
+            return isCommentAction || isReportPreviewAction || isIOUAction;
+        },
+        onPress: (closePopover, {reportAction, reportID}) => {
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    ReportActionComposeFocusManager.focus();
+                    Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
+                });
+                return;
+            }
+
+            Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
