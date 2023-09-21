@@ -8,7 +8,7 @@ import {OnyxUpdateEvent, OnyxUpdatesFromServer} from '../types/onyx';
 
 type PushJSON = OnyxUpdateEvent[] | OnyxUpdatesFromServer;
 
-type Callback = (data: OnyxUpdate[]) => Promise<unknown>;
+type Callback = (data: OnyxUpdate[]) => Promise<void>;
 
 type OnEvent = (pushJSON: PushJSON) => void;
 
@@ -19,7 +19,7 @@ function subscribeToMultiEvent(eventType: string, callback: Callback) {
     multiEventCallbackMapping[eventType] = callback;
 }
 
-function triggerMultiEventHandler(eventType: string, data: OnyxUpdate[]): Promise<unknown> {
+function triggerMultiEventHandler(eventType: string, data: OnyxUpdate[]): Promise<void> {
     if (!multiEventCallbackMapping[eventType]) {
         return Promise.resolve();
     }
