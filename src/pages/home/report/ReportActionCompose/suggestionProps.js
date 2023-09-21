@@ -7,6 +7,12 @@ const baseProps = {
     /** Callback to update the current input value */
     setValue: PropTypes.func.isRequired,
 
+    /** The current selection value */
+    selection: PropTypes.shape({
+        start: PropTypes.number.isRequired,
+        end: PropTypes.number.isRequired,
+    }).isRequired,
+
     /** Callback to update the current selection */
     setSelection: PropTypes.func.isRequired,
 
