@@ -20,6 +20,7 @@ import FormHelpMessage from '../FormHelpMessage';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import withLocalize from '../withLocalize';
+import useNativeDriver from '../../libs/useNativeDriver';
 
 function BaseTextInput(props) {
     const inputValue = props.value || props.defaultValue || '';
@@ -29,7 +30,6 @@ function BaseTextInput(props) {
     const [passwordHidden, setPasswordHidden] = useState(props.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
-    const [prefixWidth, setPrefixWidth] = useState(0);
     const [height, setHeight] = useState(variables.componentSizeLarge);
     const [width, setWidth] = useState();
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
@@ -86,12 +86,12 @@ function BaseTextInput(props) {
                 Animated.spring(labelTranslateY, {
                     toValue: translateY,
                     duration: styleConst.LABEL_ANIMATION_DURATION,
-                    useNativeDriver: true,
+                    useNativeDriver,
                 }),
                 Animated.spring(labelScale, {
                     toValue: scale,
                     duration: styleConst.LABEL_ANIMATION_DURATION,
-                    useNativeDriver: true,
+                    useNativeDriver,
                 }),
             ]).start();
         },
@@ -221,9 +221,20 @@ function BaseTextInput(props) {
         setPasswordHidden((prevPasswordHidden) => !prevPasswordHidden);
     }, []);
 
-    const storePrefixLayoutDimensions = useCallback((event) => {
-        setPrefixWidth(Math.abs(event.nativeEvent.layout.width));
-    }, []);
+    // When adding a new prefix character, adjust this method to add expected character width.
+    // This is because character width isn't known before it's rendered to the screen, and once it's rendered,
+    // it's too late to calculate it's width because the change in padding would cause a visible jump.
+    // Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
+    // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
+    // this method will produce reliable results.
+    const getCharacterPadding = (prefix) => {
+        switch (prefix) {
+            case CONST.POLICY.ROOM_PREFIX:
+                return 10;
+            default:
+                throw new Error(`Prefix ${prefix} has no padding assigned.`);
+        }
+    };
 
     // eslint-disable-next-line react/forbid-foreign-prop-types
     const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));
@@ -295,7 +306,7 @@ function BaseTextInput(props) {
                                         pointerEvents="none"
                                         selectable={false}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0]}
-                                        onLayout={storePrefixLayoutDimensions}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {props.prefixCharacter}
                                     </Text>
@@ -322,7 +333,7 @@ function BaseTextInput(props) {
                                     styles.w100,
                                     props.inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
-                                    props.prefixCharacter && StyleUtils.getPaddingLeft(prefixWidth + styles.pl1.paddingLeft),
+                                    props.prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(props.prefixCharacter) + styles.pl1.paddingLeft),
                                     props.secureTextEntry && styles.secureInput,
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
@@ -331,6 +342,8 @@ function BaseTextInput(props) {
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
+                                    // Add disabled color theme when field is not editable.
+                                    props.disabled && styles.textInputDisabled,
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={props.maxLength}

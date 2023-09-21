@@ -75,7 +75,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    modal: {},
     report: {},
     blockedFromConcierge: {},
     personalDetails: {},
@@ -205,6 +204,10 @@ function ReportActionCompose({
         composerRef.current.blur();
     }, []);
 
+    const onItemSelected = useCallback(() => {
+        isKeyboardVisibleWhenShowingModalRef.current = false;
+    }, []);
+
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
             return;
@@ -271,11 +274,14 @@ function ReportActionCompose({
             suggestionsRef.current.setShouldBlockSuggestionCalc(true);
         }
         isNextModalWillOpenRef.current = true;
+        isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
 
     const onBlur = useCallback((e) => {
         setIsFocused(false);
-        suggestionsRef.current.resetSuggestions();
+        if (suggestionsRef.current) {
+            suggestionsRef.current.resetSuggestions();
+        }
         if (e.relatedTarget && e.relatedTarget === actionButtonRef.current) {
             isKeyboardVisibleWhenShowingModalRef.current = true;
         }
@@ -284,6 +290,15 @@ function ReportActionCompose({
     const onFocus = useCallback(() => {
         setIsFocused(true);
     }, []);
+
+    // resets the composer to normal size when
+    // the send button is pressed.
+    const resetFullComposerSize = useCallback(() => {
+        if (isComposerFullSize) {
+            Report.setIsComposerFullSize(reportID, false);
+        }
+        setIsFullComposerAvailable(false);
+    }, [isComposerFullSize, reportID]);
 
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
@@ -338,7 +353,7 @@ function ReportActionCompose({
                                     reportID={reportID}
                                     report={report}
                                     reportParticipantIDs={reportParticipantIDs}
-                                    isFullComposerAvailable={isFullComposerAvailable}
+                                    isFullComposerAvailable={isFullComposerAvailable && !isCommentEmpty}
                                     isComposerFullSize={isComposerFullSize}
                                     updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
                                     isBlockedFromConcierge={isBlockedFromConcierge}
@@ -349,6 +364,7 @@ function ReportActionCompose({
                                     onCanceledAttachmentPicker={restoreKeyboardState}
                                     onMenuClosed={restoreKeyboardState}
                                     onAddActionPressed={onAddActionPressed}
+                                    onItemSelected={onItemSelected}
                                     actionButtonRef={actionButtonRef}
                                 />
                                 <ComposerWithSuggestions
@@ -400,6 +416,7 @@ function ReportActionCompose({
                     <SendButton
                         isDisabled={isSendDisabled}
                         setIsCommentEmpty={setIsCommentEmpty}
+                        resetFullComposerSize={resetFullComposerSize}
                         submitForm={submitForm}
                         animatedRef={animatedRef}
                     />

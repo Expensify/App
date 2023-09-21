@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useRef, useCallback} from 'react';
+import React, {useRef, useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {PortalHost} from '@gorhom/portal';
 import Str from 'expensify-common/lib/str';
@@ -17,7 +17,7 @@ function shouldAcceptDrop(event) {
     return _.some(event.dataTransfer.types, (type) => type === 'Files');
 }
 
-function DragAndDropProvider({children, isDisabled = false}) {
+function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = () => {}}) {
     const dropZone = useRef(null);
     const dropZoneID = useRef(Str.guid('drag-n-drop'));
 
@@ -32,6 +32,10 @@ function DragAndDropProvider({children, isDisabled = false}) {
         shouldAcceptDrop,
         isDisabled,
     });
+
+    useEffect(() => {
+        setIsDraggingOver(isDraggingOver);
+    }, [isDraggingOver, setIsDraggingOver]);
 
     return (
         <DragAndDropContext.Provider value={{isDraggingOver, setOnDropHandler, dropZoneID: dropZoneID.current}}>
