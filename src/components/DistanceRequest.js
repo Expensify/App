@@ -110,7 +110,6 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
     const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
-    const hasInvalidWaypoint = _.size(validatedWaypoints) < numberOfWaypoints;
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
     const haveValidatedWaypointsChanged = !_.isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
@@ -298,7 +297,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={navigateToNextPage}
-                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline || hasInvalidWaypoint}
+                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline}
                 text={translate('common.next')}
             />
         </ScrollView>
