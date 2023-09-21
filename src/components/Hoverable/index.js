@@ -76,9 +76,8 @@ class Hoverable extends Component {
      * Sets the hover state of this component to true and execute the onHoverIn callback.
      *
      * @param {Boolean} isHovered - Whether or not this component is hovered.
-     * @param {Event} ev - The event that triggered this state change.
      */
-    setIsHovered(isHovered, ev) {
+    setIsHovered(isHovered) {
         if (this.props.disabled) {
             return;
         }
@@ -95,7 +94,7 @@ class Hoverable extends Component {
         if (this.isScrollingRef && this.props.shouldHandleScroll && !this.state.isHovered) return;
 
         if (isHovered !== this.state.isHovered) {
-            this.setState({isHovered}, () => (isHovered ? this.props.onHoverIn : this.props.onHoverOut)(ev));
+            this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
         }
     }
 
@@ -114,18 +113,15 @@ class Hoverable extends Component {
             return;
         }
 
-        this.setIsHovered(false, e);
+        this.setIsHovered(false);
     }
 
-    /**
-     * @param {Event} ev - The visibility-change event object.
-     */
-    handleVisibilityChange(ev) {
+    handleVisibilityChange() {
         if (document.visibilityState !== 'hidden') {
             return;
         }
 
-        this.setIsHovered(false, ev);
+        this.setIsHovered(false);
     }
 
     render() {
@@ -158,24 +154,30 @@ class Hoverable extends Component {
                 }
             },
             onMouseEnter: (el) => {
-                this.setIsHovered(true, el);
+                this.setIsHovered(true);
 
                 if (_.isFunction(child.props.onMouseEnter)) {
                     child.props.onMouseEnter(el);
                 }
+                if (_.isFunction(this.props.onMouseEnter)) {
+                    this.props.onMouseEnter(el);
+                }
             },
             onMouseLeave: (el) => {
-                this.setIsHovered(false, el);
+                this.setIsHovered(false);
 
                 if (_.isFunction(child.props.onMouseLeave)) {
                     child.props.onMouseLeave(el);
+                }
+                if (_.isFunction(this.props.onMouseLeave)) {
+                    this.props.onMouseLeave(el);
                 }
             },
             onBlur: (el) => {
                 // Check if the blur event occurred due to clicking outside the element
                 // and the wrapperView contains the element that caused the blur and reset isHovered
                 if (!this.wrapperView.contains(el.target) && !this.wrapperView.contains(el.relatedTarget)) {
-                    this.setIsHovered(false, el);
+                    this.setIsHovered(false);
                 }
 
                 if (_.isFunction(child.props.onBlur)) {

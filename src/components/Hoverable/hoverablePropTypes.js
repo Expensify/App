@@ -13,6 +13,12 @@ const propTypes = {
     /** Function that executes when the mouse leaves the children. */
     onHoverOut: PropTypes.func,
 
+    /** Direct pass-through of React's onMouseEnter event. */
+    onMouseEnter: PropTypes.func,
+
+    /** Direct pass-through of React's onMouseLeave event. */
+    onMouseLeave: PropTypes.func,
+
     /** Decides whether to handle the scroll behaviour to show hover once the scroll ends */
     shouldHandleScroll: PropTypes.bool,
 };

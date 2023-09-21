@@ -14,14 +14,10 @@ import useWindowDimensions from '../../hooks/useWindowDimensions';
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
 /**
- * Choose the correct bounding box for the tooltip to be positioned against.
- * This handles the case where the target is wrapped across two lines, and
- * so we need to find the correct part (the one that the user is hovering
- * over) and show the tooltip there.
+ * Choose the correct bounding box from the given list.
+ * This is a helper function for chooseBoundingBox below.
  *
- * This is only used when shouldUseMultilinePositioning == true.
- *
- * @param {Element} target The DOM element being hovered over.
+ * @param {Element} bbs The bounding boxes of DOM element being hovered over.
  * @param {number} clientX The X position from the MouseEvent.
  * @param {number} clientY The Y position from the MouseEvent.
  * @param {number} slop An allowed slop factor when searching for the bounding
@@ -29,22 +25,48 @@ const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
  * hover event with the position outside any of our bounding boxes. We retry
  * with a small slop factor in that case, so if we have a bounding box close
  * enough then we go with that.
- * @return {DOMRect} The chosen bounding box.
+ * @return {DOMRect | null} The chosen bounding box. null if we failed to find
+ * a matching one, which can happen if the user is moving the mouse quickly
+ * and the onHoverOver event actually fires outside the element bounding box.
  */
-function chooseBoundingBox(target, clientX, clientY, slop = 0) {
-    const bbs = target.getClientRects();
+function chooseBoundingBoxWithSlop(bbs, clientX, clientY, slop) {
     for (let i = 0; i < bbs.length; i++) {
         const bb = bbs[i];
         if (bb.x - slop <= clientX && bb.x + bb.width + slop >= clientX && bb.y - slop <= clientY && bb.y + bb.height + slop >= clientY) {
             return bb;
         }
     }
-    if (slop === 0) {
-        // Retry with a slop factor, in case the user is moving the mouse quickly.
-        return chooseBoundingBox(target, clientX, clientY, 5);
+    return null;
+}
+
+/**
+ * Choose the correct bounding box for the tooltip to be positioned against.
+ * This handles the case where the target is wrapped across two lines, and
+ * so we need to find the correct part (the one that the user is hovering
+ * over) and show the tooltip there.
+ *
+ * @param {Element} target The DOM element being hovered over.
+ * @param {number} clientX The X position from the MouseEvent.
+ * @param {number} clientY The Y position from the MouseEvent.
+ * @return {DOMRect} The chosen bounding box.
+ */
+function chooseBoundingBox(target, clientX, clientY) {
+    const bbs = target.getClientRects();
+    if (bbs.length === 1) {
+        return bbs[0];
     }
-    // Fall back to the full bounding box if we failed to find a matching one
-    // (shouldn't happen).
+    let bb = chooseBoundingBoxWithSlop(bbs, clientX, clientY, 0);
+    if (bb) {
+        return bb;
+    }
+    // Retry with a slop factor, in case the user is moving the mouse quickly.
+    bb = chooseBoundingBoxWithSlop(bbs, clientX, clientY, 5);
+    if (bb) {
+        return bb;
+    }
+    // Fall back to the full bounding box if we failed to find a matching one.
+    // This could only happen if the user is moving the mouse very quickly
+    // and they got it outside our slop above.
     return target.getBoundingClientRect();
 }
 
@@ -55,7 +77,7 @@ function chooseBoundingBox(target, clientX, clientY, slop = 0) {
  * @returns {ReactNodeLike}
  */
 function Tooltip(props) {
-    const {children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldUseMultilinePositioning} = props;
+    const {children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey} = props;
 
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -78,60 +100,42 @@ function Tooltip(props) {
     const isAnimationCanceled = useRef(false);
     const prevText = usePrevious(text);
 
-    /**
-     * Update the tooltip bounding rectangle.
-     *
-     * @param {Object} bounds - updated bounds
-     */
-    const updateBounds = useCallback((bounds) => {
-        if (bounds.width === 0) {
-            setIsRendered(false);
-        }
-        setWrapperWidth(bounds.width);
-        setWrapperHeight(bounds.height);
-        setXOffset(bounds.x);
-        setYOffset(bounds.y);
+    const target = useRef(null);
+    const initialMousePosition = useRef({x: 0, y: 0});
+
+    const updateTargetAndMousePosition = useCallback((e) => {
+        target.current = e.target;
+        initialMousePosition.current = {x: e.clientX, y: e.clientY};
     }, []);
 
     /**
      * Display the tooltip in an animation.
      */
-    const showTooltip = useCallback(
-        (ev) => {
-            if (shouldUseMultilinePositioning) {
-                if (ev) {
-                    const {clientX, clientY, target} = ev;
-                    const bb = chooseBoundingBox(target, clientX, clientY);
-                    updateBounds(bb);
-                }
-            }
+    const showTooltip = useCallback(() => {
+        if (!isRendered) {
+            setIsRendered(true);
+        }
 
-            if (!isRendered) {
-                setIsRendered(true);
-            }
+        setIsVisible(true);
 
-            setIsVisible(true);
+        animation.current.stopAnimation();
 
-            animation.current.stopAnimation();
-
-            // When TooltipSense is active, immediately show the tooltip
-            if (TooltipSense.isActive()) {
-                animation.current.setValue(1);
-            } else {
-                isTooltipSenseInitiator.current = true;
-                Animated.timing(animation.current, {
-                    toValue: 1,
-                    duration: 140,
-                    delay: 500,
-                    useNativeDriver: false,
-                }).start(({finished}) => {
-                    isAnimationCanceled.current = !finished;
-                });
-            }
-            TooltipSense.activate();
-        },
-        [isRendered, shouldUseMultilinePositioning, updateBounds],
-    );
+        // When TooltipSense is active, immediately show the tooltip
+        if (TooltipSense.isActive()) {
+            animation.current.setValue(1);
+        } else {
+            isTooltipSenseInitiator.current = true;
+            Animated.timing(animation.current, {
+                toValue: 1,
+                duration: 140,
+                delay: 500,
+                useNativeDriver: false,
+            }).start(({finished}) => {
+                isAnimationCanceled.current = !finished;
+            });
+        }
+        TooltipSense.activate();
+    }, [isRendered]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -142,6 +146,26 @@ function Tooltip(props) {
             showTooltip();
         }
     }, [isVisible, text, prevText, showTooltip]);
+
+    /**
+     * Update the tooltip bounding rectangle
+     *
+     * @param {Object} bounds - updated bounds
+     */
+    const updateBounds = (bounds) => {
+        if (bounds.width === 0) {
+            setIsRendered(false);
+        }
+        const t = target.current;
+        if (!t) {
+            return;
+        }
+        const betterBounds = chooseBoundingBox(t, initialMousePosition.current.x, initialMousePosition.current.y);
+        setWrapperWidth(betterBounds.width);
+        setWrapperHeight(betterBounds.height);
+        setXOffset(betterBounds.x);
+        setYOffset(betterBounds.y);
+    };
 
     /**
      * Hide the tooltip in an animation.
@@ -172,16 +196,6 @@ function Tooltip(props) {
         return children;
     }
 
-    const hoverableChildren = (
-        <Hoverable
-            onHoverIn={showTooltip}
-            onHoverOut={hideTooltip}
-            shouldHandleScroll={props.shouldHandleScroll}
-        >
-            {children}
-        </Hoverable>
-    );
-
     return (
         <>
             {isRendered && (
@@ -203,16 +217,19 @@ function Tooltip(props) {
                     key={[text, ...renderTooltipContentKey, preferredLocale]}
                 />
             )}
-            {shouldUseMultilinePositioning ? (
-                hoverableChildren
-            ) : (
-                <BoundsObserver
-                    enabled={isVisible}
-                    onBoundsChange={updateBounds}
+            <BoundsObserver
+                enabled={isVisible}
+                onBoundsChange={updateBounds}
+            >
+                <Hoverable
+                    onMouseEnter={updateTargetAndMousePosition}
+                    onHoverIn={showTooltip}
+                    onHoverOut={hideTooltip}
+                    shouldHandleScroll={props.shouldHandleScroll}
                 >
-                    {hoverableChildren}
-                </BoundsObserver>
-            )}
+                    {children}
+                </Hoverable>
+            </BoundsObserver>
         </>
     );
 }
