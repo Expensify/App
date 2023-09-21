@@ -3574,6 +3574,13 @@ const styles = (theme) => ({
         color: theme.textBrand,
     },
 
+    eReceiptWaypointAddress: {
+        fontFamily: fontFamily.MONOSPACE,
+        fontSize: variables.fontSizeNormal,
+        lineHeight: variables.lineHeightNormal,
+        color: theme.textColorfulBackground,
+    },
+
     loginHeroBody: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSignInHeroBody,
