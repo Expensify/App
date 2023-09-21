@@ -20,7 +20,7 @@ const defaultProps = {
 
 function EReceipt({transaction}) {
     const {thumbnail} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
-    const {amount: transactionAmount, currency: transactionCurrency} = ReportUtils.getTransactionDetails(transaction);
+    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant} = ReportUtils.getTransactionDetails(transaction);
     const formattedTransactionAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     return (
@@ -34,6 +34,7 @@ function EReceipt({transaction}) {
                 />
             </View>
             <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
+            <Text style={styles.textHeadline}>{transactionMerchant}</Text>
         </>
     );
 }
