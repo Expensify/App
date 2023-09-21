@@ -1163,6 +1163,7 @@ const CONST = {
     },
 
     AVATAR_SIZE: {
+        XLARGE: 'xlarge',
         LARGE: 'large',
         MEDIUM: 'medium',
         DEFAULT: 'default',
