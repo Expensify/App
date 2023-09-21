@@ -188,6 +188,14 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
         Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : ROUTES.HOME);
     };
 
+    /**
+     * Takes the user to the page for editing a specific waypoint
+     * @param {Number} index of the waypoint to edit
+     */
+    const navigateToWaypointEditPage = (index) => {
+        Navigation.navigate(isEditingRequest ? ROUTES.getMoneyRequestEditWaypointRoute(report.reportID, transactionID, index) : ROUTES.getMoneyRequestWaypointRoute('request', index));
+    };
+
     const content = (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View
@@ -224,13 +232,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
                                 shouldShowRightIcon
-                                onPress={() =>
-                                    Navigation.navigate(
-                                        isEditingRequest
-                                            ? ROUTES.getMoneyRequestEditWaypointRoute(report.reportID, transactionID, index)
-                                            : ROUTES.getMoneyRequestWaypointRoute('request', index),
-                                    )
-                                }
+                                onPress={() => navigateToWaypointEditPage(index)}
                                 key={key}
                             />
                         );
@@ -254,10 +256,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => {
-                        const newIndex = _.size(lodashGet(transaction, 'comment.waypoints', {}));
-                        Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', newIndex));
-                    }}
+                    onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
