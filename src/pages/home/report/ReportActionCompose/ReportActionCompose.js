@@ -30,7 +30,6 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import reportActionPropTypes from '../reportActionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import getModalState from '../../../../libs/getModalState';
@@ -75,7 +74,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    modal: {},
     report: {},
     blockedFromConcierge: {},
     personalDetails: {},
@@ -205,6 +203,10 @@ function ReportActionCompose({
         composerRef.current.blur();
     }, []);
 
+    const onItemSelected = useCallback(() => {
+        isKeyboardVisibleWhenShowingModalRef.current = false;
+    }, []);
+
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
             return;
@@ -217,10 +219,6 @@ function ReportActionCompose({
      */
     const addAttachment = useCallback(
         (file) => {
-            // Since we're submitting the form here which should clear the composer
-            // We don't really care about saving the draft the user was typing
-            // We need to make sure an empty draft gets saved instead
-            debouncedSaveReportComment.cancel();
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
@@ -248,11 +246,6 @@ function ReportActionCompose({
                 e.preventDefault();
             }
 
-            // Since we're submitting the form here which should clear the composer
-            // We don't really care about saving the draft the user was typing
-            // We need to make sure an empty draft gets saved instead
-            debouncedSaveReportComment.cancel();
-
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             if (!newComment) {
                 return;
@@ -271,11 +264,14 @@ function ReportActionCompose({
             suggestionsRef.current.setShouldBlockSuggestionCalc(true);
         }
         isNextModalWillOpenRef.current = true;
+        isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
 
     const onBlur = useCallback((e) => {
         setIsFocused(false);
-        suggestionsRef.current.resetSuggestions();
+        if (suggestionsRef.current) {
+            suggestionsRef.current.resetSuggestions();
+        }
         if (e.relatedTarget && e.relatedTarget === actionButtonRef.current) {
             isKeyboardVisibleWhenShowingModalRef.current = true;
         }
@@ -358,6 +354,7 @@ function ReportActionCompose({
                                     onCanceledAttachmentPicker={restoreKeyboardState}
                                     onMenuClosed={restoreKeyboardState}
                                     onAddActionPressed={onAddActionPressed}
+                                    onItemSelected={onItemSelected}
                                     actionButtonRef={actionButtonRef}
                                 />
                                 <ComposerWithSuggestions

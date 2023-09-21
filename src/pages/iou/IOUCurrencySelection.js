@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useCallback} from 'react';
+import React, {useState, useMemo, useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -70,6 +70,7 @@ const defaultProps = {
 
 function IOUCurrencySelection(props) {
     const [searchValue, setSearchValue] = useState('');
+    const optionsSelectorRef = useRef();
     const selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.currency, CONST.CURRENCY.USD);
 
     const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
@@ -82,7 +83,7 @@ function IOUCurrencySelection(props) {
             // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
             // To prevent any negative experience, we have made the decision to simply close the currency selection page.
             if (_.isEmpty(backTo) || props.navigation.getState().routes.length === 1) {
-                Navigation.goBack();
+                Navigation.goBack(ROUTES.HOME);
             } else {
                 Navigation.navigate(`${props.route.params.backTo}?currency=${option.currencyCode}`);
             }
@@ -103,7 +104,7 @@ function IOUCurrencySelection(props) {
             };
         });
 
-        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue), 'i');
+        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
         const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text));
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
@@ -127,7 +128,10 @@ function IOUCurrencySelection(props) {
     }, [currencyList, searchValue, selectedCurrencyCode, translate]);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
@@ -144,6 +148,8 @@ function IOUCurrencySelection(props) {
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         shouldHaveOptionSeparator
+                        autoFocus={false}
+                        ref={optionsSelectorRef}
                     />
                 </>
             )}

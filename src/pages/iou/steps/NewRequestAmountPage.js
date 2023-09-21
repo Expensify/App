@@ -67,7 +67,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const currentCurrency = lodashGet(route, 'params.currency', '');
     const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
-    const currency = currentCurrency || iou.currency;
+    const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : iou.currency;
 
     const focusTextInput = () => {
         // Component may not be initialized due to navigation transitions
@@ -115,7 +115,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
-            if (!isDistanceRequestTab && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
+            if (!isDistanceRequestTab && (_.isEmpty(iou.participantAccountIDs) || iou.amount === 0 || shouldReset)) {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
             }
         }
@@ -123,10 +123,10 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         return () => {
             prevMoneyRequestID.current = iou.id;
         };
-    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
+    }, [iou.participantAccountIDs, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
+        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : ROUTES.HOME);
     };
 
     const navigateToCurrencySelectionPage = () => {
@@ -182,7 +182,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('iou.amount')}
-                            onBackButonBackButtonPress={navigateBack}
+                            onBackButtonPress={navigateBack}
                         />
                         {content}
                     </View>
@@ -202,6 +202,6 @@ export default withOnyx({
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
     },
     selectedTab: {
-        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(NewRequestAmountPage);

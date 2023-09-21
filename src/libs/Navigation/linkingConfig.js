@@ -38,7 +38,7 @@ export default {
                 screens: {
                     Settings: {
                         screens: {
-                            Settings_Root: {
+                            [SCREENS.SETTINGS.ROOT]: {
                                 path: ROUTES.SETTINGS,
                             },
                             [SCREENS.SETTINGS.WORKSPACES]: {
@@ -65,7 +65,7 @@ export default {
                                 path: ROUTES.SETTINGS_CLOSE,
                                 exact: true,
                             },
-                            Settings_Security: {
+                            [SCREENS.SETTINGS.SECURITY]: {
                                 path: ROUTES.SETTINGS_SECURITY,
                                 exact: true,
                             },
@@ -83,10 +83,6 @@ export default {
                             },
                             Settings_Wallet_Choose_Transfer_Account: {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
-                                exact: true,
-                            },
-                            Settings_Add_Paypal_Me: {
-                                path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
                                 exact: true,
                             },
                             Settings_Add_Debit_Card: {
@@ -163,7 +159,7 @@ export default {
                                 path: ROUTES.SETTINGS_SHARE_CODE,
                                 exact: true,
                             },
-                            Settings_Status: {
+                            [SCREENS.SETTINGS.STATUS]: {
                                 path: ROUTES.SETTINGS_STATUS,
                                 exact: true,
                             },
@@ -204,9 +200,6 @@ export default {
                             Workspace_Invite_Message: {
                                 path: ROUTES.WORKSPACE_INVITE_MESSAGE,
                             },
-                            Workspace_NewRoom: {
-                                path: ROUTES.WORKSPACE_NEW_ROOM,
-                            },
                             ReimbursementAccount: {
                                 path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                                 exact: true,
@@ -214,6 +207,13 @@ export default {
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE,
                             },
+                        },
+                    },
+                    Private_Notes: {
+                        screens: {
+                            PrivateNotes_View: ROUTES.PRIVATE_NOTES_VIEW,
+                            PrivateNotes_List: ROUTES.PRIVATE_NOTES_LIST,
+                            PrivateNotes_Edit: ROUTES.PRIVATE_NOTES_EDIT,
                         },
                     },
                     Report_Details: {
@@ -243,14 +243,22 @@ export default {
                             Report_WelcomeMessage_Root: ROUTES.REPORT_WELCOME_MESSAGE,
                         },
                     },
-                    NewGroup: {
-                        screens: {
-                            NewGroup_Root: ROUTES.NEW_GROUP,
-                        },
-                    },
                     NewChat: {
                         screens: {
-                            NewChat_Root: ROUTES.NEW_CHAT,
+                            NewChat_Root: {
+                                path: ROUTES.NEW,
+                                exact: true,
+                                screens: {
+                                    chat: {
+                                        path: ROUTES.NEW_CHAT,
+                                        exact: true,
+                                    },
+                                    room: {
+                                        path: ROUTES.NEW_ROOM,
+                                        exact: true,
+                                    },
+                                },
+                            },
                         },
                     },
                     NewTask: {
@@ -265,7 +273,7 @@ export default {
                     },
                     TeachersUnite: {
                         screens: {
-                            SaveTheWorld_Root: ROUTES.SAVE_THE_WORLD,
+                            [SCREENS.SAVE_THE_WORLD.ROOT]: ROUTES.TEACHERS_UNITE,
                             I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
                             Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
                             I_Am_A_Teacher: ROUTES.I_AM_A_TEACHER,
@@ -318,8 +326,10 @@ export default {
                             Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
                             Money_Request_Category: ROUTES.MONEY_REQUEST_CATEGORY,
+                            Money_Request_Tag: ROUTES.MONEY_REQUEST_TAG,
                             Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT,
                             Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT,
+                            Money_Request_Address: ROUTES.MONEY_REQUEST_ADDRESS,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                             IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
