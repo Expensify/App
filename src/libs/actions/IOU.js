@@ -1192,6 +1192,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                     currency: null,
                     merchant: null,
                     category: null,
+                    tag: null,
                 },
             },
         },
@@ -1230,7 +1231,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     ];
 
     // STEP 6: Call the API endpoint
-    const {created, amount, currency, comment, merchant, category} = ReportUtils.getTransactionDetails(updatedTransaction);
+    const {created, amount, currency, comment, merchant, category, tag} = ReportUtils.getTransactionDetails(updatedTransaction);
     API.write(
         'EditMoneyRequest',
         {
@@ -1242,6 +1243,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             comment,
             merchant,
             category,
+            tag,
         },
         {optimisticData, successData, failureData},
     );

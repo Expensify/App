@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
@@ -32,6 +33,7 @@ import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import categoryPropTypes from '../categoryPropTypes';
 import SpacerView from '../SpacerView';
+import tagPropTypes from '../tagPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -53,6 +55,15 @@ const propTypes = {
     /** The transaction associated with the transactionThread */
     transaction: transactionPropTypes,
 
+    /** Collection of tags attached to a policy */
+    policyTags: PropTypes.objectOf(
+        PropTypes.shape({
+            name: PropTypes.string,
+            required: PropTypes.bool,
+            tags: PropTypes.objectOf(tagPropTypes),
+        }),
+    ),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -65,9 +76,10 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         comment: {comment: ''},
     },
+    policyTags: {},
 };
 
-function MoneyRequestView({betas, report, parentReport, policyCategories, shouldShowHorizontalRule, transaction}) {
+function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -80,6 +92,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
         comment: transactionDescription,
         merchant: transactionMerchant,
         category: transactionCategory,
+        tag: transactionTag,
     } = ReportUtils.getTransactionDetails(transaction);
     const isEmptyMerchant =
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -89,8 +102,14 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
-    // A flag for showing categories
+
+    // Fetches only the first tag, for now
+    const policyTagKey = _.first(_.keys(policyTags));
+    const policyTagsList = lodashGet(policyTags, [policyTagKey, 'tags'], {});
+
+    // Flags for showing categories and tags
     const shouldShowCategory = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
+    const shouldShowTag = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
@@ -200,6 +219,18 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
                     />
                 </OfflineWithFeedback>
             )}
+            {shouldShowTag && (
+                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
+                    <MenuItemWithTopDescription
+                        description={policyTagKey || translate('common.tag')}
+                        title={transactionTag}
+                        interactive={canEdit}
+                        shouldShowRightIcon={canEdit}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
+                    />
+                </OfflineWithFeedback>
+            )}
             <SpacerView
                 shouldShow={shouldShowHorizontalRule}
                 style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
@@ -236,6 +267,9 @@ export default compose(
                 const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
+        },
+        policyTags: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`,
         },
     }),
 )(MoneyRequestView);
