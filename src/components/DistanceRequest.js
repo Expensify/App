@@ -186,6 +186,46 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
         IOU.navigateToNextPage(iou, iouType, reportID, report);
     };
 
+    const updateWaypoints = ({data}) => {
+        const newWaypoints = {};
+        _.each(data, (waypoint, index) => {
+            newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, null);
+        });
+        Transaction.updateWaypoints(iou.transactionID, newWaypoints);
+    };
+
+    const renderItem = ({item, drag, getIndex, isActive}) => {
+        const index = getIndex();
+        let descriptionKey = 'distance.waypointDescription.';
+        let waypointIcon;
+        if (index === 0) {
+            descriptionKey += 'start';
+            waypointIcon = Expensicons.DotIndicatorUnfilled;
+        } else if (index === lastWaypointIndex) {
+            descriptionKey += 'finish';
+            waypointIcon = Expensicons.Location;
+        } else {
+            descriptionKey += 'stop';
+            waypointIcon = Expensicons.DotIndicator;
+        }
+
+        return (
+            <MenuItemWithTopDescription
+                description={translate(descriptionKey)}
+                title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
+                icon={Expensicons.DragHandles}
+                iconFill={theme.icon}
+                secondaryIcon={waypointIcon}
+                secondaryIconFill={theme.icon}
+                shouldShowRightIcon
+                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', index))}
+                onSecondaryInteraction={drag}
+                focused={isActive}
+                key={item}
+            />
+        );
+    };
+
     const footer = (
         <>
             {hasRouteError && (
@@ -241,46 +281,10 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                     data={waypointsList}
                     keyExtractor={(item) => item}
                     shouldUsePortal
-                    onDragEnd={({data}) => {
-                        const newWaypoints = {};
-                        _.each(data, (waypoint, index) => {
-                            newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, null);
-                        });
-                        Transaction.updateWaypoints(iou.transactionID, newWaypoints);
-                    }}
+                    onDragEnd={updateWaypoints}
                     scrollEventThrottle={variables.distanceScrollEventThrottle}
                     ref={scrollViewRef}
-                    renderItem={({item, drag, getIndex, isActive}) => {
-                        const index = getIndex();
-                        let descriptionKey = 'distance.waypointDescription.';
-                        let waypointIcon;
-                        if (index === 0) {
-                            descriptionKey += 'start';
-                            waypointIcon = Expensicons.DotIndicatorUnfilled;
-                        } else if (index === lastWaypointIndex) {
-                            descriptionKey += 'finish';
-                            waypointIcon = Expensicons.Location;
-                        } else {
-                            descriptionKey += 'stop';
-                            waypointIcon = Expensicons.DotIndicator;
-                        }
-
-                        return (
-                            <MenuItemWithTopDescription
-                                description={translate(descriptionKey)}
-                                title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
-                                icon={Expensicons.DragHandles}
-                                iconFill={theme.icon}
-                                secondaryIcon={waypointIcon}
-                                secondaryIconFill={theme.icon}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', index))}
-                                onSecondaryInteraction={drag}
-                                focused={isActive}
-                                key={item}
-                            />
-                        );
-                    }}
+                    renderItem={renderItem}
                     ListFooterComponent={footer}
                 />
             </View>
