@@ -342,6 +342,11 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         />
                                     </View>
                                 )}
+                                {Boolean(props.rightLabel) && (
+                                    <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
+                                        {props.rightLabel}
+                                    </View>
+                                )}
                                 {Boolean(props.shouldShowRightIcon) && (
                                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
                                         <Icon

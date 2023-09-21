@@ -519,6 +519,7 @@ function MoneyRequestConfirmationList(props) {
                     {shouldCategoryBeEditable && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
+                            rightLabel={translate('required')}
                             title={props.iouCategory}
                             description={translate('common.category')}
                             onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCategoryRoute(props.iouType, props.reportID))}
