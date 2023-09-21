@@ -329,7 +329,6 @@ function ReportScreen({
                     subtitleKey="notFound.noAccess"
                     shouldShowCloseButton={false}
                     shouldShowBackButton={isSmallScreenWidth}
-                    onBackButtonPress={Navigation.goBack}
                     shouldShowLink={false}
                 >
                     <OfflineWithFeedback
