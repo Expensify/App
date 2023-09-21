@@ -218,9 +218,8 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
 /**
  * Complete a task
  * @param {Object} taskReport task report
- * @param {String} taskTitle Title of the task
  */
-function completeTask(taskReport, taskTitle) {
+function completeTask(taskReport) {
     const taskReportID = taskReport.reportID;
     const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
@@ -302,9 +301,8 @@ function completeTask(taskReport, taskTitle) {
 /**
  * Reopen a closed task
  * @param {Object} taskReport task report
- * @param {String} taskTitle Title of the task
  */
-function reopenTask(taskReport, taskTitle) {
+function reopenTask(taskReport) {
     const taskReportID = taskReport.reportID;
     const message = `marked as incomplete`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);

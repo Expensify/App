@@ -3496,7 +3496,7 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
 
     // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
     if (assigneeChatReportID !== parentReportID) {
-        const displayname = lodashGet(allPersonalDetails, [assigneeAccountID, 'displayName']) || lodashGet(personalDetails, [assigneeAccountID, 'login'], '');
+        const displayname = lodashGet(allPersonalDetails, [assigneeAccountID, 'displayName']) || lodashGet(allPersonalDetails, [assigneeAccountID, 'login'], '');
         optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `assigned to: ${displayname}`, parentReportID);
         const lastAssigneeCommentText = formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
         const optimisticAssigneeReport = {
