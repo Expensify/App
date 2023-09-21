@@ -149,8 +149,8 @@ function NewTaskPage(props) {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS);
                     }}
                 />
-                <ScrollView>
-                    <View style={[styles.containerWithSpaceBetween]}>
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    <View style={[styles.flex1]}>
                         <View style={styles.mb5}>
                             <MenuItemWithTopDescription
                                 description={props.translate('task.title')}
@@ -185,6 +185,8 @@ function NewTaskPage(props) {
                                 shouldShowRightIcon={!props.task.parentReportID}
                             />
                         </View>
+                    </View>
+                    <View style={[styles.flexShrink0]}>
                         <FormAlertWithSubmitButton
                             isAlertVisible={!_.isEmpty(errorMessage)}
                             message={errorMessage}
