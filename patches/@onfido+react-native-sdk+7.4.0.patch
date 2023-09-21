@@ -1,0 +1,17 @@
+diff --git a/node_modules/@onfido/react-native-sdk/android/build.gradle b/node_modules/@onfido/react-native-sdk/android/build.gradle
+index 781925b..9e16430 100644
+--- a/node_modules/@onfido/react-native-sdk/android/build.gradle
++++ b/node_modules/@onfido/react-native-sdk/android/build.gradle
+@@ -134,9 +134,9 @@ afterEvaluate { project ->
+         group = "Reporting"
+         description = "Generate Jacoco coverage reports after running tests."
+         reports {
+-            xml.enabled = true
+-            html.enabled = true
+-            csv.enabled = true
++            xml.required = true
++            html.required = true
++            csv.required = true
+         }
+         classDirectories.setFrom(fileTree(
+                 dir: 'build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/onfido/reactnative/sdk',
