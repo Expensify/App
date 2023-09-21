@@ -4005,7 +4005,7 @@ const styles = (theme) => ({
         position: 'absolute',
         left: 16,
         bottom: 16,
-        width: 156,
+        width: variables.cardNameWidth,
         color: theme.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightLarge,
