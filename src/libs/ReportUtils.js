@@ -2174,7 +2174,6 @@ function buildOptimisticIOUReportAction(
         }
     }
 
-    const transaction = TransactionUtils.getTransaction(transactionID);
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
@@ -2195,7 +2194,7 @@ function buildOptimisticIOUReportAction(
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
-        whisperedToAccountIDs: TransactionUtils.isReceiptBeingScanned(transaction) ? [currentUserAccountID] : [],
+        whisperedToAccountIDs: _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], receipt.state) ? [currentUserAccountID] : [],
     };
 }
 /**
