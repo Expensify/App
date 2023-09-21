@@ -83,6 +83,7 @@ const darkTheme = {
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
+    eReceiptAmount: colors.green400,
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {

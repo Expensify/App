@@ -1,10 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
+import Text from './Text';
 import styles from '../styles/styles';
 import transactionPropTypes from './transactionPropTypes';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
-import Image from './Image';
+import * as ReportUtils from '../libs/ReportUtils';
+import * as CurrencyUtils from '../libs/CurrencyUtils';
+import tryResolveUrlFromApiRoot from '../libs/tryResolveUrlFromApiRoot';
+import ThumbnailImage from './ThumbnailImage';
 
 const propTypes = {
     /** The transaction for the eReceipt */
@@ -17,16 +20,20 @@ const defaultProps = {
 
 function EReceipt({transaction}) {
     const {thumbnail} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+    const {amount: transactionAmount, currency: transactionCurrency} = ReportUtils.getTransactionDetails(transaction);
+    const formattedTransactionAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
+    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     return (
         <>
-            <View style={[styles.imageViewContainer, styles.overflowHidden]}>
-                <Image
-                    source={{uri: thumbnail}}
+            <View style={styles.moneyRequestViewImage}>
+                <ThumbnailImage
+                    previewSourceURL={thumbnailSource}
                     style={[styles.w100, styles.h100]}
-                    resizeMode={Image.resizeMode.contain}
                     isAuthTokenRequired
+                    shouldDynamicallyResize={false}
                 />
             </View>
+            <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
         </>
     );
 }

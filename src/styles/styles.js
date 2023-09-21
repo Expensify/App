@@ -3553,6 +3553,13 @@ const styles = (theme) => ({
         lineHeight: variables.lineHeightXXLarge,
     },
 
+    eReceiptAmount: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXXXLarge,
+        lineHeight: variables.lineHeightXXXLarge,
+        color: theme.eReceiptAmount,
+    },
+
     loginHeroBody: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSignInHeroBody,
