@@ -6,8 +6,8 @@ import Navigation from '../libs/Navigation/Navigation';
 import Permissions from '../libs/Permissions';
 import NewChatPage from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
-import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -70,9 +70,8 @@ NewChatSelectorPage.displayName = 'NewChatPage';
 
 export default compose(
     withLocalize,
+    withWindowDimensions,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
+        betas: {key: ONYXKEYS.BETAS},
     }),
-    withWindowDimensions)(NewChatSelectorPage);
+)(NewChatSelectorPage);

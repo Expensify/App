@@ -15,6 +15,7 @@ import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestAmountPage from './EditRequestAmountPage';
+import EditRequestReceiptPage from './EditRequestReceiptPage';
 import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
@@ -167,6 +168,15 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
                     }
                     editMoneyRequest({merchant: transactionChanges.merchant.trim()});
                 }}
+            />
+        );
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
+        return (
+            <EditRequestReceiptPage
+                route={route}
+                transactionID={transaction.transactionID}
             />
         );
     }
