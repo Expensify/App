@@ -16,6 +16,45 @@ on:
         required: true
 
 jobs:
+  buildBaseline:
+    runs-on: ubuntu-latest-xl
+    name: Build apk from latest release as a baseline
+    outputs:
+      VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get most recent release version
+        id: getMostRecentRelease
+        run: echo "VERSION=$(gh release list --limit 1 | awk '{ print $1 }')" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Check if there's an existing artifact for this baseline
+        id: checkForExistingArtifact
+        uses: xSAVIKx/artifact-exists-action@3c5206b1411c0d2fc0840f56b7140646933d9d6a
+        with:
+          name: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+
+      - name: Skip build if there's already an existing artifact for the baseline
+        if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
+        run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
+
+      - name: Checkout "Baseline" commit (last release)
+        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
+        run: |
+          git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
+          git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Build APK
+        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
+        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
+        with:
+          ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+
   buildDelta:
     runs-on: ubuntu-latest-xl
     name: Build apk from delta ref
@@ -89,6 +128,17 @@ jobs:
       - name: Make zip directory for everything to send to AWS Device Farm
         run: mkdir zip
 
+      - name: Download baseline APK
+        uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
+        id: downloadBaselineAPK
+        with:
+          name: baseline-apk-${{ needs.buildBaseline.outputs.VERSION }}
+          path: zip
+
+      # The downloaded artifact will be a file named "app-e2e-release.apk" so we have to rename it
+      - name: Rename baseline APK
+        run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease-baseline.apk"
+
       - name: Download delta APK
         uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
         id: downloadDeltaAPK
@@ -97,10 +147,7 @@ jobs:
           path: zip
 
       - name: Rename delta APK
-        run: mv "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2eRelease.apk" "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2eRelease-compare.apk"
-
-      - name: Copy Delta APK as compare for testing
-        run: mv "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2eRelease-compare.apk" "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2eRelease-baseline.apk"
+        run: mv "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2eRelease-compare.apk"
 
       - name: Copy e2e code into zip folder
         run: cp -r tests/e2e zip
