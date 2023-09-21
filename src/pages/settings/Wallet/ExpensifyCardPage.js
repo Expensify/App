@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -16,6 +16,8 @@ import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import * as CardUtils from '../../../libs/CardUtils';
+import Button from '../../../components/Button';
+import CardDetails from './WalletPage/CardDetails';
 
 const propTypes = {
     /* Onyx Props */
@@ -45,11 +47,17 @@ function ExpensifyCardPage({
     const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
     const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
 
-    if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
+    const [shouldShowCardDetails, setShouldShowCardDetails] = useState(false);
+
+    if (_.isEmpty(virtualCard) || _.isEmpty(physicalCard)) {
         return <NotFoundPage />;
     }
 
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
+
+    const handleRevealDetails = () => {
+        setShouldShowCardDetails(true);
+    };
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -70,12 +78,29 @@ function ExpensifyCardPage({
                             interactive={false}
                             titleStyle={styles.newKansasLarge}
                         />
-                        {!_.isEmpty(physicalCard) && (
+                        {shouldShowCardDetails ? (
+                            <CardDetails
+                                details={{
+                                    pan: '1234123412341234',
+                                    expiration: '11/02/2024',
+                                    cvv: '321',
+                                    address: '12 Grimmauld Place',
+                                }}
+                            />
+                        ) : (
                             <MenuItemWithTopDescription
                                 description={translate('cardPage.virtualCardNumber')}
                                 title={virtualCard.maskedPan}
                                 interactive={false}
-                                titleStyle={styles.walletCardNumber}w
+                                titleStyle={styles.walletCardNumber}
+                                shouldShowRightComponent
+                                rightComponent={
+                                    <Button
+                                        medium
+                                        text={translate('walletPage.cardDetails.revealDetails')}
+                                        onPress={handleRevealDetails}
+                                    />
+                                }
                             />
                         )}
                         {!_.isEmpty(physicalCard) && (
