@@ -68,10 +68,10 @@ function RightModalNavigator(props) {
                         name="RoomMembers"
                         component={ModalStackNavigators.RoomMembersModalStackNavigator}
                     />
-                    {/* <Stack.Screen
+                    <Stack.Screen
                         name="RoomInvite"
                         component={ModalStackNavigators.RoomInviteModalStackNavigator}
-                    /> */}
+                    />
                     <Stack.Screen
                         name="MoneyRequest"
                         component={ModalStackNavigators.MoneyRequestModalStackNavigator}

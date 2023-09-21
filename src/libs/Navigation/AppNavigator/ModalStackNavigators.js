@@ -273,16 +273,15 @@ const RoomMembersModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
-
-// const RoomInviteModalStackNavigator = createModalStackNavigator([
-//     {
-//         getComponent: () => {
-//             const RoomInvitePage = require('../../../pages/RoomInvitePage').default;
-//             return RoomInvitePage;
-//         },
-//         name: 'RoomInvite_Root',
-//     },
-// ]);
+const RoomInviteModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const RoomInvitePage = require('../../../pages/RoomInvitePage').default;
+            return RoomInvitePage;
+        },
+        name: 'RoomInvite_Root',
+    },
+]);
 
 const SearchModalStackNavigator = createModalStackNavigator([
     {
@@ -832,5 +831,5 @@ export {
     NewTeachersUniteNavigator,
     SignInModalStackNavigator,
     RoomMembersModalStackNavigator,
-    // RoomInviteModalStackNavigator,
+    RoomInviteModalStackNavigator,
 };
