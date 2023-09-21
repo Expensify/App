@@ -16,8 +16,8 @@ import compose from '../../../libs/compose';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
-import FormProvider from "../../../components/Form/FormProvider";
-import InputWrapper from "../../../components/Form/InputWrapper";
+import FormProvider from '../../../components/Form/FormProvider';
+import InputWrapper from '../../../components/Form/InputWrapper';
 
 const propTypes = {
     ...withLocalizePropTypes,
