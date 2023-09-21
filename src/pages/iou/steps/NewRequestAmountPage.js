@@ -89,7 +89,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestID);
         }
-    }, [iou.id, iouType, reportID]);
+    }, [iouType, reportID]);
 
     // Check and dismiss modal
     useEffect(() => {
