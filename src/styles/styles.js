@@ -3718,6 +3718,10 @@ const styles = (theme) => ({
         height: 40,
     },
 
+    signInIconButton: {
+        paddingVertical: 2,
+    },
+
     googleButtonContainer: {
         colorScheme: 'light',
         width: 40,

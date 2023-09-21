@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import styles from '../../styles/styles';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import CONST from '../../CONST';
@@ -35,6 +36,7 @@ function IconButton({onPress, translate, provider}) {
     return (
         <PressableWithoutFeedback
             onPress={onPress}
+            styles={styles.signInIconButton}
             accessibilityRole="button"
             accessibilityLabel={translate(providerData[provider].accessibilityLabel)}
         >
