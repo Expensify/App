@@ -886,9 +886,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
+        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
+
         // In case the participant is a worskapce, email & accountID should remain undefined and won't be used in the rest of this code
-        const email = isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || '').toLowerCase();
-        const accountID = isOwnPolicyExpenseChat ? 0 : Number(participant.accountID) || 0;
+        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
+        const accountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
         }
@@ -1050,7 +1052,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
  */
 function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID = '') {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID);
-
     API.write(
         'SplitBill',
         {
