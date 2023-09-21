@@ -113,7 +113,7 @@ function BaseReportActionContextMenu(props) {
                 ref={props.contentRef}
                 style={wrapperStyle}
             >
-                {_.map(_.filter(ContextMenuActions, shouldShowFilter), (contextAction, index) => {
+                {_.map(filteredContextMenuActions, (contextAction, index) => {
                     const closePopup = !props.isMini;
                     const payload = {
                         reportAction,
