@@ -25,7 +25,7 @@ const defaultProps = {
 function EReceipt({transaction}) {
     const {translate} = useLocalize();
     const {thumbnail} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
-    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant} = ReportUtils.getTransactionDetails(transaction);
+    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction);
     const formattedTransactionAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
@@ -41,25 +41,25 @@ function EReceipt({transaction}) {
             </View>
             <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
             <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
-            <>
-                {_.map(waypoints, (waypoint, key) => {
-                    const index = TransactionUtils.getWaypointIndex(key);
-                    let descriptionKey = 'distance.waypointDescription.';
-                    if (index === 0) {
-                        descriptionKey += 'start';
-                    } else if (index === _.size(waypoints) - 1) {
-                        descriptionKey += 'finish';
-                    } else {
-                        descriptionKey += 'stop';
-                    }
-                    return (
-                        <View>
-                            <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
-                            <Text style={styles.eReceiptWaypointAddress}>{waypoint.address || ''}</Text>
-                        </View>
-                    );
-                })}
-            </>
+            {_.map(waypoints, (waypoint, key) => {
+                const index = TransactionUtils.getWaypointIndex(key);
+                let descriptionKey = 'distance.waypointDescription.';
+                if (index === 0) {
+                    descriptionKey += 'start';
+                } else if (index === _.size(waypoints) - 1) {
+                    descriptionKey += 'finish';
+                } else {
+                    descriptionKey += 'stop';
+                }
+                return (
+                    <View>
+                        <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
+                        <Text style={styles.eReceiptWaypointAddress}>{waypoint.address || ''}</Text>
+                    </View>
+                );
+            })}
+            <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
+            <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
         </>
     );
 }
