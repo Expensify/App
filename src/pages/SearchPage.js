@@ -59,7 +59,7 @@ class SearchPage extends Component {
 
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
 
-        this.throttledSearchInServer = _.throttle(this.searchInServer.bind(this), 300, {leading: false});
+        this.throttledSearchInServer = _.throttle(this.searchInServer.bind(this), 1000, {leading: false});
 
         this.state = {
             searchValue: '',
