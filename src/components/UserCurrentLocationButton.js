@@ -39,7 +39,9 @@ function UserCurrentLocationButton({onLocationFetched, onLocationError, onClick,
 
     /** Gets the user's current location and registers success/error callbacks */
     const getUserLocation = () => {
-        if (isFetchingLocation.current) return;
+        if (isFetchingLocation.current) {
+            return;
+        }
 
         isFetchingLocation.current = true;
 
