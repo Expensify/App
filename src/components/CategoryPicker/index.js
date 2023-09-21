@@ -46,7 +46,7 @@ function CategoryPicker({policyCategories, reportID, iouType, iou, policyRecentl
     }, [policyCategories, selectedOptions, isCategoriesCountBelowThreshold]);
 
     const sections = useMemo(
-        () => OptionsListUtils.getNewChatOptions({}, {}, [], searchValue, selectedOptions, [], false, false, true, policyCategories, policyRecentlyUsedCategories, false).categoryOptions,
+        () => OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, true, policyCategories, policyRecentlyUsedCategories, false).categoryOptions,
         [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions],
     );
 
