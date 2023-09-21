@@ -239,7 +239,8 @@ function MoneyRequestPreview(props) {
                             isHovered={isScanning}
                         />
                     )}
-                    {_.isEmpty(props.transaction) && lodashGet(props.transaction, 'pendingAction') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
+                    {_.isEmpty(props.transaction) &&
+                    !_.contains([CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE], lodashGet(props.action, 'pendingAction')) ? (
                         <MoneyRequestSkeletonView />
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>
