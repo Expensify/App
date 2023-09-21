@@ -22,6 +22,9 @@ import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickE
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import * as Task from '../../../../libs/actions/Task';
+import * as Localize from '../../../../libs/Localize';
+import * as TransactionUtils from '../../../../libs/TransactionUtils';
+import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -199,6 +202,16 @@ export default [
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
+                } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+                    const originalMessage = _.get(reportAction, 'originalMessage', {});
+                    const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
+                    const {amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
+                    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+                    const displaymessage = Localize.translateLocal('iou.requestedAmount', {
+                        formattedAmount,
+                        comment,
+                    });
+                    Clipboard.setString(displaymessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {

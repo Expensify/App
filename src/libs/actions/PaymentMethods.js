@@ -18,12 +18,12 @@ const kycWallRef = createRef();
  */
 function continueSetup() {
     if (!kycWallRef.current || !kycWallRef.current.continue) {
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
         return;
     }
 
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
-    Navigation.goBack();
+    Navigation.goBack(ROUTES.HOME);
     kycWallRef.current.continue();
 }
 

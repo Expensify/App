@@ -81,6 +81,8 @@ type Report = {
     lastActorAccountID?: number;
     ownerAccountID?: number;
     participantAccountIDs?: number[];
+    total?: number;
+    currency?: string;
 };
 
 export default Report;
