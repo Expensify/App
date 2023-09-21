@@ -329,7 +329,7 @@ function MoneyRequestConfirmPage(props) {
                                 // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
                                 // the floating-action-button (since it is something that exists outside the context of a report).
                                 canModifyParticipants={!_.isEmpty(reportID.current)}
-                                policyID={props.policy.id}
+                                policyID={props.report.policyID}
                                 bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
                                 iouMerchant={props.iou.merchant}
                                 iouCreated={props.iou.created}
