@@ -263,6 +263,28 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+
+const RoomMembersModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const RoomMembersPage = require('../../../pages/RoomMembersPage').default;
+            return RoomMembersPage;
+        },
+        name: 'RoomMembers_Root',
+    },
+]);
+
+
+// const RoomInviteModalStackNavigator = createModalStackNavigator([
+//     {
+//         getComponent: () => {
+//             const RoomInvitePage = require('../../../pages/RoomInvitePage').default;
+//             return RoomInvitePage;
+//         },
+//         name: 'RoomInvite_Root',
+//     },
+// ]);
+
 const SearchModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -810,4 +832,6 @@ export {
     PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
     SignInModalStackNavigator,
+    RoomMembersModalStackNavigator,
+    // RoomInviteModalStackNavigator,
 };

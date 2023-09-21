@@ -299,6 +299,16 @@ export default {
                             ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS,
                         },
                     },
+                    Room_Invite: {
+                        screens: {
+                            RoomInvite_Root: ROUTES.ROOM_INVITE,
+                        },
+                    },
+                    Room_Members: {
+                        screens: {
+                            RoomMembers_Root: ROUTES.ROOM_MEMBERS,
+                        },
+                    },
                     MoneyRequest: {
                         screens: {
                             Money_Request: {
