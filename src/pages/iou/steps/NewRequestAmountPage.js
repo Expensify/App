@@ -71,15 +71,17 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
     const focusTimeoutRef = useRef(null);
 
-    useFocusEffect(useCallback(() => {
-        focusTimeoutRef.current = setTimeout(() => textInput.current && textInput.current.focus(), CONST.ANIMATED_TRANSITION);
-        return () => {
-            if (!focusTimeoutRef.current) {
-                return;
-            }
-            clearTimeout(focusTimeoutRef.current);
-        };
-    }, []));
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => textInput.current && textInput.current.focus(), CONST.ANIMATED_TRANSITION);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, []),
+    );
 
     // Check and dismiss modal
     useEffect(() => {
