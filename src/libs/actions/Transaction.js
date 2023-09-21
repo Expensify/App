@@ -143,7 +143,7 @@ function removeWaypoint(transactionID, currentIndex) {
     if (!isRemovedWaypointEmpty) {
         newTransaction = {
             ...newTransaction,
-            // Clear any errors
+            // Clear any errors that may be present, which apply to the old route
             errorFields: {
                 route: null,
             },
