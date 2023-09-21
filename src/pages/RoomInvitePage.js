@@ -15,6 +15,7 @@ import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import CONST from '../CONST';
 import withPolicy, {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
+import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ROUTES from '../ROUTES';
 import * as PolicyUtils from '../libs/PolicyUtils';
@@ -25,6 +26,9 @@ import SelectionList from '../components/SelectionList';
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
     login: PropTypes.string,
+
+    /** The report currently being looked at */
+    report: reportPropTypes.isRequired,
 
     /** The URL of the person's avatar (there should already be a default avatar if
     the person doesn't have their own avatar uploaded yet, except for anon users) */
@@ -185,16 +189,16 @@ function RoomInvitePage(props) {
         [props.policy],
     );
 
-    const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim().toLowerCase();
-        if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
-            return translate('messages.errorMessageInvalidEmail');
-        }
-        if (!userToInvite && excludedUsers.includes(searchValue)) {
-            return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
-        }
-        return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
-    }, [excludedUsers, translate, searchTerm, policyName, userToInvite, personalDetails]);
+    // const headerMessage = useMemo(() => {
+    //     const searchValue = searchTerm.trim().toLowerCase();
+    //     if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
+    //         return translate('messages.errorMessageInvalidEmail');
+    //     }
+    //     if (!userToInvite && excludedUsers.includes(searchValue)) {
+    //         return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
+    //     }
+    //     return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
+    // }, [excludedUsers, translate, searchTerm, policyName, userToInvite, personalDetails]);
 
     return (
         <ScreenWrapper shouldEnableMaxHeight>
@@ -209,15 +213,13 @@ function RoomInvitePage(props) {
                     >
                         <HeaderWithBackButton
                             title={translate('workspace.invite.invitePeople')}
-                            subtitle={policyName}
-                            shouldShowGetAssistanceButton
-                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                            subtitle={lodashGet(props.report, 'reportName')}
                             onBackButtonPress={() => {
                                 Policy.clearErrors(props.route.params.policyID);
                                 Navigation.goBack(ROUTES.getWorkspaceMembersRoute(props.route.params.policyID));
                             }}
                         />
-                        <SelectionList
+                        {/* <SelectionList
                             canSelectMultiple
                             sections={sections}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -240,7 +242,7 @@ function RoomInvitePage(props) {
                                 enabledWhenOffline
                                 disablePressOnEnter
                             />
-                        </View>
+                        </View> */}
                     </FullPageNotFoundView>
                 );
             }}
@@ -254,6 +256,7 @@ RoomInvitePage.displayName = 'RoomInvitePage';
 
 export default compose(
     withPolicy,
+    withReportOrNotFound,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
