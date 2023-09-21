@@ -1210,6 +1210,32 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {String} previousValue
  * @param {String} newValue
  */
+function updateNotificationPreference(reportID, previousValue, newValue) {
+    if (previousValue === newValue) {
+        return;
+    }
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {notificationPreference: newValue},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {notificationPreference: previousValue},
+        },
+    ];
+    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
+}
+
+/**
+ * @param {String} reportID
+ * @param {String} previousValue
+ * @param {String} newValue
+ */
 function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
     if (previousValue === newValue) {
         Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
@@ -2066,6 +2092,7 @@ export {
     updateWelcomeMessage,
     updateWriteCapabilityAndNavigate,
     updateNotificationPreferenceAndNavigate,
+    updateNotificationPreference,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
     saveReportComment,

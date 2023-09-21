@@ -138,14 +138,14 @@ function HeaderView(props) {
                 icon: Expensicons.Exit,
                 iconFill: themeColors.icon,
                 text: props.translate('common.leaveThread'),
-                onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
+                onSelected: () => Report.leaveRoom(props.report.reportID),
             });
         } else {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubble,
                 iconFill: themeColors.icon,
                 text: props.translate('common.joinThread'),
-                onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
+                onSelected: () => Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS),
             });
         }
     }
