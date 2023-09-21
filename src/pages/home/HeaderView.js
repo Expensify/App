@@ -1,8 +1,8 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { View } from 'react-native';
-import { withOnyx } from 'react-native-onyx';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import GoogleMeetIcon from '../../../assets/images/google-meet.svg';
 import ZoomIcon from '../../../assets/images/zoom-icon.svg';
@@ -20,8 +20,8 @@ import Text from '../../components/Text';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import Tooltip from '../../components/Tooltip';
 import participantPropTypes from '../../components/participantPropTypes';
-import withLocalize, { withLocalizePropTypes } from '../../components/withLocalize';
-import withWindowDimensions, { windowDimensionsPropTypes } from '../../components/withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
@@ -163,7 +163,7 @@ function HeaderView(props) {
     } else {
         threeDotMenuItems.push({
             icon: Expensicons.Pin,
-            iconFill: themeColors.heading,
+            iconFill: themeColors.icon,
             text: props.translate('common.unPinConversation'),
             onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
         });
