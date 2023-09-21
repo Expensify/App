@@ -103,7 +103,9 @@ function BaseReportActionContextMenu(props) {
             }
 
             // Ensures the event does not cause side-effects beyond the context menu, e.g. when an outside element is focused
-            event.stopPropagation();
+            if (event) {
+                event.stopPropagation();
+            }
 
             menuItemRefs.current[focusedIndex].triggerPressAndUpdateSuccess();
             setFocusedIndex(-1);
