@@ -5,7 +5,7 @@ import themeColors from '../../../../styles/themes/default';
 
 function ListHeaderComponentLoader() {
     return (
-        <View style={[stylesGenerator.alignItemsCenter, styles.justifyContentCenter, styles.bottomReportLoader, styles.chatBottomLoader]}>
+        <View style={[stylesGenerator.alignItemsCenter, styles.justifyContentCenter, styles.chatBottomLoader]}>
             <ActivityIndicator
                 color={themeColors.spinner}
                 size="small"

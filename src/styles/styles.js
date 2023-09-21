@@ -1602,7 +1602,8 @@ const styles = (theme) => ({
         paddingBottom: 16,
     },
     chatContentScrollViewWithHeaderLoader: {
-        padding: 40,
+        // regular paddingBottom wouldn't work here
+        padding: CONST.CHAT_HEADER_LOADER_HEIGHT,
         paddingLeft: 0,
         paddingRight: 0,
     },
@@ -3988,9 +3989,6 @@ const styles = (theme) => ({
     draggableTopBar: {
         height: 30,
         width: '100%',
-    },
-    bottomReportLoader: {
-        height: 36,
     },
     chatBottomLoader: {
         position: 'absolute',
