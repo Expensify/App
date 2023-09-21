@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {withOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
@@ -20,6 +21,7 @@ import Button from '../../../components/Button';
 import useLocalize from '../../../hooks/useLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../../libs/Log';
+import ConfirmModal from '../../../components/ConfirmModal';
 import * as CameraPermission from './CameraPermission';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import NavigationAwareCamera from './NavigationAwareCamera';
@@ -89,12 +91,51 @@ function ReceiptSelector({route, report, iou, transactionID}) {
     const [permissions, setPermissions] = useState('granted');
     const isAndroidBlockedPermissionRef = useRef(false);
     const appState = useRef(AppState.currentState);
-
+    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
+    const [attachmentInvalidReason, setAttachmentValidReason] = useState('');
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
     const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
+
+    const hideReciptModal = () => {
+        setIsAttachmentInvalid(false);
+    };
+
+    /**
+     * Sets the upload receipt error modal content when an invalid receipt is uploaded
+     * @param {*} isInvalid
+     * @param {*} title
+     * @param {*} reason
+     */
+    const setUploadReceiptError = (isInvalid, title, reason) => {
+        setIsAttachmentInvalid(isInvalid);
+        setAttachmentInvalidReasonTitle(title);
+        setAttachmentValidReason(reason);
+    };
+
+    function validateReceipt(file) {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'fileName', ''));
+        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+            return false;
+        }
+
+        const fileSize = lodashGet(file, 'fileSize', 0);
+        if (fileSize > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
+            return false;
+        }
+
+        if (fileSize < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+            return false;
+        }
+
+        return true;
+    }
 
     // We want to listen to if the app has come back from background and refresh the permissions status to show camera when permissions were granted
     useEffect(() => {
@@ -277,6 +318,10 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                     onPress={() => {
                         showImagePicker(launchImageLibrary)
                             .then((receiptImage) => {
+                                if (!validateReceipt(receiptImage[0])) {
+                                    return;
+                                }
+
                                 const filePath = receiptImage[0].uri;
                                 IOU.setMoneyRequestReceipt(filePath, receiptImage[0].fileName);
 
@@ -327,6 +372,15 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                     />
                 </PressableWithFeedback>
             </View>
+            <ConfirmModal
+                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                onConfirm={hideReciptModal}
+                onCancel={hideReciptModal}
+                isVisible={isAttachmentInvalid}
+                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                confirmText={translate('common.close')}
+                shouldShowCancelButton={false}
+            />
         </View>
     );
 }
