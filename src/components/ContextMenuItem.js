@@ -1,4 +1,4 @@
-import React, {forwardRef, useImperativeHandle} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import MenuItem from './MenuItem';
 import Icon from './Icon';
@@ -37,9 +37,6 @@ const propTypes = {
 
     /** Whether the menu item is focused or not */
     focused: PropTypes.bool,
-
-    /** Forwarded ref to ContextMenuItem */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 const defaultProps = {
@@ -49,10 +46,9 @@ const defaultProps = {
     description: '',
     isAnonymousAction: false,
     focused: false,
-    innerRef: null,
 };
 
-function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, focused, innerRef}) {
+function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, focused}) {
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
@@ -68,8 +64,6 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             setThrottledButtonInactive();
         }
     };
-
-    useImperativeHandle(innerRef, () => ({triggerPressAndUpdateSuccess}));
 
     const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
     const itemText = !isThrottledButtonActive && successText ? successText : text;
@@ -108,10 +102,4 @@ ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
 ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default forwardRef((props, ref) => (
-    <ContextMenuItem
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+export default ContextMenuItem;
