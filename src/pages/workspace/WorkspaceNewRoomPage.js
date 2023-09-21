@@ -191,7 +191,7 @@ function WorkspaceNewRoomPage(props) {
                                     containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 />
                             </View>
-                            <View style={[styles.mhn5, styles.mb5]}>
+                            <View style={[styles.mhn5]}>
                                 <ValuePicker
                                     inputID="policyID"
                                     label={translate('workspace.common.workspace')}
@@ -201,7 +201,7 @@ function WorkspaceNewRoomPage(props) {
                                 />
                             </View>
                             {isPolicyAdmin && (
-                                <View style={[styles.mhn5, styles.mb5]}>
+                                <View style={[styles.mhn5]}>
                                     <ValuePicker
                                         inputID="writeCapability"
                                         label={translate('writeCapabilityPage.label')}
@@ -210,7 +210,7 @@ function WorkspaceNewRoomPage(props) {
                                     />
                                 </View>
                             )}
-                            <View style={[styles.mb2, styles.mhn5]}>
+                            <View style={[styles.mb1, styles.mhn5]}>
                                 <ValuePicker
                                     inputID="visibility"
                                     label={translate('newRoomPage.visibility')}
