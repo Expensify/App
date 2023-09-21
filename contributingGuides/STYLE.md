@@ -567,6 +567,28 @@ A `useEffect()` that does not include referenced props or state in its dependenc
 
 There are pros and cons of each, but ultimately we have standardized on using the `function` keyword to align things more with modern React conventions. There are also some minor cognitive overhead benefits in that you don't need to think about adding and removing brackets when encountering an implicit return. The `function` syntax also has the benefit of being able to be hoisted where arrow functions do not.
 
+## How do I auto-focus a TextInput using `useFocusEffect()`?
+
+```javascript
+const focusTimeoutRef = useRef(null);
+
+useFocusEffect(useCallback(() => {
+    focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
+    return () => {
+        if (!focusTimeoutRef.current) {
+            return;
+        }
+        clearTimeout(focusTimeoutRef.current);
+    };
+}, []));
+```
+
+This works better than using `onTransitionEnd` because -
+1. `onTransitionEnd` is only fired for the top card in the stack, and therefore does not fire on the new top card when popping a card off the stack. For example - pressing the back button to go from the workspace invite page to the workspace members list.
+2. Using `InteractionsManager.runAfterInteractions` with `useFocusEffect` will interrupt an in-progress transition animation.
+
+Note - This is a solution from [this PR](https://github.com/Expensify/App/pull/26415). You can find detailed discussion in comments.
+
 # Onyx Best Practices
 
 [Onyx Documentation](https://github.com/expensify/react-native-onyx)

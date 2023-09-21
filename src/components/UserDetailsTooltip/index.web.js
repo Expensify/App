@@ -67,6 +67,7 @@ function UserDetailsTooltip(props) {
             shiftHorizontal={props.shiftHorizontal}
             renderTooltipContent={renderTooltipContent}
             renderTooltipContentKey={[userDisplayName, userLogin]}
+            shouldHandleScroll
         >
             {props.children}
         </Tooltip>

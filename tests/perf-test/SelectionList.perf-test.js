@@ -21,6 +21,12 @@ jest.mock('../../src/components/withLocalize', () => (Component) => (props) => (
     />
 ));
 
+jest.mock('../../src/hooks/useNetwork', () =>
+    jest.fn(() => ({
+        isOffline: false,
+    })),
+);
+
 jest.mock('../../src/components/withKeyboardState', () => (Component) => (props) => (
     <Component
         // eslint-disable-next-line react/jsx-props-no-spreading

@@ -593,7 +593,10 @@ function ReportActionItem(props) {
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={props.translate('accessibilityHints.chatMessage')}
         >
-            <Hoverable disabled={Boolean(props.draftMessage)}>
+            <Hoverable
+                shouldHandleScroll
+                disabled={Boolean(props.draftMessage)}
+            >
                 {(hovered) => (
                     <View>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
@@ -620,6 +623,7 @@ function ReportActionItem(props) {
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
+                                shouldDisableStrikeThrough
                             >
                                 {isWhisper && (
                                     <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
