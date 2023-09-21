@@ -174,7 +174,7 @@ function BaseSelectionList({
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
      *
-     * @param item - the list item
+     * @param {Object} item - the list item
      * @param {Boolean} shouldUnfocusRow - flag to decide if we should unfocus all rows. True when selecting a row with click or press (not keyboard)
      */
     const selectRow = (item, shouldUnfocusRow = false) => {
