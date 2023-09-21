@@ -21,6 +21,8 @@ import Form from '../components/Form';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import {policyPropTypes, policyDefaultProps} from './workspace/withPolicy';
 import updateMultilineInputRange from '../libs/UpdateMultilineInputRange';
+import getPlatform from '../libs/getPlatform';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -47,7 +49,8 @@ function ReportWelcomeMessagePage(props) {
     const [welcomeMessage, setWelcomeMessage] = useState(parser.htmlToMarkdown(props.report.welcomeMessage));
     const welcomeMessageInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
-
+    const isNativeIOS = getPlatform() === CONST.PLATFORM.IOS && !Browser.isMobileSafari();
+    if(isNativeIOS) console.log("true call!");
     const handleWelcomeMessageChange = useCallback((value) => {
         setWelcomeMessage(value);
     }, []);
@@ -59,7 +62,7 @@ function ReportWelcomeMessagePage(props) {
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
-                if (welcomeMessageInputRef.current) {
+                if (welcomeMessageInputRef.current && !isNativeIOS) {
                     welcomeMessageInputRef.current.focus();
                 }
                 return () => {
@@ -98,6 +101,9 @@ function ReportWelcomeMessagePage(props) {
                                 }
                                 welcomeMessageInputRef.current = el;
                                 updateMultilineInputRange(welcomeMessageInputRef.current);
+                                if(isNativeIOS) {
+                                    welcomeMessageInputRef.current.focus();
+                                }
                             }}
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
