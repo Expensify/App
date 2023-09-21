@@ -32,7 +32,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response|undefined) {
             if (response?.jsonCode === 200 && request.successData) {
                 return updateHandler(request.successData);
             }
-            if ((!response || response?.jsonCode !== 200) && request.failureData) {
+            if ((response?.jsonCode !== 200) && request.failureData) {
                 return updateHandler(request.failureData);
             }
             return Promise.resolve();

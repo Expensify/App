@@ -104,7 +104,7 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
                 alert('Too many auth writes', message);
             }
             return response;
-        })
+        });
 }
 
 /**
