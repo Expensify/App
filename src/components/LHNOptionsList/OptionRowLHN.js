@@ -104,8 +104,8 @@ function OptionRowLHN(props) {
     const shouldShowGreenDotIndicator =
         !hasBrickError &&
         (optionItem.isUnreadWithMention ||
-            ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem) ||
-            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isCompletedTaskReport && !optionItem.isArchivedRoom));
+            optionItem.isWaitingForTaskCompleteFromAssignee ||
+            ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
 
     /**
      * Show the ReportActionContextMenu modal popover.
