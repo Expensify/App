@@ -14,16 +14,10 @@ export default function updateMultilineInputRange(input) {
         return;
     }
 
-    if (input.value && input.setSelectionRange) {
-        const length = input.value.length;
-        input.setSelectionRange(length, length);
-        // eslint-disable-next-line no-param-reassign
-        input.scrollTop = input.scrollHeight;
-    }
     /*
-     * adding this ios specific patch because of the scroll issue in native iOS
-     * issue: does not scroll multiline input when text exceeds the maximum number of lines
-     * for more details: https://github.com/Expensify/App/pull/27702#issuecomment-1728651132
+     * Adding this iOS specific patch because of the scroll issue in native iOS
+     * Issue: does not scroll multiline input when text exceeds the maximum number of lines
+     * For more details: https://github.com/Expensify/App/pull/27702#issuecomment-1728651132
      */
     input.focus();
 }
