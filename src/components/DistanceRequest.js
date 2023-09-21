@@ -2,8 +2,7 @@ import React, {useEffect, useMemo, useState, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import lodashHas from 'lodash/has';
-import lodashIsNull from 'lodash/isNull';
+import lodashIsNil from 'lodash/isNil';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -32,7 +31,7 @@ import Button from './Button';
 import DistanceMapView from './DistanceMapView';
 import LinearGradient from './LinearGradient';
 import * as Expensicons from './Icon/Expensicons';
-import BlockingView from './BlockingViews/BlockingView';
+import PendingMapView from './MapView/PendingMapView';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {iouPropTypes} from '../pages/iou/propTypes';
@@ -109,15 +108,17 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
-    const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
-    const doesRouteExist = lodashHas(transaction, 'routes.route0.geometry.coordinates');
+    const hasRoute = TransactionUtils.hasRoute(transaction);
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
-    const shouldFetchRoute = (!doesRouteExist || haveWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
+    const previousValidatedWaypoints = usePrevious(validatedWaypoints);
+    const haveValidatedWaypointsChanged = !_.isEqual(previousValidatedWaypoints, validatedWaypoints);
+    const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
+    const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
     const waypointMarkers = useMemo(
         () =>
             _.filter(
                 _.map(waypoints, (waypoint, key) => {
-                    if (!waypoint || !lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng') || lodashIsNull(waypoint.lat) || lodashIsNull(waypoint.lng)) {
+                    if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
                         return;
                     }
 
@@ -188,7 +189,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
+        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : ROUTES.HOME);
     };
 
     const navigateToNextPage = () => {
@@ -260,7 +261,10 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => Transaction.addStop(iou.transactionID)}
+                    onPress={() => {
+                        const newIndex = _.size(lodashGet(transaction, 'comment.waypoints', {}));
+                        Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', newIndex));
+                    }}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
@@ -283,21 +287,17 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                         overlayStyle={styles.m4}
                     />
                 ) : (
-                    <View style={[styles.mapPendingView]}>
-                        <BlockingView
-                            icon={Expensicons.EmptyStateRoutePending}
-                            title={translate('distance.mapPending.title')}
-                            subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                            shouldShowLink={false}
-                        />
-                    </View>
+                    <PendingMapView
+                        title={translate('distance.mapPending.title')}
+                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                    />
                 )}
             </View>
             <Button
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={navigateToNextPage}
-                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline}
+                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError}
                 text={translate('common.next')}
             />
         </ScrollView>
