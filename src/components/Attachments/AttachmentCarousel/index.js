@@ -3,6 +3,7 @@ import {View, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../../styles/styles';
+import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import CarouselActions from './CarouselActions';
 import Carousel from './Carousel';
 import withWindowDimensions from '../../withWindowDimensions';

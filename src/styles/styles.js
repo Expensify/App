@@ -879,7 +879,8 @@ const styles = (theme) => ({
     offlineIndicatorMobile: {
         paddingLeft: 20,
         paddingTop: 5,
-        paddingBottom: 5,
+        paddingBottom: 30,
+        marginBottom: -25,
     },
 
     offlineIndicatorRow: {
@@ -1992,6 +1993,11 @@ const styles = (theme) => ({
     avatarLarge: {
         width: variables.avatarSizeLarge,
         height: variables.avatarSizeLarge,
+    },
+
+    avatarXLarge: {
+        width: variables.avatarSizeXLarge,
+        height: variables.avatarSizeXLarge,
     },
 
     avatarNormal: {
