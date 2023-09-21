@@ -2667,9 +2667,9 @@ const CONST = {
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
     LIST_COMPONENTS: {
-      HEADER: 'header',
-      FOOTER: 'footer',
-    }
+        HEADER: 'header',
+        FOOTER: 'footer',
+    },
 } as const;
 
 export default CONST;
