@@ -21,8 +21,6 @@ type Routes = Record<string, Route>;
 type Transaction = {
     amount: number;
     category: string;
-    currency: string;
-    reportID: string;
     comment: Comment;
     created: string;
     currency: string;
