@@ -75,7 +75,7 @@ function ExpensifyCardPage({
                                 description={translate('cardPage.virtualCardNumber')}
                                 title={virtualCard.maskedPan}
                                 interactive={false}
-                                titleStyle={styles.walletCardNumber}
+                                titleStyle={styles.walletCardNumber}w
                             />
                         )}
                         {!_.isEmpty(physicalCard) && (
