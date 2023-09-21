@@ -1554,10 +1554,10 @@ const styles = (theme) => ({
         top: 0,
         bottom: 0,
         right: 0,
-        backgroundColor: theme.shadow,
+        backgroundColor: theme.overlayBG,
         opacity: current.progress.interpolate({
             inputRange: [0, 1],
-            outputRange: [0, variables.overlayOpacity],
+            outputRange: [0, CONST.RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY],
             extrapolate: 'clamp',
         }),
     }),

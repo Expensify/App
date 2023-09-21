@@ -80,6 +80,7 @@ const lightTheme = {
     skeletonLHNOut: colors.lightDefaultButtonPressed,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
+    overlayBG: colors.lightRightHandSideOverlay,
     loungeAccessOverlay: colors.blue800,
 };
 

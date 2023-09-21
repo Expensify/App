@@ -82,6 +82,7 @@ const darkTheme = {
     skeletonLHNOut: colors.darkDefaultButton,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
+    overlayBG: colors.darkRightHandSideOverlay,
     loungeAccessOverlay: colors.blue800,
 };
 
