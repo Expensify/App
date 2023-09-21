@@ -18,6 +18,7 @@ type AccountData = {
     created?: string;
     currency?: string;
     fundID?: number;
+    bank?: string;
 };
 
 type Fund = {
