@@ -1,10 +1,12 @@
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
 import OnyxTabNavigator, {TopTab} from '../libs/Navigation/OnyxTabNavigator';
 import TabSelector from '../components/TabSelector/TabSelector';
 import Navigation from '../libs/Navigation/Navigation';
 import Permissions from '../libs/Permissions';
 import NewChatPage from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
+import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
@@ -66,4 +68,11 @@ NewChatSelectorPage.propTypes = propTypes;
 NewChatSelectorPage.defaultProps = defaultProps;
 NewChatSelectorPage.displayName = 'NewChatPage';
 
-export default compose(withLocalize, withWindowDimensions)(NewChatSelectorPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+    withWindowDimensions)(NewChatSelectorPage);
