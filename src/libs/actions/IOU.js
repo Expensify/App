@@ -587,6 +587,7 @@ function getMoneyRequestInformation(
  * @param {Number} amount
  * @param {String} currency
  * @param {String} merchant
+ * @param {Boolean} [billable]
  */
 function createDistanceRequest(report, participant, comment, created, transactionID, category, tag, amount, currency, merchant, billable) {
     const optimisticReceipt = {
