@@ -242,7 +242,14 @@ function BaseTextInput(props) {
         props.autoGrowHeight && {scrollPaddingTop: 2 * maxHeight},
     ]);
     const isMultiline = props.multiline || props.autoGrowHeight;
+    
+    /* To prevent text jumping caused by virtual DOM calculations on Safari and mobile Chrome,
+       make sure to include the `lineHeight`.
+       Reference: https://github.com/Expensify/App/issues/26735
 
+       For other platforms, explicitly remove `lineHeight` from single-line inputs
+       to prevent long text from disappearing once it exceeds the input space.
+       See https://github.com/Expensify/App/issues/13802 */
     const lineHeight = useMemo(() => {
         if (Browser.isSafari() && _.isArray(props.inputStyle)) {
             return _.find(props.inputStyle,  (f) => f.lineHeight !== undefined)?.lineHeight
@@ -335,9 +342,7 @@ function BaseTextInput(props) {
                                     (!hasLabel || isMultiline) && styles.pv0,
                                     props.prefixCharacter && StyleUtils.getPaddingLeft(prefixWidth + styles.pl1.paddingLeft),
                                     props.secureTextEntry && styles.secureInput,
-
-                                    // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
-                                    // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
+                                    
                                     !isMultiline && { height, lineHeight },
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
