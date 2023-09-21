@@ -1,4 +1,4 @@
-import React, {createRef, useCallback, useRef, useState} from 'react';
+import React, {createRef, useCallback, useMemo, useRef, useState} from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -8,9 +8,9 @@ import * as FormActions from '../../libs/actions/FormActions';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
 import compose from '../../libs/compose';
-import {withNetwork} from '../../components/OnyxProvider';
+import {withNetwork} from '../OnyxProvider';
 import stylePropTypes from '../../styles/stylePropTypes';
-import networkPropTypes from '../../components/networkPropTypes';
+import networkPropTypes from '../networkPropTypes';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -229,9 +229,10 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
         },
         [errors, formState, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
     );
+    const value = useMemo(() => ({registerInput}), [registerInput]);
 
     return (
-        <FormContext.Provider value={{registerInput}}>
+        <FormContext.Provider value={value}>
             {/* eslint-disable react/jsx-props-no-spreading */}
             <FormWrapper
                 {...rest}

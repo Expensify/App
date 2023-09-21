@@ -4,11 +4,11 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import * as ErrorUtils from '../../libs/ErrorUtils';
-import FormSubmit from '../../components/FormSubmit';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import FormSubmit from '../FormSubmit';
+import FormAlertWithSubmitButton from '../FormAlertWithSubmitButton';
 import styles from '../../styles/styles';
-import SafeAreaConsumer from '../../components/SafeAreaConsumer';
-import ScrollViewWithContext from '../../components/ScrollViewWithContext';
+import SafeAreaConsumer from '../SafeAreaConsumer';
+import ScrollViewWithContext from '../ScrollViewWithContext';
 
 import stylePropTypes from '../../styles/stylePropTypes';
 

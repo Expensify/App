@@ -16,7 +16,8 @@ import compose from '../../../libs/compose';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
-import useForm from '../../../hooks/useForm';
+import FormProvider from "../../../components/Form/FormProvider";
+import InputWrapper from "../../../components/Form/InputWrapper";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -64,8 +65,6 @@ function DisplayNamePage(props) {
         return errors;
     };
 
-    const {Form, Input} = useForm();
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -75,7 +74,7 @@ function DisplayNamePage(props) {
                 title={props.translate('displayNamePage.headerTitle')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                 validate={validate}
@@ -87,8 +86,8 @@ function DisplayNamePage(props) {
             >
                 <Text style={[styles.mb6]}>{props.translate('displayNamePage.isShownOnProfile')}</Text>
                 <View style={styles.mb4}>
-                    <Input
-                        RenderInput={TextInput}
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="firstName"
                         name="fname"
                         label={props.translate('common.firstName')}
@@ -100,8 +99,8 @@ function DisplayNamePage(props) {
                     />
                 </View>
                 <View>
-                    <Input
-                        RenderInput={TextInput}
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="lastName"
                         name="lname"
                         label={props.translate('common.lastName')}
@@ -112,7 +111,7 @@ function DisplayNamePage(props) {
                         spellCheck={false}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
