@@ -26,6 +26,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
 import Permissions from '../../libs/Permissions';
 import Tooltip from '../Tooltip';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Style for hovered state */
@@ -67,6 +68,7 @@ const defaultProps = {
 function OptionRowLHN(props) {
     const popoverAnchor = useRef(null);
     const isFocusedRef = useRef(true);
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const {translate} = useLocalize();
 
@@ -110,7 +112,7 @@ function OptionRowLHN(props) {
         useCallback(() => {
             isFocusedRef.current = true;
             return () => {
-                if (!props.isSmallScreenWidth) {
+                if (!isSmallScreenWidth) {
                     return;
                 }
                 isFocusedRef.current = false;
