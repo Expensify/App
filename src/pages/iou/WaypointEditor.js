@@ -23,6 +23,7 @@ import * as Transaction from '../../libs/actions/Transaction';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
 import transactionPropTypes from '../../components/transactionPropTypes';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** The transactionID of the IOU */
@@ -104,13 +105,13 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         const errors = {};
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
-            errors[`waypoint${waypointIndex}`] = 'bankAccount.error.address';
+            ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'bankAccount.error.address');
         }
 
         // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
-            errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
+            ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'distance.errors.selectSuggestedAddress');
         }
 
         return errors;
@@ -204,7 +205,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                         <AddressSearch
                             inputID={`waypoint${waypointIndex}`}
                             ref={(e) => (textInput.current = e)}
-                            hint={!isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
+                            hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}
