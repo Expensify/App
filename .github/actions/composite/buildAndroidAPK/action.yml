@@ -19,7 +19,7 @@ runs:
     - uses: gradle/gradle-build-action@3fbe033aaae657f011f88f29be9e65ed26bd29ef
 
     - name: Build APK
-      run: npm run android-build-e2e
+      run: cd android && ENTRY_FILE="../src/libs/E2E/reactNativeLaunchingTest.js" ENVFILE="../tests/e2e/.env.e2e" E2E_TESTING=true ./gradlew :app:assembleE2eRelease
       shell: bash
 
     - name: Upload APK

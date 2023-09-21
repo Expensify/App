@@ -113,12 +113,6 @@ jobs:
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - name: List files
-        run: ls -la
-
-      - name: List files src/
-        run: ls -la src/
-
       - name: Build APK
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
