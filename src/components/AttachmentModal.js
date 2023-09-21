@@ -97,8 +97,6 @@ const defaultProps = {
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
     isWorkspaceAvatar: false,
-    parentReport: {},
-    parentReportAction: {},
 };
 
 function AttachmentModal(props) {
@@ -454,7 +452,4 @@ function AttachmentModal(props) {
 AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
 AttachmentModal.displayName = 'AttachmentModal';
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(AttachmentModal);
+export default compose(withWindowDimensions, withLocalize)(AttachmentModal);
