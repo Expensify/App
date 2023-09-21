@@ -149,7 +149,7 @@ function PopoverWithMeasuredContent(props) {
             but we can't measure its dimensions without first rendering it.
         */
         <View
-            style={styles.invisible}
+            style={styles.invisiblePopover}
             onLayout={measurePopover}
         >
             {props.children}

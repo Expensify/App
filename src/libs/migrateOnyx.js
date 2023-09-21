@@ -1,13 +1,12 @@
 import _ from 'underscore';
 import Log from './Log';
 import AddEncryptedAuthToken from './migrations/AddEncryptedAuthToken';
-import RenameActiveClientsKey from './migrations/RenameActiveClientsKey';
 import RenamePriorityModeKey from './migrations/RenamePriorityModeKey';
 import MoveToIndexedDB from './migrations/MoveToIndexedDB';
 import RenameExpensifyNewsStatus from './migrations/RenameExpensifyNewsStatus';
 import AddLastVisibleActionCreated from './migrations/AddLastVisibleActionCreated';
-import KeyReportActionsByReportActionID from './migrations/KeyReportActionsByReportActionID';
 import PersonalDetailsByAccountID from './migrations/PersonalDetailsByAccountID';
+import RenameReceiptFilename from './migrations/RenameReceiptFilename';
 
 export default function () {
     const startTime = Date.now();
@@ -17,13 +16,12 @@ export default function () {
         // Add all migrations to an array so they are executed in order
         const migrationPromises = [
             MoveToIndexedDB,
-            RenameActiveClientsKey,
             RenamePriorityModeKey,
             AddEncryptedAuthToken,
             RenameExpensifyNewsStatus,
             AddLastVisibleActionCreated,
-            KeyReportActionsByReportActionID,
             PersonalDetailsByAccountID,
+            RenameReceiptFilename,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the

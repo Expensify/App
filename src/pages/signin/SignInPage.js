@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -87,6 +87,9 @@ function SignInPage({credentials, account, isInModal}) {
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
     const safeAreaInsets = useSafeAreaInsets();
     const signInPageLayoutRef = useRef();
+    /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
+     * and we need it here since welcome text(`welcomeText`) also depends on it */
+    const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
@@ -114,7 +117,7 @@ function SignInPage({credentials, account, isInModal}) {
         if (account.requiresTwoFactorAuth) {
             // We will only know this after a user signs in successfully, without their 2FA code
             welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-            welcomeText = translate('validateCodeForm.enterAuthenticatorCode');
+            welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
             const userLogin = Str.removeSMSDomain(credentials.login || '');
 
@@ -162,7 +165,12 @@ function SignInPage({credentials, account, isInModal}) {
                     blurOnSubmit={account.validated === false}
                     scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}
                 />
-                {shouldShowValidateCodeForm && <ValidateCodeForm />}
+                {shouldShowValidateCodeForm && (
+                    <ValidateCodeForm
+                        isUsingRecoveryCode={isUsingRecoveryCode}
+                        setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                    />
+                )}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
                 {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
