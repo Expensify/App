@@ -134,11 +134,15 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                         isAuthTokenRequired={isAuthTokenRequired}
                         onLoadStart={() => {
                             setIsImageLoading(true);
-                            if (isImageLoaded.current) return;
+                            if (isImageLoaded.current) {
+                                return;
+                            }
                             setIsFallbackLoading(true);
                         }}
                         onLoadEnd={() => {
-                            if (isImageLoaded.current) return;
+                            if (isImageLoaded.current) {
+                                return;
+                            }
                             setIsFallbackLoading(false);
                         }}
                         onLoad={(evt) => {
