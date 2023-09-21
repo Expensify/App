@@ -491,6 +491,19 @@ When writing a function component you must ALWAYS add a `displayName` property a
     export default Avatar;
 ```
 
+## Forwarding refs
+
+When forwarding a ref define named component and pass it directly to the `forwardRef`. By doing this we remove potential extra layer in React tree in form of anonymous component.
+
+```javascript
+    function FancyInput(props, ref) {
+        ...
+        return <input {...props} ref={ref} />
+    }
+
+    export default React.forwardRef(FancyInput)
+```
+
 ## Stateless components vs Pure Components vs Class based components vs Render Props - When to use what?
 
 Class components are DEPRECATED. Use function components and React hooks.
