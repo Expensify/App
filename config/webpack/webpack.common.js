@@ -197,7 +197,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         extensions: ['.web.js', platform === 'web' ? '.website.js' : '.desktop.js', '.js', '.jsx', '.web.ts', platform === 'web' ? '.website.ts' : '.desktop.ts', '.ts', '.web.tsx', '.tsx'],
         fallback: {
             'process/browser': require.resolve('process/browser'),
-            path: require.resolve('path-browserify'),
         },
     },
     optimization: {
@@ -222,6 +221,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     },
     experiments: {
         asyncWebAssembly: true,
+        syncWebAssembly: true,
     },
 });
 
