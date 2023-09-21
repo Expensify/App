@@ -21,7 +21,7 @@ type Routes = Record<string, Route>;
 type Transaction = {
     transactionID: string;
     amount: number;
-    category?: string;
+    category: string;
     currency: string;
     reportID: string;
     comment: Comment;
@@ -38,6 +38,7 @@ type Transaction = {
         state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     };
     routes?: Routes;
+    tag: string;
 };
 
 export default Transaction;
