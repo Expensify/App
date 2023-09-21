@@ -186,7 +186,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             onSelected: () => setIsDeleteStopModalOpen(true),
                         },
                     ]}
-                    onPopoverHide={focus}
+                    onModalHide={focus}
                 />
                 <ConfirmModal
                     title={translate('distance.deleteWaypoint')}

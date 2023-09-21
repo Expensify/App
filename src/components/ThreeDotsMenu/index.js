@@ -47,7 +47,7 @@ const propTypes = {
     }),
 
     /** Function to call on popover hide */
-    onPopoverClose: PropTypes.func,
+    onModalHide: PropTypes.func,
 };
 
 const defaultProps = {
@@ -60,10 +60,10 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
-    onPopoverHide: () => {},
+    onModalHide: () => {},
 };
 
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, onPopoverHide}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, onModalHide}) {
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();
@@ -74,7 +74,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
 
     const hidePopoverMenu = () => {
         InteractionManager.runAfterInteractions(() => {
-            onPopoverHide();
+            onModalHide();
         });
         setPopupMenuVisible(false);
     };
@@ -108,7 +108,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
-                onPopoverHide={onPopoverHide}
+                onPopoverHide={onModalHide}
                 isVisible={isPopupMenuVisible}
                 anchorPosition={anchorPosition}
                 anchorAlignment={anchorAlignment}

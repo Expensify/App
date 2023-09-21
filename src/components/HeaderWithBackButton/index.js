@@ -47,7 +47,7 @@ function HeaderWithBackButton({
     },
     threeDotsMenuItems = [],
     children = null,
-    onPopoverHide = () => {},
+    onModalHide = () => {},
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
@@ -138,7 +138,7 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
-                            onPopoverHide={onPopoverHide}
+                            onModalHide={onModalHide}
                         />
                     )}
                     {shouldShowCloseButton && (
