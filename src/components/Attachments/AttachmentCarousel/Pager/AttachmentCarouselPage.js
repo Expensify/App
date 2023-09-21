@@ -56,8 +56,11 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
 
     // We delay hiding the fallback image while image transformer is still rendering
     useEffect(() => {
-        if (isImageLoading || showFallback) setShowFallback(true);
-        else setTimeout(() => setShowFallback(false), 100);
+        if (isImageLoading || showFallback) {
+            setShowFallback(true);
+        } else {
+            setTimeout(() => setShowFallback(false), 100);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isImageLoading]);
 
