@@ -1024,7 +1024,7 @@ describe('OptionsListUtils', () => {
         );
         expect(largeWrongSearchResult.categoryOptions).toStrictEqual(largeWrongSearchResultList);
 
-        const emptyResult = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], search, selectedOptions, [], false, false, true, emptyCategoriesList);
+        const emptyResult = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], search, selectedOptions, [], false, false, true, emptyCategoriesList);
         expect(emptyResult.categoryOptions).toStrictEqual(emptySelectedResultList);
     });
 
