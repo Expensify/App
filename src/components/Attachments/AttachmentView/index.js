@@ -1,8 +1,9 @@
-import React, {memo, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import {View, ActivityIndicator} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
+import heic2any from "heic2any";
 import styles from '../../../styles/styles';
 import Icon from '../../Icon';
 import * as Expensicons from '../../Icon/Expensicons';
@@ -64,6 +65,23 @@ function AttachmentView({
     isWorkspaceAvatar,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
+    const [convertedImage, setConvertedImage] = useState(undefined);
+
+    useEffect(() => {
+        if (!Str.isHeicImage(file.name)){
+            return;
+        }
+        const start = performance.now()
+        fetch(source)
+          .then((res) => res.blob())
+          .then((blob) => heic2any({blob, toType: "image/jpeg"}))
+          .then((jpegBlob) => URL.createObjectURL(jpegBlob))
+          .then((jpegUri) => {
+              setConvertedImage(jpegUri)
+              const totalTime = performance.now() - start
+              console.log(`Total time taken: ${  totalTime  } milliseconds`)
+          })
+    }, [file.name, source]);
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(source)) {
@@ -123,6 +141,23 @@ function AttachmentView({
                 onPress={onPress}
                 onScaleChanged={onScaleChanged}
             />
+        );
+    }
+
+    const isHeicImage = Str.isHeicImage(source);
+    if (isHeicImage || (file && Str.isHeicImage(file.name))) {
+        return (
+          <AttachmentViewImage
+            source={convertedImage}
+            file={file}
+            isAuthTokenRequired={isAuthTokenRequired}
+            isUsedInCarousel={isUsedInCarousel}
+            loadComplete={loadComplete || !_.isUndefined(convertedImage)}
+            isFocused={isFocused}
+            isImage={isImage}
+            onPress={onPress}
+            onScaleChanged={onScaleChanged}
+          />
         );
     }
 
