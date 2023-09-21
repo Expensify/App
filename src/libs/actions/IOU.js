@@ -990,6 +990,17 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
 
+        let optimisticPolicyRecentlyUsedCategories;
+        if (category && isPolicyExpenseChat) {
+            const uniquePolicyRecentlyUsedCategories = allRecentlyUsedCategories
+                ? _.filter(
+                      allRecentlyUsedCategories[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${participant.policyID}`],
+                      (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory !== category,
+                  )
+                : [];
+            optimisticPolicyRecentlyUsedCategories = [category, ...uniquePolicyRecentlyUsedCategories];
+        }
+
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
             oneOnOneChatReport,
@@ -1000,7 +1011,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneIOUAction,
             oneOnOnePersonalDetailListAction,
             oneOnOneReportPreviewAction,
-            [],
+            optimisticPolicyRecentlyUsedCategories,
             {},
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
