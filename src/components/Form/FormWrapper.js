@@ -36,7 +36,7 @@ const propTypes = {
         isLoading: PropTypes.bool,
 
         /** Server side errors keyed by microtime */
-        errors: PropTypes.objectOf(PropTypes.string),
+        errors: PropTypes.objectOf(PropTypes.oneOf([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])),
 
         /** Field-specific server side errors keyed by microtime */
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
