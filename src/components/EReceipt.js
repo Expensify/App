@@ -12,6 +12,7 @@ import * as TransactionUtils from '../libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '../libs/tryResolveUrlFromApiRoot';
 import ThumbnailImage from './ThumbnailImage';
 import useLocalize from '../hooks/useLocalize';
+import fontFamily from '../styles/fontFamily';
 
 const propTypes = {
     /** The transaction for the eReceipt */
@@ -60,6 +61,14 @@ function EReceipt({transaction}) {
             })}
             <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
             <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
+            <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                <Icon
+                    width={154}
+                    height={34}
+                    fill={themeColors.success}
+                    src={Expensicons.ExpensifyWordmark}
+                />
+            </View>
         </>
     );
 }
