@@ -1,4 +1,5 @@
 import {ValueOf} from 'type-fest';
+import {OnyxUpdate} from 'react-native-onyx';
 import DeepValueOf from './types/utils/DeepValueOf';
 import * as OnyxTypes from './types/onyx';
 import CONST from './CONST';
@@ -169,6 +170,9 @@ const ONYXKEYS = {
     /** Is report data loading? */
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
+    /** Is report data loading? */
+    IS_LOADING_APP: 'isLoadingApp',
+
     /** Is Keyboard shortcuts modal open? */
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
@@ -301,7 +305,7 @@ type OnyxValues = {
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.Request[];
-    [ONYXKEYS.QUEUED_ONYX_UPDATES]: OnyxTypes.QueuedOnyxUpdates;
+    [ONYXKEYS.QUEUED_ONYX_UPDATES]: OnyxUpdate[];
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.IOU]: OnyxTypes.IOU;
@@ -358,7 +362,6 @@ type OnyxValues = {
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
     [ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS]: boolean;
-    [ONYXKEYS.RECEIPT_MODAL]: OnyxTypes.ReceiptModal;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.OnyxUpdatesFromServer;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;

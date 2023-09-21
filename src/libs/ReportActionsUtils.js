@@ -1,9 +1,9 @@
+/* eslint-disable rulesdir/prefer-underscore-method */
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import lodashMerge from 'lodash/merge';
+import {max, parseISO, isEqual} from 'date-fns';
 import lodashFindLast from 'lodash/findLast';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
@@ -122,6 +122,7 @@ function isThreadParentMessage(reportAction = {}, reportID) {
  * @param {Object} report
  * @param {Object} [allReportActionsParam]
  * @returns {Object}
+ * @deprecated Use Onyx.connect() or withOnyx() instead
  */
 function getParentReportAction(report, allReportActionsParam = undefined) {
     if (!report || !report.parentReportID || !report.parentReportActionID) {
@@ -331,11 +332,7 @@ function shouldReportActionBeVisible(reportAction, key) {
     }
 
     // Filter out any unsupported reportAction types
-    if (
-        !_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) &&
-        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName) &&
-        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.TASK), reportAction.actionName)
-    ) {
+    if (!Object.values(CONST.REPORT.ACTIONS.TYPE).includes(reportAction.actionName) && !Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG).includes(reportAction.actionName)) {
         return false;
     }
 
@@ -350,7 +347,7 @@ function shouldReportActionBeVisible(reportAction, key) {
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
-    const isPending = !_.isEmpty(reportAction.pendingAction);
+    const isPending = !!reportAction.pendingAction;
     return !isDeleted || isPending || isDeletedParentAction(reportAction);
 }
 
@@ -382,14 +379,24 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
  * @return {Object}
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const visibleActions = _.filter(actions, (action) => shouldReportActionBeVisibleAsLastAction(action));
+    const updatedActionsToMerge = {};
+    if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
+        Object.keys(actionsToMerge).forEach(
+            (actionToMergeID) => (updatedActionsToMerge[actionToMergeID] = {...allReportActions[reportID][actionToMergeID], ...actionsToMerge[actionToMergeID]}),
+        );
+    }
+    const actions = Object.values({
+        ...allReportActions[reportID],
+        ...updatedActionsToMerge,
+    });
+    const visibleActions = actions.filter((action) => shouldReportActionBeVisibleAsLastAction(action));
 
-    if (_.isEmpty(visibleActions)) {
+    if (visibleActions.length === 0) {
         return {};
     }
-
-    return _.max(visibleActions, (action) => moment.utc(action.created).valueOf());
+    const maxDate = max(visibleActions.map((action) => parseISO(action.created)));
+    const maxAction = visibleActions.find((action) => isEqual(parseISO(action.created), maxDate));
+    return maxAction;
 }
 
 /**

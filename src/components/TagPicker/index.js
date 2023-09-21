@@ -1,62 +1,58 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import useLocalize from '../../hooks/useLocalize';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import OptionsSelector from '../OptionsSelector';
 import {propTypes, defaultProps} from './tagPickerPropTypes';
 
-function TagPicker({policyTags, reportID, tag, iouType, iou}) {
+function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubmit}) {
     const {translate} = useLocalize();
+    const [searchValue, setSearchValue] = useState('');
+
+    const policyRecentlyUsedTagsList = lodashGet(policyRecentlyUsedTags, tag, []);
+    const policyTagList = lodashGet(policyTags, [tag, 'tags'], {});
+    const policyTagsCount = _.size(_.filter(policyTagList, (policyTag) => policyTag.enabled));
+    const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
+
+    const shouldShowTextInput = !isTagsCountBelowThreshold;
 
     const selectedOptions = useMemo(() => {
-        if (!iou.tag) {
+        if (!selectedTag) {
             return [];
         }
 
         return [
             {
-                name: iou.tag,
+                name: selectedTag,
                 enabled: true,
+                accountID: null,
             },
         ];
-    }, [iou.tag]);
+    }, [selectedTag]);
 
-    // Only shows one section, which will be the default behavior if there are
-    // less than 8 policy tags
-    // TODO: support sections with search
-    const sections = useMemo(() => {
-        const tagList = _.chain(lodashGet(policyTags, [tag, 'tags'], {}))
-            .values()
-            .map((t) => ({
-                text: t.name,
-                keyForList: t.name,
-                tooltipText: t.name,
-            }))
-            .value();
+    const initialFocusedIndex = useMemo(() => {
+        if (isTagsCountBelowThreshold && selectedOptions.length > 0) {
+            return _.chain(policyTagList)
+                .values()
+                .findIndex((policyTag) => policyTag.name === selectedOptions[0].name, true)
+                .value();
+        }
 
-        return [
-            {
-                data: tagList,
-            },
-        ];
-    }, [policyTags, tag]);
+        return 0;
+    }, [policyTagList, selectedOptions, isTagsCountBelowThreshold]);
+
+    const sections = useMemo(
+        () =>
+            OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, policyTagList, policyRecentlyUsedTagsList, false).tagOptions,
+        [searchValue, selectedOptions, policyTagList, policyRecentlyUsedTagsList],
+    );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, '');
-
-    const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
-    };
-
-    const updateTag = () => {
-        // TODO: add logic to save the selected tag
-        navigateBack();
-    };
 
     return (
         <OptionsSelector
@@ -66,9 +62,13 @@ function TagPicker({policyTags, reportID, tag, iouType, iou}) {
             headerMessage={headerMessage}
             textInputLabel={translate('common.search')}
             boldStyle
-            value=""
-            onSelectRow={updateTag}
-            shouldShowTextInput={false}
+            highlightSelectedOptions
+            isRowMultilineSupported
+            shouldShowTextInput={shouldShowTextInput}
+            value={searchValue}
+            initialFocusedIndex={initialFocusedIndex}
+            onChangeText={setSearchValue}
+            onSelectRow={onSubmit}
         />
     );
 }
@@ -83,8 +83,5 @@ export default withOnyx({
     },
     policyRecentlyUsedTags: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
-    },
-    iou: {
-        key: ONYXKEYS.IOU,
     },
 })(TagPicker);
