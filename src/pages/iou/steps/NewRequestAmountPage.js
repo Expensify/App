@@ -71,14 +71,6 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
     const focusTimeoutRef = useRef(null);
 
-    const resetMoneyRequestInfo = () => {
-        const moneyRequestID = `${iouType}${reportID}`;
-        const shouldReset = iou.id !== moneyRequestID;
-        if (shouldReset) {
-            IOU.resetMoneyRequestInfo(moneyRequestID);
-        }
-    };
-
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => textInput.current && textInput.current.focus(), CONST.ANIMATED_TRANSITION);
@@ -92,7 +84,11 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     );
 
     useEffect(() => {
-        resetMoneyRequestInfo();
+        const moneyRequestID = `${iouType}${reportID}`;
+        const shouldReset = iou.id !== moneyRequestID;
+        if (shouldReset) {
+            IOU.resetMoneyRequestInfo(moneyRequestID);
+        }
     }, []);
 
     // Check and dismiss modal
@@ -116,8 +112,11 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
                 return;
             }
-            
-            resetMoneyRequestInfo();
+            const moneyRequestID = `${iouType}${reportID}`;
+            const shouldReset = iou.id !== moneyRequestID;
+            if (shouldReset) {
+                IOU.resetMoneyRequestInfo(moneyRequestID);
+            }
 
             if (!isDistanceRequestTab && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
