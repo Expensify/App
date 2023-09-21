@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {DeviceEventEmitter, FlatList} from 'react-native';
 import _ from 'underscore';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
-import styles from '../../styles/styles';
 import CONST from '../../CONST';
 
 const propTypes = {

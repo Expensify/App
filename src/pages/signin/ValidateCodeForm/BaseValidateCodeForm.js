@@ -329,7 +329,7 @@ function BaseValidateCodeForm(props) {
                         underlayColor={themeColors.componentBG}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}
                     >
                         <Text style={[styles.link]}>{props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}</Text>

@@ -7,7 +7,6 @@ import defaultPropTypes from './propTypes';
 
 const defaultProps = {
     isSmallScreen: false,
-    style: {},
 };
 
 const propTypes = {
@@ -20,12 +19,12 @@ function BackgroundImage(props) {
     return props.isSmallScreen ? (
         <MobileBackgroundImage
             width={props.width}
-            style={{...styles.signInBackground, ...props.style}}
+            style={styles.signInBackground}
         />
     ) : (
         <DesktopBackgroundImage
             width={props.width}
-            style={{...styles.signInBackground, ...props.style}}
+            style={styles.signInBackground}
         />
     );
 }
