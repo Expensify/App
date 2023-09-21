@@ -54,13 +54,14 @@ function ValuePicker({value, label, items, errorText, onInputChange, forwardedRe
 
     const title = value || '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
+    const selectedItem = _.find(items, { 'value': value});
 
     return (
         <View>
             <MenuItemWithTopDescription
                 ref={forwardedRef}
                 shouldShowRightIcon
-                title={title}
+                title={selectedItem.label}
                 descriptionTextStyle={descStyle}
                 description={label}
                 onPress={showPickerModal}
@@ -70,7 +71,9 @@ function ValuePicker({value, label, items, errorText, onInputChange, forwardedRe
             </View>
             <ValueSelectorModal
                 isVisible={isPickerVisible}
-                currentCountry={value}
+                currentCountry={selectedItem.label}
+                label={label}
+                selectedItem={selectedItem}
                 items={items}
                 onClose={hidePickerModal}
                 onCountrySelected={updateCountryInput}

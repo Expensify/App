@@ -19,6 +19,12 @@ const propTypes = {
     /** Items to pick from */
     items: PropTypes.arrayOf(PropTypes.shape({value: PropTypes.string, label: PropTypes.string})),
 
+    /** The selected item */
+    selectedItem: PropTypes.shape({value: PropTypes.string, label: PropTypes.string}),
+
+    /** Label for values */
+    label: PropTypes.string,
+
     /** Function to call when the user selects a Country */
     onCountrySelected: PropTypes.func,
 
@@ -29,20 +35,20 @@ const propTypes = {
 const defaultProps = {
     currentCountry: '',
     items: [],
+    selectedItem: {},
+    label: '',
     onClose: () => {},
     onCountrySelected: () => {},
 };
 
-function ValueSelectorModal({currentCountry, items, isVisible, onClose, onCountrySelected}) {
+function ValueSelectorModal({currentCountry, items, selectedItem, label, isVisible, onClose, onCountrySelected}) {
     const [sectionsData, setSectionsData] = useState([]);
 
     
     useEffect(() => {
-        const itemsData = _.map(items, (item) => ({value: item.value, keyForList: item.value, text: item.label, isSelected: true}));
+        const itemsData = _.map(items, (item) => ({value: item.value, keyForList: item.value, text: item.label, isSelected: item === selectedItem}));
         setSectionsData(itemsData);
-    }, [items]);
-
-    const {translate} = useLocalize();
+    }, [items, selectedItem]);
 
     return (
         <Modal
@@ -59,7 +65,7 @@ function ValueSelectorModal({currentCountry, items, isVisible, onClose, onCountr
                 includeSafeAreaPaddingBottom={false}
             >
                 <HeaderWithBackButton
-                    title={translate('common.country')}
+                    title={label}
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
