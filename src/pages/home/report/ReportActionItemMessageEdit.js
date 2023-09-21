@@ -385,9 +385,9 @@ function ReportActionItemMessageEdit(props) {
                             maxLines={isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
+                                reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
                                 setIsFocused(true);
                                 setShouldFreezeScroll(true);
-                                reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
                                 setShouldShowComposeInputKeyboardAware(false);
 
                                 // Clear active report action when another action gets focused

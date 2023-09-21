@@ -134,22 +134,22 @@ function getReportID(route) {
 }
 
 function ReportScreen({
-                          betas,
-                          route,
-                          report,
-                          reportActions,
-                          accountManagerReportID,
-                          personalDetails,
-                          policies,
-                          translate,
-                          network,
-                          isSmallScreenWidth,
-                          isSidebarLoaded,
-                          viewportOffsetTop,
-                          isComposerFullSize,
-                          errors,
-                          currentReportID,
-                      }) {
+    betas,
+    route,
+    report,
+    reportActions,
+    accountManagerReportID,
+    personalDetails,
+    policies,
+    translate,
+    network,
+    isSmallScreenWidth,
+    isSidebarLoaded,
+    viewportOffsetTop,
+    isComposerFullSize,
+    errors,
+    currentReportID,
+}) {
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
     const reactionListRef = useRef();
