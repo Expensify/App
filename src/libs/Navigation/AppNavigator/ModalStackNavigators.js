@@ -263,7 +263,6 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
-
 const RoomMembersModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {

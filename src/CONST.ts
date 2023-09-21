@@ -1347,6 +1347,7 @@ const CONST = {
     REPORT_DETAILS_MENU_ITEM: {
         SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
+        INVITE: 'invite',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         WELCOME_MESSAGE: 'welcomeMessage',
