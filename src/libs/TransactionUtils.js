@@ -34,6 +34,7 @@ Onyx.connect({
  * @param {String} [filename]
  * @param {String} [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
  * @param {String} [category]
+ * @param {String} [tag]
  * @param {Boolean} [billable]
  * @returns {Object}
  */
@@ -50,6 +51,7 @@ function buildOptimisticTransaction(
     filename = '',
     existingTransactionID = null,
     category = '',
+    tag = '',
     billable = false,
 ) {
     // transactionIDs are random, positive, 64-bit numeric strings.
@@ -79,6 +81,7 @@ function buildOptimisticTransaction(
         receipt,
         filename,
         category,
+        tag,
         billable,
     };
 }
@@ -164,6 +167,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
  *
  * @param {String} transactionID
  * @returns {Object}
+ * @deprecated Use withOnyx() or Onyx.connect() instead
  */
 function getTransaction(transactionID) {
     return lodashGet(allTransactions, `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
@@ -304,6 +308,7 @@ function hasRoute(transaction) {
  *
  * @param {Object} reportAction
  * @returns {Object}
+ * @deprecated Use Onyx.connect() or withOnyx() instead
  */
 function getLinkedTransaction(reportAction = {}) {
     const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');

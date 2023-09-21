@@ -41,8 +41,11 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
     // to prevent the image transformer from flashing while still rendering
     // Instead, we show the fallback image while the image transformer is loading the image
     useEffect(() => {
-        if (initialIsActive) setTimeout(() => setIsActive(true), 1);
-        else setIsActive(false);
+        if (initialIsActive) {
+            setTimeout(() => setIsActive(true), 1);
+        } else {
+            setIsActive(false);
+        }
     }, [initialIsActive]);
 
     const [initialActivePageLoad, setInitialActivePageLoad] = useState(isActive);
@@ -146,7 +149,9 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                             const scaledImageHeight = imageHeight * minImageScale;
 
                             // Don't update the dimensions if they are already set
-                            if (dimensions?.scaledImageWidth === scaledImageWidth && dimensions?.scaledImageHeight === scaledImageHeight) return;
+                            if (dimensions?.scaledImageWidth === scaledImageWidth && dimensions?.scaledImageHeight === scaledImageHeight) {
+                                return;
+                            }
 
                             cachedDimensions.set(source, {
                                 ...dimensions,

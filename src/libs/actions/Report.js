@@ -1066,7 +1066,7 @@ const removeLinksFromHtml = (html, links) => {
  */
 const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
     const parser = new ExpensiMark();
-    if (newCommentText.length >= CONST.MAX_MARKUP_LENGTH) {
+    if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
@@ -1093,10 +1093,10 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentHTML);
     const reportComment = parser.htmlToText(htmlForNewComment);
 
-    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     let parsedOriginalCommentHTML = originalCommentHTML;
-    if (textForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
+    if (textForNewComment.length <= CONST.MAX_MARKUP_LENGTH) {
         const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), (name) => name !== 'autolink')};
         parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML).trim(), autolinkFilter);
     }
@@ -1241,7 +1241,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
 function updateWelcomeMessage(reportID, previousValue, newValue) {
     // No change needed, navigate back
     if (previousValue === newValue) {
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
         return;
     }
 
@@ -1261,7 +1261,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateWelcomeMessage', {reportID, welcomeMessage: parsedWelcomeMessage}, {optimisticData, failureData});
-    Navigation.goBack();
+    Navigation.goBack(ROUTES.HOME);
 }
 
 /**
@@ -1438,7 +1438,7 @@ function deleteReport(reportID) {
  */
 function navigateToConciergeChatAndDeleteReport(reportID) {
     // Dismiss the current report screen and replace it with Concierge Chat
-    Navigation.goBack();
+    Navigation.goBack(ROUTES.HOME);
     navigateToConciergeChat();
     deleteReport(reportID);
 }
@@ -1820,7 +1820,11 @@ function leaveRoom(reportID) {
     );
     Navigation.dismissModal();
     if (Navigation.getTopmostReportId() === reportID) {
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
+    }
+    if (report.parentReportID) {
+        Navigation.navigate(ROUTES.getReportRoute(report.parentReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
+        return;
     }
     navigateToConciergeChat();
 }
