@@ -194,7 +194,7 @@ export default compose(
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
         },
     }),
-    // eslint-disable-next-line
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
