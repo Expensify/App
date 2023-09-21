@@ -207,7 +207,7 @@ function MoneyRequestConfirmationList(props) {
     const tagListName = lodashGet(props.policyTags, [tagListKey, 'name'], '');
     const canUseTags = Permissions.canUseTags(props.betas);
     // A flag for showing the tags field
-    const shouldShowTags = isPolicyExpenseChat && canUseTags && !_.isEmpty(tagList);
+    const shouldShowTags = isPolicyExpenseChat && canUseTags && _.any(tagList, (tag) => tag.enabled);
 
     // A flag for showing the billable field
     const shouldShowBillable = canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true);

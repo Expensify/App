@@ -114,6 +114,7 @@ function getPolicyExpenseReportOption(report) {
         ],
         selected: report.selected,
         isPolicyExpenseChat: true,
+        searchText: report.searchText,
     };
 }
 
@@ -226,6 +227,7 @@ function getParticipantsOption(participant, personalDetails) {
         ],
         phoneNumber: lodashGet(detail, 'phoneNumber', ''),
         selected: participant.selected,
+        searchText: participant.searchText,
     };
 }
 
@@ -618,7 +620,7 @@ function hasEnabledOptions(options) {
 /**
  * Build the options for the category tree hierarchy via indents
  *
- * @param {Object[]} options - an initial strings array
+ * @param {Object[]} options - an initial object array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
  * @param {String} options[].name - a name of an option
  * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
@@ -776,6 +778,124 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 }
 
 /**
+ * Transforms the provided tags into objects with a specific structure.
+ *
+ * @param {Object[]} tags - an initial tag array
+ * @param {Boolean} tags[].enabled - a flag to enable/disable option in a list
+ * @param {String} tags[].name - a name of an option
+ * @returns {Array<Object>}
+ */
+function getTagsOptions(tags) {
+    return _.map(tags, (tag) => ({
+        text: tag.name,
+        keyForList: tag.name,
+        searchText: tag.name,
+        tooltipText: tag.name,
+        isDisabled: !tag.enabled,
+    }));
+}
+
+/**
+ * Build the section list for tags
+ *
+ * @param {Object[]} tags
+ * @param {String} tags[].name
+ * @param {Boolean} tags[].enabled
+ * @param {String[]} recentlyUsedTags
+ * @param {Object[]} selectedOptions
+ * @param {String} selectedOptions[].name
+ * @param {String} searchInputValue
+ * @param {Number} maxRecentReportsToShow
+ * @returns {Array<Object>}
+ */
+function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+    const tagSections = [];
+    const enabledTags = _.filter(tags, (tag) => tag.enabled);
+    const numberOfTags = _.size(enabledTags);
+    let indexOffset = 0;
+
+    if (!_.isEmpty(searchInputValue)) {
+        const searchTags = _.filter(enabledTags, (tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+
+        tagSections.push({
+            // "Search" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTagsOptions(searchTags),
+        });
+
+        return tagSections;
+    }
+
+    if (numberOfTags < CONST.TAG_LIST_THRESHOLD) {
+        tagSections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTagsOptions(enabledTags),
+        });
+
+        return tagSections;
+    }
+
+    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredRecentlyUsedTags = _.map(
+        _.filter(recentlyUsedTags, (recentlyUsedTag) => {
+            const tagObject = _.find(tags, (tag) => tag.name === recentlyUsedTag);
+            return Boolean(tagObject && tagObject.enabled) && !_.includes(selectedOptionNames, recentlyUsedTag);
+        }),
+        (tag) => ({name: tag, enabled: true}),
+    );
+    const filteredTags = _.filter(enabledTags, (tag) => !_.includes(selectedOptionNames, tag.name));
+
+    if (!_.isEmpty(selectedOptions)) {
+        const selectedTagOptions = _.map(selectedOptions, (option) => {
+            const tagObject = _.find(tags, (tag) => tag.name === option.name);
+            return {
+                name: option.name,
+                enabled: Boolean(tagObject && tagObject.enabled),
+            };
+        });
+
+        tagSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTagsOptions(selectedTagOptions),
+        });
+
+        indexOffset += selectedOptions.length;
+    }
+
+    if (!_.isEmpty(filteredRecentlyUsedTags)) {
+        const cutRecentlyUsedTags = filteredRecentlyUsedTags.slice(0, maxRecentReportsToShow);
+
+        tagSections.push({
+            // "Recent" section
+            title: Localize.translateLocal('common.recent'),
+            shouldShow: true,
+            indexOffset,
+            data: getTagsOptions(cutRecentlyUsedTags),
+        });
+
+        indexOffset += filteredRecentlyUsedTags.length;
+    }
+
+    tagSections.push({
+        // "All" section when items amount more than the threshold
+        title: Localize.translateLocal('common.all'),
+        shouldShow: true,
+        indexOffset,
+        data: getTagsOptions(filteredTags),
+    });
+
+    return tagSections;
+}
+
+/**
  * Build the options
  *
  * @param {Object} reports
@@ -811,6 +931,9 @@ function getOptions(
         includeCategories = false,
         categories = {},
         recentlyUsedCategories = [],
+        includeTags = false,
+        tags = {},
+        recentlyUsedTags = [],
         canInviteUser = true,
     },
 ) {
@@ -823,6 +946,20 @@ function getOptions(
             userToInvite: null,
             currentUserOption: null,
             categoryOptions,
+            tagOptions: [],
+        };
+    }
+
+    if (includeTags) {
+        const tagOptions = getTagListSections(_.values(tags), recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow);
+
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions,
         };
     }
 
@@ -833,6 +970,7 @@ function getOptions(
             userToInvite: null,
             currentUserOption: null,
             categoryOptions: [],
+            tagOptions: [],
         };
     }
 
@@ -1087,6 +1225,7 @@ function getOptions(
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
         categoryOptions: [],
+        tagOptions: [],
     };
 }
 
@@ -1171,10 +1310,13 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {boolean} [includeCategories]
  * @param {Object} [categories]
  * @param {Array<String>} [recentlyUsedCategories]
+ * @param {boolean} [includeTags]
+ * @param {Object} [tags]
+ * @param {Array<String>} [recentlyUsedTags]
  * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
-function getNewChatOptions(
+function getFilteredOptions(
     reports,
     personalDetails,
     betas = [],
@@ -1186,6 +1328,9 @@ function getNewChatOptions(
     includeCategories = false,
     categories = {},
     recentlyUsedCategories = [],
+    includeTags = false,
+    tags = {},
+    recentlyUsedTags = [],
     canInviteUser = true,
 ) {
     return getOptions(reports, personalDetails, {
@@ -1201,6 +1346,9 @@ function getNewChatOptions(
         includeCategories,
         categories,
         recentlyUsedCategories,
+        includeTags,
+        tags,
+        recentlyUsedTags,
         canInviteUser,
     });
 }
@@ -1356,7 +1504,7 @@ export {
     isCurrentUser,
     isPersonalDetailsReady,
     getSearchOptions,
-    getNewChatOptions,
+    getFilteredOptions,
     getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,
