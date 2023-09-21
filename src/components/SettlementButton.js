@@ -13,9 +13,6 @@ import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
-import {withNetwork} from './OnyxProvider';
-import iouReportPropTypes from '../pages/iouReportPropTypes';
-import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from './Icon/Expensicons';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 
@@ -194,6 +191,7 @@ function SettlementButton({
 
         onPress(iouPaymentType);
     };
+    const hasErrors = !_.isEmpty(iouReport.errorFields) || !_.isEmpty(iouReport.errors);
 
     return (
         <KYCWall
@@ -201,7 +199,7 @@ function SettlementButton({
             enablePaymentsRoute={enablePaymentsRoute}
             addBankAccountRoute={addBankAccountRoute}
             addDebitCardRoute={addDebitCardRoute}
-            isDisabled={isOffline}
+            isDisabled={isOffline || hasErrors}
             chatReportID={chatReportID}
             iouReport={iouReport}
         >
