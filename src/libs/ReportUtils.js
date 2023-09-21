@@ -1642,6 +1642,29 @@ function getParentReport(report) {
 }
 
 /**
+ * Returns the root parentReport if the given report is nested.
+ * Uses recursion to iterate any depth of nested reports.
+ *
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getRootParentReport(report) {
+    if (!report) {
+        return {};
+    }
+
+    // Returns the current report as the root report, because it does not have a parentReportID
+    if (!report.parentReportID) {
+        return report;
+    }
+
+    const parentReport = getReport(report.parentReportID);
+
+    // Runs recursion to iterate a parent report
+    return getRootParentReport(parentReport);
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
@@ -3676,6 +3699,7 @@ export {
     isAllowedToComment,
     getBankAccountRoute,
     getParentReport,
+    getRootParentReport,
     getTaskParentReportActionIDInAssigneeReport,
     getReportPreviewMessage,
     getModifiedExpenseMessage,
