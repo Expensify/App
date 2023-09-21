@@ -46,6 +46,9 @@ type ReportActionBase = {
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID?: string;
 
+    /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
+    previousReportActionID?: string;
+
     actorAccountID?: number;
 
     /** Person who created the action */

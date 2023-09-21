@@ -5,34 +5,31 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import {propTypes, defaultProps} from './categoryPickerPropTypes';
 import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
-import * as IOU from '../../libs/actions/IOU';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import OptionsSelector from '../OptionsSelector';
 import useLocalize from '../../hooks/useLocalize';
 
-function CategoryPicker({policyCategories, reportID, iouType, iou, policyRecentlyUsedCategories}) {
+function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const policyCategoriesCount = _.size(policyCategories);
+    const policyCategoriesCount = OptionsListUtils.getEnabledCategoriesCount(_.values(policyCategories));
     const isCategoriesCountBelowThreshold = policyCategoriesCount < CONST.CATEGORY_LIST_THRESHOLD;
 
     const selectedOptions = useMemo(() => {
-        if (!iou.category) {
+        if (!selectedCategory) {
             return [];
         }
 
         return [
             {
-                name: iou.category,
+                name: selectedCategory,
                 enabled: true,
                 accountID: null,
             },
         ];
-    }, [iou.category]);
+    }, [selectedCategory]);
 
     const initialFocusedIndex = useMemo(() => {
         if (isCategoriesCountBelowThreshold && selectedOptions.length > 0) {
@@ -53,20 +50,6 @@ function CategoryPicker({policyCategories, reportID, iouType, iou, policyRecentl
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
     const shouldShowTextInput = !isCategoriesCountBelowThreshold;
 
-    const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
-    };
-
-    const updateCategory = (category) => {
-        if (category.searchText === iou.category) {
-            IOU.resetMoneyRequestCategory();
-        } else {
-            IOU.setMoneyRequestCategory(category.searchText);
-        }
-
-        navigateBack();
-    };
-
     return (
         <OptionsSelector
             optionHoveredStyle={styles.hoveredComponentBG}
@@ -81,7 +64,7 @@ function CategoryPicker({policyCategories, reportID, iouType, iou, policyRecentl
             highlightSelectedOptions
             isRowMultilineSupported
             onChangeText={setSearchValue}
-            onSelectRow={updateCategory}
+            onSelectRow={onSubmit}
         />
     );
 }
@@ -96,8 +79,5 @@ export default withOnyx({
     },
     policyRecentlyUsedCategories: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
-    },
-    iou: {
-        key: ONYXKEYS.IOU,
     },
 })(CategoryPicker);
