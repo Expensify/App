@@ -60,6 +60,7 @@ const defaultProps = {
 function ReportDetailsPage(props) {
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
+    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
     const shouldDisableSettings = useMemo(() => ReportUtils.shouldDisableSettings(props.report), [props.report]);
     const shouldUseFullTitle = !shouldDisableSettings || ReportUtils.isTaskReport(props.report);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
@@ -87,7 +88,7 @@ function ReportDetailsPage(props) {
             return items;
         }
 
-        if (participants.length) {
+        if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && isPolicyMember)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
@@ -95,7 +96,21 @@ function ReportDetailsPage(props) {
                 subtitle: participants.length,
                 isAnonymousAction: false,
                 action: () => {
-                    Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID));
+                    if (isUserCreatedPolicyRoom) {
+                        Navigation.navigate(ROUTES.getRoomMembersRoute(props.report.reportID));
+                    } else {
+                        Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID));
+                    }
+                },
+            });
+        } else if (!participants.length && isUserCreatedPolicyRoom) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
+                translationKey: 'common.invite',
+                icon: Expensicons.Users,
+                isAnonymousAction: false,
+                action: () => {
+                    Navigation.navigate(ROUTES.getRoomInviteRoute(props.report.reportID));
                 },
             });
         }

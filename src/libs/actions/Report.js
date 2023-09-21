@@ -1830,6 +1830,50 @@ function leaveRoom(reportID) {
 }
 
 /**
+ * Removes people from a room
+ * 
+ * @param {String} reportID
+ * @param {Array} targetAccountIDs
+ */
+function removeFromRoom(reportID, targetAccountIDs, targetEmails) {
+    const report = lodashGet(allReports, [reportID], {});
+
+    const {participants, participantAccountIDs} = report;
+    const participantsAfterRemoval = _.filter(participants, email => !targetEmails.includes(email));
+    const participantAccountIDsAfterRemoval = _.filter(participantAccountIDs, accountID => !targetAccountIDs.includes(accountID));
+
+    API.write(
+        'RemoveFromRoom',
+        {
+            reportID,
+            targetAccountIDs,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        participants: participantsAfterRemoval,
+                        participantAccountIDs: participantAccountIDsAfterRemoval,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        participants,
+                        participantAccountIDs,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
  * @param {String} reportID
  */
 function setLastOpenedPublicRoom(reportID) {
@@ -2106,6 +2150,7 @@ export {
     hasAccountIDEmojiReacted,
     shouldShowReportActionNotification,
     leaveRoom,
+    removeFromRoom,
     getCurrentUserAccountID,
     setLastOpenedPublicRoom,
     flagComment,
