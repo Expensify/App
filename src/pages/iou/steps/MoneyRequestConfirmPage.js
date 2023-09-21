@@ -68,9 +68,10 @@ function MoneyRequestConfirmPage(props) {
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>
-            lodashGet(props.iou.participants, [0, 'isPolicyExpenseChat'], false)
-                ? OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0])
-                : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
+            _.map(props.iou.participants, (participant) => {
+                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
+            }),
         [props.iou.participants, props.personalDetails],
     );
 
@@ -140,6 +141,7 @@ function MoneyRequestConfirmPage(props) {
                 trimmedComment,
                 receipt,
                 props.iou.category,
+                props.iou.tag,
                 props.iou.billable,
             );
         },
@@ -152,6 +154,7 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.login,
             props.currentUserPersonalDetails.accountID,
             props.iou.category,
+            props.iou.tag,
             props.iou.billable,
         ],
     );
@@ -169,12 +172,13 @@ function MoneyRequestConfirmPage(props) {
                 props.iou.created,
                 props.iou.transactionID,
                 props.iou.category,
+                props.iou.tag,
                 props.iou.amount,
                 props.iou.currency,
                 props.iou.merchant,
             );
         },
-        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.amount, props.iou.currency, props.iou.merchant],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.tag, props.iou.amount, props.iou.currency, props.iou.merchant],
     );
 
     const createTransaction = useCallback(
