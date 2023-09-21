@@ -15,7 +15,7 @@ Onyx.connect({
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
 
-function applyHTTPSOnyxUpdates(request: Request, response: Response|undefined) {
+function applyHTTPSOnyxUpdates(request: Request, response: Response | undefined) {
     console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
@@ -32,7 +32,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response|undefined) {
             if (response?.jsonCode === 200 && request.successData) {
                 return updateHandler(request.successData);
             }
-            if ((response?.jsonCode !== 200) && request.failureData) {
+            if (response?.jsonCode !== 200 && request.failureData) {
                 return updateHandler(request.failureData);
             }
             return Promise.resolve();
