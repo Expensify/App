@@ -3,9 +3,6 @@ import PropTypes from 'prop-types';
 import WaypointEditor from './WaypointEditor';
 
 const propTypes = {
-    /** The transactionID of this request */
-    transactionID: PropTypes.string,
-
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({

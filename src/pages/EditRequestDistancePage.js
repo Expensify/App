@@ -11,7 +11,6 @@ import useLocalize from '../hooks/useLocalize';
 import DistanceRequest from '../components/DistanceRequest';
 import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
-import * as TransactionUtils from '../libs/TransactionUtils';
 import transactionPropTypes from '../components/transactionPropTypes';
 import * as TransactionEdit from '../libs/actions/TransactionEdit';
 
@@ -50,15 +49,13 @@ function EditRequestDistancePage({report, route, transaction}) {
     const transactionIDToApplyChangesTo = useRef(TransactionEdit.createTemporaryTransaction(transaction), [transaction]);
 
     useEffect(
-        () => {
-            return () => {
-                // When this component is unmounted, the temporary transaction is removed.
-                // This works for both saving a transaction or cancelling out of the flow somehow.
-                TransactionEdit.removeTemporaryTransaction(transactionIDToApplyChangesTo.current);
-                TransactionEdit.stopErrorSync();
-            };
+        () => () => {
+            // When this component is unmounted, the temporary transaction is removed.
+            // This works for both saving a transaction or cancelling out of the flow somehow.
+            TransactionEdit.removeTemporaryTransaction(transactionIDToApplyChangesTo.current);
+            TransactionEdit.stopErrorSync();
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 

@@ -786,6 +786,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                     value: {
                         pendingFields: clearedPendingFields,
                         isLoading: false,
+                        errorFields,
                     },
                 },
                 {
