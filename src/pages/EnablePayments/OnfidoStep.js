@@ -32,6 +32,10 @@ function OnfidoStep({walletOnfidoData}) {
     const shouldShowOnfido = walletOnfidoData.hasAcceptedPrivacyPolicy && !walletOnfidoData.isLoading && !walletOnfidoData.error && walletOnfidoData.sdkToken;
 
     const goBack = useCallback(() => {
+        Navigation.goBack(ROUTES.HOME);
+    }, []);
+
+    const goToPreviousStep = useCallback(() => {
         Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
     }, []);
 
@@ -52,13 +56,13 @@ function OnfidoStep({walletOnfidoData}) {
         <>
             <HeaderWithBackButton
                 title={translate('onfidoStep.verifyIdentity')}
-                onBackButtonPress={goBack}
+                onBackButtonPress={goToPreviousStep}
             />
             <FullPageOfflineBlockingView>
                 {shouldShowOnfido ? (
                     <Onfido
                         sdkToken={walletOnfidoData.sdkToken}
-                        onUserExit={Navigation.goBack}
+                        onUserExit={goBack}
                         onError={reportError}
                         onSuccess={verifyIdentity}
                     />
