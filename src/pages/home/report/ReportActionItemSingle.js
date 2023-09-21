@@ -114,14 +114,15 @@ function ReportActionItemSingle(props) {
     let secondaryAvatar = {};
     const primaryDisplayName = displayName;
     if (displayAllActors) {
-        const secondaryUserDetails = props.personalDetailsList[props.iouReport.ownerAccountID] || {};
+        const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
+        const secondaryUserDetails = props.personalDetailsList[secondaryAccountId] || {};
         const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
-            source: UserUtils.getAvatar(secondaryUserDetails.avatar, props.iouReport.ownerAccountID),
+            source: UserUtils.getAvatar(secondaryUserDetails.avatar, secondaryAccountId),
             type: CONST.ICON_TYPE_AVATAR,
             name: secondaryDisplayName,
-            id: props.iouReport.ownerAccountID,
+            id: secondaryAccountId,
         };
     } else if (!isWorkspaceActor) {
         secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1];
