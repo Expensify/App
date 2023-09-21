@@ -46,7 +46,7 @@ const propTypes = {
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
-    /** Function to call on popover hide */
+    /** Function to call on modal hide */
     onModalHide: PropTypes.func,
 
     /** Whether the popover menu should overlay the current view */
@@ -67,8 +67,7 @@ const defaultProps = {
     shouldOverlay: false,
 };
 
-
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment,onModalHide, shouldOverlay}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, onModalHide, shouldOverlay}) {
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();

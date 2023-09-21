@@ -35,7 +35,7 @@ const propTypes = {
 
     withoutOverlay: PropTypes.bool,
 
-    /** Function to call on popover hide */
+    /** Function to call on modal hide */
     onModalHide: PropTypes.func,
 };
 
