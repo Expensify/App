@@ -73,7 +73,7 @@ function ExpensifyCardPage({
                         {!_.isEmpty(physicalCard) && (
                             <MenuItemWithTopDescription
                                 description={translate('cardPage.virtualCardNumber')}
-                                title={virtualCard.lastFourPAN}
+                                title={CardUtils.maskCard(virtualCard.lastFourPAN)}
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
@@ -81,7 +81,7 @@ function ExpensifyCardPage({
                         {!_.isEmpty(physicalCard) && (
                             <MenuItemWithTopDescription
                                 description={translate('cardPage.physicalCardNumber')}
-                                title={physicalCard.lastFourPAN}
+                                title={CardUtils.maskCard(physicalCard.lastFourPAN)}
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
