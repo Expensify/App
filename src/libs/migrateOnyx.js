@@ -6,6 +6,7 @@ import MoveToIndexedDB from './migrations/MoveToIndexedDB';
 import RenameExpensifyNewsStatus from './migrations/RenameExpensifyNewsStatus';
 import AddLastVisibleActionCreated from './migrations/AddLastVisibleActionCreated';
 import PersonalDetailsByAccountID from './migrations/PersonalDetailsByAccountID';
+import RenameReceiptFilename from './migrations/RenameReceiptFilename';
 
 export default function () {
     const startTime = Date.now();
@@ -13,7 +14,15 @@ export default function () {
 
     return new Promise((resolve) => {
         // Add all migrations to an array so they are executed in order
-        const migrationPromises = [MoveToIndexedDB, RenamePriorityModeKey, AddEncryptedAuthToken, RenameExpensifyNewsStatus, AddLastVisibleActionCreated, PersonalDetailsByAccountID];
+        const migrationPromises = [
+            MoveToIndexedDB,
+            RenamePriorityModeKey,
+            AddEncryptedAuthToken,
+            RenameExpensifyNewsStatus,
+            AddLastVisibleActionCreated,
+            PersonalDetailsByAccountID,
+            RenameReceiptFilename,
+        ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
         // previous promise to finish before moving onto the next one.
