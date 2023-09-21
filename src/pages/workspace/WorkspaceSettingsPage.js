@@ -100,6 +100,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                     submitButtonText={translate('workspace.editor.save')}
                     style={styles.flexGrow1}
+                    submitButtonStyles={[styles.mh5]}
                     scrollContextEnabled
                     validate={validate}
                     onSubmit={submit}
