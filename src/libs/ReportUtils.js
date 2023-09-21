@@ -1534,6 +1534,23 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
 }
 
 /**
+ * Get the proper message schema for modified expense message.
+ *
+ * @param {String} newValue
+ * @param {String} oldValue
+ * @param {String} valueName
+ * @param {Boolean} valueInQuotes
+ * @returns {String}
+ */
+
+function getProperSchemaForModifiedDistanceMessage(newDistance, oldDistance, newAmount, oldAmount) {
+    if (!oldDistance) {
+        return Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
+    }
+    return Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
+}
+
+/**
  * Get the report action message when expense has been modified.
  *
  * @param {Object} reportAction
@@ -1550,6 +1567,14 @@ function getModifiedExpenseMessage(reportAction) {
         _.has(reportActionOriginalMessage, 'oldCurrency') &&
         _.has(reportActionOriginalMessage, 'amount') &&
         _.has(reportActionOriginalMessage, 'currency');
+    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
+
+    // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
+    // We check the merchant is in distance format (includes @) as a sanity check
+    if (hasModifiedAmount && hasModifiedMerchant && reportActionOriginalMessage.merchant.includes('@')) {
+
+    }
+
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage.oldCurrency;
         const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.oldAmount, oldCurrency);
@@ -1573,7 +1598,6 @@ function getModifiedExpenseMessage(reportAction) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false);
     }
 
-    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
     if (hasModifiedMerchant) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, Localize.translateLocal('common.merchant'), true);
     }

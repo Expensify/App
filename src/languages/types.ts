@@ -186,9 +186,13 @@ type ParentNavigationSummaryParams = {rootReportName: string; workspaceName: str
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
+type SetTheDistanceParams = {newDistanceToDisplay: string, newAmountToDisplay: string};
+
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
+
+type UpdatedTheDistanceParams = {newDistanceToDisplay: string, oldDistanceToDisplay: string, newAmountToDisplay: string, oldAmountToDisplay: string};
 
 type TagSelectionParams = {tagName: string};
 
@@ -304,4 +308,6 @@ export type {
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
     TagSelectionParams,
+    SetTheDistanceParams
+    UpdatedTheDistanceParams
 };
