@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useCallback, useEffect, useState, useMemo} from 'react';
+import React, {useCallback, useEffect, useState, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -56,6 +56,7 @@ function SearchPage({betas, personalDetails, reports}) {
     });
 
     const {translate} = useLocalize();
+    const isMounted = useRef(false);
 
     const updateOptions = useCallback(() => {
         const {
@@ -79,8 +80,13 @@ function SearchPage({betas, personalDetails, reports}) {
     }, []);
 
     useEffect(() => {
+        if (!isMounted.current) {
+            isMounted.current = true;
+            return;
+        }
+
         debouncedUpdateOptions();
-    }, [searchValue, debouncedUpdateOptions]);
+    }, [searchValue]);
 
     /**
      * Returns the sections needed for the OptionsSelector
