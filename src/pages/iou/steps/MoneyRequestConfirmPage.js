@@ -66,17 +66,17 @@ function MoneyRequestConfirmPage(props) {
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
-    const isManualRequest = props.selectedTab === CONST.TAB.MANUAL;
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>
-            _.map(props.iou.participants, (participant) => {
-                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
-            }),
+        _.map(props.iou.participants, (participant) => {
+            const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+            return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
+        }),
         [props.iou.participants, props.personalDetails],
-    );
-
+        );
+    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && participants.length < 2;
+        
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat) {
@@ -215,7 +215,7 @@ function MoneyRequestConfirmPage(props) {
             if (props.iou.receiptPath && props.iou.receiptSource) {
                 FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
                     const receipt = file;
-                    receipt.state = file && isManualRequest ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+                    receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
                     requestMoney(selectedParticipants, trimmedComment, receipt);
                 });
                 return;
@@ -239,7 +239,7 @@ function MoneyRequestConfirmPage(props) {
             isDistanceRequest,
             requestMoney,
             createDistanceRequest,
-            isManualRequest,
+            isManualRequestDM,
         ],
     );
 
@@ -285,7 +285,7 @@ function MoneyRequestConfirmPage(props) {
                     <HeaderWithBackButton
                         title={headerTitle()}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={isManualRequest}
+                        shouldShowThreeDotsButton={isManualRequestDM}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {
