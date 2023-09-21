@@ -133,7 +133,6 @@ function ConfirmContent(props) {
                             style={[styles.mt3, styles.noSelect]}
                             onPress={props.onCancel}
                             text={props.cancelText || translate('common.no')}
-                            shouldUseDefaultHover
                         />
                     )}
                 </>
@@ -144,7 +143,6 @@ function ConfirmContent(props) {
                             style={[styles.noSelect, styles.flex1]}
                             onPress={props.onCancel}
                             text={props.cancelText || translate('common.no')}
-                            shouldUseDefaultHover
                             medium
                         />
                     )}

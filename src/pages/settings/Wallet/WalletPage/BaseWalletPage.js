@@ -443,7 +443,6 @@ function BaseWalletPage(props) {
                                 onPress={navigateToAddPaypalRoute}
                                 style={[styles.mb4]}
                                 text={translate('common.edit')}
-                                shouldUseDefaultHover
                             />
                         )}
                         <Button
