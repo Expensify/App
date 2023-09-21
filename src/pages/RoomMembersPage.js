@@ -78,7 +78,6 @@ function RoomMembersPage(props) {
     const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState('');
 
-
     /**
      * Open the modal to invite a user
      */
