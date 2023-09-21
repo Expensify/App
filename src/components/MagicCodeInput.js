@@ -51,7 +51,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    value: undefined,
+    value: '',
     name: '',
     autoFocus: true,
     errorText: '',
@@ -258,7 +258,13 @@ function MagicCodeInput(props) {
                         {/* Hide the input above the text. Cannot set opacity to 0 as it would break pasting on iOS Safari. */}
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.bgTransparent]}>
                             <TextInput
-                                ref={(ref) => (inputRefs.current[index] = ref)}
+                                ref={(ref) => {
+                                    inputRefs.current[index] = ref;
+                                    // Setting attribute type to "search" to prevent Password Manager from appearing in Mobile Chrome
+                                    if (ref && ref.setAttribute) {
+                                        ref.setAttribute('type', 'search');
+                                    }
+                                }}
                                 autoFocus={index === 0 && props.autoFocus}
                                 inputMode="numeric"
                                 textContentType="oneTimeCode"

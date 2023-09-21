@@ -20,7 +20,7 @@ import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
@@ -29,6 +29,7 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import PinButton from '../../components/PinButton';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import ParentNavigationSubtitle from '../../components/ParentNavigationSubtitle';
 
 const propTypes = {
@@ -93,12 +94,14 @@ function HeaderView(props) {
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
     const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
+    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+    const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
-    if (isTaskReport) {
+    if (isTaskReport && !isCanceledTaskReport) {
         const canModifyTask = Task.canModifyTask(props.report, props.session.accountID);
         if (ReportUtils.isOpenTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({
@@ -138,7 +141,7 @@ function HeaderView(props) {
     return (
         <View
             style={[styles.appContentHeader, shouldShowBorderBottom && styles.borderBottom]}
-            nativeID="drag-area"
+            dataSet={{dragArea: true}}
         >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
@@ -209,7 +212,7 @@ function HeaderView(props) {
                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        fill={colors.red}
+                                        fill={themeColors.danger}
                                     />
                                 </View>
                             )}

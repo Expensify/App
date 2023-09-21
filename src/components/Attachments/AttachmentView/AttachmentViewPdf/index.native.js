@@ -8,6 +8,9 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     useEffect(() => {
+        if (!attachmentCarouselPagerContext) {
+            return;
+        }
         attachmentCarouselPagerContext.onPinchGestureChange(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
@@ -22,7 +25,9 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
 
                 attachmentCarouselPagerContext.onPinchGestureChange(!shouldPagerScroll);
 
-                if (attachmentCarouselPagerContext.shouldPagerScroll.value === shouldPagerScroll) return;
+                if (attachmentCarouselPagerContext.shouldPagerScroll.value === shouldPagerScroll) {
+                    return;
+                }
 
                 attachmentCarouselPagerContext.shouldPagerScroll.value = shouldPagerScroll;
             }

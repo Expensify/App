@@ -15,6 +15,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import withNavigationFocus from '../withNavigationFocus';
 import validateSubmitShortcut from './validateSubmitShortcut';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** The text for the button label */
@@ -118,8 +119,7 @@ const propTypes = {
     accessibilityLabel: PropTypes.string,
 
     /** A ref to forward the button */
-    // eslint-disable-next-line react/forbid-prop-types
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
+    forwardedRef: refPropTypes,
 };
 
 const defaultProps = {
@@ -218,6 +218,7 @@ class Button extends Component {
                     this.props.icon && styles.textAlignLeft,
                     ...this.props.textStyles,
                 ]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {this.props.text}
             </Text>

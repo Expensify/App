@@ -24,6 +24,7 @@ module.exports = (env = {}) =>
                           '/api': 'http://[::1]:9000',
                           '/staging': 'http://[::1]:9000',
                           '/chat-attachments': 'http://[::1]:9000',
+                          '/receipts': 'http://[::1]:9000',
                       },
                   };
 

@@ -124,7 +124,7 @@ class ScreenWrapper extends React.Component {
                                         style={styles.flex1}
                                         enabled={this.props.shouldEnablePickerAvoiding}
                                     >
-                                        <HeaderGap />
+                                        <HeaderGap styles={this.props.headerGapStyles} />
                                         {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
                                         {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}
                                         {

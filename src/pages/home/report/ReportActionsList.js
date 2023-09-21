@@ -71,6 +71,12 @@ const defaultProps = {
 const VERTICAL_OFFSET_THRESHOLD = 200;
 const MSG_VISIBLE_THRESHOLD = 250;
 
+// In the component we are subscribing to the arrival of new actions.
+// As there is the possibility that there are multiple instances of a ReportScreen
+// for the same report, we only ever want one subscription to be active, as
+// the subscriptions could otherwise be conflicting.
+const newActionUnsubscribeMap = {};
+
 /**
  * Create a unique key for each action in the FlatList.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
@@ -107,7 +113,7 @@ function ReportActionsList({
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
     const prevReportID = useRef(null);
-    const currentUnreadMarker = useRef(null);
+    const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
@@ -151,12 +157,12 @@ function ReportActionsList({
             }
         }
 
-        if (currentUnreadMarker.current || reportActionSize.current === sortedReportActions.length) {
+        if (currentUnreadMarker || reportActionSize.current === sortedReportActions.length) {
             return;
         }
 
         reportActionSize.current = sortedReportActions.length;
-        currentUnreadMarker.current = null;
+        setCurrentUnreadMarker(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sortedReportActions.length, report.reportID]);
 
@@ -171,7 +177,7 @@ function ReportActionsList({
 
     useEffect(() => {
         const unreadActionSubscription = DeviceEventEmitter.addListener('unreadAction', (newLastReadTime) => {
-            currentUnreadMarker.current = null;
+            setCurrentUnreadMarker(null);
             lastReadRef.current = newLastReadTime;
             setMessageManuallyMarked(new Date().getTime());
         });
@@ -179,11 +185,49 @@ function ReportActionsList({
         return () => unreadActionSubscription.remove();
     }, []);
 
+    useEffect(() => {
+        // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
+        // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
+        //         meaning that the cleanup might not get called. When we then open a report we had open already previosuly, a new
+        //         ReportScreen will get created. Thus, we have to cancel the earlier subscription of the previous screen,
+        //         because the two subscriptions could conflict!
+        //         In case we return to the previous screen (e.g. by web back navigation) the useEffect for that screen would
+        //         fire again, as the focus has changed and will set up the subscription correctly again.
+        const previousSubUnsubscribe = newActionUnsubscribeMap[report.reportID];
+        if (previousSubUnsubscribe) {
+            previousSubUnsubscribe();
+        }
+
+        // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
+        // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
+        const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, (isFromCurrentUser) => {
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+            // they are now in the list.
+            if (!isFromCurrentUser) {
+                return;
+            }
+            reportScrollManager.scrollToBottom();
+        });
+
+        const cleanup = () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+            Report.unsubscribeFromReportChannel(report.reportID);
+        };
+
+        newActionUnsubscribeMap[report.reportID] = cleanup;
+
+        return cleanup;
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [report.reportID]);
+
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
     const handleUnreadFloatingButton = () => {
-        if (scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!currentUnreadMarker.current) {
+        if (scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!currentUnreadMarker) {
             setIsFloatingMessageCounterVisible(true);
         }
 
@@ -220,6 +264,15 @@ function ReportActionsList({
     }, [windowHeight]);
 
     /**
+     * Thread's divider line should hide when the first chat in the thread is marked as unread.
+     * This is so that it will not be conflicting with header's separator line.
+     */
+    const shouldHideThreadDividerLine = useMemo(
+        () => sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === currentUnreadMarker,
+        [sortedReportActions, currentUnreadMarker],
+    );
+
+    /**
      * @param {Object} args
      * @param {Number} args.index
      * @returns {React.Component}
@@ -228,7 +281,7 @@ function ReportActionsList({
         ({item: reportAction, index}) => {
             let shouldDisplayNewMarker = false;
 
-            if (!currentUnreadMarker.current) {
+            if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadRef.current);
                 let canDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, lastReadRef.current);
@@ -236,23 +289,23 @@ function ReportActionsList({
                 if (!messageManuallyMarked) {
                     canDisplayNewMarker = canDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
+
                 let isMessageInScope = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
                 if (messageManuallyMarked) {
                     isMessageInScope = true;
                 }
-                if (!currentUnreadMarker.current && canDisplayNewMarker && isMessageInScope) {
-                    currentUnreadMarker.current = reportAction.reportActionID;
+                if (!currentUnreadMarker && canDisplayNewMarker && isMessageInScope) {
+                    setCurrentUnreadMarker(reportAction.reportActionID);
                     shouldDisplayNewMarker = true;
                 }
             } else {
-                shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker.current;
+                shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker;
             }
 
             const shouldDisplayParentAction =
                 reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 ReportUtils.isChatThread(report) &&
                 !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
-            const shouldHideThreadDividerLine = sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === currentUnreadMarker.current;
 
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction
@@ -278,25 +331,26 @@ function ReportActionsList({
                 />
             );
         },
-        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarked],
+        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarked, shouldHideThreadDividerLine, currentUnreadMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = [isSmallScreenWidth ? currentUnreadMarker.current : undefined, ReportUtils.isArchivedRoom(report)];
+    const extraData = [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)];
     const hideComposer = ReportUtils.shouldDisableWriteActions(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
     return (
         <>
             <FloatingMessageCounter
-                isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker.current}
+                isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
+                    style={styles.overscrollBehaviorContain}
                     data={sortedReportActions}
                     renderItem={renderItem}
                     contentContainerStyle={styles.chatContentScrollView}

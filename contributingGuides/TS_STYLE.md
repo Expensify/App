@@ -83,6 +83,28 @@ type Foo = {
     type Color = "red" | "blue" | "green";
     ```
 
+  - Use `{ComponentName}Props` pattern for prop types.
+
+    ```ts
+    // BAD
+    type Props = {
+      // component's props
+    };
+
+    function MyComponent({}: Props) {
+      // component's code
+    }
+
+    // GOOD
+    type MyComponentProps = {
+      // component's props
+    };
+
+    function MyComponent({}: MyComponentProps) {
+      // component's code
+    }
+    ```
+
   - For generic type parameters, use `T` if you have only one type parameter. Don't use the `T`, `U`, `V`... sequence. Make type parameter names descriptive, each prefixed with `T`.
 
     > Prefix each type parameter name to distinguish them from other types.

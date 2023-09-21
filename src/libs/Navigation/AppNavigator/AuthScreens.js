@@ -1,9 +1,9 @@
 import React from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {View} from 'react-native';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -20,8 +20,7 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
 import * as Report from '../../actions/Report';
-import modalCardStyleInterpolator from './modalCardStyleInterpolator';
-import createResponsiveStackNavigator from './createResponsiveStackNavigator';
+import createCustomStackNavigator from './createCustomStackNavigator';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
@@ -30,14 +29,17 @@ import * as Session from '../../actions/Session';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import NAVIGATORS from '../../../NAVIGATORS';
-import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import DesktopSignInRedirectPage from '../../../pages/signin/DesktopSignInRedirectPage';
 import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
-import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
+import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
+import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
+import DemoSetupPage from '../../../pages/DemoSetupPage';
 
 let timezone;
 let currentAccountID;
+let isLoadingApp;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -64,7 +66,7 @@ Onyx.connect({
         }
 
         timezone = lodashGet(val, [currentAccountID, 'timezone'], {});
-        const currentTimezone = moment.tz.guess(true);
+        const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
@@ -75,7 +77,14 @@ Onyx.connect({
     },
 });
 
-const RootStack = createResponsiveStackNavigator();
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (val) => {
+        isLoadingApp = val;
+    },
+});
+
+const RootStack = createCustomStackNavigator();
 
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
@@ -126,7 +135,13 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => App.reconnectApp(this.props.lastUpdateIDAppliedToClient));
+        NetworkConnection.onReconnect(() => {
+            if (isLoadingApp) {
+                App.openApp();
+            } else {
+                App.reconnectApp(this.props.lastUpdateIDAppliedToClient);
+            }
+        });
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -159,7 +174,7 @@ class AuthScreens extends React.Component {
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
-        const groupShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_GROUP;
+        const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
 
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
@@ -178,18 +193,18 @@ class AuthScreens extends React.Component {
             searchShortcutConfig.modifiers,
             true,
         );
-        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(
-            groupShortcutConfig.shortcutKey,
+        this.unsubscribeChatShortcut = KeyboardShortcut.subscribe(
+            chatShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.NEW_GROUP)) {
+                    if (Navigation.isActiveRoute(ROUTES.NEW)) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.NEW_GROUP);
+                    Navigation.navigate(ROUTES.NEW);
                 });
             },
-            groupShortcutConfig.descriptionKey,
-            groupShortcutConfig.modifiers,
+            chatShortcutConfig.descriptionKey,
+            chatShortcutConfig.modifiers,
             true,
         );
     }
@@ -202,8 +217,8 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeSearchShortcut) {
             this.unsubscribeSearchShortcut();
         }
-        if (this.unsubscribeGroupShortcut) {
-            this.unsubscribeGroupShortcut();
+        if (this.unsubscribeChatShortcut) {
+            this.unsubscribeChatShortcut();
         }
         Session.cleanupSession();
         clearInterval(this.interval);
@@ -211,116 +226,100 @@ class AuthScreens extends React.Component {
     }
 
     render() {
-        const commonScreenOptions = {
-            headerShown: false,
-            gestureDirection: 'horizontal',
-            animationEnabled: true,
-            cardStyleInterpolator: (props) => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
-            cardOverlayEnabled: true,
-            animationTypeForReplace: 'push',
-        };
-
-        const rightModalNavigatorScreenOptions = {
-            ...commonScreenOptions,
-            // we want pop in RHP since there are some flows that would work weird otherwise
-            animationTypeForReplace: 'pop',
-            cardStyle: getNavigationModalCardStyle({
-                isSmallScreenWidth: this.props.isSmallScreenWidth,
-            }),
-        };
+        const screenOptions = getRootNavigatorScreenOptions(this.props.isSmallScreenWidth);
 
         return (
-            <RootStack.Navigator
-                isSmallScreenWidth={this.props.isSmallScreenWidth}
-                mode="modal"
-                // We are disabling the default keyboard handling here since the automatic behavior is to close a
-                // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
-                // a header will briefly open and close the keyboard and crash Android.
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                keyboardHandlingEnabled={false}
-            >
-                <RootStack.Screen
-                    name={SCREENS.HOME}
-                    options={{
-                        ...commonScreenOptions,
-                        title: 'New Expensify',
-
-                        // Prevent unnecessary scrolling
-                        cardStyle: styles.cardStyleNavigator,
-                    }}
-                    getComponent={() => {
-                        const SidebarScreen = require('../../../pages/home/sidebar/SidebarScreen').default;
-                        return SidebarScreen;
-                    }}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
-                    options={{
-                        ...commonScreenOptions,
-                        title: 'New Expensify',
-
-                        // Prevent unnecessary scrolling
-                        cardStyle: styles.cardStyleNavigator,
-                        cardStyleInterpolator: (props) => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
-                    }}
-                    component={CentralPaneNavigator}
-                />
-                <RootStack.Screen
-                    name="ValidateLogin"
-                    options={{
-                        headerShown: false,
-                        title: 'New Expensify',
-                    }}
-                    getComponent={() => {
-                        const ValidateLoginPage = require('../../../pages/ValidateLoginPage').default;
-                        return ValidateLoginPage;
-                    }}
-                />
-                <RootStack.Screen
-                    name={SCREENS.TRANSITION_BETWEEN_APPS}
-                    options={defaultScreenOptions}
-                    getComponent={() => {
-                        const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
-                        return LogOutPreviousUserPage;
-                    }}
-                />
-                <RootStack.Screen
-                    name="Concierge"
-                    options={defaultScreenOptions}
-                    getComponent={() => {
-                        const ConciergePage = require('../../../pages/ConciergePage').default;
-                        return ConciergePage;
-                    }}
-                />
-                <RootStack.Screen
-                    name={SCREENS.REPORT_ATTACHMENTS}
-                    options={{
-                        headerShown: false,
-                        presentation: 'transparentModal',
-                    }}
-                    getComponent={() => {
-                        const ReportAttachments = require('../../../pages/home/report/ReportAttachments').default;
-                        return ReportAttachments;
-                    }}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
-                    options={defaultScreenOptions}
-                    component={FullScreenNavigator}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
-                    options={rightModalNavigatorScreenOptions}
-                    component={RightModalNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="DesktopSignInRedirect"
-                    options={defaultScreenOptions}
-                    component={DesktopSignInRedirectPage}
-                />
-            </RootStack.Navigator>
+            <View style={styles.rootNavigatorContainerStyles(this.props.isSmallScreenWidth)}>
+                <RootStack.Navigator
+                    isSmallScreenWidth={this.props.isSmallScreenWidth}
+                    mode="modal"
+                    // We are disabling the default keyboard handling here since the automatic behavior is to close a
+                    // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
+                    // a header will briefly open and close the keyboard and crash Android.
+                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                    keyboardHandlingEnabled={false}
+                >
+                    <RootStack.Screen
+                        name={SCREENS.HOME}
+                        options={screenOptions.homeScreen}
+                        getComponent={() => {
+                            const SidebarScreen = require('../../../pages/home/sidebar/SidebarScreen').default;
+                            return SidebarScreen;
+                        }}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
+                        options={screenOptions.centralPaneNavigator}
+                        component={CentralPaneNavigator}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.VALIDATE_LOGIN}
+                        options={{
+                            ...screenOptions.fullScreen,
+                            headerShown: false,
+                            title: 'New Expensify',
+                        }}
+                        getComponent={() => {
+                            const ValidateLoginPage = require('../../../pages/ValidateLoginPage').default;
+                            return ValidateLoginPage;
+                        }}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.TRANSITION_BETWEEN_APPS}
+                        options={defaultScreenOptions}
+                        getComponent={() => {
+                            const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
+                            return LogOutPreviousUserPage;
+                        }}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.CONCIERGE}
+                        options={defaultScreenOptions}
+                        getComponent={() => {
+                            const ConciergePage = require('../../../pages/ConciergePage').default;
+                            return ConciergePage;
+                        }}
+                    />
+                    <RootStack.Screen
+                        name={CONST.DEMO_PAGES.SAASTR}
+                        options={defaultScreenOptions}
+                        component={DemoSetupPage}
+                    />
+                    <RootStack.Screen
+                        name={CONST.DEMO_PAGES.SBE}
+                        options={defaultScreenOptions}
+                        component={DemoSetupPage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.REPORT_ATTACHMENTS}
+                        options={{
+                            headerShown: false,
+                            presentation: 'transparentModal',
+                        }}
+                        getComponent={() => {
+                            const ReportAttachments = require('../../../pages/home/report/ReportAttachments').default;
+                            return ReportAttachments;
+                        }}
+                        listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.NOT_FOUND}
+                        options={screenOptions.fullScreen}
+                        component={NotFoundPage}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
+                        options={screenOptions.rightModalNavigator}
+                        component={RightModalNavigator}
+                        listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
+                        options={screenOptions.fullScreen}
+                        component={DesktopSignInRedirectPage}
+                    />
+                </RootStack.Navigator>
+            </View>
         );
     }
 }

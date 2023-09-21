@@ -5,7 +5,6 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Form from '../components/Form';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
 import useLocalize from '../hooks/useLocalize';
 import NewDatePicker from '../components/NewDatePicker';
 
@@ -25,10 +24,7 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('common.date')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButton title={translate('common.date')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}

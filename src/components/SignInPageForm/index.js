@@ -1,51 +1,47 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import FormElement from '../FormElement';
 
-class Form extends React.Component {
-    constructor(props) {
-        super(props);
+const preventFormDefault = (event) => {
+    // When enter is pressed form is submitted to action url (POST /).
+    // As we are using controlled component, we need to disable it here.
+    event.preventDefault();
+};
 
-        this.preventFormDefault = this.preventFormDefault.bind(this);
-    }
+function Form(props) {
+    const form = useRef(null);
 
-    componentDidMount() {
-        if (!this.form) {
+    useEffect(() => {
+        const formCurrent = form.current;
+
+        if (!formCurrent) {
             return;
         }
 
         // Prevent the browser from applying its own validation, which affects the email input
-        this.form.setAttribute('novalidate', '');
+        formCurrent.setAttribute('novalidate', '');
 
         // Password Managers need these attributes to be able to identify the form elements properly.
-        this.form.setAttribute('method', 'post');
-        this.form.setAttribute('action', '/');
+        formCurrent.setAttribute('method', 'post');
+        formCurrent.setAttribute('action', '/');
+        formCurrent.addEventListener('submit', preventFormDefault);
 
-        this.form.addEventListener('submit', this.preventFormDefault);
-    }
+        return () => {
+            if (!formCurrent) {
+                return;
+            }
+            formCurrent.removeEventListener('submit', preventFormDefault);
+        };
+    }, []);
 
-    componentWillUnmount() {
-        if (!this.form) {
-            return;
-        }
-
-        this.form.removeEventListener('submit', this.preventFormDefault);
-    }
-
-    preventFormDefault(event) {
-        // When enter is pressed form is submitted to action url (POST /).
-        // As we are using controlled component, we need to disable it here.
-        event.preventDefault();
-    }
-
-    render() {
-        return (
-            <FormElement
-                ref={(el) => (this.form = el)}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-            />
-        );
-    }
+    return (
+        <FormElement
+            ref={form}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        />
+    );
 }
+
+Form.displayName = 'Form';
 
 export default Form;

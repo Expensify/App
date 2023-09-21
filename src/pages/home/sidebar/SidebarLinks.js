@@ -1,10 +1,8 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -31,8 +29,6 @@ import * as Session from '../../../libs/actions/Session';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
-import withCurrentReportID from '../../../components/withCurrentReportID';
-import OptionRowLHNData from '../../../components/LHNOptionsList/OptionRowLHNData';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
@@ -55,22 +51,13 @@ const propTypes = {
 
     priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
 
-    /** The top most report id */
-    currentReportID: PropTypes.string,
-
-    /* Onyx Props */
-    report: PropTypes.shape({
-        /** reportID (only present when there is a matching report) */
-        reportID: PropTypes.string,
-    }),
+    isActiveReport: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    currentReportID: '',
-    report: {},
 };
 
 class SidebarLinks extends React.PureComponent {
@@ -144,10 +131,14 @@ class SidebarLinks extends React.PureComponent {
      */
     showReportPage(option) {
         // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
-        // or when clicking the active LHN row
+        // or when clicking the active LHN row on large screens
         // or when continuously clicking different LHNs, only apply to small screen
         // since getTopmostReportId always returns on other devices
-        if (this.props.isCreateMenuOpen || this.props.currentReportID === option.reportID || (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
+        if (
+            this.props.isCreateMenuOpen ||
+            (!this.props.isSmallScreenWidth && this.props.isActiveReport(option.reportID)) ||
+            (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())
+        ) {
             return;
         }
         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
@@ -161,12 +152,12 @@ class SidebarLinks extends React.PureComponent {
             <View style={[styles.flex1, styles.h100]}>
                 <View
                     style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
-                    nativeID="drag-area"
+                    dataSet={{dragArea: true}}
                 >
                     <Header
                         title={
                             <LogoComponent
-                                fill={defaultTheme.textLight}
+                                fill={defaultTheme.text}
                                 width={variables.lhnLogoWidth}
                                 height={variables.lhnLogoHeight}
                             />
@@ -186,27 +177,16 @@ class SidebarLinks extends React.PureComponent {
                     </Tooltip>
                     <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={this.props.isCreateMenuOpen} />
                 </View>
-                {this.props.isLoading ? (
-                    <>
-                        {lodashGet(this.props.report, 'reportID') && (
-                            <OptionRowLHNData
-                                reportID={this.props.currentReportID}
-                                viewMode={viewMode}
-                                shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                                onSelectRow={this.showReportPage}
-                            />
-                        )}
-                        <OptionsListSkeletonView shouldAnimate />
-                    </>
-                ) : (
-                    <LHNOptionsList
-                        contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
-                        data={this.props.optionListItems}
-                        onSelectRow={this.showReportPage}
-                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={viewMode}
-                    />
-                )}
+
+                <LHNOptionsList
+                    style={[this.props.isLoading ? styles.flexShrink1 : styles.flex1]}
+                    contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
+                    data={this.props.optionListItems}
+                    onSelectRow={this.showReportPage}
+                    shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                    optionMode={viewMode}
+                />
+                {this.props.isLoading && <OptionsListSkeletonView shouldAnimate />}
             </View>
         );
     }
@@ -214,14 +194,5 @@ class SidebarLinks extends React.PureComponent {
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withCurrentReportID,
-    withOnyx({
-        report: {
-            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
-        },
-    }),
-)(SidebarLinks);
+export default compose(withLocalize, withWindowDimensions)(SidebarLinks);
 export {basePropTypes};

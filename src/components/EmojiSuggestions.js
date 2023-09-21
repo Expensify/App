@@ -8,7 +8,6 @@ import * as EmojiUtils from '../libs/EmojiUtils';
 import Text from './Text';
 import getStyledTextArray from '../libs/GetStyledTextArray';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
-import refPropType from './refPropTypes';
 
 const propTypes = {
     /** The index of the highlighted emoji */
@@ -47,13 +46,14 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinToneIndex: PropTypes.number.isRequired,
 
-    /** Ref of the container enclosing the menu.
-     * This is needed to render the menu in correct position inside a portal
-     */
-    containerRef: refPropType,
+    /** Meaures the parent container's position and dimensions. */
+    measureParentContainer: PropTypes.func,
 };
 
-const defaultProps = {highlightedEmojiIndex: 0, containerRef: {current: null}};
+const defaultProps = {
+    highlightedEmojiIndex: 0,
+    measureParentContainer: () => {},
+};
 
 /**
  * Create unique keys for each emoji item
@@ -104,7 +104,7 @@ function EmojiSuggestions(props) {
             isSuggestionPickerLarge={props.isEmojiPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
             accessibilityLabelExtractor={keyExtractor}
-            parentContainerRef={props.containerRef}
+            measureParentContainer={props.measureParentContainer}
         />
     );
 }

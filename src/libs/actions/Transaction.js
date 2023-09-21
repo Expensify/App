@@ -1,9 +1,17 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import lodashHas from 'lodash/has';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
+import * as TransactionUtils from '../TransactionUtils';
+
+let recentWaypoints = [];
+Onyx.connect({
+    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+    callback: (val) => (recentWaypoints = val || []),
+});
 
 const allTransactions = {};
 Onyx.connect({
@@ -48,15 +56,6 @@ function addStop(transactionID) {
                 [`waypoint${newLastIndex}`]: {},
             },
         },
-
-        // Clear the existing route so that we don't show an old route
-        routes: {
-            route0: {
-                geometry: {
-                    coordinates: null,
-                },
-            },
-        },
     });
 }
 
@@ -87,6 +86,20 @@ function saveWaypoint(transactionID, index, waypoint) {
             },
         },
     });
+
+    // You can save offline waypoints without verifying the address (we will geocode it on the backend)
+    // We're going to prevent saving those addresses in the recent waypoints though since they could be invalid addresses
+    // However, in the backend once we verify the address, we will save the waypoint in the recent waypoints NVP
+    if (!lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng')) {
+        return;
+    }
+
+    const recentWaypointAlreadyExists = _.find(recentWaypoints, (recentWaypoint) => recentWaypoint.address === waypoint.address);
+    if (!recentWaypointAlreadyExists) {
+        const clonedWaypoints = _.clone(recentWaypoints);
+        clonedWaypoints.unshift(waypoint);
+        Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, 5));
+    }
 }
 
 function removeWaypoint(transactionID, currentIndex) {
@@ -103,7 +116,8 @@ function removeWaypoint(transactionID, currentIndex) {
     }
 
     const waypointValues = _.values(existingWaypoints);
-    waypointValues.splice(index, 1);
+    const removed = waypointValues.splice(index, 1);
+    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0]);
 
     const reIndexedWaypoints = {};
     waypointValues.forEach((waypoint, idx) => {
@@ -113,21 +127,31 @@ function removeWaypoint(transactionID, currentIndex) {
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
-    const newTransaction = {
+    let newTransaction = {
         ...transaction,
         comment: {
             ...transaction.comment,
             waypoints: reIndexedWaypoints,
         },
-        // Clear the existing route so that we don't show an old route
-        routes: {
-            route0: {
-                geometry: {
-                    coordinates: null,
+    };
+
+    if (!isRemovedWaypointEmpty) {
+        newTransaction = {
+            ...newTransaction,
+            // Clear any errors that may be present, which apply to the old route
+            errorFields: {
+                route: null,
+            },
+            // Clear the existing route so that we don't show an old route
+            routes: {
+                route0: {
+                    geometry: {
+                        coordinates: null,
+                    },
                 },
             },
-        },
-    };
+        };
+    }
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, newTransaction);
 }
 
