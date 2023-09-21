@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONFIG from '../CONFIG';
@@ -25,7 +24,7 @@ Environment.getEnvironment().then((envName) => {
             }
 
             const defaultToggleState = ENV_NAME === CONST.ENVIRONMENT.STAGING || ENV_NAME === CONST.ENVIRONMENT.ADHOC;
-            shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', defaultToggleState);
+            shouldUseStagingServer = val?.shouldUseStagingServer ?? defaultToggleState;
         },
     });
 });
@@ -33,13 +32,9 @@ Environment.getEnvironment().then((envName) => {
 /**
  * Get the currently used API endpoint
  * (Non-production environments allow for dynamically switching the API)
- *
- * @param {Object} [request]
- * @param {Boolean} [request.shouldUseSecure]
- * @returns {String}
  */
 function getApiRoot(request?: Request) {
-    const shouldUseSecure = lodashGet(request, 'shouldUseSecure', false);
+    const shouldUseSecure = request?.shouldUseSecure ?? false;
 
     if (shouldUseStagingServer) {
         if (CONFIG.IS_USING_WEB_PROXY) {
@@ -53,20 +48,14 @@ function getApiRoot(request?: Request) {
 
 /**
  * Get the command url for the given request
- *
- * @param {Object} request
- * @param {String} request.command - the name of the API command
- * @param {Boolean} [request.shouldUseSecure]
- * @returns {String}
+ * @param - the name of the API command
  */
-function getCommandURL(request) {
+function getCommandURL(request: Request) {
     return `${getApiRoot(request)}api?command=${request.command}`;
 }
 
 /**
  * Check if we're currently using the staging API root
- *
- * @returns {Boolean}
  */
 function isUsingStagingApi() {
     return shouldUseStagingServer;
