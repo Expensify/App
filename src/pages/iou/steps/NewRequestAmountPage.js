@@ -85,10 +85,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
     useEffect(() => {
         const moneyRequestID = `${iouType}${reportID}`;
-        const shouldReset = iou.id !== moneyRequestID;
-        if (shouldReset) {
-            IOU.resetMoneyRequestInfo(moneyRequestID);
-        }
+        IOU.resetMoneyRequestInfo(moneyRequestID);
     }, [iouType, reportID]);
 
     // Check and dismiss modal
