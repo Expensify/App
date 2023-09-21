@@ -20,7 +20,7 @@ export default PropTypes.shape({
     isLoadingNewerReportActions: PropTypes.bool,
 
     /** Flag to check if the report actions data are loading */
-    isLoadingReportActions: PropTypes.bool,
+    isLoadingInitialReportActions: PropTypes.bool,
 
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat: PropTypes.bool,

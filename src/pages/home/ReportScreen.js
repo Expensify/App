@@ -99,7 +99,7 @@ const defaultProps = {
     reportActions: [],
     report: {
         hasOutstandingIOU: false,
-        isLoadingReportActions: false,
+        isLoadingInitialReportActions: false,
         isLoadingNewerReportActions: false,
     },
     isComposerFullSize: false,
@@ -161,7 +161,7 @@ function ReportScreen({
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = _.isEmpty(reportActions) && report.isLoadingReportActions;
+    const isLoadingInitialReportActions = _.isEmpty(reportActions) && report.isLoadingInitialReportActions;
 
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
 
@@ -309,7 +309,7 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading) || shouldHideReport,
+        () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingInitialReportActions && !isLoading) || shouldHideReport,
         [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete],
     );
 

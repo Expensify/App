@@ -407,7 +407,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         value: reportActionsExist(reportID)
             ? {}
             : {
-                  isLoadingReportActions: true,
+                  isLoadingInitialReportActions: true,
                   isLoadingOlderReportActions: false,
                   isLoadingNewerReportActions: false,
                   reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
@@ -417,7 +417,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
-            isLoadingReportActions: false,
+            isLoadingInitialReportActions: false,
             pendingFields: {
                 createChat: null,
             },
@@ -431,7 +431,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
-            isLoadingReportActions: false,
+            isLoadingInitialReportActions: false,
         },
     };
 
@@ -648,7 +648,7 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        isLoadingReportActions: true,
+                        isLoadingInitialReportActions: true,
                         isLoadingNewerReportActions: false,
                         isLoadingOlderReportActions: false,
                         reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
@@ -660,7 +660,7 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        isLoadingReportActions: false,
+                        isLoadingInitialReportActions: false,
                     },
                 },
             ],
@@ -669,7 +669,7 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        isLoadingReportActions: false,
+                        isLoadingInitialReportActions: false,
                     },
                 },
             ],
@@ -730,7 +730,7 @@ function readOldestAction(reportID, reportActionID) {
  * @param {String} reportID
  * @param {String} reportActionID
  */
-function getOlderAction(reportID, reportActionID) {
+function getOlderActions(reportID, reportActionID) {
     API.read(
         'GetOlderActions',
         {
@@ -776,7 +776,7 @@ function getOlderAction(reportID, reportActionID) {
  * @param {String} reportID
  * @param {String} reportActionID
  */
-function getNewerAction(reportID, reportActionID) {
+function getNewerActions(reportID, reportActionID) {
     API.read(
         'GetNewerActions',
         {
@@ -2204,6 +2204,6 @@ export {
     getReportPrivateNote,
     clearPrivateNotesError,
     hasErrorInPrivateNotes,
-    getOlderAction,
-    getNewerAction,
+    getOlderActions,
+    getNewerActions,
 };

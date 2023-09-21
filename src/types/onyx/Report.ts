@@ -19,7 +19,7 @@ type Report = {
     isLoadingNewerReportActions?: boolean;
 
     /** Flag to check if the report actions data are loading */
-    isLoadingReportActions?: boolean;
+    isLoadingInitialReportActions?: boolean;
 
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat?: boolean;

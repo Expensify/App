@@ -157,7 +157,7 @@ function ReportActionsView(props) {
             return;
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.getOlderAction(reportID, oldestReportAction.reportActionID);
+        Report.getOlderActions(reportID, oldestReportAction.reportActionID);
     };
 
     /**
@@ -166,7 +166,7 @@ function ReportActionsView(props) {
      */
     const loadNewerChats = ({distanceFromStart}) => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.report.isLoadingNewerReportActions || props.report.isLoadingReportActions) {
+        if (props.report.isLoadingNewerReportActions || props.report.isLoadingInitialReportActions) {
             return;
         }
 
@@ -176,7 +176,7 @@ function ReportActionsView(props) {
             return;
         }
         const newestReportAction = _.first(props.reportActions);
-        Report.getNewerAction(reportID, newestReportAction.reportActionID);
+        Report.getNewerActions(reportID, newestReportAction.reportActionID);
     };
 
     /**
@@ -249,7 +249,7 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (oldProps.report.isLoadingReportActions !== newProps.report.isLoadingReportActions) {
+    if (oldProps.report.isLoadingInitialReportActions !== newProps.report.isLoadingInitialReportActions) {
         return false;
     }
 

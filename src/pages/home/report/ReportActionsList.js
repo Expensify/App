@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useState, useRef, useMemo} from 'react';
-import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
@@ -22,7 +21,6 @@ import reportPropTypes from '../../reportPropTypes';
 import useLocalize from '../../../hooks/useLocalize';
 import useNetwork from '../../../hooks/useNetwork';
 import DateUtils from '../../../libs/DateUtils';
-import themeColors from '../../../styles/themes/default';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import ListHeaderComponentLoader from './ListHeaderComponentLoader/ListHeaderComponentLoader';
@@ -373,7 +371,7 @@ function ReportActionsList({
                         // skeleton view above the created action in a newly generated optimistic chat or one with not
                         // that many comments.
                         const lastReportAction = _.last(sortedReportActions) || {};
-                        if (report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                        if (report.isLoadingInitialReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
                             return (
                                 <ReportActionsSkeletonView
                                     containerHeight={skeletonViewHeight}
