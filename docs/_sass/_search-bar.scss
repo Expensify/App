@@ -23,12 +23,23 @@ $color-gray-label: $color-gray-label;
 #sidebar-search {
     background-color: $color-appBG;
     width: 375px;
-    height: 100vh;
     position: fixed;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    bottom: 0;
     top: 0;
     right: 0;
     z-index: 2;
+}
+
+#sidebar-search > div:last-child {
+    flex-grow: 1;
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 @media only screen and (max-width: $breakpoint-tablet) {
@@ -156,10 +167,6 @@ label.search-label {
     background-color: $color-appBG;
     border: $color-appBG;
     font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif !important;
-    max-height: 80vh;
-    overflow-y: scroll;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
 }
 
 /* Hide the scrollbar */
