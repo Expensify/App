@@ -166,7 +166,9 @@ function ReportActionsView(props) {
      * Runs when the FlatList finishes laying out
      */
     const recordTimeToMeasureItemLayout = () => {
-        props.onLayout();
+        if (props.onLayout) {
+            props.onLayout();
+        }
 
         if (didLayout.current) {
             return;
