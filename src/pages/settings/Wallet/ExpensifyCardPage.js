@@ -80,12 +80,9 @@ function ExpensifyCardPage({
                         />
                         {shouldShowCardDetails ? (
                             <CardDetails
-                                details={{
-                                    pan: '1234123412341234',
-                                    expiration: '11/02/2024',
-                                    cvv: '321',
-                                    address: '12 Grimmauld Place',
-                                }}
+                                pan="1234123412341234"
+                                expiration="11/02/2024"
+                                cvv="321"
                             />
                         ) : (
                             <MenuItemWithTopDescription
