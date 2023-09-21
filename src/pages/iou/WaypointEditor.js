@@ -159,7 +159,9 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
 
     const focus = () => {
         InteractionManager.runAfterInteractions(() => {
-            if (!textInput.current) return;
+            if (!textInput.current) {
+                return;
+            }
             textInput.current.focus();
         });
     };
