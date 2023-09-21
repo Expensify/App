@@ -45,7 +45,7 @@ function ExpensifyCardPage({
     const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
     const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
 
-    if (_.isEmpty(virtualCard) || _.isEmpty(physicalCard)) {
+    if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
         return <NotFoundPage />;
     }
 
@@ -70,12 +70,14 @@ function ExpensifyCardPage({
                             interactive={false}
                             titleStyle={styles.newKansasLarge}
                         />
-                        <MenuItemWithTopDescription
-                            description={translate('cardPage.virtualCardNumber')}
-                            title={virtualCard.maskedPan}
-                            interactive={false}
-                            titleStyle={styles.walletCardNumber}
-                        />
+                        {!_.isEmpty(physicalCard) && (
+                            <MenuItemWithTopDescription
+                                description={translate('cardPage.virtualCardNumber')}
+                                title={virtualCard.maskedPan}
+                                interactive={false}
+                                titleStyle={styles.walletCardNumber}
+                            />
+                        )}
                         {!_.isEmpty(physicalCard) && (
                             <MenuItemWithTopDescription
                                 description={translate('cardPage.physicalCardNumber')}
