@@ -61,14 +61,11 @@ function SplitBillDetailsPage(props) {
     let participants;
     if (ReportUtils.isPolicyExpenseChat(props.report)) {
         participants = [
-            ...OptionsListUtils.getParticipantsOptions([{accountID: participantAccountIDs[0], selected: true}], props.personalDetails),
-            ...OptionsListUtils.getPolicyExpenseReportOptions({...props.report, selected: true}),
+            OptionsListUtils.getParticipantsOption({accountID: participantAccountIDs[0], selected: true}, props.personalDetails),
+            OptionsListUtils.getPolicyExpenseReportOption({...props.report, selected: true}),
         ];
     } else {
-        participants = OptionsListUtils.getParticipantsOptions(
-            _.map(participantAccountIDs, (accountID) => ({accountID, selected: true})),
-            props.personalDetails,
-        );
+        participants = _.map(participantAccountIDs, (accountID) => OptionsListUtils.getParticipantsOption({accountID, selected: true}, props.personalDetails));
     }
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);

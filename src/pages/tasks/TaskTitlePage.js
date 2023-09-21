@@ -100,7 +100,9 @@ function TaskTitlePage(props) {
                                 accessibilityLabel={props.translate('task.title')}
                                 defaultValue={(props.report && props.report.reportName) || ''}
                                 ref={(el) => {
-                                    if (!el) return;
+                                    if (!el) {
+                                        return;
+                                    }
                                     if (!inputRef.current && didScreenTransitionEnd) {
                                         el.focus();
                                     }

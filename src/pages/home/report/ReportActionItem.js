@@ -592,7 +592,10 @@ function ReportActionItem(props) {
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={props.translate('accessibilityHints.chatMessage')}
         >
-            <Hoverable disabled={Boolean(props.draftMessage)}>
+            <Hoverable
+                shouldHandleScroll
+                disabled={Boolean(props.draftMessage)}
+            >
                 {(hovered) => (
                     <View>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}

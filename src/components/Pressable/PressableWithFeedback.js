@@ -58,19 +58,27 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                 isExecuting={isExecuting}
                 onHoverIn={() => {
                     setIsHovered(true);
-                    if (props.onHoverIn) props.onHoverIn();
+                    if (props.onHoverIn) {
+                        props.onHoverIn();
+                    }
                 }}
                 onHoverOut={() => {
                     setIsHovered(false);
-                    if (props.onHoverOut) props.onHoverOut();
+                    if (props.onHoverOut) {
+                        props.onHoverOut();
+                    }
                 }}
                 onPressIn={() => {
                     setIsPressed(true);
-                    if (props.onPressIn) props.onPressIn();
+                    if (props.onPressIn) {
+                        props.onPressIn();
+                    }
                 }}
                 onPressOut={() => {
                     setIsPressed(false);
-                    if (props.onPressOut) props.onPressOut();
+                    if (props.onPressOut) {
+                        props.onPressOut();
+                    }
                 }}
                 onPress={(e) => {
                     singleExecution(() => props.onPress(e))();

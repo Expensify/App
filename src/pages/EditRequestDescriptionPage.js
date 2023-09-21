@@ -7,7 +7,6 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Form from '../components/Form';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
 import * as Browser from '../libs/Browser';
@@ -29,10 +28,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => descriptionInputRef.current && descriptionInputRef.current.focus()}
         >
-            <HeaderWithBackButton
-                title={translate('common.description')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButton title={translate('common.description')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
