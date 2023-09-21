@@ -54,7 +54,9 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
     }, [accessToken]);
 
     const setMapIdle = (e: MapState) => {
-        if (e.gestures.isGestureActive) return;
+        if (e.gestures.isGestureActive) {
+            return;
+        }
         setIsIdle(true);
         if (onMapReady) {
             onMapReady();

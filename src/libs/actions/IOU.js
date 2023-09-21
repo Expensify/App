@@ -1194,6 +1194,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                     currency: null,
                     merchant: null,
                     billable: null,
+                    category: null,
                 },
             },
         },

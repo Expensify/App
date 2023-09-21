@@ -150,6 +150,9 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     if (_.has(transactionChanges, 'billable')) {
         updatedTransaction.billable = transactionChanges.billable;
     }
+    if (_.has(transactionChanges, 'category')) {
+        updatedTransaction.category = transactionChanges.category;
+    }
 
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
@@ -162,6 +165,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'merchant') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'billable') && {billable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'category') && {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;
