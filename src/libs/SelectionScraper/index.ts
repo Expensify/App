@@ -3,6 +3,7 @@ import {parseDocument} from 'htmlparser2';
 import Str from 'expensify-common/lib/str';
 import {DataNode, Element, Node} from 'domhandler';
 import CONST from '../../CONST';
+import GetCurrentSelection from './types';
 
 const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';
@@ -44,7 +45,7 @@ const getHTMLOfSelection = (): string => {
 
         // If clonedSelection has no text content this data has no meaning to us.
         if (clonedSelection.textContent) {
-            let parent;
+            let parent: globalThis.Element | null = null;
             let child = clonedSelection;
 
             // If selection starts and ends within same text node we use its parentNode. This is because we can't
@@ -101,7 +102,7 @@ const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
     const domElement = dom as Element;
     let domName = domElement.name;
     let domChildren: Node[] = [];
-    const domAttribs = {} as Element['attribs'];
+    const domAttribs: Element['attribs'] = {};
     let data = '';
 
     // Encoding HTML chars '< >' in the text, because any HTML will be removed in stripHTML method.
@@ -148,7 +149,7 @@ const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
 /**
  * Resolves the current selection to values and produces clean HTML.
  */
-const getCurrentSelection = (): string => {
+const getCurrentSelection: GetCurrentSelection = () => {
     const domRepresentation = parseDocument(getHTMLOfSelection());
     domRepresentation.children = domRepresentation.children.map((item) => replaceNodes(item, false));
 
