@@ -77,7 +77,7 @@ function LocaleContextProvider({children, currentUserPersonalDetails, preferredL
      * @param {String} phoneNumber
      * @returns {String}
      */
-    const formatPhoneNumber = useMemo(() => (phoneNumber) => LocalePhoneNumber.formatPhoneNumber(phoneNumber), []);
+    const formatPhoneNumber = LocalePhoneNumber.formatPhoneNumber;
 
     /**
      * @param {String} digit
