@@ -54,7 +54,7 @@ function EReceipt({transaction}) {
                     }
                     return (
                         <View>
-                            <Text>{translate(descriptionKey)}</Text>
+                            <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
                             <Text>{waypoint.address || ''}</Text>
                         </View>
                     );
