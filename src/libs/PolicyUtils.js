@@ -199,6 +199,23 @@ function getTagListName(policyTags) {
     return lodashGet(policyTags, [_.first(policyTagKeys), 'name'], '');
 }
 
+/**
+ * Fetches the tags of a policy for a specific key. Defaults to the first tag if no key is provided.
+ *
+ * @param {Object} policyTags
+ * @param {String} [tagKey]
+ * @returns {String}
+ */
+function getTagList(policyTags, tagKey) {
+    if (!policyTags) {
+        return {};
+    }
+
+    const policyTagKey = tagKey || _.first(_.keys(policyTags));
+
+    return lodashGet(policyTags, [policyTagKey, 'tags'], {});
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -214,4 +231,5 @@ export {
     getIneligibleInvitees,
     getTag,
     getTagListName,
+    getTagList,
 };

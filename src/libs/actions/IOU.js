@@ -1147,6 +1147,17 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         updatedChatReport.lastMessageHtml = messageText;
     }
 
+    const optimisticPolicyRecentlyUsedTags = {};
+    if (_.has(transactionChanges, 'tag')) {
+        const tagListName = transactionChanges.tagListName;
+        const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
+
+        if (recentlyUsedPolicyTags) {
+            const uniquePolicyRecentlyUsedTags = _.filter(recentlyUsedPolicyTags[tagListName], (recentlyUsedPolicyTag) => recentlyUsedPolicyTag !== transactionChanges.tag);
+            optimisticPolicyRecentlyUsedTags[tagListName] = [transactionChanges.tag, ...uniquePolicyRecentlyUsedTags];
+        }
+    }
+
     // STEP 4: Compose the optimistic data
     const optimisticData = [
         {
@@ -1172,6 +1183,14 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             value: updatedChatReport,
         },
     ];
+
+    if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
+            value: optimisticPolicyRecentlyUsedTags,
+        });
+    }
 
     const successData = [
         {
