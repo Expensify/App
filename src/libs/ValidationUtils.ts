@@ -8,6 +8,7 @@ import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
 import {Report} from '../types/onyx';
+import * as OnyxCommon from '../types/onyx/OnyxCommon';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -87,8 +88,8 @@ function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, u
 /**
  * Used to add requiredField error to the fields passed.
  */
-function getFieldRequiredErrors(values: Record<string, string>, requiredFields: string[]) {
-    const errors: Record<string, string> = {};
+function getFieldRequiredErrors(values: OnyxCommon.Errors, requiredFields: string[]) {
+    const errors: OnyxCommon.Errors = {};
     requiredFields.forEach((fieldKey) => {
         if (isRequiredFulfilled(values[fieldKey])) {
             return;
