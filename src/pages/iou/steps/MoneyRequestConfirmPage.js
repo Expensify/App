@@ -69,14 +69,14 @@ function MoneyRequestConfirmPage(props) {
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>
-        _.map(props.iou.participants, (participant) => {
-            const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-            return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
-        }),
+            _.map(props.iou.participants, (participant) => {
+                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
+            }),
         [props.iou.participants, props.personalDetails],
-        );
+    );
     const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && participants.length < 2;
-        
+
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat) {

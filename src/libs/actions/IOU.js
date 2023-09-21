@@ -1997,9 +1997,9 @@ function createEmptyTransaction() {
  * @param {String} iouType
  * @param {String} reportID
  * @param {Object} report
- * @param {Object} route
+ * @param {String} path
  */
-function navigateToNextPage(iou, iouType, reportID, report, route = '') {
+function navigateToNextPage(iou, iouType, reportID, report, path = '') {
     const moneyRequestID = `${iouType}${reportID}`;
     const shouldReset = iou.id !== moneyRequestID;
 
@@ -2010,7 +2010,7 @@ function navigateToNextPage(iou, iouType, reportID, report, route = '') {
     }
 
     // If we're adding a receipt, that means the user came from the confirmation page and we need to navigate back to it.
-    if (route.slice(1) === ROUTES.getMoneyRequestReceiptRoute(iouType, reportID)) {
+    if (path.slice(1) === ROUTES.getMoneyRequestReceiptRoute(iouType, reportID)) {
         Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
         return;
     }
