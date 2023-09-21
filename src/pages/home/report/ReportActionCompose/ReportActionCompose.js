@@ -30,7 +30,6 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import reportActionPropTypes from '../reportActionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import getModalState from '../../../../libs/getModalState';
@@ -220,10 +219,6 @@ function ReportActionCompose({
      */
     const addAttachment = useCallback(
         (file) => {
-            // Since we're submitting the form here which should clear the composer
-            // We don't really care about saving the draft the user was typing
-            // We need to make sure an empty draft gets saved instead
-            debouncedSaveReportComment.cancel();
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
@@ -250,11 +245,6 @@ function ReportActionCompose({
             if (e) {
                 e.preventDefault();
             }
-
-            // Since we're submitting the form here which should clear the composer
-            // We don't really care about saving the draft the user was typing
-            // We need to make sure an empty draft gets saved instead
-            debouncedSaveReportComment.cancel();
 
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             if (!newComment) {

@@ -132,13 +132,6 @@ function ReportActionsView(props) {
         }
     }, [props.report, didSubscribeToReportTypingEvents, reportID]);
 
-    useEffect(() => {
-        if (isFocused || !context.reactionListRef || !context.reactionListRef.current) {
-            return;
-        }
-        context.reactionListRef.current.hideReactionList();
-    }, [isFocused, context.reactionListRef]);
-
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.

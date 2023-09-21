@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import CONST from '../../src/CONST';
 import Log from '../../src/libs/Log';
 import getPlatform from '../../src/libs/getPlatform';
@@ -19,13 +19,13 @@ describe('Migrations', () => {
         Onyx.init({keys: ONYXKEYS});
         LogSpy = jest.spyOn(Log, 'info');
         Log.serverLoggingCallback = () => {};
-        return waitForPromisesToResolve();
+        return waitForBatchedUpdates();
     });
 
     beforeEach(() => {
         jest.clearAllMocks();
         Onyx.clear();
-        return waitForPromisesToResolve();
+        return waitForBatchedUpdates();
     });
 
     describe('MoveToIndexedDb', () => {

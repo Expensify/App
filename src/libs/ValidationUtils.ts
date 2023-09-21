@@ -247,6 +247,10 @@ function isValidValidateCode(validateCode: string): boolean {
     return Boolean(validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING));
 }
 
+function isValidRecoveryCode(recoveryCode: string): boolean {
+    return Boolean(recoveryCode.match(CONST.RECOVERY_CODE_REGEX_STRING));
+}
+
 function isValidTwoFactorCode(code: string): boolean {
     return Boolean(code.match(CONST.REGEX.CODE_2FA));
 }
@@ -379,4 +383,5 @@ export {
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
+    isValidRecoveryCode,
 };

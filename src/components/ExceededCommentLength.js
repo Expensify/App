@@ -4,6 +4,7 @@ import {debounce} from 'lodash';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
+import useLocalize from '../hooks/useLocalize';
 import Text from './Text';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
@@ -25,6 +26,7 @@ const defaultProps = {
 };
 
 function ExceededCommentLength(props) {
+    const {numberFormat, translate} = useLocalize();
     const [commentLength, setCommentLength] = useState(0);
     const updateCommentLength = useMemo(
         () =>
@@ -44,7 +46,14 @@ function ExceededCommentLength(props) {
         return null;
     }
 
-    return <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}>{`${commentLength}/${CONST.MAX_COMMENT_LENGTH}`}</Text>;
+    return (
+        <Text
+            style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}
+            numberOfLines={1}
+        >
+            {translate('composer.commentExceededMaxLength', {formattedMaxLength: numberFormat(CONST.MAX_COMMENT_LENGTH)})}
+        </Text>
+    );
 }
 
 ExceededCommentLength.propTypes = propTypes;

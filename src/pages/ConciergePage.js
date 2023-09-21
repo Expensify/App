@@ -7,6 +7,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
 import * as Report from '../libs/actions/Report';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Session info for the currently logged in user. */
@@ -31,7 +32,7 @@ function ConciergePage(props) {
     useFocusEffect(() => {
         if (_.has(props.session, 'authToken')) {
             // Pop the concierge loading page before opening the concierge report.
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.HOME);
             Report.navigateToConciergeChat();
         } else {
             Navigation.navigate();
