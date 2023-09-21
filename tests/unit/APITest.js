@@ -382,7 +382,7 @@ describe('APITests', () => {
             });
     });
 
-    test.only('Sequential queue will succeed if triggered while reauthentication via main queue is in progress', () => {
+    test('Sequential queue will succeed if triggered while reauthentication via main queue is in progress', () => {
         // Given offline state where all requests will eventualy succeed without issue and assumed to be valid credentials
         const xhr = jest
             .spyOn(HttpUtils, 'xhr')
