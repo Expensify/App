@@ -54,7 +54,9 @@ function startErrorSync(originalTransactionID, temporaryTransactionID) {
     syncConnectionID = Onyx.connect({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
         callback: (val) => {
-            if (!val) return;
+            if (!val) {
+                return;
+            }
 
             // Only sync changes after the transaction has been read from Onyx so that existing
             // errors aren't copied over, only new changes from here on out
