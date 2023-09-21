@@ -164,20 +164,28 @@ function ReportActionsView(props) {
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadNewerChats = ({distanceFromStart}) => {
+    const loadNewerChats = _.throttle(({distanceFromStart}) => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
         if (props.report.isLoadingNewerReportActions || props.report.isLoadingInitialReportActions) {
             return;
         }
 
-        // ideally we do not need use distanceFromStart here but due maxToRenderPerBatch and windowSize we receive a lot of renders so          times we can se how loadNewerChats is called. we use CONST.CHAT_HEADER_LOADER_HEIGHT to prevent this
+        // Ideally, we wouldn't need to use the 'distanceFromStart' variable. However, due to the low value set for 'maxToRenderPerBatch',
+        // the component undergoes frequent re-renders. This frequent re-rendering triggers the 'onStartReached' callback multiple times.
+
+        // To mitigate this issue, we use 'CONST.CHAT_HEADER_LOADER_HEIGHT' as a threshold. This ensures that 'onStartReached' is not
+        // triggered unnecessarily when the chat is initially opened or when the user has reached the end of the list but hasn't scrolled further.
+
+        // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
+        // This should be removed once the issue of frequent re-renders is resolved.
+
         if (!isFetchNewerWasCalled.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
             isFetchNewerWasCalled.current = true;
             return;
         }
         const newestReportAction = _.first(props.reportActions);
         Report.getNewerActions(reportID, newestReportAction.reportActionID);
-    };
+    }, 300);
 
     /**
      * Runs when the FlatList finishes laying out
