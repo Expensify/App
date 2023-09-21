@@ -10,7 +10,7 @@ type Card = {
     bank: string;
     availableSpend: number;
     domainName: string;
-    maskedPan: string;
+    lastFourPAN: string;
     cardName: string;
     isVirtual: boolean;
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
