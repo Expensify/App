@@ -23,7 +23,9 @@ import useNetwork from '../../../hooks/useNetwork';
 import DateUtils from '../../../libs/DateUtils';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
-import ListHeaderComponentLoader from './ListHeaderComponentLoader/ListHeaderComponentLoader';
+import ListHeaderComponentLoader from './ListBoundaryLoader/ListHeaderComponentLoader/ListHeaderComponentLoader';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -134,7 +136,6 @@ function ReportActionsList({
     useEffect(() => {
         opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
-    const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
@@ -255,14 +256,20 @@ function ReportActionsList({
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
      * the height of the smallest report action possible.
-     * @return {Number}
+     * @return {{availableContentHeight: Number, initialNumToRender: Number}}
      */
-    const initialNumToRender = useMemo(() => {
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
+    const {availableContentHeight, initialNumToRender} = useMemo(() => {
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        return Math.ceil(availableHeight / minimumReportActionHeight);
-    }, [windowHeight]);
+        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
+        const initialRenderCount = Math.ceil(availableHeight / minimumReportActionHeight);
 
+        return {
+            availableContentHeight: availableHeight,
+            initialNumToRender: initialRenderCount,
+        };
+    }, [windowHeight, variables.contentHeaderHeight, styles.chatItem.paddingTop, styles.chatItem.paddingBottom, variables.fontSizeNormalHeight]);
+
+    const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
@@ -341,6 +348,27 @@ function ReportActionsList({
         [report.isLoadingNewerReportActions],
     );
 
+    const listFooterComponent = useCallback(() => {
+        return (
+            <ListBoundaryLoader
+                type={CONST.LIST_COMPONENTS.FOOTER}
+                isLoadingOlderReportActions={report.isLoadingOlderReportActions}
+                isLoadingInitialReportActions={report.isLoadingInitialReportActions}
+                skeletonViewHeight={availableContentHeight}
+                lastReportActionName={lastReportAction.actionName}
+            />
+        );
+    }, [report.isLoadingInitialReportActions, report.isLoadingOlderReportActions, availableContentHeight, lastReportAction.actionName]);
+
+    const listHeaderComponent = useCallback(() => {
+        return (
+            <ListBoundaryLoader
+                type={CONST.LIST_COMPONENTS.HEADER}
+                isLoadingNewerReportActions={report.isLoadingNewerReportActions}
+            />
+        );
+    }, [report.isLoadingNewerReportActions]);
+
     return (
         <>
             <FloatingMessageCounter
@@ -362,38 +390,10 @@ function ReportActionsList({
                     onEndReachedThreshold={0.75}
                     onStartReached={loadNewerChats}
                     onStartReachedThreshold={0.75}
-                    ListFooterComponent={() => {
-                        if (report.isLoadingOlderReportActions) {
-                            return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
-                        }
-
-                        // Make sure the oldest report action loaded is not the first. This is so we do not show the
-                        // skeleton view above the created action in a newly generated optimistic chat or one with not
-                        // that many comments.
-                        const lastReportAction = _.last(sortedReportActions) || {};
-                        if (report.isLoadingInitialReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-                            return (
-                                <ReportActionsSkeletonView
-                                    containerHeight={skeletonViewHeight}
-                                    animate={!isOffline}
-                                />
-                            );
-                        }
-
-                        return null;
-                    }}
-                    ListHeaderComponent={() => {
-                        if (report.isLoadingNewerReportActions) {
-                            return <ListHeaderComponentLoader />;
-                        }
-
-                        return null;
-                    }}
+                    ListFooterComponent={listFooterComponent}
+                    ListHeaderComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={(event) => {
-                        setSkeletonViewHeight(event.nativeEvent.layout.height);
-                        onLayout(event);
-                    }}
+                    onLayout={onLayout}
                     onScroll={trackVerticalScrolling}
                     extraData={extraData}
                 />
