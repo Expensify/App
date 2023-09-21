@@ -157,9 +157,10 @@ function Tooltip(props) {
             setIsRendered(false);
         }
         const t = target.current;
-        if (!t) {
-            return;
-        }
+        // Choose a bounding box for the tooltip to target.
+        // In the case when the target is a link that has wrapped onto
+        // multiple lines, we want to show the tooltip over the part
+        // of the link that the user is hovering over.
         const betterBounds = chooseBoundingBox(t, initialMousePosition.current.x, initialMousePosition.current.y);
         setWrapperWidth(betterBounds.width);
         setWrapperHeight(betterBounds.height);
