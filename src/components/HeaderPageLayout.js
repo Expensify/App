@@ -10,6 +10,8 @@ import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import FixedFooter from './FixedFooter';
+import useNetwork from '../hooks/useNetwork';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -22,16 +24,26 @@ const propTypes = {
 
     /** A fixed footer to display at the bottom of the page. */
     footer: PropTypes.node,
+
+    /** The image to display in the upper half of the screen. */
+    header: PropTypes.node,
+
+    /** Style to apply to the header image container */
+    // eslint-disable-next-line react/forbid-prop-types
+    headerContainerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     backgroundColor: themeColors.appBG,
+    header: null,
+    headerContainerStyles: [],
     footer: null,
 };
 
-function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer, imageContainerStyle, style, ...propsToPassToHeader}) {
-    const {windowHeight} = useWindowDimensions();
-
+function HeaderPageLayout({backgroundColor, children, footer, headerContainerStyles, style, headerContent, ...propsToPassToHeader}) {
+    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {isOffline} = useNetwork();
+    const appBGColor = StyleUtils.getBackgroundColorStyle(themeColors.appBG);
     const {titleColor, iconFill} = useMemo(() => {
         const isColorfulBackground = backgroundColor !== themeColors.appBG;
         return {
@@ -45,7 +57,7 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
             style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
-            offlineIndicatorStyle={[StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}
+            offlineIndicatorStyle={[appBGColor]}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
@@ -55,27 +67,24 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
                         titleColor={titleColor}
                         iconFill={iconFill}
                     />
-                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
+                    <View style={[styles.flex1, appBGColor, !isOffline ? safeAreaPaddingBottomStyle : {}]}>
+                        {/** Safari on ios/mac has a bug where overscrolling the page scrollview shows green background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
+                        {Browser.isSafari() && (
+                            <View style={styles.dualColorOverscrollSpacer}>
+                                <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(backgroundColor)]} />
+                                <View style={[isSmallScreenWidth ? styles.flex1 : styles.flex3, appBGColor]} />
+                            </View>
+                        )}
                         <ScrollView
                             contentContainerStyle={[safeAreaPaddingBottomStyle, style]}
                             showsVerticalScrollIndicator={false}
+                            offlineIndicatorStyle={[appBGColor]}
                         >
-                            <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />
-                            <View
-                                style={[
-                                    styles.alignItemsCenter,
-                                    styles.justifyContentEnd,
-                                    StyleUtils.getBackgroundColorStyle(backgroundColor),
-                                    imageContainerStyle,
-                                    styles.staticHeaderImage,
-                                ]}
-                            >
-                                <Image
-                                    pointerEvents="none"
-                                    style={styles.staticHeaderImage}
-                                />
+                            {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />}
+                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor), ...headerContainerStyles]}>
+                                {headerContent}
                             </View>
-                            <View style={styles.pt5}>{children}</View>
+                            <View style={[styles.pt5, appBGColor]}>{children}</View>
                         </ScrollView>
                         {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
                     </View>
@@ -85,8 +94,8 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
     );
 }
 
-StaticHeaderPageLayout.propTypes = propTypes;
-StaticHeaderPageLayout.defaultProps = defaultProps;
-StaticHeaderPageLayout.displayName = 'StaticHeaderPageLayout';
+HeaderPageLayout.propTypes = propTypes;
+HeaderPageLayout.defaultProps = defaultProps;
+HeaderPageLayout.displayName = 'HeaderPageLayout';
 
-export default StaticHeaderPageLayout;
+export default HeaderPageLayout;
