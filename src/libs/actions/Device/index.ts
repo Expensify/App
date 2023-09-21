@@ -7,7 +7,7 @@ import getDeviceInfo from './getDeviceInfo/index.ios';
 let deviceID: string | null = null;
 
 /**
- * @returns {Promise<String>}
+ * @returns - device ID string or null in case of failure
  */
 function getDeviceID(): Promise<string | null> {
     return new Promise((resolve) => {
@@ -29,7 +29,7 @@ function getDeviceID(): Promise<string | null> {
 /**
  * Saves a unique deviceID into Onyx.
  */
-function setDeviceID() {
+function setDeviceID(): void {
     getDeviceID()
         .then((existingDeviceID) => {
             if (!existingDeviceID) {
