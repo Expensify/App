@@ -1,7 +1,6 @@
 import React, {useState, useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, Animated, Keyboard} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
@@ -32,7 +31,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import useNativeDriver from '../libs/useNativeDriver';
 import Receipt from '../libs/actions/Receipt';
-import ONYXKEYS from '../ONYXKEYS';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -82,13 +81,6 @@ const propTypes = {
 
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
-
-    /* Onyx Props */
-    /** The parent report */
-    parentReport: reportPropTypes,
-
-    /** The report action this report is tied to from the parent report */
-    parentReportAction: PropTypes.shape(reportActionPropTypes),
 };
 
 const defaultProps = {
@@ -388,7 +380,8 @@ function AttachmentModal(props) {
                             icon: Expensicons.Trashcan,
                             text: props.translate('receipt.deleteReceipt'),
                             onSelected: () => {
-                                const transactionID = lodashGet(props.parentReportAction, 'originalMessage.IOUTransactionID', '');
+                                const parentReportAction = ReportActionsUtils.getReportAction(props.report.parentReportID, props.report.parentReportActionID);
+                                const transactionID = lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', '');
                                 Receipt.detachReceipt(transactionID, props.report.reportID)
                             },
                         },
@@ -464,14 +457,4 @@ AttachmentModal.displayName = 'AttachmentModal';
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withOnyx({
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
-        },
-        parentReportAction: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(report.parentReportID, report.parentReportActionID)}`,
-            selector: (reportActions, props) => props && props.parentReport && reportActions && reportActions[props.parentReport.parentReportActionID],
-            canEvict: false,
-        },
-    }),
 )(AttachmentModal);
