@@ -1,5 +1,5 @@
 import {Keyboard, View, PanResponder} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {PickerAvoidingView} from 'react-native-picker-select';
@@ -44,20 +44,24 @@ function ScreenWrapper({
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const isKeyboardShown = lodashGet(keyboardState, 'isKeyboardShown', false);
 
-    const panResponder = PanResponder.create({
-        onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
-        onPanResponderRelease: toggleTestToolsModal,
-    });
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
+            onPanResponderRelease: toggleTestToolsModal,
+        }),
+    ).current;
 
-    const keyboardDissmissPanResponder = PanResponder.create({
-        onMoveShouldSetPanResponderCapture: (e, gestureState) => {
-            const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-            const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && isKeyboardShown && Browser.isMobile();
+    const keyboardDissmissPanResponder = useRef(
+        PanResponder.create({
+            onMoveShouldSetPanResponderCapture: (e, gestureState) => {
+                const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && isKeyboardShown && Browser.isMobile();
 
-            return isHorizontalSwipe && shouldDismissKeyboard;
-        },
-        onPanResponderGrant: Keyboard.dismiss,
-    });
+                return isHorizontalSwipe && shouldDismissKeyboard;
+            },
+            onPanResponderGrant: Keyboard.dismiss,
+        }),
+    ).current;
 
     useEffect(() => {
         const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', (event) => {
@@ -85,7 +89,7 @@ function ScreenWrapper({
         return () => {
             unsubscribeTransitionEnd();
 
-            if (typeof beforeRemoveSubscription === 'function') {
+            if (beforeRemoveSubscription) {
                 beforeRemoveSubscription();
             }
         };
