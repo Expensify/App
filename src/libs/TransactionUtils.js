@@ -33,6 +33,9 @@ Onyx.connect({
  * @param {Object} [receipt]
  * @param {String} [filename]
  * @param {String} [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
+ * @param {String} [category]
+ * @param {String} [tag]
+ * @param {Boolean} [billable]
  * @returns {Object}
  */
 function buildOptimisticTransaction(
@@ -47,6 +50,9 @@ function buildOptimisticTransaction(
     receipt = {},
     filename = '',
     existingTransactionID = null,
+    category = '',
+    tag = '',
+    billable = false,
 ) {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -74,6 +80,9 @@ function buildOptimisticTransaction(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
         filename,
+        category,
+        tag,
+        billable,
     };
 }
 
@@ -158,6 +167,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
  *
  * @param {String} transactionID
  * @returns {Object}
+ * @deprecated Use withOnyx() or Onyx.connect() instead
  */
 function getTransaction(transactionID) {
     return lodashGet(allTransactions, `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
@@ -229,6 +239,16 @@ function getMerchant(transaction) {
 }
 
 /**
+ * Return the category from the transaction. This "category" field has no "modified" complement.
+ *
+ * @param {Object} transaction
+ * @return {String}
+ */
+function getCategory(transaction) {
+    return lodashGet(transaction, 'category', '');
+}
+
+/**
  * Return the created field from the transaction, return the modifiedCreated if present.
  *
  * @param {Object} transaction
@@ -273,11 +293,22 @@ function hasMissingSmartscanFields(transaction) {
 }
 
 /**
+ * Check if the transaction has a defined route
+ *
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
+function hasRoute(transaction) {
+    return !!lodashGet(transaction, 'routes.route0.geometry.coordinates');
+}
+
+/**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
  * @param {Object} reportAction
  * @returns {Object}
+ * @deprecated Use Onyx.connect() or withOnyx() instead
  */
 function getLinkedTransaction(reportAction = {}) {
     const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
@@ -362,12 +393,15 @@ export {
     getCurrency,
     getMerchant,
     getCreated,
+    getCategory,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
+    hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
     hasMissingSmartscanFields,
     getWaypointIndex,
+    waypointHasValidAddress,
 };

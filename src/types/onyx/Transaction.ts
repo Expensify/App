@@ -20,7 +20,9 @@ type Routes = Record<string, Route>;
 
 type Transaction = {
     amount: number;
-    category?: string;
+    category: string;
+    currency: string;
+    reportID: string;
     comment: Comment;
     created: string;
     currency: string;
@@ -40,6 +42,7 @@ type Transaction = {
     reportID: string;
     routes?: Routes;
     transactionID: string;
+    tag: string;
 };
 
 export default Transaction;

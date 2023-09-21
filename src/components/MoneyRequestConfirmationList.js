@@ -5,9 +5,11 @@ import {format} from 'date-fns';
 import _ from 'underscore';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
+import Text from './Text';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
+import Permissions from '../libs/Permissions';
 import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
@@ -29,10 +31,13 @@ import Image from './Image';
 import useLocalize from '../hooks/useLocalize';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
 import categoryPropTypes from './categoryPropTypes';
+import Switch from './Switch';
+import tagPropTypes from './tagPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import transactionPropTypes from './transactionPropTypes';
 import DistanceRequestUtils from '../libs/DistanceRequestUtils';
 import * as IOU from '../libs/actions/IOU';
+import * as TransactionUtils from '../libs/TransactionUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -68,6 +73,9 @@ const propTypes = {
     /** IOU Category */
     iouCategory: PropTypes.string,
 
+    /** IOU Tag */
+    iouTag: PropTypes.string,
+
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
@@ -90,6 +98,9 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     /** The policyID of the request */
     policyID: PropTypes.string,
 
@@ -104,10 +115,6 @@ const propTypes = {
 
     /** List styles for OptionsSelector */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    /* Onyx Props */
-    /** Collection of categories attached to a policy */
-    policyCategories: PropTypes.objectOf(categoryPropTypes),
 
     /** ID of the transaction that represents the money request */
     transactionID: PropTypes.string,
@@ -129,6 +136,19 @@ const propTypes = {
 
     /** Whether the money request is a distance request */
     isDistanceRequest: PropTypes.bool,
+
+    /* Onyx Props */
+    /** Collection of categories attached to a policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
+
+    /** Collection of tags attached to a policy */
+    policyTags: PropTypes.objectOf(
+        PropTypes.shape({
+            name: PropTypes.string,
+            required: PropTypes.bool,
+            tags: PropTypes.objectOf(tagPropTypes),
+        }),
+    ),
 };
 
 const defaultProps = {
@@ -137,6 +157,7 @@ const defaultProps = {
     onSelectParticipant: () => {},
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     iouCategory: '',
+    iouTag: '',
     payeePersonalDetails: null,
     canModifyParticipants: false,
     isReadOnly: false,
@@ -144,6 +165,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    betas: [],
     policyID: '',
     reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -151,6 +173,7 @@ const defaultProps = {
     receiptSource: '',
     listStyles: [],
     policyCategories: {},
+    policyTags: {},
     transactionID: '',
     transaction: {},
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
@@ -171,12 +194,23 @@ function MoneyRequestConfirmationList(props) {
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
-    const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
+    const shouldCategoryBeEditable = !_.isEmpty(props.policyCategories) && Permissions.canUseCategories(props.betas);
 
-    const formattedAmount = CurrencyUtils.convertToDisplayString(
-        shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
-        props.isDistanceRequest ? currency : props.iouCurrencyCode,
-    );
+    // Fetches the first tag list of the policy
+    const tagListKey = _.first(_.keys(props.policyTags));
+    const tagList = lodashGet(props.policyTags, [tagListKey, 'tags'], []);
+    const tagListName = lodashGet(props.policyTags, [tagListKey, 'name'], '');
+    const canUseTags = Permissions.canUseTags(props.betas);
+    const shouldShowTags = canUseTags && _.any(tagList, (tag) => tag.enabled);
+
+    const hasRoute = TransactionUtils.hasRoute(transaction);
+    const isDistanceRequestWithoutRoute = props.isDistanceRequest && !hasRoute;
+    const formattedAmount = isDistanceRequestWithoutRoute
+        ? translate('common.tbd')
+        : CurrencyUtils.convertToDisplayString(
+              shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
+              props.isDistanceRequest ? currency : props.iouCurrencyCode,
+          );
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -204,7 +238,7 @@ function MoneyRequestConfirmationList(props) {
 
     const splitOrRequestOptions = useMemo(() => {
         let text;
-        if (props.receiptPath) {
+        if (props.receiptPath || isDistanceRequestWithoutRoute) {
             text = translate('iou.request');
         } else {
             const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
@@ -216,7 +250,7 @@ function MoneyRequestConfirmationList(props) {
                 value: props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
-    }, [props.hasMultipleParticipants, props.receiptPath, translate, formattedAmount]);
+    }, [props.hasMultipleParticipants, props.receiptPath, translate, formattedAmount, isDistanceRequestWithoutRoute]);
 
     const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
@@ -295,9 +329,9 @@ function MoneyRequestConfirmationList(props) {
         if (!props.isDistanceRequest) {
             return;
         }
-        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(distance, unit, rate, currency, translate);
+        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate);
         IOU.setMoneyRequestMerchant(distanceMerchant);
-    }, [distance, unit, rate, currency, translate, props.isDistanceRequest]);
+    }, [hasRoute, distance, unit, rate, currency, translate, props.isDistanceRequest]);
 
     /**
      * @param {Object} option
@@ -359,13 +393,11 @@ function MoneyRequestConfirmationList(props) {
 
         const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
-        const recipient = props.selectedParticipants[0] || {};
 
         return shouldShowSettlementButton ? (
             <SettlementButton
                 isDisabled={shouldDisableButton}
                 onPress={confirm}
-                shouldShowPaypal={Boolean(recipient && recipient.payPalMeAddress)}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={props.bankAccountRoute}
                 addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
@@ -386,13 +418,14 @@ function MoneyRequestConfirmationList(props) {
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
             />
         );
-    }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
+    }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
     return (
         <OptionsSelector
             sections={optionSelectorSections}
             value=""
             onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
+            onAddToSelection={selectParticipant}
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             canSelectMultipleOptions={canModifyParticipants}
@@ -429,6 +462,7 @@ function MoneyRequestConfirmationList(props) {
             )}
             <MenuItemWithTopDescription
                 shouldShowRightIcon={!props.isReadOnly}
+                shouldParseTitle
                 title={props.iouComment}
                 description={translate('common.description')}
                 onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID))}
@@ -470,7 +504,7 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestRoute(props.iouType, props.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAddressRoute(props.iouType, props.reportID))}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     ) : (
@@ -484,7 +518,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}
-                    {shouldCategoryEditable && (
+                    {shouldCategoryBeEditable && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouCategory}
@@ -493,6 +527,26 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             disabled={didConfirm || props.isReadOnly}
                         />
+                    )}
+                    {shouldShowTags && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly}
+                            title={props.iouTag}
+                            description={tagListName || translate('common.tag')}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestTagRoute(props.iouType, props.reportID))}
+                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            disabled={didConfirm || props.isReadOnly}
+                        />
+                    )}
+                    {canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true) && (
+                        <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                            <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                            <Switch
+                                accessibilityLabel={translate('common.billable')}
+                                isOn={props.iouIsBillable}
+                                onToggle={props.onToggleBillable}
+                            />
+                        </View>
                     )}
                 </>
             )}
@@ -509,8 +563,14 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
         policyCategories: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+        },
+        policyTags: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
         },
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -518,6 +578,9 @@ export default compose(
         },
         transaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        },
+        policy: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         },
     }),
 )(MoneyRequestConfirmationList);

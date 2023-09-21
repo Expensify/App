@@ -27,6 +27,7 @@ import getButtonState from '../../libs/getButtonState';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as Session from '../../libs/actions/Session';
 import * as Expensicons from '../Icon/Expensicons';
+import SpacerView from '../SpacerView';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -50,7 +51,8 @@ function TaskView(props) {
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
-    const disableState = !canModifyTask || !isOpen;
+    const disableState = !canModifyTask || isCanceled;
+    const isDisableInteractive = !canModifyTask || !isOpen;
     return (
         <View>
             <OfflineWithFeedback
@@ -63,13 +65,21 @@ function TaskView(props) {
                     {(hovered) => (
                         <PressableWithSecondaryInteraction
                             onPress={Session.checkIfActionIsAllowed((e) => {
+                                if (isDisableInteractive) {
+                                    return;
+                                }
                                 if (e && e.type === 'click') {
                                     e.currentTarget.blur();
                                 }
 
                                 Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
                             })}
-                            style={({pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState), true)]}
+                            style={({pressed}) => [
+                                styles.ph5,
+                                styles.pv2,
+                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
+                                isDisableInteractive && !disableState && styles.cursorDefault,
+                            ]}
                             ref={props.forwardedRef}
                             disabled={disableState}
                             accessibilityLabel={taskTitle || props.translate('task.task')}
@@ -119,6 +129,7 @@ function TaskView(props) {
                 </Hoverable>
                 <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.description')}>
                     <MenuItemWithTopDescription
+                        shouldParseTitle
                         description={props.translate('task.description')}
                         title={props.report.description || ''}
                         onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
@@ -127,6 +138,7 @@ function TaskView(props) {
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         shouldGreyOutWhenDisabled={false}
                         numberOfLinesTitle={0}
+                        interactive={!isDisableInteractive}
                     />
                 </OfflineWithFeedback>
                 {props.report.managerID ? (
@@ -144,6 +156,7 @@ function TaskView(props) {
                             wrapperStyle={[styles.pv2]}
                             isSmallAvatarSubscriptMenu
                             shouldGreyOutWhenDisabled={false}
+                            interactive={!isDisableInteractive}
                         />
                     </OfflineWithFeedback>
                 ) : (
@@ -154,10 +167,14 @@ function TaskView(props) {
                         disabled={disableState}
                         wrapperStyle={[styles.pv2]}
                         shouldGreyOutWhenDisabled={false}
+                        interactive={!isDisableInteractive}
                     />
                 )}
             </OfflineWithFeedback>
-            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
+            <SpacerView
+                shouldShow={props.shouldShowHorizontalRule}
+                style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+            />
         </View>
     );
 }

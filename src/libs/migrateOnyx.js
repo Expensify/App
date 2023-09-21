@@ -6,7 +6,6 @@ import RenamePriorityModeKey from './migrations/RenamePriorityModeKey';
 import MoveToIndexedDB from './migrations/MoveToIndexedDB';
 import RenameExpensifyNewsStatus from './migrations/RenameExpensifyNewsStatus';
 import AddLastVisibleActionCreated from './migrations/AddLastVisibleActionCreated';
-import KeyReportActionsByReportActionID from './migrations/KeyReportActionsByReportActionID';
 import PersonalDetailsByAccountID from './migrations/PersonalDetailsByAccountID';
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
 
@@ -23,7 +22,6 @@ export default function () {
             AddEncryptedAuthToken,
             RenameExpensifyNewsStatus,
             AddLastVisibleActionCreated,
-            KeyReportActionsByReportActionID,
             PersonalDetailsByAccountID,
             RenameReceiptFilename,
         ];
