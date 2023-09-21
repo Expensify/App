@@ -158,8 +158,10 @@ function MoneyRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = (option) => {
-        onAddParticipants([{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true}]);
-        navigateToRequest();
+        onAddParticipants([
+            {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText},
+        ]);
+        navigateToRequest(option);
     };
 
     /**
@@ -187,13 +189,20 @@ function MoneyRequestParticipantsSelector({
             } else {
                 newSelectedOptions = [
                     ...participants,
-                    {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true},
+                    {
+                        accountID: option.accountID,
+                        login: option.login,
+                        isPolicyExpenseChat: option.isPolicyExpenseChat,
+                        reportID: option.reportID,
+                        selected: true,
+                        searchText: option.searchText,
+                    },
                 ];
             }
 
             onAddParticipants(newSelectedOptions);
 
-            const chatOptions = OptionsListUtils.getNewChatOptions(
+            const chatOptions = OptionsListUtils.getFilteredOptions(
                 reports,
                 personalDetails,
                 betas,
@@ -221,13 +230,14 @@ function MoneyRequestParticipantsSelector({
     const headerMessage = OptionsListUtils.getHeaderMessage(
         newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
         Boolean(newChatOptions.userToInvite),
-        searchTerm,
+        searchTerm.trim(),
         maxParticipantsReached,
+        _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     useEffect(() => {
-        const chatOptions = OptionsListUtils.getNewChatOptions(
+        const chatOptions = OptionsListUtils.getFilteredOptions(
             reports,
             personalDetails,
             betas,

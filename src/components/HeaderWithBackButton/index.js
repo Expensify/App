@@ -22,7 +22,7 @@ import useKeyboardState from '../../hooks/useKeyboardState';
 function HeaderWithBackButton({
     iconFill = undefined,
     guidesCallTaskID = '',
-    onBackButtonPress = () => Navigation.goBack(),
+    onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},

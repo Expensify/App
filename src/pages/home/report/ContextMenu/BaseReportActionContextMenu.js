@@ -49,7 +49,9 @@ function BaseReportActionContextMenu(props) {
     const wrapperStyle = getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth);
 
     const reportAction = useMemo(() => {
-        if (_.isEmpty(props.reportActions) || props.reportActionID === '0') return {};
+        if (_.isEmpty(props.reportActions) || props.reportActionID === '0') {
+            return {};
+        }
         return props.reportActions[props.reportActionID] || {};
     }, [props.reportActions, props.reportActionID]);
 
