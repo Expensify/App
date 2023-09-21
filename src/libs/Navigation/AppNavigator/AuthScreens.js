@@ -1,7 +1,6 @@
 import React from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
@@ -39,6 +38,8 @@ import DemoSetupPage from '../../../pages/DemoSetupPage';
 
 let timezone;
 let currentAccountID;
+let isLoadingApp;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -65,7 +66,7 @@ Onyx.connect({
         }
 
         timezone = lodashGet(val, [currentAccountID, 'timezone'], {});
-        const currentTimezone = moment.tz.guess(true);
+        const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
@@ -73,6 +74,13 @@ Onyx.connect({
             timezone.selected = currentTimezone;
             PersonalDetails.updateAutomaticTimezone(timezone);
         }
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (val) => {
+        isLoadingApp = val;
     },
 });
 
@@ -127,7 +135,13 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => App.reconnectApp(this.props.lastUpdateIDAppliedToClient));
+        NetworkConnection.onReconnect(() => {
+            if (isLoadingApp) {
+                App.openApp();
+            } else {
+                App.reconnectApp(this.props.lastUpdateIDAppliedToClient);
+            }
+        });
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -160,7 +174,7 @@ class AuthScreens extends React.Component {
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
-        const groupShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_GROUP;
+        const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
 
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
@@ -179,18 +193,18 @@ class AuthScreens extends React.Component {
             searchShortcutConfig.modifiers,
             true,
         );
-        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(
-            groupShortcutConfig.shortcutKey,
+        this.unsubscribeChatShortcut = KeyboardShortcut.subscribe(
+            chatShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.NEW_GROUP)) {
+                    if (Navigation.isActiveRoute(ROUTES.NEW)) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.NEW_GROUP);
+                    Navigation.navigate(ROUTES.NEW);
                 });
             },
-            groupShortcutConfig.descriptionKey,
-            groupShortcutConfig.modifiers,
+            chatShortcutConfig.descriptionKey,
+            chatShortcutConfig.modifiers,
             true,
         );
     }
@@ -203,8 +217,8 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeSearchShortcut) {
             this.unsubscribeSearchShortcut();
         }
-        if (this.unsubscribeGroupShortcut) {
-            this.unsubscribeGroupShortcut();
+        if (this.unsubscribeChatShortcut) {
+            this.unsubscribeChatShortcut();
         }
         Session.cleanupSession();
         clearInterval(this.interval);

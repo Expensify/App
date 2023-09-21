@@ -7,8 +7,8 @@ import moment from 'moment';
 import App from '../../src/App';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
-import waitForPromisesToResolveWithAct from '../utils/waitForPromisesToResolveWithAct';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import * as TestHelper from '../utils/TestHelper';
 import appSetup from '../../src/setup';
 import fontWeightBold from '../../src/styles/fontWeight/bold';
@@ -87,7 +87,7 @@ function navigateToSidebar() {
     const hintText = Localize.translateLocal('accessibilityHints.navigateToChatsList');
     const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
     fireEvent(reportHeaderBackButton, 'press');
-    return waitForPromisesToResolve();
+    return waitForBatchedUpdates();
 }
 
 /**
@@ -98,7 +98,7 @@ function navigateToSidebarOption(index) {
     const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
     const optionRows = screen.queryAllByAccessibilityHint(hintText);
     fireEvent(optionRows[index], 'press');
-    return waitForPromisesToResolve();
+    return waitForBatchedUpdates();
 }
 
 /**
@@ -129,7 +129,7 @@ let reportAction9CreatedDate;
 function signInAndGetAppWithUnreadChat() {
     // Render the App and sign in as a test user.
     render(<App />);
-    return waitForPromisesToResolveWithAct()
+    return waitForBatchedUpdatesWithAct()
         .then(() => {
             const hintText = Localize.translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
@@ -139,7 +139,7 @@ function signInAndGetAppWithUnreadChat() {
         })
         .then(() => {
             User.subscribeToUserEvents();
-            return waitForPromisesToResolve();
+            return waitForBatchedUpdates();
         })
         .then(() => {
             const MOMENT_TEN_MINUTES_AGO = moment().subtract(10, 'minutes');
@@ -192,7 +192,7 @@ function signInAndGetAppWithUnreadChat() {
 
             // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
             AppActions.setSidebarLoaded(true);
-            return waitForPromisesToResolve();
+            return waitForBatchedUpdates();
         });
 }
 
@@ -342,7 +342,7 @@ describe('Unread Indicators', () => {
                         ],
                     },
                 ]);
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 // Verify notification was created
@@ -388,7 +388,7 @@ describe('Unread Indicators', () => {
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
                 Report.markCommentAsUnread(REPORT_ID, reportAction3CreatedDate);
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 // Verify the indicator appears above the last action
@@ -454,7 +454,7 @@ describe('Unread Indicators', () => {
 
                 // Leave a comment as the current user and verify the indicator is removed
                 Report.addComment(REPORT_ID, 'Current User Comment 1');
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
@@ -487,7 +487,7 @@ describe('Unread Indicators', () => {
 
                 // Mark a previous comment as unread and verify the unread action indicator returns
                 Report.markCommentAsUnread(REPORT_ID, reportAction9CreatedDate);
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
@@ -517,7 +517,7 @@ describe('Unread Indicators', () => {
                 .then(() => {
                     // Leave a comment as the current user
                     Report.addComment(REPORT_ID, 'Current User Comment 1');
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // Simulate the response from the server so that the comment can be deleted in this test
@@ -528,7 +528,7 @@ describe('Unread Indicators', () => {
                         lastActorAccountID: lastReportAction.actorAccountID,
                         reportID: REPORT_ID,
                     });
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // Verify the chat preview text matches the last comment from the current user
@@ -538,7 +538,7 @@ describe('Unread Indicators', () => {
                     expect(alternateText[0].props.children).toBe('Current User Comment 1');
 
                     Report.deleteReportComment(REPORT_ID, lastReportAction);
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
