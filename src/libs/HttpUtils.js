@@ -5,7 +5,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
 import * as ApiUtils from './ApiUtils';
 import alert from '../components/Alert';
-import Log from './Log';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -106,14 +105,6 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
             }
             return response;
         })
-        .catch(() => {
-            if (method !== 'get') {
-                return;
-            }
-
-            Log.hmmm(`READ request failed to fetch ${url}. Resolving promise to apply Onyx failure data`);
-            return Promise.resolve({});
-        });
 }
 
 /**
