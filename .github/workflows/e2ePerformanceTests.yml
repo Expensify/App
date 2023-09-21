@@ -120,7 +120,7 @@ jobs:
 
   runTestsInAWS:
     runs-on: ubuntu-latest
-    needs: [buildDelta]
+    needs: [buildBaseline, buildDelta]
     name: Run E2E tests in AWS device farm
     steps:
       - uses: actions/checkout@v3
