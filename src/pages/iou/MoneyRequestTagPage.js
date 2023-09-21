@@ -111,13 +111,6 @@ export default compose(
     }),
     //  eslint-disable-next-line
     withOnyx({
-        report: {
-            // Fetch report ID from IOU participants if no report ID is set in route
-            key: ({route, iou}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '') || lodashGet(iou, 'participants.0.reportID', '')}`,
-        },
-    }),
-    //  eslint-disable-next-line
-    withOnyx({
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
