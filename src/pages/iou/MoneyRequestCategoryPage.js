@@ -11,6 +11,8 @@ import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CategoryPicker from '../../components/CategoryPicker';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportPropTypes from '../reportPropTypes';
+import * as IOU from '../../libs/actions/IOU';
+import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -25,21 +27,36 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /* Onyx Props */
     /** The report currently being used */
     report: reportPropTypes,
+
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    iou: iouDefaultProps,
 };
 
-function MoneyRequestCategoryPage({route, report}) {
+function MoneyRequestCategoryPage({route, report, iou}) {
     const {translate} = useLocalize();
 
     const reportID = lodashGet(route, 'params.reportID', '');
     const iouType = lodashGet(route, 'params.iouType', '');
 
     const navigateBack = () => {
+        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+    };
+
+    const updateCategory = (category) => {
+        if (category.searchText === iou.category) {
+            IOU.resetMoneyRequestCategory();
+        } else {
+            IOU.setMoneyRequestCategory(category.searchText);
+        }
+
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
     };
 
@@ -54,9 +71,9 @@ function MoneyRequestCategoryPage({route, report}) {
             />
 
             <CategoryPicker
+                selectedCategory={iou.category}
                 policyID={report.policyID}
-                reportID={reportID}
-                iouType={iouType}
+                onSubmit={updateCategory}
             />
         </ScreenWrapper>
     );
