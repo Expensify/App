@@ -84,6 +84,8 @@ const defaultProps = {
     numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
     shouldRenderAsHTML: false,
+    rightComponent: undefined,
+    shouldShowRightComponent: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -360,6 +362,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         />
                                     </PressableWithFeedback>
                                 )}
+                                {Boolean(props.shouldShowRightComponent) && props.rightComponent}
                                 {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                             </View>
                         </>
