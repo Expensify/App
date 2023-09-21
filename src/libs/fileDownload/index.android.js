@@ -68,7 +68,9 @@ function handleDownload(url, fileName) {
                     return Promise.reject();
                 }
 
-                if (!isLocalFile) attachmentPath = attachment.path();
+                if (!isLocalFile) {
+                    attachmentPath = attachment.path();
+                }
 
                 return RNFetchBlob.MediaCollection.copyToMediaStore(
                     {
