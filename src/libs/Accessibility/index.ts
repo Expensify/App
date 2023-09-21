@@ -19,8 +19,8 @@ const getHitSlopForSize = ({x, y}: {x: number; y: number}) => {
     /* according to https://developer.apple.com/design/human-interface-guidelines/ios/visual-design/adaptivity-and-layout/
     the minimum tappable area is 44x44 points */
     const minimumSize = 44;
-    const hitSlopVertical = Math.max(...[minimumSize - x, 0]) / 2;
-    const hitSlopHorizontal = Math.max(...[minimumSize - y, 0]) / 2;
+    const hitSlopVertical = Math.max(minimumSize - x, 0) / 2;
+    const hitSlopHorizontal = Math.max(minimumSize - y, 0) / 2;
     return {
         top: hitSlopVertical,
         bottom: hitSlopVertical,
