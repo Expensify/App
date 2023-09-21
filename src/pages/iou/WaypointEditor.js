@@ -157,7 +157,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
-    const focus = () => {
+    const focusAddressInput = () => {
         InteractionManager.runAfterInteractions(() => {
             if (!textInput.current) {
                 return;
@@ -188,14 +188,14 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             onSelected: () => setIsDeleteStopModalOpen(true),
                         },
                     ]}
-                    onModalHide={focus}
+                    onModalHide={focusAddressInput}
                 />
                 <ConfirmModal
                     title={translate('distance.deleteWaypoint')}
                     isVisible={isDeleteStopModalOpen}
                     onConfirm={deleteStopAndHideModal}
                     onCancel={() => setIsDeleteStopModalOpen(false)}
-                    onModalHide={focus}
+                    onModalHide={focusAddressInput}
                     prompt={translate('distance.deleteWaypointConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
