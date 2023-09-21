@@ -1,10 +1,13 @@
-import getBaseInfo, {DeviceInfo} from './getBaseInfo';
+import getBaseInfo from './getBaseInfo';
 import getOSAndName from './getOSAndName/index.native';
+import {GetDeviceInfo, DeviceInfo} from "./index";
 
-export default function getDeviceInfo(): DeviceInfo {
+const getDeviceInfo: GetDeviceInfo = (): DeviceInfo => {
     return {
         ...getBaseInfo(),
         ...getOSAndName(),
         os: 'Android',
     };
 }
+
+export default getDeviceInfo;

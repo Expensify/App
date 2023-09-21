@@ -1,4 +1,5 @@
 import DeviceInfo from 'react-native-device-info';
+import {GenerateDeviceID} from "./index";
 
 const deviceID = DeviceInfo.getDeviceId();
 
@@ -7,7 +8,7 @@ const deviceID = DeviceInfo.getDeviceId();
  *
  * @returns - device ID
  */
-function generateDeviceID(): Promise<string> {
+const generateDeviceID: GenerateDeviceID = (): Promise<string> => {
     return DeviceInfo.getUniqueId().then((uniqueID: string) => `${deviceID}_${uniqueID}`);
 }
 

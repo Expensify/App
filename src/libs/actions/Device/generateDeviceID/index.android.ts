@@ -1,5 +1,6 @@
 import DeviceInfo from 'react-native-device-info';
 import Str from 'expensify-common/lib/str';
+import {GenerateDeviceID} from "./index";
 
 const deviceID = DeviceInfo.getDeviceId();
 const uniqueID = Str.guid(deviceID);
@@ -25,7 +26,7 @@ const uniqueID = Str.guid(deviceID);
  *
  * @returns - deviceID
  */
-function generateDeviceID(): Promise<string> {
+const generateDeviceID: GenerateDeviceID = (): Promise<string> => {
     return Promise.resolve(uniqueID);
 }
 

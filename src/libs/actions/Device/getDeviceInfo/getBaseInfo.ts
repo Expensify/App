@@ -1,16 +1,15 @@
 import packageConfig from '../../../../../package.json';
-import {OSAndName} from "./getOSAndName/index.native";
+import {GetBaseInfo} from "./index";
 
 export type BaseInfo = {
     app_version: string;
     timestamp: string;
 };
-
-export type DeviceInfo = BaseInfo & OSAndName & {os?: string, device_name?: string, device_version?: string};
-
-export default function getBaseInfo(): BaseInfo {
+export const getBaseInfo: GetBaseInfo = (): BaseInfo => {
     return {
         app_version: packageConfig.version,
         timestamp: new Date().toISOString().slice(0, 19),
     };
 }
+
+export default getBaseInfo;
