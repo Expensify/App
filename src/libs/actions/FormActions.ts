@@ -2,25 +2,29 @@ import Onyx from 'react-native-onyx';
 import {PartialDeep} from 'type-fest';
 import {KeyValueMapping} from 'react-native-onyx/lib/types';
 import * as OnyxCommon from '../../types/onyx/OnyxCommon';
-import {OnyxKey, OnyxValues} from '../../ONYXKEYS';
+import {OnyxFormKey, OnyxKey, OnyxKeysMap, OnyxValues} from '../../ONYXKEYS';
+import {Form} from '../../types/onyx';
 
-type KeysWhichCouldBeDraft<T extends keyof OnyxValues> = T extends `${infer U}Draft` ? U : never;
-type DraftKeysWithoutDraftSuffix = KeysWhichCouldBeDraft<keyof OnyxValues>;
+type KeysWhichCouldBeDraft<T extends OnyxFormKey | OnyxKeysMap['REIMBURSEMENT_ACCOUNT']> = T extends `${infer U}Draft` ? U : never;
+type DraftKeysWithoutDraftSuffix = KeysWhichCouldBeDraft<OnyxFormKey | OnyxKeysMap['REIMBURSEMENT_ACCOUNT']>;
+type GetValueForKey<T extends OnyxFormKey | OnyxKeysMap['REIMBURSEMENT_ACCOUNT']> = T extends keyof OnyxValues ? OnyxValues[T] : never;
 
-function setIsLoading(formID: OnyxKey, isLoading: boolean) {
-    Onyx.merge(formID, {isLoading});
+function setIsLoading(formID: OnyxFormKey, isLoading: boolean) {
+    Onyx.merge(formID, {isLoading} satisfies Form);
 }
 
-function setErrors(formID: OnyxKey, errors: OnyxCommon.Errors) {
-    Onyx.merge(formID, {errors});
+function setErrors(formID: OnyxFormKey, errors: OnyxCommon.Errors) {
+    Onyx.merge(formID, {errors} satisfies Form);
 }
 
-function setErrorFields(formID: OnyxKey, errorFields: OnyxCommon.ErrorFields) {
-    Onyx.merge(formID, {errorFields});
+function setErrorFields(formID: OnyxFormKey, errorFields: OnyxCommon.ErrorFields) {
+    Onyx.merge(formID, {errorFields} satisfies Form);
 }
 
-function setDraftValues<T extends DraftKeysWithoutDraftSuffix>(formID: T, draftValues: PartialDeep<KeyValueMapping[`${T}Draft`]>) {
-    Onyx.merge(`${formID}Draft`, draftValues);
+function setDraftValues<T extends DraftKeysWithoutDraftSuffix | OnyxKeysMap['REIMBURSEMENT_ACCOUNT']>(formID: T, draftValues: PartialDeep<KeyValueMapping[`${T}Draft`]>) {
+    Onyx.merge(`${formID}Draft` as OnyxKey, draftValues);
 }
+
+setDraftValues('reimbursementAccount', {});
 
 export {setIsLoading, setErrors, setErrorFields, setDraftValues};
