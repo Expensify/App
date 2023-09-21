@@ -1,10 +1,9 @@
 import {NativeModules} from 'react-native';
 import Log from '../Log';
-import {BootSplashModule} from './types';
 
-const BootSplash: BootSplashModule = NativeModules.BootSplash;
+const BootSplash = NativeModules.BootSplash;
 
-function hide() {
+function hide(): Promise<void> {
     Log.info('[BootSplash] hiding splash screen', false);
     return BootSplash.hide();
 }
