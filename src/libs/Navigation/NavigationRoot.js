@@ -103,7 +103,8 @@ function NavigationRoot(props) {
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
-        if (prevStatusBarBackgroundColor.current === statusBarBackgroundColor.current) {
+
+        if (currentScreenBackgroundColor === themeColors.appBG && prevStatusBarBackgroundColor.current === themeColors.appBG) {
             return;
         }
 
