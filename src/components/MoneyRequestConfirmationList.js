@@ -474,7 +474,6 @@ function MoneyRequestConfirmationList(props) {
                         iconRight={Expensicons.DownArrow}
                         iconFill={themeColors.icon}
                         style={styles.mh0}
-                        shouldUseDefaultHover
                     />
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
                 </View>

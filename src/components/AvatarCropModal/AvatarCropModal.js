@@ -426,7 +426,7 @@ function AvatarCropModal(props) {
                                             iconFill={themeColors.inverse}
                                             iconStyles={[styles.mr0]}
                                             onPress={rotateImage}
-                                            shouldUseDefaultHover
+                                            
                                         />
                                     </View>
                                 </Tooltip>

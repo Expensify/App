@@ -145,7 +145,7 @@ const defaultProps = {
     style: [],
     innerStyles: [],
     textStyles: [],
-    shouldUseDefaultHover: false,
+    shouldUseDefaultHover: true,
     success: false,
     danger: false,
     children: null,

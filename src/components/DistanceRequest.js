@@ -264,7 +264,6 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
-                    shouldUseDefaultHover
                 />
             </View>
             <View style={styles.mapViewContainer}>
