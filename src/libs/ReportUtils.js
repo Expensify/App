@@ -557,7 +557,7 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
 
     if (ignoreDomainRooms) {
         // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
-        // Check where findLastAccessedReport is called in MainDrawerNavigator.js for more context.
+        // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
         // Domain rooms are now the only type of default room that are on the defaultRooms beta.
         sortedReports = _.filter(
             sortedReports,
