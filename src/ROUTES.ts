@@ -121,8 +121,6 @@ export default {
     getMoneyRequestTagRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}`,
     SPLIT_BILL_DETAILS: `r/:reportID/split/:reportActionID`,
     getSplitBillDetailsRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}`,
-    getNewTaskRoute: (reportID: string) => `${NEW_TASK}/${reportID}`,
-    NEW_TASK_WITH_REPORT_ID: `${NEW_TASK}/:reportID?`,
     TASK_TITLE: 'r/:reportID/title',
     TASK_DESCRIPTION: 'r/:reportID/description',
     TASK_ASSIGNEE: 'r/:reportID/assignee',
