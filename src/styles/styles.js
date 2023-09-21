@@ -2680,9 +2680,6 @@ const styles = (theme) => ({
         fontSize: variables.iouAmountTextSize,
         color: theme.heading,
         lineHeight: variables.inputHeight,
-        // This margin counteracts the additional size given to the autoGrow text in BaseTextInput.js
-        // It fixes issue https://github.com/Expensify/App/issues/26628
-        marginLeft: 32
     },
 
     iouAmountTextInput: addOutlineWidth(
