@@ -2,7 +2,7 @@ import React, {useState, forwardRef} from 'react';
 import {Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
-import isFunction from 'lodash/isFunction';
+import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
@@ -30,7 +30,7 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
     };
 
     const setRef = (element) => {
-        if (!isFunction(innerRef)) {
+        if (!_.isFunction(innerRef)) {
             return;
         }
         if (element && element.focus && typeof element.focus === 'function') {
@@ -57,17 +57,17 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
                 errorText={errorText}
                 containerStyles={containerStyles}
                 textInputContainerStyles={isPickerVisible ? [styles.borderColorFocus] : []}
-                onPress={() => showPicker()}
+                onPress={showPicker}
                 editable={false}
                 disabled={disabled}
                 onBlur={onBlur}
-                ref={(element) => setRef(element)}
+                ref={setRef}
             />
             {isPickerVisible && (
                 <RNDatePicker
                     value={value || defaultValue ? moment(value || defaultValue).toDate() : new Date()}
                     mode="date"
-                    onChange={() => setDate()}
+                    onChange={setDate}
                     maximumDate={maxDate}
                     minimumDate={minDate}
                 />
