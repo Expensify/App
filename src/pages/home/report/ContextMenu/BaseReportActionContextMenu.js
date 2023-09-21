@@ -48,7 +48,7 @@ const defaultProps = {
     ...GenericReportActionContextMenuDefaultProps,
 };
 function BaseReportActionContextMenu(props) {
-    const menuItemRefs = useRef([]);
+    const menuItemRefs = useRef({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth);
 
