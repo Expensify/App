@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import {useNavigation} from '@react-navigation/native';
 import {useAnimatedRef} from 'react-native-reanimated';
 import styles from '../../../../styles/styles';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -28,11 +27,9 @@ import ExceededCommentLength from '../../../../components/ExceededCommentLength'
 import ReportDropUI from '../ReportDropUI';
 import reportPropTypes from '../../../reportPropTypes';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
-import * as Welcome from '../../../../libs/actions/Welcome';
 import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import reportActionPropTypes from '../reportActionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import getModalState from '../../../../libs/getModalState';
@@ -77,7 +74,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    modal: {},
     report: {},
     blockedFromConcierge: {},
     personalDetails: {},
@@ -110,7 +106,6 @@ function ReportActionCompose({
     isCommentEmpty: isCommentEmptyProp,
 }) {
     const {translate} = useLocalize();
-    const navigation = useNavigation();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef(null);
@@ -149,7 +144,6 @@ function ReportActionCompose({
         () => _.without(lodashGet(report, 'participantAccountIDs', []), currentUserPersonalDetails.accountID),
         [currentUserPersonalDetails.accountID, report],
     );
-    const participantsWithoutExpensifyAccountIDs = useMemo(() => _.difference(reportParticipantIDs, CONST.EXPENSIFY_ACCOUNT_IDS), [reportParticipantIDs]);
 
     const shouldShowReportRecipientLocalTime = useMemo(
         () => ReportUtils.canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
@@ -209,6 +203,10 @@ function ReportActionCompose({
         composerRef.current.blur();
     }, []);
 
+    const onItemSelected = useCallback(() => {
+        isKeyboardVisibleWhenShowingModalRef.current = false;
+    }, []);
+
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
             return;
@@ -221,10 +219,6 @@ function ReportActionCompose({
      */
     const addAttachment = useCallback(
         (file) => {
-            // Since we're submitting the form here which should clear the composer
-            // We don't really care about saving the draft the user was typing
-            // We need to make sure an empty draft gets saved instead
-            debouncedSaveReportComment.cancel();
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
@@ -252,11 +246,6 @@ function ReportActionCompose({
                 e.preventDefault();
             }
 
-            // Since we're submitting the form here which should clear the composer
-            // We don't really care about saving the draft the user was typing
-            // We need to make sure an empty draft gets saved instead
-            debouncedSaveReportComment.cancel();
-
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             if (!newComment) {
                 return;
@@ -275,11 +264,14 @@ function ReportActionCompose({
             suggestionsRef.current.setShouldBlockSuggestionCalc(true);
         }
         isNextModalWillOpenRef.current = true;
+        isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
 
     const onBlur = useCallback((e) => {
         setIsFocused(false);
-        suggestionsRef.current.resetSuggestions();
+        if (suggestionsRef.current) {
+            suggestionsRef.current.resetSuggestions();
+        }
         if (e.relatedTarget && e.relatedTarget === actionButtonRef.current) {
             isKeyboardVisibleWhenShowingModalRef.current = true;
         }
@@ -289,34 +281,29 @@ function ReportActionCompose({
         setIsFocused(true);
     }, []);
 
-    /**
-     * Used to show Popover menu on Workspace chat at first sign-in
-     * @returns {Boolean}
-     */
-    const showPopoverMenu = useCallback(() => {
-        setMenuVisibility(true);
-        return true;
-    }, []);
-
-    useEffect(() => {
-        // Shows Popover Menu on Workspace Chat at first sign-in
-        if (!disabled) {
-            Welcome.show({
-                routes: lodashGet(navigation.getState(), 'routes', []),
-                showPopoverMenu,
-            });
+    // resets the composer to normal size when
+    // the send button is pressed.
+    const resetFullComposerSize = useCallback(() => {
+        if (isComposerFullSize) {
+            Report.setIsComposerFullSize(reportID, false);
         }
+        setIsFullComposerAvailable(false);
+    }, [isComposerFullSize, reportID]);
 
-        return () => {
+    // We are returning a callback here as we want to incoke the method on unmount only
+    useEffect(
+        () => () => {
             if (!EmojiPickerActions.isActive(report.reportID)) {
                 return;
             }
             EmojiPickerActions.hideEmojiPicker();
-        };
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        [],
+    );
 
-    const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];
+    const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
+    const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
 
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
@@ -356,7 +343,7 @@ function ReportActionCompose({
                                     reportID={reportID}
                                     report={report}
                                     reportParticipantIDs={reportParticipantIDs}
-                                    isFullComposerAvailable={isFullComposerAvailable}
+                                    isFullComposerAvailable={isFullComposerAvailable && !isCommentEmpty}
                                     isComposerFullSize={isComposerFullSize}
                                     updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
                                     isBlockedFromConcierge={isBlockedFromConcierge}
@@ -367,6 +354,7 @@ function ReportActionCompose({
                                     onCanceledAttachmentPicker={restoreKeyboardState}
                                     onMenuClosed={restoreKeyboardState}
                                     onAddActionPressed={onAddActionPressed}
+                                    onItemSelected={onItemSelected}
                                     actionButtonRef={actionButtonRef}
                                 />
                                 <ComposerWithSuggestions
@@ -418,6 +406,7 @@ function ReportActionCompose({
                     <SendButton
                         isDisabled={isSendDisabled}
                         setIsCommentEmpty={setIsCommentEmpty}
+                        resetFullComposerSize={resetFullComposerSize}
                         submitForm={submitForm}
                         animatedRef={animatedRef}
                     />

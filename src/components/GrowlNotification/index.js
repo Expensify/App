@@ -1,7 +1,7 @@
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
 import {View, Animated} from 'react-native';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -10,19 +10,20 @@ import GrowlNotificationContainer from './GrowlNotificationContainer';
 import CONST from '../../CONST';
 import * as Growl from '../../libs/Growl';
 import * as Pressables from '../Pressable';
+import useNativeDriver from '../../libs/useNativeDriver';
 
 const types = {
     [CONST.GROWL.SUCCESS]: {
         icon: Expensicons.Checkmark,
-        iconColor: colors.green,
+        iconColor: themeColors.success,
     },
     [CONST.GROWL.ERROR]: {
         icon: Expensicons.Exclamation,
-        iconColor: colors.red,
+        iconColor: themeColors.danger,
     },
     [CONST.GROWL.WARNING]: {
         icon: Expensicons.Exclamation,
-        iconColor: colors.yellow,
+        iconColor: themeColors.warning,
     },
 };
 
@@ -59,7 +60,7 @@ function GrowlNotification(_, ref) {
             Animated.spring(translateY, {
                 toValue: val,
                 duration: 80,
-                useNativeDriver: true,
+                useNativeDriver,
             }).start();
         },
         [translateY],

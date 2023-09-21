@@ -1,7 +1,9 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState, memo} from 'react';
 import {InteractionManager, View} from 'react-native';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
 import ContextMenuItem from '../../../../components/ContextMenuItem';
 import {propTypes as genericReportActionContextMenuPropTypes, defaultProps as GenericReportActionContextMenuDefaultProps} from './genericReportActionContextMenuPropTypes';
@@ -12,6 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../compo
 import {withBetas} from '../../../../components/OnyxProvider';
 import * as Session from '../../../../libs/actions/Session';
 import {hideContextMenu} from './ReportActionContextMenu';
+import ONYXKEYS from '../../../../ONYXKEYS';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
@@ -44,18 +47,16 @@ const defaultProps = {
 function BaseReportActionContextMenu(props) {
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth);
+
+    const reportAction = useMemo(() => {
+        if (_.isEmpty(props.reportActions) || props.reportActionID === '0') {
+            return {};
+        }
+        return props.reportActions[props.reportActionID] || {};
+    }, [props.reportActions, props.reportActionID]);
+
     const shouldShowFilter = (contextAction) =>
-        contextAction.shouldShow(
-            props.type,
-            props.reportAction,
-            props.isArchivedRoom,
-            props.betas,
-            props.anchor,
-            props.isChronosReport,
-            props.reportID,
-            props.isPinnedChat,
-            props.isUnreadChat,
-        );
+        contextAction.shouldShow(props.type, reportAction, props.isArchivedRoom, props.betas, props.anchor, props.isChronosReport, props.reportID, props.isPinnedChat, props.isUnreadChat);
 
     /**
      * Checks if user is anonymous. If true and the action doesn't accept for anonymous user, hides the context menu and
@@ -85,7 +86,7 @@ function BaseReportActionContextMenu(props) {
                 {_.map(_.filter(ContextMenuActions, shouldShowFilter), (contextAction) => {
                     const closePopup = !props.isMini;
                     const payload = {
-                        reportAction: props.reportAction,
+                        reportAction,
                         reportID: props.reportID,
                         draftMessage: props.draftMessage,
                         selection: props.selection,
@@ -106,7 +107,7 @@ function BaseReportActionContextMenu(props) {
                     return (
                         <ContextMenuItem
                             icon={contextAction.icon}
-                            text={props.translate(contextAction.textTranslateKey, {action: props.reportAction})}
+                            text={props.translate(contextAction.textTranslateKey, {action: reportAction})}
                             successIcon={contextAction.successIcon}
                             successText={contextAction.successTextTranslateKey ? props.translate(contextAction.successTextTranslateKey) : undefined}
                             isMini={props.isMini}
@@ -125,4 +126,25 @@ function BaseReportActionContextMenu(props) {
 BaseReportActionContextMenu.propTypes = propTypes;
 BaseReportActionContextMenu.defaultProps = defaultProps;
 
-export default compose(withLocalize, withBetas(), withWindowDimensions)(BaseReportActionContextMenu);
+export default compose(
+    withLocalize,
+    withBetas(),
+    withWindowDimensions,
+    withOnyx({
+        reportActions: {
+            key: ({originalReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
+            canEvict: false,
+        },
+    }),
+)(
+    memo(BaseReportActionContextMenu, (prevProps, nextProps) => {
+        const prevReportAction = lodashGet(prevProps.reportActions, prevProps.reportActionID, '');
+        const nextReportAction = lodashGet(nextProps.reportActions, nextProps.reportActionID, '');
+
+        // We only want to re-render when the report action that is attached to is changed
+        if (prevReportAction !== nextReportAction) {
+            return false;
+        }
+        return _.isEqual(_.omit(prevProps, 'reportActions'), _.omit(nextProps, 'reportActions'));
+    }),
+);

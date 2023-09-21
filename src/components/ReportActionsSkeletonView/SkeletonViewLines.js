@@ -21,8 +21,8 @@ function SkeletonViewLines(props) {
         <SkeletonViewContentLoader
             animate={props.shouldAnimate}
             height={CONST.CHAT_SKELETON_VIEW.HEIGHT_FOR_ROW_COUNT[props.numberOfRows]}
-            backgroundColor={themeColors.highlightBG}
-            foregroundColor={themeColors.border}
+            backgroundColor={themeColors.skeletonLHNIn}
+            foregroundColor={themeColors.skeletonLHNOut}
             style={styles.mr5}
         >
             <Circle
@@ -31,20 +31,20 @@ function SkeletonViewLines(props) {
                 r="20"
             />
             <Rect
-                x="67"
+                x="72"
                 y="11"
                 width="20%"
                 height="8"
             />
             <Rect
-                x="67"
+                x="72"
                 y="31"
                 width="100%"
                 height="8"
             />
             {props.numberOfRows > 1 && (
                 <Rect
-                    x="67"
+                    x="72"
                     y="51"
                     width="50%"
                     height="8"
@@ -52,7 +52,7 @@ function SkeletonViewLines(props) {
             )}
             {props.numberOfRows > 2 && (
                 <Rect
-                    x="67"
+                    x="72"
                     y="71"
                     width="50%"
                     height="8"

@@ -72,12 +72,12 @@ function NavigationRoot(props) {
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        if (!navigationRef.isReady()) {
+        if (!navigationRef.isReady() || !props.authenticated) {
             return;
         }
         // We need to force state rehydration so the CustomRouter can add the CentralPaneNavigator route if necessary.
         navigationRef.resetRoot(navigationRef.getRootState());
-    }, [isSmallScreenWidth]);
+    }, [isSmallScreenWidth, props.authenticated]);
 
     const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
     const statusBarBackgroundColor = useRef(themeColors.appBG);
@@ -86,7 +86,12 @@ function NavigationRoot(props) {
     const updateStatusBarBackgroundColor = (color) => StatusBar.setBackgroundColor(color);
     useAnimatedReaction(
         () => statusBarAnimation.value,
-        () => {
+        (current, previous) => {
+            // Do not run if either of the animated value is null
+            // or previous animated value is greater than or equal to the current one
+            if ([current, previous].includes(null) || current <= previous) {
+                return;
+            }
             const color = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
             runOnJS(updateStatusBarBackgroundColor)(color);
         },
@@ -98,7 +103,8 @@ function NavigationRoot(props) {
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
-        if (prevStatusBarBackgroundColor.current === statusBarBackgroundColor.current) {
+
+        if (currentScreenBackgroundColor === themeColors.appBG && prevStatusBarBackgroundColor.current === themeColors.appBG) {
             return;
         }
 

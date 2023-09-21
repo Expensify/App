@@ -46,7 +46,7 @@ function TimezoneSelectPage(props) {
             }))
             .value(),
     );
-    const [timezoneInputText, setTimezoneInputText] = useState(timezone.selected);
+    const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones.current);
 
     /**
@@ -84,13 +84,13 @@ function TimezoneSelectPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
             <SelectionList
+                headerMessage={timezoneInputText.trim() && !timezoneOptions.length ? translate('common.noResultsFound') : ''}
                 textInputLabel={translate('timezonePage.timezone')}
                 textInputValue={timezoneInputText}
                 onChangeText={filterShownTimezones}
                 onSelectRow={saveSelectedTimezone}
                 sections={[{data: timezoneOptions, indexOffset: 0, isDisabled: timezone.automatic}]}
                 initiallyFocusedOptionKey={_.get(_.filter(timezoneOptions, (tz) => tz.text === timezone.selected)[0], 'keyForList')}
-                shouldDelayFocus
                 showScrollIndicator
             />
         </ScreenWrapper>

@@ -1,5 +1,6 @@
 import React, {useRef, useState, useEffect, useMemo, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -37,6 +38,8 @@ import ReportScreenContext from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
+import CONST from '../../CONST';
+import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -88,6 +91,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
+    ...withCurrentReportIDPropTypes,
 };
 
 const defaultProps = {
@@ -102,7 +106,17 @@ const defaultProps = {
     policies: {},
     accountManagerReportID: null,
     personalDetails: {},
+    ...withCurrentReportIDDefaultProps,
 };
+
+/**
+ *
+ * Function to check weather the report available in props is default
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+const checkDefaultReport = (report) => report === defaultProps.report;
 
 /**
  * Get the currently viewed report ID as number
@@ -131,6 +145,7 @@ function ReportScreen({
     viewportOffsetTop,
     isComposerFullSize,
     errors,
+    currentReportID,
 }) {
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
@@ -147,6 +162,8 @@ function ReportScreen({
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = _.isEmpty(reportActions) && report.isLoadingReportActions;
 
+    const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
+
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails) || firstRenderRef.current;
@@ -157,7 +174,9 @@ function ReportScreen({
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
-    const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(route);
+    const isTopMostReportId = currentReportID === getReportID(route);
+
+    const isDefaultReport = checkDefaultReport(report);
 
     let headerView = (
         <HeaderView
@@ -241,25 +260,28 @@ function ReportScreen({
         [route],
     );
 
+    useFocusEffect(
+        useCallback(() => {
+            const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+                const isTopMostReportID = Navigation.getTopmostReportId() === getReportID(route);
+                // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
+                // we don't need to call openReport
+                if (!getIsReportFullyVisible(isTopMostReportID) || report.isOptimisticReport) {
+                    return;
+                }
+
+                Report.openReport(report.reportID);
+            });
+
+            return () => unsubscribeVisibilityListener();
+            // The effect should run only on the first focus to attach listener
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, []),
+    );
+
     useEffect(() => {
-        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
-            // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
-            // we don't need to call openReport
-            if (!getIsReportFullyVisible(isTopMostReportId) || report.isOptimisticReport) {
-                return;
-            }
-
-            Report.openReport(report.reportID);
-        });
-
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-        return () => {
-            if (!unsubscribeVisibilityListener) {
-                return;
-            }
-            unsubscribeVisibilityListener();
-        };
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -284,6 +306,12 @@ function ReportScreen({
         ComposerActions.setShouldShowComposeInput(true);
     }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID]);
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(
+        () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading) || shouldHideReport,
+        [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete],
+    );
+
     return (
         <ReportScreenContext.Provider
             value={{
@@ -296,11 +324,10 @@ function ReportScreen({
                 shouldEnableKeyboardAvoidingView={isTopMostReportId}
             >
                 <FullPageNotFoundView
-                    shouldShow={(!report.reportID && !report.isLoadingReportActions && !isLoading) || shouldHideReport}
+                    shouldShow={shouldShowNotFoundPage}
                     subtitleKey="notFound.noAccess"
                     shouldShowCloseButton={false}
                     shouldShowBackButton={isSmallScreenWidth}
-                    onBackButtonPress={Navigation.goBack}
                     shouldShowLink={false}
                 >
                     <OfflineWithFeedback
@@ -310,7 +337,7 @@ function ReportScreen({
                         needsOffscreenAlphaCompositing
                     >
                         {headerView}
-                        {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report) && (
+                        {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
                             <View style={[styles.borderBottom]}>
                                 <View style={[styles.appBG, styles.pl0]}>
                                     <View style={[styles.ph5, styles.pb3]}>
@@ -396,6 +423,7 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withNetwork(),
+    withCurrentReportID,
     withOnyx({
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,

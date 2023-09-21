@@ -14,6 +14,7 @@ import * as IOU from '../../../libs/actions/IOU';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as OptionsListUtils from '../../../libs/OptionsListUtils';
+import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
 import withLocalize from '../../../components/withLocalize';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -22,6 +23,7 @@ import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import * as Policy from '../../../libs/actions/Policy';
+import useNetwork from '../../../hooks/useNetwork';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
@@ -58,15 +60,18 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmPage(props) {
+    const {isOffline} = useNetwork();
     const {windowHeight} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>
-            lodashGet(props.iou.participants, [0, 'isPolicyExpenseChat'], false)
-                ? OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0])
-                : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
+            _.map(props.iou.participants, (participant) => {
+                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
+            }),
         [props.iou.participants, props.personalDetails],
     );
 
@@ -75,12 +80,15 @@ function MoneyRequestConfirmPage(props) {
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        // Verification to reset billable with a default value, when value in IOU was changed
+        if (typeof props.iou.billable !== 'boolean') {
+            IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
+        }
+    }, [isOffline, participants, props.iou.billable, props.policy]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (prevMoneyRequestId.current !== props.iou.id) {
+        if (!isDistanceRequest && prevMoneyRequestId.current !== props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
             if (props.iou.id) {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
@@ -90,19 +98,19 @@ function MoneyRequestConfirmPage(props) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestId;
+        const shouldReset = !isDistanceRequest && props.iou.id !== moneyRequestId;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
+        if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath && !isDistanceRequest) || shouldReset) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
 
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath]);
+    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath, isDistanceRequest]);
 
     const navigateBack = () => {
         let fallback;
@@ -132,9 +140,45 @@ function MoneyRequestConfirmPage(props) {
                 selectedParticipants[0],
                 trimmedComment,
                 receipt,
+                props.iou.category,
+                props.iou.tag,
+                props.iou.billable,
             );
         },
-        [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+        [
+            props.report,
+            props.iou.amount,
+            props.iou.currency,
+            props.iou.created,
+            props.iou.merchant,
+            props.currentUserPersonalDetails.login,
+            props.currentUserPersonalDetails.accountID,
+            props.iou.category,
+            props.iou.tag,
+            props.iou.billable,
+        ],
+    );
+
+    /**
+     * @param {Array} selectedParticipants
+     * @param {String} trimmedComment
+     */
+    const createDistanceRequest = useCallback(
+        (selectedParticipants, trimmedComment) => {
+            IOU.createDistanceRequest(
+                props.report,
+                selectedParticipants[0],
+                trimmedComment,
+                props.iou.created,
+                props.iou.transactionID,
+                props.iou.category,
+                props.iou.tag,
+                props.iou.amount,
+                props.iou.currency,
+                props.iou.merchant,
+            );
+        },
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.tag, props.iou.amount, props.iou.currency, props.iou.merchant],
     );
 
     const createTransaction = useCallback(
@@ -176,6 +220,11 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
+            if (isDistanceRequest) {
+                createDistanceRequest(selectedParticipants, trimmedComment);
+                return;
+            }
+
             requestMoney(selectedParticipants, trimmedComment);
         },
         [
@@ -186,7 +235,9 @@ function MoneyRequestConfirmPage(props) {
             props.iou.currency,
             props.iou.receiptPath,
             props.iou.receiptSource,
+            isDistanceRequest,
             requestMoney,
+            createDistanceRequest,
         ],
     );
 
@@ -206,11 +257,6 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                IOU.sendMoneyViaPaypal(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
-                return;
-            }
-
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 IOU.sendMoneyWithWallet(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
             }
@@ -218,12 +264,24 @@ function MoneyRequestConfirmPage(props) {
         [props.iou.amount, props.iou.comment, participants, props.iou.currency, props.currentUserPersonalDetails.accountID, props.report],
     );
 
+    const headerTitle = () => {
+        if (isDistanceRequest) {
+            return props.translate('common.distance');
+        }
+
+        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
+            return props.translate('iou.split');
+        }
+
+        return props.translate('tabSelector.manual');
+    };
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={props.translate('iou.cash')}
+                        title={headerTitle()}
                         onBackButtonPress={navigateBack}
                     />
                     {/*
@@ -231,17 +289,22 @@ function MoneyRequestConfirmPage(props) {
                      * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
                      * To work around this, we wrap the MoneyRequestConfirmationList component with a horizontal ScrollView.
                      */}
-                    <ScrollView>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                         <ScrollView
                             horizontal
                             contentContainerStyle={[styles.flex1, styles.flexColumn]}
                         >
                             <MoneyRequestConfirmationList
+                                transactionID={props.iou.transactionID}
                                 hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                                 selectedParticipants={participants}
                                 iouAmount={props.iou.amount}
                                 iouComment={props.iou.comment}
                                 iouCurrencyCode={props.iou.currency}
+                                iouIsBillable={props.iou.billable}
+                                onToggleBillable={IOU.setMoneyRequestBillable}
+                                iouCategory={props.iou.category}
+                                iouTag={props.iou.tag}
                                 onConfirm={createTransaction}
                                 onSendMoney={sendMoney}
                                 onSelectParticipant={(option) => {
@@ -267,6 +330,7 @@ function MoneyRequestConfirmPage(props) {
                                 bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
                                 iouMerchant={props.iou.merchant}
                                 iouCreated={props.iou.created}
+                                isDistanceRequest={isDistanceRequest}
                                 listStyles={[StyleUtils.getMaximumHeight(windowHeight / 3)]}
                             />
                         </ScrollView>
@@ -285,14 +349,32 @@ export default compose(
     withCurrentUserPersonalDetails,
     withLocalize,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-        },
         iou: {
             key: ONYXKEYS.IOU,
         },
+    }),
+    withOnyx({
+        report: {
+            key: ({route, iou}) => {
+                let reportID = lodashGet(route, 'params.reportID', '');
+                if (!reportID) {
+                    // When the money request creation flow is initialized on Global Create, the reportID is not passed as a navigation parameter.
+                    // Get the report id from the participants list on the IOU object stored in Onyx.
+                    reportID = lodashGet(iou, 'participants.0.reportID', '');
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            },
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        selectedTab: {
+            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+    }),
+    withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
     }),
 )(MoneyRequestConfirmPage);

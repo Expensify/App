@@ -38,7 +38,7 @@ function init() {
  * Return translated string for given locale and phrase
  *
  * @param {String} [desiredLanguage] eg 'en', 'es-ES'
- * @param {String|Array} phraseKey
+ * @param {String} phraseKey
  * @param {Object} [phraseParameters] Parameters to supply if the phrase is a template literal.
  * @returns {String}
  */
@@ -47,15 +47,15 @@ function translate(desiredLanguage = CONST.LOCALES.DEFAULT, phraseKey, phrasePar
     let translatedPhrase;
 
     // Search phrase in full locale e.g. es-ES
-    const desiredLanguageDictionary = lodashGet(translations, desiredLanguage);
-    translatedPhrase = lodashGet(desiredLanguageDictionary, phraseKey);
+    const desiredLanguageDictionary = translations[desiredLanguage] || {};
+    translatedPhrase = desiredLanguageDictionary[phraseKey];
     if (translatedPhrase) {
         return Str.result(translatedPhrase, phraseParameters);
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbackLanguageDictionary = lodashGet(translations, languageAbbreviation);
-    translatedPhrase = lodashGet(fallbackLanguageDictionary, phraseKey);
+    const fallbackLanguageDictionary = translations[languageAbbreviation] || {};
+    translatedPhrase = fallbackLanguageDictionary[phraseKey];
     if (translatedPhrase) {
         return Str.result(translatedPhrase, phraseParameters);
     }
@@ -64,8 +64,8 @@ function translate(desiredLanguage = CONST.LOCALES.DEFAULT, phraseKey, phrasePar
     }
 
     // Phrase is not translated, search it in default language (en)
-    const defaultLanguageDictionary = lodashGet(translations, CONST.LOCALES.DEFAULT, {});
-    translatedPhrase = lodashGet(defaultLanguageDictionary, phraseKey);
+    const defaultLanguageDictionary = translations[CONST.LOCALES.DEFAULT] || {};
+    translatedPhrase = defaultLanguageDictionary[phraseKey];
     if (translatedPhrase) {
         return Str.result(translatedPhrase, phraseParameters);
     }
