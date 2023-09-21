@@ -588,7 +588,7 @@ function getMoneyRequestInformation(
  * @param {String} currency
  * @param {String} merchant
  */
-function createDistanceRequest(report, participant, comment, created, transactionID, category, tag, amount, currency, merchant) {
+function createDistanceRequest(report, participant, comment, created, transactionID, category, tag, amount, currency, merchant, billable) {
     const optimisticReceipt = {
         source: ReceiptGeneric,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
@@ -607,6 +607,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
         transactionID,
         category,
         tag,
+        billable,
     );
     API.write(
         'CreateDistanceRequest',
@@ -623,6 +624,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
             created,
             category,
             tag,
+            billable,
         },
         onyxData,
     );

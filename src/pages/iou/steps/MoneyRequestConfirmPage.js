@@ -176,9 +176,10 @@ function MoneyRequestConfirmPage(props) {
                 props.iou.amount,
                 props.iou.currency,
                 props.iou.merchant,
+                props.iou.billable,
             );
         },
-        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.tag, props.iou.amount, props.iou.currency, props.iou.merchant],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.tag, props.iou.amount, props.iou.currency, props.iou.merchant, props.iou.billable],
     );
 
     const createTransaction = useCallback(
