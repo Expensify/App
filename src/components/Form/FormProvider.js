@@ -81,8 +81,8 @@ const defaultProps = {
     footerContent: null,
     style: [],
     validate: () => {},
-    shouldValidateOnBlur: false,
-    shouldValidateOnChange: false,
+    shouldValidateOnBlur: true,
+    shouldValidateOnChange: true,
 };
 
 function getInitialValueByType(valueType) {
