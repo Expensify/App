@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
-import {StatusBar} from 'react-native';
+import StatusBar from './types';
 
 // Only has custom web implementation
 StatusBar.getBackgroundColor = () => null;
@@ -8,5 +7,4 @@ StatusBar.getBackgroundColor = () => null;
 // Also because Reanimated's interpolateColor gives Android native colors instead of hex strings, causing this to display a warning.
 StatusBar.setBackgroundColor = () => null;
 
-// Just export StatusBar – no changes.
 export default StatusBar;

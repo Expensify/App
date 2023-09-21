@@ -1,5 +1,5 @@
-import _ from 'underscore';
 import CONST from '../../CONST';
+import Beta from '../../types/onyx/Beta';
 
 /**
  * This module is mocked in tests because all the permission methods call canUseAllBetas() and that will
@@ -10,8 +10,8 @@ import CONST from '../../CONST';
 
 export default {
     ...jest.requireActual('../Permissions'),
-    canUseDefaultRooms: (betas) => _.contains(betas, CONST.BETAS.DEFAULT_ROOMS),
-    canUsePolicyRooms: (betas) => _.contains(betas, CONST.BETAS.POLICY_ROOMS),
-    canUseIOUSend: (betas) => _.contains(betas, CONST.BETAS.IOU_SEND),
-    canUseCustomStatus: (betas) => _.contains(betas, CONST.BETAS.CUSTOM_STATUS),
+    canUseDefaultRooms: (betas: Beta[]) => betas.includes(CONST.BETAS.DEFAULT_ROOMS),
+    canUsePolicyRooms: (betas: Beta[]) => betas.includes(CONST.BETAS.POLICY_ROOMS),
+    canUseIOUSend: (betas: Beta[]) => betas.includes(CONST.BETAS.IOU_SEND),
+    canUseCustomStatus: (betas: Beta[]) => betas.includes(CONST.BETAS.CUSTOM_STATUS),
 };
