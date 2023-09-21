@@ -15,9 +15,6 @@ import {withBetas} from '../../../../components/OnyxProvider';
 import * as Session from '../../../../libs/actions/Session';
 import {hideContextMenu} from './ReportActionContextMenu';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
-import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
-import useKeyboardShortcut from '../../../../hooks/useKeyboardShortcut';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
@@ -61,20 +58,6 @@ function BaseReportActionContextMenu(props) {
     const shouldShowFilter = (contextAction) =>
         contextAction.shouldShow(props.type, reportAction, props.isArchivedRoom, props.betas, props.anchor, props.isChronosReport, props.reportID, props.isPinnedChat, props.isUnreadChat);
 
-    const shouldEnableArrowNavigation = !props.isMini && (props.isVisible || shouldKeepOpen);
-    const filteredContextMenuActions = _.filter(ContextMenuActions, shouldShowFilter);
-
-    // Context menu actions that are not rendered as menu items are excluded from arrow navigation
-    const nonMenuItemActionIndexes = _.map(filteredContextMenuActions, (contextAction, index) => (_.isFunction(contextAction.renderContent) ? index : undefined));
-    const disabledIndexes = _.filter(nonMenuItemActionIndexes, (index) => !_.isUndefined(index));
-
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
-        initialFocusedIndex: -1,
-        disabledIndexes,
-        maxIndex: filteredContextMenuActions.length - 1,
-        isActive: shouldEnableArrowNavigation,
-    });
-
     /**
      * Checks if user is anonymous. If true and the action doesn't accept for anonymous user, hides the context menu and
      * shows the sign in modal. Else, executes the callback.
@@ -94,54 +77,31 @@ function BaseReportActionContextMenu(props) {
         }
     };
 
-    const shouldClosePopupOnSelectItem = !props.isMini;
-    const selectItemPayload = {
-        reportAction,
-        reportID: props.reportID,
-        draftMessage: props.draftMessage,
-        selection: props.selection,
-        close: () => setShouldKeepOpen(false),
-        openContextMenu: () => setShouldKeepOpen(true),
-        interceptAnonymousUser,
-    };
-
-    /**
-     * Handles the selection of an item from the context menu
-     *
-     * @param {Object} contextAction
-     * @param {Function} contextAction.onPress
-     * @param {Boolean} contextAction.isAnonymousAction
-     */
-    const selectItem = (contextAction) => {
-        interceptAnonymousUser(() => contextAction.onPress(shouldClosePopupOnSelectItem, selectItemPayload), contextAction.isAnonymousAction);
-    };
-
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ENTER,
-        () => {
-            if (focusedIndex === -1) {
-                return;
-            }
-            selectItem(filteredContextMenuActions[focusedIndex]);
-            setFocusedIndex(-1);
-        },
-        {isActive: shouldEnableArrowNavigation},
-    );
-
     return (
         (props.isVisible || shouldKeepOpen) && (
             <View
                 ref={props.contentRef}
                 style={wrapperStyle}
             >
-                {_.map(_.filter(ContextMenuActions, shouldShowFilter), (contextAction, index) => {
+                {_.map(_.filter(ContextMenuActions, shouldShowFilter), (contextAction) => {
+                    const closePopup = !props.isMini;
+                    const payload = {
+                        reportAction,
+                        reportID: props.reportID,
+                        draftMessage: props.draftMessage,
+                        selection: props.selection,
+                        close: () => setShouldKeepOpen(false),
+                        openContextMenu: () => setShouldKeepOpen(true),
+                        interceptAnonymousUser,
+                    };
+
                     if (contextAction.renderContent) {
                         // make sure that renderContent isn't mixed with unsupported props
                         if (__DEV__ && (contextAction.text != null || contextAction.icon != null)) {
                             throw new Error('Dev error: renderContent() and text/icon cannot be used together.');
                         }
 
-                        return contextAction.renderContent(shouldClosePopupOnSelectItem, selectItemPayload);
+                        return contextAction.renderContent(closePopup, payload);
                     }
 
                     return (
@@ -152,10 +112,9 @@ function BaseReportActionContextMenu(props) {
                             successText={contextAction.successTextTranslateKey ? props.translate(contextAction.successTextTranslateKey) : undefined}
                             isMini={props.isMini}
                             key={contextAction.textTranslateKey}
-                            onPress={() => selectItem(contextAction)}
+                            onPress={() => interceptAnonymousUser(() => contextAction.onPress(closePopup, payload), contextAction.isAnonymousAction)}
                             description={contextAction.getDescription(props.selection, props.isSmallScreenWidth)}
                             isAnonymousAction={contextAction.isAnonymousAction}
-                            focused={focusedIndex === index}
                         />
                     );
                 })}
