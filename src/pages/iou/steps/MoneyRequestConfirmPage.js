@@ -75,7 +75,7 @@ function MoneyRequestConfirmPage(props) {
             }),
         [props.iou.participants, props.personalDetails],
     );
-    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && participants.length < 2;
+    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
