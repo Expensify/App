@@ -2,8 +2,8 @@ import {cleanup, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
-import wrapOnyxWithWaitForPromisesToResolve from '../utils/wrapOnyxWithWaitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as Localize from '../../src/libs/Localize';
@@ -35,16 +35,16 @@ describe('Sidebar', () => {
     );
 
     beforeEach(() => {
-        // Wrap Onyx each onyx action with waitForPromiseToResolve
-        wrapOnyxWithWaitForPromisesToResolve(Onyx);
+        // Wrap Onyx each onyx action with waitForBatchedUpdates
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
 
     // Cleanup (ie. unmount) all rendered components and clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {
         cleanup();
-        Onyx.clear();
+        return Onyx.clear();
     });
 
     describe('in default (most recent) mode', () => {
@@ -55,7 +55,7 @@ describe('Sidebar', () => {
             const report = LHNTestUtils.getFakeReport([]);
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated to contain that report
                     .then(() =>
                         Onyx.multiSet({
@@ -79,7 +79,7 @@ describe('Sidebar', () => {
             const report = LHNTestUtils.getFakeReport(['emptychat+1@test.com', 'emptychat+2@test.com'], 0);
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated to contain that report
                     .then(() =>
                         Onyx.multiSet({
@@ -107,7 +107,7 @@ describe('Sidebar', () => {
             };
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated to contain that report
                     .then(() =>
                         Onyx.multiSet({
@@ -137,7 +137,7 @@ describe('Sidebar', () => {
             };
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -190,7 +190,7 @@ describe('Sidebar', () => {
             };
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -242,7 +242,7 @@ describe('Sidebar', () => {
             };
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -330,7 +330,7 @@ describe('Sidebar', () => {
                     LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
                     return (
-                        waitForPromisesToResolve()
+                        waitForBatchedUpdates()
                             // When Onyx is updated to contain that data and the sidebar re-renders
                             .then(() =>
                                 Onyx.multiSet({
@@ -375,7 +375,7 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -421,7 +421,7 @@ describe('Sidebar', () => {
                     // When report 2 becomes the active report
                     .then(() => {
                         LHNTestUtils.getDefaultRenderedSidebarLinks(report2.reportID);
-                        return waitForPromisesToResolve();
+                        return waitForBatchedUpdates();
                     })
 
                     // Then report 1 should now disappear
@@ -446,7 +446,7 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks(draftReport.reportID);
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -493,7 +493,7 @@ describe('Sidebar', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -556,7 +556,7 @@ describe('Sidebar', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -655,7 +655,7 @@ describe('Sidebar', () => {
                 LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
                 return (
-                    waitForPromisesToResolve()
+                    waitForBatchedUpdates()
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
@@ -707,7 +707,7 @@ describe('Sidebar', () => {
                 const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
                 return (
-                    waitForPromisesToResolve()
+                    waitForBatchedUpdates()
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
@@ -758,7 +758,7 @@ describe('Sidebar', () => {
                 const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
                 return (
-                    waitForPromisesToResolve()
+                    waitForBatchedUpdates()
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
@@ -807,7 +807,7 @@ describe('Sidebar', () => {
                 const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
                 return (
-                    waitForPromisesToResolve()
+                    waitForBatchedUpdates()
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
@@ -852,7 +852,7 @@ describe('Sidebar', () => {
                 const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
                 return (
-                    waitForPromisesToResolve()
+                    waitForBatchedUpdates()
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
@@ -874,7 +874,7 @@ describe('Sidebar', () => {
                         // When sidebar is rendered with the active report ID matching the archived report in Onyx
                         .then(() => {
                             LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
-                            return waitForPromisesToResolve();
+                            return waitForBatchedUpdates();
                         })
 
                         // Then the report is rendered in the LHN

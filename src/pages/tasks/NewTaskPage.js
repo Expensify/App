@@ -126,7 +126,15 @@ function NewTaskPage(props) {
             return;
         }
 
-        Task.createTaskAndNavigate(parentReport.reportID, props.task.title, props.task.description, props.task.assignee, props.task.assigneeAccountID, props.task.assigneeChatReport);
+        Task.createTaskAndNavigate(
+            parentReport.reportID,
+            props.task.title,
+            props.task.description,
+            props.task.assignee,
+            props.task.assigneeAccountID,
+            props.task.assigneeChatReport,
+            parentReport.policyID,
+        );
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
