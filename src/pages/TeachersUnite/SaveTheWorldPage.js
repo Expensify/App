@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import _ from 'lodash';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import SCREENS from '../../SCREENS';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
@@ -53,8 +54,8 @@ function SaveTheWorldPage(props) {
         <IllustratedHeaderPageLayout
             shouldShowBackButton
             title={translate('sidebarScreen.saveTheWorld')}
-            onBackButtonPress={Navigation.goBack}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.I_KNOW_A_TEACHER]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SAVE_THE_WORLD.ROOT]}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             illustration={LottieAnimations.SaveTheWorld}
         >
             <View style={[styles.mb4, styles.justifyContentBetween, styles.mh5]}>
