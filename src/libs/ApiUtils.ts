@@ -33,7 +33,7 @@ Environment.getEnvironment().then((envName) => {
  * Get the currently used API endpoint
  * (Non-production environments allow for dynamically switching the API)
  */
-function getApiRoot(request?: Request) {
+function getApiRoot(request?: Pick<Request, 'shouldUseSecure'>): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
 
     if (shouldUseStagingServer) {
@@ -50,14 +50,14 @@ function getApiRoot(request?: Request) {
  * Get the command url for the given request
  * @param - the name of the API command
  */
-function getCommandURL(request: Request) {
+function getCommandURL(request: Request): string {
     return `${getApiRoot(request)}api?command=${request.command}`;
 }
 
 /**
  * Check if we're currently using the staging API root
  */
-function isUsingStagingApi() {
+function isUsingStagingApi(): boolean {
     return shouldUseStagingServer;
 }
 
