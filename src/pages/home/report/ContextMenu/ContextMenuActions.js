@@ -22,9 +22,6 @@ import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickE
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import * as Task from '../../../../libs/actions/Task';
-import * as Localize from '../../../../libs/Localize';
-import * as TransactionUtils from '../../../../libs/TransactionUtils';
-import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -203,39 +200,7 @@ export default [
                     const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                    const originalMessage = _.get(reportAction, 'originalMessage', {});
-                    let displayMessage;
-                    if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-                        const {amount, currency, IOUReportID} = originalMessage;
-                        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
-                        const iouReport = ReportUtils.getReport(IOUReportID);
-                        const payerName = ReportUtils.getDisplayNameForParticipant(iouReport.managerID, true);
-                        let translationKey;
-                        switch (originalMessage.paymentType) {
-                            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                                translationKey = 'iou.paidElsewhereWithAmount';
-                                break;
-                            case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-                                translationKey = 'iou.paidUsingPaypalWithAmount';
-                                break;
-                            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-                            case CONST.IOU.PAYMENT_TYPE.VBBA:
-                                translationKey = 'iou.paidUsingExpensifyWithAmount';
-                                break;
-                            default:
-                                translationKey = '';
-                                break;
-                        }
-                        displayMessage = Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
-                    } else {
-                        const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
-                        const {amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
-                        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
-                        displayMessage = Localize.translateLocal('iou.requestedAmount', {
-                            formattedAmount,
-                            comment,
-                        });
-                    }
+                    const displayMessage = ReportUtils.getIouReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();

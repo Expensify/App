@@ -557,7 +557,7 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
 
     if (ignoreDomainRooms) {
         // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
-        // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
+        // Check where findLastAccessedReport is called in MainDrawerNavigator.js for more context.
         // Domain rooms are now the only type of default room that are on the defaultRooms beta.
         sortedReports = _.filter(
             sortedReports,
@@ -3517,6 +3517,49 @@ function getReportPreviewDisplayTransactions(reportPreviewAction) {
     );
 }
 
+/**
+ * Return iou report action display message
+ *
+ * @param {Object} reportAction report action
+ * @returns {String}
+ */
+function getIouReportActionDisplayMessage(reportAction) {
+    const originalMessage = _.get(reportAction, 'originalMessage', {});
+    let displayMessage;
+    if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        const {amount, currency, IOUReportID} = originalMessage;
+        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+        const iouReport = getReport(IOUReportID);
+        const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport, false, getPolicyName(iouReport)) : getDisplayNameForParticipant(iouReport.managerID);
+        let translationKey;
+        switch (originalMessage.paymentType) {
+            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+                translationKey = 'iou.paidElsewhereWithAmount';
+                break;
+            case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
+                translationKey = 'iou.paidUsingPaypalWithAmount';
+                break;
+            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            case CONST.IOU.PAYMENT_TYPE.VBBA:
+                translationKey = 'iou.paidUsingExpensifyWithAmount';
+                break;
+            default:
+                translationKey = '';
+                break;
+        }
+        displayMessage = Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
+    } else {
+        const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
+        const {amount, currency, comment} = getTransactionDetails(transaction);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+        displayMessage = Localize.translateLocal('iou.requestedAmount', {
+            formattedAmount,
+            comment,
+        });
+    }
+    return displayMessage;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3657,4 +3700,5 @@ export {
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
     hasMissingSmartscanFields,
+    getIouReportActionDisplayMessage,
 };
