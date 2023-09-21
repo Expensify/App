@@ -13,10 +13,10 @@ import {Report} from '../types/onyx';
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
  * numbers.
  */
-function validateCardNumber(val: string): boolean {
+function validateCardNumber(value: string): boolean {
     let sum = 0;
-    for (let i = 0; i < val.length; i++) {
-        let intVal = parseInt(val.substr(i, 1), 10);
+    for (let i = 0; i < value.length; i++) {
+        let intVal = parseInt(value.substr(i, 1), 10);
         if (i % 2 === 0) {
             intVal *= 2;
             if (intVal > 9) {
@@ -235,7 +235,7 @@ function validateIdentity(identity: Record<string, string>): Record<string, bool
     return errors;
 }
 
-function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean) {
+function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
     const phone = phoneNumber || '';
     const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
 
