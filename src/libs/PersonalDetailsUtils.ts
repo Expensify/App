@@ -5,6 +5,9 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
+import * as OnyxTypes from '../types/onyx';
+
+type PersonalDetailsList = Record<string, OnyxTypes.PersonalDetails | null>;
 
 let personalDetails = [];
 let allPersonalDetails = {};
@@ -17,12 +20,9 @@ Onyx.connect({
 });
 
 /**
- * @param {Object} passedPersonalDetails
- * @param {Array} pathToDisplayName
- * @param {String} [defaultValue] optional default display name value
- * @returns {String}
+ * @param [defaultValue] optional default display name value
  */
-function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
+function getDisplayNameOrDefault(passedPersonalDetails: unknown, pathToDisplayName: string[], defaultValue: string): string {
     const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
 
     return displayName || defaultValue || Localize.translateLocal('common.hidden');
@@ -35,8 +35,8 @@ function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defau
  * @param {Boolean} shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
  * @returns {Array} - Array of personal detail objects
  */
-function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeUserDisplayName = false) {
-    const result = [];
+function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: number, shouldChangeUserDisplayName = false): OnyxTypes.PersonalDetails[] {
+    const result: OnyxTypes.PersonalDetails[] = [];
     _.each(
         _.filter(personalDetails, (detail) => accountIDs.includes(detail.accountID)),
         (detail) => {
@@ -59,7 +59,7 @@ function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeU
  * @param {Array<string>} logins Array of user logins
  * @returns {Array} - Array of accountIDs according to passed logins
  */
-function getAccountIDsByLogins(logins) {
+function getAccountIDsByLogins(logins: string[]): string[] {
     return _.reduce(
         logins,
         (foundAccountIDs, login) => {
@@ -82,7 +82,7 @@ function getAccountIDsByLogins(logins) {
  * @param {Array<number>} accountIDs Array of user accountIDs
  * @returns {Array} - Array of logins according to passed accountIDs
  */
-function getLoginsByAccountIDs(accountIDs) {
+function getLoginsByAccountIDs(accountIDs: number[]): number[] {
     return _.reduce(
         accountIDs,
         (foundLogins, accountID) => {
@@ -103,10 +103,10 @@ function getLoginsByAccountIDs(accountIDs) {
  * @param {Array<number>} accountIDs Array of user accountIDs
  * @returns {Object} - Object with optimisticData, successData and failureData (object of personal details objects)
  */
-function getNewPersonalDetailsOnyxData(logins, accountIDs) {
-    const optimisticData = {};
-    const successData = {};
-    const failureData = {};
+function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]) {
+    const optimisticData: PersonalDetailsList = {};
+    const successData: PersonalDetailsList = {};
+    const failureData: PersonalDetailsList = {};
 
     _.each(logins, (login, index) => {
         const accountID = accountIDs[index];
