@@ -1,7 +1,7 @@
 import React from 'react';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import {FlatList} from 'react-native-gesture-handler';
-import type {DraggableListProps, DraggableListType} from './types';
+import type {DraggableListProps} from './types';
 
 function DraggableList<T>({renderClone, shouldUsePortal, ...viewProps}: DraggableListProps<T>, ref: React.ForwardedRef<FlatList<T>>) {
     return (
@@ -15,6 +15,4 @@ function DraggableList<T>({renderClone, shouldUsePortal, ...viewProps}: Draggabl
 
 DraggableList.displayName = 'DraggableList';
 
-// We have to assert the type here because we use generic forwrded ref
-// https://fettblog.eu/typescript-react-generic-forward-refs/#option-1%3A-type-assertion
-export default React.forwardRef(DraggableList) as DraggableListType;
+export default React.forwardRef(DraggableList);

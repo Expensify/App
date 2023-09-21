@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {DragDropContext, Droppable, Draggable, type OnDragEndResponder, type OnDragUpdateResponder} from 'react-beautiful-dnd';
 import {ScrollView} from 'react-native';
 import useDraggableInPortal from './useDraggableInPortal';
-import type {DraggableListProps, DraggableListType} from './types';
+import type {DraggableListProps} from './types';
 import styles from '../../styles/styles';
 
 type ReorderParams<T> = {
@@ -138,6 +138,4 @@ function DraggableList<T>(
 
 DraggableList.displayName = 'DraggableList';
 
-// We have to assert the type here because we use generic forwrded ref
-// https://fettblog.eu/typescript-react-generic-forward-refs/#option-1%3A-type-assertion
-export default React.forwardRef(DraggableList) as DraggableListType;
+export default React.forwardRef(DraggableList);
