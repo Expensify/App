@@ -1,4 +1,4 @@
-import React, {createContext} from 'react';
+import React, {createContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -37,62 +37,66 @@ const localeProviderDefaultProps = {
     currentUserPersonalDetails: {},
 };
 
-const LocaleContextProvider = React.memo(
-    ({children, currentUserPersonalDetails, preferredLocale}) => {
-        const selectedTimezone = lodashGet(currentUserPersonalDetails, 'timezone.selected');
+function LocaleContextProvider({children, currentUserPersonalDetails, preferredLocale}) {
+    const selectedTimezone = useMemo(() => lodashGet(currentUserPersonalDetails, 'timezone.selected'), [currentUserPersonalDetails]);
 
-        /**
-         * @param {String} phrase
-         * @param {Object} [variables]
-         * @returns {String}
-         */
-        const translate = (phrase, variables) => Localize.translate(preferredLocale, phrase, variables);
+    /**
+     * @param {String} phrase
+     * @param {Object} [variables]
+     * @returns {String}
+     */
+    const translate = useMemo(() => (phrase, variables) => Localize.translate(preferredLocale, phrase, variables), [preferredLocale]);
 
-        /**
-         * @param {Number} number
-         * @param {Intl.NumberFormatOptions} options
-         * @returns {String}
-         */
-        const numberFormat = (number, options) => NumberFormatUtils.format(preferredLocale, number, options);
+    /**
+     * @param {Number} number
+     * @param {Intl.NumberFormatOptions} options
+     * @returns {String}
+     */
+    const numberFormat = useMemo(() => (number, options) => NumberFormatUtils.format(preferredLocale, number, options), [preferredLocale]);
 
-        /**
-         * @param {String} datetime
-         * @returns {String}
-         */
-        const datetimeToRelative = (datetime) => DateUtils.datetimeToRelative(preferredLocale, datetime);
+    /**
+     * @param {String} datetime
+     * @returns {String}
+     */
+    const datetimeToRelative = useMemo(() => (datetime) => DateUtils.datetimeToRelative(preferredLocale, datetime), [preferredLocale]);
 
-        /**
-         * @param {String} datetime - ISO-formatted datetime string
-         * @param {Boolean} [includeTimezone]
-         * @param {Boolean} isLowercase
-         * @returns {String}
-         */
-        const datetimeToCalendarTime = (datetime, includeTimezone, isLowercase = false) =>
-            DateUtils.datetimeToCalendarTime(preferredLocale, datetime, includeTimezone, selectedTimezone, isLowercase);
+    /**
+     * @param {String} datetime - ISO-formatted datetime string
+     * @param {Boolean} [includeTimezone]
+     * @param {Boolean} isLowercase
+     * @returns {String}
+     */
+    const datetimeToCalendarTime = useMemo(
+        () =>
+            (datetime, includeTimezone, isLowercase = false) =>
+                DateUtils.datetimeToCalendarTime(preferredLocale, datetime, includeTimezone, selectedTimezone, isLowercase),
+        [preferredLocale, selectedTimezone],
+    );
 
-        /**
-         * @param {String} phoneNumber
-         * @returns {String}
-         */
-        const formatPhoneNumber = (phoneNumber) => LocalePhoneNumber.formatPhoneNumber(phoneNumber);
+    /**
+     * @param {String} phoneNumber
+     * @returns {String}
+     */
+    const formatPhoneNumber = useMemo(() => (phoneNumber) => LocalePhoneNumber.formatPhoneNumber(phoneNumber), []);
 
-        /**
-         * @param {String} digit
-         * @returns {String}
-         */
-        const toLocaleDigit = (digit) => LocaleDigitUtils.toLocaleDigit(preferredLocale, digit);
+    /**
+     * @param {String} digit
+     * @returns {String}
+     */
+    const toLocaleDigit = useMemo(() => (digit) => LocaleDigitUtils.toLocaleDigit(preferredLocale, digit), [preferredLocale]);
 
-        /**
-         * @param {String} localeDigit
-         * @returns {String}
-         */
-        const fromLocaleDigit = (localeDigit) => LocaleDigitUtils.fromLocaleDigit(preferredLocale, localeDigit);
+    /**
+     * @param {String} localeDigit
+     * @returns {String}
+     */
+    const fromLocaleDigit = useMemo(() => (localeDigit) => LocaleDigitUtils.fromLocaleDigit(preferredLocale, localeDigit), [preferredLocale]);
 
-        /**
-         * The context this component exposes to child components
-         * @returns {object} translation util functions and locale
-         */
-        const getContextValue = () => ({
+    /**
+     * The context this component exposes to child components
+     * @returns {object} translation util functions and locale
+     */
+    const contextValue = useMemo(
+        () => ({
             translate,
             numberFormat,
             datetimeToRelative,
@@ -101,14 +105,12 @@ const LocaleContextProvider = React.memo(
             toLocaleDigit,
             fromLocaleDigit,
             preferredLocale,
-        });
+        }),
+        [translate, numberFormat, datetimeToRelative, datetimeToCalendarTime, formatPhoneNumber, toLocaleDigit, fromLocaleDigit, preferredLocale],
+    );
 
-        return <LocaleContext.Provider value={getContextValue()}>{children}</LocaleContext.Provider>;
-    },
-    (prevProps, nextProps) =>
-        nextProps.preferredLocale === prevProps.preferredLocale &&
-        lodashGet(nextProps, 'currentUserPersonalDetails.timezone.selected') === lodashGet(prevProps, 'currentUserPersonalDetails.timezone.selected'),
-);
+    return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
+}
 
 LocaleContextProvider.propTypes = localeProviderPropTypes;
 LocaleContextProvider.defaultProps = localeProviderDefaultProps;
