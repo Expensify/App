@@ -24,6 +24,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import networkPropTypes from '../components/networkPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as UserUtils from '../libs/UserUtils';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -112,7 +113,7 @@ function RoomMembersPage(props) {
     const getMemberOptions = () => {
         let result = [];
 
-        _.each(props.participantAccountIDs, (accountID) => {
+        _.each(props.report.participantAccountIDs, (accountID) => {
             const details = props.personalDetails[accountID];
 
             if (!details) {
@@ -147,15 +148,10 @@ function RoomMembersPage(props) {
             result.push({
                 keyForList: accountID,
                 accountID: Number(accountID),
-                isSelected: _.contains(selectedEmployees, Number(accountID)),
+                isSelected: _.contains(selectedMembers, Number(accountID)),
                 isDisabled: accountID === props.session.accountID,
                 text: props.formatPhoneNumber(details.displayName),
                 alternateText: props.formatPhoneNumber(details.login),
-                rightElement: isAdmin ? (
-                    <View style={[styles.badge, styles.peopleBadge]}>
-                        <Text style={styles.peopleBadgeText}>{props.translate('common.admin')}</Text>
-                    </View>
-                ) : null,
                 avatar: {
                     source: UserUtils.getAvatar(details.avatar, accountID),
                     name: details.login,
