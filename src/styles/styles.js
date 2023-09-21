@@ -3719,7 +3719,7 @@ const styles = (theme) => ({
     },
 
     signInIconButton: {
-        padding: 2,
+        paddingVertical: 2,
     },
 
     googleButtonContainer: {
