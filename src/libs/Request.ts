@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import HttpUtils from './HttpUtils';
 import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkStore from './Network/NetworkStore';
@@ -21,12 +20,7 @@ function makeXHR(request: Request): Promise<unknown> {
 }
 
 function processWithMiddleware(request: Request, isFromSequentialQueue = false): Promise<unknown> {
-    return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request).catch(() => {
-        if (!request.failureData) {
-            return;
-        }
-        Onyx.update(request.failureData);
-    }));
+    return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
 }
 
 function use(middleware: Middleware) {
