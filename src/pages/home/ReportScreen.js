@@ -321,6 +321,7 @@ function ReportScreen({
         if (!markReadyForHydration) {
             return;
         }
+
         markReadyForHydration();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -375,11 +376,13 @@ function ReportScreen({
                             />
                         )}
                         <DragAndDropProvider isDisabled={!isReportReadyForDisplay}>
-                            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                            <View
+                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                onLayout={onListLayout}
+                            >
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
                                         reportActions={reportActions}
-                                        onLayout={onListLayout}
                                         report={report}
                                         isLoadingReportActions={reportMetadata.isLoadingReportActions}
                                         isLoadingMoreReportActions={reportMetadata.isLoadingMoreReportActions}
