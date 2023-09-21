@@ -178,7 +178,7 @@ function ReportActionsList({
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
         if (didManuallyMarkReportAsUnread) {
             // Clearing the current unread marker so that it can be recalculated
-            currentUnreadMarker.current = null;
+            setCurrentUnreadMarker(null);
             setMessageManuallyMarkedUnread(new Date().getTime());
         } else {
             setMessageManuallyMarkedUnread(0);
