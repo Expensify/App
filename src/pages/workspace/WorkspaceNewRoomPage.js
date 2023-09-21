@@ -1,4 +1,4 @@
-import React, {useState, useRef, useCallback, useMemo} from 'react';
+import React, {useState, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -8,7 +8,6 @@ import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 import styles from '../../styles/styles';
 import RoomNameInput from '../../components/RoomNameInput';
-import Picker from '../../components/Picker';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -25,6 +24,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
+import ValuePicker from '../../components/ValuePicker';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -86,8 +86,6 @@ function WorkspaceNewRoomPage(props) {
      */
     const submit = (values) => {
         const policyMembers = _.map(_.keys(props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
-        debugger;
-        console.log(values.welcomeMessage);
         Report.addPolicyReport(values.policyID, values.roomName, values.visibility, policyMembers, values.writeCapability, values.welcomeMessage);
     };
 
@@ -194,17 +192,17 @@ function WorkspaceNewRoomPage(props) {
                                 />
                             </View>
                             <View style={styles.mb2}>
-                                <Picker
+                                <ValuePicker
                                     inputID="policyID"
                                     label={translate('workspace.common.workspace')}
-                                    placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
+                                    placeholder={translate('newRoomPage.selectAWorkspace')}
                                     items={workspaceOptions}
                                     onValueChange={setPolicyID}
                                 />
                             </View>
                             {isPolicyAdmin && (
                                 <View style={styles.mb2}>
-                                    <Picker
+                                    <ValuePicker
                                         inputID="writeCapability"
                                         label={translate('writeCapabilityPage.label')}
                                         items={writeCapabilityOptions}
@@ -213,7 +211,7 @@ function WorkspaceNewRoomPage(props) {
                                 </View>
                             )}
                             <View style={styles.mb2}>
-                                <Picker
+                                <ValuePicker
                                     inputID="visibility"
                                     label={translate('newRoomPage.visibility')}
                                     items={visibilityOptions}

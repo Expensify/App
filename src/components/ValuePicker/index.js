@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'lodash';
 import styles from '../../styles/styles';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import ValueSelectorModal from './ValueSelectorModal';
@@ -11,8 +12,11 @@ const propTypes = {
     /** Form Error description */
     errorText: PropTypes.string,
 
-    /** Country to display */
+    /** Item to display */
     value: PropTypes.string,
+
+    /** A placeholder value to display */
+    placeholder: PropTypes.string,
 
     /** Items to pick from */
     items: PropTypes.arrayOf(PropTypes.shape({value: PropTypes.string, label: PropTypes.string})),
@@ -30,13 +34,14 @@ const propTypes = {
 const defaultProps = {
     value: undefined,
     label: undefined,
+    placeholder: '',
     items: {},
     forwardedRef: undefined,
     errorText: '',
     onInputChange: () => {},
 };
 
-function ValuePicker({value, label, items, errorText, onInputChange, forwardedRef}) {
+function ValuePicker({value, label, items, placeholder, errorText, onInputChange, forwardedRef}) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
@@ -47,21 +52,21 @@ function ValuePicker({value, label, items, errorText, onInputChange, forwardedRe
         setIsPickerVisible(false);
     };
 
-    const updateCountryInput = (country) => {
-        onInputChange(country.value);
+    const updateInput = (item) => {
+        onInputChange(item.value);
         hidePickerModal();
     };
 
-    const title = value || '';
-    const descStyle = title.length === 0 ? styles.textNormal : null;
-    const selectedItem = _.find(items, { 'value': value});
+    const descStyle = value.length === 0 ? styles.textNormal : null;
+    const selectedItem = _.find(items, {value});
+    const selectedLabel = selectedItem ? selectedItem.label : '';
 
     return (
         <View>
             <MenuItemWithTopDescription
                 ref={forwardedRef}
                 shouldShowRightIcon
-                title={selectedItem.label}
+                title={selectedLabel || placeholder || ''}
                 descriptionTextStyle={descStyle}
                 description={label}
                 onPress={showPickerModal}
@@ -71,12 +76,12 @@ function ValuePicker({value, label, items, errorText, onInputChange, forwardedRe
             </View>
             <ValueSelectorModal
                 isVisible={isPickerVisible}
-                currentCountry={selectedItem.label}
+                currentValue={selectedLabel || placeholder || ''}
                 label={label}
                 selectedItem={selectedItem}
                 items={items}
                 onClose={hidePickerModal}
-                onCountrySelected={updateCountryInput}
+                onItemSelected={updateInput}
             />
         </View>
     );

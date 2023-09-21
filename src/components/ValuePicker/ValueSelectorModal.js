@@ -1,20 +1,19 @@
 import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import _ from 'lodash';
 import CONST from '../../CONST';
-import useLocalize from '../../hooks/useLocalize';
 import HeaderWithBackButton from '../HeaderWithBackButton';
 import SelectionList from '../SelectionList';
 import Modal from '../Modal';
 import ScreenWrapper from '../ScreenWrapper';
 import styles from '../../styles/styles';
-import _ from 'lodash';
 
 const propTypes = {
     /** Whether the modal is visible */
     isVisible: PropTypes.bool.isRequired,
 
-    /** Country value selected  */
-    currentCountry: PropTypes.string,
+    /** Current value selected  */
+    currentValue: PropTypes.string,
 
     /** Items to pick from */
     items: PropTypes.arrayOf(PropTypes.shape({value: PropTypes.string, label: PropTypes.string})),
@@ -25,26 +24,25 @@ const propTypes = {
     /** Label for values */
     label: PropTypes.string,
 
-    /** Function to call when the user selects a Country */
-    onCountrySelected: PropTypes.func,
+    /** Function to call when the user selects a item */
+    onItemSelected: PropTypes.func,
 
-    /** Function to call when the user closes the Country modal */
+    /** Function to call when the user closes the modal */
     onClose: PropTypes.func,
 };
 
 const defaultProps = {
-    currentCountry: '',
+    currentValue: '',
     items: [],
     selectedItem: {},
     label: '',
     onClose: () => {},
-    onCountrySelected: () => {},
+    onItemSelected: () => {},
 };
 
-function ValueSelectorModal({currentCountry, items, selectedItem, label, isVisible, onClose, onCountrySelected}) {
+function ValueSelectorModal({currentValue, items, selectedItem, label, isVisible, onClose, onItemSelected}) {
     const [sectionsData, setSectionsData] = useState([]);
 
-    
     useEffect(() => {
         const itemsData = _.map(items, (item) => ({value: item.value, keyForList: item.value, text: item.label, isSelected: item === selectedItem}));
         setSectionsData(itemsData);
@@ -69,9 +67,9 @@ function ValueSelectorModal({currentCountry, items, selectedItem, label, isVisib
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    sections={[{data: sectionsData, indexOffset: 0}]}
-                    onSelectRow={onCountrySelected}
-                    initiallyFocusedOptionKey={currentCountry}
+                    sections={[{data: sectionsData}]}
+                    onSelectRow={onItemSelected}
+                    initiallyFocusedOptionKey={currentValue}
                 />
             </ScreenWrapper>
         </Modal>
