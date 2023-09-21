@@ -100,18 +100,14 @@ MoneyRequestTagPage.displayName = 'MoneyRequestTagPage';
 MoneyRequestTagPage.propTypes = propTypes;
 MoneyRequestTagPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
-        },
-        iou: {
-            key: ONYXKEYS.IOU,
-        },
-    }),
-    withOnyx({
-        policyTags: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
-        },
-    }),
-)(MoneyRequestTagPage);
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
+    },
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+    policyTags: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+    },
+})(MoneyRequestTagPage);
