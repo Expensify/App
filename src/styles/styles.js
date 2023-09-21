@@ -3560,6 +3560,13 @@ const styles = (theme) => ({
         color: theme.eReceiptAmount,
     },
 
+    eReceiptMerchant: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXLarge,
+        color: theme.text,
+    },
+
     loginHeroBody: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSignInHeroBody,

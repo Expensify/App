@@ -40,7 +40,7 @@ function EReceipt({transaction}) {
                 />
             </View>
             <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
-            <Text style={styles.textHeadline}>{transactionMerchant}</Text>
+            <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
             <>
                 {_.map(waypoints, (waypoint, key) => {
                     const index = TransactionUtils.getWaypointIndex(key);
