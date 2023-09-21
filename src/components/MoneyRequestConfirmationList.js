@@ -143,13 +143,7 @@ const propTypes = {
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 
     /** Collection of tags attached to a policy */
-    policyTags: PropTypes.objectOf(
-        PropTypes.shape({
-            name: PropTypes.string,
-            required: PropTypes.bool,
-            tags: PropTypes.objectOf(tagPropTypes),
-        }),
-    ),
+    policyTags: tagPropTypes,
 };
 
 const defaultProps = {

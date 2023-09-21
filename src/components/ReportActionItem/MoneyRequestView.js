@@ -56,13 +56,7 @@ const propTypes = {
     transaction: transactionPropTypes,
 
     /** Collection of tags attached to a policy */
-    policyTags: PropTypes.objectOf(
-        PropTypes.shape({
-            name: PropTypes.string,
-            required: PropTypes.bool,
-            tags: PropTypes.objectOf(tagPropTypes),
-        }),
-    ),
+    policyTags: tagPropTypes,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -222,7 +216,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
             {shouldShowTag && (
                 <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
                     <MenuItemWithTopDescription
-                        description={lodashGet(policyTag, 'name') || translate('common.tag')}
+                        description={lodashGet(policyTag, 'name', translate('common.tag'))}
                         title={transactionTag}
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}

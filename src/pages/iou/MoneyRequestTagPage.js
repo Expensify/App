@@ -37,12 +37,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Collection of tags attached to a policy */
-    policyTags: PropTypes.objectOf(
-        PropTypes.shape({
-            name: PropTypes.string,
-            tags: PropTypes.objectOf(tagPropTypes),
-        }),
-    ),
+    policyTags: tagPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,

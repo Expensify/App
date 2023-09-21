@@ -167,30 +167,30 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
 }
 
 /**
- * Fetches the tag from policy tags, defaults to the first if no key is provided.
+ * Gets the tag from policy tags, defaults to the first if no key is provided.
  *
  * @param {Object} policyTags
  * @param {String} [tagKey]
  * @returns {String}
  */
 function getTag(policyTags, tagKey) {
-    if (!policyTags) {
+    if (_.isEmpty(policyTags)) {
         return '';
     }
 
     const policyTagKey = tagKey || _.first(_.keys(policyTags));
 
-    return lodashGet(policyTags, policyTagKey);
+    return lodashGet(policyTags, policyTagKey, {});
 }
 
 /**
- * Fetches the first tag name from policy tags.
+ * Gets the first tag name from policy tags.
  *
  * @param {Object} policyTags
  * @returns {String}
  */
 function getTagListName(policyTags) {
-    if (!policyTags) {
+    if (_.isEmpty(policyTags)) {
         return '';
     }
 
@@ -200,14 +200,14 @@ function getTagListName(policyTags) {
 }
 
 /**
- * Fetches the tags of a policy for a specific key. Defaults to the first tag if no key is provided.
+ * Gets the tags of a policy for a specific key. Defaults to the first tag if no key is provided.
  *
  * @param {Object} policyTags
  * @param {String} [tagKey]
  * @returns {String}
  */
 function getTagList(policyTags, tagKey) {
-    if (!policyTags) {
+    if (_.isEmpty(policyTags)) {
         return {};
     }
 

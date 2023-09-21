@@ -61,13 +61,7 @@ const propTypes = {
     }),
 
     /** Collection of tags attached to a policy */
-    policyTags: PropTypes.objectOf(
-        PropTypes.shape({
-            name: PropTypes.string,
-            required: PropTypes.bool,
-            tags: PropTypes.objectOf(tagPropTypes),
-        }),
-    ),
+    policyTags: tagPropTypes,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };

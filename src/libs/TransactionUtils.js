@@ -166,7 +166,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'merchant') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'category') && {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
-        ...(_.has(transactionChanges, 'tag') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;
