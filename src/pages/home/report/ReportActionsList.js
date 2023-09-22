@@ -18,7 +18,6 @@ import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import useLocalize from '../../../hooks/useLocalize';
-import useNetwork from '../../../hooks/useNetwork';
 import DateUtils from '../../../libs/DateUtils';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
@@ -263,7 +262,7 @@ function ReportActionsList({
             availableContentHeight: availableHeight,
             initialNumToRender: initialRenderCount,
         };
-    }, [windowHeight, variables.contentHeaderHeight, styles.chatItem.paddingTop, styles.chatItem.paddingBottom, variables.fontSizeNormalHeight]);
+    }, [windowHeight]);
 
     const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
     /**
