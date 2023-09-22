@@ -3561,6 +3561,24 @@ function getReportPreviewDisplayTransactions(reportPreviewAction) {
     );
 }
 
+/**
+ * Navigates a user to either privateNotesListPage if there are multiple notes accessible by the user on the report or to the privateNotesViewPage if there is just a single note
+ * @param {*} report 
+ * @param {*} accountID 
+ */
+function navigateToPrivateNotesPage(report, accountID = currentUserAccountID) {
+    if (!report) {
+        return;
+    }
+
+    // Get all the private notes on the report
+    const privateNotes = lodashGet(report, 'privateNotes', {});
+
+    if (_.keys(privateNotes) === 1) {
+        Navigation.navigate(ROUTES.getPrivateNotesViewRoute(report.reportID, accountID));
+    }
+    Navigation.navigate(Routes.getPrivateNotesListRoute(report.reportID));
+}
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3701,4 +3719,5 @@ export {
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
     hasMissingSmartscanFields,
+    navigateToPrivateNotesPage,
 };

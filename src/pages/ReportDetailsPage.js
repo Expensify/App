@@ -119,7 +119,7 @@ function ReportDetailsPage(props) {
                 translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
-                action: () => Navigation.navigate(ROUTES.getPrivateNotesListRoute(props.report.reportID)),
+                action: () => ReportUtils.navigateToPrivateNotesPage(reportID),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             });
         }

@@ -243,7 +243,7 @@ function ProfilePage(props) {
                                 title={`${props.translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => Navigation.navigate(ROUTES.getPrivateNotesListRoute(chatReportWithCurrentUser.reportID))}
+                                onPress={() => ReportUtils.navigateToPrivateNotesPage(chatReportWithCurrentUser)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={Report.hasErrorInPrivateNotes(chatReportWithCurrentUser) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
