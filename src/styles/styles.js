@@ -3611,9 +3611,9 @@ const styles = (theme) => ({
     eReceiptPanel: {
         ...spacing.p5,
         ...spacing.pb8,
-        ...flex.flex1,
         backgroundColor: theme.panelBackground,
         borderRadius: 20,
+        width: 335,
     },
 
     loginHeroBody: {
