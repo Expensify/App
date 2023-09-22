@@ -6,9 +6,13 @@ import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import CONST from '../../CONST';
 
 function mapChildren(children, callbackParam) {
-    if (_.isArray(children) && children.length === 1) return children[0];
+    if (_.isArray(children) && children.length === 1) {
+        return children[0];
+    }
 
-    if (_.isFunction(children)) return children(callbackParam);
+    if (_.isFunction(children)) {
+        return children(callbackParam);
+    }
 
     return children;
 }
@@ -28,11 +32,15 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
 
     const updateIsHoveredOnScrolling = useCallback(
         (hovered) => {
-            if (disabled) return;
+            if (disabled) {
+                return;
+            }
 
             isHoveredRef.current = hovered;
 
-            if (!shouldHandleScroll && !isScrolling) return setIsHovered(hovered);
+            if (!shouldHandleScroll && !isScrolling) {
+                return setIsHovered(hovered);
+            }
         },
         [disabled, shouldHandleScroll, isScrolling],
     );
@@ -46,7 +54,9 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
     }, []);
 
     useEffect(() => {
-        if (!shouldHandleScroll) return;
+        if (!shouldHandleScroll) {
+            return;
+        }
 
         const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
             setIsScrolling(scrolling);
@@ -63,9 +73,13 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
      */
     const unsetHoveredIfOutside = useCallback(
         (e) => {
-            if (!ref.current || !isHovered) return;
+            if (!ref.current || !isHovered) {
+                return;
+            }
 
-            if (ref.current.contains(e.target)) return;
+            if (ref.current.contains(e.target)) {
+                return;
+            }
 
             setIsHovered(false);
         },
@@ -73,7 +87,9 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
     );
 
     useEffect(() => {
-        if (!DeviceCapabilities.hasHoverSupport()) return;
+        if (!DeviceCapabilities.hasHoverSupport()) {
+            return;
+        }
 
         document.addEventListener('mouseover', unsetHoveredIfOutside);
 
@@ -81,13 +97,22 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
     }, [unsetHoveredIfOutside]);
 
     useEffect(() => {
-        if (disabled && isHovered) return setIsHovered(false);
+        if (!disabled || !isHovered) {
+            return;
+        }
+        setIsHovered(false);
     }, [disabled, isHovered]);
 
     useEffect(() => {
-        if (disabled) return;
-        if (onHoverIn && isHovered) return onHoverIn();
-        if (onHoverOut && !isHovered) return onHoverOut();
+        if (disabled) {
+            return;
+        }
+        if (onHoverIn && isHovered) {
+            return onHoverIn();
+        }
+        if (onHoverOut && !isHovered) {
+            return onHoverOut();
+        }
     }, [disabled, isHovered, onHoverIn, onHoverOut]);
 
     useImperativeHandle(outerRef, () => ref.current, []);
@@ -98,7 +123,9 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
         (el) => {
             updateIsHoveredOnScrolling(true);
 
-            if (_.isFunction(child.props.onMouseEnter)) child.props.onMouseEnter(el);
+            if (_.isFunction(child.props.onMouseEnter)) {
+                child.props.onMouseEnter(el);
+            }
         },
         [child.props, updateIsHoveredOnScrolling],
     );
@@ -107,7 +134,9 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
         (el) => {
             updateIsHoveredOnScrolling(false);
 
-            if (_.isFunction(child.props.onMouseLeave)) child.props.onMouseLeave(el);
+            if (_.isFunction(child.props.onMouseLeave)) {
+                child.props.onMouseLeave(el);
+            }
         },
         [child.props, updateIsHoveredOnScrolling],
     );
@@ -120,12 +149,16 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
                 setIsHovered(false);
             }
 
-            if (_.isFunction(child.props.onBlur)) child.props.onBlur(el);
+            if (_.isFunction(child.props.onBlur)) {
+                child.props.onBlur(el);
+            }
         },
         [child.props],
     );
 
-    if (!DeviceCapabilities.hasHoverSupport()) return child;
+    if (!DeviceCapabilities.hasHoverSupport()) {
+        return child;
+    }
 
     return React.cloneElement(child, {
         ref,
