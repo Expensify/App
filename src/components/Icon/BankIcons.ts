@@ -23,7 +23,7 @@ import variables from '../../styles/variables';
 
 type BankIcon = {
     icon: React.FC<SvgProps>;
-    iconSize: number;
+    iconSize?: number;
 };
 
 /**
@@ -113,7 +113,6 @@ function getAssetIcon(bankName: string, isCard: boolean): React.FC<SvgProps> {
 export default function getBankIcon(bankName: string, isCard = false) {
     const bankIcon: BankIcon = {
         icon: isCard ? Expensicons.CreditCard : GenericBank,
-        iconSize: 0,
     };
 
     if (bankName) {

@@ -11,7 +11,7 @@ type AccountType = BankAccount['accountType'] | Fund['accountType'];
 type PaymentMethod = (BankAccount | Fund) & {
     description: string;
     icon: React.FC<SvgProps>;
-    iconSize: number;
+    iconSize?: number;
 };
 
 /**
