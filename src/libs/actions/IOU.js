@@ -644,6 +644,10 @@ function createDistanceRequest(report, participant, comment, created, transactio
  *
  */
 function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges, temporaryTransactionID) {
+    const optimisticData = [];
+    const successData = [];
+    const failureData = [];
+
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = _.mapObject(transactionChanges, () => CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     const clearedPendingFields = _.mapObject(transactionChanges, () => null);
@@ -659,38 +663,35 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
 
-    // This needs to be a JSON object since we're sending this to the MapBox API
-    transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
-
-    const params = {transactionID, ...transactionDetails};
+    const params = {
+        transactionID,
+        ...transactionDetails,
+        // This needs to be a JSON string since we're sending this to the MapBox API
+        waypoints: JSON.stringify(transactionDetails.waypoints),
+    };
 
     // Step 3: Build the modified expense report actions
     // We don't create a modified report action if we're updating the waypoints,
     // since there isn't actually any optimistic data we can create for them.
-    const modifiedReportActionOptimisticData = [];
-    const modifiedReportActionSuccessData = [];
-    const modifiedReportActionFailureData = [];
-    const modifiedMoneyRequestReportOptimisticData = [];
-    const modifiedMoneyRequestReportSuccessData = [];
     if (!_.has(transactionChanges, 'waypoints')) {
         const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
         params.reportActionID = updatedReportAction.reportActionID;
 
-        modifiedReportActionOptimisticData.push({
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
             value: {
                 [updatedReportAction.reportActionID]: updatedReportAction,
             },
         });
-        modifiedReportActionSuccessData.push({
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
             value: {
                 [updatedReportAction.reportActionID]: {pendingAction: null},
             },
         });
-        modifiedReportActionFailureData.push({
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
             value: {
@@ -711,12 +712,12 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
             }
 
             updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction.currency);
-            modifiedMoneyRequestReportOptimisticData.push({
+            optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                 value: updatedMoneyRequestReport,
             });
-            modifiedMoneyRequestReportSuccessData.push({
+            successData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                 value: {pendingAction: null},
@@ -745,8 +746,6 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                     errorFields: null,
                 },
             },
-            ...modifiedReportActionOptimisticData,
-            ...modifiedMoneyRequestReportOptimisticData,
         ],
         successData: [
             {
@@ -770,8 +769,6 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                     errorFields: null,
                 },
             },
-            ...modifiedReportActionSuccessData,
-            ...modifiedMoneyRequestReportSuccessData,
         ],
         failureData: [
             {
@@ -788,7 +785,6 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                 value: iouReport,
             },
-            ...modifiedReportActionFailureData,
         ],
     });
 }
