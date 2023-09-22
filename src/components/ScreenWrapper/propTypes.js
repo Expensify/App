@@ -1,7 +1,5 @@
 import PropTypes from 'prop-types';
 import stylePropTypes from '../../styles/stylePropTypes';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
-import {environmentPropTypes} from '../withEnvironment';
 
 const propTypes = {
     /** Array of additional styles to add */

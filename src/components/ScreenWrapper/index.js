@@ -34,6 +34,7 @@ function ScreenWrapper({
     style,
     shouldDismissKeyboardBeforeClose,
     onEntryTransitionEnd,
+    testID,
 }) {
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const keyboardState = useKeyboardState();
@@ -114,7 +115,8 @@ function ScreenWrapper({
                         style={styles.flex1}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(isDevelopment ? panResponder.panHandlers : {})}
-                    testID={this.props.testID}>
+                        testID={testID}
+                    >
                         <View
                             style={[styles.flex1, paddingStyle, ...style]}
                             // eslint-disable-next-line react/jsx-props-no-spreading
