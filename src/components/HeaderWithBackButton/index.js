@@ -22,7 +22,7 @@ import useKeyboardState from '../../hooks/useKeyboardState';
 function HeaderWithBackButton({
     iconFill = undefined,
     guidesCallTaskID = '',
-    onBackButtonPress = () => Navigation.goBack(),
+    onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
@@ -47,6 +47,8 @@ function HeaderWithBackButton({
     },
     threeDotsMenuItems = [],
     children = null,
+    onModalHide = () => {},
+    shouldOverlay = false,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
@@ -137,6 +139,8 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
+                            onModalHide={onModalHide}
+                            shouldOverlay={shouldOverlay}
                         />
                     )}
                     {shouldShowCloseButton && (

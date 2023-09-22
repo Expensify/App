@@ -67,6 +67,8 @@ platform :android do
   desc "Build and upload app to Google Play"
   lane :beta do
     ENV["ENVFILE"]=".env.production"
+    # Google is very unreliable, so we retry a few times
+    ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
 
     gradle(
         project_dir: './android',
@@ -86,6 +88,8 @@ platform :android do
 
   desc "Deploy app to Google Play production"
   lane :production do
+    # Google is very unreliable, so we retry a few times
+    ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
     google_play_track_version_codes(
       package_name: "com.expensify.chat",
       json_key: './android/app/android-fastlane-json-key.json',
