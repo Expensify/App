@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState, useMemo} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
@@ -75,6 +75,8 @@ function WorkspaceMembersPage(props) {
     const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState('');
     const prevIsOffline = usePrevious(props.network.isOffline);
+    const accountIDs = useMemo(() => _.keys(props.policyMembers), [props.policyMembers]);
+    const prevAccountIDs = usePrevious(accountIDs);
 
     /**
      * Get members for the current workspace
@@ -109,6 +111,9 @@ function WorkspaceMembersPage(props) {
     }, [props.preferredLocale, validateSelection]);
 
     useEffect(() => {
+        if (removeMembersConfirmModalVisible && !_.isEqual(accountIDs, prevAccountIDs)) {
+            setRemoveMembersConfirmModalVisible(false);
+        }
         setSelectedEmployees((prevSelected) =>
             _.intersection(
                 prevSelected,
@@ -339,9 +344,10 @@ function WorkspaceMembersPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
+            testID={WorkspaceMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}
+                shouldShow={((_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                 subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
