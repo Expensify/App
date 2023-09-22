@@ -92,7 +92,7 @@ class RequestorStep extends React.Component {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID="RequestorStep"
+                testID={RequestorStep.displayName}
             >
                 <HeaderWithBackButton
                     title={this.props.translate('requestorStep.headerTitle')}

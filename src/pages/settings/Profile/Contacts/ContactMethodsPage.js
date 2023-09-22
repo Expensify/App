@@ -113,7 +113,7 @@ function ContactMethodsPage(props) {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID="ContactMethodsPage"
+            testID={ContactMethodsPage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.contactMethods')}

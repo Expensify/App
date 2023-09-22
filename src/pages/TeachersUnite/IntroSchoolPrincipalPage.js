@@ -34,6 +34,7 @@ const defaultProps = {
 
 function IntroSchoolPrincipalPage(props) {
     const {translate} = useLocalize();
+
     /**
      * @param {Object} values
      * @param {String} values.firstName
@@ -82,7 +83,7 @@ function IntroSchoolPrincipalPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="IntroSchoolPrincipalPage"
+            testID={IntroSchoolPrincipalPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.introSchoolPrincipal')}

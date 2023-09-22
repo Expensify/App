@@ -360,7 +360,7 @@ function ReportScreen({
             <ScreenWrapper
                 style={screenWrapperStyle}
                 shouldEnableKeyboardAvoidingView={isTopMostReportId}
-                testID="ReportScreen"
+                testID={ReportScreen.displayName}
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundPage}

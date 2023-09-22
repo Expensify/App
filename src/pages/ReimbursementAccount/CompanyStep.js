@@ -142,7 +142,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="CompanyStep"
+            testID={CompanyStep.displayName}
         >
             <HeaderWithBackButton
                 title={translate('companyStep.headerTitle')}

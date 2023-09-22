@@ -80,7 +80,7 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID="MoneyRequestTagPage"
+            testID={MoneyRequestTagPage.displayName}
         >
             <HeaderWithBackButton
                 title={tagListName}
