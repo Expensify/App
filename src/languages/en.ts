@@ -68,6 +68,8 @@ import type {
     ManagerApprovedParams,
     SetTheRequestParams,
     UpdatedTheRequestParams,
+    SetTheDistanceParams,
+    UpdatedTheDistanceParams,
     RemovedTheRequestParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
