@@ -111,7 +111,10 @@ function ContactMethodsPage(props) {
     });
 
     return (
-        <ScreenWrapper shouldEnableKeyboardAvoidingView={false}>
+        <ScreenWrapper
+            shouldEnableKeyboardAvoidingView={false}
+            testID="ContactMethodsPage"
+        >
             <HeaderWithBackButton
                 title={props.translate('contacts.contactMethods')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}

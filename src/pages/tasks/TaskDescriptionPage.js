@@ -84,6 +84,7 @@ function TaskDescriptionPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID="TaskDescriptionPage"
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                 <HeaderWithBackButton title={props.translate('task.task')} />

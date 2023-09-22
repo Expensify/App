@@ -74,6 +74,7 @@ function NewTaskDescriptionPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID="NewTaskDescriptionPage"
         >
             <>
                 <HeaderWithBackButton

@@ -73,7 +73,7 @@ function ReportWelcomeMessagePage(props) {
     );
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID="ReportWelcomeMessagePage">
             <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
                 <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
                 <Form

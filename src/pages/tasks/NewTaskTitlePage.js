@@ -77,6 +77,7 @@ function NewTaskTitlePage(props) {
             }}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID="NewTaskTitlePage"
         >
             <HeaderWithBackButton
                 title={props.translate('task.title')}

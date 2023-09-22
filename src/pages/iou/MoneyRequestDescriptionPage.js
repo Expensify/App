@@ -107,6 +107,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID="MoneyRequestDescriptionPage"
         >
             <>
                 <HeaderWithBackButton

@@ -22,6 +22,7 @@ function SignInModal() {
             style={[styles.highlightBG]}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID="SignInModal"
         >
             <HeaderWithBackButton />
             <SignInPage isInModal />

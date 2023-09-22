@@ -129,7 +129,10 @@ function AddressPage({privatePersonalDetails}) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="AddressPage"
+        >
             <HeaderWithBackButton
                 title={translate('privatePersonalDetails.homeAddress')}
                 shouldShowBackButton

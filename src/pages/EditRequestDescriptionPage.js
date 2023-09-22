@@ -46,6 +46,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID="EditRequestDescriptionPage"
         >
             <HeaderWithBackButton title={translate('common.description')} />
             <Form

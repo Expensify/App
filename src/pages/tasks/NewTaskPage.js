@@ -143,7 +143,10 @@ function NewTaskPage(props) {
     }
 
     return (
-        <ScreenWrapper shouldEnableKeyboardAvoidingView={false}>
+        <ScreenWrapper
+            shouldEnableKeyboardAvoidingView={false}
+            testID="NewTaskPage"
+        >
             <FullPageNotFoundView
                 shouldShow={!isAllowedToCreateTask}
                 onBackButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
