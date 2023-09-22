@@ -25,7 +25,6 @@ import type {
     ReportArchiveReasonsPolicyDeletedParams,
     RequestCountParams,
     SettleExpensifyCardParams,
-    SettlePaypalMeParams,
     RequestAmountParams,
     SplitAmountParams,
     AmountEachParams,
@@ -37,7 +36,6 @@ import type {
     WaitingOnBankAccountParams,
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
-    PaidUsingPaypalWithAmountParams,
     PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -71,6 +69,9 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    FormattedMaxLengthParams,
+    RequestedAmountMessageParams,
+    TagSelectionParams,
     TranslationBase,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
@@ -205,7 +206,6 @@ export default {
         done: 'Done',
         more: 'More',
         debitCard: 'Debit card',
-        payPalMe: 'PayPal.me',
         bankAccount: 'Bank account',
         join: 'Join',
         decline: 'Decline',
@@ -243,6 +243,8 @@ export default {
         showMore: 'Show more',
         merchant: 'Merchant',
         category: 'Category',
+        billable: 'Billable',
+        tag: 'Tag',
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
@@ -252,6 +254,7 @@ export default {
         kilometers: 'kilometers',
         recent: 'Recent',
         all: 'All',
+        tbd: 'TBD',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -280,6 +283,7 @@ export default {
     composer: {
         noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
+        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum comment length is ${formattedMaxLength} characters.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',
@@ -341,11 +345,6 @@ export default {
         newFaceEnterMagicCode: ({login}: NewFaceEnterMagicCodeParams) =>
             `It's always great to see a new face around here! Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
-    },
-    DownloadAppModal: {
-        downloadTheApp: 'Download the app',
-        keepTheConversationGoing: 'Keep the conversation going in New Expensify, download the app for an enhanced experience.',
-        noThanks: 'No thanks',
     },
     login: {
         hero: {
@@ -458,13 +457,10 @@ export default {
         },
     },
     sidebarScreen: {
-        fabAction: 'New chat',
-        newChat: 'New chat',
-        newGroup: 'New group',
-        newRoom: 'New room',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
-        fabNewChat: 'New chat (Floating action)',
+        fabNewChat: 'Send message',
+        fabNewChatExplained: 'Send message (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -472,6 +468,8 @@ export default {
         saveTheWorld: 'Save the world',
     },
     tabSelector: {
+        chat: 'Chat',
+        room: 'Room',
         manual: 'Manual',
         scan: 'Scan',
     },
@@ -498,9 +496,10 @@ export default {
         approved: 'Approved',
         cash: 'Cash',
         split: 'Split',
+        addToSplit: 'Add to split',
+        splitBill: 'Split bill',
         request: 'Request',
         participants: 'Participants',
-        splitBill: 'Split bill',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
@@ -516,11 +515,10 @@ export default {
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
-        settledPaypalMe: 'Paid using Paypal.me',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount} with Expensify`,
         payElsewhere: 'Pay elsewhere',
-        settlePaypalMe: ({formattedAmount}: SettlePaypalMeParams) => `Pay ${formattedAmount} with PayPal.me`,
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
+        requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} each`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} owes ${amount}`,
@@ -532,9 +530,8 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
-        paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `paid ${amount} elsewhere`,
-        paidUsingPaypalWithAmount: ({amount}: PaidUsingPaypalWithAmountParams) => `paid ${amount} using Paypal.me`,
-        paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `paid ${amount} with Expensify`,
+        paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer} paid ${amount} elsewhere`,
+        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer} paid ${amount} using Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         changedTheRequest: 'changed the request',
@@ -544,7 +541,9 @@ export default {
             `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
         error: {
+            invalidAmount: 'Please enter a valid amount before continuing.',
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
@@ -570,6 +569,8 @@ export default {
         uploadPhoto: 'Upload photo',
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
+        viewPhoto: 'View photo',
+        imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
@@ -589,6 +590,7 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
+        profileAvatar: 'Profile avatar',
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
@@ -730,6 +732,7 @@ export default {
         keepCodesSafe: 'Keep these recovery codes safe!',
         codesLoseAccess:
             'If you lose access to your authenticator app and don’t have these codes, you will lose access to your account. \n\nNote: Setting up two-factor authentication will log you out of all other active sessions.',
+        errorStepCodes: 'Please copy or download codes before continuing.',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',
@@ -741,6 +744,15 @@ export default {
         copy: 'Copy',
         disable: 'Disable',
     },
+    recoveryCodeForm: {
+        error: {
+            pleaseFillRecoveryCode: 'Please enter your recovery code',
+            incorrectRecoveryCode: 'Incorrect recovery code. Please try again.',
+        },
+        useRecoveryCode: 'Use recovery code',
+        recoveryCode: 'Recovery code',
+        use2fa: 'Use two-factor authentication code',
+    },
     twoFactorAuthForm: {
         error: {
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
@@ -751,17 +763,13 @@ export default {
         passwordUpdated: 'Password updated!',
         allSet: 'You’re all set. Keep your new password safe.',
     },
-    addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Get paid back via PayPal.',
-        payPalMe: 'PayPal.me/',
-        yourPayPalUsername: 'Your PayPal username',
-        addPayPalAccount: 'Add PayPal account',
-        growlMessageOnSave: 'Your PayPal username was successfully added',
-        updatePaypalAccount: 'Save PayPal account',
-        growlMessageOnUpdate: 'Your PayPal username was successfully saved',
-        formatError: 'Invalid PayPal.me username',
-        checkListOf: 'Check the list of ',
-        supportedCurrencies: 'supported currencies',
+    privateNotes: {
+        title: 'Private notes',
+        personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
+        sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
+        notesUnavailable: 'No notes found for the user',
+        composerLabel: 'Notes',
+        myNote: 'My note',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
@@ -792,7 +800,6 @@ export default {
         setDefaultSuccess: 'Default payment method set!',
         deleteAccount: 'Delete account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
-        deletePayPalSuccess: 'PayPal.me successfully deleted',
         error: {
             notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
             invalidBankAccount: 'This bank account is temporarily suspended.',
@@ -899,6 +906,7 @@ export default {
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
         enterAuthenticatorCode: 'Please enter your authenticator code',
+        enterRecoveryCode: 'Please enter your recovery code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: 'Request a new code in ',
         requestNewCodeAfterErrorOccurred: 'Request a new code',
@@ -985,7 +993,9 @@ export default {
         localTime: 'Local time',
     },
     newChatPage: {
+        createChat: 'Create chat',
         createGroup: 'Create group',
+        addToGroup: 'Add to group',
     },
     yearPickerPage: {
         year: 'Year',
@@ -1309,6 +1319,7 @@ export default {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
+            workspaceAvatar: 'Workspace avatar',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1350,7 +1361,6 @@ export default {
         reimburse: {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
-            kilometers: 'Kilometers',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
             trackDistance: 'Track distance',
@@ -1517,7 +1527,7 @@ export default {
         completed: 'Completed',
         messages: {
             completed: 'completed task',
-            canceled: 'canceled task',
+            canceled: 'deleted task',
             reopened: 'reopened task',
             error: 'You do not have the permission to do the requested action.',
         },
@@ -1535,7 +1545,7 @@ export default {
             openShortcutDialog: 'Opens the keyboard shortcuts dialog',
             escape: 'Escape dialogs',
             search: 'Open search dialog',
-            newGroup: 'New group screen',
+            newChat: 'New chat screen',
             copy: 'Copy comment',
         },
     },
@@ -1689,6 +1699,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
+        deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {
