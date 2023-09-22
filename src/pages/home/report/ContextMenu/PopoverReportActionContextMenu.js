@@ -112,11 +112,10 @@ function PopoverReportActionContextMenu(_props, ref) {
      */
     const isActiveReportAction = (actionID) => Boolean(actionID) && (reportActionIDRef.current === actionID || reportActionRef.current.reportActionID === actionID);
 
-
     const clearActiveReportAction = () => {
         reportActionIDRef.current = '0';
         reportActionRef.current = {};
-    }
+    };
 
     /**
      * Show the ReportActionContextMenu modal popover.
