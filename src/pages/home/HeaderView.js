@@ -148,7 +148,7 @@ function HeaderView(props) {
                 icon: Expensicons.ChatBubble,
                 iconFill: themeColors.icon,
                 text: props.translate('common.joinThread'),
-                onSelected: () => Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS),
+                onSelected: () => Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
             });
         }
     }

@@ -1209,9 +1209,13 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {String} reportID
  * @param {String} previousValue
  * @param {String} newValue
+ * @param {boolean} navigate
  */
-function updateNotificationPreference(reportID, previousValue, newValue) {
+function updateNotificationPreference(reportID, previousValue, newValue, navigate) {
     if (previousValue === newValue) {
+        if (navigate) {
+            Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
+        }
         return;
     }
     const optimisticData = [
@@ -1229,34 +1233,9 @@ function updateNotificationPreference(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
-}
-
-/**
- * @param {String} reportID
- * @param {String} previousValue
- * @param {String} newValue
- */
-function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
-    if (previousValue === newValue) {
+    if (navigate) {
         Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
-        return;
     }
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {notificationPreference: newValue},
-        },
-    ];
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {notificationPreference: previousValue},
-        },
-    ];
-    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
-    Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -2091,7 +2070,6 @@ export {
     reconnect,
     updateWelcomeMessage,
     updateWriteCapabilityAndNavigate,
-    updateNotificationPreferenceAndNavigate,
     updateNotificationPreference,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
