@@ -196,6 +196,8 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
     );
 }
 
+InnerRequestorStep.propTypes = propTypes;
+
 const RequestorStep = React.forwardRef(InnerRequestorStep);
 
 RequestorStep.propTypes = propTypes;
