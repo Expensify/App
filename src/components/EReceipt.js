@@ -33,46 +33,48 @@ function EReceipt({transaction}) {
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     return (
-        <>
-            <View style={styles.moneyRequestViewImage}>
-                <ThumbnailImage
-                    previewSourceURL={thumbnailSource}
-                    style={[styles.w100, styles.h100]}
-                    isAuthTokenRequired
-                    shouldDynamicallyResize={false}
-                />
+        <View style={styles.ph5}>
+            <View style={[styles.p5, styles.pb8]}>
+                <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mv0]}>
+                    <ThumbnailImage
+                        previewSourceURL={thumbnailSource}
+                        style={[styles.w100, styles.h100]}
+                        isAuthTokenRequired
+                        shouldDynamicallyResize={false}
+                    />
+                </View>
+                <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
+                <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
+                {_.map(waypoints, (waypoint, key) => {
+                    const index = TransactionUtils.getWaypointIndex(key);
+                    let descriptionKey = 'distance.waypointDescription.';
+                    if (index === 0) {
+                        descriptionKey += 'start';
+                    } else if (index === _.size(waypoints) - 1) {
+                        descriptionKey += 'finish';
+                    } else {
+                        descriptionKey += 'stop';
+                    }
+                    return (
+                        <View>
+                            <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
+                            <Text style={styles.eReceiptWaypointAddress}>{waypoint.address || ''}</Text>
+                        </View>
+                    );
+                })}
+                <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
+                <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
+                <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                    <Icon
+                        width={154}
+                        height={34}
+                        fill={themeColors.textBrand}
+                        src={Expensicons.ExpensifyWordmark}
+                    />
+                    <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
+                </View>
             </View>
-            <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
-            <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
-            {_.map(waypoints, (waypoint, key) => {
-                const index = TransactionUtils.getWaypointIndex(key);
-                let descriptionKey = 'distance.waypointDescription.';
-                if (index === 0) {
-                    descriptionKey += 'start';
-                } else if (index === _.size(waypoints) - 1) {
-                    descriptionKey += 'finish';
-                } else {
-                    descriptionKey += 'stop';
-                }
-                return (
-                    <View>
-                        <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
-                        <Text style={styles.eReceiptWaypointAddress}>{waypoint.address || ''}</Text>
-                    </View>
-                );
-            })}
-            <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
-            <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
-            <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                <Icon
-                    width={154}
-                    height={34}
-                    fill={themeColors.textBrand}
-                    src={Expensicons.ExpensifyWordmark}
-                />
-                <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
-            </View>
-        </>
+        </View>
     );
 }
 
