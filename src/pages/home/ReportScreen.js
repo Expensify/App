@@ -16,15 +16,14 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
+import useNetwork from '../../hooks/useNetwork';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
+import useLocalize from '../../hooks/useLocalize';
 import compose from '../../libs/compose';
 import Visibility from '../../libs/Visibility';
-import networkPropTypes from '../../components/networkPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import ReportFooter from './report/ReportFooter';
 import Banner from '../../components/Banner';
-import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
@@ -80,16 +79,15 @@ const propTypes = {
         }),
     ),
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     /** The account manager report ID */
     accountManagerReportID: PropTypes.string,
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    ...windowDimensionsPropTypes,
+    /** Whether user is leaving the current report */
+    userLeavingStatus: PropTypes.bool,
+
     ...viewportOffsetTopPropTypes,
     ...withCurrentReportIDPropTypes,
 };
@@ -105,6 +103,7 @@ const defaultProps = {
     betas: [],
     policies: {},
     accountManagerReportID: null,
+    userLeavingStatus: false,
     personalDetails: {},
     ...withCurrentReportIDDefaultProps,
 };
@@ -138,19 +137,22 @@ function ReportScreen({
     accountManagerReportID,
     personalDetails,
     policies,
-    translate,
-    network,
-    isSmallScreenWidth,
     isSidebarLoaded,
     viewportOffsetTop,
     isComposerFullSize,
     errors,
+    userLeavingStatus,
     currentReportID,
 }) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
     const reactionListRef = useRef();
     const prevReport = usePrevious(report);
+    const prevUserLeavingStatus = usePrevious(userLeavingStatus);
 
     const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(0);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -175,6 +177,7 @@ function ReportScreen({
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
     const isTopMostReportId = currentReportID === getReportID(route);
+    const didSubscribeToReportLeavingEvents = useRef(false);
 
     const isDefaultReport = checkDefaultReport(report);
 
@@ -234,7 +237,7 @@ function ReportScreen({
         }
 
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
-        // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
+        // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
         if (report.reportID && report.reportID === getReportID(route)) {
             return;
@@ -282,6 +285,14 @@ function ReportScreen({
     useEffect(() => {
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
+        return () => {
+            if (!didSubscribeToReportLeavingEvents) {
+                return;
+            }
+
+            Report.unsubscribeFromLeavingRoomReportChannel(report.reportID);
+        };
+
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -292,24 +303,51 @@ function ReportScreen({
             firstRenderRef.current = false;
             return;
         }
+
+        const onyxReportID = report.reportID;
+        const prevOnyxReportID = prevReport.reportID;
+        const routeReportID = getReportID(route);
+
+        // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room)
+        if (
+            // non-optimistic case
+            (!prevUserLeavingStatus && userLeavingStatus) ||
+            // optimistic case
+            (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && prevReport.statusNum === CONST.REPORT.STATUS.OPEN && report.statusNum === CONST.REPORT.STATUS.CLOSED)
+        ) {
+            Navigation.goBack();
+            Report.navigateToConciergeChat();
+            return;
+        }
+
         // If you already have a report open and are deeplinking to a new report on native,
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
         // Therefore, we need to compare if the existing reportID is the same as the one in the route
         // before deciding that we shouldn't call OpenReport.
-        const onyxReportID = report.reportID;
-        const routeReportID = getReportID(route);
         if (onyxReportID === prevReport.reportID && (!onyxReportID || onyxReportID === routeReportID)) {
             return;
         }
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID]);
+    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum]);
+
+    useEffect(() => {
+        // Ensures subscription event succeeds when the report/workspace room is created optimistically.
+        // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
+        // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
+        // Existing reports created will have empty fields for `pendingFields`.
+        const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
+        if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
+            Report.subscribeToReportLeavingEvents(reportID);
+            didSubscribeToReportLeavingEvents.current = true;
+        }
+    }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading) || shouldHideReport,
-        [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete],
+        () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
+        [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete, userLeavingStatus],
     );
 
     return (
@@ -322,6 +360,7 @@ function ReportScreen({
             <ScreenWrapper
                 style={screenWrapperStyle}
                 shouldEnableKeyboardAvoidingView={isTopMostReportId}
+                testID={ReportScreen.displayName}
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundPage}
@@ -390,7 +429,7 @@ function ReportScreen({
                                 <>
                                     <ReportFooter
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        isOffline={network.isOffline}
+                                        isOffline={isOffline}
                                         reportActions={reportActions}
                                         report={report}
                                         isComposerFullSize={isComposerFullSize}
@@ -403,7 +442,7 @@ function ReportScreen({
                             {!isReportReadyForDisplay && (
                                 <ReportFooter
                                     shouldDisableCompose
-                                    isOffline={network.isOffline}
+                                    isOffline={isOffline}
                                 />
                             )}
                         </View>
@@ -420,9 +459,6 @@ ReportScreen.displayName = 'ReportScreen';
 
 export default compose(
     withViewportOffsetTop,
-    withLocalize,
-    withWindowDimensions,
-    withNetwork(),
     withCurrentReportID,
     withOnyx({
         isSidebarLoaded: {
@@ -450,6 +486,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        userLeavingStatus: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
         },
     }),
 )(ReportScreen);
