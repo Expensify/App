@@ -184,29 +184,22 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     pinnedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     outstandingIOUReports.sort((a, b) => b.iouReportAmount - a.iouReportAmount || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     draftReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
+    const compareStringDates = (stringA, stringB) => {
+        if (stringA < stringB) {
+            return 1;
+        }
+        if (stringA > stringB) {
+            return -1;
+        }
+        return 0;
+    };
     if (isInDefaultMode) {
         nonArchivedReports.sort((a, b) => {
-            const stringA = a.lastVisibleActionCreated;
-            const stringB = b.lastVisibleActionCreated;
-            if (stringA < stringB) {
-                return 1;
-            }
-            if (stringA > stringB) {
-                return -1;
-            }
-            return a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
+            return compareStringDates(a.lastVisibleActionCreated, b.lastVisibleActionCreated) || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
         });
         // For archived reports ensure that most recent reports are at the top by reversing the order
         archivedReports.sort((a, b) => {
-            const stringA = a.lastVisibleActionCreated;
-            const stringB = b.lastVisibleActionCreated;
-            if (stringA < stringB) {
-                return 1;
-            }
-            if (stringA > stringB) {
-                return -1;
-            }
-            return 0;
+            return compareStringDates(a.lastVisibleActionCreated, b.lastVisibleActionCreated);
         });
     } else {
         nonArchivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
