@@ -28,7 +28,7 @@ const defaultProps = {
 
 function OnfidoStep({walletOnfidoData}) {
     const {translate} = useLocalize();
-    
+
     const shouldShowOnfido = walletOnfidoData.hasAcceptedPrivacyPolicy && !walletOnfidoData.isLoading && !walletOnfidoData.error && walletOnfidoData.sdkToken;
 
     const goBack = useCallback(() => {
@@ -43,14 +43,17 @@ function OnfidoStep({walletOnfidoData}) {
         Growl.error(translate('onfidoStep.genericError'), 10000);
     }, [translate]);
 
-    const verifyIdentity = useCallback((data) => {
-        BankAccounts.verifyIdentity({
-            onfidoData: JSON.stringify({
-                ...data,
-                applicantID: walletOnfidoData.applicantID,
-            }),
-        });
-    }, [walletOnfidoData.applicantID]);
+    const verifyIdentity = useCallback(
+        (data) => {
+            BankAccounts.verifyIdentity({
+                onfidoData: JSON.stringify({
+                    ...data,
+                    applicantID: walletOnfidoData.applicantID,
+                }),
+            });
+        },
+        [walletOnfidoData.applicantID],
+    );
 
     return (
         <>
