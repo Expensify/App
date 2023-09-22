@@ -12,7 +12,9 @@ import * as TransactionUtils from '../libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '../libs/tryResolveUrlFromApiRoot';
 import ThumbnailImage from './ThumbnailImage';
 import useLocalize from '../hooks/useLocalize';
-import fontFamily from '../styles/fontFamily';
+import Icon from './Icon';
+import themeColors from '../styles/themes/default';
+import * as Expensicons from './Icon/Expensicons';
 
 const propTypes = {
     /** The transaction for the eReceipt */
@@ -65,9 +67,10 @@ function EReceipt({transaction}) {
                 <Icon
                     width={154}
                     height={34}
-                    fill={themeColors.success}
+                    fill={themeColors.textBrand}
                     src={Expensicons.ExpensifyWordmark}
                 />
+                <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
             </View>
         </>
     );

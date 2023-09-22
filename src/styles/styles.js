@@ -3581,6 +3581,13 @@ const styles = (theme) => ({
         color: theme.textColorfulBackground,
     },
 
+    eReceiptGuaranteed: {
+        fontFamily: fontFamily.MONOSPACE,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
+        color: theme.textColorfulBackground,
+    },
+
     loginHeroBody: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSignInHeroBody,

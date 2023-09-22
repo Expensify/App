@@ -1778,4 +1778,7 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
+    eReceipt: {
+        guaranteed: 'Guaranteed eReceipt',
+    },
 } satisfies TranslationBase;
