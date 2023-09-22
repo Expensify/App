@@ -79,7 +79,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
         return isManager && !isApproved && !isSettled;
     }, [policyType, isManager, isApproved, isSettled]);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
-    const shouldShowPaypal = Boolean(lodashGet(personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
 
     return (
@@ -99,11 +98,10 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                         <SettlementButton
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
-                            shouldShowPaypal={shouldShowPaypal}
                             chatReportID={chatReport.reportID}
                             iouReport={moneyRequestReport}
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
-                            enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldShowPaymentOptions
                             style={[styles.pv2]}
@@ -128,11 +126,10 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                     <SettlementButton
                         currency={moneyRequestReport.currency}
                         policyID={moneyRequestReport.policyID}
-                        shouldShowPaypal={shouldShowPaypal}
                         chatReportID={moneyRequestReport.chatReportID}
                         iouReport={moneyRequestReport}
                         onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
-                        enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
                         formattedAmount={formattedAmount}
