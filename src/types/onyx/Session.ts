@@ -5,6 +5,8 @@ type Session = {
     /** Currently logged in user authToken */
     authToken?: string;
 
+    supportAuthToken?: string;
+
     /** Currently logged in user encrypted authToken */
     encryptedAuthToken?: string;
 
