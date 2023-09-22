@@ -119,7 +119,7 @@ function ContactMethodsPage(props) {
                 title={props.translate('contacts.contactMethods')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
                     <Text>
                         {props.translate('contacts.helpTextBeforeEmail')}
@@ -131,15 +131,15 @@ function ContactMethodsPage(props) {
                     </Text>
                 </View>
                 {loginMenuItems}
+                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                    <Button
+                        success
+                        text={props.translate('contacts.newContactMethod')}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
+                        pressOnEnter
+                    />
+                </FixedFooter>
             </ScrollView>
-            <FixedFooter style={[styles.flexGrow0, styles.pt5]}>
-                <Button
-                    success
-                    text={props.translate('contacts.newContactMethod')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
-                    pressOnEnter
-                />
-            </FixedFooter>
         </ScreenWrapper>
     );
 }
