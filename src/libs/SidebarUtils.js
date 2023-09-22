@@ -194,13 +194,11 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
         return 0;
     };
     if (isInDefaultMode) {
-        nonArchivedReports.sort((a, b) => {
-            return compareStringDates(a.lastVisibleActionCreated, b.lastVisibleActionCreated) || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
-        });
+        nonArchivedReports.sort(
+            (a, b) => compareStringDates(a.lastVisibleActionCreated, b.lastVisibleActionCreated) || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()),
+        );
         // For archived reports ensure that most recent reports are at the top by reversing the order
-        archivedReports.sort((a, b) => {
-            return compareStringDates(a.lastVisibleActionCreated, b.lastVisibleActionCreated);
-        });
+        archivedReports.sort((a, b) => compareStringDates(a.lastVisibleActionCreated, b.lastVisibleActionCreated));
     } else {
         nonArchivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
         archivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
