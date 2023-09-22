@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
@@ -70,13 +70,13 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
      *
      * @returns {String}
      */
-    const formattedAddress = useMemo(() => {
+    const getFormattedAddress = () => {
         const [street1, street2] = (address.street || '').split('\n');
         const formatted = formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
 
         // Remove the last comma of the address
         return formatted.trim().replace(/,$/, '');
-    }, [address.city, address.country, address.state, address.street, address.zip]);
+    };
 
     const handleCopyToClipboard = () => {
         Clipboard.setString(pan);
@@ -109,7 +109,7 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
             />
             <MenuItemWithTopDescription
                 description={translate('walletPage.cardDetails.address')}
-                title={formattedAddress}
+                title={getFormattedAddress()}
                 interactive={false}
                 wrapperStyle={styles.pb1}
             />
