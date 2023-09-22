@@ -77,6 +77,7 @@ function NewTaskDetailsPage(props) {
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID="NewTaskDetailsPage"
         >
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.assignTask')}

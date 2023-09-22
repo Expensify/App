@@ -19,7 +19,7 @@ function ImTeacherPage() {
     const {translate} = useLocalize();
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID="ImTeacherPage">
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iAmATeacher')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
