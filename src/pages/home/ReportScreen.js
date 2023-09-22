@@ -88,7 +88,6 @@ const propTypes = {
     /** Whether user is leaving the current report */
     userLeavingStatus: PropTypes.bool,
 
-    ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
     ...withCurrentReportIDPropTypes,
 };
