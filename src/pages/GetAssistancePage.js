@@ -78,7 +78,7 @@ function GetAssistancePage(props) {
     }
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID="GetAssistancePage">
             <HeaderWithBackButton
                 title={props.translate('getAssistancePage.title')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}

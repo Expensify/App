@@ -90,6 +90,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
+            testID="MoneyRequestDescriptionPage"
         >
             <HeaderWithBackButton
                 title={translate('common.description')}
