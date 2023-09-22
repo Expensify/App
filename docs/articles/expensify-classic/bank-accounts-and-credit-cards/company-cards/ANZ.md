@@ -2,5 +2,5 @@
 title: ANZ
 description: A guide to integrate with your ANZ card
 ---
-## Resources Coming Soon!
+## Resource Coming Soon!
 Coming Soon!!
