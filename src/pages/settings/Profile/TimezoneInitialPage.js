@@ -14,7 +14,6 @@ import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import Switch from '../../../components/Switch';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import TextLink from '../../../components/TextLink';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -48,14 +47,6 @@ function TimezoneInitialPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
             <View style={styles.flex1}>
-                {/* to remove start */}
-                <TextLink
-                    style={styles.link}
-                    onPress={() => Navigation.navigate(ROUTES.getSettingsWalletCardsDigitalDetailsUpdateAddressRoute('domain'))}
-                >
-                    Update address
-                </TextLink>
-                {/* to remove end */}
                 <View style={[styles.ph5]}>
                     <Text style={[styles.mb5]}>{props.translate('timezonePage.isShownOnProfile')}</Text>
                     <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

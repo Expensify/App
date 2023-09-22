@@ -16,6 +16,7 @@ import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import * as CardUtils from '../../../libs/CardUtils';
+import TextLink from '../../../components/TextLink';
 
 const propTypes = {
     /* Onyx Props */
@@ -86,6 +87,12 @@ function ExpensifyCardPage({
                                 titleStyle={styles.walletCardNumber}
                             />
                         )}
+                        <TextLink
+                            style={styles.link}
+                            onPress={() => Navigation.navigate(ROUTES.getSettingsWalletCardsDigitalDetailsUpdateAddressRoute(domain))}
+                        >
+                            Update address
+                        </TextLink>
                     </ScrollView>
                 </>
             )}
