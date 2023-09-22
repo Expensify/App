@@ -26,7 +26,6 @@ import assignedCardPropTypes from './assignedCardPropTypes';
 const propTypes = {
     /* Onyx Props */
     /** The details about the Expensify cards */
-    // cardList: PropTypes.objectOf(cardListPropTypes),
     cardList: PropTypes.shape({
         isLoading: PropTypes.bool,
         [PropTypes.string]: PropTypes.objectOf(assignedCardPropTypes),
