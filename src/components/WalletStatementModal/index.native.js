@@ -10,6 +10,7 @@ import * as Report from '../../libs/actions/Report';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
 
 const IOU_ROUTES = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
 const renderLoading = () => <FullScreenLoadingIndicator />;
@@ -30,12 +31,12 @@ function WalletStatementModal({statementPageURL, session}) {
                 return;
             }
 
-            if (type === 'CONCIERGE_NAVIGATE') {
+            if (type === CONST.WALLET.STATEMENT_WEB_MESSAGE_TYPE.CONCIERGE) {
                 webViewRef.current.stopLoading();
                 Report.navigateToConciergeChat();
             }
 
-            if (type === 'STATEMENT_NAVIGATE' && url) {
+            if (type === CONST.WALLET.STATEMENT_WEB_MESSAGE_TYPE.STATEMENT && url) {
                 const iouRoute = _.find(IOU_ROUTES, (item) => url.includes(item));
 
                 if (iouRoute) {
