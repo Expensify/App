@@ -63,6 +63,7 @@ function MoneyRequestCategoryPage({route, report, iou}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={MoneyRequestCategoryPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.category')}
