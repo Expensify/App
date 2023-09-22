@@ -69,6 +69,7 @@ function AttachmentView({
     isWorkspaceAvatar,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
+    const currentRoute = useRoute();
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(source)) {
@@ -112,7 +113,6 @@ function AttachmentView({
         );
     }
 
-    const currentRoute = useRoute();
     const reportID = _.get(currentRoute, ['params', 'reportID']);
     const report = ReportUtils.getReport(reportID);
 
@@ -120,8 +120,6 @@ function AttachmentView({
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const transactionID = _.get(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
     const transaction = TransactionUtils.getTransaction(transactionID);
-    console.log('transaction', transaction);
-
     const shouldShowEReceipt = TransactionUtils.isDistanceRequest(transaction);
     if (shouldShowEReceipt) {
         return <EReceipt transaction={transaction} />;
