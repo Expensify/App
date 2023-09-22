@@ -103,6 +103,7 @@ class AddPersonalBankAccountPage extends React.Component {
                 includeSafeAreaPaddingBottom={shouldShowSuccess}
                 shouldEnablePickerAvoiding={false}
                 shouldShowOfflineIndicator={false}
+                testID={AddPersonalBankAccountPage.displayName}
             >
                 <HeaderWithBackButton
                     title={this.props.translate('bankAccount.addBankAccount')}
@@ -132,7 +133,7 @@ class AddPersonalBankAccountPage extends React.Component {
                                     this.setState({selectedPlaidAccountID});
                                 }}
                                 plaidData={this.props.plaidData}
-                                onExitPlaid={Navigation.goBack}
+                                onExitPlaid={() => Navigation.goBack(ROUTES.HOME)}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                                 selectedPlaidAccountID={this.state.selectedPlaidAccountID}
                             />

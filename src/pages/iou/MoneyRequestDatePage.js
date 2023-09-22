@@ -61,10 +61,10 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (!isDistanceRequest && (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
+        if (!isDistanceRequest && (_.isEmpty(iou.participantAccountIDs) || (iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
         }
-    }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID, isDistanceRequest]);
+    }, [iou.id, iou.participantAccountIDs, iou.amount, iou.receiptPath, iouType, reportID, isDistanceRequest]);
 
     function navigateBack() {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
@@ -85,6 +85,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={MoneyRequestDatePage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.date')}
@@ -116,6 +117,6 @@ export default withOnyx({
         key: ONYXKEYS.IOU,
     },
     selectedTab: {
-        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(MoneyRequestDatePage);
