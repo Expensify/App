@@ -356,7 +356,6 @@ function cleanUpFailedMoneyRequest(iouAction) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChatID}`, {[reportPreviewAction.reportActionID]: null});
         }
     } else {
-        console.log('iouReport.reportID, iouAction.reportActionID', iouReport.reportID, iouAction.reportActionID);
         Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
         const lastMessageText = OptionsListUtils.getLastMessageTextFromActions(iouReport.reportID);
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {lastMessageText, lastMessageHtml: lastMessageText});
