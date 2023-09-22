@@ -51,11 +51,9 @@ function EditRequestDistancePage({report, route, transaction}) {
 
         return () => {
             if (transactionWasSaved.current) {
-                console.log('[tim] transaction saved; deleting backup');
                 TransactionEdit.removeBackupTransaction(transaction.transactionID);
                 return;
             }
-            console.log('[tim] transaction was not saved; restoring from backup');
 
             // When this component is unmounted, if the transaction has not been saved yet
             // restore the original transaction because the user is canceling out of the modal
