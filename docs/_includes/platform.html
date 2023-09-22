@@ -1,15 +1,13 @@
----
----
-
+{% assign selectedPlatform = page.url | remove: "/hubs/" | remove: "/" | remove: ".html" %}
+{% assign platform = site.data.routes.platforms | where: "href", selectedPlatform | first %}
 <div class="homepage">
-    <h1 class="title">{{ site.data.routes.home.title }}</h1>
+    <h1 class="title">{{ platform.hub-title }}</h1>
 
     <p>{{ site.data.routes.home.description }}</p>
 
     <div class="cards-group">
-        {% for platform in site.data.routes.platforms %}
-            {% assign platform_href = platform.href %}
-            {% include platform-card.html href=platform.platform_href %}
+        {% for hub in platform.hubs %}
+            {% include hub-card.html hub=hub platform=selectedPlatform %}
         {% endfor %}
     </div>
 
