@@ -1,4 +1,5 @@
 import React, {useEffect, useRef} from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -44,6 +45,11 @@ const defaultProps = {
 function EditRequestDistancePage({report, route, transaction}) {
     const {translate} = useLocalize();
     const transactionWasSaved = useRef(false);
+    const hasWaypointError = useRef(false);
+
+    useEffect(() => {
+        hasWaypointError.current = Boolean(lodashGet(transaction, 'errorFields.route') || lodashGet(transaction, 'errorFields.waypoints'));
+    }, [transaction]);
 
     useEffect(() => {
         // When the component is mounted, make a backup copy of the original transaction that is stored in onyx
@@ -53,7 +59,7 @@ function EditRequestDistancePage({report, route, transaction}) {
             // When the component is unmounted
             // If the transaction was saved without errors
             // Then remove the backup transaction because it is no longer needed
-            if (transactionWasSaved.current && !_.size(transaction.errorFields)) {
+            if (transactionWasSaved.current && !hasWaypointError.current) {
                 TransactionEdit.removeBackupTransaction(transaction.transactionID);
                 return;
             }
