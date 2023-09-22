@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useState, useRef, useEffect, useCallback} from 'react';
-import {Animated, View, AppState, Keyboard, StyleSheet} from 'react-native';
+import {Animated, View, StyleSheet} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import TextInputLabel from './TextInputLabel';
@@ -37,24 +37,6 @@ function BaseTextInput(props) {
 
     const input = useRef(null);
     const isLabelActive = useRef(initialActiveLabel);
-
-    useEffect(() => {
-        if (!props.disableKeyboard) {
-            return;
-        }
-
-        const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
-            if (!nextAppState.match(/inactive|background/)) {
-                return;
-            }
-
-            Keyboard.dismiss();
-        });
-
-        return () => {
-            appStateSubscription.remove();
-        };
-    }, [props.disableKeyboard]);
 
     // AutoFocus which only works on mount:
     useEffect(() => {

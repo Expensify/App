@@ -56,7 +56,10 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
     const privateNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={PrivateNotesViewPage.displayName}
+        >
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note'])}
                 subtitleKey="privateNotes.notesUnavailable"

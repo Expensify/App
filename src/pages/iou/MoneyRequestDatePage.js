@@ -85,6 +85,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={MoneyRequestDatePage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.date')}
