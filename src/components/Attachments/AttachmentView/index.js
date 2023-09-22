@@ -3,6 +3,7 @@ import {View, ActivityIndicator} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
+import {useRoute} from '@react-navigation/native';
 import styles from '../../../styles/styles';
 import Icon from '../../Icon';
 import * as Expensicons from '../../Icon/Expensicons';
@@ -17,10 +18,9 @@ import AttachmentViewPdf from './AttachmentViewPdf';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
-import {useRoute} from '@react-navigation/native';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as TransactionUtils from '../../../libs/TransactionUtils';
-import EReceipt from '../../EReceipt';
+import DistanceEReceipt from '../../DistanceEReceipt';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
@@ -122,7 +122,7 @@ function AttachmentView({
     const transaction = TransactionUtils.getTransaction(transactionID);
     const shouldShowEReceipt = TransactionUtils.isDistanceRequest(transaction);
     if (shouldShowEReceipt) {
-        return <EReceipt transaction={transaction} />;
+        return <DistanceEReceipt transaction={transaction} />;
     }
 
     // For this check we use both source and file.name since temporary file source is a blob

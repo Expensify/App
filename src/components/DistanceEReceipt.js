@@ -26,7 +26,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function EReceipt({transaction}) {
+function DistanceEReceipt({transaction}) {
     const {translate} = useLocalize();
     const {thumbnail} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction);
@@ -89,7 +89,7 @@ function EReceipt({transaction}) {
     );
 }
 
-export default EReceipt;
-EReceipt.displayName = 'EReceipt';
-EReceipt.propTypes = propTypes;
-EReceipt.defaultProps = defaultProps;
+export default DistanceEReceipt;
+DistanceEReceipt.displayName = 'DistanceEReceipt';
+DistanceEReceipt.propTypes = propTypes;
+DistanceEReceipt.defaultProps = defaultProps;
