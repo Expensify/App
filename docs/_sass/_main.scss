@@ -445,15 +445,23 @@ button {
     }
 }
 
-.cards-group {
+.cards-group, .platform-cards-group {
     display: grid;
     grid-template-columns: auto;
     row-gap: 20px;
     column-gap: 20px;
     padding-bottom: 20px;
+}
 
+.cards-group {
     @include breakpoint($breakpoint-desktop) {
         grid-template-columns: 50% 50%;
+    }
+}
+
+.platform-cards-group {
+    @include breakpoint($breakpoint-desktop) {
+        grid-template-columns: 33.33% 33.33% 33.33%;
     }
 }
 
@@ -546,7 +554,7 @@ button {
     display: flex;
     flex-wrap: nowrap;
     border-radius: 16px;
-    padding: 28px;
+    padding: 24px;
     font-weight: 700;
     cursor: pointer;
     color: $color-text;
@@ -558,6 +566,7 @@ button {
 
     .row {
         display: flex;
+        flex-direction: column;
         flex-basis:100%;
     }
 
@@ -567,7 +576,7 @@ button {
         padding-right: 28px;
 
         img {
-            width: 64px;
+            width: 68px;
         }
     }
 
@@ -597,6 +606,7 @@ button {
     }
 
     h3.title {
+        font-size: 1.2em;
         font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
     }
 
@@ -606,7 +616,7 @@ button {
         margin: 0;
 
         &.with-margin {
-            margin: 0 0 4px 0;
+            margin: 20px 0 8px 0;
         }
     }
 
