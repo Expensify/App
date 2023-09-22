@@ -104,6 +104,10 @@ function ReceiptSelector({route, report, iou, transactionID}) {
         setIsAttachmentInvalid(false);
     };
 
+    const showImageCorruptionAlert = useCallback(() => {
+        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
+    }, [translate]);
+
     /**
      * Sets the upload receipt error modal content when an invalid receipt is uploaded
      * @param {*} isInvalid
@@ -120,6 +124,11 @@ function ReceiptSelector({route, report, iou, transactionID}) {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'fileName', ''));
         if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
             setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+            return false;
+        }
+
+        if (file.width <= 0 || file.height <= 0) {
+            showImageCorruptionAlert();
             return false;
         }
 
