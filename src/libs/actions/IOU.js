@@ -724,80 +724,73 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
         }
     }
 
-    API.write(
-        'UpdateDistanceRequest',
-        {
-            transactionID,
-            ...transactionDetails,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {
-                        comment: {
-                            waypoints: null,
+    API.write('UpdateDistanceRequest', params, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    comment: {
+                        waypoints: null,
+                    },
+                    errorFields: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
+                value: {
+                    pendingFields,
+                    isLoading: true,
+                    errorFields: null,
+                },
+            },
+            ...modifiedReportActionOptimisticData,
+            ...modifiedMoneyRequestReportOptimisticData,
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    comment: {
+                        waypoints: {
+                            ...transactionDetails.comment.waypoints,
                         },
-                        errorFields: null,
                     },
+                    errorFields: null,
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
-                    value: {
-                        pendingFields,
-                        isLoading: true,
-                        errorFields: null,
-                    },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
+                value: {
+                    pendingFields: clearedPendingFields,
+                    isLoading: false,
+                    errorFields: null,
                 },
-                ...modifiedReportActionOptimisticData,
-                ...modifiedMoneyRequestReportOptimisticData,
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {
-                        comment: {
-                            waypoints: {
-                                ...transactionDetails.comment.waypoints,
-                            },
-                        },
-                        errorFields: null,
-                    },
+            },
+            ...modifiedReportActionSuccessData,
+            ...modifiedMoneyRequestReportSuccessData,
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
+                value: {
+                    pendingFields: clearedPendingFields,
+                    isLoading: false,
+                    errorFields,
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
-                    value: {
-                        pendingFields: clearedPendingFields,
-                        isLoading: false,
-                        errorFields: null,
-                    },
-                },
-                ...modifiedReportActionSuccessData,
-                ...modifiedMoneyRequestReportSuccessData,
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
-                    value: {
-                        pendingFields: clearedPendingFields,
-                        isLoading: false,
-                        errorFields,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                    value: iouReport,
-                },
-                ...modifiedReportActionFailureData,
-            ],
-        },
-    );
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                value: iouReport,
+            },
+            ...modifiedReportActionFailureData,
+        ],
+    });
 }
 
 /**
