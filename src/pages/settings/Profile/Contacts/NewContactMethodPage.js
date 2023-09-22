@@ -98,6 +98,7 @@ function NewContactMethodPage(props) {
             }}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID="NewContactMethodPage"
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}

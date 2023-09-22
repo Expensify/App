@@ -93,6 +93,7 @@ function MoneyRequestMerchantPage({iou, route}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            testID="MoneyRequestMerchantPage"
         >
             <HeaderWithBackButton
                 title={translate('common.merchant')}
