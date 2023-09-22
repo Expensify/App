@@ -82,7 +82,7 @@ const getBackgroundColor = (position, routesLength, tabIndex) => {
 
 function TabSelector({state, navigation, onTabPress, position}) {
     const {translate} = useLocalize();
-    const hoverBackgroundColor = themeColors.border;
+    const hoverBackgroundColor = themeColors.highlightBG;
     return (
         <View style={styles.tabSelector}>
             {_.map(state.routes, (route, index) => {
@@ -121,6 +121,7 @@ function TabSelector({state, navigation, onTabPress, position}) {
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}
                         hoverBackgroundColor={hoverBackgroundColor}
+                        isFocused={isFocused}
                     />
                 );
             })}

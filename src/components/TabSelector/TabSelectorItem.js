@@ -22,7 +22,7 @@ const propTypes = {
 
     /** Hovered background color value for the tab button */
     // eslint-disable-next-line
-    backgroundColor: PropTypes.string,
+    hoverBackgroundColor: PropTypes.string,
 
     /** Animated opacity value while the label is inactive state */
     // eslint-disable-next-line
@@ -31,6 +31,9 @@ const propTypes = {
     /** Animated opacity value while the label is in active state */
     // eslint-disable-next-line
     activeOpacity: PropTypes.any,
+
+    /** Whether this tab is active */
+    isFocused: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -41,33 +44,30 @@ const defaultProps = {
     hoverBackgroundColor: '',
     inactiveOpacity: 1,
     activeOpacity: 0,
+    isFocused: false,
 };
 
-function TabSelectorItem({icon, title, onPress, backgroundColor, hoverBackgroundColor, activeOpacity, inactiveOpacity}) {
+function TabSelectorItem({icon, title, onPress, backgroundColor, hoverBackgroundColor, activeOpacity, inactiveOpacity, isFocused}) {
     return (
         <PressableWithFeedback
             accessibilityLabel={title}
             wrapperStyle={[styles.flex1]}
             onPress={onPress}
-        >{({hovered})=>(
-            <Animated.View
-                style={[
-                    styles.tabSelectorButton,
-                    { backgroundColor: Boolean(hoverBackgroundColor) && hovered ? hoverBackgroundColor : backgroundColor },
-                ]}
-            >
-                <TabIcon
-                    icon={icon}
-                    activeOpacity={hovered ? 1 : activeOpacity}
-                    inactiveOpacity={hovered ? 0 : inactiveOpacity}
-                />
-                <TabLabel
-                    title={title}
-                    activeOpacity={hovered ? 1 : activeOpacity}
-                    inactiveOpacity={hovered ? 0 : inactiveOpacity}
-                />
-            </Animated.View>
-        )}
+        >
+            {({hovered}) => (
+                <Animated.View style={[styles.tabSelectorButton, {backgroundColor: Boolean(hoverBackgroundColor) && hovered && !isFocused ? hoverBackgroundColor : backgroundColor}]}>
+                    <TabIcon
+                        icon={icon}
+                        activeOpacity={hovered && !isFocused ? 1 : activeOpacity}
+                        inactiveOpacity={hovered && !isFocused ? 0 : inactiveOpacity}
+                    />
+                    <TabLabel
+                        title={title}
+                        activeOpacity={hovered && !isFocused ? 1 : activeOpacity}
+                        inactiveOpacity={hovered && !isFocused ? 0 : inactiveOpacity}
+                    />
+                </Animated.View>
+            )}
         </PressableWithFeedback>
     );
 }
