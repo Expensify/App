@@ -110,7 +110,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
         return () => {
             prevMoneyRequestId.current = iou.id;
         };
-    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, isEmptyWaypoint]);
+    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, isInvalidDistanceRequest]);
 
     return (
         <ScreenWrapper
