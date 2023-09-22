@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 import useLocalize from '../../hooks/useLocalize';
@@ -83,19 +84,26 @@ MoneyRequestCategoryPage.displayName = 'MoneyRequestCategoryPage';
 MoneyRequestCategoryPage.propTypes = propTypes;
 MoneyRequestCategoryPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    iou: {
-        key: ONYXKEYS.IOU,
-    },
-    report: {
-        key: ({route, iou}) => {
-            let reportID = lodashGet(route, 'params.reportID', '');
-            if (!reportID) {
-                // When the money request creation flow is initialized on Global Create, the reportID is not passed as a navigation parameter.
-                // Get the report id from the participants list on the IOU object stored in Onyx.
-                reportID = lodashGet(iou, 'participants.0.reportID', '');
-            }
-            return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+export default compose(
+    withOnyx({
+        iou: {
+            key: ONYXKEYS.IOU,
         },
-    },
-})(MoneyRequestCategoryPage);
+    }),
+    // This is a temporary hack to forward forward iou value to next getter.
+    // There is a problem that with one withOnyx it does not forward value from first to second.
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        report: {
+            key: ({route, iou}) => {
+                let reportID = lodashGet(route, 'params.reportID', '');
+                if (!reportID) {
+                    // When the money request creation flow is initialized on Global Create, the reportID is not passed as a navigation parameter.
+                    // Get the report id from the participants list on the IOU object stored in Onyx.
+                    reportID = lodashGet(iou, 'participants.0.reportID', '');
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            },
+        },
+    }),
+)(MoneyRequestCategoryPage);
