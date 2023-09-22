@@ -264,7 +264,7 @@ function getCategory(transaction) {
  * @return {String}
  */
 function getBillable(transaction) {
-    return lodashGet(transaction, 'billable', '');
+    return lodashGet(transaction, 'billable', false);
 }
 
 /**
