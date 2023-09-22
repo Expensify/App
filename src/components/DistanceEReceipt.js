@@ -42,7 +42,7 @@ function DistanceEReceipt({transaction}) {
                         pointerEvents="none"
                     />
                 </View>
-                <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mv0]}>
+                <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5]}>
                     <ThumbnailImage
                         previewSourceURL={thumbnailSource}
                         style={[styles.w100, styles.h100]}
@@ -50,30 +50,32 @@ function DistanceEReceipt({transaction}) {
                         shouldDynamicallyResize={false}
                     />
                 </View>
-                <View>
+                <View style={styles.mb10}>
                     <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
                     <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
                 </View>
-                {_.map(waypoints, (waypoint, key) => {
-                    const index = TransactionUtils.getWaypointIndex(key);
-                    let descriptionKey = 'distance.waypointDescription.';
-                    if (index === 0) {
-                        descriptionKey += 'start';
-                    } else if (index === _.size(waypoints) - 1) {
-                        descriptionKey += 'finish';
-                    } else {
-                        descriptionKey += 'stop';
-                    }
-                    return (
-                        <View key={key}>
-                            <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
-                            <Text style={styles.eReceiptWaypointAddress}>{waypoint.address || ''}</Text>
-                        </View>
-                    );
-                })}
-                <View>
-                    <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
-                    <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
+                <View style={styles.mb10}>
+                    {_.map(waypoints, (waypoint, key) => {
+                        const index = TransactionUtils.getWaypointIndex(key);
+                        let descriptionKey = 'distance.waypointDescription.';
+                        if (index === 0) {
+                            descriptionKey += 'start';
+                        } else if (index === _.size(waypoints) - 1) {
+                            descriptionKey += 'finish';
+                        } else {
+                            descriptionKey += 'stop';
+                        }
+                        return (
+                            <View key={key}>
+                                <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
+                                <Text style={styles.eReceiptWaypointAddress}>{waypoint.address || ''}</Text>
+                            </View>
+                        );
+                    })}
+                    <View>
+                        <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
+                        <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
+                    </View>
                 </View>
                 <View style={[styles.flexRow, styles.justifyContentBetween]}>
                     <Icon
