@@ -542,6 +542,91 @@ button {
     }
 }
 
+.hub-card {
+    display: flex;
+    flex-wrap: nowrap;
+    border-radius: 16px;
+    padding: 28px;
+    font-weight: 700;
+    cursor: pointer;
+    color: $color-text;
+    background-color: $color-highlightBG;
+
+    &:hover {
+        background-color: darken($color-highlightBG, 1%);
+    }
+
+    .row {
+        display: flex;
+        flex-basis:100%;
+    }
+
+    .left-icon {
+        display: flex;
+        align-items: center;
+        padding-right: 28px;
+
+        img {
+            width: 64px;
+        }
+    }
+
+    .right-icon {
+        display: flex;
+        align-items: center;
+        padding-left: 16px;
+    }
+
+    .submit-button {
+        display: flex;
+        align-items: center;
+        margin-top: 16px;
+        padding-left: 0;
+
+        @include breakpoint($breakpoint-desktop) {
+            margin-top: 0;
+            padding-left: 16px;
+        }
+    }
+
+    .body {
+        display: flex;
+        flex-wrap: nowrap;
+        flex-direction: column;
+        flex-grow: 2;
+    }
+
+    h3.title {
+        font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    }
+
+    h3.title,
+    h4.title {
+        padding: 0;
+        margin: 0;
+
+        &.with-margin {
+            margin: 0 0 4px 0;
+        }
+    }
+
+
+
+    p.description {
+        padding: 0;
+        margin: 0;
+        font-weight: normal;
+
+        &.with-min-height {
+            min-height: 68px;
+
+            @include breakpoint($breakpoint-tablet) {
+                min-height: 48px;
+            }
+        }
+    }
+}
+
 .base-icon {
     width: 20px;
     height: 20px;
