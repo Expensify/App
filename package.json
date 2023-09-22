@@ -48,6 +48,7 @@
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
     "test:e2e": "node tests/e2e/testRunner.js --development",
+    "gh-actions-unused-styles": "./.github/scripts/findUnusedKeys.sh",
     "workflow-test": "./workflow_tests/scripts/runWorkflowTests.sh",
     "workflow-test:generate": "node workflow_tests/utils/preGenerateTest.js"
   },
@@ -232,7 +233,7 @@
     "electron-builder": "24.6.4",
     "eslint": "^7.6.0",
     "eslint-config-airbnb-typescript": "^17.1.0",
-    "eslint-config-expensify": "^2.0.38",
+    "eslint-config-expensify": "^2.0.39",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-jest": "^24.1.0",
     "eslint-plugin-jsdoc": "^46.2.6",

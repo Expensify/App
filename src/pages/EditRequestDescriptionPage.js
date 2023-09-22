@@ -27,6 +27,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => descriptionInputRef.current && descriptionInputRef.current.focus()}
+            testID={EditRequestDescriptionPage.displayName}
         >
             <HeaderWithBackButton title={translate('common.description')} />
             <Form
