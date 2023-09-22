@@ -185,33 +185,29 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     outstandingIOUReports.sort((a, b) => b.iouReportAmount - a.iouReportAmount || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     draftReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     if (isInDefaultMode) {
-        nonArchivedReports.sort(
-            (a, b) => {
-                const stringA = a.lastVisibleActionCreated;
-                const stringB = b.lastVisibleActionCreated;
-                if (stringA < stringB) {
-                        return 1;
-                }
-                if (stringA > stringB) {
-                    return -1;
-                }
-                return a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
+        nonArchivedReports.sort((a, b) => {
+            const stringA = a.lastVisibleActionCreated;
+            const stringB = b.lastVisibleActionCreated;
+            if (stringA < stringB) {
+                return 1;
             }
-        );
+            if (stringA > stringB) {
+                return -1;
+            }
+            return a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
+        });
         // For archived reports ensure that most recent reports are at the top by reversing the order
-        archivedReports.sort(
-            (a, b) => {
-                const stringA = a.lastVisibleActionCreated;
-                const stringB = b.lastVisibleActionCreated;
-                if (stringA < stringB) {
-                        return 1;
-                }
-                if (stringA > stringB) {
-                    return -1;
-                }
-                return 0;
+        archivedReports.sort((a, b) => {
+            const stringA = a.lastVisibleActionCreated;
+            const stringB = b.lastVisibleActionCreated;
+            if (stringA < stringB) {
+                return 1;
             }
-        );
+            if (stringA > stringB) {
+                return -1;
+            }
+            return 0;
+        });
     } else {
         nonArchivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
         archivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
