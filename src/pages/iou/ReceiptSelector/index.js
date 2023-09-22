@@ -1,5 +1,5 @@
 import {View, Text, PixelRatio} from 'react-native';
-import React, {useContext, useState} from 'react';
+import React, {useCallback, useContext, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -22,6 +22,12 @@ import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import Icon from '../../../components/Icon';
+import themeColors from '../../../styles/themes/default';
+import Shutter from '../../../../assets/images/shutter.svg';
+import NavigationAwareCamera from './NavigationAwareCamera';
+import * as Browser from '../../../libs/Browser';
 
 const propTypes = {
     /** The report on which the request is initiated on */
@@ -62,6 +68,8 @@ function ReceiptSelector(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
+    const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
+    const cameraRef = useRef(null);
 
     const hideReciptModal = () => {
         setIsAttachmentInvalid(false);
@@ -122,9 +130,93 @@ function ReceiptSelector(props) {
         IOU.navigateToNextPage(iou, iouType, reportID, report);
     };
 
+    const capturePhoto = useCallback(() => {
+        if (!cameraRef.current.getScreenshot) {
+            return;
+        }
+        const imageB64 = cameraRef.current.getScreenshot();
+        const filename = `receipt_${Date.now()}.png`;
+        const imageFile = FileUtils.base64ToFile(imageB64, filename);
+        const filePath = URL.createObjectURL(imageFile);
+        IOU.setMoneyRequestReceipt(filePath, imageFile.name);
+
+        if (props.transactionID) {
+            IOU.replaceReceipt(props.transactionID, imageFile, filePath);
+            Navigation.dismissModal();
+            return;
+        }
+
+        IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+    }, [cameraRef, props.iou, props.report, reportID, iouType, props.transactionID]);
+
     return (
-        <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
-            {!isDraggingOver ? (
+        <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
+            {!isDraggingOver && Browser.isMobile() && (
+                <>
+                    <View style={[styles.cameraView]}>
+                        {(cameraPermissionState === 'prompt' || cameraPermissionState === 'unknown') && <Text>Give permissions</Text>}
+                        {cameraPermissionState === 'denied' && <Text>Turn on permissions or else</Text>}
+                        <NavigationAwareCamera
+                            onUserMedia={() => setCameraPermissionState('granted')}
+                            onUserMediaError={() => setCameraPermissionState('denied')}
+                            style={{objectFit: 'cover', width: '100%', height: '100%'}}
+                            ref={cameraRef}
+                            screenshotFormat="image/png"
+                        />
+                    </View>
+
+                    <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
+                        <AttachmentPicker>
+                            {({openPicker}) => (
+                                <PressableWithFeedback
+                                    accessibilityLabel={translate('receipt.chooseFile')}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    onPress={() => {
+                                        openPicker({
+                                            onPicked: (file) => {
+                                                setReceiptAndNavigate(file, props.iou, props.report);
+                                            },
+                                        });
+                                    }}
+                                >
+                                    <Icon
+                                        height={32}
+                                        width={32}
+                                        src={Expensicons.Gallery}
+                                        fill={themeColors.textSupporting}
+                                    />
+                                </PressableWithFeedback>
+                            )}
+                        </AttachmentPicker>
+                        <PressableWithFeedback
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.shutter')}
+                            style={[styles.alignItemsCenter]}
+                            onPress={capturePhoto}
+                        >
+                            <Shutter
+                                width={CONST.RECEIPT.SHUTTER_SIZE}
+                                height={CONST.RECEIPT.SHUTTER_SIZE}
+                            />
+                        </PressableWithFeedback>
+                        <PressableWithFeedback
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.flash')}
+                            style={[styles.alignItemsEnd]}
+                            onPress={() => alert('set flash')}
+                        >
+                            <Icon
+                                height={32}
+                                width={32}
+                                src={Expensicons.Bolt}
+                                // fill={flash ? themeColors.iconHovered : themeColors.textSupporting}
+                                fill={themeColors.iconHovered}
+                            />
+                        </PressableWithFeedback>
+                    </View>
+                </>
+            )}
+            {!isDraggingOver && !Browser.isMobile() && (
                 <>
                     <View
                         onLayout={({nativeEvent}) => {
@@ -168,7 +260,7 @@ function ReceiptSelector(props) {
                         )}
                     </AttachmentPicker>
                 </>
-            ) : null}
+            )}
             <ReceiptDropUI
                 onDrop={(e) => {
                     const file = lodashGet(e, ['dataTransfer', 'files', 0]);
@@ -187,6 +279,72 @@ function ReceiptSelector(props) {
             />
         </View>
     );
+
+    // return (
+    //     <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
+    //         {!isDraggingOver ? (
+    //             <>
+    //                 <View
+    //                     onLayout={({nativeEvent}) => {
+    //                         setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top));
+    //                     }}
+    //                 >
+    //                     <ReceiptUpload
+    //                         width={CONST.RECEIPT.ICON_SIZE}
+    //                         height={CONST.RECEIPT.ICON_SIZE}
+    //                     />
+    //                 </View>
+    //                 <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
+    //                 <Text style={[styles.subTextReceiptUpload]}>
+    //                     {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+    //                     <CopyTextToClipboard
+    //                         text={CONST.EMAIL.RECEIPTS}
+    //                         textStyles={[styles.textBlue]}
+    //                     />
+    //                     {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
+    //                 </Text>
+    //                 <AttachmentPicker>
+    //                     {({openPicker}) => (
+    //                         <PressableWithFeedback
+    //                             accessibilityLabel={translate('receipt.chooseFile')}
+    //                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+    //                         >
+    //                             <Button
+    //                                 medium
+    //                                 success
+    //                                 text={translate('receipt.chooseFile')}
+    //                                 style={[styles.p9]}
+    //                                 onPress={() => {
+    //                                     openPicker({
+    //                                         onPicked: (file) => {
+    //                                             setReceiptAndNavigate(file, props.iou, props.report);
+    //                                         },
+    //                                     });
+    //                                 }}
+    //                             />
+    //                         </PressableWithFeedback>
+    //                     )}
+    //                 </AttachmentPicker>
+    //             </>
+    //         ) : null}
+    // <ReceiptDropUI
+    //     onDrop={(e) => {
+    //         const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+    //         setReceiptAndNavigate(file, props.iou, props.report);
+    //     }}
+    //     receiptImageTopPosition={receiptImageTopPosition}
+    // />
+    // <ConfirmModal
+    //     title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+    //     onConfirm={hideReciptModal}
+    //     onCancel={hideReciptModal}
+    //     isVisible={isAttachmentInvalid}
+    //     prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+    //     confirmText={translate('common.close')}
+    //     shouldShowCancelButton={false}
+    // />
+    //     </View>
+    // );
 }
 
 ReceiptSelector.defaultProps = defaultProps;
