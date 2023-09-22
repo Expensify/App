@@ -213,12 +213,13 @@ function ReportActionItem(props) {
         }
 
         setModerationDecision(latestDecision);
-        if (!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], latestDecision)) {
+        if (!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], latestDecision) && !ReportActionsUtils.isPendingRemove(props.action)) {
             setIsHidden(true);
             return;
         }
         setIsHidden(false);
-    }, [latestDecision, props.action.actionName]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [latestDecision, props.action.actionName, latestDecision]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
@@ -353,7 +354,9 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getModifiedExpenseMessage(props.action)} />;
         } else {
-            const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
+            const hasBeenFlagged =
+                !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision) &&
+                !ReportActionsUtils.isPendingRemove(props.action);
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
@@ -489,7 +492,10 @@ function ReportActionItem(props) {
                     report={props.report}
                     iouReport={props.iouReport}
                     isHovered={hovered}
-                    hasBeenFlagged={!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision)}
+                    hasBeenFlagged={
+                        !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision) &&
+                        !ReportActionsUtils.isPendingRemove(props.action)
+                    }
                 >
                     {content}
                 </ReportActionItemSingle>

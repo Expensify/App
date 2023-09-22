@@ -1694,7 +1694,8 @@ function getReportName(report, policy = undefined) {
         }
         if (
             lodashGet(parentReportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
-            lodashGet(parentReportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_HIDDEN
+            lodashGet(parentReportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_HIDDEN ||
+            lodashGet(parentReportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE
         ) {
             return Localize.translateLocal('parentReportAction.hiddenMessage');
         }
@@ -2843,14 +2844,9 @@ function canSeeDefaultRoom(report, policies, betas) {
  * @param {Object} report
  * @param {Array<Object>} policies
  * @param {Array<String>} betas
- * @param {Object} allReportActions
  * @returns {Boolean}
  */
-function canAccessReport(report, policies, betas, allReportActions) {
-    if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report, allReportActions))) {
-        return false;
-    }
-
+function canAccessReport(report, policies, betas) {
     // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
     if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
         return false;
@@ -2883,11 +2879,10 @@ function shouldHideReport(report, currentReportId) {
  * @param {Boolean} isInGSDMode
  * @param {String[]} betas
  * @param {Object} policies
- * @param {Object} allReportActions
  * @param {Boolean} excludeEmptyChats
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, excludeEmptyChats = false) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, excludeEmptyChats = false) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -2908,7 +2903,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return false;
     }
 
-    if (!canAccessReport(report, policies, betas, allReportActions)) {
+    if (!canAccessReport(report, policies, betas)) {
         return false;
     }
 

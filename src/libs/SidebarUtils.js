@@ -129,7 +129,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReportsDict);
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, true));
+    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, true));
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed

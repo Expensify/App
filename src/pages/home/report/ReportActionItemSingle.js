@@ -243,6 +243,7 @@ function ReportActionItemSingle(props) {
                                     delegateAccountID={props.action.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}
+                                    moderationDecision={lodashGet(props.action, 'message[0].moderationDecision.decision')}
                                 />
                             ))}
                         </PressableWithoutFeedback>

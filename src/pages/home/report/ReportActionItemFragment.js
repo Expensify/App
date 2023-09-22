@@ -69,6 +69,9 @@ const propTypes = {
     /** Whether the comment is a thread parent message/the first message in a thread */
     isThreadParentMessage: PropTypes.bool,
 
+    /** Moderation decision of the report action */
+    moderationDecision: PropTypes.string,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -91,6 +94,7 @@ const defaultProps = {
     delegateAccountID: 0,
     actorIcon: {},
     isThreadParentMessage: false,
+    moderationDecision: '',
 };
 
 function ReportActionItemFragment(props) {
@@ -119,6 +123,10 @@ function ReportActionItemFragment(props) {
 
             if ((!props.network.isOffline && props.isThreadParentMessage && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || props.fragment.isDeletedParentAction) {
                 return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
+            }
+
+            if (props.isThreadParentMessage && props.moderationDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+                return <RenderHTML html={`<comment>${props.translate('parentReportAction.hiddenMessage')}</comment>`} />;
             }
 
             // If the only difference between fragment.text and fragment.html is <br /> tags

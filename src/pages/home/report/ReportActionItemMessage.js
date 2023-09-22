@@ -63,6 +63,7 @@ function ReportActionItemMessage(props) {
                         accountID={props.action.actorAccountID}
                         loading={props.action.isLoading}
                         style={props.style}
+                        moderationDecision={lodashGet(props.action, 'message[0].moderationDecision.decision')}
                     />
                 ))
             ) : (
