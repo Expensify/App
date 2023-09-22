@@ -16,10 +16,13 @@ function createBackupTransaction(transaction) {
 }
 
 /**
- * Replaces the original transaction with the backup copy, then deletes the backup
- *
- * @param {String} transactionID of the original transaction to restore
+ * Removes a transaction from Onyx that was only used temporary in the edit flow
+ * @param {String} transactionID
  */
+function removeBackupTransaction(transactionID) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}-backup`, null);
+}
+
 function restoreOriginalTransactionFromBackup(transactionID) {
     const connectionID = Onyx.connect({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}-backup`,
@@ -27,34 +30,10 @@ function restoreOriginalTransactionFromBackup(transactionID) {
             Onyx.disconnect(connectionID);
 
             // Use set to completely overwrite the original transaction
-            Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: backupTransaction,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}-backup`]: null,
-            });
+            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction);
+            removeBackupTransaction(transactionID);
         },
     });
 }
 
-/**
- * Removes a transaction from Onyx that was only used temporary in the edit flow
- * @param {String} transactionID
- */
-function removeBackupOrRestoreOriginalIfErrors(transactionID) {
-    const connectionID = Onyx.connect({
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-        callback: (originalTransaction) => {
-            Onyx.disconnect(connectionID);
-
-            if (_.size(originalTransaction.errorFields)) {
-                // There were errors, so we need to restore the original transaction
-                restoreOriginalTransactionFromBackup(transactionID);
-                return;
-            }
-
-            // Since there were no errors on the original transaction, the backup transaction can be safely removed
-            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}-backup`, null);
-        },
-    });
-}
-
-export {createBackupTransaction, removeBackupOrRestoreOriginalIfErrors, restoreOriginalTransactionFromBackup};
+export {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup};

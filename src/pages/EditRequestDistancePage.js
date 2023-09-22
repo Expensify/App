@@ -44,7 +44,6 @@ const defaultProps = {
 function EditRequestDistancePage({report, route, transaction}) {
     const {translate} = useLocalize();
     const transactionWasSaved = useRef(false);
-    const transactionErrorFields = transaction.errorFields;
 
     useEffect(() => {
         // When the component is mounted, make a backup copy of the original transaction that is stored in onyx
@@ -52,13 +51,14 @@ function EditRequestDistancePage({report, route, transaction}) {
 
         return () => {
             // When the component is unmounted
+            // If the transaction was saved without errors
             // Then remove the backup transaction because it is no longer needed
-            if (transactionWasSaved.current) {
-                TransactionEdit.removeBackupOrRestoreOriginalIfErrors(transaction.transactionID);
+            if (transactionWasSaved.current && !_.size(transaction.errorFields)) {
+                TransactionEdit.removeBackupTransaction(transaction.transactionID);
                 return;
             }
 
-            // If the transaction wasn't saved, then the original transaction
+            // If the transaction had errors, or wasn't saved, then the original transaction
             // needs to be restored or else errors and edited fields will remain in the UI
             TransactionEdit.restoreOriginalTransactionFromBackup(transaction.transactionID);
         };
