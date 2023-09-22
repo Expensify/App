@@ -82,7 +82,7 @@ function IntroSchoolPrincipalPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="IntroSchoolPrincipalPage"
+            testID={IntroSchoolPrincipalPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.introSchoolPrincipal')}

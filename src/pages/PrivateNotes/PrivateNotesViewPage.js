@@ -58,7 +58,7 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="PrivateNotesViewPage"
+            testID={PrivateNotesViewPage.displayName}
         >
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note'])}

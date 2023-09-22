@@ -145,7 +145,7 @@ function NewTaskPage(props) {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID="NewTaskPage"
+            testID={NewTaskPage.displayName}
         >
             <FullPageNotFoundView
                 shouldShow={!isAllowedToCreateTask}

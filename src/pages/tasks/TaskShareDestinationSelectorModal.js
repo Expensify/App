@@ -116,7 +116,7 @@ function TaskShareDestinationSelectorModal(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
-            testID="TaskShareDestinationSelectorModal"
+            testID={TaskShareDestinationSelectorModal.displayName}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>

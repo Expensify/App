@@ -132,7 +132,7 @@ function IOUCurrencySelection(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
-            testID="IOUCurrencySelection"
+            testID={IOUCurrencySelection.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>

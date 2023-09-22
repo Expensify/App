@@ -89,7 +89,7 @@ function BankAccountPlaidStep(props) {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator={false}
-            testID="BankAccountPlaidStep"
+            testID={BankAccountPlaidStep.displayName}
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.connectBankAccount')}

@@ -209,7 +209,7 @@ function TaskAssigneeSelectorModal(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
-            testID="TaskAssigneeeSelectorModal"
+            testID={TaskAssigneeeSelectorModal.displayName}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>

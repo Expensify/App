@@ -160,7 +160,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID="WorkspaceInviteMessagePage"
+                testID={WorkspaceInviteMessagePage.displayName}
             >
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy)}
