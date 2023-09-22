@@ -13,7 +13,6 @@ export default function useAutoFocusInput() {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
 
     const inputRef = useRef(null);
-    // const focusTimeoutRef = useRef(null);
 
     useFocusEffect(
         useCallback(() => {
