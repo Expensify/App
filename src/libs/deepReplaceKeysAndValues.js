@@ -1,9 +1,10 @@
 import _ from 'underscore';
 
 /**
- * @param {Object} obj the object to transform
+ * @param {Object|String|number|boolean} obj the object to transform
  * @param {String} oldVal the value to search for
  * @param {String} newVal the replacement value
+ * @returns {Object|String|number|boolean}
  */
 function deepReplaceKeysAndValues(obj, oldVal, newVal) {
     if (!obj) {
