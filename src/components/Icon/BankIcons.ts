@@ -1,5 +1,4 @@
 import {SvgProps} from 'react-native-svg';
-import {FC} from 'react';
 import * as Expensicons from './Expensicons';
 import AmericanExpress from '../../../assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '../../../assets/images/bankicons/bank-of-america.svg';
@@ -23,7 +22,7 @@ import USAA from '../../../assets/images/bankicons/usaa.svg';
 import variables from '../../styles/variables';
 
 type BankIcon = {
-    icon: FC<SvgProps>;
+    icon: React.FC<SvgProps>;
     iconSize: number;
 };
 
@@ -31,7 +30,7 @@ type BankIcon = {
  * Returns matching asset icon for bankName
  */
 
-function getAssetIcon(bankName: string, isCard: boolean): FC<SvgProps> {
+function getAssetIcon(bankName: string, isCard: boolean): React.FC<SvgProps> {
     if (bankName.includes('americanexpress')) {
         return AmericanExpress;
     }

@@ -1,3 +1,5 @@
+import CONST from '../../CONST';
+
 type AdditionalData = {
     isBillingCard?: boolean;
     isP2PDebitCard?: boolean;
@@ -23,7 +25,7 @@ type AccountData = {
 
 type Fund = {
     accountData?: AccountData;
-    accountType?: string;
+    accountType?: typeof CONST.PAYMENT_METHODS.DEBIT_CARD;
     description?: string;
     key?: string;
     methodID?: number;
