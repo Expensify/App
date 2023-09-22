@@ -1,26 +1,24 @@
-import React, {useCallback, useEffect, useState, useRef, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
+import CONST from '../../../CONST';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import compose from '../../../libs/compose';
-import styles from '../../../styles/styles';
+import {withPersonalDetails} from '../../../components/OnyxProvider';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import useLocalize from '../../../hooks/useLocalize';
+import useReportScrollManager from '../../../hooks/useReportScrollManager';
+import DateUtils from '../../../libs/DateUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Report from '../../../libs/actions/Report';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
-import ReportActionItem from './ReportActionItem';
-import ReportActionItemParentAction from './ReportActionItemParentAction';
+import compose from '../../../libs/compose';
+import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import reportActionPropTypes from './reportActionPropTypes';
-import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
-import useLocalize from '../../../hooks/useLocalize';
-import DateUtils from '../../../libs/DateUtils';
 import FloatingMessageCounter from './FloatingMessageCounter';
-import useReportScrollManager from '../../../hooks/useReportScrollManager';
+import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
+import reportActionPropTypes from './reportActionPropTypes';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 
 const propTypes = {
@@ -299,33 +297,16 @@ function ReportActionsList({
             } else {
                 shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker;
             }
-
-            const shouldDisplayParentAction =
-                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                ReportUtils.isChatThread(report) &&
-                !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
-
-            return shouldDisplayParentAction ? (
-                <ReportActionItemParentAction
-                    shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
-                    reportID={report.reportID}
-                    parentReportID={`${report.parentReportID}`}
-                    shouldDisplayNewMarker={shouldDisplayNewMarker}
-                />
-            ) : (
-                <ReportActionItem
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                    report={report}
-                    action={reportAction}
-                    displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
-                    shouldDisplayNewMarker={shouldDisplayNewMarker}
-                    shouldShowSubscriptAvatar={
-                        (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&
-                        _.contains([CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW], reportAction.actionName)
-                    }
-                    isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
-                    hasOutstandingIOU={hasOutstandingIOU}
+            return (
+                <ReportActionsListItemRenderer
+                    reportAction={reportAction}
                     index={index}
+                    report={report}
+                    hasOutstandingIOU={hasOutstandingIOU}
+                    sortedReportActions={sortedReportActions}
+                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    shouldDisplayNewMarker={shouldDisplayNewMarker}
                 />
             );
         },
