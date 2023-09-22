@@ -3611,9 +3611,6 @@ function getIouReportActionDisplayMessage(reportAction) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
                 translationKey = 'iou.paidElsewhereWithAmount';
                 break;
-            case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-                translationKey = 'iou.paidUsingPaypalWithAmount';
-                break;
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             case CONST.IOU.PAYMENT_TYPE.VBBA:
                 translationKey = 'iou.paidUsingExpensifyWithAmount';
