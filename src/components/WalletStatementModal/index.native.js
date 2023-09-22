@@ -3,12 +3,13 @@ import {WebView} from 'react-native-webview';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {useNavigation} from '@react-navigation/native';
-import ONYXKEYS from '../../ONYXKEYS';
+
 import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import * as Report from '../../libs/actions/Report';
+import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const IOU_ROUTES = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
 const renderLoading = () => <FullScreenLoadingIndicator />;
@@ -16,7 +17,6 @@ const renderLoading = () => <FullScreenLoadingIndicator />;
 function WalletStatementModal({statementPageURL, session}) {
     const webViewRef = useRef();
     const authToken = lodashGet(session, 'authToken', null);
-    const {navigate} = useNavigation();
 
     /**
      * Handles in-app navigation for webview links
@@ -40,11 +40,11 @@ function WalletStatementModal({statementPageURL, session}) {
 
                 if (iouRoute) {
                     webViewRef.current.stopLoading();
-                    navigate(iouRoute);
+                    Navigation.navigate(iouRoute);
                 }
             }
         },
-        [webViewRef, navigate],
+        [webViewRef],
     );
 
     return (
