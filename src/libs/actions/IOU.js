@@ -664,15 +664,16 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
 
     const params = {
-        transactionID,
         ...transactionDetails,
+        transactionID,
         // This needs to be a JSON string since we're sending this to the MapBox API
         waypoints: JSON.stringify(transactionDetails.waypoints),
     };
 
     // Step 3: Build the modified expense report actions
     // We don't create a modified report action if we're updating the waypoints,
-    // since there isn't actually any optimistic data we can create for them.
+    // since there isn't actually any optimistic data we can create for them and the report action is created on the server
+    // with the response from the MapBox API
     if (!_.has(transactionChanges, 'waypoints')) {
         const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
         params.reportActionID = updatedReportAction.reportActionID;
@@ -725,68 +726,69 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
         }
     }
 
-    API.write('UpdateDistanceRequest', params, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                value: {
-                    comment: {
-                        waypoints: null,
-                    },
-                    errorFields: null,
-                },
+    // Optimistically modify the transaction
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {
+            comment: {
+                waypoints: null,
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
-                value: {
-                    pendingFields,
-                    isLoading: true,
-                    errorFields: null,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                value: {
-                    comment: {
-                        waypoints: {
-                            ...transactionDetails.comment.waypoints,
-                        },
-                    },
-                    errorFields: null,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
-                value: {
-                    pendingFields: clearedPendingFields,
-                    isLoading: false,
-                    errorFields: null,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
-                value: {
-                    pendingFields: clearedPendingFields,
-                    isLoading: false,
-                    errorFields,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                value: iouReport,
-            },
-        ],
+            errorFields: null,
+        },
     });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
+        value: {
+            pendingFields,
+            isLoading: true,
+            errorFields: null,
+        },
+    });
+
+    // Clear out the error fields and loading states on success
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {
+            comment: {
+                waypoints: {
+                    ...transactionDetails.comment.waypoints,
+                },
+            },
+            errorFields: null,
+        },
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
+        value: {
+            pendingFields: clearedPendingFields,
+            isLoading: false,
+            errorFields: null,
+        },
+    });
+
+    // Clear out loading states, pending fields, and error fields on failures
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
+        value: {
+            pendingFields: clearedPendingFields,
+            isLoading: false,
+            errorFields,
+        },
+    });
+
+    // Reset the iouReport to it's original state
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+        value: iouReport,
+    });
+
+    API.write('UpdateDistanceRequest', params, {optimisticData, successData, failureData});
 }
 
 /**
