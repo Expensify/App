@@ -50,11 +50,11 @@ function DistanceEReceipt({transaction}) {
                         shouldDynamicallyResize={false}
                     />
                 </View>
-                <View style={styles.mb10}>
+                <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
                     <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
                     <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
                 </View>
-                <View style={styles.mb10}>
+                <View style={[styles.mb10, styles.gap5, styles.ph2]}>
                     {_.map(waypoints, (waypoint, key) => {
                         const index = TransactionUtils.getWaypointIndex(key);
                         let descriptionKey = 'distance.waypointDescription.';
@@ -66,21 +66,24 @@ function DistanceEReceipt({transaction}) {
                             descriptionKey += 'stop';
                         }
                         return (
-                            <View key={key}>
+                            <View
+                                style={styles.gap1}
+                                key={key}
+                            >
                                 <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
                                 <Text style={styles.eReceiptWaypointAddress}>{waypoint.address || ''}</Text>
                             </View>
                         );
                     })}
-                    <View>
+                    <View style={styles.gap1}>
                         <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
                         <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
                     </View>
                 </View>
-                <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                <View style={[styles.ph2, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <Icon
-                        width={154}
-                        height={34}
+                        width={86}
+                        height={19.25}
                         fill={themeColors.textBrand}
                         src={Expensicons.ExpensifyWordmark}
                     />

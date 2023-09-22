@@ -171,6 +171,10 @@ export default {
         marginLeft: -32,
     },
 
+    mt0: {
+        marginTop: 0,
+    },
+
     mt1: {
         marginTop: 4,
     },
