@@ -785,7 +785,6 @@ function updateTheme(theme) {
  * @param {Object} status
  * @param {String} status.text
  * @param {String} status.emojiCode
- * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
  */
 function updateCustomStatus(status) {
     API.write('UpdateStatus', status, {

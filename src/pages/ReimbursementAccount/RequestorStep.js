@@ -119,7 +119,10 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
     }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={RequestorStep.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('requestorStep.headerTitle')}
                 stepCounter={STEP_COUNTER}

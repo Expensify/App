@@ -763,6 +763,9 @@ const CONST = {
     // 6 numeric digits
     VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
 
+    // 8 alphanumeric characters
+    RECOVERY_CODE_REGEX_STRING: /^[a-zA-Z0-9]{8}$/,
+
     // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
@@ -811,6 +814,8 @@ const CONST = {
 
     MAGIC_CODE_LENGTH: 6,
     MAGIC_CODE_EMPTY_CHAR: ' ',
+
+    RECOVERY_CODE_LENGTH: 8,
 
     KEYBOARD_TYPE: {
         PHONE_PAD: 'phone-pad',
@@ -1164,6 +1169,7 @@ const CONST = {
     },
 
     AVATAR_SIZE: {
+        XLARGE: 'xlarge',
         LARGE: 'large',
         MEDIUM: 'medium',
         DEFAULT: 'default',
@@ -1312,9 +1318,9 @@ const CONST = {
     },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
-    MAX_COMMENT_LENGTH: 15000,
+    MAX_COMMENT_LENGTH: 10000,
 
-    // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
+    // Use the same value as MAX_COMMENT_LENGTH to ensure the entire comment is parsed. Note that applying markup is very resource-consuming.
     MAX_MARKUP_LENGTH: 10000,
 
     MAX_THREAD_REPLIES_PREVIEW: 99,
@@ -1358,6 +1364,8 @@ const CONST = {
         DATE: 'date',
         DESCRIPTION: 'description',
         MERCHANT: 'merchant',
+        CATEGORY: 'category',
+        RECEIPT: 'receipt',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -2638,6 +2646,7 @@ const CONST = {
     INDENTS: '    ',
     PARENT_CHILD_SEPARATOR: ': ',
     CATEGORY_LIST_THRESHOLD: 8,
+    TAG_LIST_THRESHOLD: 8,
     DEMO_PAGES: {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',
@@ -2655,6 +2664,12 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
+    },
+    HORIZONTAL_SPACER: {
+        DEFAULT_BORDER_BOTTOM_WIDTH: 1,
+        DEFAULT_MARGIN_VERTICAL: 8,
+        HIDDEN_MARGIN_VERTICAL: 0,
+        HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
 } as const;
 

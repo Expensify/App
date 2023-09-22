@@ -87,7 +87,9 @@ function getChatType(report) {
  * @returns {Object}
  */
 function getPolicy(policyID) {
-    if (!allPolicies || !policyID) return {};
+    if (!allPolicies || !policyID) {
+        return {};
+    }
     return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] || {};
 }
 
@@ -248,7 +250,7 @@ function isReportManager(report) {
  * @returns {Boolean}
  */
 function isReportApproved(report) {
-    return report && report.statusNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
+    return report && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
 /**
@@ -272,7 +274,9 @@ function sortReportsByLastRead(reports) {
  * @returns {Boolean}
  */
 function isSettled(reportID) {
-    if (!allReports) return false;
+    if (!allReports) {
+        return false;
+    }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
     if ((typeof report === 'object' && Object.keys(report).length === 0) || report.isWaitingOnBankAccount) {
         return false;
@@ -843,8 +847,30 @@ function hasAutomatedExpensifyAccountIDs(accountIDs) {
  * @returns {Array}
  */
 function getReportRecipientAccountIDs(report, currentLoginAccountID) {
-    const participantAccountIDs = isTaskReport(report) ? [report.managerID] : lodashGet(report, 'participantAccountIDs');
-    const reportParticipants = _.without(participantAccountIDs, currentLoginAccountID);
+    let finalReport = report;
+    // In 1:1 chat threads, the participants will be the same as parent report. If a report is specifically a 1:1 chat thread then we will
+    // get parent report and use its participants array.
+    if (isThread(report) && !(isTaskReport(report) || isMoneyRequestReport(report))) {
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        if (hasSingleParticipant(parentReport)) {
+            finalReport = parentReport;
+        }
+    }
+
+    let finalParticipantAccountIDs = [];
+    if (isMoneyRequestReport(report)) {
+        // For money requests i.e the IOU (1:1 person) and Expense (1:* person) reports, use the full `initialParticipantAccountIDs` array
+        // and add the `ownerAccountId`. Money request reports don't add `ownerAccountId` in `participantAccountIDs` array
+        finalParticipantAccountIDs = _.union(lodashGet(finalReport, 'participantAccountIDs'), [report.ownerAccountID]);
+    } else if (isTaskReport(report)) {
+        // Task reports `managerID` will change when assignee is changed, in that case the old `managerID` is still present in `participantAccountIDs`
+        // array along with the new one. We only need the `managerID` as a participant here.
+        finalParticipantAccountIDs = [report.managerID];
+    } else {
+        finalParticipantAccountIDs = lodashGet(finalReport, 'participantAccountIDs');
+    }
+
+    const reportParticipants = _.without(finalParticipantAccountIDs, currentLoginAccountID);
     const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
     return participantsWithoutExpensifyAccountIDs;
 }
@@ -921,23 +947,31 @@ function getIconsForParticipants(participants, personalDetails) {
     for (let i = 0; i < participantsList.length; i++) {
         const accountID = participantsList[i];
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
-        participantDetails.push([
-            accountID,
-            lodashGet(personalDetails, [accountID, 'displayName']) || lodashGet(personalDetails, [accountID, 'login'], ''),
-            lodashGet(personalDetails, [accountID, 'firstName'], ''),
-            avatarSource,
-        ]);
+        const displayNameLogin = lodashGet(personalDetails, [accountID, 'displayName']) || lodashGet(personalDetails, [accountID, 'login'], '');
+        participantDetails.push([accountID, displayNameLogin, avatarSource]);
     }
 
-    // Sort all logins by first name (which is the second element in the array)
-    const sortedParticipantDetails = participantDetails.sort((a, b) => a[2] - b[2]);
+    const sortedParticipantDetails = _.chain(participantDetails)
+        .sort((first, second) => {
+            // First sort by displayName/login
+            const displayNameLoginOrder = first[1].localeCompare(second[1]);
+            if (displayNameLoginOrder !== 0) {
+                return displayNameLoginOrder;
+            }
 
-    // Now that things are sorted, gather only the avatars (third element in the array) and return those
+            // Then fallback on accountID as the final sorting criteria.
+            // This will ensure that the order of avatars with same login/displayName
+            // stay consistent across all users and devices
+            return first[0] > second[0];
+        })
+        .value();
+
+    // Now that things are sorted, gather only the avatars (second element in the array) and return those
     const avatars = [];
     for (let i = 0; i < sortedParticipantDetails.length; i++) {
         const userIcon = {
             id: sortedParticipantDetails[i][0],
-            source: sortedParticipantDetails[i][3],
+            source: sortedParticipantDetails[i][2],
             type: CONST.ICON_TYPE_AVATAR,
             name: sortedParticipantDetails[i][1],
         };
@@ -1470,7 +1504,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
-        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
+        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerName});
     }
 
     if (report.isWaitingOnBankAccount) {
@@ -1613,6 +1647,29 @@ function getParentReport(report) {
         return {};
     }
     return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
+}
+
+/**
+ * Returns the root parentReport if the given report is nested.
+ * Uses recursion to iterate any depth of nested reports.
+ *
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getRootParentReport(report) {
+    if (!report) {
+        return {};
+    }
+
+    // Returns the current report as the root report, because it does not have a parentReportID
+    if (!report.parentReportID) {
+        return report;
+    }
+
+    const parentReport = getReport(report.parentReportID);
+
+    // Runs recursion to iterate a parent report
+    return getRootParentReport(parentReport);
 }
 
 /**
@@ -1791,7 +1848,7 @@ function hasReportNameError(report) {
 }
 
 /**
- * For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+ * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  *
  * @param {String} text
@@ -1799,7 +1856,7 @@ function hasReportNameError(report) {
  */
 function getParsedComment(text) {
     const parser = new ExpensiMark();
-    return text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : _.escape(text);
+    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : _.escape(text);
 }
 
 /**
@@ -2620,11 +2677,12 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @param {String} parentReportID - Report ID of the chat where the Task is.
  * @param {String} title - Task title.
  * @param {String} description - Task description.
+ * @param {String | undefined} policyID - PolicyID of the parent report
  *
  * @returns {Object}
  */
 
-function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parentReportID, title, description) {
+function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parentReportID, title, description, policyID = undefined) {
     return {
         reportID: generateReportID(),
         reportName: title,
@@ -2636,6 +2694,7 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
         parentReportID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS.OPEN,
+        ...(_.isUndefined(policyID) ? {} : {policyID}),
     };
 }
 
@@ -3648,6 +3707,7 @@ export {
     isAllowedToComment,
     getBankAccountRoute,
     getParentReport,
+    getRootParentReport,
     getTaskParentReportActionIDInAssigneeReport,
     getReportPreviewMessage,
     getModifiedExpenseMessage,
