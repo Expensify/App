@@ -5,7 +5,6 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import Clipboard from '../../../../libs/Clipboard';
 import useLocalize from '../../../../hooks/useLocalize';
-import styles from '../../../../styles/styles';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
 
@@ -104,7 +103,6 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
                 description={translate('walletPage.cardDetails.address')}
                 title={getFormattedAddress()}
                 interactive={false}
-                wrapperStyle={styles.pb1}
             />
         </>
     );
