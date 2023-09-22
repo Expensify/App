@@ -730,6 +730,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
+            ...updatedTransaction,
             pendingFields,
             isLoading: true,
             errorFields: null,
