@@ -1,6 +1,6 @@
 import React, {useState, useRef} from 'react';
 import PropTypes from 'prop-types';
-import {View, Keyboard} from 'react-native';
+import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
@@ -78,6 +78,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
 
     return (
         <ScreenWrapper
+            shouldEnableMaxHeight
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(privateNotesInput.current)}
             testID={PrivateNotesEditPage.displayName}
