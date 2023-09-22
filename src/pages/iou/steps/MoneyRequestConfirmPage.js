@@ -74,6 +74,7 @@ function MoneyRequestConfirmPage(props) {
             }),
         [props.iou.participants, props.personalDetails],
     );
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
@@ -325,7 +326,8 @@ function MoneyRequestConfirmPage(props) {
                                 receiptPath={props.iou.receiptPath}
                                 receiptSource={props.iou.receiptSource}
                                 iouType={iouType.current}
-                                reportID={reportID.current || lodashGet(props.iou, 'participants.0.reportID', '')}
+                                reportID={reportID.current}
+                                isPolicyExpenseChat={isPolicyExpenseChat}
                                 // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
                                 // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
                                 // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
