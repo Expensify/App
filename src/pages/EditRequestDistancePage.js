@@ -46,7 +46,7 @@ function EditRequestDistancePage({report, route, transaction}) {
 
     // This temporary transaction will be the one that all changes are made to. This keeps the original transaction unmodified until
     // the user takes an explicit action to save it.
-    const transactionIDToApplyChangesTo = useRef(TransactionEdit.createTemporaryTransaction(transaction), [transaction]);
+    const transactionIDToApplyChangesTo = useRef(TransactionEdit.createTemporaryTransaction(transaction));
 
     useEffect(
         () => () => {

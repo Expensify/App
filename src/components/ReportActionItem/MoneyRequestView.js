@@ -187,7 +187,6 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                 shouldShow={shouldShowHorizontalRule}
                 style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
             />
-            {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
 }
