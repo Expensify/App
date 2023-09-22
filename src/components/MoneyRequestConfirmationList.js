@@ -138,7 +138,7 @@ const propTypes = {
     isDistanceRequest: PropTypes.bool,
 
     /** A flag for verifying that the current report is a workspace */
-    isPolicyExpenseChat: PropTypes.bool.isRequired,
+    isPolicyExpenseChat: PropTypes.bool,
 
     /* Onyx Props */
     /** Collection of categories attached to a policy */
@@ -181,6 +181,7 @@ const defaultProps = {
     transaction: {},
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
     isDistanceRequest: false,
+    isPolicyExpenseChat: false,
 };
 
 function MoneyRequestConfirmationList(props) {
