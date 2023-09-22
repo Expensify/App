@@ -15,6 +15,7 @@ import useLocalize from '../hooks/useLocalize';
 import Icon from './Icon';
 import themeColors from '../styles/themes/default';
 import * as Expensicons from './Icon/Expensicons';
+import EReceiptBackground from '../../assets/images/eReceipt_background.svg';
 
 const propTypes = {
     /** The transaction for the eReceipt */
@@ -33,8 +34,14 @@ function EReceipt({transaction}) {
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     return (
-        <View style={styles.ph5}>
-            <View style={[styles.p5, styles.pb8]}>
+        <View style={[styles.flex1, styles.ph5, styles.pv5]}>
+            <View style={styles.eReceiptPanel}>
+                <View style={styles.eReceiptBackgroundContainer}>
+                    <EReceiptBackground
+                        style={styles.eReceiptBackground}
+                        pointerEvents="none"
+                    />
+                </View>
                 <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mv0]}>
                     <ThumbnailImage
                         previewSourceURL={thumbnailSource}
@@ -43,8 +50,10 @@ function EReceipt({transaction}) {
                         shouldDynamicallyResize={false}
                     />
                 </View>
-                <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
-                <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
+                <View>
+                    <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
+                    <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
+                </View>
                 {_.map(waypoints, (waypoint, key) => {
                     const index = TransactionUtils.getWaypointIndex(key);
                     let descriptionKey = 'distance.waypointDescription.';
@@ -56,14 +65,16 @@ function EReceipt({transaction}) {
                         descriptionKey += 'stop';
                     }
                     return (
-                        <View>
+                        <View key={key}>
                             <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
                             <Text style={styles.eReceiptWaypointAddress}>{waypoint.address || ''}</Text>
                         </View>
                     );
                 })}
-                <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
-                <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
+                <View>
+                    <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
+                    <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
+                </View>
                 <View style={[styles.flexRow, styles.justifyContentBetween]}>
                     <Icon
                         width={154}

@@ -83,6 +83,7 @@ const darkTheme = {
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
     textBrand: colors.green400,
+    panelBackground: colors.green800,
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {

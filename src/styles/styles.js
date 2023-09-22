@@ -3588,6 +3588,34 @@ const styles = (theme) => ({
         color: theme.textColorfulBackground,
     },
 
+    eReceiptBackgroundContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    eReceiptBackground: {
+        ...sizing.w100,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        minHeight: 540,
+    },
+
+    eReceiptPanel: {
+        ...spacing.p5,
+        ...spacing.pb8,
+        ...flex.flex1,
+        backgroundColor: theme.panelBackground,
+        borderRadius: 20,
+    },
+
     loginHeroBody: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSignInHeroBody,
