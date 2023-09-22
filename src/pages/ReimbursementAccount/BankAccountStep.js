@@ -91,7 +91,10 @@ function BankAccountStep(props) {
     }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="BankAccountStep"
+        >
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.connectBankAccount')}

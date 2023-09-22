@@ -180,6 +180,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             shouldEnableMaxHeight
+            testID="WaypointEditor"
         >
             <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount) && isFocused}>
                 <HeaderWithBackButton
