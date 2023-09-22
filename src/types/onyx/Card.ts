@@ -10,8 +10,8 @@ type Card = {
     bank: string;
     availableSpend: number;
     domainName: string;
-    maskedPan: string; // do not reference, removing as part of Expensify/App#27943
-    lastFourPAN: string;
+    maskedPan?: string; // do not reference, removing as part of Expensify/App#27943
+    lastFourPAN?: string;
     cardName: string;
     isVirtual: boolean;
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
