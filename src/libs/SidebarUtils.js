@@ -190,10 +190,10 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
                 const stringA = a.lastVisibleActionCreated;
                 const stringB = b.lastVisibleActionCreated;
                 if (stringA < stringB) {
-                        return -1;
+                        return 1;
                 }
                 if (stringA > stringB) {
-                    return 1;
+                    return -1;
                 }
                 return a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
             }
@@ -204,10 +204,10 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
                 const stringA = a.lastVisibleActionCreated;
                 const stringB = b.lastVisibleActionCreated;
                 if (stringA < stringB) {
-                        return -1;
+                        return 1;
                 }
                 if (stringA > stringB) {
-                    return 1;
+                    return -1;
                 }
                 return 0;
             }
