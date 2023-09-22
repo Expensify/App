@@ -2,6 +2,8 @@ import {useEffect, useState, useCallback} from 'react';
 import {AccessibilityInfo, LayoutChangeEvent} from 'react-native';
 import moveAccessibilityFocus from './moveAccessibilityFocus';
 
+type HitSlop = {x: number; y: number};
+
 const useScreenReaderStatus = (): boolean => {
     const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
     useEffect(() => {
@@ -15,7 +17,7 @@ const useScreenReaderStatus = (): boolean => {
     return isScreenReaderEnabled;
 };
 
-const getHitSlopForSize = ({x, y}: {x: number; y: number}) => {
+const getHitSlopForSize = ({x, y}: HitSlop) => {
     /* according to https://developer.apple.com/design/human-interface-guidelines/ios/visual-design/adaptivity-and-layout/
     the minimum tappable area is 44x44 points */
     const minimumSize = 44;
