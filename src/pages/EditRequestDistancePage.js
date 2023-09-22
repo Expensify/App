@@ -43,30 +43,34 @@ const defaultProps = {
 
 function EditRequestDistancePage({report, route, transaction}) {
     const {translate} = useLocalize();
+    const transactionWasSaved = useRef(false);
 
-    // This temporary transaction will be the one that all changes are made to. This keeps the original transaction unmodified until
-    // the user takes an explicit action to save it.
-    const transactionIDToApplyChangesTo = useRef(TransactionEdit.createTemporaryTransaction(transaction));
+    useEffect(() => {
+        // When the component is mounted, make a backup copy of the original transaction that is stored in onyx
+        TransactionEdit.createBackupTransaction(transaction);
 
-    useEffect(
-        () => () => {
-            // When this component is unmounted, the temporary transaction is removed.
-            // This works for both saving a transaction or cancelling out of the flow somehow.
-            TransactionEdit.removeTemporaryTransaction(transactionIDToApplyChangesTo.current);
-            TransactionEdit.stopErrorSync();
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        },
-        [],
-    );
+        return () => {
+            if (transactionWasSaved.current) {
+                console.log('[tim] transaction saved; deleting backup');
+                TransactionEdit.removeBackupTransaction(transaction.transactionID);
+                return;
+            }
+            console.log('[tim] transaction was not saved; restoring from backup');
+
+            // When this component is unmounted, if the transaction has not been saved yet
+            // restore the original transaction because the user is canceling out of the modal
+            TransactionEdit.restoreOriginalTransactionFromBackup(transaction.transactionID);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     /**
      * Save the changes to the original transaction object
      * @param {Object} waypoints
      */
     const saveTransaction = (waypoints) => {
-        TransactionEdit.startErrorSync(transaction.transactionID, transactionIDToApplyChangesTo.current);
-        // Pass the transactionID of the original transaction so that is updated on the server
-        IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints}, transactionIDToApplyChangesTo.current);
+        transactionWasSaved.current = true;
+        IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints}, transaction.transactionID);
     };
 
     return (
@@ -82,7 +86,7 @@ function EditRequestDistancePage({report, route, transaction}) {
                 report={report}
                 route={route}
                 // Pass the ID of the cloned transaction so that the original transaction is not being changed
-                transactionID={transactionIDToApplyChangesTo.current}
+                transactionID={transaction.transactionID}
                 onSubmit={saveTransaction}
                 isEditingRequest
             />

@@ -640,10 +640,9 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {Number} [transactionChanges.amount]
  * @param {Object} [transactionChanges.comment]
  * @param {Object} [transactionChanges.waypoints]
- * @param {String} temporaryTransactionID the ID of the transaction that all of the edits were changed to. This is needed because it is what determines the loading state of the save button in DistanceRequest
  *
  */
-function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges, temporaryTransactionID) {
+function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
     const optimisticData = [];
     const successData = [];
     const failureData = [];
@@ -724,22 +723,25 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                 value: {pendingAction: null},
             });
         }
+    } else {
+        // If waypoints are being edited then the success data needs to overwrite the comments
+        // successData.push({
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        //     value: {
+        //         comment: {
+        //             waypoints: {
+        //                 ...transactionDetails.comment.waypoints,
+        //             },
+        //         },
+        //     },
+        // });
     }
 
     // Optimistically modify the transaction
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-        value: {
-            comment: {
-                waypoints: null,
-            },
-            errorFields: null,
-        },
-    });
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
         value: {
             pendingFields,
             isLoading: true,
@@ -757,23 +759,16 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                     ...transactionDetails.comment.waypoints,
                 },
             },
-            errorFields: null,
-        },
-    });
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
-        value: {
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
         },
     });
 
-    // Clear out loading states, pending fields, and error fields on failures
+    // Clear out loading states, pending fields, and add the error fields
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${temporaryTransactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
             pendingFields: clearedPendingFields,
             isLoading: false,
