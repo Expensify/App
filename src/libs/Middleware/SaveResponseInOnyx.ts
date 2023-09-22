@@ -1,20 +1,15 @@
-import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as MemoryOnlyKeys from '../actions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as OnyxUpdates from '../actions/OnyxUpdates';
+import Middleware from './types';
 
 // If we're executing any of these requests, we don't need to trigger our OnyxUpdates flow to update the current data even if our current value is out of
 // date because all these requests are updating the app to the most current state.
 const requestsToIgnoreLastUpdateID = ['OpenApp', 'ReconnectApp', 'GetMissingOnyxMessages'];
 
-/**
- * @param {Promise} requestResponse
- * @param {Object} request
- * @returns {Promise}
- */
-function SaveResponseInOnyx(requestResponse, request) {
-    return requestResponse.then((response) => {
+const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
+    requestResponse.then((response) => {
         // Make sure we have response data (i.e. response isn't a promise being passed down to us by a failed retry request and response undefined)
         if (!response) {
             return;
@@ -28,7 +23,7 @@ function SaveResponseInOnyx(requestResponse, request) {
         }
 
         // If there is an OnyxUpdate for using memory only keys, enable them
-        _.find(onyxUpdates, ({key, value}) => {
+        onyxUpdates?.find(({key, value}) => {
             if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS || !value) {
                 return false;
             }
@@ -39,13 +34,13 @@ function SaveResponseInOnyx(requestResponse, request) {
 
         const responseToApply = {
             type: CONST.ONYX_UPDATE_TYPES.HTTPS,
-            lastUpdateID: Number(response.lastUpdateID || 0),
-            previousUpdateID: Number(response.previousUpdateID || 0),
+            lastUpdateID: Number(response.lastUpdateID ?? 0),
+            previousUpdateID: Number(response.previousUpdateID ?? 0),
             request,
             response,
         };
 
-        if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response.previousUpdateID || 0))) {
+        if (requestsToIgnoreLastUpdateID.includes(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response.previousUpdateID ?? 0))) {
             return OnyxUpdates.apply(responseToApply);
         }
 
@@ -58,6 +53,5 @@ function SaveResponseInOnyx(requestResponse, request) {
             shouldPauseQueue: true,
         });
     });
-}
 
 export default SaveResponseInOnyx;
