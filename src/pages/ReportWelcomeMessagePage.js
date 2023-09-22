@@ -62,6 +62,7 @@ function ReportWelcomeMessagePage(props) {
                 }
                 focusAndUpdateMultilineInputRange(welcomeMessageInputRef.current);
             }}
+            testID="ReportWelcomeMessagePage"
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>

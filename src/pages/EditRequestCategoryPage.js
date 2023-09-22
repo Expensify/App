@@ -30,6 +30,7 @@ function EditRequestCategoryPage({defaultCategory, policyID, onSubmit}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID="EditRequestCategoryPage"
         >
             <HeaderWithBackButton
                 title={translate('common.category')}

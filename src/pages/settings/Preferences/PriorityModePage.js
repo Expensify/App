@@ -46,7 +46,10 @@ function PriorityModePage(props) {
     );
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="PriorityModePage"
+        >
             <HeaderWithBackButton
                 title={props.translate('priorityModePage.priorityMode')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}

@@ -81,7 +81,10 @@ function IntroSchoolPrincipalPage(props) {
     );
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="IntroSchoolPrincipalPage"
+        >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
