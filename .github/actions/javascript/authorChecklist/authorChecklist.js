@@ -4,6 +4,7 @@ const https = require('https');
 const _ = require('underscore');
 const GithubUtils = require('../../../libs/GithubUtils');
 const CONST = require('../../../libs/CONST');
+const newComponentCategory = require('./newComponentCategory');
 
 const pathToAuthorChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md';
 const checklistStartsWith = '### PR Author Checklist';
@@ -11,10 +12,9 @@ const checklistEndsWith = '### Screenshots/Videos';
 
 const prNumber = github.context.payload.pull_request.number;
 
-const typeScriptChecklistItems = ['Make sure types pass'];
 
 const CHECKLIST_CATEGORIES = {
-    TS: typeScriptChecklistItems,
+    NEW_COMPONENT: newComponentCategory
 };
 
 /**
@@ -31,14 +31,12 @@ async function getChecklistCategoriesForPullRequest() {
         per_page: 100,
     });
 
-    if (
-        _.some(
-            _.map(changedFiles, (file) => file.filename),
-            (filename) => filename.endsWith('.ts') || filename.endsWith('.tsx'),
-        )
-    ) {
-        categories.push(CHECKLIST_CATEGORIES.TS);
-    }
+    _.each(CHECKLIST_CATEGORIES, ({ detectFunction, items }) => {
+        if (!detectFunction(changedFiles)) {
+            return;
+        }
+        categories.push(items);
+    });
 
     // TODO add more if statements to look for other dynamic checklist categories
 
@@ -46,6 +44,7 @@ async function getChecklistCategoriesForPullRequest() {
 }
 
 /**
+ * Takes string in markdown, and divides it's content by two contant markers.
  *
  * @param {String} body
  * @returns {[String, String, String]}
