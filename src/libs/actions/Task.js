@@ -921,7 +921,7 @@ function clearEditTaskErrors(reportID) {
 function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
     const report = ReportUtils.getReport(reportID);
     if (isCreateTaskAction) {
-        return `task for ${title} ${report.reportName}`;
+        return `task for ${report.reportName}`;
     }
     let taskStatusText = '';
     switch (actionName) {
