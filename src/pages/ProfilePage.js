@@ -162,6 +162,7 @@ function ProfilePage(props) {
                                 source={UserUtils.getFullSizeAvatar(avatar, accountID)}
                                 isAuthTokenRequired
                                 originalFileName={originalFileName}
+                                fallbackSource={fallbackIcon}
                             >
                                 {({show}) => (
                                     <PressableWithoutFocus

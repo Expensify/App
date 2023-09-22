@@ -480,6 +480,7 @@ function deleteAvatar() {
             value: {
                 [currentUserAccountID]: {
                     avatar: defaultAvatar,
+                    fallbackIcon: null,
                 },
             },
         },
@@ -491,6 +492,7 @@ function deleteAvatar() {
             value: {
                 [currentUserAccountID]: {
                     avatar: allPersonalDetails[currentUserAccountID].avatar,
+                    fallbackIcon: allPersonalDetails[currentUserAccountID].fallbackIcon,
                 },
             },
         },

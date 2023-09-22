@@ -296,6 +296,7 @@ class AvatarWithImagePicker extends React.Component {
                         headerTitle={this.props.headerTitle}
                         source={this.props.previewSource}
                         originalFileName={this.props.originalFileName}
+                        fallbackSource={this.props.fallbackIcon}
                     >
                         {({show}) => (
                             <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
