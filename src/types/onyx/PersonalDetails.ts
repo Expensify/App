@@ -35,10 +35,10 @@ type PersonalDetails = {
     /** Timezone of the current user from their personal details */
     timezone?: {
         /** Value of selected timezone */
-        selected?: string;
+        selected: string;
 
         /** Whether timezone is automatically set */
-        automatic?: boolean;
+        automatic: boolean;
     };
 };
 
