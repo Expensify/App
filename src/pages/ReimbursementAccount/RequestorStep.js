@@ -15,12 +15,15 @@ import ONYXKEYS from '../../ONYXKEYS';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
 import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import StepPropTypes from './StepPropTypes';
 import useLocalize from '../../hooks/useLocalize';
-import {withLocalizePropTypes} from '../../components/withLocalize';
+import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
+import ReimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
-    ..._.omit(StepPropTypes, _.keys(withLocalizePropTypes)),
+    onBackButtonPress: PropTypes.func.isRequired,
+    getDefaultStateForField: PropTypes.func.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccountDraft: ReimbursementAccountDraftPropTypes.isRequired,
 
     /** If we should show Onfido flow */
     shouldShowOnfido: PropTypes.bool.isRequired,
