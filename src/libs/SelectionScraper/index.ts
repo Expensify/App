@@ -10,6 +10,7 @@ const tagAttribute = 'data-testid';
 
 /**
  * Reads html of selection. If browser doesn't support Selection API, returns empty string.
+ * @returns HTML of selection as String
  */
 const getHTMLOfSelection = (): string => {
     // If browser doesn't support Selection API, return an empty string.
