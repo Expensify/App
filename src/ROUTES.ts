@@ -48,7 +48,6 @@ export default {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_ADD_PAYPAL_ME: 'settings/wallet/add-paypal-me',
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
@@ -140,8 +139,8 @@ export default {
     SEARCH: 'search',
     TEACHERS_UNITE: 'teachersunite',
     I_KNOW_A_TEACHER: 'teachersunite/i-know-a-teacher',
-    INTRO_SCHOOL_PRINCIPAL: 'teachersunite/intro-school-principal',
     I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',
+    INTRO_SCHOOL_PRINCIPAL: 'teachersunite/intro-school-principal',
     DETAILS: 'details',
     getDetailsRoute: (login: string) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',
@@ -172,6 +171,14 @@ export default {
     APPLE_SIGN_IN: 'sign-in-with-apple',
     GOOGLE_SIGN_IN: 'sign-in-with-google',
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
+
+    // Routes related to private notes added to the report
+    PRIVATE_NOTES_VIEW: 'r/:reportID/notes/:accountID',
+    getPrivateNotesViewRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}`,
+    PRIVATE_NOTES_LIST: 'r/:reportID/notes',
+    getPrivateNotesListRoute: (reportID: string) => `r/${reportID}/notes`,
+    PRIVATE_NOTES_EDIT: 'r/:reportID/notes/:accountID/edit',
+    getPrivateNotesEditRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`,
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.

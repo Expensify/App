@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
 import {cleanup, screen} from '@testing-library/react-native';
 import lodashGet from 'lodash/get';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
-import wrapOnyxWithWaitForPromisesToResolve from '../utils/wrapOnyxWithWaitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
@@ -34,8 +34,8 @@ describe('Sidebar', () => {
     );
 
     beforeEach(() => {
-        // Wrap Onyx each onyx action with waitForPromiseToResolve
-        wrapOnyxWithWaitForPromisesToResolve(Onyx);
+        // Wrap Onyx each onyx action with waitForBatchedUpdates
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
         return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
@@ -59,7 +59,7 @@ describe('Sidebar', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -102,7 +102,7 @@ describe('Sidebar', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
-                waitForPromisesToResolve()
+                waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
