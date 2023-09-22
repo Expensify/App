@@ -55,6 +55,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const [headerTitle, setHeaderTitle] = useState();
     const transaction = TransactionUtils.getTransaction(iou.transactionID);
     const isEmptyWaypoint = _.isEmpty(lodashGet(transaction, 'comment.waypoint.waypoint0', {}));
+    const shouldNavigateBack = !isDistanceRequest || (isDistanceRequest && isEmptyWaypoint)
 
     useEffect(() => {
         if (isDistanceRequest) {
@@ -78,7 +79,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing
-            if (iou.id && (!isDistanceRequest || (isDistanceRequest && isEmptyWaypoint)) && !isSplitRequest && !isNewReportIDSelectedLocally.current) {
+            if (iou.id && shouldNavigateBack && !isSplitRequest && !isNewReportIDSelectedLocally.current) {
                 navigateBack(true);
             }
             return;
@@ -90,7 +91,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
-        if ((!isDistanceRequest || (isDistanceRequest && isEmptyWaypoint)) && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
+        if (shouldNavigateBack && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
             navigateBack(true);
         }
 
