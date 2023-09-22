@@ -6,11 +6,22 @@ import useNetwork from '../../../../hooks/useNetwork';
 import ListHeaderComponentLoader from './ListHeaderComponentLoader/ListHeaderComponentLoader';
 
 const propTypes = {
-    type: PropTypes.string.isRequired,
+    /** type of rendered loader. Can be 'header' or 'footer' */
+    type: PropTypes.oneOf([CONST.LIST_COMPONENTS.HEADER, CONST.LIST_COMPONENTS.FOOTER]).isRequired,
+
+    /** Shows if we call fetching older report action */
     isLoadingOlderReportActions: PropTypes.bool,
+
+    /* Shows if we call initial loading of report action */
     isLoadingInitialReportActions: PropTypes.bool,
+
+    /** Shows if we call fetching newer report action */
     isLoadingNewerReportActions: PropTypes.bool,
+
+    /** Height of the skeleton view */
     skeletonViewHeight: PropTypes.number,
+
+    /** Name of the last report action */
     lastReportActionName: PropTypes.string,
 };
 
@@ -38,7 +49,7 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
             return (
                 <ReportActionsSkeletonView
                     containerHeight={skeletonViewHeight}
-                    animate={!isOffline}
+                    shouldAnimate={!isOffline}
                 />
             );
         }
