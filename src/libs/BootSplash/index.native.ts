@@ -3,7 +3,7 @@ import Log from '../Log';
 
 const BootSplash = NativeModules.BootSplash;
 
-function hide() {
+function hide(): Promise<void> {
     Log.info('[BootSplash] hiding splash screen', false);
     return BootSplash.hide();
 }
