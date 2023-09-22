@@ -24,6 +24,7 @@ function StepWrapper({
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+            testID={StepWrapper.displayName}
         >
             <AnimatedStep
                 style={[styles.flex1]}

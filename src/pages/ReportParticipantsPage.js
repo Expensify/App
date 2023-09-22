@@ -99,7 +99,10 @@ function ReportParticipantsPage(props) {
     }));
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ReportParticipantsPage.displayName}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || ReportUtils.isArchivedRoom(props.report)}>
                     <HeaderWithBackButton
