@@ -13,7 +13,7 @@ const defaultSubRouteOptions = {
 /**
  * Create a modal stack navigator with an array of sub-screens.
  *
- * @param {Object[]} screens array of screen config objects
+ * @param {Object} screens key/value pairs where the key is the name of the screen and the value is a functon that returns the lazy-loaded component
  * @returns {Function}
  */
 function createModalStackNavigator(screens) {
