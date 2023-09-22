@@ -115,9 +115,6 @@ function OptionRowLHN(props) {
         useCallback(() => {
             isFocusedRef.current = true;
             return () => {
-                if (!isSmallScreenWidth) {
-                    return;
-                }
                 isFocusedRef.current = false;
             };
         }, []),
@@ -128,7 +125,7 @@ function OptionRowLHN(props) {
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
-        if (!isFocusedRef.current) {
+        if (!isFocusedRef.current && isSmallScreenWidth) {
             return;
         }
         setIsContextMenuActive(true);
