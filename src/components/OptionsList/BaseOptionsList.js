@@ -56,6 +56,9 @@ function BaseOptionsList({
     shouldDisableRowInnerPadding,
     disableFocusOptions,
     canSelectMultipleOptions,
+    shouldShowMultipleOptionSelectorAsButton,
+    multipleOptionSelectorButtonText,
+    onAddToSelection,
     highlightSelectedOptions,
     onSelectRow,
     boldStyle,
@@ -171,7 +174,11 @@ function BaseOptionsList({
     const renderItem = ({item, index, section}) => {
         const isItemDisabled = isDisabled || section.isDisabled || !!item.isDisabled;
         const isSelected = _.some(selectedOptions, (option) => {
-            if (option.accountID === item.accountID) {
+            if (option.accountID && option.accountID === item.accountID) {
+                return true;
+            }
+
+            if (option.reportID && option.reportID === item.reportID) {
                 return true;
             }
 
@@ -191,6 +198,9 @@ function BaseOptionsList({
                 onSelectRow={onSelectRow}
                 isSelected={isSelected}
                 showSelectedState={canSelectMultipleOptions}
+                shouldShowSelectedStateAsButton={shouldShowMultipleOptionSelectorAsButton}
+                selectedStateButtonText={multipleOptionSelectorButtonText}
+                onSelectedStatePressed={onAddToSelection}
                 highlightSelected={highlightSelectedOptions}
                 boldStyle={boldStyle}
                 isDisabled={isItemDisabled}
@@ -230,7 +240,7 @@ function BaseOptionsList({
     return (
         <View style={listContainerStyles}>
             {isLoading ? (
-                <OptionsListSkeletonView />
+                <OptionsListSkeletonView shouldAnimate />
             ) : (
                 <>
                     {headerMessage ? (

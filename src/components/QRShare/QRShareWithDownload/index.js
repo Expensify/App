@@ -17,7 +17,9 @@ class QRShareWithDownload extends Component {
         return new Promise((resolve, reject) => {
             // eslint-disable-next-line es/no-optional-chaining
             const svg = this.qrShareRef.current?.getSvg();
-            if (svg == null) return reject();
+            if (svg == null) {
+                return reject();
+            }
 
             svg.toDataURL((dataURL) => resolve(fileDownload(dataURL, getQrCodeFileName(this.props.title))));
         });
