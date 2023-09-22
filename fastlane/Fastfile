@@ -17,7 +17,7 @@ platform :android do
   desc "Generate a new local APK for e2e testing"
   lane :build_e2e do
     ENV["ENVFILE"]="tests/e2e/.env.e2e"
-    ENV["ENTRY_FILE"] = File.expand_path("../src/libs/E2E/reactNativeLaunchingTest.js", Dir.pwd)
+    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.js"
     ENV["E2E_TESTING"]="true"
 
     # Test if the entry file exists, otherwise fail early. If its there, log that we are good to proceed
