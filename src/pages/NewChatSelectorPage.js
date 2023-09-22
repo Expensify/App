@@ -32,6 +32,7 @@ function NewChatSelectorPage(props) {
             shouldEnableKeyboardAvoidingView={false}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID="NewChatSelectorPage"
         >
             <HeaderWithBackButton
                 title={props.translate('sidebarScreen.fabNewChat')}

@@ -108,6 +108,7 @@ function DebitCardPage(props) {
         <ScreenWrapper
             onEntryTransitionEnd={() => nameOnCardRef.current && nameOnCardRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
+            testID="AddDebitCardPage"
         >
             <HeaderWithBackButton
                 title={translate('addDebitCardPage.addADebitCard')}

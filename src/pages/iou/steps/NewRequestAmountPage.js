@@ -181,6 +181,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={focusTextInput}
+            testID="NewRequestAmountPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>

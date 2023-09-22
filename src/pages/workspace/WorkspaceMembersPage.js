@@ -344,6 +344,7 @@ function WorkspaceMembersPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
+            testID="WorkspaceMembersPage"
         >
             <FullPageNotFoundView
                 shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}

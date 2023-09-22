@@ -182,7 +182,10 @@ function WorkspaceInitialPage(props) {
     ];
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="WorkspaceInitialPage"
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}

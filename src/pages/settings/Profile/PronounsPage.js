@@ -65,7 +65,10 @@ function PronounsPage({currentUserPersonalDetails}) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="PronounsPage"
+        >
             <HeaderWithBackButton
                 title={translate('pronounsPage.pronouns')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
