@@ -78,12 +78,16 @@ function TimezoneSelectPage(props) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={TimezoneSelectPage.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
             <SelectionList
+                headerMessage={timezoneInputText.trim() && !timezoneOptions.length ? translate('common.noResultsFound') : ''}
                 textInputLabel={translate('timezonePage.timezone')}
                 textInputValue={timezoneInputText}
                 onChangeText={filterShownTimezones}

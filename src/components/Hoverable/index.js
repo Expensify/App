@@ -1,7 +1,9 @@
 import _ from 'underscore';
 import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 import {propTypes, defaultProps} from './hoverablePropTypes';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import CONST from '../../CONST';
 
 function mapChildren(children, callbackParam) {
     if (_.isArray(children) && children.length === 1) return children[0];
@@ -17,9 +19,23 @@ function mapChildren(children, callbackParam) {
  * parent. https://github.com/necolas/react-native-web/issues/1875
  */
 
-function InnerHoverable({disabled, onHoverIn, onHoverOut, children}, outerRef) {
+function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandleScroll}, outerRef) {
     const [isHovered, setIsHovered] = useState(false);
+    const [isScrolling, setIsScrolling] = useState(false);
+
+    const isHoveredRef = useRef(false);
     const ref = useRef(null);
+
+    const updateIsHoveredOnScrolling = useCallback(
+        (hovered) => {
+            if (disabled) return;
+
+            isHoveredRef.current = hovered;
+
+            if (!shouldHandleScroll && !isScrolling) return setIsHovered(hovered);
+        },
+        [disabled, shouldHandleScroll, isScrolling],
+    );
 
     useEffect(() => {
         const unsetHoveredWhenDocumentIsHidden = () => document.visibilityState === 'hidden' && setIsHovered(false);
@@ -28,6 +44,16 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children}, outerRef) {
 
         return () => document.removeEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
     }, []);
+
+    useEffect(() => {
+        if (!shouldHandleScroll) return;
+
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
+            setIsScrolling(scrolling);
+        });
+
+        return scrollingListener.remove;
+    }, [shouldHandleScroll]);
 
     /**
      * Checks the hover state of a component and updates it based on the event target.
@@ -70,20 +96,20 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children}, outerRef) {
 
     const onMouseEnter = useCallback(
         (el) => {
-            setIsHovered(true);
+            updateIsHoveredOnScrolling(true);
 
             if (_.isFunction(child.props.onMouseEnter)) child.props.onMouseEnter(el);
         },
-        [child.props],
+        [child.props, updateIsHoveredOnScrolling],
     );
 
     const onMouseLeave = useCallback(
         (el) => {
-            setIsHovered(false);
+            updateIsHoveredOnScrolling(false);
 
             if (_.isFunction(child.props.onMouseLeave)) child.props.onMouseLeave(el);
         },
-        [child.props],
+        [child.props, updateIsHoveredOnScrolling],
     );
 
     const onBlur = useCallback(

@@ -1,47 +1,71 @@
-import React, {useMemo} from 'react';
-import _ from 'underscore';
+import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import {propTypes, defaultProps} from './categoryPickerPropTypes';
-import OptionsList from '../OptionsList';
 import styles from '../../styles/styles';
-import ScreenWrapper from '../ScreenWrapper';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
+import CONST from '../../CONST';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import OptionsSelector from '../OptionsSelector';
+import useLocalize from '../../hooks/useLocalize';
 
-function CategoryPicker({policyCategories, reportID, iouType}) {
-    const sections = useMemo(() => {
-        const categoryList = _.chain(policyCategories)
-            .values()
-            .map((category) => ({
-                text: category.name,
-                keyForList: category.name,
-                tooltipText: category.name,
-            }))
-            .value();
+function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}) {
+    const {translate} = useLocalize();
+    const [searchValue, setSearchValue] = useState('');
+
+    const policyCategoriesCount = OptionsListUtils.getEnabledCategoriesCount(_.values(policyCategories));
+    const isCategoriesCountBelowThreshold = policyCategoriesCount < CONST.CATEGORY_LIST_THRESHOLD;
+
+    const selectedOptions = useMemo(() => {
+        if (!selectedCategory) {
+            return [];
+        }
 
         return [
             {
-                data: categoryList,
+                name: selectedCategory,
+                enabled: true,
+                accountID: null,
             },
         ];
-    }, [policyCategories]);
+    }, [selectedCategory]);
 
-    const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
-    };
+    const initialFocusedIndex = useMemo(() => {
+        if (isCategoriesCountBelowThreshold && selectedOptions.length > 0) {
+            return _.chain(policyCategories)
+                .values()
+                .findIndex((category) => category.name === selectedOptions[0].name, true)
+                .value();
+        }
+
+        return 0;
+    }, [policyCategories, selectedOptions, isCategoriesCountBelowThreshold]);
+
+    const sections = useMemo(
+        () => OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, true, policyCategories, policyRecentlyUsedCategories, false).categoryOptions,
+        [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions],
+    );
+
+    const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
+    const shouldShowTextInput = !isCategoriesCountBelowThreshold;
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({safeAreaPaddingBottomStyle}) => (
-                <OptionsList
-                    optionHoveredStyle={styles.hoveredComponentBG}
-                    contentContainerStyles={[safeAreaPaddingBottomStyle]}
-                    sections={sections}
-                    onSelectRow={navigateBack}
-                />
-            )}
-        </ScreenWrapper>
+        <OptionsSelector
+            optionHoveredStyle={styles.hoveredComponentBG}
+            sections={sections}
+            selectedOptions={selectedOptions}
+            value={searchValue}
+            initialFocusedIndex={initialFocusedIndex}
+            headerMessage={headerMessage}
+            shouldShowTextInput={shouldShowTextInput}
+            textInputLabel={translate('common.search')}
+            boldStyle
+            highlightSelectedOptions
+            isRowMultilineSupported
+            onChangeText={setSearchValue}
+            onSelectRow={onSubmit}
+        />
     );
 }
 
@@ -52,5 +76,8 @@ CategoryPicker.defaultProps = defaultProps;
 export default withOnyx({
     policyCategories: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+    },
+    policyRecentlyUsedCategories: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
     },
 })(CategoryPicker);

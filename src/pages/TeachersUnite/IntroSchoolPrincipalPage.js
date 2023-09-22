@@ -34,6 +34,7 @@ const defaultProps = {
 
 function IntroSchoolPrincipalPage(props) {
     const {translate} = useLocalize();
+
     /**
      * @param {Object} values
      * @param {String} values.firstName
@@ -80,10 +81,13 @@ function IntroSchoolPrincipalPage(props) {
     );
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={IntroSchoolPrincipalPage.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SAVE_THE_WORLD)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
             />
             <Form
                 enabledWhenOffline
