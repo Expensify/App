@@ -4,11 +4,21 @@ import CONST from '../../CONST';
 
 type Comment = {
     comment?: string;
+    type?: string;
+    customUnit?: Record<string, unknown>;
+    source?: string;
+    originalTransactionID?: string;
 };
 
 type Geometry = {
     coordinates: number[][];
     type: 'LineString';
+};
+
+type Receipt = {
+    receiptID?: number;
+    source?: string;
+    state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
 };
 
 type Route = {
@@ -24,23 +34,23 @@ type Transaction = {
     comment: Comment;
     created: string;
     currency: string;
-    errors: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors;
     // The name of the file used for a receipt (formerly receiptFilename)
     filename?: string;
     merchant: string;
     modifiedAmount?: number;
     modifiedCreated?: string;
     modifiedCurrency?: string;
+    modifiedMerchant?: string;
     pendingAction: OnyxCommon.PendingAction;
-    receipt: {
-        receiptID?: number;
-        source?: string;
-        state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
-    };
+    receipt: Receipt;
     reportID: string;
+    billable?: boolean;
     routes?: Routes;
     transactionID: string;
     tag: string;
+    pendingFields?: Partial<{[K in keyof Transaction]: 'update'}>;
 };
 
 export default Transaction;
+export type {Comment, Receipt};
