@@ -638,10 +638,11 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
  * @param {String} parentReportID The reportID of the parent
  *
  */
-function subscribeToChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0') {
+function toggleSubscribeToChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0', prevNotificationPreference) {
     if (childReportID !== '0') {
         openReport(childReportID);
-        Navigation.navigate(ROUTES.getReportRoute(childReportID));
+        if (prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE)
+        updateNotificationPreference(childReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, )
     } else {
         const participantAccountIDs = _.uniq([currentUserAccountID, Number(parentReportAction.actorAccountID)]);
         const parentReport = allReports[parentReportID];
@@ -1239,6 +1240,32 @@ function saveReportActionDraft(reportID, reportActionID, draftMessage) {
  */
 function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLines) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${reportActionID}`, numberOfLines);
+}
+
+/**
+ * @param {String} reportID
+ * @param {String} previousValue
+ * @param {String} newValue
+ */
+function updateNotificationPreference(reportID, previousValue, newValue) {
+    if (previousValue === newValue) {
+        return;
+    }
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {notificationPreference: newValue},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {notificationPreference: previousValue},
+        },
+    ];
+    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
 }
 
 /**
@@ -2105,6 +2132,7 @@ export {
     reconnect,
     updateWelcomeMessage,
     updateWriteCapabilityAndNavigate,
+    updateNotificationPreference,
     updateNotificationPreferenceAndNavigate,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
@@ -2132,6 +2160,7 @@ export {
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToAndOpenChildReport,
+    toggleSubscribeToChildReport,
     updatePolicyRoomNameAndNavigate,
     clearPolicyRoomNameErrors,
     clearIOUError,

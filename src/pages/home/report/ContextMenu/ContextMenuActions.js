@@ -25,6 +25,7 @@ import * as Task from '../../../../libs/actions/Task';
 import * as Localize from '../../../../libs/Localize';
 import * as TransactionUtils from '../../../../libs/TransactionUtils';
 import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
+import Log from '../../../../libs/Log';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -149,7 +150,7 @@ export default [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.subscribeToThread',
-        icon: Expensicons.ChatBubble,
+        icon: Expensicons.Chair,
         successTextTranslateKey: '',
         successIcon: null,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
@@ -162,15 +163,16 @@ export default [
             return isCommentAction || isReportPreviewAction || isIOUAction;
         },
         onPress: (closePopover, {reportAction, reportID}) => {
-            if (closePopover) {
-                hideContextMenu(false, () => {
-                    ReportActionComposeFocusManager.focus();
-                    Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
-                });
-                return;
-            }
-
-            Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
+            Log.info("sparsisparsi start");
+            Log.info(JSON.stringify(reportAction));
+            Log.info("sparsisparsi done");
+            // if (closePopover) {
+            //     hideContextMenu(false, () => {
+            //         ReportActionComposeFocusManager.focus();
+            //         Report.subscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
+            //     });
+            //     return;
+            // }
         },
         getDescription: () => {},
     },
