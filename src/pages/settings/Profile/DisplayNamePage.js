@@ -69,7 +69,7 @@ function DisplayNamePage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID="DisplayNamePage"
+            testID={DisplayNamePage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('displayNamePage.headerTitle')}

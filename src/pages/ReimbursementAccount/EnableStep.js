@@ -56,7 +56,7 @@ function EnableStep(props) {
         <ScreenWrapper
             style={[styles.flex1, styles.justifyContentBetween]}
             includeSafeAreaPaddingBottom={false}
-            testID="EnableStep"
+            testID={EnableStep.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('workspace.common.connectBankAccount')}

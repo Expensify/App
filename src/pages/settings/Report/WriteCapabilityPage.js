@@ -53,7 +53,7 @@ function WriteCapabilityPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="WriteCapabilityPage"
+            testID={WriteCapabilityPage.displayName}
         >
             <FullPageNotFoundView shouldShow={!isAbleToEdit}>
                 <HeaderWithBackButton

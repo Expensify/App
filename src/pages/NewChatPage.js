@@ -173,7 +173,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
             includeSafeAreaPaddingBottom={false}
             includePaddingTop={false}
             shouldEnableMaxHeight
-            testID="NewChatPage"
+            testID={NewChatPage.displayName}
         >
             {({safeAreaPaddingBottomStyle, insets}) => (
                 <KeyboardAvoidingView

@@ -23,7 +23,7 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID="EditRequestCreatedPage"
+            testID={EditRequestCreatedPage.displayName}
         >
             <HeaderWithBackButton title={translate('common.date')} />
             <Form
