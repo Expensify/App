@@ -22,6 +22,7 @@ const includeModules = [
     'react-native-google-places-autocomplete',
     'react-native-qrcode-svg',
     'react-native-view-shot',
+    'react-native-encryptify',
 ].join('|');
 
 const envToLogoSuffixMap = {
@@ -94,6 +95,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 // These files are copied over as per instructions here
                 // https://github.com/wojtekmaj/react-pdf#copying-cmaps
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
+                // {from: 'node_modules/react-native-encryptify/lib/wasm/*', to: '[name][ext]'},
             ],
         }),
         new EnvironmentPlugin({JEST_WORKER_ID: null}),
@@ -178,6 +180,17 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 resourceQuery: /raw/,
                 type: 'asset/source',
             },
+            {
+                test: /\.wasm$/i,
+                type: 'javascript/auto',
+                loader: 'file-loader',
+                options: {
+                    publicPath: '/',
+                },
+                generator: {
+                    filename: '[name].[ext]',
+                },
+            },
         ],
     },
     resolve: {
@@ -218,10 +231,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 },
             },
         },
-    },
-    experiments: {
-        asyncWebAssembly: true,
-        syncWebAssembly: true,
     },
 });
 
