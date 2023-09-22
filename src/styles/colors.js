@@ -23,7 +23,6 @@ export default {
     darkDefaultButton: '#184E3D',
     darkDefaultButtonHover: '#2C6755',
     darkDefaultButtonPressed: '#467164',
-    darkRightHandPanelOverlay: '#1A3D32',
 
     // Light Mode Theme Colors
     lightAppBackground: '#FCFBF9',
@@ -36,7 +35,6 @@ export default {
     lightDefaultButton: '#EEEBE7',
     lightDefaultButtonHover: '#E3DFD9',
     lightDefaultButtonPressed: '#D2CCC3',
-    lightRightHandPanelOverlay: '#EBE6DF',
 
     // Brand Colors from Figma
     blue100: '#B0D9FF',

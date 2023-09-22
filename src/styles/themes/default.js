@@ -36,7 +36,7 @@ const darkTheme = {
     signInPage: colors.green800,
 
     // Additional keys
-    overlay: colors.darkRightHandPanelOverlay,
+    overlay: colors.darkBorders,
     inverse: colors.darkPrimaryText,
     shadow: colors.black,
     componentBG: colors.darkAppBackground,
