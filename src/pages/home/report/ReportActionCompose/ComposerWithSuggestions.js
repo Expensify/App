@@ -246,6 +246,11 @@ function ComposerWithSuggestions({
             return '';
         }
 
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        // We need to make sure an empty draft gets saved instead
+        debouncedSaveReportComment.cancel();
+
         updateComment('');
         setTextInputShouldClear(true);
         if (isComposerFullSize) {
