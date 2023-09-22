@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -8,10 +8,7 @@ import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
 
 function Image(props) {
-    const {source: propsSource, isAuthTokenRequired, onLoad, session, onLoadStart = () => {}, onLoadEnd = () => {}} = props;
-
-    const [isLoading, setIsLoading] = useState(false);
-    const isLoadedRef = useRef(null);
+    const {source: propsSource, isAuthTokenRequired, onLoad, session} = props;
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
@@ -44,38 +41,14 @@ function Image(props) {
         });
     }, [onLoad, source]);
 
-    /** Delay the loader to detect whether the image is being loaded from the cache or the internet. */
-    useEffect(() => {
-        if (isLoadedRef.current || !isLoading) {
-            return;
-        }
-        const timeout = _.delay(() => {
-            if (!isLoading || isLoadedRef.current) {
-                return;
-            }
-            onLoadStart();
-        }, 200);
-        return () => clearTimeout(timeout);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoading]);
-
     // Omit the props which the underlying RNImage won't use
-    const forwardedProps = _.omit(props, ['source', 'onLoad', 'session', 'isAuthTokenRequired', 'onLoadStart', 'onLoadEnd']);
+    const forwardedProps = _.omit(props, ['source', 'onLoad', 'session', 'isAuthTokenRequired']);
 
     return (
         <RNImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             source={source}
-            onLoadStart={() => setIsLoading(true)}
-            onLoad={() => {
-                isLoadedRef.current = true;
-            }}
-            onLoadEnd={() => {
-                setIsLoading(false);
-                isLoadedRef.current = true;
-                onLoadEnd();
-            }}
         />
     );
 }
