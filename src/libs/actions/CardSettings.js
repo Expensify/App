@@ -6,12 +6,13 @@ import * as API from '../API';
  * Activates the physical Expensify card based on the last four digits of the card number
  *
  * @param {Number} lastFourDigits
+ * @param {Number} cardID
  */
 
-function activatePhysicalExpensifyCard(lastFourDigits) {
+function activatePhysicalExpensifyCard(lastFourDigits, cardID) {
     API.write(
         'ActivatePhysicalExpensifyCard',
-        {lastFourDigits},
+        {lastFourDigits, cardID},
         {
             optimisticData: [
                 {
@@ -19,7 +20,6 @@ function activatePhysicalExpensifyCard(lastFourDigits) {
                     key: ONYXKEYS.CARD_LIST,
                     value: {
                         isLoading: true,
-                        errors: null,
                     },
                 },
             ],

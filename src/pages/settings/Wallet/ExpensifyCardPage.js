@@ -10,16 +10,25 @@ import CardPreview from '../../../components/CardPreview';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import cardPropTypes from '../../../components/cardPropTypes';
 import useLocalize from '../../../hooks/useLocalize';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import * as CardUtils from '../../../libs/CardUtils';
+import Button from '../../../components/Button';
+import assignedCardPropTypes from './assignedCardPropTypes';
 
 const propTypes = {
     /* Onyx Props */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    // cardList: PropTypes.objectOf(cardListPropTypes),
+    cardList: PropTypes.shape({
+        isLoading: PropTypes.bool,
+        [PropTypes.string]: PropTypes.objectOf(assignedCardPropTypes),
+        [PropTypes.string]: PropTypes.shape({
+            // eslint-disable-next-line react/forbid-prop-types
+            errors: PropTypes.object,
+        }),
+    }),
 
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
@@ -33,6 +42,9 @@ const propTypes = {
 const defaultProps = {
     cardList: {},
 };
+
+// eslint-disable-next-line rulesdir/no-negated-variables
+const CARD_NOT_ACTIVATED_STATE = 4;
 
 function ExpensifyCardPage({
     cardList,
@@ -84,7 +96,16 @@ function ExpensifyCardPage({
                                 titleStyle={styles.walletCardNumber}
                             />
                         )}
+                        {}
                     </ScrollView>
+                    {physicalCard.state === CARD_NOT_ACTIVATED_STATE ? (
+                        <Button
+                            success
+                            style={[styles.w100, styles.p5]}
+                            onPress={() => Navigation.navigate(ROUTES.getSettingsWalletCardActivateRoute(domain))}
+                            text={translate('activateCardPage.activatePhysicalCard')}
+                        />
+                    ) : null}
                 </>
             )}
         </ScreenWrapper>

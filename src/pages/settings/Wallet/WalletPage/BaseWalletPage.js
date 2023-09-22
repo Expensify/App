@@ -359,14 +359,6 @@ function BaseWalletPage(props) {
                     errors={props.userWallet.errors}
                     errorRowStyles={[styles.ph6]}
                 >
-                    {/* to remove */}
-                    <Button
-                        success
-                        style={[styles.w100, styles.mt5]}
-                        onPress={() => Navigation.navigate(ROUTES.getSettingsWalletCardActivateRoute('123456789'))}
-                        text="Activate physical card"
-                    />
-                    {/* end to remove */}
                     <PaymentMethodList
                         onPress={paymentMethodPressed}
                         style={[styles.flex4]}

@@ -46,6 +46,7 @@ import RecentWaypoints from './RecentWaypoints';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
 import RecentlyUsedTags from './RecentlyUsedTags';
 import PolicyTag from './PolicyTag';
+import CardList from './CardList';
 
 export type {
     Account,
@@ -98,4 +99,5 @@ export type {
     RecentlyUsedCategories,
     RecentlyUsedTags,
     PolicyTag,
+    CardList,
 };
