@@ -67,7 +67,7 @@ function getNumericValue(value, toLocaleDigit) {
     if (Number.isNaN(numValue)) {
         return NaN;
     }
-    return numValue.toFixed(3);
+    return numValue.toFixed(CONST.CUSTOM_UNITS.RATE_DECIMALS);
 }
 
 /**
