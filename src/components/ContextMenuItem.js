@@ -36,7 +36,7 @@ const propTypes = {
     isAnonymousAction: PropTypes.bool,
 
     /** Whether the menu item is focused or not */
-    focused: PropTypes.bool,
+    isFocused: PropTypes.bool,
 
     /** Forwarded ref to ContextMenuItem */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
