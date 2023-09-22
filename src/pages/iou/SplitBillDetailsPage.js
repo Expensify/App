@@ -72,7 +72,7 @@ function SplitBillDetailsPage(props) {
     const {amount: splitAmount, currency: splitCurrency, comment: splitComment} = ReportUtils.getTransactionDetails(transaction);
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
                 <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
