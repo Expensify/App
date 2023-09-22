@@ -19,11 +19,11 @@ let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
-    callback: (val) => {
-        if (!val) {
+    callback: (value) => {
+        if (!value) {
             return;
         }
-        allTransactions = {...val};
+        allTransactions = Object.fromEntries(Object.entries({...value}).filter(([, transaction]) => !!transaction));
     },
 });
 
@@ -31,19 +31,7 @@ Onyx.connect({
  * Optimistically generate a transaction.
  *
  * @param amount – in cents
- * @param currency
- * @param reportID
- * @param [comment]
- * @param [created]
- * @param [source]
- * @param [originalTransactionID]
- * @param [merchant]
- * @param [receipt]
- * @param [filename]
  * @param [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
- * @param [category]
- * @param [tag]
- * @param [billable]
  */
 function buildOptimisticTransaction(
     amount: number,
@@ -93,7 +81,7 @@ function buildOptimisticTransaction(
     };
 }
 
-function hasReceipt(transaction: Transaction | null): boolean {
+function hasReceipt(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.state;
 }
 
@@ -303,9 +291,7 @@ function getWaypointIndex(key: string): number {
  * Filters the waypoints which are valid and returns those
  */
 function getValidWaypoints(waypoints: Waypoints, reArrangeIndexes = false): Waypoints {
-    const sortedIndexes = Object.keys(waypoints)
-        .map((key) => getWaypointIndex(key))
-        .sort();
+    const sortedIndexes = Object.keys(waypoints).map(getWaypointIndex).sort();
     const waypointValues = sortedIndexes.map((index) => waypoints[`waypoint${index}`]);
     // Ensure the number of waypoints is between 2 and 25
     if (waypointValues.length < 2 || waypointValues.length > 25) {
