@@ -67,7 +67,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const currentCurrency = lodashGet(route, 'params.currency', '');
     const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
-    const currency = currentCurrency || iou.currency;
+    const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : iou.currency;
 
     const focusTextInput = () => {
         // Component may not be initialized due to navigation transitions
@@ -176,6 +176,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={focusTextInput}
+            testID={NewRequestAmountPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>

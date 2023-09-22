@@ -158,9 +158,12 @@ class WorkspaceInviteMessagePage extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={WorkspaceInviteMessagePage.displayName}
+            >
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy)}
+                    shouldShow={_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy) || PolicyUtils.isPendingDeletePolicy(this.props.policy)}
                     subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
