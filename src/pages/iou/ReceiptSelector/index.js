@@ -1,6 +1,7 @@
 import {View, Text, PixelRatio} from 'react-native';
 import React, {useContext, useState} from 'react';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import * as IOU from '../../../libs/actions/IOU';
@@ -15,21 +16,14 @@ import ReceiptDropUI from '../ReceiptDropUI';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import ConfirmModal from '../../../components/ConfirmModal';
 import ONYXKEYS from '../../../ONYXKEYS';
-import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
-import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
+import * as FileUtils from '../../../libs/fileDownload/FileUtils';
+import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
-    /** Information shown to the user when a receipt is not valid */
-    receiptModal: PropTypes.shape({
-        isAttachmentInvalid: PropTypes.bool,
-        attachmentInvalidReasonTitle: PropTypes.string,
-        attachmentInvalidReason: PropTypes.string,
-    }),
-
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
@@ -47,28 +41,63 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
+
+    /** The id of the transaction we're editing */
+    transactionID: PropTypes.string,
 };
 
 const defaultProps = {
-    receiptModal: {
-        isAttachmentInvalid: false,
-        attachmentInvalidReasonTitle: '',
-        attachmentInvalidReason: '',
-    },
     report: {},
     iou: iouDefaultProps,
+    transactionID: '',
 };
 
 function ReceiptSelector(props) {
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const iouType = lodashGet(props.route, 'params.iouType', '');
-    const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
-    const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
-    const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
+    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
+    const [attachmentInvalidReason, setAttachmentValidReason] = useState('');
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
+
+    const hideReciptModal = () => {
+        setIsAttachmentInvalid(false);
+    };
+
+    /**
+     * Sets the upload receipt error modal content when an invalid receipt is uploaded
+     * @param {*} isInvalid
+     * @param {*} title
+     * @param {*} reason
+     */
+    const setUploadReceiptError = (isInvalid, title, reason) => {
+        setIsAttachmentInvalid(isInvalid);
+        setAttachmentInvalidReasonTitle(title);
+        setAttachmentValidReason(reason);
+    };
+
+    function validateReceipt(file) {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+            return false;
+        }
+
+        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
+            return false;
+        }
+
+        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
@@ -77,12 +106,19 @@ function ReceiptSelector(props) {
      * @param {Object} report
      */
     const setReceiptAndNavigate = (file, iou, report) => {
-        if (!ReceiptUtils.validateReceipt(file)) {
+        if (!validateReceipt(file)) {
             return;
         }
 
         const filePath = URL.createObjectURL(file);
         IOU.setMoneyRequestReceipt(filePath, file.name);
+
+        if (props.transactionID) {
+            IOU.replaceReceipt(props.transactionID, file, filePath);
+            Navigation.dismissModal();
+            return;
+        }
+
         IOU.navigateToNextPage(iou, iouType, reportID, report);
     };
 
@@ -141,11 +177,11 @@ function ReceiptSelector(props) {
                 receiptImageTopPosition={receiptImageTopPosition}
             />
             <ConfirmModal
-                title={attachmentInvalidReasonTitle}
-                onConfirm={Receipt.clearUploadReceiptError}
-                onCancel={Receipt.clearUploadReceiptError}
+                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                onConfirm={hideReciptModal}
+                onCancel={hideReciptModal}
                 isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason}
+                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />
@@ -159,7 +195,6 @@ ReceiptSelector.displayName = 'ReceiptSelector';
 
 export default withOnyx({
     iou: {key: ONYXKEYS.IOU},
-    receiptModal: {key: ONYXKEYS.RECEIPT_MODAL},
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
     },

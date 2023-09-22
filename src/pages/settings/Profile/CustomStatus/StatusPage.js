@@ -2,10 +2,9 @@ import React, {useMemo, useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import moment from 'moment';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import StaticHeaderPageLayout from '../../../../components/StaticHeaderPageLayout';
+import HeaderPageLayout from '../../../../components/HeaderPageLayout';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import withLocalize from '../../../../components/withLocalize';
 import MenuItem from '../../../../components/MenuItem';
@@ -20,6 +19,7 @@ import styles from '../../../../styles/styles';
 import compose from '../../../../libs/compose';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
+import SCREENS from '../../../../SCREENS';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -44,8 +44,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const navigateBackToSettingsPage = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
     const updateStatus = useCallback(() => {
-        const endOfDay = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
-        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay});
+        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji});
 
         User.clearDraftCustomStatus();
         Navigation.goBack(ROUTES.SETTINGS_PROFILE);
@@ -65,11 +64,17 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     useEffect(() => () => User.clearDraftCustomStatus(), []);
 
     return (
-        <StaticHeaderPageLayout
+        <HeaderPageLayout
             title={localize.translate('statusPage.status')}
             onBackButtonPress={navigateBackToSettingsPage}
-            backgroundColor={themeColors.midtone}
-            image={MobileBackgroundImage}
+            headerContent={
+                <MobileBackgroundImage
+                    pointerEvents="none"
+                    style={styles.staticHeaderImage}
+                />
+            }
+            headerContainerStyles={[styles.staticHeaderImage]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS]}
             footer={footerComponent}
         >
             <View style={styles.m5}>
@@ -93,7 +98,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                     wrapperStyle={[styles.cardMenuItem]}
                 />
             )}
-        </StaticHeaderPageLayout>
+        </HeaderPageLayout>
     );
 }
 

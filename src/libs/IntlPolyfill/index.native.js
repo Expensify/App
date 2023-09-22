@@ -9,6 +9,7 @@ export default function polyfill() {
     require('@formatjs/intl-getcanonicallocales/polyfill');
     require('@formatjs/intl-locale/polyfill');
     require('@formatjs/intl-pluralrules/polyfill');
+    require('@formatjs/intl-datetimeformat');
     polyfillNumberFormat();
     polyfillListFormat();
 }

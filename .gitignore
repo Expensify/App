@@ -101,3 +101,13 @@ tests/e2e/results/
 
 # Typescript
 tsconfig.tsbuildinfo
+
+# Mock-github
+/repo/
+
+# Workflow test logs
+/workflow_tests/logs/
+
+# Yalc
+.yalc
+yalc.lock
