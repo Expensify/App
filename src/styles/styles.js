@@ -176,12 +176,6 @@ const styles = (theme) => ({
     ...textUnderline,
     ...theme, // TODO: Should we do this?
 
-    rateCol: {
-        margin: 0,
-        padding: 0,
-        flexBasis: '48%',
-    },
-
     autoCompleteSuggestionsContainer: {
         backgroundColor: theme.appBG,
         borderRadius: 8,
@@ -233,18 +227,6 @@ const styles = (theme) => ({
         color: theme.textSupporting,
     },
 
-    appIconBorderRadius: {
-        overflow: 'hidden',
-        borderRadius: 12,
-    },
-
-    unitCol: {
-        margin: 0,
-        padding: 0,
-        marginLeft: '4%',
-        flexBasis: '48%',
-    },
-
     webViewStyles: webViewStyles(theme),
 
     link: link(theme),
@@ -265,19 +247,6 @@ const styles = (theme) => ({
 
     appBG: {
         backgroundColor: theme.appBG,
-    },
-
-    h1: {
-        color: theme.heading,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontSize: variables.fontSizeh1,
-        fontWeight: fontWeightBold,
-    },
-
-    h3: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
     },
 
     h4: {
@@ -428,10 +397,6 @@ const styles = (theme) => ({
 
     colorMuted: {
         color: theme.textSupporting,
-    },
-
-    colorHeading: {
-        color: theme.heading,
     },
 
     bgTransparent: {
@@ -632,10 +597,6 @@ const styles = (theme) => ({
 
     activeComponentBG: {
         backgroundColor: theme.activeComponentBG,
-    },
-
-    fontWeightBold: {
-        fontWeight: fontWeightBold,
     },
 
     touchableButtonImage: {
@@ -845,10 +806,6 @@ const styles = (theme) => ({
 
     headerGap: {
         height: CONST.DESKTOP_HEADER_PADDING,
-    },
-
-    pushTextRight: {
-        left: 100000,
     },
 
     reportOptions: {
@@ -1123,10 +1080,6 @@ const styles = (theme) => ({
 
     noOutline: addOutlineWidth({}, 0),
 
-    errorOutline: {
-        borderColor: theme.danger,
-    },
-
     textLabelSupporting: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeLabel,
@@ -1190,13 +1143,6 @@ const styles = (theme) => ({
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
-    },
-
-    desktopRedirectPage: {
-        backgroundColor: theme.appBG,
-        minHeight: '100%',
-        flex: 1,
-        alignItems: 'center',
     },
 
     signInPage: {
@@ -1592,11 +1538,6 @@ const styles = (theme) => ({
         width: 18,
     },
 
-    chatContent: {
-        flex: 4,
-        justifyContent: 'flex-end',
-    },
-
     chatContentScrollView: {
         flexGrow: 1,
         justifyContent: 'flex-start',
@@ -1658,6 +1599,16 @@ const styles = (theme) => ({
         lineHeight: variables.lineHeightXLarge,
         maxWidth: '100%',
         ...cursor.cursorAuto,
+        ...whiteSpace.preWrap,
+        ...wordBreak.breakWord,
+    },
+
+    renderHTMLTitle: {
+        color: theme.text,
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.EXP_NEUE,
+        lineHeight: variables.lineHeightXLarge,
+        maxWidth: '100%',
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
@@ -1749,11 +1700,6 @@ const styles = (theme) => ({
         flex: 1,
         maxHeight: '100%',
         textAlignVertical: 'top',
-    },
-
-    editInputComposeSpacing: {
-        backgroundColor: theme.transparent,
-        marginVertical: 8,
     },
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -1878,23 +1824,6 @@ const styles = (theme) => ({
         width: 200,
     },
 
-    chatSwticherPillWrapper: {
-        marginTop: 5,
-        marginRight: 4,
-    },
-
-    navigationModalOverlay: {
-        ...userSelect.userSelectNone,
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        transform: [
-            {
-                translateX: -variables.sideBarWidth,
-            },
-        ],
-    },
-
     sidebarVisible: {
         borderRightWidth: 1,
     },
@@ -1917,14 +1846,6 @@ const styles = (theme) => ({
         width: 24,
         backgroundColor: theme.icon,
         borderRadius: 24,
-    },
-
-    singleSubscript: {
-        height: variables.iconSizeNormal,
-        width: variables.iconSizeNormal,
-        backgroundColor: theme.icon,
-        borderRadius: 20,
-        zIndex: 1,
     },
 
     singleAvatarSmall: {
@@ -1970,17 +1891,6 @@ const styles = (theme) => ({
         right: 0,
     },
 
-    leftSideLargeAvatar: {
-        left: 15,
-    },
-
-    rightSideLargeAvatar: {
-        right: 15,
-        zIndex: 2,
-        borderWidth: 4,
-        borderRadius: 100,
-    },
-
     secondAvatarInline: {
         bottom: -3,
         right: -25,
@@ -2000,18 +1910,6 @@ const styles = (theme) => ({
         height: variables.avatarSizeXLarge,
     },
 
-    avatarNormal: {
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
-        borderRadius: variables.componentSizeNormal,
-    },
-
-    avatarSmall: {
-        height: variables.avatarSizeSmall,
-        width: variables.avatarSizeSmall,
-        borderRadius: variables.avatarSizeSmall,
-    },
-
     avatarInnerText: {
         color: theme.textLight,
         fontSize: variables.fontSizeSmall,
@@ -2026,21 +1924,6 @@ const styles = (theme) => ({
         lineHeight: undefined,
         marginLeft: -2,
         textAlign: 'center',
-    },
-
-    avatarSpace: {
-        top: 3,
-        left: 3,
-    },
-
-    avatar: {
-        backgroundColor: theme.sidebar,
-        borderColor: theme.sidebar,
-    },
-
-    focusedAvatar: {
-        backgroundColor: theme.border,
-        borderColor: theme.border,
     },
 
     emptyAvatar: {
@@ -2087,11 +1970,6 @@ const styles = (theme) => ({
 
     emptyAvatarMarginSmaller: {
         marginRight: variables.avatarChatSpacing - 4,
-    },
-
-    modalViewContainer: {
-        alignItems: 'center',
-        flex: 1,
     },
 
     borderTop: {
@@ -2183,14 +2061,6 @@ const styles = (theme) => ({
         ...(isSmallScreenWidth && flex.flex1),
     }),
 
-    modalCenterContentContainer: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: theme.modalBackdrop,
-    },
-
     centeredModalStyles: (isSmallScreenWidth, isFullScreenWhenSmall) => ({
         borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
         marginHorizontal: isSmallScreenWidth ? 0 : 20,
@@ -2213,28 +2083,6 @@ const styles = (theme) => ({
         alignItems: 'center',
     },
 
-    notFoundSafeArea: {
-        flex: 1,
-        backgroundColor: theme.heading,
-    },
-
-    notFoundView: {
-        flex: 1,
-        alignItems: 'center',
-        paddingTop: 40,
-        paddingBottom: 40,
-        justifyContent: 'space-between',
-    },
-
-    notFoundLogo: {
-        width: 202,
-        height: 63,
-    },
-
-    notFoundContent: {
-        alignItems: 'center',
-    },
-
     notFoundTextHeader: {
         ...headlineFont,
         color: theme.heading,
@@ -2243,20 +2091,6 @@ const styles = (theme) => ({
         marginTop: 20,
         marginBottom: 8,
         textAlign: 'center',
-    },
-
-    notFoundTextBody: {
-        color: theme.componentBG,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        fontSize: 15,
-    },
-
-    notFoundButtonText: {
-        color: theme.link,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        fontSize: 15,
     },
 
     blockingViewContainer: {
@@ -2307,18 +2141,6 @@ const styles = (theme) => ({
     settingsPageBody: {
         width: '100%',
         justifyContent: 'space-around',
-    },
-
-    settingsPageColumn: {
-        width: '100%',
-        alignItems: 'center',
-        justifyContent: 'space-around',
-    },
-
-    settingsPageContainer: {
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        width: '100%',
     },
 
     twoFactorAuthSection: {
@@ -2458,18 +2280,6 @@ const styles = (theme) => ({
         left: -16,
     },
 
-    svgAvatarBorder: {
-        borderRadius: 100,
-        overflow: 'hidden',
-    },
-
-    displayName: {
-        fontSize: variables.fontSizeLarge,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: theme.heading,
-    },
-
     pageWrapper: {
         width: '100%',
         alignItems: 'center',
@@ -2541,18 +2351,8 @@ const styles = (theme) => ({
         transform: [{rotate: '180deg'}],
     },
 
-    navigationSceneContainer: {
-        backgroundColor: theme.appBG,
-    },
-
     navigationScreenCardStyle: {
         backgroundColor: theme.appBG,
-        height: '100%',
-    },
-
-    navigationSceneFullScreenWrapper: {
-        borderRadius: variables.componentBorderRadiusCard,
-        overflow: 'hidden',
         height: '100%',
     },
 
@@ -2604,14 +2404,6 @@ const styles = (theme) => ({
         paddingHorizontal: 0,
         paddingTop: 0,
         paddingBottom: 0,
-    },
-
-    detailsPageSectionVersion: {
-        alignSelf: 'center',
-        color: theme.textSupporting,
-        fontSize: variables.fontSizeSmall,
-        height: 24,
-        lineHeight: 20,
     },
 
     switchTrack: {
@@ -2767,12 +2559,6 @@ const styles = (theme) => ({
         alignSelf: 'center',
     },
 
-    iouDetailsContainer: {
-        flexGrow: 1,
-        paddingStart: 20,
-        paddingEnd: 20,
-    },
-
     codeWordWrapper: {
         ...codeStyles.codeWordWrapper,
     },
@@ -2810,11 +2596,6 @@ const styles = (theme) => ({
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 10,
-    },
-
-    navigatorFullScreenLoading: {
-        backgroundColor: theme.highlightBG,
-        opacity: 1,
     },
 
     reimbursementAccountFullScreenLoading: {
@@ -2901,40 +2682,6 @@ const styles = (theme) => ({
         height: '100%',
     },
 
-    fullscreenCard: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        width: '100%',
-        height: '100%',
-    },
-
-    fullscreenCardWeb: {
-        left: 'auto',
-        right: '-24%',
-        top: '-18%',
-        height: '120%',
-    },
-
-    fullscreenCardWebCentered: {
-        left: '0',
-        right: '0',
-        top: '0',
-        height: '60%',
-    },
-
-    fullscreenCardMobile: {
-        left: '-20%',
-        top: '-30%',
-        width: '150%',
-    },
-
-    fullscreenCardMediumScreen: {
-        left: '-15%',
-        top: '-30%',
-        width: '145%',
-    },
-
     smallEditIcon: {
         alignItems: 'center',
         backgroundColor: theme.buttonHoveredBG,
@@ -2951,41 +2698,6 @@ const styles = (theme) => ({
         position: 'absolute',
         right: -4,
         bottom: -4,
-    },
-
-    workspaceCard: {
-        width: '100%',
-        height: 400,
-        borderRadius: variables.componentBorderRadiusCard,
-        overflow: 'hidden',
-        backgroundColor: theme.heroCard,
-    },
-
-    workspaceCardMobile: {
-        height: 475,
-    },
-
-    workspaceCardMediumScreen: {
-        height: 540,
-    },
-
-    workspaceCardMainText: {
-        fontSize: variables.fontSizeXXXLarge,
-        fontWeight: 'bold',
-        lineHeight: variables.fontSizeXXXLarge,
-    },
-
-    workspaceCardContent: {
-        zIndex: 1,
-        padding: 50,
-    },
-
-    workspaceCardContentMediumScreen: {
-        padding: 25,
-    },
-
-    workspaceCardCTA: {
-        width: 250,
     },
 
     autoGrowHeightMultilineInput: {
@@ -3065,12 +2777,6 @@ const styles = (theme) => ({
         width: '100%',
         height: '100%',
         opacity: variables.overlayOpacity,
-    },
-
-    communicationsLinkIcon: {
-        right: -36,
-        top: 0,
-        bottom: 0,
     },
 
     shortTermsBorder: {
@@ -3263,10 +2969,6 @@ const styles = (theme) => ({
         fontSize: 48,
     },
 
-    closeAccountMessageInput: {
-        height: 153,
-    },
-
     imageCropContainer: {
         overflow: 'hidden',
         alignItems: 'center',
@@ -3363,22 +3065,9 @@ const styles = (theme) => ({
         alignItems: 'center',
     },
 
-    callRequestSection: {
-        backgroundColor: theme.appBG,
-        paddingHorizontal: 0,
-        paddingBottom: 0,
-        marginHorizontal: 0,
-        marginBottom: 0,
-    },
-
     archivedReportFooter: {
         borderRadius: variables.componentBorderRadius,
         ...wordBreak.breakWord,
-    },
-
-    saveButtonPadding: {
-        paddingLeft: 18,
-        paddingRight: 18,
     },
 
     deeplinkWrapperContainer: {
@@ -3426,11 +3115,7 @@ const styles = (theme) => ({
         alignSelf: 'flex-start',
         marginRight: 4,
     },
-    reactionListItem: {
-        flexDirection: 'row',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-    },
+
     reactionListHeaderText: {
         color: theme.textSupporting,
         marginLeft: 8,
@@ -3522,11 +3207,6 @@ const styles = (theme) => ({
         width: '100%',
     },
 
-    listPickerSeparator: {
-        height: 1,
-        backgroundColor: theme.buttonDefaultBG,
-    },
-
     datePickerRoot: {
         position: 'relative',
         zIndex: 99,
@@ -3577,15 +3257,6 @@ const styles = (theme) => ({
     linkPreviewLogoImage: {
         height: 16,
         width: 16,
-    },
-
-    validateCodeMessage: {
-        width: variables.modalContentMaxWidth,
-        textAlign: 'center',
-    },
-
-    whisper: {
-        backgroundColor: theme.cardBG,
     },
 
     contextMenuItemPopoverMaxWidth: {
