@@ -56,8 +56,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const [headerTitle, setHeaderTitle] = useState();
     const transaction = TransactionUtils.getTransaction(iou.transactionID);
     const isEmptyWaypoint = _.isEmpty(lodashGet(transaction, 'comment.waypoint.waypoint0', {}));
-    const isInvalidDistanceRequest = !isDistanceRequest || (isDistanceRequest && isEmptyWaypoint);
-
+    const isInvalidDistanceRequest = !isDistanceRequest || isEmptyWaypoint;
     useEffect(() => {
         if (isDistanceRequest) {
             setHeaderTitle(translate('common.distance'));
