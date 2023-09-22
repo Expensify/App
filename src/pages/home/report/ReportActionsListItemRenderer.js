@@ -19,7 +19,7 @@ const propTypes = {
     /** Report for this action */
     report: reportPropTypes.isRequired,
 
-    /* Whether the option has an outstanding IOU */
+    /** Whether the option has an outstanding IOU */
     hasOutstandingIOU: PropTypes.bool,
 
     /** Sorted actions prepared for display */
@@ -82,5 +82,6 @@ function ReportActionsListItemRenderer({
 
 ReportActionsListItemRenderer.propTypes = propTypes;
 ReportActionsListItemRenderer.defaultProps = defaultProps;
+ReportActionsListItemRenderer.displayName = 'ReportActionsListItemRenderer';
 
 export default memo(ReportActionsListItemRenderer);
