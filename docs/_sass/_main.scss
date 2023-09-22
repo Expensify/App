@@ -603,11 +603,25 @@ button {
         flex-wrap: nowrap;
         flex-direction: column;
         flex-grow: 2;
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .select-button {
+                display: flex;
+                .success {
+                    align-items: flex-end;
+                    font-size: 0.8em;
+                }
+            }
+        }
     }
 
     h3.title {
         font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
-        font-size: 1.2em;
+        font-size: 1.4em;
         font-weight: normal;
     }
 
@@ -623,12 +637,16 @@ button {
 
     p.description,
     p.url {
-        padding: 0 0 20px 0;
         margin: 0;
         font-weight: normal;
     }
 
+    p.description {
+        padding: 20px 0 20px 0;
+    }
+
     p.url {
+        padding: 0;
         font-size: 0.8em;
         color: $color-gray-label;
     }
