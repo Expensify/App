@@ -44,11 +44,6 @@ function Template(args) {
                             icon: Expensicons.CreditCard,
                             onSelected: toggleVisibility,
                         },
-                        {
-                            text: 'PayPal.me',
-                            icon: Expensicons.PayPal,
-                            onSelected: toggleVisibility,
-                        },
                     ]}
                 />
             </SafeAreaProvider>

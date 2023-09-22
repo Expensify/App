@@ -63,6 +63,7 @@ function UserListItem({item, isFocused = false, showTooltip, onSelectRow, onDism
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
                 focusStyle={styles.hoveredComponentBG}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <View style={styles.checkboxPressable}>
                     <View

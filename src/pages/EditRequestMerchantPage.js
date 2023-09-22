@@ -8,7 +8,6 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Form from '../components/Form';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
 
@@ -39,11 +38,9 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => merchantInputRef.current && merchantInputRef.current.focus()}
+            testID={EditRequestMerchantPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('common.merchant')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButton title={translate('common.merchant')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}

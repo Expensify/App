@@ -99,13 +99,6 @@ const getPhoneNumber = (details) => {
 function ProfilePage(props) {
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (ValidationUtils.isValidAccountRoute(accountID)) {
-            PersonalDetails.openPublicProfilePage(accountID);
-        }
-    }, [accountID]);
-
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
@@ -139,12 +132,19 @@ function ProfilePage(props) {
     const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const navigateBackTo = lodashGet(props.route, 'params.backTo', '');
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
 
     const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : 0;
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (ValidationUtils.isValidAccountRoute(accountID) && !hasMinimumDetails) {
+            PersonalDetails.openPublicProfilePage(accountID);
+        }
+    }, [accountID, hasMinimumDetails]);
+
     return (
-        <ScreenWrapper shouldEnableAutoFocus>
+        <ScreenWrapper testID={ProfilePage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}

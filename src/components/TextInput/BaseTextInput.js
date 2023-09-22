@@ -39,24 +39,6 @@ function BaseTextInput(props) {
     const input = useRef(null);
     const isLabelActive = useRef(initialActiveLabel);
 
-    useEffect(() => {
-        if (!props.disableKeyboard) {
-            return;
-        }
-
-        const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
-            if (!nextAppState.match(/inactive|background/)) {
-                return;
-            }
-
-            Keyboard.dismiss();
-        });
-
-        return () => {
-            appStateSubscription.remove();
-        };
-    }, [props.disableKeyboard]);
-
     // AutoFocus which only works on mount:
     useEffect(() => {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
@@ -324,6 +306,7 @@ function BaseTextInput(props) {
                                         pointerEvents="none"
                                         selectable={false}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0]}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {props.prefixCharacter}
                                     </Text>
