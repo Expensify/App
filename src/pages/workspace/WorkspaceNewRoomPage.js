@@ -5,7 +5,9 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
 import * as Report from '../../libs/actions/Report';
+import * as App from '../../libs/actions/App';
 import useLocalize from '../../hooks/useLocalize';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 import styles from '../../styles/styles';
 import RoomNameInput from '../../components/RoomNameInput';
 import Picker from '../../components/Picker';
@@ -69,6 +71,7 @@ const defaultProps = {
 
 function WorkspaceNewRoomPage(props) {
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
@@ -144,7 +147,12 @@ function WorkspaceNewRoomPage(props) {
     );
 
     return (
-        <FullPageNotFoundView shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}>
+        <FullPageNotFoundView
+            shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}
+            shouldShowBackButton={false}
+            linkKey="workspace.emptyWorkspace.title"
+            onLinkPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, !isSmallScreenWidth)}
+        >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 includeSafeAreaPaddingBottom={false}
