@@ -889,9 +889,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
+        // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
 
-        // In case the participant is a worskapce, email & accountID should remain undefined and won't be used in the rest of this code
+        // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
         const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
         const accountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
@@ -990,6 +991,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
 
+        // Add category to optimistic policy recently used categories when a participant is a workspace
         let optimisticPolicyRecentlyUsedCategories;
         if (category && isPolicyExpenseChat) {
             const uniquePolicyRecentlyUsedCategories = allRecentlyUsedCategories
