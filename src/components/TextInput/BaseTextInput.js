@@ -406,7 +406,7 @@ function BaseTextInput(props) {
                 <Text
                     style={[...props.inputStyle, props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width, maxHeight), styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                     onLayout={(e) => {
-                        let additionalWidth = 0
+                        let additionalWidth = 0;
                         if (Browser.isMobileSafari() || Browser.isSafari()) {
                             additionalWidth = 2;
                         }
