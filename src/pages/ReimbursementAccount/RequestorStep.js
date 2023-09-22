@@ -90,7 +90,10 @@ class RequestorStep extends React.Component {
         }
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={RequestorStep.displayName}
+            >
                 <HeaderWithBackButton
                     title={this.props.translate('requestorStep.headerTitle')}
                     stepCounter={{step: 3, total: 5}}

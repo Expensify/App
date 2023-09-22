@@ -46,7 +46,6 @@ class Hoverable extends Component {
                      * If the user has started scrolling and the isHoveredRef is true, then we should set the hover state to false.
                      * This is to hide the existing hover and reaction bar.
                      */
-                    this.isHoveredRef = false;
                     this.setState({isHovered: false}, this.props.onHoverOut);
                 }
                 this.isScrollingRef = scrolling;
@@ -91,7 +90,9 @@ class Hoverable extends Component {
         /**
          * If the isScrollingRef is true, then the user is scrolling and we should not update the hover state.
          */
-        if (this.isScrollingRef && this.props.shouldHandleScroll && !this.state.isHovered) return;
+        if (this.isScrollingRef && this.props.shouldHandleScroll && !this.state.isHovered) {
+            return;
+        }
 
         if (isHovered !== this.state.isHovered) {
             this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
