@@ -245,7 +245,9 @@ function BaseTextInput(props) {
        See https://github.com/Expensify/App/issues/13802 */
     const lineHeight = useMemo(() => {
         if (Browser.isSafari() && _.isArray(props.inputStyle)) {
-            return _.find(props.inputStyle,  (f) => f.lineHeight !== undefined)?.lineHeight
+            const lineHeightValue = _.find(props.inputStyle, (f) => f.lineHeight !== undefined)
+            if(lineHeightValue)
+                return lineHeightValue.lineHeight
         } else if (Browser.isSafari() || Browser.isMobileChrome()) {
             return height;
         }
