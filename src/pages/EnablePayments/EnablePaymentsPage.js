@@ -55,7 +55,10 @@ class EnablePaymentsPage extends React.Component {
         }
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={EnablePaymentsPage.displayName}
+            >
                 {() => {
                     if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
                         return (

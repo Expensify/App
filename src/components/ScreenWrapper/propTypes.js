@@ -10,6 +10,9 @@ const propTypes = {
     /** Returns a function as a child to pass insets to or a node to render without insets */
     children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
 
+    /** A unique ID to find the screen wrapper in tests */
+    testID: PropTypes.string.isRequired,
+
     /** Whether to include padding bottom */
     includeSafeAreaPaddingBottom: PropTypes.bool,
 
