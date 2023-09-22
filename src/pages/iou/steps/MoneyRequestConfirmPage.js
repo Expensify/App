@@ -279,7 +279,7 @@ function MoneyRequestConfirmPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="MoneyRequestConfirmPage"
+            testID={MoneyRequestConfirmPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>

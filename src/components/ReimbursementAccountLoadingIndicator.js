@@ -25,7 +25,7 @@ function ReimbursementAccountLoadingIndicator(props) {
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}
-            testID="ReimbursementAccountLoadingIndicator"
+            testID={ReimbursementAccountLoadingIndicator.displayName}
         >
             <HeaderWithBackButton
                 title={translate('reimbursementAccountLoadingAnimation.oneMoment')}

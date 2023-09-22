@@ -184,7 +184,7 @@ function WorkspaceInitialPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="WorkspaceInitialPage"
+            testID={WorkspaceInitialPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView

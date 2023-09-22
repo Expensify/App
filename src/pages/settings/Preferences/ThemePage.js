@@ -37,7 +37,7 @@ function ThemePage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="ThemePage"
+            testID={ThemePage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('themePage.theme')}

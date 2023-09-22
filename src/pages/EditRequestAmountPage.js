@@ -56,7 +56,7 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, report
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID="EditRequestAmountPage"
+            testID={EditRequestAmountPage.displayName}
         >
             <HeaderWithBackButton title={translate('iou.amount')} />
             <MoneyRequestAmountForm

@@ -131,7 +131,7 @@ function AddressPage({privatePersonalDetails}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="AddressPage"
+            testID={AddressPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('privatePersonalDetails.homeAddress')}
