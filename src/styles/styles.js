@@ -2992,6 +2992,10 @@ const styles = (theme) => ({
         maxHeight: 115,
     },
 
+    privateNotesMultilineInput: {
+        maxHeight: 225,
+    },
+
     peopleRow: {
         width: '100%',
         flexDirection: 'row',
