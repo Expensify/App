@@ -12,7 +12,7 @@ const defaultSubRouteOptions = {
 
 /**
  * Create a modal stack navigator with an array of sub-screens.
- *]
+ *
  * @param {Object[]} screens array of screen config objects
  * @returns {Function}
  */
