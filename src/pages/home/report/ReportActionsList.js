@@ -114,7 +114,6 @@ function ReportActionsList({
 }) {
     const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
