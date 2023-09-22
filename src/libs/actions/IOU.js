@@ -723,19 +723,6 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
                 value: {pendingAction: null},
             });
         }
-    } else {
-        // If waypoints are being edited then the success data needs to overwrite the comments
-        // successData.push({
-        //     onyxMethod: Onyx.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-        //     value: {
-        //         comment: {
-        //             waypoints: {
-        //                 ...transactionDetails.comment.waypoints,
-        //             },
-        //         },
-        //     },
-        // });
     }
 
     // Optimistically modify the transaction
@@ -754,11 +741,6 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            comment: {
-                waypoints: {
-                    ...transactionDetails.comment.waypoints,
-                },
-            },
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
