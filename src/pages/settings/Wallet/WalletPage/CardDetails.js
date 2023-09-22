@@ -51,19 +51,19 @@ const defaultProps = {
     },
 };
 
+/**
+ * Applies common formatting to each piece of an address
+ *
+ * @param {String} piece
+ * @returns {String}
+ */
+const formatPiece = (piece) => (piece ? `${piece}, ` : '');
+
 function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
     usePrivatePersonalDetails();
     const privateDetails = privatePersonalDetails || {};
     const address = privateDetails.address || {};
     const {translate} = useLocalize();
-
-    /**
-     * Applies common formatting to each piece of an address
-     *
-     * @param {String} piece
-     * @returns {String}
-     */
-    const formatPiece = (piece) => (piece ? `${piece}, ` : '');
 
     /**
      * Formats an address object into an easily readable string
