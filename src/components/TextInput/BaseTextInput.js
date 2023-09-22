@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
-import {Animated, View, AppState, Keyboard, StyleSheet} from 'react-native';
+import {Animated, View, StyleSheet} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import TextInputLabel from './TextInputLabel';
@@ -248,9 +248,8 @@ function BaseTextInput(props) {
             return _.find(props.inputStyle,  (f) => f.lineHeight !== undefined)?.lineHeight
         } else if (Browser.isSafari() || Browser.isMobileChrome()) {
             return height;
-        } else {
-            return undefined;
         }
+        return undefined;        
     }, [props.inputStyle, height])
        
     return (
