@@ -5,10 +5,7 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import Clipboard from '../../../../libs/Clipboard';
 import useLocalize from '../../../../hooks/useLocalize';
-import Text from '../../../../components/Text';
 import styles from '../../../../styles/styles';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
 
@@ -82,10 +79,6 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
         Clipboard.setString(pan);
     };
 
-    const handleNavigateToEditAddress = () => {
-        Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS);
-    };
-
     return (
         <>
             <MenuItemWithTopDescription
@@ -113,12 +106,6 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
                 interactive={false}
                 wrapperStyle={styles.pb1}
             />
-            <Text
-                style={[styles.mh5, styles.link, styles.mb3]}
-                onPress={handleNavigateToEditAddress}
-            >
-                Update address
-            </Text>
         </>
     );
 }
