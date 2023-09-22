@@ -27,16 +27,16 @@ function WalletStatementModal({statementPageURL, session}) {
      */
     const handleNavigationStateChange = useCallback(
         ({type, url}) => {
-            if (!webViewRef.current || (type !== 'STATEMENT_NAVIGATE' && type !== 'CONCIERGE_NAVIGATE')) {
+            if (!webViewRef.current || (type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
                 return;
             }
 
-            if (type === CONST.WALLET.STATEMENT_WEB_MESSAGE_TYPE.CONCIERGE) {
+            if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
                 webViewRef.current.stopLoading();
                 Report.navigateToConciergeChat();
             }
 
-            if (type === CONST.WALLET.STATEMENT_WEB_MESSAGE_TYPE.STATEMENT && url) {
+            if (type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && url) {
                 const iouRoute = _.find(IOU_ROUTES, (item) => url.includes(item));
 
                 if (iouRoute) {
