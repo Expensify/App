@@ -38,9 +38,10 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
 
             isHoveredRef.current = hovered;
 
-            if (!shouldHandleScroll && !isScrolling) {
-                return setIsHovered(hovered);
+            if (shouldHandleScroll && isScrolling) {
+                return;
             }
+            setIsHovered(hovered);
         },
         [disabled, shouldHandleScroll, isScrolling],
     );
@@ -60,6 +61,9 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
 
         const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
             setIsScrolling(scrolling);
+            if (!scrolling) {
+                setIsHovered(isHoveredRef.current);
+            }
         });
 
         return scrollingListener.remove;
