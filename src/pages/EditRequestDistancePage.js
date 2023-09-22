@@ -50,13 +50,16 @@ function EditRequestDistancePage({report, route, transaction}) {
         TransactionEdit.createBackupTransaction(transaction);
 
         return () => {
-            if (transactionWasSaved.current) {
+            // When the component is unmounted
+            // If the transaction was saved without errors
+            // Then remove the backup transaction because it is no longer needed
+            if (transactionWasSaved.current && !_.size(transaction.errorFields)) {
                 TransactionEdit.removeBackupTransaction(transaction.transactionID);
                 return;
             }
 
-            // When this component is unmounted, if the transaction has not been saved yet
-            // restore the original transaction because the user is canceling out of the modal
+            // If the transaction had errors, or wasn't saved, then the original transaction
+            // needs to be restored or else errors and edited fields will remain in the UI
             TransactionEdit.restoreOriginalTransactionFromBackup(transaction.transactionID);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
