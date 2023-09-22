@@ -185,6 +185,11 @@ function ComposerWithSuggestions({
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
+                // Ensure emoji suggestions are hidden even when the selection is not changed (so calculateEmojiSuggestion would not be called).
+                if (suggestionsRef.current) {
+                    suggestionsRef.current.resetSuggestions();
+                }
+
                 const remainder = ComposerUtils.getCommonSuffixLength(commentRef.current, newComment);
                 setSelection({
                     start: newComment.length - remainder,
@@ -212,7 +217,7 @@ function ComposerWithSuggestions({
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty],
+        [debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty, suggestionsRef],
     );
 
     /**
@@ -240,6 +245,11 @@ function ComposerWithSuggestions({
         if (!commentLength || commentLength > CONST.MAX_COMMENT_LENGTH) {
             return '';
         }
+
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        // We need to make sure an empty draft gets saved instead
+        debouncedSaveReportComment.cancel();
 
         updateComment('');
         setTextInputShouldClear(true);

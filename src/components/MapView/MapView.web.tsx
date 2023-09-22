@@ -44,6 +44,21 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
             map.fitBounds([northEast, southWest], {padding: mapPadding});
         }, [waypoints, mapRef, mapPadding]);
 
+        useEffect(() => {
+            if (!mapRef) {
+                return;
+            }
+
+            const resizeObserver = new ResizeObserver(() => {
+                mapRef.resize();
+            });
+            resizeObserver.observe(mapRef.getContainer());
+
+            return () => {
+                resizeObserver?.disconnect();
+            };
+        }, [mapRef]);
+
         useImperativeHandle(
             ref,
             () => ({

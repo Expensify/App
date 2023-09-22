@@ -170,7 +170,7 @@ function MoneyRequestPreview(props) {
         !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
 
-    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || props.transaction.receiptFilename || '')] : [];
+    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || '')] : [];
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -232,7 +232,7 @@ function MoneyRequestPreview(props) {
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
             >
-                <View style={[styles.moneyRequestPreviewBox, isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined, ...props.containerStyles]}>
+                <View style={[isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={receiptImages}
@@ -339,7 +339,7 @@ function MoneyRequestPreview(props) {
             onLongPress={showContextMenu}
             accessibilityLabel={props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
-            style={styles.moneyRequestPreviewBox}
+            style={[styles.moneyRequestPreviewBox, ...props.containerStyles]}
         >
             {childContainer}
         </PressableWithFeedback>
