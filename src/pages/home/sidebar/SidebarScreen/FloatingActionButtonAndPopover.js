@@ -119,7 +119,7 @@ function FloatingActionButtonAndPopover(props) {
      * - Pressing the floating action button to open the CreateMenu modal
      * - Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
-    const hideCreateMernu = useCallback(
+    const hideCreateMenu = useCallback(
         () => {
             if (!isCreateMenuActive) {
                 return;
