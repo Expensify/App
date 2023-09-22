@@ -7,9 +7,10 @@ platforms:
   - href: expensify-classic
     title: Expensify Classic
     hub-title: Expensify Classic - Help & Resources
-    url: expensify.com
-    description: Your account settings will look something like this
-    image: /assets/images/paper-airplane.svg
+    url: www.expensify.com
+    description: >- 
+      Your account settings will look something like this:
+    image: /assets/images/settings-old-dot.svg
   
     # Hubs are comprised of sections and articles. Sections contain multiple related articles, but there can be standalone articles as well
     hubs:
@@ -77,8 +78,9 @@ platforms:
     title: New Expensify
     hub-title: New Expensify - Help & Resources
     url: new.expensify.com
-    description: Your account settings will look something like this
-    image: /assets/images/paper-airplane.svg
+    description: >- 
+      Your account settings will look something like this:
+    image: /assets/images/settings-new-dot.svg
   
     hubs:
       - href: account-settings
