@@ -6,11 +6,12 @@ import ONYXKEYS from '../ONYXKEYS';
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
+ * These are policies that we can use to create reports with in NewDot.
  * @param {Object} policies
  * @returns {Array}
  */
 function getActivePolicies(policies) {
-    return _.filter(policies, (policy) => policy && policy.isPolicyExpenseChatEnabled && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return _.filter(policies, (policy) => policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
@@ -166,6 +167,14 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
     return memberEmailsToExclude;
 }
 
+/**
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isPendingDeletePolicy(policy) {
+    return policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -179,4 +188,5 @@ export {
     isPolicyAdmin,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
+    isPendingDeletePolicy,
 };

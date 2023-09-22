@@ -298,7 +298,9 @@ function getDateStringFromISOTimestamp(isoTimestamp) {
  * @returns {String}
  */
 function getStatusUntilDate(inputDate) {
-    if (!inputDate) return '';
+    if (!inputDate) {
+        return '';
+    }
     const {translateLocal} = Localize;
 
     const input = new Date(inputDate);

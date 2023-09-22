@@ -75,7 +75,7 @@ function ReportSettingsPage(props) {
     const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN && !ReportUtils.isAdminRoom(report);
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={ReportSettingsPage.displayName}>
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}

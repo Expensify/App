@@ -7,6 +7,7 @@ import Text from './Text';
 import usePrivatePersonalDetails from '../hooks/usePrivatePersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import ExpensifyCardImage from '../../assets/images/expensify-card.svg';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** User's private personal details */
@@ -38,8 +39,8 @@ function CardPreview({privatePersonalDetails: {legalFirstName, legalLastName}, s
         <View style={styles.walletCard}>
             <ExpensifyCardImage
                 pointerEvents="none"
-                height={148}
-                width={235}
+                height={variables.cardPreviewHeight}
+                width={variables.cardPreviewWidth}
             />
             <Text
                 style={styles.walletCardHolder}

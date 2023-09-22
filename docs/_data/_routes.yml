@@ -1,26 +1,142 @@
 home:
   href: home
   title: Welcome to ExpensifyHelp!
-  description: Find the answers to all of your questions about receipts, expenses, corporate cards, or anything else in the spend management universe.
+  description: Questions? Find the answers by clicking a Category or using the search bar located in the left-hand menu.
 
-# Hubs are comprised of sections and articles. Sections contain multiple related articles, but there can be standalone articles as well
-hubs:
-  - href: split-bills
-    title: Split bills
-    description: With only a couple of clicks, split bills with your friends or coworkers.
-    icon: /assets/images/paper-airplane.svg
+platforms:
+  - href: expensify-classic
+    title: Expensify Classic
+    hub-title: Expensify Classic - Help & Resources
+    url: expensify.com
+    description: Your account settings will look something like this
+    image: /assets/images/paper-airplane.svg
+  
+    # Hubs are comprised of sections and articles. Sections contain multiple related articles, but there can be standalone articles as well
+    hubs:
+      - href: account-settings
+        title: Account Settings
+        icon: /assets/images/gears.svg
+        description: With only a couple of clicks, split bills with your friends or coworkers.
 
-  - href: request-money
-    title: Request money
-    icon: /assets/images/money-case.svg
-    description: Request money for work expenses, bills, or a night out with friends.
+      - href: bank-accounts-and-credit-cards
+        title: Bank Accounts & Credit Cards
+        icon: /assets/images/bank-card.svg
+        description: Request money for work expenses, bills, or a night out with friends.
 
-  - href: playbooks
-    title: Playbooks
-    icon: /assets/images/playbook.svg
-    description: Best practices for how to best deploy Expensify for your business
+      - href: billing-and-subscriptions
+        title: Billing & Subscriptions
+        icon: /assets/images/money-wings.svg
+        description: Best practices for how to best deploy Expensify for your business
 
-  - href: other
-    title: Other
-    description: Everything else you're looking for is right here.
-    icon: /assets/images/lightbulb.svg
+      - href: expense-and-report-features
+        title: Expense & Report Features
+        icon: /assets/images/money-receipt.svg
+        description: Everything else you're looking for is right here.
+
+      - href: expensify-card
+        title: Expensify Card
+        icon: /assets/images/hand-card.svg
+        description: Request money for work expenses, bills, or a night out with friends.
+
+      - href: exports
+        title: Exports
+        icon: /assets/images/monitor.svg
+        description: Best practices for how to best deploy Expensify for your business
+
+      - href: get-paid-back
+        title: Get Paid Back
+        description: Everything else you're looking for is right here.
+        icon: /assets/images/money-into-wallet.svg
+
+      - href: getting-started
+        title: Getting Started
+        description: Everything else you're looking for is right here.
+        icon: /assets/images/accounting.svg
+
+      - href: integrations
+        title: Integrations
+        description: Everything else you're looking for is right here.
+        icon: /assets/images/workflow.svg
+
+      - href: manage-employees-and-report-approvals
+        title: Manage Employees & Report Approvals
+        icon: /assets/images/envelope-receipt.svg
+        description: Everything else you're looking for is right here.
+      
+      - href: policy-and-domain-settings
+        title: Policy & Domain Setting
+        icon: /assets/images/shield.svg
+        description: Everything else you're looking for is right here.
+      
+      - href: send-payments
+        title: Send Payments
+        icon: /assets/images/money-wings.svg
+        description: Everything else you're looking for is right here.
+  
+  - href: new-expensify
+    title: New Expensify
+    hub-title: New Expensify - Help & Resources
+    url: new.expensify.com
+    description: Your account settings will look something like this
+    image: /assets/images/paper-airplane.svg
+  
+    hubs:
+      - href: account-settings
+        title: Account Settings
+        icon: /assets/images/gears.svg
+        description: With only a couple of clicks, split bills with your friends or coworkers.
+
+      - href: bank-accounts-and-credit-cards
+        title: Bank Accounts & Credit Cards
+        icon: /assets/images/bank-card.svg
+        description: description
+      
+      - href: billing-and-plan-types
+        title: Billing & Plan Types
+        icon: /assets/images/money-wings.svg
+        description: description
+      
+      - href: expense-and-report-features
+        title: Expense & Report Features
+        icon: /assets/images/money-receipt.svg
+        description: description
+
+      - href: expensify-card
+        title: Expensify Card
+        icon: /assets/images/hand-card.svg
+        description: description
+      
+      - href: exports
+        title: Exports
+        icon: /assets/images/monitor.svg
+        description: description
+
+      - href: get-paid-back
+        title: Get Paid Back
+        icon: /assets/images/money-into-wallet.svg
+        description: description
+      
+      - href: getting-started
+        title: Getting Started
+        icon: /assets/images/accounting.svg
+        description: description
+      
+      - href: integrations
+        title: Integrations
+        icon: /assets/images/workflow.svg
+        description: description
+
+      - href: manage-employees-and-report-approvals
+        title: Manage Employees & Report Approvals
+        icon: /assets/images/envelope-receipt.svg
+        description: description
+
+      - href: send-payments
+        title: Send Payments
+        icon: /assets/images/money-wings.svg
+        description: description.
+
+      - href: workspace-and-domain-settings
+        title: Workspace & Domain Settings
+        icon: /assets/images/shield.svg
+        description: description.

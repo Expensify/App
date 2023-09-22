@@ -28,6 +28,7 @@ export default {
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
+    avatarSizeXLarge: 120,
     avatarSizeLarge: 80,
     avatarSizeMedium: 52,
     avatarSizeHeader: 40,
@@ -158,4 +159,8 @@ export default {
     moneyRequestSkeletonHeight: 107,
 
     distanceScrollEventThrottle: 16,
+
+    cardPreviewHeight: 148,
+    cardPreviewWidth: 235,
+    cardNameWidth: 156,
 } as const;

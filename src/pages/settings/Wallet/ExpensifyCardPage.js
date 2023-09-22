@@ -10,17 +10,16 @@ import CardPreview from '../../../components/CardPreview';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import assignedCardPropTypes from './assignedCardPropTypes';
 import useLocalize from '../../../hooks/useLocalize';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import * as CardUtils from '../../../libs/CardUtils';
 import Button from '../../../components/Button';
-import assignedCardPropTypes from './assignedCardPropTypes';
 
 const propTypes = {
     /* Onyx Props */
-    // cardList: PropTypes.objectOf(cardListPropTypes),
     cardList: PropTypes.shape({
         isLoading: PropTypes.bool,
         [PropTypes.string]: PropTypes.objectOf(assignedCardPropTypes),
@@ -57,7 +56,7 @@ function ExpensifyCardPage({
     const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
     const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
 
-    if (_.isEmpty(virtualCard) || _.isEmpty(physicalCard)) {
+    if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
         return <NotFoundPage />;
     }
 
@@ -82,16 +81,18 @@ function ExpensifyCardPage({
                             interactive={false}
                             titleStyle={styles.newKansasLarge}
                         />
-                        <MenuItemWithTopDescription
-                            description={translate('cardPage.virtualCardNumber')}
-                            title={virtualCard.maskedPan}
-                            interactive={false}
-                            titleStyle={styles.walletCardNumber}
-                        />
+                        {!_.isEmpty(physicalCard) && (
+                            <MenuItemWithTopDescription
+                                description={translate('cardPage.virtualCardNumber')}
+                                title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                interactive={false}
+                                titleStyle={styles.walletCardNumber}
+                            />
+                        )}
                         {!_.isEmpty(physicalCard) && (
                             <MenuItemWithTopDescription
                                 description={translate('cardPage.physicalCardNumber')}
-                                title={physicalCard.maskedPan}
+                                title={CardUtils.maskCard(physicalCard.lastFourPAN)}
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
