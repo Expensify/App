@@ -144,7 +144,7 @@ function ReportActionItem(props) {
     const reportActionID = lodashGet(route, 'params.reportActionID');
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (reportActionID === props.action.reportActionID ? {backgroundColor: themeColors.highlightBG} : {}),
+        () => (reportActionID === props.action.reportActionID ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}),
         [reportActionID, props.action.reportActionID],
     );
 
