@@ -308,6 +308,6 @@ export type {
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
     TagSelectionParams,
-    SetTheDistanceParams
-    UpdatedTheDistanceParams
+    SetTheDistanceParams,
+    UpdatedTheDistanceParams,
 };

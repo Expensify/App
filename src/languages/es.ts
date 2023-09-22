@@ -67,7 +67,9 @@ import type {
     ParentNavigationSummaryParams,
     ManagerApprovedParams,
     SetTheRequestParams,
+    SetTheDistanceParams,
     UpdatedTheRequestParams,
+    UpdatedTheDistanceParams,
     RemovedTheRequestParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
@@ -526,10 +528,13 @@ export default {
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheRequest: 'cambió la solicitud',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `estableció ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
+        setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) => `set the distance to ${newDistanceToDisplay}, setting the amount to ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) =>
             `eliminó ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} (previamente ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
             `cambío ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
+        updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
+            `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), updating the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero`,
