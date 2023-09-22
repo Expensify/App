@@ -1513,9 +1513,9 @@ export default {
         assignee: 'Assignee',
         completed: 'Completed',
         messages: {
-            completed: 'completed task',
+            completed: 'marked as complete',
             canceled: 'deleted task',
-            reopened: 'reopened task',
+            reopened: 'marked as incomplete',
             error: 'You do not have the permission to do the requested action.',
         },
         markAsComplete: 'Mark as complete',

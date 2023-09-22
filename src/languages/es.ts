@@ -1535,9 +1535,9 @@ export default {
         assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
-            completed: 'tarea completada',
+            completed: 'marcada como completa',
             canceled: 'tarea eliminado',
-            reopened: 'tarea reabrir',
+            reopened: 'marcada como incompleta',
             error: 'No tiene permiso para realizar la acción solicitada.',
         },
         markAsComplete: 'Marcar como completada',
