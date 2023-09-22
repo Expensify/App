@@ -50,6 +50,7 @@ const defaultProps = {
     report: {},
     iou: iouDefaultProps,
     transactionID: '',
+    isInTabNavigator: false,
 };
 
 function ReceiptSelector(props) {
