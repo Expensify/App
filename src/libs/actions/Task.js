@@ -69,7 +69,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
 
     // Parent ReportAction indicating that a task has been created
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    const displayName = lodashGet(personalDetails, [currentUserAccountID, 'displayName']) || lodashGet(personalDetails, [currentUserAccountID, 'login']);
+    const displayName = lodashGet(allPersonalDetails, [currentUserAccountID, 'displayName']) || lodashGet(allPersonalDetails, [currentUserAccountID, 'login']);
     const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `${displayName}: task for ${title}`, parentReportID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
