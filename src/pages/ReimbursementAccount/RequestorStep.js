@@ -72,7 +72,7 @@ const validate = (values) => {
     return errors;
 };
 
-function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}) {
+function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}) {
     const {translate} = useLocalize();
 
     const defaultValues = useMemo(
@@ -196,11 +196,7 @@ function InnerRequestorStep({reimbursementAccount, shouldShowOnfido, reimburseme
     );
 }
 
-InnerRequestorStep.propTypes = propTypes;
-
-const RequestorStep = React.forwardRef(InnerRequestorStep);
-
 RequestorStep.propTypes = propTypes;
 RequestorStep.displayName = 'RequestorStep';
 
-export default RequestorStep;
+export default React.forwardRef(RequestorStep);
