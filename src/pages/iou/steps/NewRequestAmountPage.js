@@ -170,6 +170,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
+            testID="NewRequestAmountPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
