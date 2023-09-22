@@ -103,24 +103,24 @@ function getReportChannelName(reportID) {
 }
 
 /**
- * There are 2 possibilities that we can receive via pusher for a user's typing status:
+ * There are 2 possibilities that we can receive via pusher for a user's typing/leaving status:
  * 1. The "new" way from New Expensify is passed as {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
- * is whether the user with that login is typing on the report or not.
+ * is whether the user with that login is typing/leaving on the report or not.
  * 2. The "old" way from e.com which is passed as {userLogin: login} (e.g. {userLogin: bstites@expensify.com})
  *
  * This method makes sure that no matter which we get, we return the "new" format
  *
- * @param {Object} typingStatus
+ * @param {Object} status
  * @returns {Object}
  */
-function getNormalizedTypingStatus(typingStatus) {
-    let normalizedTypingStatus = typingStatus;
+function getNormalizedStatus(status) {
+    let normalizedStatus = status;
 
-    if (_.first(_.keys(typingStatus)) === 'userLogin') {
-        normalizedTypingStatus = {[typingStatus.userLogin]: true};
+    if (_.first(_.keys(status)) === 'userLogin') {
+        normalizedStatus = {[status.userLogin]: true};
     }
 
-    return normalizedTypingStatus;
+    return normalizedStatus;
 }
 
 /**
@@ -141,7 +141,7 @@ function subscribeToReportTypingEvents(reportID) {
         // If the pusher message comes from OldDot, we expect the typing status to be keyed by user
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
-        const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
+        const normalizedTypingStatus = getNormalizedStatus(typingStatus);
         const accountIDOrLogin = _.first(_.keys(normalizedTypingStatus));
 
         if (!accountIDOrLogin) {
@@ -171,6 +171,41 @@ function subscribeToReportTypingEvents(reportID) {
 }
 
 /**
+ * Initialize our pusher subscriptions to listen for someone leaving a room.
+ *
+ * @param {String} reportID
+ */
+function subscribeToReportLeavingEvents(reportID) {
+    if (!reportID) {
+        return;
+    }
+
+    // Make sure we have a clean Leaving indicator before subscribing to leaving events
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
+
+    const pusherChannelName = getReportChannelName(reportID);
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, (leavingStatus) => {
+        // If the pusher message comes from OldDot, we expect the leaving status to be keyed by user
+        // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
+        // since personal details are keyed by accountID.
+        const normalizedLeavingStatus = getNormalizedStatus(leavingStatus);
+        const accountIDOrLogin = _.first(_.keys(normalizedLeavingStatus));
+
+        if (!accountIDOrLogin) {
+            return;
+        }
+
+        if (Number(accountIDOrLogin) !== currentUserAccountID) {
+            return;
+        }
+
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, true);
+    }).catch((error) => {
+        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
+    });
+}
+
+/**
  * Remove our pusher subscriptions to listen for someone typing in a report.
  *
  * @param {String} reportID
@@ -183,6 +218,21 @@ function unsubscribeFromReportChannel(reportID) {
     const pusherChannelName = getReportChannelName(reportID);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING);
+}
+
+/**
+ * Remove our pusher subscriptions to listen for someone leaving a report.
+ *
+ * @param {String} reportID
+ */
+function unsubscribeFromLeavingRoomReportChannel(reportID) {
+    if (!reportID) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
+    Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM);
 }
 
 // New action subscriber array for report pages
@@ -865,6 +915,17 @@ function broadcastUserIsTyping(reportID) {
     typingStatus[currentUserAccountID] = true;
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
+/**
+ * Broadcasts to the report's private pusher channel whether a user is leaving a report
+ *
+ * @param {String} reportID
+ */
+function broadcastUserIsLeavingRoom(reportID) {
+    const privateReportChannelName = getReportChannelName(reportID);
+    const leavingStatus = {};
+    leavingStatus[currentUserAccountID] = true;
+    Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
+}
 
 /**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
@@ -1066,7 +1127,7 @@ const removeLinksFromHtml = (html, links) => {
  */
 const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
     const parser = new ExpensiMark();
-    if (newCommentText.length >= CONST.MAX_MARKUP_LENGTH) {
+    if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
@@ -1093,10 +1154,10 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentHTML);
     const reportComment = parser.htmlToText(htmlForNewComment);
 
-    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     let parsedOriginalCommentHTML = originalCommentHTML;
-    if (textForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
+    if (textForNewComment.length <= CONST.MAX_MARKUP_LENGTH) {
         const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), (name) => name !== 'autolink')};
         parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML).trim(), autolinkFilter);
     }
@@ -1781,6 +1842,12 @@ function getCurrentUserAccountID() {
 function leaveRoom(reportID) {
     const report = lodashGet(allReports, [reportID], {});
     const reportKeys = _.keys(report);
+
+    // Pusher's leavingStatus should be sent earlier.
+    // Place the broadcast before calling the LeaveRoom API to prevent a race condition
+    // between Onyx report being null and Pusher's leavingStatus becoming true.
+    broadcastUserIsLeavingRoom(reportID);
+
     API.write(
         'LeaveRoom',
         {
@@ -2071,10 +2138,13 @@ export {
     updateWriteCapabilityAndNavigate,
     updateNotificationPreferenceAndNavigate,
     subscribeToReportTypingEvents,
+    subscribeToReportLeavingEvents,
     unsubscribeFromReportChannel,
+    unsubscribeFromLeavingRoomReportChannel,
     saveReportComment,
     saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
+    broadcastUserIsLeavingRoom,
     togglePinnedState,
     editReportComment,
     handleUserDeletedLinksInHtml,
