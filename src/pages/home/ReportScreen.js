@@ -16,15 +16,14 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
+import useNetwork from '../../hooks/useNetwork';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
+import useLocalize from '../../hooks/useLocalize';
 import compose from '../../libs/compose';
 import Visibility from '../../libs/Visibility';
-import networkPropTypes from '../../components/networkPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import ReportFooter from './report/ReportFooter';
 import Banner from '../../components/Banner';
-import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
@@ -80,16 +79,12 @@ const propTypes = {
         }),
     ),
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     /** The account manager report ID */
     accountManagerReportID: PropTypes.string,
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
     ...withCurrentReportIDPropTypes,
 };
@@ -138,15 +133,16 @@ function ReportScreen({
     accountManagerReportID,
     personalDetails,
     policies,
-    translate,
-    network,
-    isSmallScreenWidth,
     isSidebarLoaded,
     viewportOffsetTop,
     isComposerFullSize,
     errors,
     currentReportID,
 }) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
     const reactionListRef = useRef();
@@ -390,7 +386,7 @@ function ReportScreen({
                                 <>
                                     <ReportFooter
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        isOffline={network.isOffline}
+                                        isOffline={isOffline}
                                         reportActions={reportActions}
                                         report={report}
                                         isComposerFullSize={isComposerFullSize}
@@ -403,7 +399,7 @@ function ReportScreen({
                             {!isReportReadyForDisplay && (
                                 <ReportFooter
                                     shouldDisableCompose
-                                    isOffline={network.isOffline}
+                                    isOffline={isOffline}
                                 />
                             )}
                         </View>
@@ -420,9 +416,6 @@ ReportScreen.displayName = 'ReportScreen';
 
 export default compose(
     withViewportOffsetTop,
-    withLocalize,
-    withWindowDimensions,
-    withNetwork(),
     withCurrentReportID,
     withOnyx({
         isSidebarLoaded: {
