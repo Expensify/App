@@ -197,7 +197,10 @@ function WorkspaceInvitePage(props) {
     }, [excludedUsers, translate, searchTerm, policyName, userToInvite, personalDetails]);
 
     return (
-        <ScreenWrapper shouldEnableMaxHeight>
+        <ScreenWrapper
+            shouldEnableMaxHeight
+            testID="WorkspaceInvitePage"
+        >
             {({didScreenTransitionEnd}) => {
                 const sections = didScreenTransitionEnd ? getSections() : [];
 

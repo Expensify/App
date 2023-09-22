@@ -117,7 +117,10 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
     }, [report, personalDetailsList, session, translate]);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="PrivateNotesListPage"
+        >
             <FullPageNotFoundView shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {})))}>
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
