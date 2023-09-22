@@ -102,7 +102,7 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID="WorkspacePageWithSections"
+            testID={WorkspacePageWithSections.displayName}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}

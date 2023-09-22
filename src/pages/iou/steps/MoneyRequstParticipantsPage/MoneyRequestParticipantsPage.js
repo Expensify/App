@@ -114,7 +114,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
-            testID="MoneyRequestParticipantsPage"
+            testID={MoneyRequestParticipantsPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>

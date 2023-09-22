@@ -83,7 +83,7 @@ function AboutPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="AboutPage"
+            testID={AboutPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>

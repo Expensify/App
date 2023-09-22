@@ -63,7 +63,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="DateOfBirthPage"
+            testID={DateOfBirthPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.dob')}

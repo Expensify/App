@@ -216,7 +216,7 @@ class ContactMethodDetailsPage extends Component {
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
             return (
-                <ScreenWrapper testID="ContactMethodDetailsPage">
+                <ScreenWrapper testID={ContactMethodDetailsPage.displayName}>
                     <FullPageNotFoundView
                         shouldShow
                         linkKey="contacts.goBackContactMethods"
@@ -234,7 +234,7 @@ class ContactMethodDetailsPage extends Component {
         return (
             <ScreenWrapper
                 onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}
-                testID="ContactMethodDetailsPage"
+                testID={ContactMethodDetailsPage.displayName}
             >
                 <HeaderWithBackButton
                     title={formattedContactMethod}

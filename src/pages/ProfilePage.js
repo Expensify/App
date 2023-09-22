@@ -144,7 +144,7 @@ function ProfilePage(props) {
     }, [accountID, hasMinimumDetails]);
 
     return (
-        <ScreenWrapper testID="ProfilePage">
+        <ScreenWrapper testID={ProfilePage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}

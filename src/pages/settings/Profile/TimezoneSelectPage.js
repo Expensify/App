@@ -80,7 +80,7 @@ function TimezoneSelectPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="TimezoneSelectPage"
+            testID={TimezoneSelectPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('timezonePage.timezone')}

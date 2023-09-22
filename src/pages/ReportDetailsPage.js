@@ -152,7 +152,7 @@ function ReportDetailsPage(props) {
     ) : null;
 
     return (
-        <ScreenWrapper testID="ReportDetailsPage">
+        <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                 <HeaderWithBackButton title={props.translate('common.details')} />
                 <ScrollView style={[styles.flex1]}>

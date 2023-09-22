@@ -52,7 +52,7 @@ function ChooseTransferAccountPage(props) {
     };
 
     return (
-        <ScreenWrapper testID="ChooseTransferAccountPage">
+        <ScreenWrapper testID={ChooseTransferAccountPage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('chooseTransferAccountPage.chooseAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE)}

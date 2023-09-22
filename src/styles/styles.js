@@ -1603,6 +1603,16 @@ const styles = (theme) => ({
         ...wordBreak.breakWord,
     },
 
+    renderHTMLTitle: {
+        color: theme.text,
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.EXP_NEUE,
+        lineHeight: variables.lineHeightXLarge,
+        maxWidth: '100%',
+        ...whiteSpace.preWrap,
+        ...wordBreak.breakWord,
+    },
+
     chatItemComposeWithFirstRow: {
         minHeight: 90,
     },

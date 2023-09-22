@@ -199,7 +199,7 @@ function WorkspaceInvitePage(props) {
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID="WorkspaceInvitePage"
+            testID={WorkspaceInvitePage.displayName}
         >
             {({didScreenTransitionEnd}) => {
                 const sections = didScreenTransitionEnd ? getSections() : [];

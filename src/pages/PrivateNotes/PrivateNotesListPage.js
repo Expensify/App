@@ -119,7 +119,7 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="PrivateNotesListPage"
+            testID={PrivateNotesListPage.displayName}
         >
             <FullPageNotFoundView shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {})))}>
                 <HeaderWithBackButton
