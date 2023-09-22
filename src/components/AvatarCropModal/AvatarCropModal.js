@@ -366,6 +366,7 @@ function AvatarCropModal(props) {
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
+                testID="AvatarCropModal"
             >
                 {props.isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton

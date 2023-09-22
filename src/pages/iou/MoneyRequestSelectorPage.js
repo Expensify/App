@@ -82,6 +82,7 @@ function MoneyRequestSelectorPage(props) {
                       ]
                     : []
             }
+            testID="MoneyRequestSelectorPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>

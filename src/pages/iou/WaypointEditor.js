@@ -1,7 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
@@ -172,11 +172,21 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
+    const focusAddressInput = () => {
+        InteractionManager.runAfterInteractions(() => {
+            if (!textInput.current) {
+                return;
+            }
+            textInput.current.focus();
+        });
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             shouldEnableMaxHeight
+            testID="WaypointEditor"
         >
             <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount) && isFocused}>
                 <HeaderWithBackButton
@@ -194,12 +204,14 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                             onSelected: () => setIsDeleteStopModalOpen(true),
                         },
                     ]}
+                    onModalHide={focusAddressInput}
                 />
                 <ConfirmModal
                     title={translate('distance.deleteWaypoint')}
                     isVisible={isDeleteStopModalOpen}
                     onConfirm={deleteStopAndHideModal}
                     onCancel={() => setIsDeleteStopModalOpen(false)}
+                    onModalHide={focusAddressInput}
                     prompt={translate('distance.deleteWaypointConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}

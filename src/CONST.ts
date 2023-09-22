@@ -1358,6 +1358,7 @@ const CONST = {
         DATE: 'date',
         DESCRIPTION: 'description',
         MERCHANT: 'merchant',
+        CATEGORY: 'category',
         RECEIPT: 'receipt',
         DISTANCE: 'distance',
     },

@@ -80,6 +80,7 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID="MoneyRequestTagPage"
         >
             <HeaderWithBackButton
                 title={tagListName}
@@ -109,6 +110,7 @@ export default compose(
             key: ONYXKEYS.IOU,
         },
     }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
