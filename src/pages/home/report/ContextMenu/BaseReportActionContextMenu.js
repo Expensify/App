@@ -154,7 +154,7 @@ function BaseReportActionContextMenu(props) {
                             onPress={() => interceptAnonymousUser(() => contextAction.onPress(closePopup, payload), contextAction.isAnonymousAction)}
                             description={contextAction.getDescription(props.selection, props.isSmallScreenWidth)}
                             isAnonymousAction={contextAction.isAnonymousAction}
-                            focused={focusedIndex === index}
+                            isFocused={focusedIndex === index}
                         />
                     );
                 })}

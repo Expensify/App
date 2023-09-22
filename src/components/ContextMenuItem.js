@@ -48,11 +48,11 @@ const defaultProps = {
     successText: '',
     description: '',
     isAnonymousAction: false,
-    focused: false,
+    isFocused: false,
     innerRef: null,
 };
 
-function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, focused, innerRef}) {
+function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
@@ -99,7 +99,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             descriptionTextStyle={styles.breakAll}
             style={getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
-            focused={focused}
+            focused={isFocused}
         />
     );
 }
