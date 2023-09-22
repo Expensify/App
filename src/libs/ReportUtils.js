@@ -2274,7 +2274,7 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '', trans
         actorAccountID: hasReceipt ? currentUserAccountID : iouReport.managerID || 0,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
-        childLastReceiptTransactionIDs: hasReceipt ? transaction.transactionID : '',
+        childRecentReceiptTransactionIDs: hasReceipt ? {transaction.transactionID = transaction.transactionID} : [],
         whisperedToAccountIDs: hasReceipt ? [currentUserAccountID] : [],
     };
 }
@@ -2333,7 +2333,7 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
  */
 function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = false, comment = '', transaction = undefined) {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const lastReceiptTransactionIDs = lodashGet(reportPreviewAction, 'childLastReceiptTransactionIDs', '');
+    const recentReceiptTransactionIDs = lodashGet(reportPreviewAction, 'childRecentReceiptTransactionIDs', {});
     const previousTransactionIDs = lastReceiptTransactionIDs.split(',').slice(0, 2);
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
@@ -2350,7 +2350,10 @@ function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = fals
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
         childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + (isPayRequest ? 0 : 1),
-        childLastReceiptTransactionIDs: hasReceipt ? [transaction.transactionID, ...previousTransactionIDs].join(',') : lastReceiptTransactionIDs,
+        childRecentReceiptTransactionIDs: hasReceipt ? {
+            [transaction.transactionID]: transaction.transactionID,
+            ...previousTransactionIDs
+            } : recentReceiptTransactionIDs,
         // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
         // so we remove the whisper
         whisperedToAccountIDs: hasReceipt ? reportPreviewAction.whisperedToAccountIDs : [],
@@ -3547,7 +3550,7 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
  * @returns {Object}
  */
 function getReportPreviewDisplayTransactions(reportPreviewAction) {
-    const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
+    const transactionIDs = lodashGet(reportPreviewAction, ['childRecentReceiptTransactionIDs']);
     return _.reduce(
         transactionIDs,
         (transactions, transactionID) => {
