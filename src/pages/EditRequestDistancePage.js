@@ -77,7 +77,7 @@ function EditRequestDistancePage({report, route, transaction}) {
      */
     const saveTransaction = (waypoints) => {
         transactionWasSaved.current = true;
-        IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints}, transaction.transactionID);
+        IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints});
     };
 
     return (
