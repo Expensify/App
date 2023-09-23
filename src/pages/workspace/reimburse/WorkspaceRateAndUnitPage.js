@@ -48,13 +48,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
     }
 
     componentDidMount() {
-        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
-
-        this.setState({
-            rate: this.getUnitRateValue(distanceCustomRate),
-            unit: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
-        });
+        this.resetRateAndUnit();
 
         if (lodashGet(this.props, 'policy.customUnits', []).length !== 0) {
             return;
@@ -72,13 +66,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
             return;
         }
 
-        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
-
-        this.setState({
-            rate: this.getUnitRateValue(distanceCustomRate),
-            unit: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
-        });
+        this.resetRateAndUnit();
     }
 
     getUnitRateValue(customUnitRate) {
@@ -106,6 +94,16 @@ class WorkspaceRateAndUnitPage extends React.Component {
             return NaN;
         }
         return numValue.toFixed(3);
+    }
+
+    resetRateAndUnit() {
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
+
+        this.setState({
+            rate: this.getUnitRateValue(distanceCustomRate),
+            unit: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
+        });
     }
 
     saveUnitAndRate(unit, rate) {
