@@ -142,10 +142,11 @@ function ReportActionItem(props) {
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
     const reportActionID = lodashGet(route, 'params.reportActionID');
+    const isReportActionLinked = reportActionID === props.action.reportActionID;
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (reportActionID === props.action.reportActionID ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}),
-        [reportActionID, props.action.reportActionID],
+        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}),
+        [reportActionID, props.action.reportActionID, isReportActionLinked],
     );
 
     // When active action changes, we need to update the `isContextMenuActive` state
@@ -656,7 +657,7 @@ function ReportActionItem(props) {
                                         />
                                     </View>
                                 )}
-                                {renderReportActionItem(hovered, isWhisper, hasErrors)}
+                                {renderReportActionItem(hovered || isReportActionLinked, isWhisper, hasErrors)}
                             </OfflineWithFeedback>
                         </View>
                     </View>
