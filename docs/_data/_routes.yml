@@ -14,6 +14,11 @@ platforms:
   
     # Hubs are comprised of sections and articles. Sections contain multiple related articles, but there can be standalone articles as well
     hubs:
+      - href: getting-started
+        title: Getting Started
+        icon: /assets/images/accounting.svg
+        description: From setting up your account to ensuring you get the most out of Expensify’s suite of features, click here to get started on streamlining your expense management journey.
+
       - href: account-settings
         title: Account Settings
         icon: /assets/images/gears.svg
@@ -49,11 +54,6 @@ platforms:
         icon: /assets/images/money-into-wallet.svg
         description: Whether you submit an expense report or an invoice, find out here how to ensure a smooth and timely payback process every time.
 
-      - href: getting-started
-        title: Getting Started
-        icon: /assets/images/accounting.svg
-        description: From setting up your account to ensuring you get the most out of Expensify’s suite of features, click here to get started on streamlining your expense management journey.
-
       - href: integrations
         title: Integrations
         icon: /assets/images/workflow.svg
@@ -83,6 +83,11 @@ platforms:
     image: /assets/images/settings-new-dot.svg
   
     hubs:
+      - href: getting-started
+        title: Getting Started
+        icon: /assets/images/accounting.svg
+        description: From setting up your account to ensuring you get the most out of Expensify’s suite of features, click here to get started on streamlining your expense management journey.
+      
       - href: account-settings
         title: Account Settings
         icon: /assets/images/gears.svg
@@ -117,11 +122,6 @@ platforms:
         title: Get Paid Back
         icon: /assets/images/money-into-wallet.svg
         description: Whether you submit an expense report or an invoice, find out here how to ensure a smooth and timely payback process every time.
-      
-      - href: getting-started
-        title: Getting Started
-        icon: /assets/images/accounting.svg
-        description: From setting up your account to ensuring you get the most out of Expensify’s suite of features, click here to get started on streamlining your expense management journey.
       
       - href: integrations
         title: Integrations
