@@ -654,7 +654,7 @@ function ReportActionItem(props) {
                                         />
                                     </View>
                                 )}
-                                {renderReportActionItem(hovered || isReportActionLinked, isWhisper, hasErrors)}
+                                {renderReportActionItem(hovered, isWhisper, hasErrors)}
                             </OfflineWithFeedback>
                         </View>
                     </View>
