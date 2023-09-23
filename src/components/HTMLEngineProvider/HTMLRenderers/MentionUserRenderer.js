@@ -27,7 +27,7 @@ const propTypes = {
  * @param {String} email
  * @returns {void}
  * */
-const showUserDetails = (email) => Navigation.navigate(ROUTES.getDetailsRoute(email));
+const showUserDetails = (email) => Navigation.navigate(ROUTES.DETAILS.getRoute(email));
 
 function MentionUserRenderer(props) {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
@@ -50,7 +50,7 @@ function MentionUserRenderer(props) {
                 <TextLink
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
-                    href={ROUTES.getDetailsRoute(loginWithoutLeadingAt)}
+                    href={ROUTES.DETAILS.getRoute(loginWithoutLeadingAt)}
                     style={[_.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
                     onPress={() => showUserDetails(loginWithoutLeadingAt)}
                     // Add testID so it is NOT selected as an anchor tag by SelectionScraper

@@ -114,7 +114,7 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
                     subtitle={policyName}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={guidesCallTaskID}
-                    onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                 />
                 {shouldUseScrollView ? (
                     <ScrollViewWithContext
