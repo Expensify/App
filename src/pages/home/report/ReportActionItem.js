@@ -146,7 +146,7 @@ function ReportActionItem(props) {
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}),
-        [reportActionID, props.action.reportActionID, isReportActionLinked],
+        [isReportActionLinked],
     );
 
     // When active action changes, we need to update the `isContextMenuActive` state
