@@ -66,7 +66,7 @@ function LoungeAccessPage(props) {
 
     const overlayContent = () => (
         <LinearGradient
-            colors={[`${themeColors.dark}00`, themeColors.dark]}
+            colors={[`${themeColors.loungeAccessOverlay}00`, themeColors.loungeAccessOverlay]}
             style={[styles.pAbsolute, styles.w100, styles.h100]}
         >
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pt5]}>
