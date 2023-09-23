@@ -144,7 +144,7 @@ function ReportActionItem(props) {
     const reportActionID = lodashGet(route, 'params.reportActionID');
     const isReportActionLinked = reportActionID === props.action.reportActionID;
 
-    const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}), [isReportActionLinked]);
+    const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? {backgroundColor: themeColors.highlightBG} : {}), [isReportActionLinked]);
 
     // When active action changes, we need to update the `isContextMenuActive` state
     const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID);
