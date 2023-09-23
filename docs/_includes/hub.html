@@ -22,17 +22,12 @@
     </section>
 {% endif %}
 
-{% for section in hub.sections %}
-    <section>
-        <h2 id="{{ section.href }}">
-            {{ section.title }}
-        </h2>
-
-        <div class="cards-group">
-            {% for article in section.articles %}
-                {% assign article_href = section.href | append: '/' | append: article.href %}
-                {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
+{% if hub.sections %}
+    <div class="cards-group">
+        <section>
+            {% for section in hub.sections %}
+                {% include section-card.html platform=activePlatform hub=hub.href section=section.href title=section.title %}
             {% endfor %}
-        </div>
-    </section>
-{% endfor %}
+        </section>
+    </div>
+{% endif %}
