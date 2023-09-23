@@ -699,7 +699,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
             },
         });
 
-        // Step 4: Comput the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
+        // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
         // Should only update if the transaction matches the currency of the report, else we wait for the update
         // from the server with the currency conversion
         let updatedMoneyRequestReport = {...iouReport};
