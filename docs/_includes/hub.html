@@ -12,16 +12,6 @@
     {{ hub.description }}
 </p>
 
-{% if hub.articles %}
-    <section>
-        <div class="cards-group">
-            {% for article in hub.articles %}
-                {% include article-card.html hub=hub.href href=article.href title=article.title platform=activePlatform %}
-            {% endfor %}
-        </div>
-    </section>
-{% endif %}
-
 {% if hub.sections %}
     <div class="cards-group">
         <section>
@@ -30,4 +20,14 @@
             {% endfor %}
         </section>
     </div>
+{% endif %}
+
+{% if hub.articles %}
+    <section>
+        <div class="cards-group">
+            {% for article in hub.articles %}
+                {% include article-card.html hub=hub.href href=article.href title=article.title platform=activePlatform %}
+            {% endfor %}
+        </div>
+    </section>
 {% endif %}

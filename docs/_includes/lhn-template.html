@@ -33,10 +33,6 @@
                             <span>{{ hub.title }}</span>
                         </div>
                         <ul class="nested-treeview">
-                            {% for article in hub.articles %}
-                                {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article.href title=article.title %}
-                            {% endfor %}
-
                             {% for section in hub.sections %}
                                 <li>
                                     {% if section.href == activeSection %}
@@ -58,6 +54,10 @@
                                     {% endif %}
                                     
                                 </li>
+                            {% endfor %}
+
+                            {% for article in hub.articles %}
+                                {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article.href title=article.title %}
                             {% endfor %}
                         </ul>
                     {% else %}
