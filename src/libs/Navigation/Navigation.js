@@ -10,7 +10,6 @@ import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
-import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import getStateFromPath from './getStateFromPath';
 import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
@@ -46,9 +45,6 @@ function canNavigate(methodName, params = {}) {
 
 // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
-
-// Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
-const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
 /**
  * Method for finding on which index in stack we are.
@@ -272,7 +268,6 @@ export default {
     setIsNavigationReady,
     getTopmostReportId,
     getRouteNameFromStateEvent,
-    getTopmostReportActionId,
 };
 
 export {navigationRef};
