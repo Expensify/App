@@ -7,7 +7,6 @@ import withNavigationFocus, {withNavigationFocusPropTypes} from '../../component
 import * as Report from '../../libs/actions/Report';
 import * as App from '../../libs/actions/App';
 import useLocalize from '../../hooks/useLocalize';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
 import styles from '../../styles/styles';
 import RoomNameInput from '../../components/RoomNameInput';
 import Picker from '../../components/Picker';
@@ -71,7 +70,6 @@ const defaultProps = {
 
 function WorkspaceNewRoomPage(props) {
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
@@ -151,7 +149,7 @@ function WorkspaceNewRoomPage(props) {
             shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}
             shouldShowBackButton={false}
             linkKey="workspace.emptyWorkspace.title"
-            onLinkPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, !isSmallScreenWidth)}
+            onLinkPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, false)}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
