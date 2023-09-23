@@ -3,19 +3,16 @@ import PropTypes from 'prop-types';
 
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import lodashIsNil from 'lodash/isNil';
-import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as MapboxToken from '../libs/actions/MapboxToken';
-import * as TransactionUtils from '../libs/TransactionUtils';
 import * as Expensicons from './Icon/Expensicons';
-import theme from '../styles/themes/default';
 import styles from '../styles/styles';
 import transactionPropTypes from './transactionPropTypes';
 import PendingMapView from './MapView/PendingMapView';
 import useNetwork from '../hooks/useNetwork';
 import DistanceMapView from './DistanceMapView';
+import DistanceRequestUtils from '../libs/DistanceRequestUtils';
 
 const propTypes = {
     /** Transaction that stores the distance request data */
@@ -38,47 +35,12 @@ const defaultProps = {
     },
 };
 
-const getWaypointMarkers = (waypoints) => {
-    const numberOfWaypoints = _.size(waypoints);
-    const lastWaypointIndex = numberOfWaypoints - 1;
-    return _.filter(
-        _.map(waypoints, (waypoint, key) => {
-            if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
-                return;
-            }
-
-            const index = TransactionUtils.getWaypointIndex(key);
-            let MarkerComponent;
-            if (index === 0) {
-                MarkerComponent = Expensicons.DotIndicatorUnfilled;
-            } else if (index === lastWaypointIndex) {
-                MarkerComponent = Expensicons.Location;
-            } else {
-                MarkerComponent = Expensicons.DotIndicator;
-            }
-
-            return {
-                id: `${waypoint.lng},${waypoint.lat},${index}`,
-                coordinate: [waypoint.lng, waypoint.lat],
-                markerComponent: () => (
-                    <MarkerComponent
-                        width={CONST.MAP_MARKER_SIZE}
-                        height={CONST.MAP_MARKER_SIZE}
-                        fill={theme.icon}
-                    />
-                ),
-            };
-        }),
-        (waypoint) => waypoint,
-    );
-};
-
 function ConfirmedRoute({mapboxAccessToken, transaction}) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction.routes || {};
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const coordinates = lodashGet(route, 'geometry.coordinates', []);
-    const waypointMarkers = getWaypointMarkers(waypoints);
+    const waypointMarkers = DistanceRequestUtils.getWaypointMarkers(waypoints);
 
     useEffect(() => {
         MapboxToken.init();

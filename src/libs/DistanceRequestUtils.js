@@ -1,6 +1,10 @@
 import _ from 'underscore';
 import CONST from '../CONST';
 import * as CurrencyUtils from './CurrencyUtils';
+import * as TransactionUtils from './TransactionUtils';
+import * as Expensicons from '../components/Icon/Expensicons';
+import theme from '../styles/themes/default';
+import lodashIsNil from 'lodash/isNil';
 
 /**
  * Retrieves the default mileage rate based on a given policy.
@@ -108,4 +112,46 @@ const getDistanceRequestAmount = (distance, unit, rate) => {
     return roundedDistance * rate;
 };
 
-export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};
+/**
+ * Generates an array of waypoint markers with specific marker components based on their order (start, middle, end)
+ * and filters out invalid waypoints.
+ * 
+ * @param {Object} waypoints - Object with waypoint details, each having lat and lng properties.
+ * @returns {Object[]} - Array containing waypoint markers with id, coordinate, and markerComponent.
+ */
+const getWaypointMarkers = (waypoints) => {
+    const numberOfWaypoints = _.size(waypoints);
+    const lastWaypointIndex = numberOfWaypoints - 1;
+    return _.filter(
+        _.map(waypoints, (waypoint, key) => {
+            if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
+                return;
+            }
+
+            const index = TransactionUtils.getWaypointIndex(key);
+            let MarkerComponent;
+            if (index === 0) {
+                MarkerComponent = Expensicons.DotIndicatorUnfilled;
+            } else if (index === lastWaypointIndex) {
+                MarkerComponent = Expensicons.Location;
+            } else {
+                MarkerComponent = Expensicons.DotIndicator;
+            }
+
+            return {
+                id: `${waypoint.lng},${waypoint.lat},${index}`,
+                coordinate: [waypoint.lng, waypoint.lat],
+                markerComponent: () => (
+                    <MarkerComponent
+                        width={CONST.MAP_MARKER_SIZE}
+                        height={CONST.MAP_MARKER_SIZE}
+                        fill={theme.icon}
+                    />
+                ),
+            };
+        }),
+        (waypoint) => waypoint,
+    );
+};
+
+export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount, getWaypointMarkers};
