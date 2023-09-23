@@ -15,6 +15,7 @@ import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
+import * as Url from './Url';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
@@ -3147,12 +3148,34 @@ function getRouteFromLink(url) {
 }
 
 /**
+ * @param {String} route
+ * @returns {Object}
+ */
+function parseReportRouteParams(route) {
+    let parsingRoute = route;
+    if (parsingRoute.at(0) === '/') {
+        // remove the first slash
+        parsingRoute = parsingRoute.slice(1);
+    }
+
+    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash('r'))) {
+        return {reportID: '', isSubReportPageRoute: false};
+    }
+
+    const pathSegments = parsingRoute.split('/');
+    return {
+        reportID: pathSegments[1],
+        isSubReportPageRoute: pathSegments.length > 2,
+    };
+}
+
+/**
  * @param {String|null} url
  * @returns {String}
  */
 function getReportIDFromLink(url) {
     const route = getRouteFromLink(url);
-    const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
+    const {reportID, isSubReportPageRoute} = parseReportRouteParams(route);
     if (isSubReportPageRoute) {
         // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages
         return '';

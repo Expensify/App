@@ -1,5 +1,4 @@
 import {ValueOf} from 'type-fest';
-import * as Url from './libs/Url';
 import CONST from './CONST';
 
 /**
@@ -35,6 +34,7 @@ export default {
     // when linking users from e.com in order to share a session in this app.
     ENABLE_PAYMENTS:                            'enable-payments',
     WALLET_STATEMENT_WITH_DATE:                 'statements/:yearMonth',
+    SIGN_IN_MODAL:                              'sign-in-modal',
 
     BANK_ACCOUNT:                               'bank-account',
     BANK_ACCOUNT_NEW:                           'bank-account/new',
@@ -154,25 +154,6 @@ export default {
     WORKSPACE_MEMBERS: {                 route: 'workspace/:policyID/members',           getRoute: (policyID: string) => `workspace/${policyID}/members`},
 
     // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
-    SAASTR: 'saastr',
-    SBE: 'sbe',
-
-    parseReportRouteParams: (route: string): ParseReportRouteParams => {
-        let parsingRoute = route;
-        if (parsingRoute.at(0) === '/') {
-            // remove the first slash
-            parsingRoute = parsingRoute.slice(1);
-        }
-
-        if (!parsingRoute.startsWith(Url.addTrailingForwardSlash(REPORT))) {
-            return {reportID: '', isSubReportPageRoute: false};
-        }
-
-        const pathSegments = parsingRoute.split('/');
-        return {
-            reportID: pathSegments[1],
-            isSubReportPageRoute: pathSegments.length > 2,
-        };
-    },
-    SIGN_IN_MODAL: 'sign-in-modal',
+    SAASTR:                                     'saastr',
+    SBE:                                        'sbe',
 } as const;
