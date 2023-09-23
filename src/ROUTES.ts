@@ -5,11 +5,6 @@ import CONST from './CONST';
  * This is a file containing constants for all of the routes we want to be able to go to
  */
 
-type ParseReportRouteParams = {
-    reportID: string;
-    isSubReportPageRoute: boolean;
-};
-
 // prettier-ignore
 export default {
     HOME:                                       '',
@@ -39,7 +34,7 @@ export default {
     BANK_ACCOUNT:                               'bank-account',
     BANK_ACCOUNT_NEW:                           'bank-account/new',
     BANK_ACCOUNT_PERSONAL:                      'bank-account/personal',
-    BANK_ACCOUNT_WITH_STEP_TO_OPEN: {    route: 'bank-account/:stepToOpen?', getRoute: (stepToOpen = '', policyID = '', backTo = ''): string => {
+    BANK_ACCOUNT_WITH_STEP_TO_OPEN: {    route: 'bank-account/:stepToOpen?',            getRoute: (stepToOpen = '', policyID = '', backTo = ''): string => {
         const backToParam = backTo ? `&backTo=${encodeURIComponent(backTo)}` : '';
         return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
     }},
