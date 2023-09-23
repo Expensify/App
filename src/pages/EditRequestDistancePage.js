@@ -92,7 +92,6 @@ function EditRequestDistancePage({report, route, transaction}) {
             <DistanceRequest
                 report={report}
                 route={route}
-                // Pass the ID of the cloned transaction so that the original transaction is not being changed
                 transactionID={transaction.transactionID}
                 onSubmit={saveTransaction}
                 isEditingRequest
