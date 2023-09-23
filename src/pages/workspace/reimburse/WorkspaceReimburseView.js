@@ -168,7 +168,7 @@ function WorkspaceReimburseView(props) {
                         title={currentRatePerUnit}
                         description={translate('workspace.reimburse.trackDistanceRate')}
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policy.id))}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy.id))}
                         wrapperStyle={[styles.mhn5, styles.wAuto]}
                         brickRoadIndicator={(lodashGet(distanceCustomUnit, 'errors') || lodashGet(distanceCustomRate, 'errors')) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
                     />

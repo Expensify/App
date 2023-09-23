@@ -180,7 +180,7 @@ export default {
                                 path: ROUTES.WORKSPACE_REIMBURSE.route,
                             },
                             Workspace_RateAndUnit: {
-                                path: ROUTES.WORKSPACE_REIMBURSE.route,
+                                path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
                             },
                             Workspace_Bills: {
                                 path: ROUTES.WORKSPACE_BILLS.route,
@@ -195,7 +195,7 @@ export default {
                                 path: ROUTES.WORKSPACE_MEMBERS.route,
                             },
                             Workspace_Invite: {
-                                path: ROUTES.WORKSPACE_INITIAL.route,
+                                path: ROUTES.WORKSPACE_INVITE.route,
                             },
                             Workspace_Invite_Message: {
                                 path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
@@ -314,7 +314,7 @@ export default {
                                         exact: true,
                                     },
                                     distance: {
-                                        path: ROUTES.WORKSPACE_MEMBERS.route,
+                                        path: ROUTES.MONEY_REQUEST_DISTANCE_TAB.route,
                                         exact: true,
                                     },
                                 },
@@ -359,7 +359,7 @@ export default {
                     },
                     Wallet_Statement: {
                         screens: {
-                            WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE.route,
+                            WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
                         },
                     },
                     Flag_Comment: {
