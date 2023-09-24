@@ -12,6 +12,9 @@ const propTypes = {
     /** Callback to close carousel when user swipes down (on native) */
     onClose: PropTypes.func,
 
+    /** Function to change the download button Visibility */
+    setDownloadButtonVisibility: PropTypes.func,
+
     /** Object of report actions for this report */
     reportActions: PropTypes.shape(reportActionPropTypes),
 
@@ -24,6 +27,7 @@ const defaultProps = {
     reportActions: {},
     onNavigate: () => {},
     onClose: () => {},
+    setDownloadButtonVisibility: () => {},
 };
 
 export {propTypes, defaultProps};

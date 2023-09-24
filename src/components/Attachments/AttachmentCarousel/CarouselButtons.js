@@ -40,7 +40,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
     const isForwardDisabled = page === _.size(attachments) - 1;
 
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions;
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     return shouldShowArrows ? (
         <>

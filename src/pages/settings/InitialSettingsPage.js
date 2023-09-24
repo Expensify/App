@@ -41,6 +41,8 @@ import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions'
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import useLocalize from '../../hooks/useLocalize';
+import useSingleExecution from '../../hooks/useSingleExecution';
+import useWaitForNavigation from '../../hooks/useWaitForNavigation';
 
 const propTypes = {
     /* Onyx Props */
@@ -80,10 +82,7 @@ const propTypes = {
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
-    /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
-
-    /** List of cards */
+    /** List of user's cards */
     fundList: PropTypes.objectOf(cardPropTypes),
 
     /** Bank account attached to free plan */
@@ -121,7 +120,6 @@ const defaultProps = {
     betas: [],
     walletTerms: {},
     bankAccountList: {},
-    cardList: null,
     fundList: null,
     loginList: {},
     allPolicyMembers: {},
@@ -129,6 +127,8 @@ const defaultProps = {
 };
 
 function InitialSettingsPage(props) {
+    const {isExecuting, singleExecution} = useSingleExecution();
+    const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
 
@@ -184,22 +184,22 @@ function InitialSettingsPage(props) {
                 : null;
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
 
-        const paymentCardList = props.fundList || props.cardList || {};
+        const paymentCardList = props.fundList || {};
 
         return [
             {
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE);
-                },
+                }),
             },
             {
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Building,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
-                },
+                }),
                 floatRightAvatars: policiesAvatars,
                 shouldStackHorizontally: true,
                 avatarSize: CONST.AVATAR_SIZE.SMALLER,
@@ -208,31 +208,31 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-                },
+                }),
                 brickRoadIndicator: profileBrickRoadIndicator,
             },
             {
                 translationKey: 'common.preferences',
                 icon: Expensicons.Gear,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
-                },
+                }),
             },
             {
                 translationKey: 'initialSettingsPage.security',
                 icon: Expensicons.Lock,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_SECURITY);
-                },
+                }),
             },
             {
-                translationKey: 'common.payments',
+                translationKey: 'common.wallet',
                 icon: Expensicons.Wallet,
-                action: () => {
-                    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-                },
+                action: waitForNavigate(() => {
+                    Navigation.navigate(ROUTES.SETTINGS_WALLET);
+                }),
                 brickRoadIndicator:
                     PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
                         ? 'error'
@@ -251,9 +251,9 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'initialSettingsPage.about',
                 icon: Expensicons.Info,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_ABOUT);
-                },
+                }),
             },
             {
                 translationKey: 'initialSettingsPage.signOut',
@@ -266,7 +266,6 @@ function InitialSettingsPage(props) {
     }, [
         props.allPolicyMembers,
         props.bankAccountList,
-        props.cardList,
         props.fundList,
         props.loginList,
         props.network.isOffline,
@@ -275,6 +274,7 @@ function InitialSettingsPage(props) {
         props.userWallet.errors,
         props.walletTerms.errors,
         signOut,
+        waitForNavigate,
     ]);
 
     const getMenuItems = useMemo(() => {
@@ -289,7 +289,7 @@ function InitialSettingsPage(props) {
             <>
                 {_.map(getDefaultMenuItems, (item, index) => {
                     const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-                    const isPaymentItem = item.translationKey === 'common.payments';
+                    const isPaymentItem = item.translationKey === 'common.wallet';
 
                     return (
                         <MenuItem
@@ -297,7 +297,8 @@ function InitialSettingsPage(props) {
                             title={keyTitle}
                             icon={item.icon}
                             iconType={item.iconType}
-                            onPress={item.action}
+                            disabled={isExecuting}
+                            onPress={singleExecution(item.action)}
                             iconStyles={item.iconStyles}
                             shouldShowRightIcon
                             iconRight={item.iconRight}
@@ -317,7 +318,7 @@ function InitialSettingsPage(props) {
                 })}
             </>
         );
-    }, [getDefaultMenuItems, props.betas, props.userWallet.currentBalance, translate]);
+    }, [getDefaultMenuItems, props.betas, props.userWallet.currentBalance, translate, isExecuting, singleExecution]);
 
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -428,9 +429,6 @@ export default compose(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
         },
         fundList: {
             key: ONYXKEYS.FUND_LIST,

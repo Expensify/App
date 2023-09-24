@@ -27,7 +27,7 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),

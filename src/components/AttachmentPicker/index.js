@@ -27,6 +27,8 @@ function getAcceptableFileTypes(type) {
 function AttachmentPicker(props) {
     const fileInput = useRef();
     const onPicked = useRef();
+    const onCanceled = useRef(() => {});
+
     return (
         <>
             <input
@@ -46,13 +48,20 @@ function AttachmentPicker(props) {
                 }}
                 // We are stopping the event propagation because triggering the `click()` on the hidden input
                 // causes the event to unexpectedly bubble up to anything wrapping this component e.g. Pressable
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    if (!fileInput.current) {
+                        return;
+                    }
+                    fileInput.current.addEventListener('cancel', () => onCanceled.current(), {once: true});
+                }}
                 accept={getAcceptableFileTypes(props.type)}
             />
             {props.children({
-                openPicker: ({onPicked: newOnPicked}) => {
+                openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {
                     onPicked.current = newOnPicked;
                     fileInput.current.click();
+                    onCanceled.current = newOnCanceled;
                 },
             })}
         </>

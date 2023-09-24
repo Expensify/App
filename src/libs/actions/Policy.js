@@ -13,7 +13,6 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
-import Permissions from '../Permissions';
 
 const allPolicies = {};
 Onyx.connect({
@@ -64,12 +63,6 @@ let allPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
-});
-
-let loginList;
-Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: (val) => (loginList = val),
 });
 
 /**
@@ -162,16 +155,6 @@ function isAdminOfFreePolicy(policies) {
 }
 
 /**
- * Is the user the owner of the given policy?
- *
- * @param {Object} policy
- * @returns {Boolean}
- */
-function isPolicyOwner(policy) {
-    return _.keys(loginList).includes(policy.owner);
-}
-
-/**
  * Check if the user has any active free policies (aka workspaces)
  *
  * @param {Array} policies
@@ -250,21 +233,15 @@ function removeMembers(accountIDs, policyID) {
  *
  * @param {String} policyID
  * @param {Object} invitedEmailsToAccountIDs
- * @param {Array} betas
  * @returns {Object} - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
-function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
+function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs) {
     const workspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
         onyxFailureData: [],
         reportCreationData: {},
     };
-
-    // If the user is not in the beta, we don't want to create any chats
-    if (!Permissions.canUsePolicyExpenseChat(betas)) {
-        return workspaceMembersChats;
-    }
 
     _.each(invitedEmailsToAccountIDs, (accountID, email) => {
         const cleanAccountID = Number(accountID);
@@ -348,16 +325,15 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
  * @param {Object} invitedEmailsToAccountIDs
  * @param {String} welcomeNote
  * @param {String} policyID
- * @param {Array<String>} betas
  */
-function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID, betas) {
+function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
     const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = _.values(invitedEmailsToAccountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
+    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
     const optimisticData = [
         {
@@ -600,7 +576,15 @@ function updateGeneralSettings(policyID, name, currency) {
         },
     ];
 
-    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, currency}, {optimisticData, successData, failureData});
+    API.write(
+        'UpdateWorkspaceGeneralSettings',
+        {policyID, workspaceName: name, currency},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 /**
@@ -933,6 +917,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         name: workspaceName,
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
+                        isPolicyExpenseChatEnabled: true,
                         outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         customUnits,
@@ -1159,6 +1144,13 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
 
 /**
  * @param {String} policyID
+ */
+function openDraftWorkspaceRequest(policyID) {
+    API.read('OpenDraftWorkspaceRequest', {policyID});
+}
+
+/**
+ * @param {String} policyID
  * @param {Object} invitedEmailsToAccountIDs
  */
 function setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs) {
@@ -1200,6 +1192,6 @@ export {
     openWorkspaceInvitePage,
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
-    isPolicyOwner,
     clearErrors,
+    openDraftWorkspaceRequest,
 };

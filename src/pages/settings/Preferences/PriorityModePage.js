@@ -12,7 +12,7 @@ import * as User from '../../../libs/actions/User';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import SelectionListRadio from '../../../components/SelectionListRadio';
+import SelectionList from '../../../components/SelectionList';
 
 const propTypes = {
     /** The chat priority mode */
@@ -52,7 +52,7 @@ function PriorityModePage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
             <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
-            <SelectionListRadio
+            <SelectionList
                 sections={[{data: priorityModes}]}
                 onSelectRow={updateMode}
                 initiallyFocusedOptionKey={_.find(priorityModes, (mode) => mode.isSelected).keyForList}

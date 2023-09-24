@@ -15,7 +15,7 @@ import variables from '../../../styles/variables';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
-
+import * as StyleUtils from '../../../styles/StyleUtils';
 import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
 
 const propTypes = {
@@ -34,6 +34,9 @@ const propTypes = {
     /** Extra styles to pass to View wrapper */
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Denotes whether it is a workspace avatar or not */
+    isWorkspaceAvatar: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -42,6 +45,7 @@ const defaultProps = {
     shouldShowLoadingSpinnerIcon: false,
     onToggleKeyboard: () => {},
     containerStyles: [],
+    isWorkspaceAvatar: false,
 };
 
 function AttachmentView({
@@ -57,16 +61,27 @@ function AttachmentView({
     onToggleKeyboard,
     translate,
     isFocused,
+    isWorkspaceAvatar,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(source)) {
+        let iconFillColor = '';
+        let additionalStyles = [];
+        if (isWorkspaceAvatar) {
+            const defaultWorkspaceAvatarColor = StyleUtils.getDefaultWorkspaceAvatarColor(file.name);
+            iconFillColor = defaultWorkspaceAvatarColor.fill;
+            additionalStyles = [defaultWorkspaceAvatarColor];
+        }
+
         return (
             <Icon
                 src={source}
                 height={variables.defaultAvatarPreviewSize}
                 width={variables.defaultAvatarPreviewSize}
+                fill={iconFillColor}
+                additionalStyles={additionalStyles}
             />
         );
     }

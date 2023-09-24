@@ -5,6 +5,7 @@ import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
+import * as Browser from '../../../../libs/Browser';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import NAVIGATORS from '../../../../NAVIGATORS';
@@ -36,6 +37,7 @@ const policySelector = (policy) =>
     policy && {
         type: policy.type,
         role: policy.role,
+        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
     };
 
@@ -60,8 +62,21 @@ const propTypes = {
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
+    /** For first time users, whether the download app banner should show */
+    shouldShowDownloadAppBanner: PropTypes.bool,
+
     /** Forwarded ref to FloatingActionButtonAndPopover */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
+    /** Information about any currently running demos */
+    demoInfo: PropTypes.shape({
+        saastr: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+        sbe: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+    }),
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -70,6 +85,8 @@ const defaultProps = {
     betas: [],
     isLoading: false,
     innerRef: null,
+    shouldShowDownloadAppBanner: true,
+    demoInfo: {},
 };
 
 /**
@@ -145,19 +162,22 @@ function FloatingActionButtonAndPopover(props) {
         }
     };
 
-    useEffect(
-        () => {
-            const navigationState = props.navigation.getState();
-            const routes = lodashGet(navigationState, 'routes', []);
-            const currentRoute = routes[navigationState.index];
-            if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
-                return;
-            }
-            Welcome.show({routes, showCreateMenu});
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
-    );
+    useEffect(() => {
+        const navigationState = props.navigation.getState();
+        const routes = lodashGet(navigationState, 'routes', []);
+        const currentRoute = routes[navigationState.index];
+        if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
+            return;
+        }
+        // Avoid rendering the create menu for first-time users until they have dismissed the download app banner (mWeb only).
+        if (props.shouldShowDownloadAppBanner && Browser.isMobile()) {
+            return;
+        }
+        if (lodashGet(props.demoInfo, 'saastr.isBeginningDemo', false) || lodashGet(props.demoInfo, 'sbe.isBeginningDemo', false)) {
+            return;
+        }
+        Welcome.show({routes, showCreateMenu});
+    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu, props.demoInfo]);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
@@ -284,6 +304,12 @@ export default compose(
         },
         isLoading: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        shouldShowDownloadAppBanner: {
+            key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
+        },
+        demoInfo: {
+            key: ONYXKEYS.DEMO_INFO,
         },
     }),
 )(

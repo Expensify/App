@@ -46,6 +46,9 @@ jobs:
           git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
           git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
 
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
       - name: Build APK
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
@@ -111,6 +114,9 @@ jobs:
 
       - name: Checkout "delta ref"
         run: git checkout ${{ steps.getDeltaRef.outputs.DELTA_REF }}
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Build APK
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main

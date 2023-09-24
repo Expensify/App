@@ -1,11 +1,12 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Linking} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
 import CONST from '../CONST';
+import * as Link from '../libs/actions/Link';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Link to open in new tab */
@@ -24,7 +25,7 @@ const propTypes = {
     onMouseDown: PropTypes.func,
 
     /** A ref to forward to text */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 };
 
 const defaultProps = {
@@ -49,7 +50,7 @@ function TextLink(props) {
             return;
         }
 
-        Linking.openURL(props.href);
+        Link.openExternalLink(props.href);
     };
 
     /**
@@ -71,6 +72,7 @@ function TextLink(props) {
             onMouseDown={props.onMouseDown}
             onKeyDown={openLinkIfEnterKeyPressed}
             ref={props.forwardedRef}
+            suppressHighlighting
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >

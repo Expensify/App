@@ -75,16 +75,6 @@ function injectFooterCopywrite() {
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
-function openSidebar() {
-    document.getElementById('sidebar-layer').style.display = 'block';
-
-    // Make body unscrollable
-    const yAxis = document.documentElement.style.getPropertyValue('y-axis');
-    const body = document.body;
-    body.style.position = 'fixed';
-    body.style.top = `-${yAxis}`;
-}
-
 function closeSidebar() {
     document.getElementById('sidebar-layer').style.display = 'none';
 
@@ -98,6 +88,31 @@ function closeSidebar() {
 
     // Scroll to the original scroll position
     window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
+}
+
+function closeSidebarOnClickOutside(event) {
+    const sidebarLayer = document.getElementById('sidebar-layer');
+
+    if (event.target !== sidebarLayer) {
+        return;
+    }
+    closeSidebar();
+}
+
+function openSidebar() {
+    document.getElementById('sidebar-layer').style.display = 'block';
+
+    // Make body unscrollable
+    const yAxis = document.documentElement.style.getPropertyValue('y-axis');
+    const body = document.body;
+    body.style.position = 'fixed';
+    body.style.top = `-${yAxis}`;
+
+    // Close the sidebar when clicking sidebar layer (outside the sidebar search)
+    const sidebarLayer = document.getElementById('sidebar-layer');
+    if (sidebarLayer) {
+        sidebarLayer.addEventListener('click', closeSidebarOnClickOutside);
+    }
 }
 
 // Function to adapt & fix cropped SVG viewBox from Google based on viewport (Mobile or Tablet-Desktop)

@@ -5,8 +5,8 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import styles from '../../styles/styles';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import Navigation from '../../libs/Navigation/Navigation';
-import * as Policy from '../../libs/actions/Policy';
 import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -105,7 +105,7 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                shouldShow={_.isEmpty(policy) || !Policy.isPolicyOwner(policy)}
+                shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy)}
                 subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
                 <HeaderWithBackButton

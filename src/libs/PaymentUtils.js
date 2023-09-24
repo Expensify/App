@@ -9,18 +9,18 @@ import * as Localize from './Localize';
 /**
  * Check to see if user has either a debit card or personal bank account added
  *
- * @param {Array} [cardList]
+ * @param {Array} [fundList]
  * @param {Array} [bankAccountList]
  * @returns {Boolean}
  */
-function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
+function hasExpensifyPaymentMethod(fundList = [], bankAccountList = []) {
     const validBankAccount = _.some(bankAccountList, (bankAccountJSON) => {
         const bankAccount = new BankAccount(bankAccountJSON);
         return bankAccount.isDefaultCredit();
     });
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-    const validDebitCard = _.some(cardList, (card) => lodashGet(card, 'accountData.additionalData.isP2PDebitCard', false));
+    const validDebitCard = _.some(fundList, (card) => lodashGet(card, 'accountData.additionalData.isP2PDebitCard', false));
 
     return validBankAccount || validDebitCard;
 }
@@ -46,11 +46,11 @@ function getPaymentMethodDescription(accountType, account) {
 /**
  * Get the PaymentMethods list
  * @param {Array} bankAccountList
- * @param {Array} cardList
+ * @param {Array} fundList
  * @param {Object} [payPalMeData = null]
  * @returns {Array<PaymentMethod>}
  */
-function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
+function formatPaymentMethods(bankAccountList, fundList, payPalMeData = null) {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
@@ -70,7 +70,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
         });
     });
 
-    _.each(cardList, (card) => {
+    _.each(fundList, (card) => {
         const {icon, iconSize} = getBankIcon(lodashGet(card, 'accountData.bank', ''), true);
         combinedPaymentMethods.push({
             ...card,

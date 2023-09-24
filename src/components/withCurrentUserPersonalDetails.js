@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
+import refPropTypes from './refPropTypes';
 
 const withCurrentUserPersonalDetailsPropTypes = {
     currentUserPersonalDetails: personalDetailsPropType,
@@ -15,7 +16,7 @@ const withCurrentUserPersonalDetailsDefaultProps = {
 
 export default function (WrappedComponent) {
     const propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+        forwardedRef: refPropTypes,
 
         /** Personal details of all the users, including current user */
         personalDetails: PropTypes.objectOf(personalDetailsPropType),

@@ -28,12 +28,16 @@ const propTypes = {
      */
     toggleReaction: PropTypes.func.isRequired,
 
+    /** We disable reacting with emojis on report actions that have errors */
+    shouldBlockReactions: PropTypes.bool,
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
     emojiReactions: {},
+    shouldBlockReactions: false,
 };
 
 function ReportActionItemEmojiReactions(props) {
@@ -138,15 +142,18 @@ function ReportActionItemEmojiReactions(props) {
                                     reactionUsers={reaction.reactionUsers}
                                     hasUserReacted={reaction.hasUserReacted}
                                     onReactionListOpen={reaction.onReactionListOpen}
+                                    shouldBlockReactions={props.shouldBlockReactions}
                                 />
                             </View>
                         </Tooltip>
                     );
                 })}
-                <AddReactionBubble
-                    onSelectEmoji={props.toggleReaction}
-                    reportAction={{reportActionID: props.reportActionID}}
-                />
+                {!props.shouldBlockReactions && (
+                    <AddReactionBubble
+                        onSelectEmoji={props.toggleReaction}
+                        reportAction={{reportActionID: props.reportActionID}}
+                    />
+                )}
             </View>
         )
     );

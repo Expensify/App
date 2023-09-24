@@ -138,7 +138,7 @@ function HeaderView(props) {
     return (
         <View
             style={[styles.appContentHeader, shouldShowBorderBottom && styles.borderBottom]}
-            nativeID="drag-area"
+            dataSet={{dragArea: true}}
         >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
@@ -164,7 +164,7 @@ function HeaderView(props) {
                         <PressableWithoutFeedback
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-                            disabled={(isTaskReport && !ReportUtils.isOpenTaskReport(props.report)) || shouldDisableDetailPage}
+                            disabled={shouldDisableDetailPage}
                             accessibilityLabel={title}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >

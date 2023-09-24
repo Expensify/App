@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 import {NavigationContext} from '@react-navigation/core';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
+import refPropTypes from './refPropTypes';
 
 export default function (WrappedComponent) {
     class WithNavigationFallback extends Component {
@@ -36,8 +36,7 @@ export default function (WrappedComponent) {
     WithNavigationFallback.contextType = NavigationContext;
     WithNavigationFallback.displayName = `WithNavigationFocusWithFallback(${getComponentDisplayName(WrappedComponent)})`;
     WithNavigationFallback.propTypes = {
-        // eslint-disable-next-line react/forbid-prop-types
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
+        forwardedRef: refPropTypes,
     };
     WithNavigationFallback.defaultProps = {
         forwardedRef: undefined,

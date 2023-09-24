@@ -12,8 +12,15 @@ export default {
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
-            Concierge: ROUTES.CONCIERGE,
+            [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
+            AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
+            GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
+            [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
+
+            // Demo routes
+            [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR,
+            [CONST.DEMO_PAGES.SBE]: ROUTES.SBE,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -25,11 +32,7 @@ export default {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
                 },
             },
-            [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
-                screens: {
-                    [SCREENS.NOT_FOUND]: '*',
-                },
-            },
+            [SCREENS.NOT_FOUND]: '*',
 
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {
@@ -66,20 +69,20 @@ export default {
                                 path: ROUTES.SETTINGS_SECURITY,
                                 exact: true,
                             },
-                            Settings_Payments: {
-                                path: ROUTES.SETTINGS_PAYMENTS,
+                            Settings_Wallet: {
+                                path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
-                            Settings_Payments_EnablePayments: {
+                            Settings_Wallet_EnablePayments: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
                             },
-                            Settings_Payments_Transfer_Balance: {
-                                path: ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE,
+                            Settings_Wallet_Transfer_Balance: {
+                                path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                                 exact: true,
                             },
-                            Settings_Payments_Choose_Transfer_Account: {
-                                path: ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT,
+                            Settings_Wallet_Choose_Transfer_Account: {
+                                path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
                             Settings_Add_Paypal_Me: {
@@ -152,24 +155,8 @@ export default {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                                 exact: true,
                             },
-                            Settings_TwoFactorAuthIsEnabled: {
-                                path: ROUTES.SETTINGS_2FA_IS_ENABLED,
-                                exact: true,
-                            },
-                            Settings_TwoFactorAuthDisable: {
-                                path: ROUTES.SETTINGS_2FA_DISABLE,
-                                exact: true,
-                            },
-                            Settings_TwoFactorAuthCodes: {
-                                path: ROUTES.SETTINGS_2FA_CODES,
-                                exact: true,
-                            },
-                            Settings_TwoFactorAuthVerify: {
-                                path: ROUTES.SETTINGS_2FA_VERIFY,
-                                exact: true,
-                            },
-                            Settings_TwoFactorAuthSuccess: {
-                                path: ROUTES.SETTINGS_2FA_SUCCESS,
+                            Settings_TwoFactorAuth: {
+                                path: ROUTES.SETTINGS_2FA,
                                 exact: true,
                             },
                             Settings_Share_Code: {
@@ -276,6 +263,14 @@ export default {
                             NewTask_Description: ROUTES.NEW_TASK_DESCRIPTION,
                         },
                     },
+                    TeachersUnite: {
+                        screens: {
+                            SaveTheWorld_Root: ROUTES.SAVE_THE_WORLD,
+                            I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
+                            Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
+                            I_Am_A_Teacher: ROUTES.I_AM_A_TEACHER,
+                        },
+                    },
                     Search: {
                         screens: {
                             Search_Root: ROUTES.SEARCH,
@@ -319,8 +314,12 @@ export default {
                             Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT,
                             Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS,
                             Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION,
+                            Money_Request_Date: ROUTES.MONEY_REQUEST_DATE,
                             Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
+                            Money_Request_Category: ROUTES.MONEY_REQUEST_CATEGORY,
+                            Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT,
+                            Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                             IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -361,6 +360,12 @@ export default {
                     EditRequest: {
                         screens: {
                             EditRequest_Root: ROUTES.EDIT_REQUEST,
+                            EditRequest_Currency: ROUTES.EDIT_CURRENCY_REQUEST,
+                        },
+                    },
+                    SignIn: {
+                        screens: {
+                            SignIn_Root: ROUTES.SIGN_IN_MODAL,
                         },
                     },
                 },

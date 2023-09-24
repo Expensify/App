@@ -104,6 +104,11 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
 1. `BROWSERSTACK` - Used to access Browserstack's API
 
+### Important note about Secrets
+Secrets are available by default in most workflows. The exception to the rule is callable workflows. If a workflow is triggered by the `workflow_call` event, it will only have access to repo secrets if the workflow that called it passed in the secrets explicitly (for example, using `secrets: inherit`).
+
+Furthermore, secrets are not accessible in actions. If you need to access a secret in an action, you must declare it as an input and pass it in. GitHub _should_ still obfuscate the value of the secret in workflow run logs.
+
 ## Actions
 
 All these _workflows_ are comprised of atomic _actions_. Most of the time, we can use pre-made and independently maintained actions to create powerful workflows that meet our needs. However, when we want to do something very specific or have a more complex or robust action in mind, we can create our own _actions_.

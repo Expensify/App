@@ -59,7 +59,7 @@ const defaultProps = {
 // We also update the state on layout changes which will be triggered often.
 // There will be n number of tooltip components in the page.
 // It's good to memoize this one.
-const TooltipRenderedOnPageBody = (props) => {
+function TooltipRenderedOnPageBody(props) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
     // which prevents us from measuring it correctly.
@@ -145,7 +145,7 @@ const TooltipRenderedOnPageBody = (props) => {
         </Animated.View>,
         document.querySelector('body'),
     );
-};
+}
 
 TooltipRenderedOnPageBody.propTypes = propTypes;
 TooltipRenderedOnPageBody.defaultProps = defaultProps;

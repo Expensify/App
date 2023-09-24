@@ -53,6 +53,7 @@ function BaseMiniContextMenuItem(props) {
             <PressableWithoutFeedback
                 ref={props.innerRef}
                 onPress={props.onPress}
+                onMouseDown={(e) => e.preventDefault()}
                 accessibilityLabel={props.tooltipText}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,

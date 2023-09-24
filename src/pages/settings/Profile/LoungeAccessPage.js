@@ -5,7 +5,7 @@ import ROUTES from '../../../ROUTES';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../userPropTypes';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import useLocalize from '../../../hooks/useLocalize';
 import FeatureList from '../../../components/FeatureList';
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
@@ -39,7 +39,7 @@ function LoungeAccessPage({user}) {
     const {translate} = useLocalize();
 
     if (!user.hasLoungeAccess) {
-        return <FullPageNotFoundView shouldShow />;
+        return <NotFoundPage />;
     }
 
     return (

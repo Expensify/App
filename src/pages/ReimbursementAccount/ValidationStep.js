@@ -67,7 +67,7 @@ class ValidationStep extends React.Component {
         const errors = {};
 
         _.each(values, (value, key) => {
-            const filteredValue = this.filterInput(value);
+            const filteredValue = typeof value === 'string' ? this.filterInput(value) : value;
             if (ValidationUtils.isRequiredFulfilled(filteredValue)) {
                 return;
             }
@@ -103,7 +103,7 @@ class ValidationStep extends React.Component {
      */
     filterInput(amount) {
         let value = amount ? amount.toString().trim() : '';
-        if (value === '' || !Math.abs(Str.fromUSDToNumber(value)) || _.isNaN(Number(value))) {
+        if (value === '' || _.isNaN(Number(value)) || !Math.abs(Str.fromUSDToNumber(value))) {
             return '';
         }
 

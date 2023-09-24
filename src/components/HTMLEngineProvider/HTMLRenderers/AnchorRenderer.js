@@ -1,5 +1,4 @@
 import React from 'react';
-import {Linking} from 'react-native';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import lodashGet from 'lodash/get';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
@@ -15,19 +14,23 @@ import AnchorForAttachmentsOnly from '../../AnchorForAttachmentsOnly';
 import * as Url from '../../../libs/Url';
 import ROUTES from '../../../ROUTES';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
+import useEnvironment from '../../../hooks/useEnvironment';
 
 function AnchorRenderer(props) {
     const htmlAttribs = props.tnode.attributes;
-
+    const {environmentURL} = useEnvironment();
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
     const displayName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
-    const attrPath = lodashGet(Url.getURLObject(attrHref), 'path', '').replace('/', '');
+    const attrPath = Url.getPathFromURL(attrHref);
+    const hasSameOrigin = Url.hasSameExpensifyOrigin(attrHref, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath =
-        (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL)) &&
+        (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) ||
+            Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL) ||
+            attrHref.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
         !CONST.PATHS_TO_TREAT_AS_EXTERNAL.includes(attrPath)
             ? attrPath
             : '';
@@ -48,7 +51,7 @@ function AnchorRenderer(props) {
 
         // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
         // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
-        if (internalNewExpensifyPath) {
+        if (internalNewExpensifyPath && hasSameOrigin) {
             Navigation.navigate(internalNewExpensifyPath);
             return;
         }
@@ -59,7 +62,7 @@ function AnchorRenderer(props) {
             Link.openOldDotLink(internalExpensifyPath);
             return;
         }
-        Linking.openURL(attrHref);
+        Link.openExternalLink(attrHref);
     };
 
     if (!HTMLEngineUtils.isInsideComment(props.tnode)) {
@@ -70,6 +73,7 @@ function AnchorRenderer(props) {
             <Text
                 style={styles.link}
                 onPress={navigateToLink}
+                suppressHighlighting
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
             </Text>

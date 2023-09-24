@@ -8,7 +8,6 @@ import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
-import * as CurrencyUtils from './CurrencyUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
 const allReports = {};
@@ -93,6 +92,14 @@ function isReportPreviewAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isModifiedExpenseAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+}
+
 function isWhisperAction(action) {
     return (action.whisperedToAccountIDs || []).length > 0;
 }
@@ -143,19 +150,6 @@ function isSentMoneyReportAction(reportAction) {
         lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
         _.has(reportAction.originalMessage, 'IOUDetails')
     );
-}
-
-/**
- * Returns the formatted amount of a money request. The request and money sent (from send money flow) have
- * currency and amount in IOUDetails object.
- *
- * @param {Object} reportAction
- * @returns {Number}
- */
-function getFormattedAmount(reportAction) {
-    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY && lodashGet(reportAction, 'originalMessage.IOUDetails', false)
-        ? CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.IOUDetails.amount', 0), lodashGet(reportAction, 'originalMessage.IOUDetails.currency', ''))
-        : CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.amount', 0), lodashGet(reportAction, 'originalMessage.currency', ''));
 }
 
 /**
@@ -368,6 +362,10 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
         return false;
     }
 
+    if (!_.isEmpty(reportAction.errors)) {
+        return false;
+    }
+
     return shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !isWhisperAction(reportAction) && !isDeletedAction(reportAction);
 }
 
@@ -399,6 +397,8 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     if (isReportMessageAttachment(message)) {
         return {
             lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            lastMessageText: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            lastMessageHtml: CONST.TRANSLATION_KEYS.ATTACHMENT,
         };
     }
 
@@ -572,6 +572,46 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
+/**
+ * Returns the number of money requests associated with a report preview
+ *
+ * @param {Object|null} reportPreviewAction
+ * @returns {Number}
+ */
+function getNumberOfMoneyRequests(reportPreviewAction) {
+    return lodashGet(reportPreviewAction, 'childMoneyRequestCount', 0);
+}
+
+/**
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isSplitBillAction(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+}
+
+/**
+ *
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isTaskAction(reportAction) {
+    const reportActionName = lodashGet(reportAction, 'actionName', '');
+    return (
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
+    );
+}
+
+/**
+ * @param {*} reportID
+ * @returns {[Object]}
+ */
+function getAllReportActions(reportID) {
+    return lodashGet(allReportActions, reportID, []);
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -596,13 +636,17 @@ export {
     getParentReportAction,
     getParentReportActionInReport,
     isTransactionThread,
-    getFormattedAmount,
     isSentMoneyReportAction,
     isDeletedParentAction,
     isReportPreviewAction,
+    isModifiedExpenseAction,
     getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    getNumberOfMoneyRequests,
+    isSplitBillAction,
+    isTaskAction,
+    getAllReportActions,
 };

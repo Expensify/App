@@ -61,7 +61,7 @@ function ReportDetailsPage(props) {
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const shouldDisableSettings = useMemo(() => ReportUtils.shouldDisableSettings(props.report), [props.report]);
-    const shouldUseFullTitle = !shouldDisableSettings;
+    const shouldUseFullTitle = !shouldDisableSettings || ReportUtils.isTaskReport(props.report);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
     const isThread = useMemo(() => ReportUtils.isChatThread(props.report), [props.report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(props.report), [props.report]);
@@ -154,8 +154,8 @@ function ReportDetailsPage(props) {
                                     fullTitle={ReportUtils.getReportName(props.report)}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
-                                    numberOfLines={isChatRoom ? 0 : 1}
-                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom ? undefined : styles.pre]}
+                                    numberOfLines={isChatRoom && !isThread ? 0 : 1}
+                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isThread ? undefined : styles.pre]}
                                     shouldUseFullTitle={shouldUseFullTitle}
                                 />
                             </View>

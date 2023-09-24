@@ -17,6 +17,7 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import ROUTES from '../../ROUTES';
 import themeColors from '../../styles/themes/default';
 import * as Expensicons from '../../components/Icon/Expensicons';
+import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -24,6 +25,24 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
  * IOU Currency selection for selecting currency
  */
 const propTypes = {
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+
+            /** Currently selected currency */
+            currency: PropTypes.string,
+
+            /** Route to navigate back after selecting a currency */
+            backTo: PropTypes.string,
+        }),
+    }).isRequired,
+
     // The currency list constant object from Onyx
     currencyList: PropTypes.objectOf(
         PropTypes.shape({
@@ -39,18 +58,14 @@ const propTypes = {
     ),
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        currency: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     currencyList: {},
-    iou: {
-        currency: CONST.CURRENCY.USD,
-    },
+    iou: iouDefaultProps,
 };
 
 function IOUCurrencySelection(props) {

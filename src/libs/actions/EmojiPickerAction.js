@@ -3,21 +3,21 @@ import React from 'react';
 const emojiPickerRef = React.createRef();
 
 /**
- * Show the ReportActionContextMenu modal popover.
+ * Show the EmojiPicker modal popover.
  *
  * @param {Function} [onModalHide=() => {}] - Run a callback when Modal hides.
  * @param {Function} [onEmojiSelected=() => {}] - Run a callback when Emoji selected.
  * @param {Element} emojiPopoverAnchor - Element on which EmojiPicker is anchored
  * @param {Object} [anchorOrigin] - Anchor origin for Popover
  * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
- * @param {Object} reportAction - ReportAction for EmojiPicker
+ * @param {String} id - Unique id for EmojiPicker
  */
-function showEmojiPicker(onModalHide = () => {}, onEmojiSelected = () => {}, emojiPopoverAnchor, anchorOrigin = undefined, onWillShow = () => {}, reportAction = {}) {
+function showEmojiPicker(onModalHide = () => {}, onEmojiSelected = () => {}, emojiPopoverAnchor, anchorOrigin = undefined, onWillShow = () => {}, id) {
     if (!emojiPickerRef.current) {
         return;
     }
 
-    emojiPickerRef.current.showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow, reportAction);
+    emojiPickerRef.current.showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow, id);
 }
 
 /**
@@ -33,16 +33,16 @@ function hideEmojiPicker(isNavigating) {
 }
 
 /**
- * Whether Emoji Picker is active for the Report Action.
+ * Whether Emoji Picker is active for the given id.
  *
- * @param {Number|String} actionID
+ * @param {String} id
  * @return {Boolean}
  */
-function isActiveReportAction(actionID) {
+function isActive(id) {
     if (!emojiPickerRef.current) {
         return;
     }
-    return emojiPickerRef.current.isActiveReportAction(actionID);
+    return emojiPickerRef.current.isActive(id);
 }
 
 function isEmojiPickerVisible() {
@@ -59,4 +59,4 @@ function resetEmojiPopoverAnchor() {
     return emojiPickerRef.current.resetEmojiPopoverAnchor();
 }
 
-export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActiveReportAction, isEmojiPickerVisible, resetEmojiPopoverAnchor};
+export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};

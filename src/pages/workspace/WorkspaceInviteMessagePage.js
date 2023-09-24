@@ -12,6 +12,7 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import TextInput from '../../components/TextInput';
 import MultipleAvatars from '../../components/MultipleAvatars';
 import CONST from '../../CONST';
@@ -46,9 +47,6 @@ const propTypes = {
     /** All of the personal details for everyone */
     allPersonalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     invitedEmailsToAccountIDsDraft: PropTypes.objectOf(PropTypes.number),
 
     /** URL Route params */
@@ -67,7 +65,6 @@ const propTypes = {
 const defaultProps = {
     ...policyDefaultProps,
     allPersonalDetails: {},
-    betas: [],
     invitedEmailsToAccountIDsDraft: {},
 };
 
@@ -122,7 +119,7 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     sendInvitation() {
         Keyboard.dismiss();
-        Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
+        Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, {});
         // Pop the invite message page before navigating to the members page.
         Navigation.goBack();
@@ -163,7 +160,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)}
+                    shouldShow={_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy)}
                     subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
@@ -246,9 +243,6 @@ export default compose(
     withOnyx({
         allPersonalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         invitedEmailsToAccountIDsDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,

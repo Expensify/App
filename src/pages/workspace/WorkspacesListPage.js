@@ -131,7 +131,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
      */
     function getMenuItem(item, index) {
         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-        const isPaymentItem = item.translationKey === 'common.payments';
+        const isPaymentItem = item.translationKey === 'common.wallet';
 
         return (
             <OfflineWithFeedback

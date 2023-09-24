@@ -10,6 +10,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** Text to display for the menu header */
@@ -20,6 +21,9 @@ const propTypes = {
 
     /** Whether we should show a loading state for the main button */
     isLoading: PropTypes.bool,
+
+    /** The size of button size */
+    buttonSize: PropTypes.oneOf(_.values(CONST.DROPDOWN_BUTTON_SIZE)),
 
     /** Should the confirmation button be disabled? */
     isDisabled: PropTypes.bool,
@@ -45,6 +49,9 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    /* ref for the button */
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 const defaultProps = {
@@ -52,10 +59,12 @@ const defaultProps = {
     isDisabled: false,
     menuHeaderText: '',
     style: [],
+    buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     anchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
+    buttonRef: () => {},
 };
 
 function ButtonWithDropdownMenu(props) {
@@ -65,6 +74,8 @@ function ButtonWithDropdownMenu(props) {
     const {windowWidth, windowHeight} = useWindowDimensions();
     const caretButton = useRef(null);
     const selectedItem = props.options[selectedItemIndex];
+    const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(props.buttonSize);
+    const isButtonSizeLarge = props.buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
 
     useEffect(() => {
         if (!caretButton.current) {
@@ -90,6 +101,7 @@ function ButtonWithDropdownMenu(props) {
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...props.style]}>
                     <Button
                         success
+                        ref={props.buttonRef}
                         onPress={(event) => props.onPress(event, selectedItem.value)}
                         text={selectedItem.text}
                         isDisabled={props.isDisabled}
@@ -97,20 +109,31 @@ function ButtonWithDropdownMenu(props) {
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
                         pressOnEnter
+                        large={isButtonSizeLarge}
+                        medium={!isButtonSizeLarge}
+                        innerStyles={[innerStyleDropButton]}
                     />
-                    <View style={styles.buttonDivider} />
+
                     <Button
                         ref={caretButton}
                         success
                         isDisabled={props.isDisabled}
                         style={[styles.pl0]}
-                        onPress={() => setIsMenuVisible(true)}
+                        onPress={() => setIsMenuVisible(!isMenuVisible)}
                         shouldRemoveLeftBorderRadius
+                        large={isButtonSizeLarge}
+                        medium={!isButtonSizeLarge}
+                        innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
                     >
-                        <Icon
-                            src={Expensicons.DownArrow}
-                            fill={themeColors.textLight}
-                        />
+                        <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
+                            <View style={[styles.buttonDivider]} />
+                            <View style={[styles.dropDownButtonArrowContain]}>
+                                <Icon
+                                    src={Expensicons.DownArrow}
+                                    fill={themeColors.textLight}
+                                />
+                            </View>
+                        </View>
                     </Button>
                 </View>
             ) : (
@@ -122,6 +145,9 @@ function ButtonWithDropdownMenu(props) {
                     text={selectedItem.text}
                     onPress={(event) => props.onPress(event, props.options[0].value)}
                     pressOnEnter
+                    large={isButtonSizeLarge}
+                    medium={!isButtonSizeLarge}
+                    innerStyles={[innerStyleDropButton]}
                 />
             )}
             {props.options.length > 1 && !_.isEmpty(popoverAnchorPosition) && (

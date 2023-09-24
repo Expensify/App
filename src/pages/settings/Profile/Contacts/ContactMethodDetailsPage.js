@@ -22,10 +22,10 @@ import * as User from '../../../../libs/actions/User';
 import CONST from '../../../../CONST';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
-import NotFoundPage from '../../../ErrorPage/NotFoundPage';
 import ValidateCodeForm from './ValidateCodeForm';
 import ROUTES from '../../../../ROUTES';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import FullPageNotFoundView from '../../../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /* Onyx Props */
@@ -108,7 +108,11 @@ class ContactMethodDetailsPage extends Component {
     }
 
     componentDidMount() {
-        User.resetContactMethodValidateCodeSentState(this.getContactMethod());
+        const contactMethod = this.getContactMethod();
+        const loginData = this.props.loginList[contactMethod];
+        if (loginData) {
+            User.resetContactMethodValidateCodeSentState(contactMethod);
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -211,7 +215,16 @@ class ContactMethodDetailsPage extends Component {
 
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
-            return <NotFoundPage />;
+            return (
+                <ScreenWrapper>
+                    <FullPageNotFoundView
+                        shouldShow
+                        linkKey="contacts.goBackContactMethods"
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                        onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                    />
+                </ScreenWrapper>
+            );
         }
 
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;

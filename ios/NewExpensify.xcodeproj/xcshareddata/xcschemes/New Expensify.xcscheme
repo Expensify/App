@@ -75,7 +75,7 @@
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug Production"
+      buildConfiguration = "Release Production"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -117,6 +117,7 @@
    </AnalyzeAction>
    <ArchiveAction
       buildConfiguration = "Release Production"
+      customArchiveName = "New Expensify"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>

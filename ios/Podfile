@@ -1,3 +1,7 @@
+# Set the type of Mapbox SDK to use
+# This value is used by $RNMapboxMaps
+$RNMapboxMapsImpl = 'mapbox'
+
 # Resolve react_native_pods.rb with node to allow for hoisting
 require Pod::Executable.execute_command('node', ['-p',
   'require.resolve(
@@ -39,6 +43,11 @@ def __apply_Xcode_14_3_RC_post_install_workaround(installer)
       end
     end
   end
+end
+
+# Configure Mapbox before installing dependencies
+pre_install do |installer|
+  $RNMapboxMaps.pre_install(installer)
 end
 
 target 'NewExpensify' do
@@ -83,6 +92,9 @@ target 'NewExpensify' do
   end
 
   post_install do |installer|
+    # Configure Mapbox after installation
+    $RNMapboxMaps.post_install(installer)
+
     # https://github.com/facebook/react-native/blob/main/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,

@@ -13,7 +13,7 @@ import ROUTES from '../../ROUTES';
 
 function deletePayPalMe() {
     User.deletePaypalMeAddress();
-    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
+    Growl.show(Localize.translateLocal('walletPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
 /**
@@ -35,7 +35,7 @@ function continueSetup() {
     kycWallRef.current.continue();
 }
 
-function openPaymentsPage() {
+function openWalletPage() {
     const onyxData = {
         optimisticData: [
             {
@@ -70,11 +70,10 @@ function openPaymentsPage() {
  * @param {Object} previousPaymentMethod
  * @param {Object} currentPaymentMethod
  * @param {Boolean} isOptimisticData
- * @param {string} paymentCardOnyxKey - to pass in the correct ONYX key while renaming cardList -> fundList
  * @return {Array}
  *
  */
-function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, isOptimisticData = true, paymentCardOnyxKey) {
+function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, isOptimisticData = true) {
     const onyxData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -94,7 +93,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
     if (previousPaymentMethod) {
         onyxData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : paymentCardOnyxKey,
+            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
             value: {
                 [previousPaymentMethod.methodID]: {
                     isDefault: !isOptimisticData,
@@ -106,7 +105,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
     if (currentPaymentMethod) {
         onyxData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : paymentCardOnyxKey,
+            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
             value: {
                 [currentPaymentMethod.methodID]: {
                     isDefault: isOptimisticData,
@@ -125,10 +124,9 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
  * @param {Number} fundID
  * @param {Object} previousPaymentMethod
  * @param {Object} currentPaymentMethod
- * @param {string} paymentCardOnyxKey - pass in the correct ONYX key while renaming cardList -> fundList
  *
  */
-function makeDefaultPaymentMethod(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, paymentCardOnyxKey) {
+function makeDefaultPaymentMethod(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod) {
     API.write(
         'MakeDefaultPaymentMethod',
         {
@@ -136,8 +134,8 @@ function makeDefaultPaymentMethod(bankAccountID, fundID, previousPaymentMethod, 
             fundID,
         },
         {
-            optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, true, paymentCardOnyxKey),
-            failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false, paymentCardOnyxKey),
+            optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, true, ONYXKEYS.FUND_LIST),
+            failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false, ONYXKEYS.FUND_LIST),
         },
     );
 }
@@ -274,17 +272,17 @@ function saveWalletTransferMethodType(filterPaymentMethodType) {
 
 function dismissSuccessfulTransferBalancePage() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowSuccess: false});
-    Navigation.goBack(ROUTES.SETTINGS_PAYMENTS);
+    Navigation.goBack(ROUTES.SETTINGS_WALLET);
 }
 
 /**
  * Looks through each payment method to see if there is an existing error
  * @param {Object} bankList
- * @param {Object} cardList
+ * @param {Object} fundList
  * @returns {Boolean}
  */
-function hasPaymentMethodError(bankList, cardList) {
-    const combinedPaymentMethods = {...bankList, ...cardList};
+function hasPaymentMethodError(bankList, fundList) {
+    const combinedPaymentMethods = {...bankList, ...fundList};
     return _.some(combinedPaymentMethods, (item) => !_.isEmpty(item.errors));
 }
 
@@ -337,7 +335,7 @@ function deletePaymentCard(fundID) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.CARD_LIST}`,
+                    key: `${ONYXKEYS.FUND_LIST}`,
                     value: {[fundID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
                 },
             ],
@@ -349,7 +347,7 @@ export {
     deletePayPalMe,
     deletePaymentCard,
     addPaymentCard,
-    openPaymentsPage,
+    openWalletPage,
     makeDefaultPaymentMethod,
     kycWallRef,
     continueSetup,
