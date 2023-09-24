@@ -465,9 +465,7 @@ button {
     }
 }
 
-.card,
-.platform-card,
-.hub-card {
+.card {
     display: flex;
     flex-wrap: nowrap;
     border-radius: 16px;
@@ -484,24 +482,6 @@ button {
     .row {
         display: flex;
         flex-basis:100%;
-    }
-
-    .right-icon {
-        display: flex;
-        align-items: center;
-        padding-left: 16px;
-    }
-
-    .submit-button {
-        display: flex;
-        align-items: center;
-        margin-top: 16px;
-        padding-left: 0;
-
-        @include breakpoint($breakpoint-desktop) {
-            margin-top: 0;
-            padding-left: 16px;
-        }
     }
 
     .body {
@@ -528,40 +508,18 @@ button {
     }
 }
 
-.card, .hub-card {
-    .left-icon {
+.article-card {
+    @extend .card;
+
+    .right-icon {
         display: flex;
         align-items: center;
-        padding-right: 28px;
-
-        img {
-            width: 64px;
-        }
-    }
-
-    p.description {
-        padding: 0;
-
-        &.with-min-height {
-            min-height: 68px;
-
-            @include breakpoint($breakpoint-tablet) {
-                min-height: 48px;
-            }
-        }
-    }
-}
-
-.card, .platform-card {
-    h3.title,
-    h4.title {
-        &.with-margin {
-            margin: 0 0 4px 0;
-        }
+        padding-left: 16px;
     }
 }
 
 .platform-card {
+    @extend .card;
     .row {
         flex-direction: column;
     }
@@ -573,6 +531,18 @@ button {
         img {
             border-radius: 12px;
             width: 100%;
+        }
+    }
+
+    .submit-button {
+        display: flex;
+        align-items: center;
+        margin-top: 16px;
+        padding-left: 0;
+
+        @include breakpoint($breakpoint-desktop) {
+            margin-top: 0;
+            padding-left: 16px;
         }
     }
 
@@ -589,6 +559,13 @@ button {
                     font-size: 0.8em;
                 }
             }
+        }
+    }
+
+    h3.title,
+    h4.title {
+        &.with-margin {
+            margin: 0 0 4px 0;
         }
     }
 
@@ -609,6 +586,7 @@ button {
 }
 
 .hub-card {
+    @extend .card;
     padding: 24px;
 
     .row {
@@ -618,12 +596,20 @@ button {
     h3.title {
         font-size: 1.2em;
         font-weight: normal;
-    }
-
-    h3.title,
-    h4.title {
         &.with-margin {
             margin: 20px 0 8px 0;
+        }
+    }
+
+    p.description {
+        padding: 0;
+
+        &.with-min-height {
+            min-height: 68px;
+
+            @include breakpoint($breakpoint-tablet) {
+                min-height: 48px;
+            }
         }
     }
 }
