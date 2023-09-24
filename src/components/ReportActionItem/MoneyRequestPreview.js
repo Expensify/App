@@ -234,7 +234,7 @@ function MoneyRequestPreview(props) {
             >
                 <View
                     style={[
-                        isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined,
+                        isScanning || props.isWhisper ? {...styles.reportPreviewBoxHoverBorder, ...styles.reportContainerBorderRadius} : undefined,
                         !props.onPreviewPressed ? [styles.moneyRequestPreviewBox, ...props.containerStyles] : {},
                     ]}
                 >
