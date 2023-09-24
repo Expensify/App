@@ -59,13 +59,7 @@ const propTypes = {
     transaction: transactionPropTypes,
 
     /** Data about Mapbox token for calling Mapbox API */
-    mapboxAccessToken: PropTypes.shape({
-        /** Temporary token for Mapbox API */
-        token: PropTypes.string,
-
-        /** Time when the token will expire in ISO 8601 */
-        expiration: PropTypes.string,
-    }),
+    mapboxAccessToken: PropTypes.string,
 
     /** React Navigation route */
     route: PropTypes.shape({
@@ -304,5 +298,6 @@ export default withOnyx({
     },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
+        selector: (accessToken) => accessToken.token,
     },
 })(DistanceRequest);
