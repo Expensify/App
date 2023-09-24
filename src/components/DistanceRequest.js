@@ -114,40 +114,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
     const haveValidatedWaypointsChanged = !_.isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
     const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
-    const waypointMarkers = useMemo(
-        () =>
-            _.filter(
-                _.map(waypoints, (waypoint, key) => {
-                    if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
-                        return;
-                    }
-
-                    const index = TransactionUtils.getWaypointIndex(key);
-                    let MarkerComponent;
-                    if (index === 0) {
-                        MarkerComponent = Expensicons.DotIndicatorUnfilled;
-                    } else if (index === lastWaypointIndex) {
-                        MarkerComponent = Expensicons.Location;
-                    } else {
-                        MarkerComponent = Expensicons.DotIndicator;
-                    }
-
-                    return {
-                        id: `${waypoint.lng},${waypoint.lat},${index}`,
-                        coordinate: [waypoint.lng, waypoint.lat],
-                        markerComponent: () => (
-                            <MarkerComponent
-                                width={CONST.MAP_MARKER_SIZE}
-                                height={CONST.MAP_MARKER_SIZE}
-                                fill={theme.icon}
-                            />
-                        ),
-                    };
-                }),
-                (waypoint) => waypoint,
-            ),
-        [waypoints, lastWaypointIndex],
-    );
+    const waypointMarkers = TransactionUtils.getWaypointMarkers(waypoints);
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
     const halfMenuItemHeight = Math.floor(variables.optionRowHeight / 2);
