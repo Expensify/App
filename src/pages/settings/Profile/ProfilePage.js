@@ -1,9 +1,8 @@
 import lodashGet from 'lodash/get';
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {ScrollView} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';

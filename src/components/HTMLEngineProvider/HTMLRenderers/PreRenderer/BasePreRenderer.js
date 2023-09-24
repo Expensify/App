@@ -1,6 +1,5 @@
 import React, {forwardRef} from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
