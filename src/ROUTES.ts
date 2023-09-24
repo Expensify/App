@@ -9,7 +9,7 @@ import CONST from './CONST';
 export default {
     HOME:                                       '',
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
-    CONCIERGE: 'concierge',
+    CONCIERGE:                                  'concierge',
     FLAG_COMMENT: {                      route: 'flag/:reportID/:reportActionID',       getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`},
     SEARCH:                                     'search',
     DETAILS: {                           route: 'details',                              getRoute: (login: string) => `details?login=${encodeURIComponent(login)}`},
@@ -77,7 +77,7 @@ export default {
     NEW_CHAT:                                   'new/chat',
     NEW_ROOM:                                   'new/room',
 
-    REPORT: 'r',
+    REPORT:                                     'r',
     REPORT_WITH_ID: {                    route: 'r/:reportID?/:reportActionID?',        getRoute: (reportID: string) => `r/${reportID}`},
     EDIT_REQUEST: {                      route: 'r/:threadReportID/edit/:field',        getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${threadReportID}/edit/${field}`},
     EDIT_CURRENCY_REQUEST: {             route: 'r/:threadReportID/edit/currency',      getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}`},
