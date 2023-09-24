@@ -68,6 +68,4 @@ export default PropTypes.shape({
     brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, '']),
 
     phoneNumber: PropTypes.string,
-
-    payPalMeAddress: PropTypes.string,
 });

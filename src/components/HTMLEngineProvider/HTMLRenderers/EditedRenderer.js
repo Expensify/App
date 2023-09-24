@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import CONST from '../../../CONST';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import Text from '../../Text';
@@ -17,21 +18,23 @@ function EditedRenderer(props) {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
     const isPendingDelete = Boolean(props.tnode.attributes.deleted !== undefined);
     return (
-        <Text
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...defaultRendererProps}
-            fontSize={variables.fontSizeSmall}
-            color={themeColors.textSupporting}
-            style={[editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted]}
-        >
-            {/* Native devices do not support margin between nested text */}
+        <Text>
             <Text
                 selectable={false}
-                style={[styles.w1, styles.userSelectNone]}
+                style={styles.userSelectNone}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {' '}
             </Text>
-            {props.translate('reportActionCompose.edited')}
+            <Text
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...defaultRendererProps}
+                fontSize={variables.fontSizeSmall}
+                color={themeColors.textSupporting}
+                style={[editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted]}
+            >
+                {props.translate('reportActionCompose.edited')}
+            </Text>
         </Text>
     );
 }

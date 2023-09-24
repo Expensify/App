@@ -61,7 +61,10 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
     }, []);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={DateOfBirthPage.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('common.dob')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}

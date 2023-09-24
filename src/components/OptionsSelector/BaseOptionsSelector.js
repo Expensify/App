@@ -114,7 +114,7 @@ class BaseOptionsSelector extends Component {
         this.setState(
             {
                 allOptions: newOptions,
-                focusedIndex: newFocusedIndex,
+                focusedIndex: _.isNumber(this.props.initialFocusedIndex) ? this.props.initialFocusedIndex : newFocusedIndex,
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top

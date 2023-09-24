@@ -1,7 +1,8 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -23,7 +24,8 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -65,6 +67,23 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
 
     // To focus on the input field when the page loads
     const privateNotesInput = useRef(null);
+    const focusTimeoutRef = useRef(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                if (privateNotesInput.current) {
+                    privateNotesInput.current.focus();
+                }
+                return () => {
+                    if (!focusTimeoutRef.current) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
+            }, CONST.ANIMATED_TRANSITION);
+        }, []),
+    );
 
     const savePrivateNote = () => {
         const editedNote = parser.replace(privateNote);
@@ -72,25 +91,23 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
         Keyboard.dismiss();
 
         // Take user back to the PrivateNotesView page
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
     };
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(privateNotesInput.current)}
+            testID={PrivateNotesEditPage.displayName}
         >
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || !isCurrentUserNote}
                 subtitleKey="privateNotes.notesUnavailable"
-                onBackButtonPress={() => Navigation.goBack()}
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
-                    subtitle="My note"
+                    subtitle={translate('privateNotes.myNote')}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flexGrow1, styles.ph5]}>
                     <View style={[styles.mb5]}>
@@ -128,7 +145,13 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                                 defaultValue={privateNote}
                                 value={privateNote}
                                 onChangeText={(text) => setPrivateNote(text)}
-                                ref={(el) => (privateNotesInput.current = el)}
+                                ref={(el) => {
+                                    if (!el) {
+                                        return;
+                                    }
+                                    privateNotesInput.current = el;
+                                    updateMultilineInputRange(privateNotesInput.current);
+                                }}
                             />
                         </OfflineWithFeedback>
                     </Form>
