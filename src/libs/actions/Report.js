@@ -2220,6 +2220,17 @@ function getReportPrivateNote(reportID) {
 }
 
 /**
+ * Loads necessary data for rendering the RoomMembersPage
+ * 
+ * @param {Number} reportID 
+ */
+function openRoomMembersPage(reportID) {
+    API.read('OpenRoomMembersPage', {
+        reportID,
+    });
+}
+
+/**
  * Checks if there are any errors in the private notes for a given report
  *
  * @param {Object} report
@@ -2296,4 +2307,5 @@ export {
     getReportPrivateNote,
     clearPrivateNotesError,
     hasErrorInPrivateNotes,
+    openRoomMembersPage,
 };
