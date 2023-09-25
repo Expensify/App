@@ -348,6 +348,7 @@ function BaseSelectionList({
                                         accessibilityRole="button"
                                         accessibilityState={{checked: flattenedSections.allSelected}}
                                         disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         <Checkbox
                                             accessibilityLabel={translate('workspace.people.selectAll')}
@@ -363,6 +364,7 @@ function BaseSelectionList({
                                 <SectionList
                                     ref={listRef}
                                     sections={sections}
+                                    stickySectionHeadersEnabled={false}
                                     renderSectionHeader={renderSectionHeader}
                                     renderItem={renderItem}
                                     getItemLayout={getItemLayout}
