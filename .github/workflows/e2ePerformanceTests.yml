@@ -55,12 +55,6 @@ jobs:
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
 
-      - name: Setup tmate session
-        if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-
   buildDelta:
     runs-on: ubuntu-latest-xl
     name: Build apk from delta ref
@@ -123,12 +117,6 @@ jobs:
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
-
-      - name: Setup tmate session
-        if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
 
   runTestsInAWS:
     runs-on: ubuntu-latest
