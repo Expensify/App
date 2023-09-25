@@ -136,7 +136,7 @@ class SidebarLinks extends React.PureComponent {
         // since getTopmostReportId always returns on other devices
         if (
             this.props.isCreateMenuOpen ||
-            (!this.props.isSmallScreenWidth && this.props.isActiveReport(option.reportID)) ||
+            (!this.props.isSmallScreenWidth && this.props.isActiveReport(option.reportID) && !Navigation.getTopmostReportActionId()) ||
             (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())
         ) {
             return;
