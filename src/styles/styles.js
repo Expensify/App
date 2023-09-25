@@ -3557,7 +3557,7 @@ const styles = (theme) => ({
         ...headlineFont,
         fontSize: variables.fontSizeXXXLarge,
         lineHeight: variables.lineHeightXXXLarge,
-        color: theme.textBrand,
+        color: colors.green400,
     },
 
     eReceiptMerchant: {
@@ -3571,7 +3571,7 @@ const styles = (theme) => ({
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightSmall,
-        color: theme.textBrand,
+        color: colors.green400,
     },
 
     eReceiptWaypointAddress: {
@@ -3611,7 +3611,7 @@ const styles = (theme) => ({
     eReceiptPanel: {
         ...spacing.p5,
         ...spacing.pb8,
-        backgroundColor: theme.panelBackground,
+        color: colors.green800,
         borderRadius: 20,
         width: 335,
     },
