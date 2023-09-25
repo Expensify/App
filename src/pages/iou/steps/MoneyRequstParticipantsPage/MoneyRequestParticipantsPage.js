@@ -67,21 +67,21 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
         if (option.reportID) {
             isNewReportIDSelectedLocally.current = true;
             IOU.setMoneyRequestId(`${moneyRequestType}${option.reportID}`);
-            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(moneyRequestType, option.reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, option.reportID));
             return;
         }
 
         IOU.setMoneyRequestId(moneyRequestType);
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(moneyRequestType, reportID.current));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID.current));
     };
 
     const navigateToSplitStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(moneyRequestType, reportID.current));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID.current));
     };
 
     const navigateBack = (forceFallback = false) => {
-        Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), forceFallback);
+        Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), forceFallback);
     };
 
     useEffect(() => {

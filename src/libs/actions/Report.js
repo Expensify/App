@@ -25,7 +25,6 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
 import * as Environment from '../Environment/Environment';
 import * as Session from './Session';
 
@@ -609,10 +608,11 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
  */
 function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
     let newChat = {};
-    const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
-    const chat = ReportUtils.getChatByParticipantsByLoginList(formattedUserLogins);
+
+    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+
     if (!chat) {
-        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
         newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
     const reportID = chat ? chat.reportID : newChat.reportID;
@@ -622,7 +622,7 @@ function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal(reportID);
     } else {
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
 }
 
@@ -655,7 +655,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs) {
 function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0') {
     if (childReportID !== '0') {
         openReport(childReportID);
-        Navigation.navigate(ROUTES.getReportRoute(childReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     } else {
         const participantAccountIDs = _.uniq([currentUserAccountID, Number(parentReportAction.actorAccountID)]);
         const parentReport = allReports[parentReportID];
@@ -676,7 +676,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat.participantAccountIDs);
         openReport(newChat.reportID, participantLogins, newChat, parentReportAction.reportActionID);
-        Navigation.navigate(ROUTES.getReportRoute(newChat.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID));
     }
 }
 
@@ -946,7 +946,7 @@ function handleReportChanged(report) {
         // Only re-route them if they are still looking at the optimistically created report
         if (Navigation.getActiveRoute().includes(`/r/${report.reportID}`)) {
             // Pass 'FORCED_UP' type to replace new report on second login with proper one in the Navigation
-            Navigation.navigate(ROUTES.getReportRoute(report.preexistingReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
         }
         return;
     }
@@ -1273,7 +1273,7 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  */
 function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
     if (previousValue === newValue) {
-        Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1291,7 +1291,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
-    Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
 /**
@@ -1331,7 +1331,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
  */
 function updateWriteCapabilityAndNavigate(report, newValue) {
     if (report.writeCapability === newValue) {
-        Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID));
+        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
         return;
     }
 
@@ -1351,7 +1351,7 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
     ];
     API.write('UpdateReportWriteCapability', {reportID: report.reportID, writeCapability: newValue}, {optimisticData, failureData});
     // Return to the report settings page since this field utilizes push-to-page
-    Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID));
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
 }
 
 /**
@@ -1366,7 +1366,7 @@ function navigateToConciergeChat() {
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], false);
         });
     } else {
-        Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
     }
 }
 
@@ -1516,7 +1516,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
 
     // No change needed, navigate back
     if (previousName === policyRoomName) {
-        Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1555,7 +1555,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
         },
     ];
     API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
 /**
@@ -1651,7 +1651,7 @@ function showReportActionNotification(reportID, action) {
         reportAction: action,
         onClick: () => {
             // Navigate to this report onClick
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
         },
     });
     notifyNewAction(reportID, action.actorAccountID, action.reportActionID);
@@ -1890,7 +1890,7 @@ function leaveRoom(reportID) {
         Navigation.goBack(ROUTES.HOME);
     }
     if (report.parentReportID) {
-        Navigation.navigate(ROUTES.getReportRoute(report.parentReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
         return;
     }
     navigateToConciergeChat();
@@ -1911,7 +1911,7 @@ function setLastOpenedPublicRoom(reportID) {
 function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
     Navigation.isNavigationReady().then(() => {
         setLastOpenedPublicRoom('');
-        Navigation.navigate(ROUTES.getReportRoute(lastOpenedPublicRoomID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastOpenedPublicRoomID));
     });
 }
 
