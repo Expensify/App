@@ -101,7 +101,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                             chatReportID={chatReport.reportID}
                             iouReport={moneyRequestReport}
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
-                            enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldShowPaymentOptions
                             style={[styles.pv2]}
@@ -129,7 +129,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                         chatReportID={moneyRequestReport.chatReportID}
                         iouReport={moneyRequestReport}
                         onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
-                        enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
                         formattedAmount={formattedAmount}

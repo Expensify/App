@@ -80,11 +80,11 @@ const defaultProps = {
 };
 
 const showUserDetails = (accountID) => {
-    Navigation.navigate(ROUTES.getProfileRoute(accountID));
+    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
 };
 
 const showWorkspaceDetails = (reportID) => {
-    Navigation.navigate(ROUTES.getReportDetailsRoute(reportID));
+    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
 };
 
 function ReportActionItemSingle(props) {
@@ -149,7 +149,7 @@ function ReportActionItemSingle(props) {
         } else {
             // Show participants page IOU report preview
             if (displayAllActors) {
-                Navigation.navigate(ROUTES.getReportParticipantsRoute(iouReportID));
+                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID));
                 return;
             }
             showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);

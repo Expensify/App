@@ -12,12 +12,16 @@ const propTypes = {
 
     /** Function that executes when the mouse leaves the children. */
     onHoverOut: PropTypes.func,
+
+    /** Decides whether to handle the scroll behaviour to show hover once the scroll ends */
+    shouldHandleScroll: PropTypes.bool,
 };
 
 const defaultProps = {
     disabled: false,
     onHoverIn: () => {},
     onHoverOut: () => {},
+    shouldHandleScroll: false,
 };
 
 export {propTypes, defaultProps};
