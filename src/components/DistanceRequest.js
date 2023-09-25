@@ -185,7 +185,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : ROUTES.HOME);
+        Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
     };
 
     /**
@@ -193,7 +193,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
      * @param {Number} index of the waypoint to edit
      */
     const navigateToWaypointEditPage = (index) => {
-        Navigation.navigate(isEditingRequest ? ROUTES.getMoneyRequestEditWaypointRoute(report.reportID, transactionID, index) : ROUTES.getMoneyRequestWaypointRoute('request', index));
+        Navigation.navigate(isEditingRequest ? ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.getRoute(report.reportID, transactionID, index) : ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index));
     };
 
     const content = (
