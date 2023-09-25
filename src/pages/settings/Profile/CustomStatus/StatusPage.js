@@ -7,7 +7,6 @@ import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDe
 import HeaderPageLayout from '../../../../components/HeaderPageLayout';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import withLocalize from '../../../../components/withLocalize';
-import MenuItem from '../../../../components/MenuItem';
 import Button from '../../../../components/Button';
 import Text from '../../../../components/Text';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -98,12 +97,12 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             />
 
             {(!!currentUserEmojiCode || !!currentUserStatusText) && (
-                <MenuItem
+                <MenuItemWithTopDescription
                     title={localize.translate('statusPage.clearStatus')}
                     icon={Expensicons.Close}
                     onPress={clearStatus}
                     iconFill={themeColors.danger}
-                    wrapperStyle={[styles.cardMenuItem]}
+                    wrapperStyle={[styles.pl2]}
                 />
             )}
         </HeaderPageLayout>
