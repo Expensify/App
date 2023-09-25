@@ -253,8 +253,9 @@ function BaseTextInput(props) {
     const lineHeight = useMemo(() => {
         if (Browser.isSafari() && _.isArray(props.inputStyle)) {
             const lineHeightValue = _.find(props.inputStyle, (f) => f.lineHeight !== undefined)
-            if(lineHeightValue)
+            if(lineHeightValue) {
                 return lineHeightValue.lineHeight
+            }
         } else if (Browser.isSafari() || Browser.isMobileChrome()) {
             return height;
         }
