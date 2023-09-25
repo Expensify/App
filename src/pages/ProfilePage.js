@@ -37,6 +37,7 @@ import variables from '../styles/variables';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import Permissions from '../libs/Permissions';
 import ROUTES from '../ROUTES';
+import MenuItemWithTopDescription from '../components/MenuItemWithTopDescription';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -136,6 +137,11 @@ function ProfilePage(props) {
 
     const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : 0;
 
+    const notificationPreference =
+        chatReportWithCurrentUser.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
+            ? props.translate(`notificationPreferencesPage.notificationPreferences.${chatReportWithCurrentUser.notificationPreference}`)
+            : '';
+
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (ValidationUtils.isValidAccountRoute(accountID) && !hasMinimumDetails) {
@@ -227,6 +233,14 @@ function ProfilePage(props) {
                                 </View>
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
+                            {chatReportWithCurrentUser.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && (
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={notificationPreference}
+                                    description={props.translate('notificationPreferencesPage.label')}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(chatReportWithCurrentUser.reportID))}
+                                />
+                            )}
                         </View>
                         {!isCurrentUser && !Session.isAnonymousUser() && (
                             <MenuItem
