@@ -10,18 +10,15 @@ import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
-import * as Policy from '../libs/actions/Policy';
 import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import CONST from '../CONST';
 import withPolicy, {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import ROUTES from '../ROUTES';
 import * as PolicyUtils from '../libs/PolicyUtils';
-import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import SelectionList from '../components/SelectionList';
 import * as Report from '../libs/actions/Report';
@@ -80,18 +77,6 @@ function RoomInvitePage(props) {
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
     const [userToInvite, setUserToInvite] = useState(null);
-    // const openWorkspaceInvitePage = () => {
-    //     const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
-    //     Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
-    // };
-
-    // useEffect(() => {
-    //     Policy.clearErrors(props.route.params.policyID);
-    //     openWorkspaceInvitePage();
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps -- policyID changes remount the component
-    // }, []);
-
-    // useNetwork({onReconnect: openWorkspaceInvitePage});
 
     const excludedUsers = useMemo(() => lodashGet(props.report, 'participants', []), [props.report.participants]);
     useEffect(() => {
