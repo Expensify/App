@@ -74,10 +74,12 @@ function MoneyRequestSelectorPage(props) {
 
     useEffect(() => {
         if (prevSelectedTab === props.selectedTab) {
-            return;   
+            return;
         }
 
         resetMoneyRequestInfo();
+        // resetMoneyRequestInfo function is not added as dependencies since they don't change between renders
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.selectedTab, prevSelectedTab]);
 
     return (
