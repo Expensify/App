@@ -38,6 +38,9 @@ const propTypes = {
             /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
+
+        /** The current route path */
+        path: PropTypes.string,
     }).isRequired,
 
     /** The report on which the request is initiated on */
@@ -220,13 +223,13 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     return;
                 }
 
-                IOU.navigateToNextPage(iou, iouType, reportID, report);
+                IOU.navigateToNextPage(iou, iouType, reportID, report, route.path);
             })
             .catch((error) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, iou, report, reportID, translate, transactionID]);
+    }, [flash, iouType, iou, report, reportID, translate, transactionID, route.path]);
 
     CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
@@ -295,7 +298,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                                     return;
                                 }
 
-                                IOU.navigateToNextPage(iou, iouType, reportID, report);
+                                IOU.navigateToNextPage(iou, iouType, reportID, report, route.path);
                             })
                             .catch(() => {
                                 Log.info('User did not select an image from gallery');

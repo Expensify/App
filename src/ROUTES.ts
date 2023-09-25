@@ -110,6 +110,7 @@ export default {
     MONEY_REQUEST_TAG: {                 route: ':iouType/new/tag/:reportID?',          getRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}`},
     MONEY_REQUEST_MERCHANT: {            route: ':iouType/new/merchant/:reportID?',     getRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}`},
     MONEY_REQUEST_WAYPOINT: {            route: ':iouType/new/waypoint/:waypointIndex', getRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}`},
+    MONEY_REQUEST_RECEIPT: {             route: ':iouType/new/receipt/:reportID?',      getRoute: (iouType: string, reportID = '') => `${iouType}/new/receipt/${reportID}`},
     MONEY_REQUEST_ADDRESS: {             route: ':iouType/new/address/:reportID?',      getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}`},
     MONEY_REQUEST_DISTANCE_TAB: {        route: ':iouType/new/:reportID?/distance',     getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance`},
     MONEY_REQUEST_MANUAL_TAB:                   ':iouType/new/:reportID?/manual',
