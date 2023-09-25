@@ -16,8 +16,12 @@ function getRequestWaitTime() {
     return requestWaitTime;
 }
 
+function getLastRequestWaitTime() {
+    return requestWaitTime;
+}
+
 function sleep(): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, getRequestWaitTime()));
 }
 
-export {clear, getRequestWaitTime, sleep};
+export {clear, getRequestWaitTime, sleep, getLastRequestWaitTime};
