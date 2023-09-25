@@ -1,10 +1,10 @@
 import React from 'react';
-import { Image } from 'react-native';
-import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
-import CONST from '../../CONST';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import * as StyleUtils from '../../styles/StyleUtils';
-import variables from '../../styles/variables';
+import {Image} from 'react-native';
+import EmptyStateBackgroundImage from '../../assets/images/empty-state_background-fade.png';
+import CONST from '../CONST';
+import useWindowDimensions from '../hooks/useWindowDimensions';
+import * as StyleUtils from '../styles/StyleUtils';
+import variables from '../styles/variables';
 
 export default function EmptyStateBackground() {
     const [visible, setVisible] = React.useState(false);

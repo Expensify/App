@@ -4,15 +4,9 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React from 'react';
-import { View } from 'react-native';
-import { withOnyx } from 'react-native-onyx';
-import CONST from '../../CONST';
+import reportPropTypes from '../../pages/reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import useLocalize from '../../hooks/useLocalize';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
@@ -22,24 +16,21 @@ import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as TransactionUtils from '../../libs/TransactionUtils';
-import compose from '../../libs/compose';
-import iouReportPropTypes from '../../pages/iouReportPropTypes';
-import reportPropTypes from '../../pages/reportPropTypes';
 import * as StyleUtils from '../../styles/StyleUtils';
-import styles from '../../styles/styles';
+import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
-import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
-import OfflineWithFeedback from '../OfflineWithFeedback';
+import iouReportPropTypes from '../../pages/iouReportPropTypes';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import useLocalize from '../../hooks/useLocalize';
+import * as ReceiptUtils from '../../libs/ReceiptUtils';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 import transactionPropTypes from '../transactionPropTypes';
-import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsPropTypes } from '../withCurrentUserPersonalDetails';
-import EmptyStateBackground from './EmptyBackground';
 import ReportActionItemImage from './ReportActionItemImage';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import categoryPropTypes from '../categoryPropTypes';
 import SpacerView from '../SpacerView';
+import EmptyStateBackground from '../EmptyStateBackground';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -122,12 +113,10 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
 
-
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
-                
-                <EmptyStateBackground/>
+                <EmptyStateBackground />
             </View>
 
             {hasReceipt && (
