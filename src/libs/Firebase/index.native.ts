@@ -1,15 +1,11 @@
 /* eslint-disable no-unused-vars */
 import perf from '@react-native-firebase/perf';
-import lodashGet from 'lodash/get';
 import * as Environment from '../Environment/Environment';
-import Log from '../Log';
+import {StartTrace, StopTrace, TraceMap} from './types';
 
-const traceMap = {};
+const traceMap: TraceMap = {};
 
-/**
- * @param {String} customEventName
- */
-function startTrace(customEventName) {
+const startTrace: StartTrace = (customEventName) => {
     const start = global.performance.now();
     if (Environment.isDevelopment()) {
         return;
@@ -27,18 +23,16 @@ function startTrace(customEventName) {
                 start,
             };
         });
-}
+};
 
-/**
- * @param {String} customEventName
- */
-function stopTrace(customEventName) {
-    const stop = global.performance.now();
+const stopTrace: StopTrace = (customEventName) => {
+    // Uncomment to inspect logs on release builds
+    // const stop = global.performance.now();
     if (Environment.isDevelopment()) {
         return;
     }
 
-    const trace = lodashGet(traceMap, [customEventName, 'trace']);
+    const trace = traceMap[customEventName].trace;
     if (!trace) {
         return;
     }
@@ -50,7 +44,7 @@ function stopTrace(customEventName) {
     // Log.info(`sidebar_loaded: ${stop - start} ms`, true);
 
     delete traceMap[customEventName];
-}
+};
 
 export default {
     startTrace,
