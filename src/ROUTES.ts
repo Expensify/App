@@ -5,7 +5,7 @@ import CONST from './CONST';
  * This is a file containing constants for all of the routes we want to be able to go to
  */
 
-type MONEY_REQUEST_FIELDS = 'amount' | 'participants' | 'confirmation' | 'date' | 'currency' | 'description' | 'category' | 'tag' | 'merchant' | 'waypoint' | 'address';
+type MoneyRequestFields = 'amount' | 'participants' | 'confirmation' | 'date' | 'currency' | 'description' | 'category' | 'tag' | 'merchant' | 'waypoint' | 'address';
 
 // prettier-ignore
 export default {
@@ -121,7 +121,7 @@ export default {
     MONEY_REQUEST_MANUAL_TAB:                   ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB:                     ':iouType/new/:reportID?/scan',
 
-    MONEE_REQUEST: {                     route: ':iouType/:transactionID/:field/:reportID?',       getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, field: MONEY_REQUEST_FIELDS, reportID = '') => `${iouType}/${transactionID}/${field}/${reportID}`},
+    MONEE_REQUEST: {                     route: ':iouType/:transactionID/:field/:reportID?',       getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, field: MoneyRequestFields, reportID = '') => `${iouType}/${transactionID}/${field}/${reportID}`},
 
     IOU_REQUEST:                                'request/new',
     IOU_SEND:                                   'send/new',

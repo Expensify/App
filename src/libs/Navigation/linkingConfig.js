@@ -297,6 +297,10 @@ export default {
                     },
                     MoneyRequest: {
                         screens: {
+                            Monee_Request: {
+                                path: ROUTES.MONEE_REQUEST.route,
+                                exact: true,
+                            },
                             Money_Request: {
                                 path: ROUTES.MONEY_REQUEST.route,
                                 exact: true,
