@@ -9,6 +9,7 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import withLocalize from '../../../../components/withLocalize';
 import Button from '../../../../components/Button';
 import Text from '../../../../components/Text';
+import MenuItem from '../../../../components/MenuItem';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as User from '../../../../libs/actions/User';
 import MobileBackgroundImage from '../../../../../assets/images/money-stack.svg';
@@ -97,8 +98,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             />
 
             {(!!currentUserEmojiCode || !!currentUserStatusText) && (
-                <MenuItemWithTopDescription
+                <MenuItem
                     title={localize.translate('statusPage.clearStatus')}
+                    titleStyle={styles.ml0}
                     icon={Expensicons.Close}
                     onPress={clearStatus}
                     iconFill={themeColors.danger}
