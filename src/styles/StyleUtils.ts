@@ -1,4 +1,4 @@
-import {Animated, DimensionValue, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
+import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
@@ -12,6 +12,9 @@ import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
 import variables from './variables';
+
+type AllStyles = ViewStyle | TextStyle | ImageStyle;
+type ParsableStyle = AllStyles | ((state: PressableStateCallbackType) => AllStyles);
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -36,7 +39,6 @@ type ButtonSizeValue = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 type EmptyAvatarSizeName = ValueOf<Pick<typeof CONST.AVATAR_SIZE, 'SMALL' | 'MEDIUM' | 'LARGE'>>;
 type ButtonStateName = ValueOf<typeof CONST.BUTTON_STATES>;
 type AvatarSize = {width: number};
-type ParsableStyle = ViewStyle | ((state: PressableStateCallbackType) => ViewStyle);
 
 type WorkspaceColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
 
@@ -696,14 +698,14 @@ function getThemeBackgroundColor(bgColor: string = themeColors.appBG): string {
 /**
  * Parse styleParam and return Styles array
  */
-function parseStyleAsArray(styleParam: ViewStyle | ViewStyle[]): ViewStyle[] {
+function parseStyleAsArray<T extends AllStyles>(styleParam: T | T[]): T[] {
     return Array.isArray(styleParam) ? styleParam : [styleParam];
 }
 
 /**
  * Parse style function and return Styles object
  */
-function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): ViewStyle[] {
+function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): AllStyles[] {
     const functionAppliedStyle = typeof style === 'function' ? style(state) : style;
     return parseStyleAsArray(functionAppliedStyle);
 }
@@ -711,8 +713,8 @@ function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallb
 /**
  * Receives any number of object or array style objects and returns them all as an array
  */
-function combineStyles(...allStyles: Array<ViewStyle | ViewStyle[]>) {
-    let finalStyles: ViewStyle[][] = [];
+function combineStyles<T extends AllStyles>(...allStyles: Array<T | T[]>): T[] {
+    let finalStyles: T[] = [];
     allStyles.forEach((style) => {
         finalStyles = finalStyles.concat(parseStyleAsArray(style));
     });
