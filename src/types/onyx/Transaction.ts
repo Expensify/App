@@ -1,18 +1,23 @@
 import {ValueOf} from 'type-fest';
 import * as OnyxCommon from './OnyxCommon';
 import CONST from '../../CONST';
+import RecentWaypoint from './RecentWaypoint';
 
+type WaypointCollection = Record<string, RecentWaypoint | null>;
 type Comment = {
     comment?: string;
+    waypoints?: WaypointCollection;
     type?: string;
     customUnit?: Record<string, unknown>;
     source?: string;
     originalTransactionID?: string;
 };
 
+type GeometryType = 'LineString';
+
 type Geometry = {
-    coordinates: number[][];
-    type: 'LineString';
+    coordinates: number[][] | null;
+    type?: GeometryType;
 };
 
 type Receipt = {
@@ -22,7 +27,7 @@ type Receipt = {
 };
 
 type Route = {
-    distance: number;
+    distance: number | null;
     geometry: Geometry;
 };
 
@@ -35,6 +40,7 @@ type Transaction = {
     created: string;
     currency: string;
     errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
     // The name of the file used for a receipt (formerly receiptFilename)
     filename?: string;
     merchant: string;
@@ -53,4 +59,4 @@ type Transaction = {
 };
 
 export default Transaction;
-export type {Comment, Receipt};
+export type {WaypointCollection, Comment, Receipt};
