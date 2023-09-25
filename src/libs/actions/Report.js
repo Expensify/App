@@ -2008,24 +2008,6 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
 }
 
 /**
- * Called when we open the workspace members and
- * @param {*} policyID
- * @param {*} clientMemberEmails
- * @returns
- */
-function openWorkspaceMembersPage(policyID, clientMemberEmails) {
-    if (!policyID || !clientMemberEmails) {
-        Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
-        return;
-    }
-
-    API.read('OpenWorkspaceMembersPage', {
-        policyID,
-        clientMemberEmails: JSON.stringify(clientMemberEmails),
-    });
-}
-
-/**
  * Flag a comment as offensive
  *
  * @param {String} reportID
