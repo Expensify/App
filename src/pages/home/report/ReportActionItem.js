@@ -500,7 +500,6 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        let isNormalCreatedAction = true;
         let content = (
             <ReportActionItemCreated
                 reportID={props.report.reportID}
@@ -509,7 +508,6 @@ function ReportActionItem(props) {
         );
         const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            isNormalCreatedAction = false;
             content = (
                 <ShowContextMenuContext.Provider
                     value={{
@@ -529,7 +527,6 @@ function ReportActionItem(props) {
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
-            isNormalCreatedAction = false;
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 content = (
                     <>
@@ -556,7 +553,6 @@ function ReportActionItem(props) {
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
-            isNormalCreatedAction = false;
             content = (
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <MoneyReportView
@@ -567,6 +563,11 @@ function ReportActionItem(props) {
             );
         }
 
+        const isNormalCreatedAction =
+            !ReportActionsUtils.isTransactionThread(parentReportAction) &&
+            !ReportUtils.isTaskReport(props.report) &&
+            !ReportUtils.isExpenseReport(props.report) &&
+            !ReportUtils.isIOUReport(props.report);
         return <View style={[props.shouldHideThreadDividerLine && !isNormalCreatedAction && styles.mb2]}>{content}</View>;
     }
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
