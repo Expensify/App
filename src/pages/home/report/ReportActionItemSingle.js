@@ -114,7 +114,7 @@ function ReportActionItemSingle(props) {
     let secondaryAvatar = {};
     const primaryDisplayName = displayName;
     if (displayAllActors) {
-        // When we merge IOUs into one, if ownerAccountID is also actorAccountID, we should use managerID instead to prevent duplicate information.
+        // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
         const secondaryUserDetails = props.personalDetailsList[secondaryAccountId] || {};
         const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
