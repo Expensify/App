@@ -17,6 +17,10 @@ type Args = {
     authEndpoint: string;
 };
 
+type ChunkedDataEvents = {chunks: unknown[]; receivedFinal: boolean};
+
+type EventData = {id?: string; chunk?: unknown; final?: boolean; index: number};
+
 type SocketEventCallback = <T>(eventName: string, data?: T) => void;
 
 type PusherWithAuthParams = Pusher & {
@@ -128,15 +132,15 @@ function bindEventToChannel(channel: Channel | undefined, eventName: string, eve
     if (!eventName) {
         return;
     }
-    // TODO: Create a seperate type
-    const chunkedDataEvents: Record<string, {chunks: unknown[]; receivedFinal: boolean}> = {};
+
+    const chunkedDataEvents: Record<string, ChunkedDataEvents> = {};
     const callback = (eventData: string | Record<string, unknown>) => {
         if (shouldForceOffline) {
             Log.info('[Pusher] Ignoring a Push event because shouldForceOffline = true');
             return;
         }
-        // TODO: create a seperate type
-        let data: {id?: string; chunk?: unknown; final?: boolean; index: number};
+
+        let data: EventData;
         try {
             data = isObject(eventData) ? eventData : JSON.parse(eventData);
         } catch (err) {
