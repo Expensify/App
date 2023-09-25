@@ -218,6 +218,9 @@ const items = [
 ];
 
 function detectReactComponent(code) {
+    if (!code) {
+        return;
+    }
     const ast = parse(code, {
         sourceType: 'module',
         plugins: ['jsx'] // enable jsx plugin
@@ -244,14 +247,19 @@ function detectReactComponent(code) {
     return isReactComponent;
 };
 
-function relativePath(filename) {
-    return filename.replace(`${CONST.APP_NAME}/`, '');
+function readFile(filename) {
+    const path = `./${filename}`;
+    try {
+        return fs.readFileSync(path, 'utf-8');
+    } catch (error) {
+        console.error(`Error reading ${path}`, error);
+    }
 }
 
 function detectFunction(changedFiles) {
     console.log('detectFunction', process.cwd());
     const filteredFiles = _.filter((changedFiles), ({ filename }) => filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx'));
-    return _.some(filteredFiles, ({ filename }) => detectReactComponent(fs.readFileSync(relativePath(filename), 'utf-8')));
+    return _.some(filteredFiles, ({ filename }) => detectReactComponent(readFile(filename)));
 }
 
 module.exports = {
