@@ -25,8 +25,8 @@ const getCurrentPosition: GetCurrentPosition = (success, error, config) => {
             if (permissionState === 'enabled') {
                 // If the user just enabled the permission by clicking 'Ok', sometimes we need to wait before
                 // the native system location/gps is setup, this is usually device specific, but a wait of a few
-                // milliseconds will be enough. Currently its using 500ms, it seemed enough for Android 12 test 
-                // device. In rare cases when the device takes longer than 500ms, then Geolocation.getCurrentPosition 
+                // milliseconds will be enough. Currently its using 500ms, it seemed enough for Android 12 test
+                // device. In rare cases when the device takes longer than 500ms, then Geolocation.getCurrentPosition
                 // will throw an error in which case the user can always call the action again to retry (but its rare).
                 setTimeout(() => {
                     Geolocation.getCurrentPosition(success, error, config);
