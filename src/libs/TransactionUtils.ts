@@ -20,7 +20,7 @@ Onyx.connect({
         if (!value) {
             return;
         }
-        allTransactions = Object.fromEntries(Object.entries({...value}).filter(([, transaction]) => !!transaction));
+        allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => !!transaction));
     },
 });
 
