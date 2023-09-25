@@ -50,18 +50,20 @@ function detectReactComponent(code) {
 
 function readFile(filename) {
     const filePath = path.resolve(__dirname, `../../../../${filename}`);
+    const filePath2 = path.resolve(filename);
+
     try {
-        console.log('reading', filePath, fs.existsSync('../../../../package.json'), fs.existsSync('../../../package.json'), fs.existsSync('../../package.json'), fs.existsSync('../package.json'));
-        return fs.readFileSync(filePath, 'utf-8');
+        console.log('reading', filePath2, fs.existsSync(path.join(process.env.GITHUB_WORKSPACE, 'package.json')));
+        return fs.readFileSync(filePath2, 'utf-8');
     } catch (error) {
-        console.error(`Error reading ${filePath}`, error);
+        console.error(`Error reading ${filePath2}`, error);
     }
 }
 
 function detectFunction(changedFiles) {
-    console.log('detectFunction', process.cwd(), __dirname);
+    console.log('detectFunction', process.cwd(), __dirname, process.env.GITHUB_WORKSPACE, path.join(process.env.GITHUB_WORKSPACE, 'package.json'));
 
-    fs.readdirSync(process.cwd()).forEach(file => {
+    fs.readdirSync(__dirname).forEach(file => {
         console.log(file);
       });
 
