@@ -9,7 +9,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
-import {getEnvironmentURL} from './Environment/Environment';
+import * as Environment from './Environment/Environment';
 
 const allReports = {};
 Onyx.connect({
@@ -44,7 +44,7 @@ Onyx.connect({
 });
 
 let environmentURL;
-getEnvironmentURL().then((url) => (environmentURL = url));
+Environment.getEnvironmentURL().then((url) => (environmentURL = url));
 
 /**
  * @param {Object} reportAction
