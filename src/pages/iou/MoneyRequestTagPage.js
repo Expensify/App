@@ -64,7 +64,7 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
     const tagListName = lodashGet(tagList, 'name', translate('common.tag'));
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, report.reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
     };
 
     const updateTag = (selectedTag) => {
@@ -80,6 +80,7 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={MoneyRequestTagPage.displayName}
         >
             <HeaderWithBackButton
                 title={tagListName}
@@ -109,6 +110,7 @@ export default compose(
             key: ONYXKEYS.IOU,
         },
     }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
