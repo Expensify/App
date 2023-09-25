@@ -25,6 +25,7 @@ import * as Task from '../../../../libs/actions/Task';
 import * as Localize from '../../../../libs/Localize';
 import * as TransactionUtils from '../../../../libs/TransactionUtils';
 import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
+import * as NetworkStore from '../../../../libs/Network/NetworkStore';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -101,7 +102,7 @@ export default [
         shouldShow: (type, reportAction) => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             const messageHtml = lodashGet(reportAction, ['message', 0, 'html']);
-            return isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction);
+            return isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !NetworkStore.isOffline();
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
