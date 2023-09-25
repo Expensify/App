@@ -3,7 +3,7 @@ import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkStore from './Network/NetworkStore';
 import Request from '../types/onyx/Request';
 
-type Middleware = (response: unknown, request: Request, isFromSequentialQueue: boolean) => Promise<unknown>;
+type Middleware = (response: Promise<unknown>, request: Request, isFromSequentialQueue: boolean) => Promise<unknown>;
 
 let middlewares: Middleware[] = [];
 
@@ -32,3 +32,4 @@ function clearMiddlewares() {
 }
 
 export {clearMiddlewares, processWithMiddleware, use};
+export type {Middleware};
