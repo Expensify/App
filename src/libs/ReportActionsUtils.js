@@ -384,16 +384,17 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
 /**
  * For invite to room and remove from room policy change logs, report URLs are generated in the server,
  * which includes a baseURL placeholder that's replaced in the client.
- * @param {*} reportAction
- * @returns
+ * 
+ * @param {Object} reportAction
+ * @returns {Object}
  */
 function replaceBaseURL(reportAction) {
     if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVEFROMROOM) {
         return reportAction;
     }
-
-    reportAction.message[0].html = reportAction.message[0].html.replace('%baseURL', environmentURL);
-    return reportAction;
+    const updatedReportAction = _.clone(reportAction);
+    updatedReportAction.message[0].html = reportAction.message[0].html.replace('%baseURL', environmentURL);
+    return updatedReportAction;
 }
 
 /**
