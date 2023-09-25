@@ -6,8 +6,8 @@ const useEncryptify = () => {
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
-        initializationPromise.then(() => {
-            setEncryptify(EncryptifyModule);
+        initializationPromise.then((instance) => {
+            setEncryptify(instance);
             setReady(true);
         });
     }, []);

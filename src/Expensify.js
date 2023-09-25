@@ -192,8 +192,6 @@ function Expensify(props) {
             return;
         }
 
-        console.log({Encryptify});
-
         const kemKeys = Encryptify.KEMGenKeys();
 
         const publicKeys = {kyber1024: kemKeys.kyber1024.publicKey, rsa4096: kemKeys.rsa4096.publicKey};
