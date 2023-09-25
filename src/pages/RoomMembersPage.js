@@ -83,6 +83,19 @@ function RoomMembersPage(props) {
     const [searchValue, setSearchValue] = useState('');
 
     /**
+     * Get members for the current room
+     */
+    const getRoomMembers = useCallback(() => {
+        Report.openRoomMembersPage(props.report.reportID);
+    }, [props.report]);
+
+
+    useEffect(() => {
+        getRoomMembers();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    /**
      * Open the modal to invite a user
      */
     const inviteUser = () => {
