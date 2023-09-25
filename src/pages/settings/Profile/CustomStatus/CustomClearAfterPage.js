@@ -41,7 +41,10 @@ function CustomClearAfterPage({translate, customStatus}) {
     }, []);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={CustomClearAfterPage.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('statusPage.date')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}

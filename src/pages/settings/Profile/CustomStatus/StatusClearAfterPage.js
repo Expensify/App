@@ -159,6 +159,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={StatusClearAfterPage.displayName}
         >
             <HeaderWithBackButton
                 title="Status"
