@@ -5,9 +5,9 @@ import _ from 'underscore';
 import CONST from '../../../../CONST';
 import TabSelector from '../../../../components/TabSelector/TabSelector';
 import OnyxTabNavigator, {TopTab} from '../../../../libs/Navigation/OnyxTabNavigator';
-import IOUCreateRequestTabDistance from './tab/IOUCreateRequestTabDistance';
-import IOUCreateRequestTabManual from './tab/IOUCreateRequestTabManual';
-import IOUCreateRequestTabScan from './tab/IOUCreateRequestTabScan';
+import IOUCreateRequestTabDistance from './tab/distance/IOUCreateRequestTabDistance';
+import IOUCreateRequestTabManual from './tab/manual/IOUCreateRequestTabManual';
+import IOUCreateRequestTabScan from './tab/scan/IOUCreateRequestTabScan';
 
 const propTypes = {
     /** The ID of the currently selected tab */

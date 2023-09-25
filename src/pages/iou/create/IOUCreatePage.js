@@ -15,7 +15,7 @@ import styles from '../../../styles/styles';
 import DragAndDropProvider from '../../../components/DragAndDrop/Provider';
 import * as IOUUtils from '../../../libs/IOUUtils';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import CreateIOUStartTabManual from './request/tab/IOUCreateRequestTabManual';
+import CreateIOUStartTabManual from './request/tab/manual/IOUCreateRequestTabManual';
 import CreateIOUStartRequest from './request/IOUCreateRequest';
 
 const propTypes = {
