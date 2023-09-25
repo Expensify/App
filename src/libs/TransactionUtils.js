@@ -120,6 +120,7 @@ function areRequiredFieldsEmpty(transaction) {
 function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) {
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = _.clone(transaction);
+    console.log(updatedTransaction, transactionChanges);
     let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
@@ -297,6 +298,27 @@ function hasMissingSmartscanFields(transaction) {
     return hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction);
 }
 
+function getMissingSmartScanFields(transaction) {
+    const fields = [];
+    if (
+        transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
+        transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
+        (transaction.modifiedMerchant === '' &&
+            (transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === '' || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT))
+    ) {
+        fields.push(CONST.EDIT_REQUEST_FIELD.MERCHANT);
+    }
+
+    if (transaction.modifiedAmount === 0 && transaction.amount === 0) {
+        fields.push(CONST.EDIT_REQUEST_FIELD.AMOUNT);
+    }
+
+    if (transaction.modifiedCreated === '' && transaction.created === '') {
+        fields.push(CONST.EDIT_REQUEST_FIELD.DATE);
+    }
+    return fields;
+}
+
 /**
  * Check if the transaction has a defined route
  *
@@ -407,6 +429,7 @@ export {
     getValidWaypoints,
     isDistanceRequest,
     hasMissingSmartscanFields,
+    getMissingSmartScanFields,
     getWaypointIndex,
     waypointHasValidAddress,
 };

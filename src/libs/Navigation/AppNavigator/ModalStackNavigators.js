@@ -149,6 +149,20 @@ const SplitDetailsModalStackNavigator = createModalStackNavigator([
         },
         name: 'SplitDetails_Root',
     },
+    {
+        getComponent: () => {
+            const SplitBillDetailsPage = require('../../../pages/EditSplitBillRequestPage').default;
+            return SplitBillDetailsPage;
+        },
+        name: 'SplitDetails_Edit_Request',
+    },
+    {
+        getComponent: () => {
+            const IOUCurrencySelection = require('../../../pages/iou/IOUCurrencySelection').default;
+            return IOUCurrencySelection;
+        },
+        name: 'SplitDetails_Edit_Currency',
+    },
 ]);
 
 const DetailsModalStackNavigator = createModalStackNavigator([

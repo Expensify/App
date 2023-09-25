@@ -23,7 +23,7 @@ const propTypes = {
     reportID: PropTypes.string.isRequired,
 };
 
-function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, reportID}) {
+function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, reportID, reportActionID, isSplitRequest}) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
 
@@ -43,6 +43,10 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, report
     const navigateToCurrencySelectionPage = () => {
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+        if (isSplitRequest) {
+            Navigation.navigate(ROUTES.getEditSplitRequestCurrencyRoute(reportID, reportActionID, defaultCurrency, activeRoute));
+            return;
+        }
         Navigation.navigate(ROUTES.getEditRequestCurrencyRoute(reportID, defaultCurrency, activeRoute));
     };
 

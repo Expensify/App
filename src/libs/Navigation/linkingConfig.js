@@ -338,6 +338,8 @@ export default {
                     SplitDetails: {
                         screens: {
                             SplitDetails_Root: ROUTES.SPLIT_BILL_DETAILS,
+                            SplitDetails_Edit_Request: ROUTES.EDIT_SPLIT_BILL_REQUEST,
+                            SplitDetails_Edit_Currency: ROUTES.EDIT_SPLIT_REQUEST_CURRENCY,
                         },
                     },
                     Task_Details: {

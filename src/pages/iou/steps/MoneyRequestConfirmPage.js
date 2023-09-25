@@ -188,16 +188,15 @@ function MoneyRequestConfirmPage(props) {
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
+                // If we have a receipt, we will start a partial split bill request
+                // which only contains split action and the transaction, no child reports will be created yet
                 if (props.iou.receiptPath && props.iou.receiptSource) {
                     FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
-                        IOU.splitBill(
+                        IOU.startSplitBillRequest(
                             selectedParticipants,
                             props.currentUserPersonalDetails.login,
                             props.currentUserPersonalDetails.accountID,
-                            props.iou.amount,
                             trimmedComment,
-                            props.iou.currency,
-                            props.iou.merchant,
                             receipt,
                             reportID.current,
                         );
@@ -221,7 +220,7 @@ function MoneyRequestConfirmPage(props) {
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
                 if (props.iou.receiptPath && props.iou.receiptSource) {
                     FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
-                        IOU.splitBillAndOpenReport(
+                        IOU.startSplitBillRequest(
                             selectedParticipants,
                             props.currentUserPersonalDetails.login,
                             props.currentUserPersonalDetails.accountID,
@@ -234,6 +233,7 @@ function MoneyRequestConfirmPage(props) {
                     });
                     return;
                 }
+
                 IOU.splitBillAndOpenReport(
                     selectedParticipants,
                     props.currentUserPersonalDetails.login,

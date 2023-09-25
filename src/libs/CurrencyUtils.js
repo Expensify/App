@@ -117,6 +117,9 @@ function convertToFrontendAmount(amountAsInt) {
  * @returns {String}
  */
 function convertToDisplayString(amountInCents, currency = CONST.CURRENCY.USD) {
+    if (currency === '' || !currency) {
+        currency = CONST.CURRENCY.USD;
+    }
     const convertedAmount = convertToFrontendAmount(amountInCents);
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',

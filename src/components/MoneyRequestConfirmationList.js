@@ -189,7 +189,7 @@ function MoneyRequestConfirmationList(props) {
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
     const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields;
-    const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
+    const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST || props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
 
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
@@ -250,7 +250,6 @@ function MoneyRequestConfirmationList(props) {
     const [didConfirm, setDidConfirm] = useState(false);
 
     const splitOrRequestOptions = useMemo(() => {
-        console.log(props.hasMultipleParticipants);
         let text;
         if (props.receiptPath && props.hasMultipleParticipants) {
             text = translate('iou.split');
@@ -272,6 +271,7 @@ function MoneyRequestConfirmationList(props) {
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
     const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
+    const missingSmartScanFields = TransactionUtils.getMissingSmartScanFields(transaction);
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
@@ -409,7 +409,7 @@ function MoneyRequestConfirmationList(props) {
         }
 
         const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0;
+        const shouldDisableButton = selectedParticipants.length === 0 || TransactionUtils.hasMissingSmartscanFields(transaction) || TransactionUtils.isReceiptBeingScanned(transaction);
 
         return shouldShowSettlementButton ? (
             <SettlementButton
@@ -435,7 +435,7 @@ function MoneyRequestConfirmationList(props) {
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
             />
         );
-    }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
+    }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, transaction]);
 
     return (
         <OptionsSelector
@@ -471,9 +471,19 @@ function MoneyRequestConfirmationList(props) {
                     shouldShowRightIcon={!props.isReadOnly && !props.isDistanceRequest}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    onPress={() => !props.isDistanceRequest && Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
+                    onPress={() => {
+                        if (props.isDistanceRequest) {
+                            return;
+                        }
+                        if (props.iouType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
+                            Navigation.navigate(ROUTES.getEditSplitBillRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID));
+                    }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
+                    brickRoadIndicator={_.includes(missingSmartScanFields, CONST.EDIT_REQUEST_FIELD.AMOUNT) && 'error'}
                     disabled={didConfirm || props.isReadOnly}
                 />
             )}
@@ -482,7 +492,7 @@ function MoneyRequestConfirmationList(props) {
                 shouldParseTitle
                 title={props.iouComment}
                 description={translate('common.description')}
-                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID))}
+                onPress={() => Navigation.navigate(ROUTES.getEditSplitBillRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
@@ -513,6 +523,7 @@ function MoneyRequestConfirmationList(props) {
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
+                        brickRoadIndicator={_.includes(missingSmartScanFields, CONST.EDIT_REQUEST_FIELD.DATE) && 'error'}
                     />
                     {props.isDistanceRequest ? (
                         <MenuItemWithTopDescription
@@ -531,7 +542,8 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.merchant')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.getEditSplitBillRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
+                            brickRoadIndicator={_.includes(missingSmartScanFields, CONST.EDIT_REQUEST_FIELD.MERCHANT) && 'error'}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}

@@ -89,6 +89,11 @@ function SplitBillDetailsPage(props) {
                             iouCurrencyCode={splitCurrency}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             shouldShowFooter={false}
+                            reportActionID={reportAction.reportActionID}
+                            reportID={props.report.reportID}
+                            receiptPath={transaction.receipt.source}
+                            receiptSource={transaction.filename}
+                            transaction={transaction}
                         />
                     )}
                 </View>
