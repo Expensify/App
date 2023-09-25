@@ -44,7 +44,7 @@ function AnchorRenderer(props) {
         // the reportID is extracted from the URL and then opened as an internal link, taking the user straight to the chat in the same tab.
         if (hasExpensifyOrigin && attrHref.indexOf('newdotreport?reportID=') > -1) {
             const reportID = attrHref.split('newdotreport?reportID=').pop();
-            const reportRoute = ROUTES.getReportRoute(reportID);
+            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
             Navigation.navigate(reportRoute);
             return;
         }

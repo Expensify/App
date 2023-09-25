@@ -12,6 +12,9 @@ import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDe
 import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
 import * as Report from '../../libs/actions/Report';
 import * as UserUtils from '../../libs/UserUtils';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as TransactionUtils from '../../libs/TransactionUtils';
+
 import participantPropTypes from '../participantPropTypes';
 import CONST from '../../CONST';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
@@ -30,20 +33,24 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     fullReport: PropTypes.object,
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.objectOf(
-        PropTypes.shape({
-            /** The ID of the policy */
-            id: PropTypes.string,
-            /** Name of the policy */
-            name: PropTypes.string,
-            /** Avatar of the policy */
-            avatar: PropTypes.string,
-        }),
-    ),
+    /** The policy which the user has access to and which the report could be tied to */
+    policy: PropTypes.shape({
+        /** The ID of the policy */
+        id: PropTypes.string,
+        /** Name of the policy */
+        name: PropTypes.string,
+        /** Avatar of the policy */
+        avatar: PropTypes.string,
+    }),
 
     /** The actions from the parent report */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The transaction from the parent report action */
+    transaction: PropTypes.shape({
+        /** The ID of the transaction */
+        transactionID: PropTypes.string,
+    }),
 
     ...withCurrentReportIDPropTypes,
     ...basePropTypes,
@@ -53,8 +60,9 @@ const defaultProps = {
     shouldDisableFocusOptions: false,
     personalDetails: {},
     fullReport: {},
-    policies: {},
+    policy: {},
     parentReportActions: {},
+    transaction: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     ...withCurrentReportIDDefaultProps,
     ...baseDefaultProps,
@@ -74,8 +82,10 @@ function OptionRowLHNData({
     personalDetails,
     preferredLocale,
     comment,
-    policies,
+    policy,
+    receiptTransactions,
     parentReportActions,
+    transaction,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
@@ -83,11 +93,17 @@ function OptionRowLHNData({
     // instead of a changing number (so we prevent unnecessary re-renders).
     const isFocused = !shouldDisableFocusOptions && currentReportID === reportID;
 
-    const policy = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`], '');
-
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
     const optionItemRef = useRef();
+
+    const linkedTransaction = useMemo(() => {
+        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
+        const lastReportAction = _.first(sortedReportActions);
+        return TransactionUtils.getLinkedTransaction(lastReportAction);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fullReport.reportID, receiptTransactions, reportActions]);
+
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy);
@@ -97,8 +113,9 @@ function OptionRowLHNData({
         optionItemRef.current = item;
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
+        // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction]);
+    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
@@ -177,14 +194,27 @@ export default React.memo(
             preferredLocale: {
                 key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             },
-            policies: {
-                key: ONYXKEYS.COLLECTION.POLICY,
-            },
         }),
+        // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
         withOnyx({
             parentReportActions: {
                 key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
                 canEvict: false,
+            },
+            policy: {
+                key: ({fullReport}) => `${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`,
+            },
+            // Ideally, we aim to access only the last transaction for the current report by listening to changes in reportActions.
+            // In some scenarios, a transaction might be created after reportActions have been modified.
+            // This can lead to situations where `lastTransaction` doesn't update and retains the previous value.
+            // However, performance overhead of this is minimized by using memos inside the component.
+            receiptTransactions: {key: ONYXKEYS.COLLECTION.TRANSACTION},
+        }),
+        // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+        withOnyx({
+            transaction: {
+                key: ({fullReport, parentReportActions}) =>
+                    `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportActions, [fullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '')}`,
             },
         }),
     )(OptionRowLHNData),

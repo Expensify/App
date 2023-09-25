@@ -25,9 +25,8 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import SidebarUtils from '../SidebarUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
 import * as Environment from '../Environment/Environment';
+import * as Session from './Session';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -103,24 +102,24 @@ function getReportChannelName(reportID) {
 }
 
 /**
- * There are 2 possibilities that we can receive via pusher for a user's typing status:
+ * There are 2 possibilities that we can receive via pusher for a user's typing/leaving status:
  * 1. The "new" way from New Expensify is passed as {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
- * is whether the user with that login is typing on the report or not.
+ * is whether the user with that login is typing/leaving on the report or not.
  * 2. The "old" way from e.com which is passed as {userLogin: login} (e.g. {userLogin: bstites@expensify.com})
  *
  * This method makes sure that no matter which we get, we return the "new" format
  *
- * @param {Object} typingStatus
+ * @param {Object} status
  * @returns {Object}
  */
-function getNormalizedTypingStatus(typingStatus) {
-    let normalizedTypingStatus = typingStatus;
+function getNormalizedStatus(status) {
+    let normalizedStatus = status;
 
-    if (_.first(_.keys(typingStatus)) === 'userLogin') {
-        normalizedTypingStatus = {[typingStatus.userLogin]: true};
+    if (_.first(_.keys(status)) === 'userLogin') {
+        normalizedStatus = {[status.userLogin]: true};
     }
 
-    return normalizedTypingStatus;
+    return normalizedStatus;
 }
 
 /**
@@ -141,7 +140,7 @@ function subscribeToReportTypingEvents(reportID) {
         // If the pusher message comes from OldDot, we expect the typing status to be keyed by user
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
-        const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
+        const normalizedTypingStatus = getNormalizedStatus(typingStatus);
         const accountIDOrLogin = _.first(_.keys(normalizedTypingStatus));
 
         if (!accountIDOrLogin) {
@@ -171,6 +170,41 @@ function subscribeToReportTypingEvents(reportID) {
 }
 
 /**
+ * Initialize our pusher subscriptions to listen for someone leaving a room.
+ *
+ * @param {String} reportID
+ */
+function subscribeToReportLeavingEvents(reportID) {
+    if (!reportID) {
+        return;
+    }
+
+    // Make sure we have a clean Leaving indicator before subscribing to leaving events
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
+
+    const pusherChannelName = getReportChannelName(reportID);
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, (leavingStatus) => {
+        // If the pusher message comes from OldDot, we expect the leaving status to be keyed by user
+        // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
+        // since personal details are keyed by accountID.
+        const normalizedLeavingStatus = getNormalizedStatus(leavingStatus);
+        const accountIDOrLogin = _.first(_.keys(normalizedLeavingStatus));
+
+        if (!accountIDOrLogin) {
+            return;
+        }
+
+        if (Number(accountIDOrLogin) !== currentUserAccountID) {
+            return;
+        }
+
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, true);
+    }).catch((error) => {
+        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
+    });
+}
+
+/**
  * Remove our pusher subscriptions to listen for someone typing in a report.
  *
  * @param {String} reportID
@@ -183,6 +217,21 @@ function unsubscribeFromReportChannel(reportID) {
     const pusherChannelName = getReportChannelName(reportID);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING);
+}
+
+/**
+ * Remove our pusher subscriptions to listen for someone leaving a report.
+ *
+ * @param {String} reportID
+ */
+function unsubscribeFromLeavingRoomReportChannel(reportID) {
+    if (!reportID) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
+    Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM);
 }
 
 // New action subscriber array for report pages
@@ -528,12 +577,12 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxData.optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childReportID: reportID}},
+                value: {[parentReportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
             });
             onyxData.failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childReportID: '0'}},
+                value: {[parentReportActionID]: {childReportID: '0', childType: ''}},
             });
         }
     }
@@ -559,10 +608,11 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
  */
 function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
     let newChat = {};
-    const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
-    const chat = ReportUtils.getChatByParticipantsByLoginList(formattedUserLogins);
+
+    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+
     if (!chat) {
-        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
         newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
     const reportID = chat ? chat.reportID : newChat.reportID;
@@ -572,7 +622,7 @@ function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal(reportID);
     } else {
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
 }
 
@@ -605,7 +655,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs) {
 function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0') {
     if (childReportID !== '0') {
         openReport(childReportID);
-        Navigation.navigate(ROUTES.getReportRoute(childReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     } else {
         const participantAccountIDs = _.uniq([currentUserAccountID, Number(parentReportAction.actorAccountID)]);
         const parentReport = allReports[parentReportID];
@@ -626,7 +676,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat.participantAccountIDs);
         openReport(newChat.reportID, participantLogins, newChat, parentReportAction.reportActionID);
-        Navigation.navigate(ROUTES.getReportRoute(newChat.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID));
     }
 }
 
@@ -865,6 +915,17 @@ function broadcastUserIsTyping(reportID) {
     typingStatus[currentUserAccountID] = true;
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
+/**
+ * Broadcasts to the report's private pusher channel whether a user is leaving a report
+ *
+ * @param {String} reportID
+ */
+function broadcastUserIsLeavingRoom(reportID) {
+    const privateReportChannelName = getReportChannelName(reportID);
+    const leavingStatus = {};
+    leavingStatus[currentUserAccountID] = true;
+    Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
+}
 
 /**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
@@ -885,7 +946,7 @@ function handleReportChanged(report) {
         // Only re-route them if they are still looking at the optimistically created report
         if (Navigation.getActiveRoute().includes(`/r/${report.reportID}`)) {
             // Pass 'FORCED_UP' type to replace new report on second login with proper one in the Navigation
-            Navigation.navigate(ROUTES.getReportRoute(report.preexistingReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
         }
         return;
     }
@@ -926,7 +987,7 @@ function deleteReportComment(reportID, reportAction) {
             html: '',
             text: '',
             isEdited: true,
-            isDeletedParentAction: ReportActionsUtils.hasCommentThread(reportAction),
+            isDeletedParentAction: ReportActionsUtils.isThreadParentMessage(reportAction, reportID),
         },
     ];
     const optimisticReportActions = {
@@ -1066,7 +1127,7 @@ const removeLinksFromHtml = (html, links) => {
  */
 const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
     const parser = new ExpensiMark();
-    if (newCommentText.length >= CONST.MAX_MARKUP_LENGTH) {
+    if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
@@ -1093,10 +1154,10 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentHTML);
     const reportComment = parser.htmlToText(htmlForNewComment);
 
-    // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+    // For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     let parsedOriginalCommentHTML = originalCommentHTML;
-    if (textForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
+    if (textForNewComment.length <= CONST.MAX_MARKUP_LENGTH) {
         const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), (name) => name !== 'autolink')};
         parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML).trim(), autolinkFilter);
     }
@@ -1212,7 +1273,7 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  */
 function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
     if (previousValue === newValue) {
-        Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1230,7 +1291,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
-    Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
 /**
@@ -1241,7 +1302,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
 function updateWelcomeMessage(reportID, previousValue, newValue) {
     // No change needed, navigate back
     if (previousValue === newValue) {
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
         return;
     }
 
@@ -1261,7 +1322,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateWelcomeMessage', {reportID, welcomeMessage: parsedWelcomeMessage}, {optimisticData, failureData});
-    Navigation.goBack();
+    Navigation.goBack(ROUTES.HOME);
 }
 
 /**
@@ -1270,7 +1331,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
  */
 function updateWriteCapabilityAndNavigate(report, newValue) {
     if (report.writeCapability === newValue) {
-        Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID));
+        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
         return;
     }
 
@@ -1290,7 +1351,7 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
     ];
     API.write('UpdateReportWriteCapability', {reportID: report.reportID, writeCapability: newValue}, {optimisticData, failureData});
     // Return to the report settings page since this field utilizes push-to-page
-    Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID));
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
 }
 
 /**
@@ -1298,10 +1359,6 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
  */
 function navigateToConciergeChat() {
     if (!conciergeChatReportID) {
-        // In order not to delay the report life cycle, we first navigate to the unknown report
-        if (!Navigation.getTopmostReportId()) {
-            Navigation.navigate(ROUTES.REPORT);
-        }
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
@@ -1309,7 +1366,7 @@ function navigateToConciergeChat() {
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], false);
         });
     } else {
-        Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
     }
 }
 
@@ -1442,7 +1499,7 @@ function deleteReport(reportID) {
  */
 function navigateToConciergeChatAndDeleteReport(reportID) {
     // Dismiss the current report screen and replace it with Concierge Chat
-    Navigation.goBack();
+    Navigation.goBack(ROUTES.HOME);
     navigateToConciergeChat();
     deleteReport(reportID);
 }
@@ -1459,7 +1516,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
 
     // No change needed, navigate back
     if (previousName === policyRoomName) {
-        Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1498,7 +1555,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
         },
     ];
     API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
 /**
@@ -1594,7 +1651,7 @@ function showReportActionNotification(reportID, action) {
         reportAction: action,
         onClick: () => {
             // Navigate to this report onClick
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
         },
     });
     notifyNewAction(reportID, action.actorAccountID, action.reportActionID);
@@ -1763,13 +1820,12 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        SidebarUtils.isSidebarLoadedReady().then(() => {
-            if (reportID) {
-                Navigation.navigate(ROUTES.getReportRoute(reportID), CONST.NAVIGATION.TYPE.UP);
-            }
+        Session.waitForUserSignIn().then(() => {
             if (route === ROUTES.CONCIERGE) {
                 navigateToConciergeChat();
+                return;
             }
+            Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
         });
     });
 }
@@ -1786,6 +1842,12 @@ function getCurrentUserAccountID() {
 function leaveRoom(reportID) {
     const report = lodashGet(allReports, [reportID], {});
     const reportKeys = _.keys(report);
+
+    // Pusher's leavingStatus should be sent earlier.
+    // Place the broadcast before calling the LeaveRoom API to prevent a race condition
+    // between Onyx report being null and Pusher's leavingStatus becoming true.
+    broadcastUserIsLeavingRoom(reportID);
+
     API.write(
         'LeaveRoom',
         {
@@ -1825,7 +1887,11 @@ function leaveRoom(reportID) {
     );
     Navigation.dismissModal();
     if (Navigation.getTopmostReportId() === reportID) {
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
+    }
+    if (report.parentReportID) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
+        return;
     }
     navigateToConciergeChat();
 }
@@ -1845,7 +1911,7 @@ function setLastOpenedPublicRoom(reportID) {
 function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
     Navigation.isNavigationReady().then(() => {
         setLastOpenedPublicRoom('');
-        Navigation.navigate(ROUTES.getReportRoute(lastOpenedPublicRoomID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastOpenedPublicRoomID));
     });
 }
 
@@ -1934,6 +2000,136 @@ function flagComment(reportID, reportAction, severity) {
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});
 }
 
+/**
+ * Updates a given user's private notes on a report
+ *
+ * @param {String} reportID
+ * @param {Number} accountID
+ * @param {String} note
+ */
+const updatePrivateNotes = (reportID, accountID, note) => {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                privateNotes: {
+                    [accountID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        errors: null,
+                        note,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                privateNotes: {
+                    [accountID]: {
+                        pendingAction: null,
+                        errors: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                privateNotes: {
+                    [accountID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError("Private notes couldn't be saved"),
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(
+        'UpdateReportPrivateNote',
+        {
+            reportID,
+            privateNotes: note,
+        },
+        {optimisticData, successData, failureData},
+    );
+};
+
+/**
+ * Fetches all the private notes for a given report
+ *
+ * @param {String} reportID
+ */
+function getReportPrivateNote(reportID) {
+    if (_.isEmpty(reportID)) {
+        return;
+    }
+    API.read(
+        'GetReportPrivateNote',
+        {
+            reportID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingPrivateNotes: true,
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingPrivateNotes: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingPrivateNotes: false,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
+ * Checks if there are any errors in the private notes for a given report
+ *
+ * @param {Object} report
+ * @returns {Boolean} Returns true if there are errors in any of the private notes on the report
+ */
+function hasErrorInPrivateNotes(report) {
+    const privateNotes = lodashGet(report, 'privateNotes', {});
+    return _.some(privateNotes, (privateNote) => !_.isEmpty(privateNote.errors));
+}
+
+/**
+ * Clears all errors associated with a given private note
+ *
+ * @param {String} reportID
+ * @param {Number} accountID
+ */
+function clearPrivateNotesError(reportID, accountID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
+}
+
 export {
     addComment,
     addAttachment,
@@ -1942,10 +2138,13 @@ export {
     updateWriteCapabilityAndNavigate,
     updateNotificationPreferenceAndNavigate,
     subscribeToReportTypingEvents,
+    subscribeToReportLeavingEvents,
     unsubscribeFromReportChannel,
+    unsubscribeFromLeavingRoomReportChannel,
     saveReportComment,
     saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
+    broadcastUserIsLeavingRoom,
     togglePinnedState,
     editReportComment,
     handleUserDeletedLinksInHtml,
@@ -1981,4 +2180,8 @@ export {
     setLastOpenedPublicRoom,
     flagComment,
     openLastOpenedPublicRoom,
+    updatePrivateNotes,
+    getReportPrivateNote,
+    clearPrivateNotesError,
+    hasErrorInPrivateNotes,
 };

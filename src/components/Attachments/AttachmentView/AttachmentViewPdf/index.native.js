@@ -25,7 +25,9 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
 
                 attachmentCarouselPagerContext.onPinchGestureChange(!shouldPagerScroll);
 
-                if (attachmentCarouselPagerContext.shouldPagerScroll.value === shouldPagerScroll) return;
+                if (attachmentCarouselPagerContext.shouldPagerScroll.value === shouldPagerScroll) {
+                    return;
+                }
 
                 attachmentCarouselPagerContext.shouldPagerScroll.value = shouldPagerScroll;
             }
