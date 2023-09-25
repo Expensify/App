@@ -425,7 +425,7 @@ function MoneyRequestConfirmationList(props) {
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                style={[styles.mt4]}
+                style={[styles.mt2]}
             />
         );
     }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
