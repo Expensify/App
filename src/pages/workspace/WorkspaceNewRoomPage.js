@@ -3,13 +3,14 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
 import RoomNameInput from '../../components/RoomNameInput';
 import Picker from '../../components/Picker';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Text from '../../components/Text';
@@ -19,9 +20,10 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import Form from '../../components/Form';
-import shouldDelayFocus from '../../libs/shouldDelayFocus';
 import policyMemberPropType from '../policyMemberPropType';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import compose from '../../libs/compose';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -55,6 +57,8 @@ const propTypes = {
 
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
+
+    ...withNavigationFocusPropTypes,
 };
 const defaultProps = {
     betas: [],
@@ -140,60 +144,73 @@ function WorkspaceNewRoomPage(props) {
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnablePickerAvoiding={false}
-        >
-            <FullPageNotFoundView shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}>
-                <HeaderWithBackButton title={translate('newRoomPage.newRoom')} />
-                <Form
-                    formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
-                    submitButtonText={translate('newRoomPage.createRoom')}
-                    scrollContextEnabled
-                    style={[styles.mh5, styles.flexGrow1]}
-                    validate={validate}
-                    onSubmit={submit}
-                    enabledWhenOffline
-                >
-                    <View style={styles.mb5}>
-                        <RoomNameInput
-                            inputID="roomName"
-                            autoFocus
-                            shouldDelayFocus={shouldDelayFocus}
-                        />
-                    </View>
-                    <View style={styles.mb2}>
-                        <Picker
-                            inputID="policyID"
-                            label={translate('workspace.common.workspace')}
-                            placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
-                            items={workspaceOptions}
-                            onValueChange={setPolicyID}
-                        />
-                    </View>
-                    {isPolicyAdmin && (
-                        <View style={styles.mb2}>
-                            <Picker
-                                inputID="writeCapability"
-                                label={translate('writeCapabilityPage.label')}
-                                items={writeCapabilityOptions}
-                                defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
-                            />
-                        </View>
-                    )}
-                    <View style={styles.mb2}>
-                        <Picker
-                            inputID="visibility"
-                            label={translate('newRoomPage.visibility')}
-                            items={visibilityOptions}
-                            onValueChange={setVisibility}
-                            defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
-                        />
-                    </View>
-                    <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
-                </Form>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+        <FullPageNotFoundView shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}>
+            <ScreenWrapper
+                shouldEnableKeyboardAvoidingView={false}
+                includeSafeAreaPaddingBottom={false}
+                includePaddingTop={false}
+                shouldEnablePickerAvoiding={false}
+                testID={WorkspaceNewRoomPage.displayName}
+            >
+                {({insets}) => (
+                    <KeyboardAvoidingView
+                        style={{height: '100%'}}
+                        behavior="height"
+                        // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
+                        // This is because when wrapping whole screen the screen was freezing when changing Tabs.
+                        keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
+                    >
+                        <Form
+                            formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
+                            submitButtonText={translate('newRoomPage.createRoom')}
+                            scrollContextEnabled
+                            style={[styles.mh5, styles.flexGrow1]}
+                            validate={validate}
+                            onSubmit={submit}
+                            enabledWhenOffline
+                        >
+                            <View style={styles.mb5}>
+                                <RoomNameInput
+                                    inputID="roomName"
+                                    isFocused={props.isFocused}
+                                    shouldDelayFocus
+                                    autoFocus
+                                />
+                            </View>
+                            <View style={styles.mb2}>
+                                <Picker
+                                    inputID="policyID"
+                                    label={translate('workspace.common.workspace')}
+                                    placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
+                                    items={workspaceOptions}
+                                    onValueChange={setPolicyID}
+                                />
+                            </View>
+                            {isPolicyAdmin && (
+                                <View style={styles.mb2}>
+                                    <Picker
+                                        inputID="writeCapability"
+                                        label={translate('writeCapabilityPage.label')}
+                                        items={writeCapabilityOptions}
+                                        defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
+                                    />
+                                </View>
+                            )}
+                            <View style={styles.mb2}>
+                                <Picker
+                                    inputID="visibility"
+                                    label={translate('newRoomPage.visibility')}
+                                    items={visibilityOptions}
+                                    onValueChange={setVisibility}
+                                    defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
+                                />
+                            </View>
+                            <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
+                        </Form>
+                    </KeyboardAvoidingView>
+                )}
+            </ScreenWrapper>
+        </FullPageNotFoundView>
     );
 }
 
@@ -201,17 +218,20 @@ WorkspaceNewRoomPage.propTypes = propTypes;
 WorkspaceNewRoomPage.defaultProps = defaultProps;
 WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
 
-export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    allPolicyMembers: {
-        key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-    },
-})(WorkspaceNewRoomPage);
+export default compose(
+    withNavigationFocus,
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        allPolicyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+        },
+    }),
+)(WorkspaceNewRoomPage);
