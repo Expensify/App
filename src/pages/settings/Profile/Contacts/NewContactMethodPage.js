@@ -133,6 +133,7 @@ function NewContactMethodPage(props) {
 
 NewContactMethodPage.propTypes = propTypes;
 NewContactMethodPage.defaultProps = defaultProps;
+NewContactMethodPage.displayName = 'NewContactMethodPage';
 
 export default compose(
     withLocalize,

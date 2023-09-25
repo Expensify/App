@@ -86,7 +86,7 @@ function RoomNamePage(props) {
             <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(report, policy)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID))}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
