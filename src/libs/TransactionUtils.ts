@@ -4,15 +4,13 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
-import {RecentWaypoints, ReportAction, Transaction} from '../types/onyx';
-import {Receipt, Comment} from '../types/onyx/Transaction';
+import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
+import {Receipt, Comment, WaypointCollection} from '../types/onyx/Transaction';
 import {OriginalMessageIOU} from '../types/onyx/OriginalMessage';
 
 type TransactionChanges = Partial<Transaction> & {comment?: string};
 
 type OriginalMessage = OriginalMessageIOU['originalMessage'];
-
-type Waypoints = Record<string, RecentWaypoints>;
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -133,6 +131,10 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         updatedTransaction.category = transactionChanges.category;
     }
 
+    if (Object.hasOwn(transactionChanges, 'tag') && typeof transactionChanges.tag === 'string') {
+        updatedTransaction.tag = transactionChanges.tag;
+    }
+
     if (shouldStopSmartscan && transaction?.receipt && Object.keys(transaction.receipt).length > 0 && transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
@@ -144,6 +146,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         ...(Object.hasOwn(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'merchant') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'category') && {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;
@@ -218,6 +221,13 @@ function getCategory(transaction: Transaction): string {
 }
 
 /**
+ * Return the tag from the transaction. This "tag" field has no "modified" complement.
+ */
+function getTag(transaction: Transaction): string {
+    return transaction?.tag ?? '';
+}
+
+/**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
 function getCreated(transaction: Transaction): string {
@@ -276,7 +286,7 @@ function getAllReportTransactions(reportID?: string): Transaction[] {
 /**
  * Checks if a waypoint has a valid address
  */
-function waypointHasValidAddress(waypoint: RecentWaypoints): boolean {
+function waypointHasValidAddress(waypoint: RecentWaypoint | null): boolean {
     return !!waypoint?.address?.trim();
 }
 
@@ -290,7 +300,7 @@ function getWaypointIndex(key: string): number {
 /**
  * Filters the waypoints which are valid and returns those
  */
-function getValidWaypoints(waypoints: Waypoints, reArrangeIndexes = false): Waypoints {
+function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = false): WaypointCollection {
     const sortedIndexes = Object.keys(waypoints).map(getWaypointIndex).sort();
     const waypointValues = sortedIndexes.map((index) => waypoints[`waypoint${index}`]);
     // Ensure the number of waypoints is between 2 and 25
@@ -309,11 +319,11 @@ function getValidWaypoints(waypoints: Waypoints, reArrangeIndexes = false): Wayp
         }
 
         // Check for adjacent waypoints with the same address
-        if (previousWaypoint && currentWaypoint.address === previousWaypoint.address) {
+        if (previousWaypoint && currentWaypoint?.address === previousWaypoint.address) {
             return acc;
         }
 
-        const validatedWaypoints: Waypoints = {...acc, [`waypoint${reArrangeIndexes ? lastWaypointIndex + 1 : index}`]: currentWaypoint};
+        const validatedWaypoints: WaypointCollection = {...acc, [`waypoint${reArrangeIndexes ? lastWaypointIndex + 1 : index}`]: currentWaypoint};
 
         lastWaypointIndex += 1;
 
@@ -331,6 +341,7 @@ export {
     getMerchant,
     getCreated,
     getCategory,
+    getTag,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
