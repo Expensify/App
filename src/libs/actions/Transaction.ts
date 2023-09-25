@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import lodashHas from 'lodash/has';
 import lodashClone from 'lodash/clone';
-import lodashGet from 'lodash/get';
+import {isEqual} from 'lodash';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
@@ -9,7 +9,6 @@ import CONST from '../../CONST';
 import {RecentWaypoint, Transaction} from '../../types/onyx';
 import {WaypointCollection} from '../../types/onyx/Transaction';
 import * as TransactionUtils from '../TransactionUtils';
-import _ = require('lodash');
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -90,7 +89,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     }
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
     // text from showing up in the address search suggestions
-    if (_.isEqual(lodashGet(waypoint, 'address', ''), CONST.YOUR_LOCATION_TEXT)) {
+    if (isEqual(waypoint?.address, CONST.YOUR_LOCATION_TEXT)) {
         return;
     }
     const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
