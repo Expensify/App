@@ -393,7 +393,7 @@ export default compose(
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
         },
     }),
 )(MoneyRequestConfirmPage);
