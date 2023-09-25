@@ -136,19 +136,19 @@ function HeaderView(props) {
     }
 
     if (isChatThread) {
-        if (props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        if (props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             threeDotMenuItems.push({
-                icon: Expensicons.Exit,
-                iconFill: themeColors.icon,
-                text: props.translate('common.leaveThread'),
-                onSelected: () => Report.leaveRoom(props.report.reportID),
-            });
-        } else {
-            threeDotMenuItems.push({
-                icon: Expensicons.ChatBubble,
+                icon: Expensicons.ChatBubbles,
                 iconFill: themeColors.icon,
                 text: props.translate('common.joinThread'),
                 onSelected: () => Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
+            });
+        } else if (props.report.notificationPreference.length) {
+            threeDotMenuItems.push({
+                icon: Expensicons.ChatBubbles,
+                iconFill: themeColors.icon,
+                text: props.translate('common.leaveThread'),
+                onSelected: () => Report.leaveRoom(props.report.reportID),
             });
         }
     }
