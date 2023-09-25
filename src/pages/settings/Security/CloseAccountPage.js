@@ -97,7 +97,7 @@ function CloseAccountPage(props) {
                         label={props.translate('closeAccountPage.enterMessageHere')}
                         aria-label={props.translate('closeAccountPage.enterMessageHere')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        inputStyle={styles.verticalAlignTop}
+                        inputStyle={[styles.verticalAlignTop]}
                         containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
                     />
                     <Text style={[styles.mt5]}>
