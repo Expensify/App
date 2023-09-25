@@ -941,7 +941,7 @@ function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
             taskStatusText = Localize.translateLocal('task.task');
     }
 
-    return `${taskStatusText} ${report.reportName}`;
+    return `${taskStatusText}: ${report.reportName}`;
 }
 
 export {
