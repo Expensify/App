@@ -243,10 +243,14 @@ function detectReactComponent(code) {
     return isReactComponent;
 };
 
+function relativePath(filename) {
+    return `../../../../${filename}`;
+}
+
 function detectFunction(changedFiles) {
     console.log('detectFunction', changedFiles);
     const filteredFiles = _.filter((changedFiles), ({ filename }) => filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx'));
-    return _.some(filteredFiles, ({ filename }) => detectReactComponent(fs.readFileSync(filename, 'utf-8')));
+    return _.some(filteredFiles, ({ filename }) => detectReactComponent(fs.readFileSync(relativePath(filename), 'utf-8')));
 }
 
 module.exports = {
