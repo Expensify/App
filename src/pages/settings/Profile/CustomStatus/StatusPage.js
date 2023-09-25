@@ -84,7 +84,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS]}
             footer={footerComponent}
         >
-            <View style={styles.m5}>
+            <View style={[styles.mh5, styles.mb5]}>
                 <Text style={[styles.textHeadline]}>{localize.translate('statusPage.setStatusTitle')}</Text>
                 <Text style={[styles.textNormal, styles.mt2]}>{localize.translate('statusPage.statusExplanation')}</Text>
             </View>
