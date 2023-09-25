@@ -18,10 +18,6 @@ export default {
             [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
 
-            // Demo routes
-            [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR,
-            [CONST.DEMO_PAGES.SBE]: ROUTES.SBE,
-
             // Sidebar
             [SCREENS.HOME]: {
                 path: ROUTES.HOME,

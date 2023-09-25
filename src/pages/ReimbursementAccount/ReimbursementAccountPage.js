@@ -206,7 +206,7 @@ class ReimbursementAccountPage extends React.Component {
      * @returns {String}
      */
     getStepToOpenFromRouteParams() {
-        switch (lodashGet(this.props.route, ['params', 'stepToOpen'])) {
+        switch (lodashGet(this.props.route, ['params', 'stepToOpen'], '')) {
             case 'new':
                 return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
             case 'company':
