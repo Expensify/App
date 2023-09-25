@@ -1184,6 +1184,17 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
 }
 
 /**
+ * Get the report given a reportID
+ *
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReport(reportID) {
+    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
+}
+
+/**
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
@@ -1191,6 +1202,10 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
  */
 function isWaitingForIOUActionFromCurrentUser(report) {
     if (!report) {
+        return false;
+    }
+
+    if (isArchivedRoom(getReport(report.parentReportID))) {
         return false;
     }
 
@@ -1312,17 +1327,6 @@ function getMoneyRequestReportName(report, policy = undefined) {
 }
 
 /**
- * Get the report given a reportID
- *
- * @param {String} reportID
- * @returns {Object}
- */
-function getReport(reportID) {
-    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
-}
-
-/**
  * Gets transaction created, amount, currency and comment
  *
  * @param {Object} transaction
@@ -1337,6 +1341,7 @@ function getTransactionDetails(transaction) {
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
         category: TransactionUtils.getCategory(transaction),
+        tag: TransactionUtils.getTag(transaction),
     };
 }
 
@@ -1588,6 +1593,11 @@ function getModifiedExpenseMessage(reportAction) {
     if (hasModifiedCategory) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.category, reportActionOriginalMessage.oldCategory, Localize.translateLocal('common.category'), true);
     }
+
+    const hasModifiedTag = _.has(reportActionOriginalMessage, 'oldTag') && _.has(reportActionOriginalMessage, 'tag');
+    if (hasModifiedTag) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.tag, reportActionOriginalMessage.oldTag, Localize.translateLocal('common.tag'), true);
+    }
 }
 
 /**
@@ -1631,6 +1641,11 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     if (_.has(transactionChanges, 'category')) {
         originalMessage.oldCategory = TransactionUtils.getCategory(oldTransaction);
         originalMessage.category = transactionChanges.category;
+    }
+
+    if (_.has(transactionChanges, 'tag')) {
+        originalMessage.oldTag = TransactionUtils.getTag(oldTransaction);
+        originalMessage.tag = transactionChanges.tag;
     }
 
     return originalMessage;

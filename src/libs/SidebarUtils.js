@@ -71,6 +71,16 @@ function isSidebarLoadedReady() {
     return sidebarIsReadyPromise;
 }
 
+function compareStringDates(stringA, stringB) {
+    if (stringA < stringB) {
+        return -1;
+    }
+    if (stringA > stringB) {
+        return 1;
+    }
+    return 0;
+}
+
 function setIsSidebarLoadedReady() {
     resolveSidebarIsReadyPromise();
 }
@@ -184,12 +194,13 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     pinnedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     outstandingIOUReports.sort((a, b) => b.iouReportAmount - a.iouReportAmount || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     draftReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
+
     if (isInDefaultMode) {
         nonArchivedReports.sort(
-            (a, b) => new Date(b.lastVisibleActionCreated) - new Date(a.lastVisibleActionCreated) || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()),
+            (a, b) => compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()),
         );
         // For archived reports ensure that most recent reports are at the top by reversing the order
-        archivedReports.sort((a, b) => new Date(a.lastVisibleActionCreated) - new Date(b.lastVisibleActionCreated));
+        archivedReports.sort((a, b) => compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated));
     } else {
         nonArchivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
         archivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));

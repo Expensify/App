@@ -204,6 +204,56 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
 }
 
 /**
+ * Gets the tag from policy tags, defaults to the first if no key is provided.
+ *
+ * @param {Object} policyTags
+ * @param {String} [tagKey]
+ * @returns {Object}
+ */
+function getTag(policyTags, tagKey) {
+    if (_.isEmpty(policyTags)) {
+        return {};
+    }
+
+    const policyTagKey = tagKey || _.first(_.keys(policyTags));
+
+    return lodashGet(policyTags, policyTagKey, {});
+}
+
+/**
+ * Gets the first tag name from policy tags.
+ *
+ * @param {Object} policyTags
+ * @returns {String}
+ */
+function getTagListName(policyTags) {
+    if (_.isEmpty(policyTags)) {
+        return '';
+    }
+
+    const policyTagKeys = _.keys(policyTags) || [];
+
+    return lodashGet(policyTags, [_.first(policyTagKeys), 'name'], '');
+}
+
+/**
+ * Gets the tags of a policy for a specific key. Defaults to the first tag if no key is provided.
+ *
+ * @param {Object} policyTags
+ * @param {String} [tagKey]
+ * @returns {String}
+ */
+function getTagList(policyTags, tagKey) {
+    if (_.isEmpty(policyTags)) {
+        return {};
+    }
+
+    const policyTagKey = tagKey || _.first(_.keys(policyTags));
+
+    return lodashGet(policyTags, [policyTagKey, 'tags'], {});
+}
+
+/**
  * @param {Object} policy
  * @returns {Boolean}
  */
@@ -226,5 +276,8 @@ export {
     isPolicyAdmin,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
+    getTag,
+    getTagListName,
+    getTagList,
     isPendingDeletePolicy,
 };
