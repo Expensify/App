@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import Text from './Text';
@@ -35,61 +35,63 @@ function DistanceEReceipt({transaction}) {
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     return (
         <View style={[styles.ph5, styles.pv5, styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-            <View style={styles.eReceiptPanel}>
-                <View style={styles.eReceiptBackgroundContainer}>
-                    <EReceiptBackground
-                        style={styles.eReceiptBackground}
-                        pointerEvents="none"
-                    />
-                </View>
-                <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5]}>
-                    <ThumbnailImage
-                        previewSourceURL={thumbnailSource}
-                        style={[styles.w100, styles.h100]}
-                        isAuthTokenRequired
-                        shouldDynamicallyResize={false}
-                    />
-                </View>
-                <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
-                    <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
-                    <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
-                </View>
-                <View style={[styles.mb10, styles.gap5, styles.ph2]}>
-                    {_.map(waypoints, (waypoint, key) => {
-                        const index = TransactionUtils.getWaypointIndex(key);
-                        let descriptionKey = 'distance.waypointDescription.';
-                        if (index === 0) {
-                            descriptionKey += 'start';
-                        } else if (index === _.size(waypoints) - 1) {
-                            descriptionKey += 'finish';
-                        } else {
-                            descriptionKey += 'stop';
-                        }
-                        return (
-                            <View
-                                style={styles.gap1}
-                                key={key}
-                            >
-                                <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
-                                <Text style={styles.eReceiptWaypointAddress}>{waypoint.address || ''}</Text>
-                            </View>
-                        );
-                    })}
-                    <View style={styles.gap1}>
-                        <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
-                        <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
+            <ScrollView>
+                <View style={styles.eReceiptPanel}>
+                    <View style={styles.eReceiptBackgroundContainer}>
+                        <EReceiptBackground
+                            style={styles.eReceiptBackground}
+                            pointerEvents="none"
+                        />
+                    </View>
+                    <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5]}>
+                        <ThumbnailImage
+                            previewSourceURL={thumbnailSource}
+                            style={[styles.w100, styles.h100]}
+                            isAuthTokenRequired
+                            shouldDynamicallyResize={false}
+                        />
+                    </View>
+                    <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
+                        <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
+                        <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
+                    </View>
+                    <View style={[styles.mb10, styles.gap5, styles.ph2]}>
+                        {_.map(waypoints, (waypoint, key) => {
+                            const index = TransactionUtils.getWaypointIndex(key);
+                            let descriptionKey = 'distance.waypointDescription.';
+                            if (index === 0) {
+                                descriptionKey += 'start';
+                            } else if (index === _.size(waypoints) - 1) {
+                                descriptionKey += 'finish';
+                            } else {
+                                descriptionKey += 'stop';
+                            }
+                            return (
+                                <View
+                                    style={styles.gap1}
+                                    key={key}
+                                >
+                                    <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
+                                    <Text style={styles.eReceiptWaypointAddress}>{waypoint.address || ''}</Text>
+                                </View>
+                            );
+                        })}
+                        <View style={styles.gap1}>
+                            <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
+                            <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.ph2, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                        <Icon
+                            width={86}
+                            height={19.25}
+                            fill={themeColors.textBrand}
+                            src={Expensicons.ExpensifyWordmark}
+                        />
+                        <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
                     </View>
                 </View>
-                <View style={[styles.ph2, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    <Icon
-                        width={86}
-                        height={19.25}
-                        fill={themeColors.textBrand}
-                        src={Expensicons.ExpensifyWordmark}
-                    />
-                    <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
-                </View>
-            </View>
+            </ScrollView>
         </View>
     );
 }
