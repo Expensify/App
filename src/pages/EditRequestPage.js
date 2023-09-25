@@ -28,6 +28,7 @@ import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import reportPropTypes from './reportPropTypes';
 import categoryPropTypes from '../components/categoryPropTypes';
+import ScreenWrapper from '../components/ScreenWrapper';
 
 const propTypes = {
     /** Route from navigation */
@@ -259,7 +260,15 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
         );
     }
 
-    return <FullPageNotFoundView shouldShow />;
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID={EditRequestPage.displayName}
+        >
+            <FullPageNotFoundView shouldShow />
+        </ScreenWrapper>
+    );
 }
 
 EditRequestPage.displayName = 'EditRequestPage';
