@@ -13,7 +13,7 @@ const propTypes = {};
 
 const defaultProps = {};
 
-function CreateIOUStartTabDistance() {
+function CreateIOUTabDistance() {
     const {params: iouType, transactionID, reportID} = useRoute();
     const {translate} = useLocalize();
     const isEditing = false;
@@ -42,7 +42,7 @@ function CreateIOUStartTabDistance() {
             shouldEnableKeyboardAvoidingView={false}
             // @TODO onEntryTransitionEnd={focusTextInput}
             onEntryTransitionEnd={() => {}}
-            testID={CreateIOUStartTabDistance.displayName}
+            testID={CreateIOUTabDistance.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
@@ -60,8 +60,8 @@ function CreateIOUStartTabDistance() {
     );
 }
 
-CreateIOUStartTabDistance.propTypes = propTypes;
-CreateIOUStartTabDistance.defaultProps = defaultProps;
-CreateIOUStartTabDistance.displayName = 'CreateIOUStartTabDistance';
+CreateIOUTabDistance.propTypes = propTypes;
+CreateIOUTabDistance.defaultProps = defaultProps;
+CreateIOUTabDistance.displayName = 'CreateIOUTabDistance';
 
-export default withOnyx({})(CreateIOUStartTabDistance);
+export default withOnyx({})(CreateIOUTabDistance);

@@ -18,10 +18,10 @@ import * as IOUUtils from '../../../libs/IOUUtils';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import TabSelector from '../../../components/TabSelector/TabSelector';
 import OnyxTabNavigator, {TopTab} from '../../../libs/Navigation/OnyxTabNavigator';
-import CreateIOUStartTabScan from './CreateIOUStartTabScan';
-import CreateIOUStartTabManual from './CreateIOUStartTabManual';
-import CreateIOUStartTabDistance from './CreateIOUStartTabDistance';
-import CreateIOUStartRequest from './CreateIOUStartRequest';
+import CreateIOUStartTabScan from './CreateIOUTabScan';
+import CreateIOUStartTabManual from './CreateIOUTabManual';
+import CreateIOUStartTabDistance from './CreateIOUTabDistance';
+import CreateIOUStartRequest from './request/CreateIOURequest';
 
 const propTypes = {
     /** Route from navigation */

@@ -2,12 +2,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '../../../CONST';
-import TabSelector from '../../../components/TabSelector/TabSelector';
-import OnyxTabNavigator, {TopTab} from '../../../libs/Navigation/OnyxTabNavigator';
-import CreateIOUStartTabScan from './CreateIOUStartTabScan';
-import CreateIOUStartTabManual from './CreateIOUStartTabManual';
-import CreateIOUStartTabDistance from './CreateIOUStartTabDistance';
+import CONST from '../../../../CONST';
+import TabSelector from '../../../../components/TabSelector/TabSelector';
+import OnyxTabNavigator, {TopTab} from '../../../../libs/Navigation/OnyxTabNavigator';
+import CreateIOUStartTabScan from './CreateIOUTabScan';
+import CreateIOUStartTabManual from './CreateIOUTabManual';
+import CreateIOUStartTabDistance from './CreateIOUTabDistance';
 
 const propTypes = {
     /** The ID of the currently selected tab */
@@ -17,7 +17,7 @@ const propTypes = {
     shouldDisplayDistanceTab: PropTypes.bool.isRequired,
 };
 
-function CreateIOUStartRequest({selectedTab, shouldDisplayDistanceTab}) {
+function CreateIOURequest({selectedTab, shouldDisplayDistanceTab}) {
     return (
         <OnyxTabNavigator
             id={CONST.TAB.RECEIPT_TAB_ID}
@@ -50,7 +50,7 @@ function CreateIOUStartRequest({selectedTab, shouldDisplayDistanceTab}) {
     );
 }
 
-CreateIOUStartRequest.displayName = 'CreateIOUStartRequest';
-CreateIOUStartRequest.propTypes = propTypes;
+CreateIOURequest.displayName = 'CreateIOURequest';
+CreateIOURequest.propTypes = propTypes;
 
-export default CreateIOUStartRequest;
+export default CreateIOURequest;

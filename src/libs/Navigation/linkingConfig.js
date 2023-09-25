@@ -297,8 +297,8 @@ export default {
                     },
                     MoneyRequest: {
                         screens: {
-                            Monee_Request_Start: {
-                                path: ROUTES.MONEE_REQUEST_START.route,
+                            Monee_Request_Create: {
+                                path: ROUTES.MONEE_REQUEST_CREATE.route,
                                 exact: true,
                             },
                             Monee_Request_Field: {

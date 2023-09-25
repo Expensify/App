@@ -122,7 +122,7 @@ export default {
     // -->
 
     // @TODO remove "create" from the front of the route
-    MONEE_REQUEST_START: {               route: 'create/:iouType/start/:transactionID/:reportID?/:selectedTab?',    getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, reportID = '') => `create/${iouType}/start/${transactionID}/${reportID}`},
+    MONEE_REQUEST_CREATE: {              route: 'create/:iouType/start/:transactionID/:reportID?/:selectedTab?',    getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, reportID = '') => `create/${iouType}/start/${transactionID}/${reportID}`},
     MONEE_REQUEST_FIELD: {               route: 'create/:iouType/:field/:transactionID/:reportID?',                 getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, field: MoneyRequestFields, reportID = '') => `create/${iouType}/${field}/${transactionID}/${reportID}`},
 
     IOU_REQUEST:                                'request/new',
