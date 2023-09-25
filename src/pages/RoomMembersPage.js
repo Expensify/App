@@ -88,7 +88,6 @@ function RoomMembersPage(props) {
         Report.openRoomMembersPage(props.report.reportID);
     }, [props.report]);
 
-
     useEffect(() => {
         getRoomMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -116,24 +115,18 @@ function RoomMembersPage(props) {
      *
      * @param {String} login
      */
-    const addUser = useCallback(
-        (accountID) => {
-            setSelectedMembers((prevSelected) => [...prevSelected, accountID]);
-        },
-        [],
-    );
+    const addUser = useCallback((accountID) => {
+        setSelectedMembers((prevSelected) => [...prevSelected, accountID]);
+    }, []);
 
     /**
      * Remove user from the selectedEmployees list
      *
      * @param {String} login
      */
-    const removeUser = useCallback(
-        (accountID) => {
-            setSelectedMembers((prevSelected) => _.without(prevSelected, accountID));
-        },
-        [],
-    );
+    const removeUser = useCallback((accountID) => {
+        setSelectedMembers((prevSelected) => _.without(prevSelected, accountID));
+    }, []);
 
     /**
      * Toggle user from the selectedMembers list
@@ -142,21 +135,21 @@ function RoomMembersPage(props) {
      * @param {String} pendingAction
      *
      */
-        const toggleUser = useCallback(
-            (accountID, pendingAction) => {
-                if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    return;
-                }
-    
-                // Add or remove the user if the checkbox is enabled
-                if (_.contains(selectedMembers, Number(accountID))) {
-                    removeUser(Number(accountID));
-                } else {
-                    addUser(Number(accountID));
-                }
-            },
-            [selectedMembers, addUser, removeUser],
-        );
+    const toggleUser = useCallback(
+        (accountID, pendingAction) => {
+            if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return;
+            }
+
+            // Add or remove the user if the checkbox is enabled
+            if (_.contains(selectedMembers, Number(accountID))) {
+                removeUser(Number(accountID));
+            } else {
+                addUser(Number(accountID));
+            }
+        },
+        [selectedMembers, addUser, removeUser],
+    );
 
     /**
      * Show the modal to confirm removal of the selected members

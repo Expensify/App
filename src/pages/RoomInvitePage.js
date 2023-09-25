@@ -163,7 +163,7 @@ function RoomInvitePage(props) {
             return;
         }
 
-        const inviteeAccountIDs = _.map(selectedOptions, option => option.accountID);
+        const inviteeAccountIDs = _.map(selectedOptions, (option) => option.accountID);
         Report.inviteToRoom(props.report.reportID, inviteeAccountIDs);
         Navigation.goBack(backRoute);
     };

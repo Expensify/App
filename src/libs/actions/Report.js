@@ -1898,7 +1898,7 @@ function leaveRoom(reportID) {
 
 /**
  * Removes people from a room
- * 
+ *
  * @param {String} reportID
  * @param {Array} inviteeAccountIDs
  */
@@ -1908,7 +1908,7 @@ function inviteToRoom(reportID, inviteeAccountIDs) {
     const {participants, participantAccountIDs} = report;
     const participantAccountIDsAfterInvitation = _.uniq([...participantAccountIDs, inviteeAccountIDs]);
 
-    const inviteeEmails = _.map(participantAccountIDs, accountID => allPersonalDetails[accountID].login);
+    const inviteeEmails = _.map(participantAccountIDs, (accountID) => allPersonalDetails[accountID].login);
     const participantsAfterInvitation = _.uniq([...participants, inviteeEmails]);
 
     API.write(
@@ -1944,7 +1944,7 @@ function inviteToRoom(reportID, inviteeAccountIDs) {
 
 /**
  * Removes people from a room
- * 
+ *
  * @param {String} reportID
  * @param {Array} targetAccountIDs
  */
@@ -1952,10 +1952,10 @@ function removeFromRoom(reportID, targetAccountIDs) {
     const report = lodashGet(allReports, [reportID], {});
 
     const {participants, participantAccountIDs} = report;
-    const participantAccountIDsAfterRemoval = _.filter(participantAccountIDs, accountID => !targetAccountIDs.includes(accountID));
+    const participantAccountIDsAfterRemoval = _.filter(participantAccountIDs, (accountID) => !targetAccountIDs.includes(accountID));
 
-    const targetEmails = _.map(participantAccountIDs, accountID => allPersonalDetails[accountID].login);
-    const participantsAfterRemoval = _.filter(participants, email => !targetEmails.includes(email));
+    const targetEmails = _.map(participantAccountIDs, (accountID) => allPersonalDetails[accountID].login);
+    const participantsAfterRemoval = _.filter(participants, (email) => !targetEmails.includes(email));
 
     API.write(
         'RemoveFromRoom',
@@ -2009,9 +2009,9 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
 
 /**
  * Called when we open the workspace members and
- * @param {*} policyID 
- * @param {*} clientMemberEmails 
- * @returns 
+ * @param {*} policyID
+ * @param {*} clientMemberEmails
+ * @returns
  */
 function openWorkspaceMembersPage(policyID, clientMemberEmails) {
     if (!policyID || !clientMemberEmails) {
@@ -2221,8 +2221,8 @@ function getReportPrivateNote(reportID) {
 
 /**
  * Loads necessary data for rendering the RoomMembersPage
- * 
- * @param {Number} reportID 
+ *
+ * @param {Number} reportID
  */
 function openRoomMembersPage(reportID) {
     API.read('OpenRoomMembersPage', {
