@@ -1,9 +1,9 @@
+/* eslint-disable rulesdir/prefer-underscore-method */
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import lodashMerge from 'lodash/merge';
+import {max, parseISO, isEqual} from 'date-fns';
 import lodashFindLast from 'lodash/findLast';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
@@ -250,6 +250,23 @@ function extractLinksFromMessageHtml(reportAction) {
 }
 
 /**
+ * Returns the report action immediately before the specified index.
+ * @param {Array} reportActions - all actions
+ * @param {Number} actionIndex - index of the action
+ * @returns {Object|null}
+ */
+function findPreviousAction(reportActions, actionIndex) {
+    for (let i = actionIndex + 1; i < reportActions.length; i++) {
+        // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
+        // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
+        if (isNetworkOffline || reportActions[i].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return reportActions[i];
+        }
+    }
+    return null;
+}
+
+/**
  * Returns true when the report action immediately before the specified index is a comment made by the same actor who who is leaving a comment in the action at the specified index.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
@@ -258,9 +275,7 @@ function extractLinksFromMessageHtml(reportAction) {
  * @returns {Boolean}
  */
 function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
-    // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
-    // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-    const previousAction = _.find(_.drop(reportActions, actionIndex + 1), (action) => isNetworkOffline || action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const previousAction = findPreviousAction(reportActions, actionIndex);
     const currentAction = reportActions[actionIndex];
 
     // It's OK for there to be no previous action, and in that case, false will be returned
@@ -332,11 +347,7 @@ function shouldReportActionBeVisible(reportAction, key) {
     }
 
     // Filter out any unsupported reportAction types
-    if (
-        !_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) &&
-        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName) &&
-        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.TASK), reportAction.actionName)
-    ) {
+    if (!Object.values(CONST.REPORT.ACTIONS.TYPE).includes(reportAction.actionName) && !Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG).includes(reportAction.actionName)) {
         return false;
     }
 
@@ -351,7 +362,7 @@ function shouldReportActionBeVisible(reportAction, key) {
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
-    const isPending = !_.isEmpty(reportAction.pendingAction);
+    const isPending = !!reportAction.pendingAction;
     return !isDeleted || isPending || isDeletedParentAction(reportAction);
 }
 
@@ -383,14 +394,24 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
  * @return {Object}
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const visibleActions = _.filter(actions, (action) => shouldReportActionBeVisibleAsLastAction(action));
+    const updatedActionsToMerge = {};
+    if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
+        Object.keys(actionsToMerge).forEach(
+            (actionToMergeID) => (updatedActionsToMerge[actionToMergeID] = {...allReportActions[reportID][actionToMergeID], ...actionsToMerge[actionToMergeID]}),
+        );
+    }
+    const actions = Object.values({
+        ...allReportActions[reportID],
+        ...updatedActionsToMerge,
+    });
+    const visibleActions = actions.filter((action) => shouldReportActionBeVisibleAsLastAction(action));
 
-    if (_.isEmpty(visibleActions)) {
+    if (visibleActions.length === 0) {
         return {};
     }
-
-    return _.max(visibleActions, (action) => moment.utc(action.created).valueOf());
+    const maxDate = max(visibleActions.map((action) => parseISO(action.created)));
+    const maxAction = visibleActions.find((action) => isEqual(parseISO(action.created), maxDate));
+    return maxAction;
 }
 
 /**

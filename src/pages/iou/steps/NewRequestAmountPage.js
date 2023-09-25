@@ -67,7 +67,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const currentCurrency = lodashGet(route, 'params.currency', '');
     const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
-    const currency = currentCurrency || iou.currency;
+    const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : iou.currency;
 
     const focusTextInput = () => {
         // Component may not be initialized due to navigation transitions
@@ -99,12 +99,6 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     // Because we use Onyx to store IOU info, when we try to make two different money requests from different tabs,
     // it can result in an IOU sent with improper values. In such cases we want to reset the flow and redirect the user to the first step of the IOU.
     useEffect(() => {
-        const moneyRequestID = `${iouType}${reportID}`;
-        const shouldReset = iou.id !== moneyRequestID;
-        if (shouldReset) {
-            IOU.resetMoneyRequestInfo(moneyRequestID);
-        }
-
         if (isEditing) {
             // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
             if (prevMoneyRequestID.current !== iou.id) {
@@ -112,12 +106,17 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                 if (!iou.id) {
                     return;
                 }
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
                 return;
+            }
+            const moneyRequestID = `${iouType}${reportID}`;
+            const shouldReset = iou.id !== moneyRequestID;
+            if (shouldReset) {
+                IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
             if (!isDistanceRequestTab && (_.isEmpty(iou.participantAccountIDs) || iou.amount === 0 || shouldReset)) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
             }
         }
 
@@ -127,7 +126,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     }, [iou.participantAccountIDs, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
+        Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
     };
 
     const navigateToCurrencySelectionPage = () => {
@@ -139,7 +138,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
-        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType, reportID, currency, activeRoute));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
     };
 
     const navigateToNextPage = (currentAmount) => {
@@ -148,7 +147,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         IOU.setMoneyRequestCurrency(currency);
 
         if (isEditing) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
             return;
         }
 
@@ -177,6 +176,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={focusTextInput}
+            testID={NewRequestAmountPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>

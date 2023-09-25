@@ -82,7 +82,7 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     componentDidMount() {
         if (_.isEmpty(this.props.invitedEmailsToAccountIDsDraft)) {
-            Navigation.goBack(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID), true);
+            Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(this.props.route.params.policyID), true);
             return;
         }
         this.focusWelcomeMessageInput();
@@ -122,8 +122,8 @@ class WorkspaceInviteMessagePage extends React.Component {
         Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, {});
         // Pop the invite message page before navigating to the members page.
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
+        Navigation.goBack(ROUTES.HOME);
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(this.props.route.params.policyID));
     }
 
     /**
@@ -158,9 +158,12 @@ class WorkspaceInviteMessagePage extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={WorkspaceInviteMessagePage.displayName}
+            >
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy)}
+                    shouldShow={_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy) || PolicyUtils.isPendingDeletePolicy(this.props.policy)}
                     subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
@@ -171,7 +174,6 @@ class WorkspaceInviteMessagePage extends React.Component {
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
-                        onBackButtonPress={() => Navigation.goBack()}
                     />
                     <Form
                         style={[styles.flexGrow1, styles.ph5]}
