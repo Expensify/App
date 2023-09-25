@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
 import isObject from 'lodash/isObject';
 import ONYXKEYS from '../../ONYXKEYS';
-import Pusher from './library';
+import Pusher from './library/types';
 import TYPE from './EventType';
 import Log from '../Log';
 
@@ -94,21 +94,21 @@ function init(args: Args, params?: unknown): Promise<void> {
 
         // Listen for connection errors and log them
         // TODO: check if true
-        socket.connection.bind('error', (error: string) => {
+        socket?.connection.bind('error', (error: string) => {
             callSocketEventCallbacks('error', error);
         });
 
-        socket.connection.bind('connected', () => {
+        socket?.connection.bind('connected', () => {
             pusherSocketID = socket?.connection.socket_id ?? '';
             callSocketEventCallbacks('connected');
             resolve();
         });
 
-        socket.connection.bind('disconnected', () => {
+        socket?.connection.bind('disconnected', () => {
             callSocketEventCallbacks('disconnected');
         });
 
-        socket.connection.bind('state_change', (states: States) => {
+        socket?.connection.bind('state_change', (states: States) => {
             callSocketEventCallbacks('state_change', states);
         });
     });

@@ -2,6 +2,7 @@
  * We use the pusher-js/react-native module to support pusher on native environments.
  * @see: https://github.com/pusher/pusher-js
  */
-import Pusher from 'pusher-js/react-native';
+import PusherNative from 'pusher-js/react-native';
+import Pusher from './types';
 
-export default Pusher;
+export default PusherNative as unknown as Pusher;
