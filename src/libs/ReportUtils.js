@@ -15,6 +15,7 @@ import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
+import * as Url from './Url';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
@@ -422,7 +423,7 @@ function isPublicAnnounceRoom(report) {
  * @returns {String}
  */
 function getBankAccountRoute(report) {
-    return isPolicyExpenseChat(report) ? ROUTES.getBankAccountRoute('', report.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
+    return isPolicyExpenseChat(report) ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', report.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
 }
 
 /**
@@ -947,23 +948,31 @@ function getIconsForParticipants(participants, personalDetails) {
     for (let i = 0; i < participantsList.length; i++) {
         const accountID = participantsList[i];
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
-        participantDetails.push([
-            accountID,
-            lodashGet(personalDetails, [accountID, 'displayName']) || lodashGet(personalDetails, [accountID, 'login'], ''),
-            lodashGet(personalDetails, [accountID, 'firstName'], ''),
-            avatarSource,
-        ]);
+        const displayNameLogin = lodashGet(personalDetails, [accountID, 'displayName']) || lodashGet(personalDetails, [accountID, 'login'], '');
+        participantDetails.push([accountID, displayNameLogin, avatarSource]);
     }
 
-    // Sort all logins by first name (which is the second element in the array)
-    const sortedParticipantDetails = participantDetails.sort((a, b) => a[2] - b[2]);
+    const sortedParticipantDetails = _.chain(participantDetails)
+        .sort((first, second) => {
+            // First sort by displayName/login
+            const displayNameLoginOrder = first[1].localeCompare(second[1]);
+            if (displayNameLoginOrder !== 0) {
+                return displayNameLoginOrder;
+            }
 
-    // Now that things are sorted, gather only the avatars (third element in the array) and return those
+            // Then fallback on accountID as the final sorting criteria.
+            // This will ensure that the order of avatars with same login/displayName
+            // stay consistent across all users and devices
+            return first[0] > second[0];
+        })
+        .value();
+
+    // Now that things are sorted, gather only the avatars (second element in the array) and return those
     const avatars = [];
     for (let i = 0; i < sortedParticipantDetails.length; i++) {
         const userIcon = {
             id: sortedParticipantDetails[i][0],
-            source: sortedParticipantDetails[i][3],
+            source: sortedParticipantDetails[i][2],
             type: CONST.ICON_TYPE_AVATAR,
             name: sortedParticipantDetails[i][1],
         };
@@ -1807,14 +1816,14 @@ function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
     if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
-        Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         return;
     }
     if (participantAccountIDs.length === 1) {
-        Navigation.navigate(ROUTES.getProfileRoute(participantAccountIDs[0]));
+        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
         return;
     }
-    Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
+    Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID));
 }
 
 /**
@@ -3139,12 +3148,34 @@ function getRouteFromLink(url) {
 }
 
 /**
+ * @param {String} route
+ * @returns {Object}
+ */
+function parseReportRouteParams(route) {
+    let parsingRoute = route;
+    if (parsingRoute.at(0) === '/') {
+        // remove the first slash
+        parsingRoute = parsingRoute.slice(1);
+    }
+
+    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash('r'))) {
+        return {reportID: '', isSubReportPageRoute: false};
+    }
+
+    const pathSegments = parsingRoute.split('/');
+    return {
+        reportID: pathSegments[1],
+        isSubReportPageRoute: pathSegments.length > 2,
+    };
+}
+
+/**
  * @param {String|null} url
  * @returns {String}
  */
 function getReportIDFromLink(url) {
     const route = getRouteFromLink(url);
-    const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
+    const {reportID, isSubReportPageRoute} = parseReportRouteParams(route);
     if (isSubReportPageRoute) {
         // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages
         return '';

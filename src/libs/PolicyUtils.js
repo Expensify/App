@@ -175,6 +175,14 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
     return memberEmailsToExclude;
 }
 
+/**
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isPendingDeletePolicy(policy) {
+    return policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -189,4 +197,5 @@ export {
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
     isPolicyMember,
+    isPendingDeletePolicy,
 };

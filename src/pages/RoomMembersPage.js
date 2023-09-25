@@ -85,7 +85,7 @@ function RoomMembersPage(props) {
      */
     const inviteUser = () => {
         setSearchValue('');
-        Navigation.navigate(ROUTES.getRoomInviteRoute(props.report.reportID));
+        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(props.report.reportID));
     };
 
     /**
@@ -179,14 +179,14 @@ function RoomMembersPage(props) {
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(props.report) || !isPolicyMember}
                 subtitleKey={_.isEmpty(props.report) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.getReportDetailsRoute(reportID))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
             >
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.members')}
                     subtitle={lodashGet(props.report, 'reportName')}
                     onBackButtonPress={() => {
                         setSearchValue('');
-                        Navigation.goBack(ROUTES.getReportDetailsRoute(reportID));
+                        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
                     }}
                 />
                 <ConfirmModal

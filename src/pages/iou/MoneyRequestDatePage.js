@@ -62,12 +62,12 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
         }
 
         if (!isDistanceRequest && (_.isEmpty(iou.participantAccountIDs) || (iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
         }
     }, [iou.id, iou.participantAccountIDs, iou.amount, iou.receiptPath, iouType, reportID, isDistanceRequest]);
 
     function navigateBack() {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     }
 
     /**
@@ -85,6 +85,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={MoneyRequestDatePage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.date')}

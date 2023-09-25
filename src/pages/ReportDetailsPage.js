@@ -80,7 +80,7 @@ function ReportDetailsPage(props) {
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
                 isAnonymousAction: true,
-                action: () => Navigation.navigate(ROUTES.getReportShareCodeRoute(props.report.reportID)),
+                action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(props.report.reportID)),
             },
         ];
 
@@ -97,9 +97,9 @@ function ReportDetailsPage(props) {
                 isAnonymousAction: false,
                 action: () => {
                     if (isUserCreatedPolicyRoom) {
-                        Navigation.navigate(ROUTES.getRoomMembersRoute(props.report.reportID));
+                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(props.report.reportID));
                     } else {
-                        Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID));
+                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(props.report.reportID));
                     }
                 },
             });
@@ -110,7 +110,7 @@ function ReportDetailsPage(props) {
                 icon: Expensicons.Users,
                 isAnonymousAction: false,
                 action: () => {
-                    Navigation.navigate(ROUTES.getRoomInviteRoute(props.report.reportID));
+                    Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(props.report.reportID));
                 },
             });
         }
@@ -122,7 +122,7 @@ function ReportDetailsPage(props) {
                 icon: Expensicons.Gear,
                 isAnonymousAction: false,
                 action: () => {
-                    Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID));
+                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID));
                 },
             });
         }
@@ -134,7 +134,7 @@ function ReportDetailsPage(props) {
                 translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
-                action: () => Navigation.navigate(ROUTES.getPrivateNotesListRoute(props.report.reportID)),
+                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID)),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             });
         }
@@ -167,7 +167,7 @@ function ReportDetailsPage(props) {
     ) : null;
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                 <HeaderWithBackButton title={props.translate('common.details')} />
                 <ScrollView style={[styles.flex1]}>
@@ -192,7 +192,7 @@ function ReportDetailsPage(props) {
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.report.policyID));
+                                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.report.policyID));
                                     }}
                                 >
                                     {chatRoomSubtitleText}
