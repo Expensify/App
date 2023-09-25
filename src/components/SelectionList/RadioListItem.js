@@ -18,7 +18,6 @@ function RadioListItem({item, isFocused = false, isDisabled = false, onSelectRow
             accessibilityRole="button"
             hoverDimmingValue={1}
             hoverStyle={styles.hoveredComponentBG}
-            focusStyle={styles.hoveredComponentBG}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
             <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, styles.userSelectNone, isFocused && styles.sidebarLinkActive]}>
