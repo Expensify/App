@@ -25,6 +25,7 @@ import ValidateCodeForm from './ValidateCodeForm';
 import ROUTES from '../../../../ROUTES';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 import FullPageNotFoundView from '../../../../components/BlockingViews/FullPageNotFoundView';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -131,7 +132,22 @@ class ContactMethodDetailsPage extends Component {
      * @returns {string}
      */
     getContactMethod() {
-        return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
+        const contactMethod = lodashGet(this.props.route, 'params.contactMethod');
+
+        // We find the number of times the url is encoded based on the last % sign and remove them.
+        const lastPercentIndex = contactMethod.lastIndexOf('%');
+        const encodePercents = contactMethod.substring(lastPercentIndex).match(new RegExp('25', 'g'));
+        let numberEncodePercents = encodePercents ? encodePercents.length : 0;
+        const beforeAtSign = contactMethod.substring(0, lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, (match) => {
+            if (numberEncodePercents > 0) {
+                numberEncodePercents--;
+                return '%';
+            }
+            return match;
+        });
+        const afterAtSign = contactMethod.substring(lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, '%');
+
+        return decodeURIComponent(beforeAtSign + afterAtSign);
     }
 
     /**
