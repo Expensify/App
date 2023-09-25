@@ -134,7 +134,7 @@ function ReceiptSelector(props) {
         PanResponder.create({
             onMoveShouldSetPanResponder: () => true,
             onPanResponderTerminationRequest: () => false,
-        })
+        }),
     ).current;
 
     return (
