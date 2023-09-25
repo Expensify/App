@@ -141,8 +141,8 @@ export default {
     SEARCH: 'search',
     TEACHERS_UNITE: 'teachersunite',
     I_KNOW_A_TEACHER: 'teachersunite/i-know-a-teacher',
-    INTRO_SCHOOL_PRINCIPAL: 'teachersunite/intro-school-principal',
     I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',
+    INTRO_SCHOOL_PRINCIPAL: 'teachersunite/intro-school-principal',
     DETAILS: 'details',
     getDetailsRoute: (login: string) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',
@@ -211,10 +211,6 @@ export default {
     getWorkspaceInvoicesRoute: (policyID: string) => `workspace/${policyID}/invoices`,
     getWorkspaceTravelRoute: (policyID: string) => `workspace/${policyID}/travel`,
     getWorkspaceMembersRoute: (policyID: string) => `workspace/${policyID}/members`,
-
-    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
-    SAASTR: 'saastr',
-    SBE: 'sbe',
 
     parseReportRouteParams: (route: string): ParseReportRouteParams => {
         let parsingRoute = route;

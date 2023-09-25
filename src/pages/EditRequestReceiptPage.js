@@ -35,6 +35,7 @@ function EditRequestReceiptPage({route, transactionID}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={EditRequestReceiptPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.receipt')}
@@ -44,6 +45,7 @@ function EditRequestReceiptPage({route, transactionID}) {
                 <ReceiptSelector
                     route={route}
                     transactionID={transactionID}
+                    isInTabNavigator={false}
                 />
             </DragAndDropProvider>
         </ScreenWrapper>

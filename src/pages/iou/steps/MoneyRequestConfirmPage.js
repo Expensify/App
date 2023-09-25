@@ -143,6 +143,7 @@ function MoneyRequestConfirmPage(props) {
                 trimmedComment,
                 receipt,
                 props.iou.category,
+                props.iou.tag,
                 props.iou.billable,
             );
         },
@@ -155,6 +156,7 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.login,
             props.currentUserPersonalDetails.accountID,
             props.iou.category,
+            props.iou.tag,
             props.iou.billable,
         ],
     );
@@ -172,12 +174,13 @@ function MoneyRequestConfirmPage(props) {
                 props.iou.created,
                 props.iou.transactionID,
                 props.iou.category,
+                props.iou.tag,
                 props.iou.amount,
                 props.iou.currency,
                 props.iou.merchant,
             );
         },
-        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.amount, props.iou.currency, props.iou.merchant],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.tag, props.iou.amount, props.iou.currency, props.iou.merchant],
     );
 
     const createTransaction = useCallback(
@@ -279,7 +282,10 @@ function MoneyRequestConfirmPage(props) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={MoneyRequestConfirmPage.displayName}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
@@ -364,6 +370,7 @@ export default compose(
             key: ONYXKEYS.IOU,
         },
     }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         report: {
             key: ({route, iou}) => {
@@ -383,6 +390,7 @@ export default compose(
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
         },
     }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,

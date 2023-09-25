@@ -51,7 +51,10 @@ function WriteCapabilityPage(props) {
     const isAbleToEdit = !ReportUtils.isAdminRoom(props.report) && PolicyUtils.isPolicyAdmin(props.policy) && !ReportUtils.isArchivedRoom(props.report);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={WriteCapabilityPage.displayName}
+        >
             <FullPageNotFoundView shouldShow={!isAbleToEdit}>
                 <HeaderWithBackButton
                     title={props.translate('writeCapabilityPage.label')}
