@@ -195,6 +195,7 @@ export default React.memo(
                 key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             },
         }),
+        // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
         withOnyx({
             parentReportActions: {
                 key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
@@ -209,6 +210,7 @@ export default React.memo(
             // However, performance overhead of this is minimized by using memos inside the component.
             receiptTransactions: {key: ONYXKEYS.COLLECTION.TRANSACTION},
         }),
+        // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
         withOnyx({
             transaction: {
                 key: ({fullReport, parentReportActions}) =>
