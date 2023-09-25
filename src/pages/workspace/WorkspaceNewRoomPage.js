@@ -180,11 +180,10 @@ function WorkspaceNewRoomPage(props) {
                             <View style={[styles.mb5]}>
                                 <TextInput
                                     inputID="welcomeMessage"
-                                    label={translate('welcomeMessagePage.welcomeMessage')}
-                                    accessibilityLabel={translate('welcomeMessagePage.welcomeMessage')}
+                                    label={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                    accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     autoGrowHeight
-                                    placeholder={translate('welcomeMessagePage.welcomeMessage')}
                                     maxLength={CONST.MAX_COMMENT_LENGTH}
                                     autoCapitalize="none"
                                     textAlignVertical="top"
