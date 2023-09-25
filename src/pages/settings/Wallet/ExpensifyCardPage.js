@@ -106,7 +106,7 @@ function ExpensifyCardPage({
                         <Button
                             success
                             style={[styles.w100, styles.p5]}
-                            onPress={() => Navigation.navigate(ROUTES.getSettingsWalletCardActivateRoute(domain))}
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(domain))}
                             text={translate('activateCardPage.activatePhysicalCard')}
                         />
                     ) : null}

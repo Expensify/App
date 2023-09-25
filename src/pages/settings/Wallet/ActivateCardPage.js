@@ -76,7 +76,7 @@ function ActivateCardPage({
         }
 
         if (!cardList.isLoading && lodashGet(cardList, 'physical.state', 0) === CARD_ACTIVATED_STATE) {
-            Navigation.navigate(ROUTES.getWalletCardRoute(domain));
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
         }
     }, [cardList, domain]);
 
