@@ -481,6 +481,7 @@ export default {
         flash: 'flash',
         shutter: 'obturador',
         gallery: 'galería',
+        addReceipt: 'Añadir recibo',
     },
     iou: {
         amount: 'Importe',
@@ -1392,7 +1393,6 @@ export default {
         reimburse: {
             captureReceipts: 'Captura recibos',
             fastReimbursementsHappyMembers: '¡Reembolsos rápidos = miembros felices!',
-            kilometers: 'Kilómetros',
             viewAllReceipts: 'Ver todos los recibos',
             reimburseReceipts: 'Reembolsar recibos',
             trackDistance: 'Medir distancia',
