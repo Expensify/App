@@ -52,7 +52,10 @@ function ExpensifyCardPage({
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ExpensifyCardPage.displayName}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
