@@ -1,103 +1,123 @@
 import _ from 'underscore';
-import React, {Component} from 'react';
-import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import styles from '../../styles/styles';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import * as StyleUtils from '../../styles/StyleUtils';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
  */
-class PressableWithSecondaryInteraction extends Component {
-    constructor(props) {
-        super(props);
-        this.executeSecondaryInteraction = this.executeSecondaryInteraction.bind(this);
-        this.executeSecondaryInteractionOnContextMenu = this.executeSecondaryInteractionOnContextMenu.bind(this);
-    }
 
-    componentDidMount() {
-        if (this.props.forwardedRef) {
-            if (_.isFunction(this.props.forwardedRef)) {
-                this.props.forwardedRef(this.pressableRef);
-            } else if (_.isObject(this.props.forwardedRef)) {
-                this.props.forwardedRef.current = this.pressableRef;
-            }
-        }
-        this.pressableRef.addEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
-    }
-
-    componentWillUnmount() {
-        this.pressableRef.removeEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
-    }
+function PressableWithSecondaryInteraction({
+    children,
+    inline,
+    style,
+    enableLongPressWithHover,
+    withoutFocusOnSecondaryInteraction,
+    preventDefaultContextMenu,
+    onSecondaryInteraction,
+    onPressIn,
+    onPress,
+    onPressOut,
+    activeOpacity,
+    forwardedRef,
+    ...rest
+}) {
+    const pressableRef = useRef(null);
 
     /**
      * @param {Event} e - the secondary interaction event
      */
-    executeSecondaryInteraction(e) {
-        if (DeviceCapabilities.hasHoverSupport() && !this.props.enableLongPressWithHover) {
+    const executeSecondaryInteraction = (e) => {
+        if (DeviceCapabilities.hasHoverSupport() && !enableLongPressWithHover) {
             return;
         }
-        if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
-            this.pressableRef.blur();
+        if (withoutFocusOnSecondaryInteraction && pressableRef.current) {
+            pressableRef.current.blur();
         }
-        this.props.onSecondaryInteraction(e);
-    }
+        onSecondaryInteraction(e);
+    };
 
-    /**
-     * @param {contextmenu} e - A right-click MouseEvent.
-     * https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
-     */
-    executeSecondaryInteractionOnContextMenu(e) {
-        if (!this.props.onSecondaryInteraction) {
+    useEffect(() => {
+        if (!pressableRef.current) {
             return;
         }
 
-        e.stopPropagation();
-        if (this.props.preventDefaultContextMenu) {
-            e.preventDefault();
+        if (forwardedRef) {
+            if (_.isFunction(forwardedRef)) {
+                forwardedRef(pressableRef.current);
+            } else if (_.isObject(forwardedRef)) {
+                // eslint-disable-next-line no-param-reassign
+                forwardedRef.current = pressableRef.current;
+            }
         }
 
-        this.props.onSecondaryInteraction(e);
+        const element = pressableRef.current;
+
         /**
-         * This component prevents the tapped element from capturing focus.
-         * We need to blur this element when clicked as it opens modal that implements focus-trapping.
-         * When the modal is closed it focuses back to the last active element.
-         * Therefore it shifts the element to bring it back to focus.
-         * https://github.com/Expensify/App/issues/14148
+         * @param {contextmenu} e - A right-click MouseEvent.
+         * https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
          */
-        if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
-            this.pressableRef.blur();
-        }
-    }
+        const executeSecondaryInteractionOnContextMenu = (e) => {
+            if (!onSecondaryInteraction) {
+                return;
+            }
 
-    render() {
-        const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
-        const inlineStyle = this.props.inline ? styles.dInline : {};
+            e.stopPropagation();
+            if (preventDefaultContextMenu) {
+                e.preventDefault();
+            }
 
-        // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
-        return (
-            <PressableWithFeedback
-                wrapperStyle={StyleUtils.combineStyles(DeviceCapabilities.canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle)}
-                onPressIn={this.props.onPressIn}
-                onLongPress={this.props.onSecondaryInteraction ? this.executeSecondaryInteraction : undefined}
-                pressDimmingValue={this.props.activeOpacity}
-                onPressOut={this.props.onPressOut}
-                onPress={this.props.onPress}
-                ref={(el) => (this.pressableRef = el)}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultPressableProps}
-                style={(state) => [StyleUtils.parseStyleFromFunction(this.props.style, state), inlineStyle]}
-            >
-                {this.props.children}
-            </PressableWithFeedback>
-        );
-    }
+            onSecondaryInteraction(e);
+
+            /**
+             * This component prevents the tapped element from capturing focus.
+             * We need to blur this element when clicked as it opens modal that implements focus-trapping.
+             * When the modal is closed it focuses back to the last active element.
+             * Therefore it shifts the element to bring it back to focus.
+             * https://github.com/Expensify/App/issues/14148
+             */
+            if (withoutFocusOnSecondaryInteraction) {
+                element.blur();
+            }
+        };
+
+        element.addEventListener('contextmenu', executeSecondaryInteractionOnContextMenu);
+
+        return () => {
+            element.removeEventListener('contextmenu', executeSecondaryInteractionOnContextMenu);
+        };
+    }, [forwardedRef, onSecondaryInteraction, preventDefaultContextMenu, withoutFocusOnSecondaryInteraction]);
+
+    const defaultPressableProps = _.omit(rest, ['onLongPress']);
+    const inlineStyle = inline ? styles.dInline : {};
+
+    // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
+    return (
+        <PressableWithFeedback
+            wrapperStyle={StyleUtils.combineStyles(DeviceCapabilities.canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle)}
+            onPressIn={onPressIn}
+            onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
+            pressDimmingValue={activeOpacity}
+            onPressOut={onPressOut}
+            onPress={onPress}
+            ref={pressableRef}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...defaultPressableProps}
+            style={(state) => [StyleUtils.parseStyleFromFunction(style, state), inlineStyle]}
+        >
+            {children}
+        </PressableWithFeedback>
+    );
 }
 
 PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
 PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
-export default React.forwardRef((props, ref) => (
+PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
+
+export default forwardRef((props, ref) => (
     <PressableWithSecondaryInteraction
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}

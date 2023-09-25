@@ -54,7 +54,7 @@ function CountrySelector({errorText, value: countryCode, onInputChange, forwarde
                 description={translate('common.country')}
                 onPress={() => {
                     const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
-                    Navigation.navigate(ROUTES.getCountryRoute(countryCode, activeRoute));
+                    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.getRoute(countryCode, activeRoute));
                 }}
             />
             <View style={styles.ml5}>

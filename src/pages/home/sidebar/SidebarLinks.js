@@ -141,7 +141,7 @@ class SidebarLinks extends React.PureComponent {
         ) {
             return;
         }
-        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
         this.props.onLinkClick();
     }
 
@@ -157,7 +157,7 @@ class SidebarLinks extends React.PureComponent {
                     <Header
                         title={
                             <LogoComponent
-                                fill={defaultTheme.textLight}
+                                fill={defaultTheme.text}
                                 width={variables.lhnLogoWidth}
                                 height={variables.lhnLogoHeight}
                             />
