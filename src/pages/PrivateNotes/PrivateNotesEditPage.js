@@ -80,6 +80,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(privateNotesInput.current)}
+            testID={PrivateNotesEditPage.displayName}
         >
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || !isCurrentUserNote}

@@ -87,7 +87,7 @@ function ExpensifyCardPage({
                         ) : (
                             <MenuItemWithTopDescription
                                 description={translate('cardPage.virtualCardNumber')}
-                                title={virtualCard.maskedPan}
+                                title={CardUtils.maskCard(virtualCard.lastFourPAN)}
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                                 shouldShowRightComponent
@@ -103,7 +103,7 @@ function ExpensifyCardPage({
                         {!_.isEmpty(physicalCard) && (
                             <MenuItemWithTopDescription
                                 description={translate('cardPage.physicalCardNumber')}
-                                title={physicalCard.maskedPan}
+                                title={CardUtils.maskCard(physicalCard.lastFourPAN)}
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />

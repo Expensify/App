@@ -58,6 +58,7 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
             offlineIndicatorStyle={[appBGColor]}
+            testID={HeaderPageLayout.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>

@@ -20,6 +20,7 @@ import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import EditRequestCategoryPage from './EditRequestCategoryPage';
 
 const propTypes = {
     /** Route from navigation */
@@ -70,7 +71,13 @@ const defaultProps = {
 function EditRequestPage({report, route, parentReport, policy, session}) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
-    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription, merchant: transactionMerchant} = ReportUtils.getTransactionDetails(transaction);
+    const {
+        amount: transactionAmount,
+        currency: transactionCurrency,
+        comment: transactionDescription,
+        merchant: transactionMerchant,
+        category: transactionCategory,
+    } = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
 
@@ -172,6 +179,23 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
         );
     }
 
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
+        return (
+            <EditRequestCategoryPage
+                defaultCategory={transactionCategory}
+                policyID={lodashGet(report, 'policyID', '')}
+                onSubmit={(transactionChanges) => {
+                    let updatedCategory = transactionChanges.category;
+                    // In case the same category has been selected, do reset of the category.
+                    if (transactionCategory === updatedCategory) {
+                        updatedCategory = '';
+                    }
+                    editMoneyRequest({category: updatedCategory});
+                }}
+            />
+        );
+    }
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         return (
             <EditRequestReceiptPage
@@ -194,6 +218,7 @@ export default compose(
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
         },
     }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,

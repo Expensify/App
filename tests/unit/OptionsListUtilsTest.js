@@ -660,6 +660,7 @@ describe('OptionsListUtils', () => {
         const selectedOptions = [
             {
                 name: 'Medical',
+                enabled: true,
             },
         ];
         const smallCategoriesList = {
@@ -686,13 +687,6 @@ describe('OptionsListUtils', () => {
                 shouldShow: false,
                 indexOffset: 0,
                 data: [
-                    {
-                        text: 'Taxi',
-                        keyForList: 'Taxi',
-                        searchText: 'Taxi',
-                        tooltipText: 'Taxi',
-                        isDisabled: true,
-                    },
                     {
                         text: 'Restaurant',
                         keyForList: 'Restaurant',
@@ -817,7 +811,7 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Medical',
                         searchText: 'Medical',
                         tooltipText: 'Medical',
-                        isDisabled: true,
+                        isDisabled: false,
                     },
                 ],
             },
@@ -826,13 +820,6 @@ describe('OptionsListUtils', () => {
                 shouldShow: true,
                 indexOffset: 1,
                 data: [
-                    {
-                        text: 'Taxi',
-                        keyForList: 'Taxi',
-                        searchText: 'Taxi',
-                        tooltipText: 'Taxi',
-                        isDisabled: true,
-                    },
                     {
                         text: 'Restaurant',
                         keyForList: 'Restaurant',
@@ -847,13 +834,6 @@ describe('OptionsListUtils', () => {
                 shouldShow: true,
                 indexOffset: 3,
                 data: [
-                    {
-                        text: 'Taxi',
-                        keyForList: 'Taxi',
-                        searchText: 'Taxi',
-                        tooltipText: 'Taxi',
-                        isDisabled: true,
-                    },
                     {
                         text: 'Restaurant',
                         keyForList: 'Restaurant',
@@ -883,13 +863,6 @@ describe('OptionsListUtils', () => {
                         isDisabled: false,
                     },
                     {
-                        text: '    Vegetables',
-                        keyForList: 'Vegetables',
-                        searchText: 'Food: Vegetables',
-                        tooltipText: 'Vegetables',
-                        isDisabled: true,
-                    },
-                    {
                         text: 'Cars',
                         keyForList: 'Cars',
                         searchText: 'Cars',
@@ -902,13 +875,6 @@ describe('OptionsListUtils', () => {
                         searchText: 'Cars: Audi',
                         tooltipText: 'Audi',
                         isDisabled: false,
-                    },
-                    {
-                        text: '    BMW',
-                        keyForList: 'BMW',
-                        searchText: 'Cars: BMW',
-                        tooltipText: 'BMW',
-                        isDisabled: true,
                     },
                     {
                         text: '    Mercedes-Benz',
@@ -937,13 +903,6 @@ describe('OptionsListUtils', () => {
                         searchText: 'Travel: Meals: Breakfast',
                         tooltipText: 'Breakfast',
                         isDisabled: false,
-                    },
-                    {
-                        text: '        Dinner',
-                        keyForList: 'Dinner',
-                        searchText: 'Travel: Meals: Dinner',
-                        tooltipText: 'Dinner',
-                        isDisabled: true,
                     },
                     {
                         text: '        Lunch',
@@ -982,13 +941,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food: Milk',
                         isDisabled: false,
                     },
-                    {
-                        text: 'Food: Vegetables',
-                        keyForList: 'Food: Vegetables',
-                        searchText: 'Food: Vegetables',
-                        tooltipText: 'Food: Vegetables',
-                        isDisabled: true,
-                    },
                 ],
             },
         ];
@@ -998,6 +950,23 @@ describe('OptionsListUtils', () => {
                 shouldShow: false,
                 indexOffset: 0,
                 data: [],
+            },
+        ];
+        const emptyCategoriesList = {};
+        const emptySelectedResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                    },
+                ],
             },
         ];
 
@@ -1054,6 +1023,9 @@ describe('OptionsListUtils', () => {
             recentlyUsedCategories,
         );
         expect(largeWrongSearchResult.categoryOptions).toStrictEqual(largeWrongSearchResultList);
+
+        const emptyResult = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], search, selectedOptions, [], false, false, true, emptyCategoriesList);
+        expect(emptyResult.categoryOptions).toStrictEqual(emptySelectedResultList);
     });
 
     it('getFilteredOptions() for tags', () => {
@@ -1444,13 +1416,6 @@ describe('OptionsListUtils', () => {
         };
         const result = [
             {
-                text: 'Taxi',
-                keyForList: 'Taxi',
-                searchText: 'Taxi',
-                tooltipText: 'Taxi',
-                isDisabled: true,
-            },
-            {
                 text: 'Restaurant',
                 keyForList: 'Restaurant',
                 searchText: 'Restaurant',
@@ -1479,13 +1444,6 @@ describe('OptionsListUtils', () => {
                 isDisabled: false,
             },
             {
-                text: '    Vegetables',
-                keyForList: 'Vegetables',
-                searchText: 'Food: Vegetables',
-                tooltipText: 'Vegetables',
-                isDisabled: true,
-            },
-            {
                 text: 'Cars',
                 keyForList: 'Cars',
                 searchText: 'Cars',
@@ -1500,25 +1458,11 @@ describe('OptionsListUtils', () => {
                 isDisabled: false,
             },
             {
-                text: '    BMW',
-                keyForList: 'BMW',
-                searchText: 'Cars: BMW',
-                tooltipText: 'BMW',
-                isDisabled: true,
-            },
-            {
                 text: '    Mercedes-Benz',
                 keyForList: 'Mercedes-Benz',
                 searchText: 'Cars: Mercedes-Benz',
                 tooltipText: 'Mercedes-Benz',
                 isDisabled: false,
-            },
-            {
-                text: 'Medical',
-                keyForList: 'Medical',
-                searchText: 'Medical',
-                tooltipText: 'Medical',
-                isDisabled: true,
             },
             {
                 text: 'Travel',
@@ -1540,13 +1484,6 @@ describe('OptionsListUtils', () => {
                 searchText: 'Travel: Meals: Breakfast',
                 tooltipText: 'Breakfast',
                 isDisabled: false,
-            },
-            {
-                text: '        Dinner',
-                keyForList: 'Dinner',
-                searchText: 'Travel: Meals: Dinner',
-                tooltipText: 'Dinner',
-                isDisabled: true,
             },
             {
                 text: '        Lunch',

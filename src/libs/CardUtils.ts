@@ -37,4 +37,23 @@ function getDomainCards(cardList: Record<string, OnyxTypes.Card>) {
     return lodash.groupBy(activeCards, (card) => card.domainName.toLowerCase());
 }
 
-export {getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString};
+/**
+ * Returns a masked credit card string with spaces for every four symbols.
+ * If the last four digits are provided, all preceding digits will be masked.
+ * If not, the entire card string will be masked.
+ *
+ * @param [lastFour=""] - The last four digits of the card (optional).
+ * @returns - The masked card string.
+ */
+function maskCard(lastFour = ''): string {
+    const totalDigits = 16;
+    const maskedLength = totalDigits - lastFour.length;
+
+    // Create a string with '•' repeated for the masked portion
+    const maskedString = '•'.repeat(maskedLength) + lastFour;
+
+    // Insert space for every four symbols
+    return maskedString.replace(/(.{4})/g, '$1 ').trim();
+}
+
+export {getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard};
