@@ -39,6 +39,7 @@ import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
+import {ReportActionListFrozenScrollContextProvider} from "./report/ReportActionListFrozenScrollContext";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
