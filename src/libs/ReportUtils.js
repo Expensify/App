@@ -3356,30 +3356,6 @@ function isReportDataReady() {
 }
 
 /**
- * Find the parent report action in assignee report for a task report
- * Returns an empty object if assignee report is the same as the share destination report
- *
- * @param {Object} taskReport
- * @returns {Object}
- */
-function getTaskParentReportActionIDsInAssigneeReport(taskReport) {
-    const assigneeChatReportID = lodashGet(getChatByParticipants(isReportManager(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
-    if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
-        return {};
-    }
-
-    const clonedParentReportActionIDs = _.map(ReportActionsUtils.getParentReportActionsInReport(taskReport.reportID, assigneeChatReportID), (a) => lodashGet(a, 'reportActionID', 0));
-    if (!clonedParentReportActionIDs) {
-        return {};
-    }
-
-    return {
-        reportID: assigneeChatReportID,
-        reportActionIDs: clonedParentReportActionIDs,
-    };
-}
-
-/**
  * Return the errors we have when creating a chat or a workspace room
  * @param {Object} report
  * @returns {Object} errors
@@ -3723,7 +3699,6 @@ export {
     getBankAccountRoute,
     getParentReport,
     getRootParentReport,
-    getTaskParentReportActionIDsInAssigneeReport,
     getReportPreviewMessage,
     getModifiedExpenseMessage,
     shouldDisableWriteActions,

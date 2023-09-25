@@ -132,17 +132,6 @@ function getParentReportAction(report, allReportActionsParam = undefined) {
 }
 
 /**
- * Find the reportAction having the given childReportID in parent report actions
- *
- * @param {String} childReportID
- * @param {String} parentReportID
- * @returns {Object}
- */
-function getParentReportActionsInReport(childReportID, parentReportID) {
-    return _.filter(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
-}
-
-/**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  *
  * @param {Object} reportAction
@@ -674,7 +663,6 @@ export {
     getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,
-    getParentReportActionsInReport,
     isTransactionThread,
     isSentMoneyReportAction,
     isDeletedParentAction,
