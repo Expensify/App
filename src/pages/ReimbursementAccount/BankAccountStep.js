@@ -49,6 +49,9 @@ const propTypes = {
 
     /* The workspace name */
     policyName: PropTypes.string,
+
+    /* The workspace ID */
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -57,6 +60,7 @@ const defaultProps = {
     user: {},
     isPlaidDisabled: false,
     policyName: '',
+    policyID: '',
 };
 
 function BankAccountStep(props) {
@@ -66,7 +70,7 @@ function BankAccountStep(props) {
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
-    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
+    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.getBankAccountRoute('new', props.policyID, ROUTES.getWorkspaceInitialRoute(props.policyID))}`;
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
         return (
