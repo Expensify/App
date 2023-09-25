@@ -177,7 +177,7 @@ function WorkspaceInvitePage(props) {
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, invitedEmailsToAccountIDs);
-        Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(props.route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(props.route.params.policyID));
     };
 
     const [policyName, shouldShowAlertPrompt] = useMemo(
@@ -217,7 +217,7 @@ function WorkspaceInvitePage(props) {
                             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                             onBackButtonPress={() => {
                                 Policy.clearErrors(props.route.params.policyID);
-                                Navigation.goBack(ROUTES.getWorkspaceMembersRoute(props.route.params.policyID));
+                                Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(props.route.params.policyID));
                             }}
                         />
                         <SelectionList

@@ -27,6 +27,7 @@ import useNetwork from '../../../hooks/useNetwork';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 
 const propTypes = {
     /** React Navigation route */
@@ -61,7 +62,7 @@ const defaultProps = {
 
 function MoneyRequestConfirmPage(props) {
     const {isOffline} = useNetwork();
-    const {windowHeight} = useWindowDimensions();
+    const {windowHeight, windowWidth} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
@@ -74,6 +75,7 @@ function MoneyRequestConfirmPage(props) {
             }),
         [props.iou.participants, props.personalDetails],
     );
+    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
@@ -91,7 +93,7 @@ function MoneyRequestConfirmPage(props) {
         if (!isDistanceRequest && prevMoneyRequestId.current !== props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
             if (props.iou.id) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), true);
             }
             return;
         }
@@ -104,7 +106,7 @@ function MoneyRequestConfirmPage(props) {
         }
 
         if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath && !isDistanceRequest) || shouldReset) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), true);
         }
 
         return () => {
@@ -115,9 +117,9 @@ function MoneyRequestConfirmPage(props) {
     const navigateBack = () => {
         let fallback;
         if (reportID.current) {
-            fallback = ROUTES.getMoneyRequestRoute(iouType.current, reportID.current);
+            fallback = ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current);
         } else {
-            fallback = ROUTES.getMoneyRequestParticipantsRoute(iouType.current);
+            fallback = ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType.current);
         }
         Navigation.goBack(fallback);
     };
@@ -214,7 +216,9 @@ function MoneyRequestConfirmPage(props) {
             }
 
             if (props.iou.receiptPath && props.iou.receiptSource) {
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
+                    const receipt = file;
+                    receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
                     requestMoney(selectedParticipants, trimmedComment, receipt);
                 });
                 return;
@@ -238,6 +242,7 @@ function MoneyRequestConfirmPage(props) {
             isDistanceRequest,
             requestMoney,
             createDistanceRequest,
+            isManualRequestDM,
         ],
     );
 
@@ -286,6 +291,15 @@ function MoneyRequestConfirmPage(props) {
                     <HeaderWithBackButton
                         title={headerTitle()}
                         onBackButtonPress={navigateBack}
+                        shouldShowThreeDotsButton={isManualRequestDM}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                        threeDotsMenuItems={[
+                            {
+                                icon: Expensicons.Receipt,
+                                text: props.translate('receipt.addReceipt'),
+                                onSelected: () => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType.current, reportID.current)),
+                            },
+                        ]}
                     />
                     {/*
                      * The MoneyRequestConfirmationList component uses a SectionList which uses a VirtualizedList internally.

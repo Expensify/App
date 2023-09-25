@@ -174,12 +174,12 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : ROUTES.HOME);
+        Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
     };
 
     const navigateToNextPage = () => {
         if (isEditing) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
             return;
         }
 
@@ -218,7 +218,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                 secondaryIcon={waypointIcon}
                 secondaryIconFill={theme.icon}
                 shouldShowRightIcon
-                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', index))}
+                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index))}
                 onSecondaryInteraction={drag}
                 focused={isActive}
                 key={item}
@@ -241,7 +241,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                     icon={Expensicons.Plus}
                     onPress={() => {
                         const newIndex = _.size(lodashGet(transaction, 'comment.waypoints', {}));
-                        Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', newIndex));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', newIndex));
                     }}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
@@ -293,8 +293,9 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                     success
                     style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                     onPress={navigateToNextPage}
-                    isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError}
+                    isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute}
                     text={translate('common.next')}
+                    isLoading={isLoadingRoute || shouldFetchRoute}
                 />
             </View>
         </>
