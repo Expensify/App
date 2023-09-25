@@ -348,7 +348,7 @@ function BaseWalletPage(props) {
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={BaseWalletPage.displayName}>
             <HeaderWithBackButton
                 title={translate('common.wallet')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
@@ -450,7 +450,7 @@ function BaseWalletPage(props) {
 
 BaseWalletPage.propTypes = propTypes;
 BaseWalletPage.defaultProps = defaultProps;
-BaseWalletPage.displayName = BaseWalletPage;
+BaseWalletPage.displayName = 'BaseWalletPage';
 
 export default compose(
     withNetwork(),

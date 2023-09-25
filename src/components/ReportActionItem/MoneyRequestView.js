@@ -19,6 +19,7 @@ import * as IOU from '../../libs/actions/IOU';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
@@ -36,6 +37,7 @@ import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import categoryPropTypes from '../categoryPropTypes';
 import SpacerView from '../SpacerView';
+import tagPropTypes from '../tagPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -57,6 +59,9 @@ const propTypes = {
     /** The transaction associated with the transactionThread */
     transaction: transactionPropTypes,
 
+    /** Collection of tags attached to a policy */
+    policyTags: tagPropTypes,
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -69,9 +74,10 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         comment: {comment: ''},
     },
+    policyTags: {},
 };
 
-function MoneyRequestView({betas, report, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policy}) {
+function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -84,6 +90,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
         merchant: transactionMerchant,
         billable: transactionBillable,
         category: transactionCategory,
+        tag: transactionTag,
     } = ReportUtils.getTransactionDetails(transaction);
     const isEmptyMerchant =
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -91,11 +98,17 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
-    const shouldShowBillable = Permissions.canUseTags(betas) && !lodashGet(policy, 'disabledFields.defaultBillable', true);
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
-    // A flag for showing categories
+
+    // Fetches only the first tag, for now
+    const policyTag = PolicyUtils.getTag(policyTags);
+    const policyTagsList = lodashGet(policyTag, 'tags', {});
+
+    // Flags for showing categories and tags
     const shouldShowCategory = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
+    const shouldShowTag = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
+    const shouldShowBillable = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
@@ -148,7 +161,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
                     titleStyle={styles.newKansasLarge}
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
-                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                     brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     subtitle={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                     subtitleTextStyle={styles.textLabelError}
@@ -162,7 +175,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                     wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                     numberOfLinesTitle={0}
                 />
@@ -174,7 +187,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                     brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     subtitle={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                     subtitleTextStyle={styles.textLabelError}
@@ -187,7 +200,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
                     brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     subtitle={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                     subtitleTextStyle={styles.textLabelError}
@@ -201,7 +214,19 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}
                         titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
+                    />
+                </OfflineWithFeedback>
+            )}
+            {shouldShowTag && (
+                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.tag') || lodashGet(transaction, 'pendingAction')}>
+                    <MenuItemWithTopDescription
+                        description={lodashGet(policyTag, 'name', translate('common.tag'))}
+                        title={transactionTag}
+                        interactive={canEdit}
+                        shouldShowRightIcon={canEdit}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
                     />
                 </OfflineWithFeedback>
             )}
@@ -251,6 +276,9 @@ export default compose(
                 const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
+        },
+        policyTags: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`,
         },
     }),
 )(MoneyRequestView);

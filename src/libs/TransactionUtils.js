@@ -154,6 +154,10 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         updatedTransaction.category = transactionChanges.category;
     }
 
+    if (_.has(transactionChanges, 'tag')) {
+        updatedTransaction.tag = transactionChanges.tag;
+    }
+
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
@@ -166,6 +170,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         ...(_.has(transactionChanges, 'merchant') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'billable') && {billable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'category') && {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;
@@ -261,10 +266,20 @@ function getCategory(transaction) {
  * Return the billable from the transaction. This "billable" field has no "modified" complement.
  *
  * @param {Object} transaction
- * @return {String}
+ * @return {Boolean}
  */
 function getBillable(transaction) {
     return lodashGet(transaction, 'billable', false);
+}
+
+/**
+ * Return the tag from the transaction. This "tag" field has no "modified" complement.
+ *
+ * @param {Object} transaction
+ * @return {String}
+ */
+function getTag(transaction) {
+    return lodashGet(transaction, 'tag', '');
 }
 
 /**
@@ -414,6 +429,7 @@ export {
     getCreated,
     getCategory,
     getBillable,
+    getTag,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
