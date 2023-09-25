@@ -732,7 +732,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
         value: {
             ...updatedTransaction,
             pendingFields,
-            isLoading: true,
+            isLoading: _.has(transactionChanges, 'waypoints'),
             errorFields: null,
         },
     });

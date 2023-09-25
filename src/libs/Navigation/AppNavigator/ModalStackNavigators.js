@@ -45,9 +45,9 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator({
     IOU_Send_Add_Bank_Account: () => require('../../../pages/AddPersonalBankAccountPage').default,
     IOU_Send_Add_Debit_Card: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default,
     IOU_Send_Enable_Payments: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,
-    Money_Request_Waypoint: () => require('../../../pages/iou/WaypointEditorPage').default,
+    Money_Request_Waypoint: () => require('../../../pages/iou/NewDistanceRequestWaypointEditorPage').default,
     Money_Request_Edit_Waypoint: () => require('../../../pages/iou/MoneyRequestEditWaypointPage').default,
-    Money_Request_Address: () => require('../../../pages/iou/DistanceRequestPage').default,
+    Money_Request_Address: () => require('../../../pages/iou/NewDistanceRequestPage').default,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator({

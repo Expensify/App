@@ -14,6 +14,7 @@ import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
 import transactionPropTypes from '../components/transactionPropTypes';
 import * as TransactionEdit from '../libs/actions/TransactionEdit';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** The transactionID we're currently editing */
@@ -43,6 +44,7 @@ const defaultProps = {
 };
 
 function EditRequestDistancePage({report, route, transaction}) {
+    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const transactionWasSaved = useRef(false);
     const hasWaypointError = useRef(false);
@@ -78,6 +80,7 @@ function EditRequestDistancePage({report, route, transaction}) {
     const saveTransaction = (waypoints) => {
         transactionWasSaved.current = true;
         IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints});
+        Navigation.dismissModal(report.reportID);
     };
 
     return (
