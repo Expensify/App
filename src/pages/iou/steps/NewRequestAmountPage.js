@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
@@ -69,22 +69,17 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
     const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : iou.currency;
 
-    const focusTextInput = () => {
-        // Component may not be initialized due to navigation transitions
-        // Wait until interactions are complete before trying to focus
-        InteractionManager.runAfterInteractions(() => {
-            // Focus text input
-            if (!textInput.current) {
-                return;
-            }
-
-            textInput.current.focus();
-        });
-    };
+    const focusTimeoutRef = useRef(null);
 
     useFocusEffect(
         useCallback(() => {
-            focusTextInput();
+            focusTimeoutRef.current = setTimeout(() => textInput.current && textInput.current.focus(), CONST.ANIMATED_TRANSITION);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
         }, []),
     );
 
@@ -175,7 +170,6 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            onEntryTransitionEnd={focusTextInput}
             testID={NewRequestAmountPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
