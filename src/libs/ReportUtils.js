@@ -1599,6 +1599,11 @@ function getModifiedExpenseMessage(reportAction) {
     if (hasModifiedTag) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.tag, reportActionOriginalMessage.oldTag, Localize.translateLocal('common.tag'), true);
     }
+
+    const hasModifiedBillable = _.has(reportActionOriginalMessage, 'oldBillable') && _.has(reportActionOriginalMessage, 'billable');
+    if (hasModifiedBillable) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.billable, reportActionOriginalMessage.oldBillable, Localize.translateLocal('common.billable'), true);
+    }
 }
 
 /**
@@ -1647,6 +1652,11 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     if (_.has(transactionChanges, 'tag')) {
         originalMessage.oldTag = TransactionUtils.getTag(oldTransaction);
         originalMessage.tag = transactionChanges.tag;
+    }
+
+    if (_.has(transactionChanges, 'billable')) {
+        originalMessage.oldBillable = TransactionUtils.getBillable(oldTransaction);
+        originalMessage.billable = transactionChanges.billable;
     }
 
     return originalMessage;

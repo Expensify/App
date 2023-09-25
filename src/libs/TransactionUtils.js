@@ -263,7 +263,7 @@ function getCategory(transaction) {
 }
 
 /**
- * Return the billable from the transaction. This "billable" field has no "modified" complement.
+ * Return the billable field from the transaction. This "billable" field has no "modified" complement.
  *
  * @param {Object} transaction
  * @return {Boolean}
