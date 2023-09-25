@@ -126,6 +126,7 @@ function MoneyRequestMerchantPage({iou, route}) {
 
 MoneyRequestMerchantPage.propTypes = propTypes;
 MoneyRequestMerchantPage.defaultProps = defaultProps;
+MoneyRequestMerchantPage.displayName = 'MoneyRequestMerchantPage';
 
 export default withOnyx({
     iou: {
