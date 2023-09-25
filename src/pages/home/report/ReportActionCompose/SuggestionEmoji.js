@@ -42,12 +42,6 @@ const propTypes = {
     /** Callback when a emoji was inserted */
     onInsertedEmoji: PropTypes.func.isRequired,
 
-    /** The current selection */
-    selection: PropTypes.shape({
-        start: PropTypes.number.isRequired,
-        end: PropTypes.number.isRequired,
-    }).isRequired,
-
     ...SuggestionProps.baseProps,
 };
 

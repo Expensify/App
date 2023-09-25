@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState, useMemo} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
@@ -75,6 +75,8 @@ function WorkspaceMembersPage(props) {
     const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState('');
     const prevIsOffline = usePrevious(props.network.isOffline);
+    const accountIDs = useMemo(() => _.keys(props.policyMembers), [props.policyMembers]);
+    const prevAccountIDs = usePrevious(accountIDs);
 
     /**
      * Get members for the current workspace
@@ -109,6 +111,9 @@ function WorkspaceMembersPage(props) {
     }, [props.preferredLocale, validateSelection]);
 
     useEffect(() => {
+        if (removeMembersConfirmModalVisible && !_.isEqual(accountIDs, prevAccountIDs)) {
+            setRemoveMembersConfirmModalVisible(false);
+        }
         setSelectedEmployees((prevSelected) =>
             _.intersection(
                 prevSelected,
@@ -131,7 +136,7 @@ function WorkspaceMembersPage(props) {
      */
     const inviteUser = () => {
         setSearchValue('');
-        Navigation.navigate(ROUTES.getWorkspaceInviteRoute(props.route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.route.params.policyID));
     };
 
     /**
@@ -307,6 +312,7 @@ function WorkspaceMembersPage(props) {
 
             result.push({
                 keyForList: accountID,
+                accountID: Number(accountID),
                 isSelected: _.contains(selectedEmployees, Number(accountID)),
                 isDisabled: accountID === props.session.accountID || details.login === props.policy.owner || policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 text: props.formatPhoneNumber(details.displayName),
@@ -338,9 +344,10 @@ function WorkspaceMembersPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
+            testID={WorkspaceMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}
+                shouldShow={((_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                 subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
@@ -349,7 +356,7 @@ function WorkspaceMembersPage(props) {
                     subtitle={policyName}
                     onBackButtonPress={() => {
                         setSearchValue('');
-                        Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policyID));
+                        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
                     }}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
@@ -393,7 +400,6 @@ function WorkspaceMembersPage(props) {
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
-                            shouldDelayFocus
                             showScrollIndicator
                         />
                     </View>

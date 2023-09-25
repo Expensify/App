@@ -67,7 +67,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const currentCurrency = lodashGet(route, 'params.currency', '');
     const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
-    const currency = currentCurrency || iou.currency;
+    const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : iou.currency;
 
     const focusTextInput = () => {
         // Component may not be initialized due to navigation transitions
@@ -106,7 +106,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                 if (!iou.id) {
                     return;
                 }
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
                 return;
             }
             const moneyRequestID = `${iouType}${reportID}`;
@@ -115,18 +115,18 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
-            if (!isDistanceRequestTab && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+            if (!isDistanceRequestTab && (_.isEmpty(iou.participantAccountIDs) || iou.amount === 0 || shouldReset)) {
+                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
             }
         }
 
         return () => {
             prevMoneyRequestID.current = iou.id;
         };
-    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
+    }, [iou.participantAccountIDs, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
+        Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
     };
 
     const navigateToCurrencySelectionPage = () => {
@@ -138,7 +138,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
-        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType, reportID, currency, activeRoute));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
     };
 
     const navigateToNextPage = (currentAmount) => {
@@ -147,7 +147,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         IOU.setMoneyRequestCurrency(currency);
 
         if (isEditing) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
             return;
         }
 
@@ -176,13 +176,14 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={focusTextInput}
+            testID={NewRequestAmountPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('iou.amount')}
-                            onBackButonBackButtonPress={navigateBack}
+                            onBackButtonPress={navigateBack}
                         />
                         {content}
                     </View>
@@ -202,6 +203,6 @@ export default withOnyx({
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
     },
     selectedTab: {
-        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(NewRequestAmountPage);

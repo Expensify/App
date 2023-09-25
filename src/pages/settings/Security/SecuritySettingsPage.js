@@ -3,16 +3,18 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import SCREENS from '../../../SCREENS';
 import styles from '../../../styles/styles';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import ScreenWrapper from '../../../components/ScreenWrapper';
+import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
+import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
+import * as LottieAnimations from '../../../components/LottieAnimations';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -47,11 +49,14 @@ function SecuritySettingsPage(props) {
     ];
 
     return (
-        <ScreenWrapper>
-            <HeaderWithBackButton
-                title={props.translate('initialSettingsPage.security')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            />
+        <IllustratedHeaderPageLayout
+            title={props.translate('initialSettingsPage.security')}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            shouldShowBackButton
+            shouldShowCloseButton
+            illustration={LottieAnimations.Safe}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.SECURITY]}
+        >
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
                     {_.map(menuItems, (item) => (
@@ -66,7 +71,7 @@ function SecuritySettingsPage(props) {
                     ))}
                 </View>
             </ScrollView>
-        </ScreenWrapper>
+        </IllustratedHeaderPageLayout>
     );
 }
 
