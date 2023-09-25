@@ -138,8 +138,8 @@ function getParentReportAction(report, allReportActionsParam = undefined) {
  * @param {String} parentReportID
  * @returns {Object}
  */
-function getParentReportActionInReport(childReportID, parentReportID) {
-    return _.find(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
+function getParentReportActionsInReport(childReportID, parentReportID) {
+    return _.filter(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
 }
 
 /**
@@ -674,7 +674,7 @@ export {
     getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,
-    getParentReportActionInReport,
+    getParentReportActionsInReport,
     isTransactionThread,
     isSentMoneyReportAction,
     isDeletedParentAction,

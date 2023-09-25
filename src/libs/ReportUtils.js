@@ -3362,20 +3362,20 @@ function isReportDataReady() {
  * @param {Object} taskReport
  * @returns {Object}
  */
-function getTaskParentReportActionIDInAssigneeReport(taskReport) {
+function getTaskParentReportActionIDsInAssigneeReport(taskReport) {
     const assigneeChatReportID = lodashGet(getChatByParticipants(isReportManager(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
     if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
         return {};
     }
 
-    const clonedParentReportActionID = lodashGet(ReportActionsUtils.getParentReportActionInReport(taskReport.reportID, assigneeChatReportID), 'reportActionID');
-    if (!clonedParentReportActionID) {
+    const clonedParentReportActionIDs = _.map(ReportActionsUtils.getParentReportActionsInReport(taskReport.reportID, assigneeChatReportID), (a) => lodashGet(a, 'reportActionID', 0));
+    if (!clonedParentReportActionIDs) {
         return {};
     }
 
     return {
         reportID: assigneeChatReportID,
-        reportActionID: clonedParentReportActionID,
+        reportActionIDs: clonedParentReportActionIDs,
     };
 }
 
@@ -3723,7 +3723,7 @@ export {
     getBankAccountRoute,
     getParentReport,
     getRootParentReport,
-    getTaskParentReportActionIDInAssigneeReport,
+    getTaskParentReportActionIDsInAssigneeReport,
     getReportPreviewMessage,
     getModifiedExpenseMessage,
     shouldDisableWriteActions,

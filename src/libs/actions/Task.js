@@ -276,18 +276,20 @@ function completeTask(taskReport, taskTitle) {
 
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-    const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
-    if (!_.isEmpty(assigneeReportAction)) {
-        const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
-            taskReportID,
-            completedTaskReportAction.created,
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            assigneeReportAction.reportID,
-            assigneeReportAction.reportActionID,
-        );
-        if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
-            optimisticData.push(optimisticDataForClonedParentReportAction);
-        }
+    const assigneeReportActions = ReportUtils.getTaskParentReportActionIDsInAssigneeReport(taskReport);
+    if (!_.isEmpty(assigneeReportActions)) {
+        _.forEach(assigneeReportActions.reportActionIDs, (reportActionID) => {
+            const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
+                taskReportID,
+                completedTaskReportAction.created,
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                assigneeReportActions.reportID,
+                reportActionID,
+            );
+            if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
+                optimisticData.push(optimisticDataForClonedParentReportAction);
+            }
+        });
     }
 
     API.write(
@@ -363,18 +365,20 @@ function reopenTask(taskReport, taskTitle) {
 
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-    const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
-    if (!_.isEmpty(assigneeReportAction)) {
-        const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
-            taskReportID,
-            reopenedTaskReportAction.created,
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            assigneeReportAction.reportID,
-            assigneeReportAction.reportActionID,
-        );
-        if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
-            optimisticData.push(optimisticDataForClonedParentReportAction);
-        }
+    const assigneeReportActions = ReportUtils.getTaskParentReportActionIDsInAssigneeReport(taskReport);
+    if (!_.isEmpty(assigneeReportActions)) {
+        _.forEach(assigneeReportActions.reportActionIDs, (reportActionID) => {
+            const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
+                taskReportID,
+                reopenedTaskReportAction.created,
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                assigneeReportActions.reportID,
+                reportActionID,
+            );
+            if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
+                optimisticData.push(optimisticDataForClonedParentReportAction);
+            }
+        });
     }
 
     API.write(
