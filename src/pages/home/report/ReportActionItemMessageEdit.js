@@ -22,6 +22,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import Tooltip from '../../../components/Tooltip';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
@@ -123,6 +124,13 @@ function ReportActionItemMessageEdit(props) {
     const insertedEmojis = useRef([]);
 
     useEffect(() => {
+        if (ReportActionsUtils.isDeletedAction(props.action) || props.draftMessage === props.action.message[0].html) {
+            return;
+        }
+        setDraft(Str.htmlDecode(props.draftMessage));
+    }, [props.draftMessage, props.action]);
+
+    useEffect(() => {
         // required for keeping last state of isFocused variable
         isFocusedRef.current = isFocused;
     }, [isFocused]);
@@ -175,9 +183,9 @@ function ReportActionItemMessageEdit(props) {
     const debouncedSaveDraft = useMemo(
         () =>
             _.debounce((newDraft) => {
-                Report.saveReportActionDraft(props.reportID, props.action.reportActionID, newDraft);
+                Report.saveReportActionDraft(props.reportID, props.action, newDraft);
             }, 1000),
-        [props.reportID, props.action.reportActionID],
+        [props.reportID, props.action],
     );
 
     /**
@@ -236,7 +244,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const deleteDraft = useCallback(() => {
         debouncedSaveDraft.cancel();
-        Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
+        Report.saveReportActionDraft(props.reportID, props.action, '');
 
         if (isActive()) {
             ReportActionComposeFocusManager.clear();
@@ -250,7 +258,7 @@ function ReportActionItemMessageEdit(props) {
                 keyboardDidHideListener.remove();
             });
         }
-    }, [props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID, reportScrollManager, isActive]);
+    }, [props.action, debouncedSaveDraft, props.index, props.reportID, reportScrollManager, isActive]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
