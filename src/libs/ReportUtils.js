@@ -1008,13 +1008,12 @@ function getWorkspaceIcon(report, policy = undefined) {
  * @param {Object} report
  * @param {Object} personalDetails
  * @param {*} [defaultIcon]
- * @param {Boolean} [isPayer]
  * @param {String} [defaultName]
  * @param {Number} [defaultAccountID]
  * @param {Object} [policy]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, defaultName = '', defaultAccountID = -1, policy = undefined) {
+function getIcons(report, personalDetails, defaultIcon = null, defaultName = '', defaultAccountID = -1, policy = undefined) {
     if (_.isEmpty(report)) {
         const fallbackIcon = {
             source: defaultIcon || Expensicons.FallbackAvatar,
@@ -1102,13 +1101,13 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [report.managerID, 'displayName'], ''),
         };
-
         const ownerIcon = {
             id: report.ownerAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [report.ownerAccountID, 'displayName'], ''),
         };
+        const isPayer = currentUserAccountID === report.managerID;
 
         return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
     }

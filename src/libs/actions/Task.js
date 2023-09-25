@@ -743,7 +743,7 @@ function getShareDestination(reportID, reports, personalDetails) {
         subtitle = ReportUtils.getChatRoomSubtitle(report);
     }
     return {
-        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
+        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
         displayName: ReportUtils.getReportName(report),
         subtitle,
     };
