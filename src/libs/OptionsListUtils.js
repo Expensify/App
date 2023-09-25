@@ -561,7 +561,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), false, personalDetail.login, personalDetail.accountID);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), personalDetail.login, personalDetail.accountID);
     result.subtitle = subtitle;
 
     return result;
@@ -616,6 +616,30 @@ function isCurrentUser(userDetails) {
 }
 
 /**
+ * Calculates count of all enabled options
+ *
+ * @param {Object[]} options - an initial strings array
+ * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
+ * @param {String} options[].name - a name of an option
+ * @returns {Number}
+ */
+function getEnabledCategoriesCount(options) {
+    return _.filter(options, (option) => option.enabled).length;
+}
+
+/**
+ * Verifies that there is at least one enabled option
+ *
+ * @param {Object[]} options - an initial strings array
+ * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
+ * @param {String} options[].name - a name of an option
+ * @returns {Boolean}
+ */
+function hasEnabledOptions(options) {
+    return _.some(options, (option) => option.enabled);
+}
+
+/**
  * Build the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
@@ -628,6 +652,10 @@ function getCategoryOptionTree(options, isOneLine = false) {
     const optionCollection = {};
 
     _.each(options, (option) => {
+        if (!option.enabled) {
+            return;
+        }
+
         if (isOneLine) {
             if (_.has(optionCollection, option.name)) {
                 return;
@@ -678,9 +706,25 @@ function getCategoryOptionTree(options, isOneLine = false) {
  */
 function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const categorySections = [];
-    const categoriesValues = _.values(categories);
+    const categoriesValues = _.chain(categories)
+        .values()
+        .filter((category) => category.enabled)
+        .value();
+
     const numberOfCategories = _.size(categoriesValues);
     let indexOffset = 0;
+
+    if (numberOfCategories === 0 && selectedOptions.length > 0) {
+        categorySections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(selectedOptions, true),
+        });
+
+        return categorySections;
+    }
 
     if (!_.isEmpty(searchInputValue)) {
         const searchCategories = _.filter(categoriesValues, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
@@ -1509,6 +1553,8 @@ export {
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
     getDisplayOptions,
+    getEnabledCategoriesCount,
+    hasEnabledOptions,
     getCategoryOptionTree,
     formatMemberForList,
 };

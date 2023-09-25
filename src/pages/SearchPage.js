@@ -169,7 +169,10 @@ class SearchPage extends Component {
         );
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={SearchPage.displayName}
+            >
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithBackButton title={this.props.translate('common.search')} />

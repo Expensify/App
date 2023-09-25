@@ -69,6 +69,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    FormattedMaxLengthParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
     TranslationBase,
@@ -282,6 +283,7 @@ export default {
     composer: {
         noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
+        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum comment length is ${formattedMaxLength} characters.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',
@@ -487,6 +489,7 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        addReceipt: 'Add receipt',
     },
     iou: {
         amount: 'Amount',
@@ -1359,7 +1362,6 @@ export default {
         reimburse: {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
-            kilometers: 'Kilometers',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
             trackDistance: 'Track distance',

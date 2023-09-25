@@ -298,11 +298,11 @@ export default [
                     const thread = ReportUtils.buildTransactionThread(reportAction, reportID);
                     const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
                     Report.openReport(thread.reportID, userLogins, thread, reportAction.reportActionID);
-                    Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
                     return;
                 }
                 Report.openReport(childReportID);
-                Navigation.navigate(ROUTES.getReportRoute(childReportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
             }
             const editAction = () => Report.saveReportActionDraft(reportID, reportAction.reportActionID, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
@@ -382,10 +382,10 @@ export default [
             reportAction.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
-                hideContextMenu(false, () => Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID)));
+                hideContextMenu(false, () => Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction.reportActionID)));
             }
 
-            Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID));
+            Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction.reportActionID));
         },
         getDescription: () => {},
     },

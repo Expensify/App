@@ -363,7 +363,7 @@ function AttachmentModal(props) {
                             icon: Expensicons.Camera,
                             text: props.translate('common.replace'),
                             onSelected: () => {
-                                onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
+                                onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
                                 closeModal();
                             },
                         },
