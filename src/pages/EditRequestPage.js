@@ -117,7 +117,7 @@ function EditRequestPage({report, route, parentReport, policy, session, policyTa
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
         IOU.editMoneyRequest(transaction.transactionID, report.reportID, transactionChanges);
-        Navigation.dismissModal();
+        Navigation.dismissModal(report.reportID);
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
@@ -215,6 +215,7 @@ function EditRequestPage({report, route, parentReport, policy, session, policyTa
                 tagName={tagListName}
                 policyID={lodashGet(report, 'policyID', '')}
                 onSubmit={(transactionChanges) => {
+                    console.log("[MINE] Update tag", transactionChanges.tag, transactionTag);
                     let updatedTag = transactionChanges.tag;
 
                     // In case the same tag has been selected, reset the tag.
