@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -32,8 +33,11 @@ const propTypes = {
             /** The optimistic ID of a new transaction that is being created */
             transactionID: PropTypes.string.isRequired,
 
-            /** reportID if a transaction is attached to a specific report */
+            /** The ID of a report the transaction is attached to (can be null if the user is starting from the global create) */
             reportID: PropTypes.string,
+
+            /** The ID of the currently selected tab */
+            tabName: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
         }),
     }).isRequired,
 
@@ -46,15 +50,11 @@ const defaultProps = {
     selectedTab: CONST.TAB_REQUEST.SCAN,
 };
 
-function CreateIOUStartPage({
-    route,
-    route: {
-        params: {iouType, reportID},
-    },
-    selectedTab,
-}) {
+function CreateIOUStartPage({route}) {
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const iouType = lodashGet(route, 'params.iouType');
+    const tabName = lodashGet(route, 'params.tabName');
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
@@ -83,7 +83,7 @@ function CreateIOUStartPage({
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <DragAndDropProvider
-                        isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}
+                        isDisabled={tabName !== CONST.TAB_REQUEST.SCAN}
                         setIsDraggingOver={setIsDraggingOver}
                     >
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -94,7 +94,7 @@ function CreateIOUStartPage({
                             {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
-                                    selectedTab={selectedTab}
+                                    selectedTab={tabName}
                                     tabBar={({state, navigation, position}) => (
                                         <TabSelector
                                             state={state}
@@ -138,8 +138,5 @@ CreateIOUStartPage.defaultProps = defaultProps;
 export default withOnyx({
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-    },
-    selectedTab: {
-        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(CreateIOUStartPage);

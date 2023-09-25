@@ -297,16 +297,12 @@ export default {
                     },
                     MoneyRequest: {
                         screens: {
-                            Monee_Request: {
-                                path: ROUTES.MONEE_REQUEST.route,
-                                exact: true,
-                            },
                             Monee_Request_Start: {
                                 path: ROUTES.MONEE_REQUEST_START.route,
                                 exact: true,
                             },
-                            Monee_Request_Start_Tabs: {
-                                path: ROUTES.MONEE_REQUEST_START_TAB.route,
+                            Monee_Request_Field: {
+                                path: ROUTES.MONEE_REQUEST_FIELD.route,
                                 exact: true,
                             },
                             Money_Request: {

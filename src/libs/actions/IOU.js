@@ -2126,6 +2126,7 @@ function startMoneeRequest(iouType, reportID = '') {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {wasSaved: false});
 
     // Navigate to it
+    console.log('[tim]', ROUTES.MONEE_REQUEST_START.getRoute(iouType, newTransactionID, reportID));
     Navigation.navigate(ROUTES.MONEE_REQUEST_START.getRoute(iouType, newTransactionID, reportID));
 }
 

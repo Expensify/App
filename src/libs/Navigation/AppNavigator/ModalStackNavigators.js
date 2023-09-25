@@ -32,10 +32,9 @@ function createModalStackNavigator(screens) {
 }
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator({
-    Monee_Request: () => require('../../../pages/iou/create/CreateIOUFieldPage').default,
     Monee_Request_Start: () => require('../../../pages/iou/create/CreateIOUStartPage').default,
-    Monee_Request_Start_Tab: () => require('../../../pages/iou/create/CreateIOUStartPage').default,
-    Money_Request: () => require('../../../pages/iou/MoneyRequestSelectorPage').default,
+    Monee_Request_Field: () => require('../../../pages/iou/create/CreateIOUFieldPage').default,
+    /* @TODO remove Money_Request: () => require('../../../pages/iou/MoneyRequestSelectorPage').default,
     Money_Request_Amount: () => require('../../../pages/iou/steps/NewRequestAmountPage').default,
     Money_Request_Participants: () => require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default,
     Money_Request_Confirmation: () => require('../../../pages/iou/steps/MoneyRequestConfirmPage').default,
@@ -51,11 +50,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator({
     Money_Request_Waypoint: () => require('../../../pages/iou/NewDistanceRequestWaypointEditorPage').default,
     Money_Request_Edit_Waypoint: () => require('../../../pages/iou/MoneyRequestEditWaypointPage').default,
     Money_Request_Address: () => require('../../../pages/iou/NewDistanceRequestPage').default,
-    Money_Request_Receipt: () => require('../../../pages/EditRequestReceiptPage').default,
-});
-
-const MoneeRequestModalStackNavigator = createModalStackNavigator({
-    Monee_Request: () => require('../../../pages/iou/create/CreateIOUFieldPage').default,
+    Money_Request_Receipt: () => require('../../../pages/EditRequestReceiptPage').default,*/
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator({
