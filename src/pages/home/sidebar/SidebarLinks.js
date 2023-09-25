@@ -129,9 +129,9 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         if (isCreateMenuOpen || (!isSmallScreenWidth && isActiveReport(option.reportID)) || (isSmallScreenWidth && Navigation.getTopmostReportId())) {
             return;
         }
-        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
         onLinkClick();
-    };
+    }
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
