@@ -28,7 +28,7 @@ function LanguagePage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="LanguagePage"
+            testID={LanguagePage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('languagePage.language')}

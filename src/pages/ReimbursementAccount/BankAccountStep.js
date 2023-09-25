@@ -93,7 +93,7 @@ function BankAccountStep(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="BankAccountStep"
+            testID={BankAccountStep.displayName}
         >
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithBackButton

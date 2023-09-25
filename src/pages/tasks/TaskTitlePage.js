@@ -79,7 +79,7 @@ function TaskTitlePage(props) {
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             shouldEnableMaxHeight
-            testID="TaskTitlePage"
+            testID={TaskTitlePage.displayName}
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>

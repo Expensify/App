@@ -304,7 +304,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            testID="DistanceRequest"
+            testID={DistanceRequest.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>

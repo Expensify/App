@@ -206,7 +206,7 @@ class ReimbursementAccountPage extends React.Component {
      * @returns {String}
      */
     getStepToOpenFromRouteParams() {
-        switch (lodashGet(this.props.route, ['params', 'stepToOpen'])) {
+        switch (lodashGet(this.props.route, ['params', 'stepToOpen'], '')) {
             case 'new':
                 return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
             case 'company':
@@ -339,7 +339,7 @@ class ReimbursementAccountPage extends React.Component {
 
         if (_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy)) {
             return (
-                <ScreenWrapper testID="ReimbursementAccountPage">
+                <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                     <FullPageNotFoundView
                         shouldShow
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
@@ -385,7 +385,7 @@ class ReimbursementAccountPage extends React.Component {
 
         if (errorText) {
             return (
-                <ScreenWrapper testID="ReimbursementAccountPage">
+                <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                     <HeaderWithBackButton
                         title={this.props.translate('workspace.common.connectBankAccount')}
                         subtitle={policyName}

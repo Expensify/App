@@ -93,7 +93,7 @@ function KnowATeacherPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="KnowATeacherPage"
+            testID={KnowATeacherPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iKnowATeacher')}

@@ -149,7 +149,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
             <ScreenWrapper
                 style={[styles.flex1]}
                 keyboardAvoidingViewBehavior="height"
-                testID="AdditionalDetailsStep"
+                testID={AdditionalDetailsStep.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('additionalDetailsStep.headerTitle')}

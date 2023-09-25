@@ -25,6 +25,7 @@ import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
+import TabNavigationAwareCamera from './TabNavigationAwareCamera';
 
 const propTypes = {
     /** React Navigation route */
@@ -47,12 +48,16 @@ const propTypes = {
 
     /** The id of the transaction we're editing */
     transactionID: PropTypes.string,
+
+    /** Whether or not the receipt selector is in a tab navigator for tab animations */
+    isInTabNavigator: PropTypes.bool,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
     transactionID: '',
+    isInTabNavigator: true,
 };
 
 /**
@@ -80,7 +85,7 @@ function getImagePickerOptions(type) {
     };
 }
 
-function ReceiptSelector({route, report, iou, transactionID}) {
+function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -95,6 +100,8 @@ function ReceiptSelector({route, report, iou, transactionID}) {
     const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
+
+    const CameraComponent = isInTabNavigator ? TabNavigationAwareCamera : NavigationAwareCamera;
 
     // We want to listen to if the app has come back from background and refresh the permissions status to show camera when permissions were granted
     useEffect(() => {
@@ -260,7 +267,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                 </View>
             )}
             {permissions === RESULTS.GRANTED && device != null && (
-                <NavigationAwareCamera
+                <CameraComponent
                     ref={camera}
                     device={device}
                     style={[styles.cameraView]}
