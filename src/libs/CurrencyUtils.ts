@@ -109,4 +109,25 @@ function convertToDisplayString(amountInCents: number, currency: string = CONST.
     });
 }
 
-export {getCurrencyDecimals, getCurrencyUnit, getLocalizedCurrencySymbol, getCurrencySymbol, isCurrencySymbolLTR, convertToBackendAmount, convertToFrontendAmount, convertToDisplayString};
+/**
+ * Checks if passed currency code is a valid currency based on currency list
+ *
+ * @param {String} currencyCode
+ * @returns {Boolean}
+ */
+function isValidCurrencyCode(currencyCode) {
+    const currency = lodashGet(currencyList, currencyCode);
+    return Boolean(currency);
+}
+
+export {
+    getCurrencyDecimals,
+    getCurrencyUnit,
+    getLocalizedCurrencySymbol,
+    getCurrencySymbol,
+    isCurrencySymbolLTR,
+    convertToBackendAmount,
+    convertToFrontendAmount,
+    convertToDisplayString,
+    isValidCurrencyCode,
+};
