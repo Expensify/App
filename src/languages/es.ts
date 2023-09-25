@@ -1532,9 +1532,9 @@ export default {
         },
     },
     roomMembersPage: {
-        memberNotFound: 'Member not found. To invite a new member to the room, please use the Invite button above.',
-        notAuthorized: `You do not have access to this page. Are you trying to join the room? Please reach out to a member of this room so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
-        removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
+        memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón Invitar que está más arriba.',
+        notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte a la sala de chat? Comunícate con el propietario de este sala de chat para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
+        removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
