@@ -1,8 +1,8 @@
 import Onyx, {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../Log';
-import generateDeviceID from './generateDeviceID/index.ios';
-import getDeviceInfo from './getDeviceInfo/index.ios';
+import generateDeviceID from './generateDeviceID/index';
+import getDeviceInfo from './getDeviceInfo/index';
 
 let deviceID: string | null = null;
 
@@ -29,7 +29,7 @@ function getDeviceID(): Promise<string | null> {
 /**
  * Saves a unique deviceID into Onyx.
  */
-function setDeviceID(): void {
+function setDeviceID() {
     getDeviceID()
         .then((existingDeviceID) => {
             if (!existingDeviceID) {

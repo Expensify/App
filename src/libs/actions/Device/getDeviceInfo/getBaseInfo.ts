@@ -1,7 +1,7 @@
 import packageConfig from '../../../../../package.json';
-import {BaseInfo, GetBaseInfo} from "./types";
+import {GetBaseInfo} from "./types";
 
-export const getBaseInfo: GetBaseInfo = (): BaseInfo => {
+export const getBaseInfo: GetBaseInfo = () => {
     return {
         app_version: packageConfig.version,
         timestamp: new Date().toISOString().slice(0, 19),

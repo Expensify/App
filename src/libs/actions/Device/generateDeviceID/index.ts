@@ -14,11 +14,9 @@ const uniqueID = Str.guid();
  *
  * While this isn't perfect, it's just as good as any other obvious web solution, such as this one https://developer.mozilla.org/en-US/docs/Web/API/MediaDeviceInfo/deviceId
  * which is also different/reset under the same circumstances
- *
- * @returns - device ID
  */
 
-const generateDeviceID: GenerateDeviceID = (): Promise<string> => {
+const generateDeviceID: GenerateDeviceID = () => {
     return Promise.resolve(uniqueID);
 }
 

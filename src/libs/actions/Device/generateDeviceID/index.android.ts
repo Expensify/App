@@ -23,10 +23,8 @@ const uniqueID = Str.guid(deviceID);
  *
  * Furthermore, the deviceID prefix is not unique to a specific device, but is likely to change from one type of device to another.
  * Including this prefix will tell us with a reasonable degree of confidence if the user just uninstalled and reinstalled the app, or if they got a new device.
- *
- * @returns - deviceID
  */
-const generateDeviceID: GenerateDeviceID = (): Promise<string> => {
+const generateDeviceID: GenerateDeviceID = () => {
     return Promise.resolve(uniqueID);
 }
 

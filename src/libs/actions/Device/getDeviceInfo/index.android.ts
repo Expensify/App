@@ -1,8 +1,8 @@
 import getBaseInfo from './getBaseInfo';
 import getOSAndName from './getOSAndName/index.native';
-import {GetDeviceInfo, DeviceInfo} from './types';
+import {GetDeviceInfo} from './types';
 
-const getDeviceInfo: GetDeviceInfo = (): DeviceInfo => {
+const getDeviceInfo: GetDeviceInfo = () => {
     return {
         ...getBaseInfo(),
         ...getOSAndName(),
