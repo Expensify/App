@@ -1,4 +1,4 @@
-type RecentWaypoints = {
+type RecentWaypoint = {
     /** The full address of the waypoint */
     address: string;
 
@@ -9,4 +9,4 @@ type RecentWaypoints = {
     lng: number;
 };
 
-export default RecentWaypoints;
+export default RecentWaypoint;
