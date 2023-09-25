@@ -489,6 +489,7 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        addReceipt: 'Add receipt',
     },
     iou: {
         amount: 'Amount',
@@ -1367,7 +1368,6 @@ export default {
         reimburse: {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
-            kilometers: 'Kilometers',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
             trackDistance: 'Track distance',

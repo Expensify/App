@@ -450,7 +450,7 @@ function BaseWalletPage(props) {
 
 BaseWalletPage.propTypes = propTypes;
 BaseWalletPage.defaultProps = defaultProps;
-BaseWalletPage.displayName = BaseWalletPage;
+BaseWalletPage.displayName = 'BaseWalletPage';
 
 export default compose(
     withNetwork(),
