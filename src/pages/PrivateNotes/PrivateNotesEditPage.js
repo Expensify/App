@@ -138,6 +138,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                                 label={translate('privateNotes.composerLabel')}
                                 accessibilityLabel={translate('privateNotes.title')}
                                 autoCompleteType="off"
+                                maxLength={CONST.MAX_COMMENT_LENGTH}
                                 autoCorrect={false}
                                 autoGrowHeight
                                 textAlignVertical="top"
