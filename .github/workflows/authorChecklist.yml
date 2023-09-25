@@ -12,6 +12,6 @@ jobs:
     if: github.actor != 'OSBotify'
     steps:
       - name: authorChecklist.js
-        uses: Expensify/App/.github/actions/javascript/authorChecklist@main
+        uses: software-mansion-labs/expensify-app-fork/.github/actions/javascript/authorChecklist@Sebryu-DynamicChecklistPOC
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
