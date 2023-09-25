@@ -138,7 +138,6 @@ function ReportActionsList({
     useEffect(() => {
         opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
-    const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
@@ -340,13 +339,15 @@ function ReportActionsList({
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
     const renderFooter = useCallback(() => {
+        // Skip this hook on the first render, as we are not sure if more actions are going to be loaded
+        // Therefore showing the skeleton on footer might be misleading
         if (firstRenderRef.current) {
             firstRenderRef.current = false;
             return null;
         }
 
         if (isLoadingMoreReportActions) {
-            return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
+            return <ReportActionsSkeletonView />;
         }
 
         // Make sure the oldest report action loaded is not the first. This is so we do not show the
@@ -354,20 +355,14 @@ function ReportActionsList({
         // that many comments.
         const lastReportAction = _.last(sortedReportActions) || {};
         if (isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return (
-                <ReportActionsSkeletonView
-                    containerHeight={skeletonViewHeight}
-                    animate={!isOffline}
-                />
-            );
+            return <ReportActionsSkeletonView animate={!isOffline} />;
         }
 
         return null;
-    }, [isLoadingMoreReportActions, isLoadingReportActions, sortedReportActions, isOffline, skeletonViewHeight]);
+    }, [isLoadingMoreReportActions, isLoadingReportActions, sortedReportActions, isOffline]);
 
     const onLayoutInner = useCallback(
         (event) => {
-            setSkeletonViewHeight(event.nativeEvent.layout.height);
             onLayout(event);
         },
         [onLayout],

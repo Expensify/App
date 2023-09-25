@@ -236,7 +236,7 @@ export default compose(
     withOnyx({
         guideCalendarLink: {
             key: ONYXKEYS.ACCOUNT,
-            selector: (account) => (account && account.guideCalendarLink ? account.guideCalendarLink : null),
+            selector: (account) => (account && account.guideCalendarLink) || null,
             initialValue: null,
         },
         parentReport: {

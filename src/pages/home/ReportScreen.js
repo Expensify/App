@@ -16,10 +16,8 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import Visibility from '../../libs/Visibility';
-import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import ReportFooter from './report/ReportFooter';
@@ -83,9 +81,6 @@ const propTypes = {
             type: PropTypes.string,
         }),
     ),
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     /** The account manager report ID */
     accountManagerReportID: PropTypes.string,
@@ -152,7 +147,6 @@ function ReportScreen({
     markReadyForHydration,
     policies,
     translate,
-    network,
     isSmallScreenWidth,
     isSidebarLoaded,
     viewportOffsetTop,
@@ -338,7 +332,6 @@ function ReportScreen({
                 <ScreenWrapper
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
-                    shouldDisableFocusTrap
                 >
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
@@ -399,7 +392,6 @@ function ReportScreen({
                                 {isReportReadyForDisplay ? (
                                     <ReportFooter
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        isOffline={network.isOffline}
                                         reportActions={reportActions}
                                         report={report}
                                         isComposerFullSize={isComposerFullSize}
@@ -407,10 +399,7 @@ function ReportScreen({
                                         policies={policies}
                                     />
                                 ) : (
-                                    <ReportFooter
-                                        shouldDisableCompose
-                                        isOffline={network.isOffline}
-                                    />
+                                    <ReportFooter shouldDisableCompose />
                                 )}
                             </View>
                         </DragAndDropProvider>
@@ -429,7 +418,6 @@ export default compose(
     withViewportOffsetTop,
     withLocalize,
     withWindowDimensions,
-    withNetwork(),
     withCurrentReportID,
     withOnyx(
         {
