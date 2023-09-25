@@ -75,7 +75,7 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
                         <MenuItemWithTopDescription
                             description={translate('privateNotes.composerLabel')}
                             title={privateNote}
-                            onPress={() => isCurrentUserNote && Navigation.navigate(ROUTES.getPrivateNotesEditRoute(report.reportID, route.params.accountID))}
+                            onPress={() => isCurrentUserNote && Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, route.params.accountID))}
                             shouldShowRightIcon={isCurrentUserNote}
                             numberOfLinesTitle={0}
                             shouldRenderAsHTML
