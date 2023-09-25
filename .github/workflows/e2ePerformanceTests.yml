@@ -49,16 +49,17 @@ jobs:
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-
       - name: Build APK
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
 
   buildDelta:
     runs-on: ubuntu-latest-xl
@@ -118,15 +119,16 @@ jobs:
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-
       - name: Build APK
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
 
   runTestsInAWS:
     runs-on: ubuntu-latest
