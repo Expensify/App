@@ -214,14 +214,14 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                 </OfflineWithFeedback>
             )}
             {shouldShowTag && (
-                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
+                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.tag') || lodashGet(transaction, 'pendingAction')}>
                     <MenuItemWithTopDescription
                         description={lodashGet(policyTag, 'name', translate('common.tag'))}
                         title={transactionTag}
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}
                         titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
                     />
                 </OfflineWithFeedback>
             )}

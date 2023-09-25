@@ -208,11 +208,11 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
  *
  * @param {Object} policyTags
  * @param {String} [tagKey]
- * @returns {String}
+ * @returns {Object}
  */
 function getTag(policyTags, tagKey) {
     if (_.isEmpty(policyTags)) {
-        return '';
+        return {};
     }
 
     const policyTagKey = tagKey || _.first(_.keys(policyTags));
@@ -252,7 +252,7 @@ function getTagList(policyTags, tagKey) {
 
     return lodashGet(policyTags, [policyTagKey, 'tags'], {});
 }
- 
+
 /**
  * @param {Object} policy
  * @returns {Boolean}
