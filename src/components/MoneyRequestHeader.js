@@ -92,7 +92,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                                   {
                                       icon: Expensicons.Receipt,
                                       text: translate('receipt.addReceipt'),
-                                      onSelected: () => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+                                      onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
                                   },
                               ]),
                         {
