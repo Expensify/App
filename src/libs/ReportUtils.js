@@ -2288,6 +2288,7 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '', trans
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
+    const created = DateUtils.getDBTime();
     return {
         reportActionID: NumberUtils.rand64(),
         reportID: chatReport.reportID,
@@ -2304,13 +2305,13 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '', trans
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
-        created: DateUtils.getDBTime(),
+        created,
         accountID: iouReport.managerID || 0,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
         actorAccountID: hasReceipt ? currentUserAccountID : iouReport.managerID || 0,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
-        childRecentReceiptTransactionIDs: hasReceipt ? {transaction.transactionID = transaction.transactionID} : [],
+        childRecentReceiptTransactionIDs: hasReceipt ? {[transaction.transactionID] : created} : [],
         whisperedToAccountIDs: isReceiptBeingScanned ? [currentUserAccountID] : [],
     };
 }
@@ -2370,7 +2371,10 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
 function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = false, comment = '', transaction = undefined) {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const recentReceiptTransactionIDs = lodashGet(reportPreviewAction, 'childRecentReceiptTransactionIDs', {});
-    const previousTransactionIDs = lastReceiptTransactionIDs.split(',').slice(0, 2);
+    const oldestTransaction = _.reduce(_.keys(recentReceiptTransactionIDs), (transactionID, oldestTransactionID) => {
+        return new Date(recentReceiptTransactionIDs[transactionID]) > new Date(recentReceiptTransactionIDs[transactionID]) ? transactionID : oldestTransactionID;
+    });
+    const previousTransactions = _.omit(recentReceiptTransactionIDs, oldestTransaction);
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
@@ -2387,8 +2391,8 @@ function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = fals
         childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
         childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + (isPayRequest ? 0 : 1),
         childRecentReceiptTransactionIDs: hasReceipt ? {
-            [transaction.transactionID]: transaction.transactionID,
-            ...previousTransactionIDs
+            [transaction.transactionID]: transaction.created,
+            ...previousTransactions
             } : recentReceiptTransactionIDs,
         // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
         // so we remove the whisper
@@ -3588,7 +3592,7 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
 function getReportPreviewDisplayTransactions(reportPreviewAction) {
     const transactionIDs = lodashGet(reportPreviewAction, ['childRecentReceiptTransactionIDs']);
     return _.reduce(
-        transactionIDs,
+        _.keys(transactionIDs),
         (transactions, transactionID) => {
             const transaction = TransactionUtils.getTransaction(transactionID);
             if (TransactionUtils.hasReceipt(transaction)) {
