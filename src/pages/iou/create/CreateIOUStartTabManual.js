@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '../../../hooks/useLocalize';
@@ -28,8 +28,13 @@ const propTypes = {
 
 const defaultProps = {};
 
-function CreateIOUStartTabManual() {
+function CreateIOUStartTabManual({
+    route: {
+        params: {iouType},
+    },
+}) {
     const {translate} = useLocalize();
+    const isEditing = false;
 
     // @TODO const content = (
     //     <MoneyRequestAmountForm
@@ -41,7 +46,7 @@ function CreateIOUStartTabManual() {
     //         onSubmitButtonPress={navigateToNextPage}
     //     />
     // );
-    const content = null;
+    const content = <Text>Manual Tab</Text>;
 
     // ScreenWrapper is only needed in edit mode because we have a dedicated route for the edit amount page (MoneyRequestEditAmountPage).
     // The rest of the cases this component is rendered through <MoneyRequestSelectorPage /> which has it's own ScreenWrapper
@@ -53,7 +58,8 @@ function CreateIOUStartTabManual() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            onEntryTransitionEnd={focusTextInput}
+            // @TODO onEntryTransitionEnd={focusTextInput}
+            onEntryTransitionEnd={() => {}}
             testID={CreateIOUStartTabManual.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
@@ -61,7 +67,8 @@ function CreateIOUStartTabManual() {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('iou.amount')}
-                            onBackButtonPress={navigateBack}
+                            // @TODO onBackButtonPress={navigateBack}
+                            onBackButtonPress={() => {}}
                         />
                         {content}
                     </View>

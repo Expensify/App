@@ -34,7 +34,9 @@ import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import TabSelector from '../../../components/TabSelector/TabSelector';
 import OnyxTabNavigator, {TopTab} from '../../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from '../steps/NewRequestAmountPage';
+import CreateIOUStartTabScan from './CreateIOUStartTabScan';
 import CreateIOUStartTabManual from './CreateIOUStartTabManual';
+import CreateIOUStartTabDistance from './CreateIOUStartTabDistance';
 
 const propTypes = {
     /** Route from navigation */
@@ -51,14 +53,22 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
+
+    /* Onyx Props */
+    /** Which tab has been selected */
+    selectedTab: PropTypes.string,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    selectedTab: CONST.TAB.SCAN,
+};
 
 function CreateIOUStartPage({
+    route,
     route: {
         params: {iouType, reportID},
     },
+    selectedTab,
 }) {
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -90,7 +100,7 @@ function CreateIOUStartPage({
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <DragAndDropProvider
-                        isDisabled={props.selectedTab !== CONST.TAB.SCAN}
+                        isDisabled={selectedTab !== CONST.TAB.SCAN}
                         setIsDraggingOver={setIsDraggingOver}
                     >
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -101,12 +111,13 @@ function CreateIOUStartPage({
                             {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
-                                    selectedTab={props.selectedTab}
+                                    selectedTab={selectedTab}
                                     tabBar={({state, navigation, position}) => (
                                         <TabSelector
                                             state={state}
                                             navigation={navigation}
-                                            onTabPress={resetMoneyRequestInfo}
+                                            // @TODO onTabPress={resetMoneyRequestInfo}
+                                            onTabPress={() => {}}
                                             position={position}
                                         />
                                     )}
@@ -118,19 +129,19 @@ function CreateIOUStartPage({
                                     />
                                     <TopTab.Screen
                                         name={CONST.TAB.SCAN}
-                                        component={ReceiptSelector}
+                                        component={CreateIOUStartTabScan}
                                         initialParams={{reportID, iouType, pageIndex: 1}}
                                     />
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}
-                                            component={NewDistanceRequestPage}
+                                            component={CreateIOUStartTabDistance}
                                             initialParams={{reportID, iouType}}
                                         />
                                     )}
                                 </OnyxTabNavigator>
                             ) : (
-                                <CreateIOUStartTabManual route={props.route} />
+                                <CreateIOUStartTabManual route={route} />
                             )}
                         </View>
                     </DragAndDropProvider>
@@ -143,4 +154,12 @@ function CreateIOUStartPage({
 CreateIOUStartPage.displayName = 'CreateIOUStartPage';
 CreateIOUStartPage.propTypes = propTypes;
 CreateIOUStartPage.defaultProps = defaultProps;
-export default CreateIOUStartPage;
+
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+    },
+})(CreateIOUStartPage);
