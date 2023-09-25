@@ -59,8 +59,6 @@ class SearchPage extends Component {
 
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
 
-        this.throttledSearchInServer = _.throttle(this.searchInServer.bind(this), 1000, {leading: false});
-
         this.state = {
             searchValue: '',
             recentReports,
@@ -78,7 +76,7 @@ class SearchPage extends Component {
 
     onChangeText(searchValue = '') {
         if (searchValue.length > 0) {
-            this.throttledSearchInServer(searchValue);
+            Report.throttledSearchInServer(searchValue);
         }
 
         // When the user searches we will
@@ -121,17 +119,6 @@ class SearchPage extends Component {
         }
 
         return sections;
-    }
-
-    /**
-     * @param {string} searchValue
-     */
-    searchInServer(searchValue) {
-        if (this.props.network.isOffline) {
-            return;
-        }
-
-        Report.searchInServer(searchValue);
     }
 
     searchRendered() {
@@ -202,7 +189,7 @@ class SearchPage extends Component {
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                textInputAlert={this.props.network.isOffline ? 'You appear to be offline. Search results are limited until you come back online.' : ''}
+                                textInputAlert={this.props.network.isOffline ? this.props.translate('search.offline') : ''}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                 autoFocus

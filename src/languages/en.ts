@@ -1554,6 +1554,9 @@ export default {
         screenShare: 'Screen share',
         screenShareRequest: 'Expensify is inviting you to a screen share',
     },
+    search: {
+        offline: 'You appear to be offline; search results are limited.',
+    },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
         body: {

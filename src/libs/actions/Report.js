@@ -2131,9 +2131,15 @@ function clearPrivateNotesError(reportID, accountID) {
 }
 
 /**
+ * @private
  * @param {string} searchInput
  */
 function searchInServer(searchInput) {
+    // We do not try to make this request while offline because it sets a loading indicator optimistically
+    if (isNetworkOffline) {
+        return;
+    }
+
     API.read(
         'SearchForReports',
         {searchInput},
@@ -2163,8 +2169,14 @@ function searchInServer(searchInput) {
     );
 }
 
+/**
+ * @private
+ * @param {string} searchInput
+ */
+const throttledSearchInServer = _.throttle(searchInServer, 1000, {leading: false});
+
 export {
-    searchInServer,
+    throttledSearchInServer,
     addComment,
     addAttachment,
     reconnect,

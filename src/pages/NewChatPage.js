@@ -20,6 +20,7 @@ import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import variables from '../styles/variables';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** Beta features list */
@@ -44,12 +45,13 @@ const defaultProps = {
 
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) {
+function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports}) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState();
     const [selectedOptions, setSelectedOptions] = useState([]);
+    const {isOffline} = useNetwork();
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -167,6 +169,10 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports, personalDetails, searchTerm]);
 
+    // When search term updates we will fetch any reports
+    useEffect(() => {
+        Report.throttledSearchInServer(searchTerm);
+    }, [searchTerm]);
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -201,9 +207,11 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
                             shouldShowOptions={isOptionsDataReady}
                             shouldShowConfirmButton
                             confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
+                            textInputAlert={isOffline ? translate('search.offline') : ''}
                             onConfirmSelection={createGroup}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            shouldShowLoader={isSearchingForReports}
                         />
                     </View>
                 </KeyboardAvoidingView>
@@ -228,6 +236,10 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isSearchingForReports: {
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            initWithStoredValues: false,
         },
     }),
 )(NewChatPage);

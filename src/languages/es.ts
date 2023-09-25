@@ -1576,6 +1576,9 @@ export default {
         screenShare: 'Compartir pantalla',
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
+    search: {
+        offline: 'You appear to be offline; search results are limited.',
+    },
     genericErrorPage: {
         title: '¡Uh-oh, algo salió mal!',
         body: {
