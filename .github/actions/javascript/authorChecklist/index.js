@@ -243,7 +243,7 @@ function detectReactComponent(code) {
 };
 
 function detectFunction(changedFiles) {
-    const filteredFiles = _.filter(changedFiles, (file) => file.name.endsWith('.js') || file.name.endsWith('.jsx') || file.name.endsWith('.ts') || file.name.endsWith('.tsx'));
+    const filteredFiles = _.filter(changedFiles, (file) => file.name && (file.name.endsWith('.js') || file.name.endsWith('.jsx') || file.name.endsWith('.ts') || file.name.endsWith('.tsx')));
     return _.some(filteredFiles, (file) => detectReactComponent(file.body));
 }
 
