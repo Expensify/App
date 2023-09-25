@@ -6,11 +6,10 @@ import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
 import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
 import {Receipt, Comment, WaypointCollection} from '../types/onyx/Transaction';
-import {OriginalMessageIOU} from '../types/onyx/OriginalMessage';
 
-type TransactionChanges = Partial<Transaction> & {comment?: string};
+type AdditionalTransactionChanges = {comment?: string};
 
-type OriginalMessage = OriginalMessageIOU['originalMessage'];
+type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -271,7 +270,12 @@ function hasRoute(transaction: Transaction): boolean {
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
 function getLinkedTransaction(reportAction: ReportAction): Transaction | Record<string, never> {
-    const transactionID = (reportAction?.originalMessage as OriginalMessage)?.IOUTransactionID ?? '';
+    let transactionID = '';
+
+    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+        transactionID = reportAction.originalMessage?.IOUTransactionID ?? '';
+    }
+
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
 }
 
