@@ -809,6 +809,7 @@ export default {
             address: 'Dirección',
             revealDetails: 'Revelar detalles',
             copyCardNumber: 'Copiar número de la tarjeta',
+            updateAddress: 'Actualizar dirección',
         },
     },
     cardPage: {
@@ -967,7 +968,7 @@ export default {
         legalName: 'Nombre completo',
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
-        homeAddress: 'Domicilio',
+        address: 'Dirección',
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,

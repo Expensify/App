@@ -7,6 +7,10 @@ import Clipboard from '../../../../libs/Clipboard';
 import useLocalize from '../../../../hooks/useLocalize';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
+import TextLink from '../../../../components/TextLink';
+import styles from '../../../../styles/styles';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /** Card number */
@@ -29,6 +33,9 @@ const propTypes = {
             country: PropTypes.string,
         }),
     }),
+
+    /** Domain of the card */
+    domain: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -47,7 +54,7 @@ const defaultProps = {
     },
 };
 
-function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
+function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
     usePrivatePersonalDetails();
     const privateDetails = privatePersonalDetails || {};
     const address = privateDetails.address || {};
@@ -96,6 +103,12 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
                 title={getFormattedAddress()}
                 interactive={false}
             />
+            <TextLink
+                style={[styles.link, styles.mh5, styles.mb3]}
+                onPress={() => Navigation.navigate(ROUTES.getSettingsWalletCardsDigitalDetailsUpdateAddressRoute(domain))}
+            >
+                {translate('walletPage.cardDetails.updateAddress')}
+            </TextLink>
         </>
     );
 }

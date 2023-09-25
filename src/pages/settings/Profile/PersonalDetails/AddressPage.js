@@ -134,8 +134,7 @@ function AddressPage({privatePersonalDetails}) {
             testID={AddressPage.displayName}
         >
             <HeaderWithBackButton
-                // title={translate('privatePersonalDetails.homeAddress')}
-                title="Address"
+                title={translate('privatePersonalDetails.address')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />

@@ -84,6 +84,7 @@ function ExpensifyCardPage({
                                 pan="1234123412341234"
                                 expiration="11/02/2024"
                                 cvv="321"
+                                domain={domain}
                             />
                         ) : (
                             <MenuItemWithTopDescription
@@ -109,12 +110,6 @@ function ExpensifyCardPage({
                                 titleStyle={styles.walletCardNumber}
                             />
                         )}
-                        <TextLink
-                            style={styles.link}
-                            onPress={() => Navigation.navigate(ROUTES.getSettingsWalletCardsDigitalDetailsUpdateAddressRoute(domain))}
-                        >
-                            Update address
-                        </TextLink>
                     </ScrollView>
                 </>
             )}
