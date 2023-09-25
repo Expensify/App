@@ -2613,6 +2613,11 @@ const CONST = {
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
+        MANUAL: 'manual', // @TODO remove
+        SCAN: 'scan', // @TODO remove
+        DISTANCE: 'distance', // @TODO remove
+    },
+    TAB_REQUEST: {
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',

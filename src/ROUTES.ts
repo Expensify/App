@@ -121,8 +121,9 @@ export default {
     MONEY_REQUEST_MANUAL_TAB:                   ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB:                     ':iouType/new/:reportID?/scan',
 
-    MONEE_REQUEST: {                     route: ':iouType/:transactionID/:field/:reportID?',       getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, field: MoneyRequestFields, reportID = '') => `${iouType}/${transactionID}/${field}/${reportID}`},
-    MONEE_REQUEST_START: {               route: ':iouType/:transactionID/start/:reportID?',        getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, reportID = '') => `${iouType}/${transactionID}/start/${reportID}`},
+    MONEE_REQUEST: {                     route: ':iouType/:transactionID/:field/:reportID?',            getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, field: MoneyRequestFields, reportID = '') => `${iouType}/${transactionID}/${field}/${reportID}`},
+    MONEE_REQUEST_START: {               route: ':iouType/:transactionID/start/:reportID?',             getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, reportID = '') => `${iouType}/${transactionID}/start/${reportID}`},
+    MONEE_REQUEST_START_TAB: {           route: ':iouType/:transactionID/start/:tabName/:reportID?',    getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, tabName: ValueOf<typeof CONST.TAB_REQUEST>, reportID = '') => `${iouType}/${transactionID}/start/${tabName}/${reportID}`},
 
     IOU_REQUEST:                                'request/new',
     IOU_SEND:                                   'send/new',

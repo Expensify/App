@@ -1,3 +1,4 @@
+// @TODO cleanup - file was made from MoneyRequestSelectorPage
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -42,7 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    selectedTab: CONST.TAB.SCAN,
+    selectedTab: CONST.TAB_REQUEST.SCAN,
 };
 
 function CreateIOUStartPage({
@@ -82,7 +83,7 @@ function CreateIOUStartPage({
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <DragAndDropProvider
-                        isDisabled={selectedTab !== CONST.TAB.SCAN}
+                        isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}
                         setIsDraggingOver={setIsDraggingOver}
                     >
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -105,25 +106,22 @@ function CreateIOUStartPage({
                                     )}
                                 >
                                     <TopTab.Screen
-                                        name={CONST.TAB.MANUAL}
+                                        name={CONST.TAB_REQUEST.MANUAL}
                                         component={CreateIOUStartTabManual}
-                                        initialParams={{reportID, iouType}}
                                     />
                                     <TopTab.Screen
-                                        name={CONST.TAB.SCAN}
+                                        name={CONST.TAB_REQUEST.SCAN}
                                         component={CreateIOUStartTabScan}
-                                        initialParams={{reportID, iouType, pageIndex: 1}}
                                     />
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
-                                            name={CONST.TAB.DISTANCE}
+                                            name={CONST.TAB_REQUEST.DISTANCE}
                                             component={CreateIOUStartTabDistance}
-                                            initialParams={{reportID, iouType}}
                                         />
                                     )}
                                 </OnyxTabNavigator>
                             ) : (
-                                <CreateIOUStartTabManual route={route} />
+                                <CreateIOUStartTabManual />
                             )}
                         </View>
                     </DragAndDropProvider>

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {useRoute} from '@react-navigation/native';
 import useLocalize from '../../../hooks/useLocalize';
 import * as IOUUtils from '../../../libs/IOUUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
@@ -9,30 +9,12 @@ import styles from '../../../styles/styles';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 
-const propTypes = {
-    /** React Navigation route */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
-
-            /** The optimistic ID of a new transaction that is being created */
-            transactionID: PropTypes.string.isRequired,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
-};
+const propTypes = {};
 
 const defaultProps = {};
 
-function CreateIOUStartTabDistance({
-    route: {
-        params: {iouType},
-    },
-}) {
+function CreateIOUStartTabDistance() {
+    const {params: iouType, transactionID, reportID} = useRoute();
     const {translate} = useLocalize();
     const isEditing = false;
 

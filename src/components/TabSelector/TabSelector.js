@@ -38,15 +38,15 @@ const defaultProps = {
 
 const getIconAndTitle = (route, translate) => {
     switch (route) {
-        case CONST.TAB.MANUAL:
+        case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual')};
-        case CONST.TAB.SCAN:
+        case CONST.TAB_REQUEST.SCAN:
             return {icon: Expensicons.Receipt, title: translate('tabSelector.scan')};
         case CONST.TAB.NEW_CHAT:
             return {icon: Expensicons.User, title: translate('tabSelector.chat')};
         case CONST.TAB.NEW_ROOM:
             return {icon: Expensicons.Hashtag, title: translate('tabSelector.room')};
-        case CONST.TAB.DISTANCE:
+        case CONST.TAB_REQUEST.DISTANCE:
             return {icon: Expensicons.Car, title: translate('common.distance')};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);

@@ -2122,8 +2122,8 @@ function startMoneeRequest(iouType, reportID = '') {
     // Generate a brand new transactionID
     const newTransactionID = NumberUtils.rand64();
 
-    // Store the transaction in Onyx
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`);
+    // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {wasSaved: false});
 
     // Navigate to it
     Navigation.navigate(ROUTES.MONEE_REQUEST_START.getRoute(iouType, newTransactionID, reportID));

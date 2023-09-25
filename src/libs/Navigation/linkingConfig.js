@@ -305,6 +305,10 @@ export default {
                                 path: ROUTES.MONEE_REQUEST_START.route,
                                 exact: true,
                             },
+                            Monee_Request_Start_Tabs: {
+                                path: ROUTES.MONEE_REQUEST_START_TAB.route,
+                                exact: true,
+                            },
                             Money_Request: {
                                 path: ROUTES.MONEY_REQUEST.route,
                                 exact: true,
