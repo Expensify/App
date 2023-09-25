@@ -74,7 +74,9 @@ function BaseWalletPage(props) {
      * @param {Object} position
      */
     const setMenuPosition = useCallback(() => {
-        if (!paymentMethodButtonRef.current) return;
+        if (!paymentMethodButtonRef.current) {
+            return;
+        }
 
         const position = getClickedTargetLocation(paymentMethodButtonRef.current);
 
@@ -89,9 +91,6 @@ function BaseWalletPage(props) {
     }, [windowWidth]);
 
     const getSelectedPaymentMethodID = useCallback(() => {
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL) {
-            return CONST.PAYMENT_METHODS.PAYPAL;
-        }
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
             return paymentMethod.selectedPaymentMethod.bankAccountID;
         }
@@ -138,14 +137,7 @@ function BaseWalletPage(props) {
         // The delete/default menu
         if (accountType) {
             let formattedSelectedPaymentMethod;
-            if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
-                formattedSelectedPaymentMethod = {
-                    title: 'PayPal.me',
-                    icon: account.icon,
-                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
-                    type: CONST.PAYMENT_METHODS.PAYPAL,
-                };
-            } else if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+            if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
                 formattedSelectedPaymentMethod = {
                     title: account.addressName,
                     icon: account.icon,
@@ -189,11 +181,6 @@ function BaseWalletPage(props) {
      */
     const addPaymentMethodTypePressed = (paymentType) => {
         hideAddPaymentMenu();
-
-        if (paymentType === CONST.PAYMENT_METHODS.PAYPAL) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
-            return;
-        }
 
         if (paymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
@@ -241,9 +228,7 @@ function BaseWalletPage(props) {
     ]);
 
     const deletePaymentMethod = useCallback(() => {
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL) {
-            PaymentMethods.deletePayPalMe();
-        } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
             BankAccounts.deletePaymentBankAccount(paymentMethod.selectedPaymentMethod.bankAccountID);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             PaymentMethods.deletePaymentCard(paymentMethod.selectedPaymentMethod.fundID);
@@ -252,11 +237,6 @@ function BaseWalletPage(props) {
 
     const navigateToTransferBalancePage = () => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
-    };
-
-    const navigateToAddPaypalRoute = () => {
-        Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
-        setShouldShowDefaultDeleteMenu(false);
     };
 
     const listHeaderComponent = useCallback(
@@ -350,8 +330,6 @@ function BaseWalletPage(props) {
             shouldResetPaymentMethodData = true;
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(props.fundList[paymentMethod.methodID])) {
             shouldResetPaymentMethodData = true;
-        } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL && _.isEmpty(props.payPalMeData)) {
-            shouldResetPaymentMethodData = true;
         }
         if (shouldResetPaymentMethodData) {
             // Close corresponding selected payment method modals which are open
@@ -359,20 +337,18 @@ function BaseWalletPage(props) {
                 hideDefaultDeleteMenu();
             }
         }
-    }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, props.bankAccountList, props.fundList, props.payPalMeData, shouldShowDefaultDeleteMenu]);
+    }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, props.bankAccountList, props.fundList, shouldShowDefaultDeleteMenu]);
 
-    const isPayPalMeSelected = paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
     const shouldShowMakeDefaultButton =
         !paymentMethod.isSelectedPaymentMethodDefault &&
         Permissions.canUseWallet(props.betas) &&
-        !isPayPalMeSelected &&
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={BaseWalletPage.displayName}>
             <HeaderWithBackButton
                 title={translate('common.wallet')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
@@ -438,14 +414,6 @@ function BaseWalletPage(props) {
                                 text={translate('walletPage.setDefaultConfirmation')}
                             />
                         )}
-                        {isPayPalMeSelected && (
-                            <Button
-                                onPress={navigateToAddPaypalRoute}
-                                style={[styles.mb4]}
-                                text={translate('common.edit')}
-                                shouldUseDefaultHover
-                            />
-                        )}
                         <Button
                             onPress={() => {
                                 setShowConfirmDeleteContent(true);
@@ -482,7 +450,7 @@ function BaseWalletPage(props) {
 
 BaseWalletPage.propTypes = propTypes;
 BaseWalletPage.defaultProps = defaultProps;
-BaseWalletPage.displayName = BaseWalletPage;
+BaseWalletPage.displayName = 'BaseWalletPage';
 
 export default compose(
     withNetwork(),
@@ -504,9 +472,6 @@ export default compose(
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
-        },
-        payPalMeData: {
-            key: ONYXKEYS.PAYPAL,
         },
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,

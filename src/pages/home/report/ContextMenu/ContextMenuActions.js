@@ -10,7 +10,7 @@ import * as ReportUtils from '../../../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
-import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {hideContextMenu, showDeleteModal, clearActiveReportAction} from './ReportActionContextMenu';
 import CONST from '../../../../CONST';
 import getAttachmentDetails from '../../../../libs/fileDownload/getAttachmentDetails';
 import fileDownload from '../../../../libs/fileDownload';
@@ -21,6 +21,10 @@ import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReac
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import * as Task from '../../../../libs/actions/Task';
+import * as Localize from '../../../../libs/Localize';
+import * as TransactionUtils from '../../../../libs/TransactionUtils';
+import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -182,10 +186,11 @@ export default [
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
+            const isCreateTaskAction = ReportActionsUtils.isCreatedTaskReportAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const originalMessage = _.get(reportAction, 'originalMessage', {});
-            const messageHtml = isTaskAction ? lodashGet(originalMessage, 'html', '') : lodashGet(message, 'html', '');
+            const reportID = lodashGet(reportAction, 'originalMessage.taskReportID', '').toString();
+            const messageHtml = isTaskAction || isCreateTaskAction ? Task.getTaskReportActionMessage(reportAction.actionName, reportID, isCreateTaskAction) : lodashGet(message, 'html', '');
 
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             if (!isAttachment) {
@@ -197,6 +202,16 @@ export default [
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
+                } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+                    const originalMessage = _.get(reportAction, 'originalMessage', {});
+                    const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
+                    const {amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
+                    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+                    const displaymessage = Localize.translateLocal('iou.requestedAmount', {
+                        formattedAmount,
+                        comment,
+                    });
+                    Clipboard.setString(displaymessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
@@ -283,11 +298,11 @@ export default [
                     const thread = ReportUtils.buildTransactionThread(reportAction, reportID);
                     const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
                     Report.openReport(thread.reportID, userLogins, thread, reportAction.reportActionID);
-                    Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
                     return;
                 }
                 Report.openReport(childReportID);
-                Navigation.navigate(ROUTES.getReportRoute(childReportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
             }
             const editAction = () => Report.saveReportActionDraft(reportID, reportAction.reportActionID, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
@@ -317,12 +332,12 @@ export default [
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => showDeleteModal(reportID, reportAction));
+                hideContextMenu(false, () => showDeleteModal(reportID, reportAction, true, clearActiveReportAction, clearActiveReportAction));
                 return;
             }
 
             // No popover to hide, call showDeleteConfirmModal immediately
-            showDeleteModal(reportID, reportAction);
+            showDeleteModal(reportID, reportAction, true, clearActiveReportAction, clearActiveReportAction);
         },
         getDescription: () => {},
     },
@@ -367,10 +382,10 @@ export default [
             reportAction.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
-                hideContextMenu(false, () => Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID)));
+                hideContextMenu(false, () => Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction.reportActionID)));
             }
 
-            Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID));
+            Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction.reportActionID));
         },
         getDescription: () => {},
     },

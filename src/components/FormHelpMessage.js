@@ -42,7 +42,7 @@ function FormHelpMessage(props) {
             {props.isError && (
                 <Icon
                     src={Expensicons.DotIndicator}
-                    fill={themeColors.success}
+                    fill={themeColors.danger}
                 />
             )}
             <View style={[styles.flex1, props.isError && styles.ml2]}>
