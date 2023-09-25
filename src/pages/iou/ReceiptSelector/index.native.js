@@ -96,17 +96,23 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
     const [permissions, setPermissions] = useState('granted');
     const isAndroidBlockedPermissionRef = useRef(false);
     const appState = useRef(AppState.currentState);
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
-    const [attachmentInvalidReason, setAttachmentValidReason] = useState('');
+    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState({
+        isInvalid: false,
+        title: '',
+        reason: '',
+    });
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
     const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
 
-    const hideReciptModal = () => {
-        setIsAttachmentInvalid(false);
+    const hideInvalidAttachementModal = () => {
+        setIsAttachmentInvalid({
+            isInvalid: false,
+            title: '',
+            reason: '',
+        });
     };
 
     const showImageCorruptionAlert = useCallback(() => {
@@ -120,9 +126,11 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
      * @param {*} reason
      */
     const setUploadReceiptError = (isInvalid, title, reason) => {
-        setIsAttachmentInvalid(isInvalid);
-        setAttachmentInvalidReasonTitle(title);
-        setAttachmentValidReason(reason);
+        setIsAttachmentInvalid({
+            isInvalid,
+            title,
+            reason,
+        });
     };
 
     function validateReceipt(file) {
@@ -389,11 +397,11 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                 </PressableWithFeedback>
             </View>
             <ConfirmModal
-                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                onConfirm={hideReciptModal}
-                onCancel={hideReciptModal}
-                isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                title={isAttachmentInvalid.title ? translate(isAttachmentInvalid.title) : ''}
+                onConfirm={hideInvalidAttachementModal}
+                onCancel={hideInvalidAttachementModal}
+                isVisible={isAttachmentInvalid.isInvalid}
+                prompt={isAttachmentInvalid.reason ? translate(isAttachmentInvalid.reason) : ''}
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />

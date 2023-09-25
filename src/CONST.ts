@@ -50,6 +50,9 @@ const CONST = {
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
+
+        // File extensions that are not allowed to be uploaded
+        UNALLOWED_EXTENSIONS: [],
     },
 
     AUTO_AUTH_STATE: {
