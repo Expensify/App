@@ -142,7 +142,10 @@ function AttachmentPickerWithMenuItems({
 
         return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs, betas), (option) => ({
             ...options[option],
-            onSelected: () => IOU.startMoneyRequest(option, report.reportID),
+            onSelected: () => {
+                // @TODO IOU.startMoneyRequest(option, report.reportID);
+                IOU.startMoneeRequest(option, report.reportID);
+            },
         }));
     }, [betas, report, reportParticipantIDs, translate]);
 

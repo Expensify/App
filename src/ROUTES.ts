@@ -122,6 +122,7 @@ export default {
     MONEY_REQUEST_SCAN_TAB:                     ':iouType/new/:reportID?/scan',
 
     MONEE_REQUEST: {                     route: ':iouType/:transactionID/:field/:reportID?',       getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, field: MoneyRequestFields, reportID = '') => `${iouType}/${transactionID}/${field}/${reportID}`},
+    MONEE_REQUEST_START: {               route: ':iouType/:transactionID/start/:reportID?',        getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, reportID = '') => `${iouType}/${transactionID}/start/${reportID}`},
 
     IOU_REQUEST:                                'request/new',
     IOU_SEND:                                   'send/new',

@@ -33,7 +33,7 @@ const propTypes = {
             iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)).isRequired,
 
             /** The optimistic ID of a new transaction that is being created */
-            transactionID: PropTypes.string,
+            transactionID: PropTypes.string.isRequired,
 
             /** Which field the user is modifying */
             field: PropTypes.oneOf(['amount', 'participants', 'confirmation', 'date', 'currency', 'description', 'category', 'tag', 'merchant', 'waypoint', 'address']),
@@ -46,7 +46,7 @@ const propTypes = {
 
 const defaultProps = {};
 
-function CreateIOUPage({
+function CreateIOUFieldPage({
     route: {
         params: {field},
     },
@@ -98,7 +98,7 @@ function CreateIOUPage({
     return <FullPageNotFoundView shouldShow />;
 }
 
-CreateIOUPage.displayName = 'CreateIOUPage';
-CreateIOUPage.propTypes = propTypes;
-CreateIOUPage.defaultProps = defaultProps;
-export default CreateIOUPage;
+CreateIOUFieldPage.displayName = 'CreateIOUFieldPage';
+CreateIOUFieldPage.propTypes = propTypes;
+CreateIOUFieldPage.defaultProps = defaultProps;
+export default CreateIOUFieldPage;

@@ -190,14 +190,22 @@ function FloatingActionButtonAndPopover(props) {
                               {
                                   icon: Expensicons.Send,
                                   text: props.translate('iou.sendMoney'),
-                                  onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
+                                  onSelected: () =>
+                                      interceptAnonymousUser(() => {
+                                          // @TODO IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)
+                                          IOU.startMoneeRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND);
+                                      }),
                               },
                           ]
                         : []),
                     {
                         icon: Expensicons.MoneyCircle,
                         text: props.translate('iou.requestMoney'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
+                        onSelected: () =>
+                            interceptAnonymousUser(() => {
+                                // @TODO IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)
+                                IOU.startMoneeRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
+                            }),
                     },
                     ...(Permissions.canUseTasks(props.betas)
                         ? [

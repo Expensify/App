@@ -2114,6 +2114,15 @@ function startMoneyRequest(iouType, reportID = '') {
 }
 
 /**
+ * Initialize money request info and navigate to the MoneyRequest page
+ * @param {String} iouType
+ * @param {String} reportID
+ */
+function startMoneeRequest(iouType, reportID = '') {
+    Navigation.navigate(ROUTES.MONEE_REQUEST_START.getRoute(iouType, NumberUtils.rand64(), reportID));
+}
+
+/**
  * @param {String} id
  */
 function setMoneyRequestId(id) {
@@ -2265,6 +2274,7 @@ export {
     payMoneyRequest,
     sendMoneyWithWallet,
     startMoneyRequest,
+    startMoneeRequest,
     resetMoneyRequestInfo,
     setMoneyRequestId,
     setMoneyRequestAmount,
