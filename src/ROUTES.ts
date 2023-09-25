@@ -5,6 +5,8 @@ import CONST from './CONST';
  * This is a file containing constants for all of the routes we want to be able to go to
  */
 
+type MONEY_REQUEST_FIELDS = 'amount' | 'participants' | 'confirmation' | 'date' | 'currency' | 'description' | 'category' | 'tag' | 'merchant' | 'waypoint' | 'address';
+
 // prettier-ignore
 export default {
     HOME:                                       '',
@@ -100,6 +102,7 @@ export default {
     PRIVATE_NOTES_EDIT: {                route: 'r/:reportID/notes/:accountID/edit',    getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`},
 
     // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
+    // <!-- replaced with MONEE_REQUEST
     MONEY_REQUEST: {                     route: ':iouType/new/:reportID?',              getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}`},
     MONEY_REQUEST_AMOUNT: {              route: ':iouType/new/amount/:reportID?',       getRoute: (iouType: string, reportID = '') => `${iouType}/new/amount/${reportID}`},
     MONEY_REQUEST_PARTICIPANTS: {        route: ':iouType/new/participants/:reportID?', getRoute: (iouType: string, reportID = '') => `${iouType}/new/participants/${reportID}`},
@@ -113,9 +116,12 @@ export default {
     MONEY_REQUEST_WAYPOINT: {            route: ':iouType/new/waypoint/:waypointIndex', getRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}`},
     MONEY_REQUEST_RECEIPT: {             route: ':iouType/new/receipt/:reportID?',      getRoute: (iouType: string, reportID = '') => `${iouType}/new/receipt/${reportID}`},
     MONEY_REQUEST_ADDRESS: {             route: ':iouType/new/address/:reportID?',      getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}`},
+    // -->
     MONEY_REQUEST_DISTANCE_TAB: {        route: ':iouType/new/:reportID?/distance',     getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance`},
     MONEY_REQUEST_MANUAL_TAB:                   ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB:                     ':iouType/new/:reportID?/scan',
+
+    MONEE_REQUEST: {                     route: ':iouType/:transactionID/:field/:reportID?',       getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, field: MONEY_REQUEST_FIELDS, reportID = '') => `${iouType}/${transactionID}/${field}/${reportID}`},
 
     IOU_REQUEST:                                'request/new',
     IOU_SEND:                                   'send/new',
