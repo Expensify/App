@@ -1,0 +1,18 @@
+{% assign selectedPlatform = page.url | remove: "/hubs/" | remove: "/" | remove: ".html" %}
+{% assign platform = site.data.routes.platforms | where: "href", selectedPlatform | first %}
+<div class="homepage">
+    <h1 class="title">{{ platform.hub-title }}</h1>
+
+    <p>{{ site.data.routes.home.description }}</p>
+
+    <div class="cards-group">
+        {% for hub in platform.hubs %}
+            {% include hub-card.html hub=hub platform=selectedPlatform %}
+        {% endfor %}
+    </div>
+
+    <div class="cards-group">
+        <!-- Concierge button anchored globally (rendered on narrow screens) -->
+        {% include floating-concierge-button.html id="floating-concierge-button-global" %}
+    </div>
+</div>
