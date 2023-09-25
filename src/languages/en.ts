@@ -244,6 +244,7 @@ export default {
         merchant: 'Merchant',
         category: 'Category',
         billable: 'Billable',
+        nonBillable: 'Non-billable',
         tag: 'Tag',
         receipt: 'Receipt',
         replace: 'Replace',

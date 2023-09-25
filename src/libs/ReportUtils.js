@@ -1602,7 +1602,7 @@ function getModifiedExpenseMessage(reportAction) {
 
     const hasModifiedBillable = _.has(reportActionOriginalMessage, 'oldBillable') && _.has(reportActionOriginalMessage, 'billable');
     if (hasModifiedBillable) {
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.billable, reportActionOriginalMessage.oldBillable, Localize.translateLocal('common.billable'), true);
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.billable, reportActionOriginalMessage.oldBillable, Localize.translateLocal('iou.request'), true);
     }
 }
 
@@ -1655,8 +1655,9 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     }
 
     if (_.has(transactionChanges, 'billable')) {
-        originalMessage.oldBillable = TransactionUtils.getBillable(oldTransaction);
-        originalMessage.billable = transactionChanges.billable;
+        const oldBillable = TransactionUtils.getBillable(oldTransaction);
+        originalMessage.oldBillable = oldBillable ? Localize.translateLocal('common.billable') : Localize.translateLocal('common.nonBillable');
+        originalMessage.billable = transactionChanges.billable ? Localize.translateLocal('common.billable') : Localize.translateLocal('common.nonBillable');
     }
 
     return originalMessage;
