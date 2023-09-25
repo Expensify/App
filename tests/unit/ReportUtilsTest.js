@@ -3,7 +3,7 @@ import _ from 'underscore';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as ReportUtils from '../../src/libs/ReportUtils';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -35,6 +35,13 @@ const participantsPersonalDetails = {
         login: '+18332403627@expensify.sms',
         displayName: '(833) 240-3627',
     },
+    5: {
+        accountID: 5,
+        displayName: 'Lagertha Lothbrok',
+        firstName: 'Lagertha',
+        login: 'lagertha2@vikings.net',
+        pronouns: 'She/her',
+    },
 };
 const policy = {
     policyID: 1,
@@ -51,9 +58,56 @@ describe('ReportUtils', () => {
             [ONYXKEYS.COUNTRY_CODE]: 1,
             [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
         });
-        return waitForPromisesToResolve();
+        return waitForBatchedUpdates();
     });
-    beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForPromisesToResolve));
+    beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('getIconsForParticipants', () => {
+        it('returns sorted avatar source by name, then accountID', () => {
+            expect(ReportUtils.getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails)).toEqual([
+                {
+                    id: 4,
+                    name: '(833) 240-3627',
+                    source: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
+                    },
+                    type: 'avatar',
+                },
+                {
+                    id: 2,
+                    name: 'floki@vikings.net',
+                    source: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
+                    },
+                    type: 'avatar',
+                },
+                {
+                    id: 3,
+                    name: 'Lagertha Lothbrok',
+                    source: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
+                    },
+                    type: 'avatar',
+                },
+                {
+                    id: 5,
+                    name: 'Lagertha Lothbrok',
+                    source: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_6.svg',
+                    },
+                    type: 'avatar',
+                },
+                {
+                    id: 1,
+                    name: 'Ragnar Lothbrok',
+                    source: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
+                    },
+                    type: 'avatar',
+                },
+            ]);
+        });
+    });
 
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
@@ -93,6 +147,15 @@ describe('ReportUtils', () => {
                     login: '+18332403627@expensify.sms',
                     accountID: 4,
                     pronouns: undefined,
+                },
+                {
+                    displayName: 'Lagertha Lothbrok',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_6.svg',
+                    },
+                    login: 'lagertha2@vikings.net',
+                    accountID: 5,
+                    pronouns: 'She/her',
                 },
             ]);
         });
@@ -134,6 +197,15 @@ describe('ReportUtils', () => {
                     login: '+18332403627@expensify.sms',
                     accountID: 4,
                     pronouns: undefined,
+                },
+                {
+                    displayName: 'Lagertha',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_6.svg',
+                    },
+                    login: 'lagertha2@vikings.net',
+                    accountID: 5,
+                    pronouns: 'She/her',
                 },
             ]);
         });
