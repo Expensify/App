@@ -1,25 +1,24 @@
-import React, {memo} from 'react';
-import {View, Image} from 'react-native';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import React, { memo } from 'react';
+import { View } from 'react-native';
+import { withOnyx } from 'react-native-onyx';
+import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
+import MultipleAvatars from '../../../components/MultipleAvatars';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
+import EmptyStateBackground from '../../../components/ReportActionItem/EmptyBackground';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import participantPropTypes from '../../../components/participantPropTypes';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import styles from '../../../styles/styles';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import * as Report from '../../../libs/actions/Report';
-import reportPropTypes from '../../reportPropTypes';
-import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
-import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
-import MultipleAvatars from '../../../components/MultipleAvatars';
-import CONST from '../../../CONST';
-import variables from '../../../styles/variables';
+import withWindowDimensions, { windowDimensionsPropTypes } from '../../../components/withWindowDimensions';
+import * as ReportUtils from '../../../libs/ReportUtils';
+import * as Report from '../../../libs/actions/Report';
+import compose from '../../../libs/compose';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import styles from '../../../styles/styles';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** The id of the report */
@@ -49,6 +48,7 @@ const defaultProps = {
 };
 
 function ReportActionItemCreated(props) {
+    // const [visible,setVisible] = React.useState(false)
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }
@@ -57,7 +57,7 @@ function ReportActionItemCreated(props) {
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
     // If window width is greater than the max background width, repeat the background image
-    const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
+    // const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
 
     return (
         <OfflineWithFeedback
@@ -68,12 +68,8 @@ function ReportActionItemCreated(props) {
             needsOffscreenAlphaCompositing
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <Image
-                    pointerEvents="none"
-                    source={EmptyStateBackgroundImage}
-                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
-                    resizeMode={props.windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
-                />
+                
+                <EmptyStateBackground/>
                 <View
                     accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}

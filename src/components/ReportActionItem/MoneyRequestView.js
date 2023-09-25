@@ -1,32 +1,31 @@
-import React from 'react';
-import {View, Image} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import reportPropTypes from '../../pages/reportPropTypes';
+import React from 'react';
+import { View } from 'react-native';
+import { withOnyx } from 'react-native-onyx';
+import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
-import compose from '../../libs/compose';
-import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
-import styles from '../../styles/styles';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as StyleUtils from '../../styles/StyleUtils';
-import CONST from '../../CONST';
-import * as Expensicons from '../Icon/Expensicons';
-import iouReportPropTypes from '../../pages/iouReportPropTypes';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
-import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import transactionPropTypes from '../transactionPropTypes';
-import ReportActionItemImage from './ReportActionItemImage';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import Navigation from '../../libs/Navigation/Navigation';
+import * as ReceiptUtils from '../../libs/ReceiptUtils';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
+import compose from '../../libs/compose';
+import iouReportPropTypes from '../../pages/iouReportPropTypes';
+import reportPropTypes from '../../pages/reportPropTypes';
+import * as StyleUtils from '../../styles/StyleUtils';
+import styles from '../../styles/styles';
+import * as Expensicons from '../Icon/Expensicons';
+import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import OfflineWithFeedback from '../OfflineWithFeedback';
-import variables from '../../styles/variables';
+import transactionPropTypes from '../transactionPropTypes';
+import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsPropTypes } from '../withCurrentUserPersonalDetails';
+import EmptyStateBackground from './EmptyBackground';
+import ReportActionItemImage from './ReportActionItemImage';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -54,7 +53,7 @@ const defaultProps = {
 };
 
 function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction}) {
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
@@ -95,18 +94,12 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
 
-    // If window width is greater than the max background width, repeat the background image
-    const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
 
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
-                <Image
-                    pointerEvents="none"
-                    source={EmptyStateBackgroundImage}
-                    style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth)]}
-                    resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
-                />
+                
+                <EmptyStateBackground/>
             </View>
             {hasReceipt && (
                 <View style={styles.moneyRequestViewImage}>
