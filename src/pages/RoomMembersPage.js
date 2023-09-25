@@ -8,6 +8,8 @@ import styles from '../styles/styles';
 import compose from '../libs/compose';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import ROUTES from '../ROUTES';
+import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
@@ -35,8 +37,8 @@ const propTypes = {
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
-        /** Name of the policy */
-        name: PropTypes.string,
+        /** ID of the policy */
+        id: PropTypes.string,
     }),
 
     /** URL Route params */

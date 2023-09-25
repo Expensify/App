@@ -16,7 +16,9 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import CONST from '../CONST';
 import withPolicy, {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import personalDetailsPropType from './personalDetailsPropType';
+import reportPropTypes from './reportPropTypes';
+import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import ROUTES from '../ROUTES';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import useNetwork from '../hooks/useNetwork';
@@ -29,6 +31,12 @@ const personalDetailsPropTypes = PropTypes.shape({
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
+
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** ID of the policy */
+        id: PropTypes.string,
+    }),
 
     /** The URL of the person's avatar (there should already be a default avatar if
     the person doesn't have their own avatar uploaded yet, except for anon users) */
@@ -84,10 +92,9 @@ function RoomInvitePage(props) {
 
     // useNetwork({onReconnect: openWorkspaceInvitePage});
 
-    // const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails), [props.policyMembers, props.personalDetails]);
-
+    const excludedUsers = useMemo(() => lodashGet(props.report, 'participants', []), [props.report.participants]);
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
 
         // Update selectedOptions with the latest personalDetails and policyMembers information
         const detailsMap = {};
@@ -189,17 +196,22 @@ function RoomInvitePage(props) {
         [props.policy],
     );
 
-    // const headerMessage = useMemo(() => {
-    //     const searchValue = searchTerm.trim().toLowerCase();
-    //     if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
-    //         return translate('messages.errorMessageInvalidEmail');
-    //     }
-    //     if (!userToInvite && excludedUsers.includes(searchValue)) {
-    //         return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
-    //     }
-    //     return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
-    // }, [excludedUsers, translate, searchTerm, policyName, userToInvite, personalDetails]);
+    const headerMessage = useMemo(() => {
+        const searchValue = searchTerm.trim().toLowerCase();
+        if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+        if (!userToInvite && excludedUsers.includes(searchValue)) {
+            return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
+        }
+        return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
+    }, [excludedUsers, translate, searchTerm, policyName, userToInvite, personalDetails]);
 
+    const reportID = useMemo(() => props.report.reportID, [props.report]);
+    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
+
+    // Non policy members should not be able to view the participants of a room
+    const backRoute = isPolicyMember ? ROUTES.getReportParticipantsRoute(reportID) : ROUTES.getReportDetailsRoute(reportID);
     return (
         <ScreenWrapper shouldEnableMaxHeight>
             {({didScreenTransitionEnd}) => {
@@ -207,16 +219,16 @@ function RoomInvitePage(props) {
 
                 return (
                     <FullPageNotFoundView
-                        shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}
-                        subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                        shouldShow={_.isEmpty(props.report)}
+                        subtitleKey={_.isEmpty(props.report) ? undefined : 'workspace.common.notAuthorized'}
+                        onBackButtonPress={() => Navigation.goBack(backRoute)}
                     >
                         <HeaderWithBackButton
                             title={translate('workspace.invite.invitePeople')}
                             subtitle={lodashGet(props.report, 'reportName')}
                             onBackButtonPress={() => {
-                                Policy.clearErrors(props.route.params.policyID);
-                                Navigation.goBack(ROUTES.getWorkspaceMembersRoute(props.route.params.policyID));
+                                // Policy.clearErrors(props.route.params.policyID);
+                                Navigation.goBack(backRoute);
                             }}
                         />
                         {/* <SelectionList
@@ -266,6 +278,9 @@ export default compose(
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(RoomInvitePage);
