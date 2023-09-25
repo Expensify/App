@@ -68,7 +68,7 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
      */
     const getFormattedAddress = () => {
         const [street1, street2] = (address.street || '').split('\n');
-        const formatted = formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
+        const formatted = [street1, street2, address.city, address.state, address.zip, address.country].reduce((acc, current) => acc + formatPiece(current), '');
 
         // Remove the last comma of the address
         return formatted.trim().replace(/,$/, '');
