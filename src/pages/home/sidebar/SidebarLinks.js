@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useCallback} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -45,7 +45,6 @@ const propTypes = {
 
     isLoading: PropTypes.bool.isRequired,
 
-    // eslint-disable-next-line react/require-default-props
     priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
 
     isActiveReport: PropTypes.func.isRequired,
@@ -106,14 +105,14 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         };
     }, []);
 
-    const showSearchPage = () => {
+    const showSearchPage = useCallback(() => {
         if (isCreateMenuOpen) {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
             return;
         }
 
         Navigation.navigate(ROUTES.SEARCH);
-    };
+    }, [isCreateMenuOpen]);
 
     /**
      * Show Report page with selected report id
@@ -121,17 +120,20 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
      * @param {Object} option
      * @param {String} option.reportID
      */
-    const showReportPage = (option) => {
-        // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
-        // or when clicking the active LHN row on large screens
-        // or when continuously clicking different LHNs, only apply to small screen
-        // since getTopmostReportId always returns on other devices
-        if (isCreateMenuOpen || (!isSmallScreenWidth && isActiveReport(option.reportID)) || (isSmallScreenWidth && Navigation.getTopmostReportId())) {
-            return;
-        }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
-        onLinkClick();
-    }
+    const showReportPage = useCallback(
+        (option) => {
+            // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
+            // or when clicking the active LHN row on large screens
+            // or when continuously clicking different LHNs, only apply to small screen
+            // since getTopmostReportId always returns on other devices
+            if (isCreateMenuOpen || (!isSmallScreenWidth && isActiveReport(option.reportID)) || (isSmallScreenWidth && Navigation.getTopmostReportId())) {
+                return;
+            }
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
+            onLinkClick();
+        },
+        [isCreateMenuOpen, isSmallScreenWidth, isActiveReport, onLinkClick],
+    );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
@@ -144,7 +146,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 <Header
                     title={
                         <LogoComponent
-                            fill={defaultTheme.textLight}
+                            fill={defaultTheme.text}
                             width={variables.lhnLogoWidth}
                             height={variables.lhnLogoHeight}
                         />
