@@ -364,6 +364,7 @@ function BaseSelectionList({
                                 <SectionList
                                     ref={listRef}
                                     sections={sections}
+                                    stickySectionHeadersEnabled={false}
                                     renderSectionHeader={renderSectionHeader}
                                     renderItem={renderItem}
                                     getItemLayout={getItemLayout}

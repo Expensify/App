@@ -117,7 +117,10 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
     }, [report, personalDetailsList, session, translate]);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={PrivateNotesListPage.displayName}
+        >
             <FullPageNotFoundView shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {})))}>
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
@@ -125,7 +128,7 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
-                    <FullScreenLoadingIndicator />
+                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
                     _.map(privateNotes, (item, index) => getMenuItem(item, index))
                 )}

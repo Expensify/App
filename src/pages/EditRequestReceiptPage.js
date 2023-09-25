@@ -31,6 +31,7 @@ function EditRequestReceiptPage({route, transactionID}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={EditRequestReceiptPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.receipt')}
