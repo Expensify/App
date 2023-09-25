@@ -79,7 +79,6 @@ const defaultProps = {
 function RoomMembersPage(props) {
     const [selectedMembers, setSelectedMembers] = useState([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
-    const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState('');
 
     /**
@@ -107,10 +106,6 @@ function RoomMembersPage(props) {
      * Remove selected users from the room
      */
     const removeUsers = () => {
-        if (!_.isEmpty(errors)) {
-            return;
-        }
-
         Report.removeFromRoom(props.report.reportID, selectedMembers);
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
@@ -167,9 +162,6 @@ function RoomMembersPage(props) {
      * Show the modal to confirm removal of the selected members
      */
     const askForConfirmationToRemove = () => {
-        if (!_.isEmpty(errors)) {
-            return;
-        }
         setRemoveMembersConfirmModalVisible(true);
     };
 
@@ -220,8 +212,6 @@ function RoomMembersPage(props) {
                     name: details.login,
                     type: CONST.ICON_TYPE_AVATAR,
                 },
-                // errors: policyMember.errors,
-                // pendingAction: policyMember.pendingAction,
             });
         });
 
