@@ -12,16 +12,11 @@ import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotF
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import useLocalize from '../../../hooks/useLocalize';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
 import DragAndDropProvider from '../../../components/DragAndDrop/Provider';
 import * as IOUUtils from '../../../libs/IOUUtils';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import TabSelector from '../../../components/TabSelector/TabSelector';
-import OnyxTabNavigator, {TopTab} from '../../../libs/Navigation/OnyxTabNavigator';
-import CreateIOUStartTabScan from './CreateIOUTabScan';
-import CreateIOUStartTabManual from './CreateIOUTabManual';
-import CreateIOUStartTabDistance from './CreateIOUTabDistance';
-import CreateIOUStartRequest from './request/CreateIOURequest';
+import CreateIOUStartTabManual from './request/tab/IOUCreateRequestTabManual';
+import CreateIOUStartRequest from './request/IOUCreateRequest';
 
 const propTypes = {
     /** Route from navigation */
@@ -45,7 +40,7 @@ const propTypes = {
 
 const defaultProps = {};
 
-function CreateIOUStartPage({route}) {
+function IOUCreatePage({route}) {
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const iouType = lodashGet(route, 'params.iouType');
@@ -62,7 +57,7 @@ function CreateIOUStartPage({route}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
-            testID={CreateIOUStartPage.displayName}
+            testID={IOUCreatePage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
@@ -93,12 +88,12 @@ function CreateIOUStartPage({route}) {
     );
 }
 
-CreateIOUStartPage.displayName = 'CreateIOUStartPage';
-CreateIOUStartPage.propTypes = propTypes;
-CreateIOUStartPage.defaultProps = defaultProps;
+IOUCreatePage.displayName = 'IOUCreatePage';
+IOUCreatePage.propTypes = propTypes;
+IOUCreatePage.defaultProps = defaultProps;
 
 export default withOnyx({
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
     },
-})(CreateIOUStartPage);
+})(IOUCreatePage);

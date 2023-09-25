@@ -2,18 +2,18 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {useRoute} from '@react-navigation/native';
-import useLocalize from '../../../hooks/useLocalize';
-import * as IOUUtils from '../../../libs/IOUUtils';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import styles from '../../../styles/styles';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
+import useLocalize from '../../../../../hooks/useLocalize';
+import * as IOUUtils from '../../../../../libs/IOUUtils';
+import FullPageNotFoundView from '../../../../../components/BlockingViews/FullPageNotFoundView';
+import styles from '../../../../../styles/styles';
+import HeaderWithBackButton from '../../../../../components/HeaderWithBackButton';
+import ScreenWrapper from '../../../../../components/ScreenWrapper';
 
 const propTypes = {};
 
 const defaultProps = {};
 
-function CreateIOUTabScan() {
+function IOUCreateRequestTabDistance() {
     const {params: iouType, transactionID, reportID} = useRoute();
     const {translate} = useLocalize();
     const isEditing = false;
@@ -42,7 +42,7 @@ function CreateIOUTabScan() {
             shouldEnableKeyboardAvoidingView={false}
             // @TODO onEntryTransitionEnd={focusTextInput}
             onEntryTransitionEnd={() => {}}
-            testID={CreateIOUTabScan.displayName}
+            testID={IOUCreateRequestTabDistance.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
@@ -60,8 +60,8 @@ function CreateIOUTabScan() {
     );
 }
 
-CreateIOUTabScan.propTypes = propTypes;
-CreateIOUTabScan.defaultProps = defaultProps;
-CreateIOUTabScan.displayName = 'CreateIOUTabScan';
+IOUCreateRequestTabDistance.propTypes = propTypes;
+IOUCreateRequestTabDistance.defaultProps = defaultProps;
+IOUCreateRequestTabDistance.displayName = 'IOUCreateRequestTabDistance';
 
-export default withOnyx({})(CreateIOUTabScan);
+export default withOnyx({})(IOUCreateRequestTabDistance);

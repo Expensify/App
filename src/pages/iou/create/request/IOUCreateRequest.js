@@ -5,9 +5,9 @@ import _ from 'underscore';
 import CONST from '../../../../CONST';
 import TabSelector from '../../../../components/TabSelector/TabSelector';
 import OnyxTabNavigator, {TopTab} from '../../../../libs/Navigation/OnyxTabNavigator';
-import CreateIOUStartTabScan from './CreateIOUTabScan';
-import CreateIOUStartTabManual from './CreateIOUTabManual';
-import CreateIOUStartTabDistance from './CreateIOUTabDistance';
+import IOUCreateRequestTabDistance from './tab/IOUCreateRequestTabDistance';
+import IOUCreateRequestTabManual from './tab/IOUCreateRequestTabManual';
+import IOUCreateRequestTabScan from './tab/IOUCreateRequestTabScan';
 
 const propTypes = {
     /** The ID of the currently selected tab */
@@ -17,7 +17,7 @@ const propTypes = {
     shouldDisplayDistanceTab: PropTypes.bool.isRequired,
 };
 
-function CreateIOURequest({selectedTab, shouldDisplayDistanceTab}) {
+function IOUCreateRequest({selectedTab, shouldDisplayDistanceTab}) {
     return (
         <OnyxTabNavigator
             id={CONST.TAB.RECEIPT_TAB_ID}
@@ -34,23 +34,23 @@ function CreateIOURequest({selectedTab, shouldDisplayDistanceTab}) {
         >
             <TopTab.Screen
                 name={CONST.TAB_REQUEST.MANUAL}
-                component={CreateIOUStartTabManual}
+                component={IOUCreateRequestTabManual}
             />
             <TopTab.Screen
                 name={CONST.TAB_REQUEST.SCAN}
-                component={CreateIOUStartTabScan}
+                component={IOUCreateRequestTabScan}
             />
             {shouldDisplayDistanceTab && (
                 <TopTab.Screen
                     name={CONST.TAB_REQUEST.DISTANCE}
-                    component={CreateIOUStartTabDistance}
+                    component={IOUCreateRequestTabDistance}
                 />
             )}
         </OnyxTabNavigator>
     );
 }
 
-CreateIOURequest.displayName = 'CreateIOURequest';
-CreateIOURequest.propTypes = propTypes;
+IOUCreateRequest.displayName = 'IOUCreateRequest';
+IOUCreateRequest.propTypes = propTypes;
 
-export default CreateIOURequest;
+export default IOUCreateRequest;
