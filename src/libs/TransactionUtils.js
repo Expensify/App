@@ -33,6 +33,9 @@ Onyx.connect({
  * @param {Object} [receipt]
  * @param {String} [filename]
  * @param {String} [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
+ * @param {String} [category]
+ * @param {String} [tag]
+ * @param {Boolean} [billable]
  * @returns {Object}
  */
 function buildOptimisticTransaction(
@@ -47,6 +50,9 @@ function buildOptimisticTransaction(
     receipt = {},
     filename = '',
     existingTransactionID = null,
+    category = '',
+    tag = '',
+    billable = false,
 ) {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -74,6 +80,9 @@ function buildOptimisticTransaction(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
         filename,
+        category,
+        tag,
+        billable,
     };
 }
 
@@ -92,6 +101,7 @@ function hasReceipt(transaction) {
 function areRequiredFieldsEmpty(transaction) {
     return (
         transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
+        transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
         (transaction.modifiedMerchant === '' &&
             (transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === '' || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) ||
         (transaction.modifiedAmount === 0 && transaction.amount === 0) ||
@@ -137,6 +147,14 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         shouldStopSmartscan = true;
     }
 
+    if (_.has(transactionChanges, 'category')) {
+        updatedTransaction.category = transactionChanges.category;
+    }
+
+    if (_.has(transactionChanges, 'tag')) {
+        updatedTransaction.tag = transactionChanges.tag;
+    }
+
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
@@ -147,6 +165,8 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'merchant') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'category') && {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;
@@ -157,6 +177,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
  *
  * @param {String} transactionID
  * @returns {Object}
+ * @deprecated Use withOnyx() or Onyx.connect() instead
  */
 function getTransaction(transactionID) {
     return lodashGet(allTransactions, `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
@@ -228,6 +249,26 @@ function getMerchant(transaction) {
 }
 
 /**
+ * Return the category from the transaction. This "category" field has no "modified" complement.
+ *
+ * @param {Object} transaction
+ * @return {String}
+ */
+function getCategory(transaction) {
+    return lodashGet(transaction, 'category', '');
+}
+
+/**
+ * Return the tag from the transaction. This "tag" field has no "modified" complement.
+ *
+ * @param {Object} transaction
+ * @return {String}
+ */
+function getTag(transaction) {
+    return lodashGet(transaction, 'tag', '');
+}
+
+/**
  * Return the created field from the transaction, return the modifiedCreated if present.
  *
  * @param {Object} transaction
@@ -272,11 +313,22 @@ function hasMissingSmartscanFields(transaction) {
 }
 
 /**
+ * Check if the transaction has a defined route
+ *
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
+function hasRoute(transaction) {
+    return !!lodashGet(transaction, 'routes.route0.geometry.coordinates');
+}
+
+/**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
  * @param {Object} reportAction
  * @returns {Object}
+ * @deprecated Use Onyx.connect() or withOnyx() instead
  */
 function getLinkedTransaction(reportAction = {}) {
     const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
@@ -303,13 +355,23 @@ function waypointHasValidAddress(waypoint) {
 }
 
 /**
+ * Converts the key of a waypoint to its index
+ * @param {String} key
+ * @returns {Number} waypoint index
+ */
+function getWaypointIndex(key) {
+    return Number(key.replace('waypoint', ''));
+}
+
+/**
  * Filters the waypoints which are valid and returns those
  * @param {Object} waypoints
  * @param {Boolean} reArrangeIndexes
  * @returns {Object} validated waypoints
  */
 function getValidWaypoints(waypoints, reArrangeIndexes = false) {
-    const waypointValues = _.values(waypoints);
+    const sortedIndexes = _.map(_.keys(waypoints), (key) => getWaypointIndex(key)).sort();
+    const waypointValues = _.map(sortedIndexes, (index) => waypoints[`waypoint${index}`]);
     // Ensure the number of waypoints is between 2 and 25
     if (waypointValues.length < 2 || waypointValues.length > 25) {
         return {};
@@ -339,7 +401,6 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
         },
         {},
     );
-
     return validWaypoints;
 }
 
@@ -352,11 +413,16 @@ export {
     getCurrency,
     getMerchant,
     getCreated,
+    getCategory,
+    getTag,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
+    hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
     hasMissingSmartscanFields,
+    getWaypointIndex,
+    waypointHasValidAddress,
 };

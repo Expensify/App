@@ -8,8 +8,6 @@ import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
 import * as Link from './Link';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
@@ -19,6 +17,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
 import * as OnyxUpdates from './OnyxUpdates';
+import redirectToSignIn from './SignInRedirect';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -70,6 +69,8 @@ function closeAccount(message) {
             ],
         },
     );
+    // Run cleanup actions to prevent reconnection callbacks from blocking logging in again
+    redirectToSignIn();
 }
 
 /**
@@ -462,64 +463,6 @@ function isBlockedFromConcierge(blockedFromConciergeNVP) {
     return moment().isBefore(moment(blockedFromConciergeNVP.expiresAt), 'day');
 }
 
-/**
- * Adds a paypal.me address for the user
- *
- * @param {String} address
- */
-function addPaypalMeAddress(address) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PAYPAL,
-            value: {
-                title: 'PayPal.me',
-                description: address,
-                methodID: CONST.PAYMENT_METHODS.PAYPAL,
-                key: 'payPalMePaymentMethod',
-                accountType: CONST.PAYMENT_METHODS.PAYPAL,
-                accountData: {
-                    username: address,
-                },
-                isDefault: false,
-            },
-        },
-    ];
-    API.write(
-        'AddPaypalMeAddress',
-        {
-            value: address,
-        },
-        {optimisticData},
-    );
-}
-
-/**
- * Deletes a paypal.me address for the user
- *
- */
-function deletePaypalMeAddress() {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PAYPAL,
-            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-        },
-    ];
-
-    // Success data required for Android, more info here https://github.com/Expensify/App/pull/17903#discussion_r1175763081
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.PAYPAL,
-            value: {},
-        },
-    ];
-
-    API.write('DeletePaypalMeAddress', {}, {optimisticData, successData});
-    Growl.show(Localize.translateLocal('walletPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
-}
-
 function triggerNotifications(onyxUpdates) {
     _.each(onyxUpdates, (update) => {
         if (!update.shouldNotify) {
@@ -546,8 +489,6 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
-        let updates;
-
         // The data for this push event comes in two different formats:
         // 1. Original format - this is what was sent before the RELIABLE_UPDATES project and will go away once RELIABLE_UPDATES is fully complete
         //     - The data is an array of objects, where each object is an onyx update
@@ -556,28 +497,44 @@ function subscribeToUserEvents() {
         //     - The data is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
         //       Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         if (_.isArray(pushJSON)) {
-            updates = pushJSON;
-        } else {
-            updates = pushJSON.updates;
-            OnyxUpdates.saveUpdateIDs(Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
+            _.each(pushJSON, (multipleEvent) => {
+                PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
+            });
+            return;
         }
-        _.each(updates, (multipleEvent) => {
-            PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
-        });
+
+        const updates = {
+            type: CONST.ONYX_UPDATE_TYPES.PUSHER,
+            lastUpdateID: Number(pushJSON.lastUpdateID || 0),
+            updates: pushJSON.updates,
+            previousUpdateID: Number(pushJSON.previousUpdateID || 0),
+        };
+        if (!OnyxUpdates.doesClientNeedToBeUpdated(Number(pushJSON.previousUpdateID || 0))) {
+            OnyxUpdates.apply(updates);
+            return;
+        }
+
+        // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
+        SequentialQueue.pause();
+        OnyxUpdates.saveUpdateInformation(updates);
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
-    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON) => {
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON) =>
         SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
             if (!currentUserAccountID) {
                 return;
             }
 
-            Onyx.update(pushJSON);
+            const onyxUpdatePromise = Onyx.update(pushJSON);
             triggerNotifications(pushJSON);
-        });
-    });
+
+            // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
+            // the onyx updates in order
+            return onyxUpdatePromise;
+        }),
+    );
 }
 
 /**
@@ -828,7 +785,6 @@ function updateTheme(theme) {
  * @param {Object} status
  * @param {String} status.text
  * @param {String} status.emojiCode
- * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
  */
 function updateCustomStatus(status) {
     API.write('UpdateStatus', status, {
@@ -904,8 +860,6 @@ export {
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
-    deletePaypalMeAddress,
-    addPaypalMeAddress,
     updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,

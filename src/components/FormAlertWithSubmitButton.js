@@ -47,8 +47,9 @@ const propTypes = {
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
-    /** Style for the button */
-    buttonStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    /** Styles for the button */
+    // eslint-disable-next-line react/forbid-prop-types
+    buttonStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether to use a smaller submit button size */
     useSmallerSubmitButtonSize: PropTypes.bool,
@@ -66,11 +67,11 @@ const defaultProps = {
     isSubmitActionDangerous: false,
     useSmallerSubmitButtonSize: false,
     footerContent: null,
-    buttonStyle: {},
+    buttonStyles: [],
 };
 
 function FormAlertWithSubmitButton(props) {
-    const buttonMarginStyle = _.isEmpty(props.footerContent) ? {} : styles.mb3;
+    const buttonStyles = [_.isEmpty(props.footerContent) ? {} : styles.mb3, ...props.buttonStyles];
 
     return (
         <FormAlertWrapper
@@ -87,7 +88,7 @@ function FormAlertWithSubmitButton(props) {
                             success
                             isDisabled
                             text={props.buttonText}
-                            style={[buttonMarginStyle, props.buttonStyle]}
+                            style={buttonStyles}
                             danger={props.isSubmitActionDangerous}
                             medium={props.useSmallerSubmitButtonSize}
                         />
@@ -96,7 +97,7 @@ function FormAlertWithSubmitButton(props) {
                             success
                             pressOnEnter={!props.disablePressOnEnter}
                             text={props.buttonText}
-                            style={[buttonMarginStyle, props.buttonStyle]}
+                            style={buttonStyles}
                             onPress={props.onSubmit}
                             isDisabled={props.isDisabled}
                             isLoading={props.isLoading}

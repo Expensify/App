@@ -28,10 +28,12 @@ function extractAttachmentsFromReport(report, reportActions) {
             // By iterating actions in chronological order and prepending each attachment
             // we ensure correct order of attachments even across actions with multiple attachments.
             attachments.unshift({
+                reportActionID: attribs['data-id'],
                 source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
                 isAuthTokenRequired: Boolean(expensifySource),
                 file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
                 isReceipt: false,
+                hasBeenFlagged: attribs['data-flagged'] === 'true',
             });
         },
     });
@@ -57,12 +59,16 @@ function extractAttachmentsFromReport(report, reportActions) {
                     isAuthTokenRequired: true,
                     file: {name: transaction.filename},
                     isReceipt: true,
+                    transactionID,
                 });
                 return;
             }
         }
 
-        htmlParser.write(_.get(action, ['message', 0, 'html']));
+        const decision = _.get(action, ['message', 0, 'moderationDecision', 'decision'], '');
+        const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
+        const html = _.get(action, ['message', 0, 'html'], '').replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
+        htmlParser.write(html);
     });
     htmlParser.end();
 

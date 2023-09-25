@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
-import colors from '../styles/colors';
+import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
 import * as Localize from '../libs/Localize';
@@ -50,7 +50,7 @@ function FormHelpMessage(props) {
             {props.isError && props.shouldShowRedDotIndicator && (
                 <Icon
                     src={Expensicons.DotIndicator}
-                    fill={colors.red}
+                    fill={themeColors.danger}
                 />
             )}
             <View style={[styles.flex1, props.isError && props.shouldShowRedDotIndicator ? styles.ml2 : {}, props.containerMessageStyle]}>

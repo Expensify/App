@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import StaticHeaderPageLayout from '../../../../components/StaticHeaderPageLayout';
+import HeaderPageLayout from '../../../../components/HeaderPageLayout';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import withLocalize from '../../../../components/withLocalize';
 import MenuItem from '../../../../components/MenuItem';
@@ -21,6 +21,7 @@ import compose from '../../../../libs/compose';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import CONST from '../../../../CONST';
+import SCREENS from '../../../../SCREENS';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -106,11 +107,17 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     }, []);
 
     return (
-        <StaticHeaderPageLayout
+        <HeaderPageLayout
             title={localize.translate('statusPage.status')}
             onBackButtonPress={navigateBackToSettingsPage}
-            backgroundColor={themeColors.midtone}
-            image={MobileBackgroundImage}
+            headerContent={
+                <MobileBackgroundImage
+                    pointerEvents="none"
+                    style={styles.staticHeaderImage}
+                />
+            }
+            headerContainerStyles={[styles.staticHeaderImage]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS]}
             footer={footerComponent}
         >
             <View style={styles.m5}>
@@ -143,7 +150,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                     wrapperStyle={[styles.cardMenuItem]}
                 />
             )}
-        </StaticHeaderPageLayout>
+        </HeaderPageLayout>
     );
 }
 

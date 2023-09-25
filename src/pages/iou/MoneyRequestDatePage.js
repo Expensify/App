@@ -11,6 +11,7 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
+import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
 import NewDatePicker from '../../components/NewDatePicker';
 import useLocalize from '../../hooks/useLocalize';
 import CONST from '../../CONST';
@@ -51,7 +52,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
     const {translate} = useLocalize();
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
-    const isDistanceRequest = selectedTab === CONST.TAB.DISTANCE;
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
     useEffect(() => {
         const moneyRequestId = `${iouType}${reportID}`;
@@ -60,13 +61,13 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (!isDistanceRequest && (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+        if (!isDistanceRequest && (_.isEmpty(iou.participantAccountIDs) || (iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
         }
-    }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID, isDistanceRequest]);
+    }, [iou.id, iou.participantAccountIDs, iou.amount, iou.receiptPath, iouType, reportID, isDistanceRequest]);
 
     function navigateBack() {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     }
 
     /**
@@ -84,6 +85,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={MoneyRequestDatePage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.date')}
@@ -109,12 +111,13 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
 
 MoneyRequestDatePage.propTypes = propTypes;
 MoneyRequestDatePage.defaultProps = defaultProps;
+MoneyRequestDatePage.displayName = 'MoneyRequestDatePage';
 
 export default withOnyx({
     iou: {
         key: ONYXKEYS.IOU,
     },
     selectedTab: {
-        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(MoneyRequestDatePage);

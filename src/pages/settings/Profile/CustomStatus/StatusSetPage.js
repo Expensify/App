@@ -48,6 +48,7 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
 
     return (
         <ScreenWrapper
+            testID={StatusSetPage.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >

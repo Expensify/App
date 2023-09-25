@@ -67,6 +67,8 @@ platform :android do
   desc "Build and upload app to Google Play"
   lane :beta do
     ENV["ENVFILE"]=".env.production"
+    # Google is very unreliable, so we retry a few times
+    ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
 
     gradle(
         project_dir: './android',
@@ -86,6 +88,8 @@ platform :android do
 
   desc "Deploy app to Google Play production"
   lane :production do
+    # Google is very unreliable, so we retry a few times
+    ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
     google_play_track_version_codes(
       package_name: "com.expensify.chat",
       json_key: './android/app/android-fastlane-json-key.json',
@@ -224,11 +228,11 @@ platform :ios do
               contact_phone: ENV["APPLE_CONTACT_PHONE"],
               demo_account_name: ENV["APPLE_DEMO_EMAIL"],
               demo_account_password: ENV["APPLE_DEMO_PASSWORD"],
-              notes: "1. Log into the Expensify app using the provided email
-                      2. Now, you have to log in to this gmail account on https://mail.google.com/ so you can retrieve a One-Time-Password
-                      3. To log in to the gmail account, use the password above (That's NOT a password for the Expensify app but for the Gmail account)
-                      4. At the Gmail inbox, you should have received a one-time 6 digit magic code
-                      5. Use that to sign in"
+              notes: "1. In the Expensify app, enter the email 'appletest.expensify@proton.me'. This will trigger a sign-in link to be sent to 'appletest.expensify@proton.me'
+                      2. Navigate to https://account.proton.me/login, log into Proton Mail using 'appletest.expensify@proton.me' as email and the password associated with 'appletest.expensify@proton.me', provided above
+                      3. Once logged into Proton Mail, navigate to your inbox and locate the email triggered in step 1. The email subject should be 'Your magic sign-in link for Expensify'
+                      4. Open the email and copy the 6-digit sign-in code provided within
+                      5. Return to the Expensify app and enter the copied 6-digit code in the designated login field"
           }
       )
     rescue Exception => e
