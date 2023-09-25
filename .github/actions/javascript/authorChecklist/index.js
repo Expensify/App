@@ -249,9 +249,9 @@ function detectReactComponent(code) {
 };
 
 function readFile(filename) {
-    const filePath = `./${filename}`;
+    const filePath = path.resolve(__dirname, `../../../../${filename}`);
     try {
-        console.log('reading', filePath, fs.existsSync('./package.json'));
+        console.log('reading', filePath, fs.existsSync('../../../../package.json'), fs.existsSync('../../../package.json'), fs.existsSync('../../package.json'), fs.existsSync('../package.json'));
         return fs.readFileSync(filePath, 'utf-8');
     } catch (error) {
         console.error(`Error reading ${filePath}`, error);
@@ -259,7 +259,7 @@ function readFile(filename) {
 }
 
 function detectFunction(changedFiles) {
-    console.log('detectFunction', process.cwd());
+    console.log('detectFunction', process.cwd(), __dirname);
 
     fs.readdirSync(process.cwd()).forEach(file => {
         console.log(file);
