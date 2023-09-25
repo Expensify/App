@@ -21,14 +21,14 @@
     {% for platform in site.data.routes.platforms %}
         {% if platform.href == activePlatform %}
             <li>
-                <a href="/{{ platform.href }}/hubs" class="icon-with-link selected">
+                <a href="/" class="icon-with-link selected">
                     <img src="/assets/images/down.svg" class="base-icon"></img>
                     <span>{{ platform.title }}</span>
                 </a>
                 {% for hub in platform.hubs %}
                 <ul>
                     {% if hub.href == activeHub %}
-                        <a href="/{{ activePlatform }}/hubs/{{ hub.href }}" class="icon-with-link selected">
+                        <a href="/{{ activePlatform }}/hubs/" class="icon-with-link selected">
                             <img src="/assets/images/down.svg" class="base-icon"></img>
                             <span>{{ hub.title }}</span>
                         </a>
@@ -36,7 +36,7 @@
                             {% for section in hub.sections %}
                                 <li>
                                     {% if section.href == activeSection %}
-                                        <a href="{{ section.href }}" class="icon-with-link selected">
+                                        <a href="/{{ activePlatform }}/hubs/{{ hub.href }}" class="icon-with-link selected">
                                             <img src="/assets/images/down.svg" class="base-icon"></img>
                                             <span>{{ section.title }}</span>
                                         </a>
