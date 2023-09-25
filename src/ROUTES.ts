@@ -116,13 +116,14 @@ export default {
     MONEY_REQUEST_WAYPOINT: {            route: ':iouType/new/waypoint/:waypointIndex', getRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}`},
     MONEY_REQUEST_RECEIPT: {             route: ':iouType/new/receipt/:reportID?',      getRoute: (iouType: string, reportID = '') => `${iouType}/new/receipt/${reportID}`},
     MONEY_REQUEST_ADDRESS: {             route: ':iouType/new/address/:reportID?',      getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}`},
-    // -->
     MONEY_REQUEST_DISTANCE_TAB: {        route: ':iouType/new/:reportID?/distance',     getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance`},
     MONEY_REQUEST_MANUAL_TAB:                   ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB:                     ':iouType/new/:reportID?/scan',
+    // -->
 
-    MONEE_REQUEST_START: {               route: 'create/:iouType/start/:transactionID/:reportID?/:tabName?',   getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, reportID = '') => `create/${iouType}/start/${transactionID}/${reportID}`},
-    MONEE_REQUEST_FIELD: {               route: 'create/:iouType/:field/:transactionID/:reportID?',            getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, field: MoneyRequestFields, reportID = '') => `create/${iouType}/${field}/${transactionID}/${reportID}`},
+    // @TODO remove "create" from the front of the route
+    MONEE_REQUEST_START: {               route: 'create/:iouType/start/:transactionID/:reportID?/:selectedTab?',    getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, reportID = '') => `create/${iouType}/start/${transactionID}/${reportID}`},
+    MONEE_REQUEST_FIELD: {               route: 'create/:iouType/:field/:transactionID/:reportID?',                 getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, field: MoneyRequestFields, reportID = '') => `create/${iouType}/${field}/${transactionID}/${reportID}`},
 
     IOU_REQUEST:                                'request/new',
     IOU_SEND:                                   'send/new',

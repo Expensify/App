@@ -21,6 +21,7 @@ import OnyxTabNavigator, {TopTab} from '../../../libs/Navigation/OnyxTabNavigato
 import CreateIOUStartTabScan from './CreateIOUStartTabScan';
 import CreateIOUStartTabManual from './CreateIOUStartTabManual';
 import CreateIOUStartTabDistance from './CreateIOUStartTabDistance';
+import CreateIOUStartRequest from './CreateIOUStartRequest';
 
 const propTypes = {
     /** Route from navigation */
@@ -37,90 +38,51 @@ const propTypes = {
             reportID: PropTypes.string,
 
             /** The ID of the currently selected tab */
-            tabName: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
+            selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
         }),
     }).isRequired,
-
-    /* Onyx Props */
-    /** Which tab has been selected */
-    selectedTab: PropTypes.string,
 };
 
-const defaultProps = {
-    selectedTab: CONST.TAB_REQUEST.SCAN,
-};
+const defaultProps = {};
 
 function CreateIOUStartPage({route}) {
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const iouType = lodashGet(route, 'params.iouType');
-    const tabName = lodashGet(route, 'params.tabName');
-    const title = {
+    const selectedTab = lodashGet(route, 'params.selectedTab');
+    const reportID = lodashGet(route, 'params.reportID');
+    const tabTitles = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
-    // @TODO const isFromGlobalCreate = !reportID;
-    // @TODO const isExpenseRequest = ReportUtils.isPolicyExpenseChat(props.report);
-    // @TODO const shouldDisplayDistanceRequest = isExpenseRequest || isFromGlobalCreate;
-    const shouldDisplayDistanceRequest = true;
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            headerGapStyles={
-                isDraggingOver
-                    ? [
-                          {
-                              backgroundColor: themeColors.receiptDropUIBG,
-                          },
-                      ]
-                    : []
-            }
+            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
             testID={CreateIOUStartPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <DragAndDropProvider
-                        isDisabled={tabName !== CONST.TAB_REQUEST.SCAN}
+                        isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}
                         setIsDraggingOver={setIsDraggingOver}
                     >
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
-                                title={title[iouType]}
+                                title={tabTitles[iouType]}
                                 onBackButtonPress={Navigation.dismissModal}
                             />
+
                             {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
-                                <OnyxTabNavigator
-                                    id={CONST.TAB.RECEIPT_TAB_ID}
-                                    selectedTab={tabName}
-                                    tabBar={({state, navigation, position}) => (
-                                        <TabSelector
-                                            state={state}
-                                            navigation={navigation}
-                                            // @TODO onTabPress={resetMoneyRequestInfo}
-                                            onTabPress={() => {}}
-                                            position={position}
-                                        />
-                                    )}
-                                >
-                                    <TopTab.Screen
-                                        name={CONST.TAB_REQUEST.MANUAL}
-                                        component={CreateIOUStartTabManual}
-                                    />
-                                    <TopTab.Screen
-                                        name={CONST.TAB_REQUEST.SCAN}
-                                        component={CreateIOUStartTabScan}
-                                    />
-                                    {shouldDisplayDistanceRequest && (
-                                        <TopTab.Screen
-                                            name={CONST.TAB_REQUEST.DISTANCE}
-                                            component={CreateIOUStartTabDistance}
-                                        />
-                                    )}
-                                </OnyxTabNavigator>
+                                <CreateIOUStartRequest
+                                    selectedTab={selectedTab}
+                                    shouldDisplayDistanceTab={!!reportID}
+                                />
                             ) : (
+                                // @TODO see if this is necessary and if there are any routes using it
                                 <CreateIOUStartTabManual />
                             )}
                         </View>

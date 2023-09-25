@@ -2120,13 +2120,12 @@ function startMoneyRequest(iouType, reportID = '') {
  */
 function startMoneeRequest(iouType, reportID = '') {
     // Generate a brand new transactionID
-    const newTransactionID = NumberUtils.rand64();
+    const newTransactionID = 'new';
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {wasSaved: false});
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {wasSaved: false});
 
     // Navigate to it
-    console.log('[tim]', ROUTES.MONEE_REQUEST_START.getRoute(iouType, newTransactionID, reportID));
     Navigation.navigate(ROUTES.MONEE_REQUEST_START.getRoute(iouType, newTransactionID, reportID));
 }
 

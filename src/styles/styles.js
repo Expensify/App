@@ -3038,6 +3038,10 @@ const styles = (theme) => ({
         zIndex: 2,
     },
 
+    isDraggingOver: {
+        backgroundColor: theme.receiptDropUIBG,
+    },
+
     receiptImageWrapper: (receiptImageTopPosition) => ({
         position: 'absolute',
         top: receiptImageTopPosition,
