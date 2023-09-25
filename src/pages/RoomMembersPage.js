@@ -147,7 +147,7 @@ function RoomMembersPage(props) {
             }
 
             result.push({
-                keyForList: accountID,
+                keyForList: String(accountID),
                 accountID: Number(accountID),
                 isSelected: _.contains(selectedMembers, Number(accountID)),
                 isDisabled: accountID === props.session.accountID,
