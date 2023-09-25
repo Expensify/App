@@ -1,22 +1,21 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {useRoute} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import useLocalize from '../../../../../../hooks/useLocalize';
 import * as IOUUtils from '../../../../../../libs/IOUUtils';
-import FullPageNotFoundView from '../../../../../../components/BlockingViews/FullPageNotFoundView';
-import styles from '../../../../../../styles/styles';
-import HeaderWithBackButton from '../../../../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../../../../components/ScreenWrapper';
+import TabContentWithEditing from '../TabContentWithEditing';
 
 const propTypes = {};
 
 const defaultProps = {};
 
-function IOUCreateRequestTabDistance() {
-    const {params: iouType, transactionID, reportID} = useRoute();
+function IOUCreateRequestTabDistance(props) {
+    const route = useRoute();
+    const iouType = lodashGet(route, 'params.iouType');
+    console.log('[tim] distance', props);
     const {translate} = useLocalize();
-    const isEditing = false;
 
     // @TODO const content = (
     //     <MoneyRequestAmountForm
@@ -28,35 +27,17 @@ function IOUCreateRequestTabDistance() {
     //         onSubmitButtonPress={navigateToNextPage}
     //     />
     // );
-    const content = <Text>Distance Tab</Text>;
-
-    // ScreenWrapper is only needed in edit mode because we have a dedicated route for the edit amount page (MoneyRequestEditAmountPage).
-    // The rest of the cases this component is rendered through <MoneyRequestSelectorPage /> which has it's own ScreenWrapper
-    if (!isEditing) {
-        return content;
-    }
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
-            // @TODO onEntryTransitionEnd={focusTextInput}
-            onEntryTransitionEnd={() => {}}
+        <TabContentWithEditing
+            // @TODO onBackButtonPress={navigateBack}
+            onBackButtonPress={() => {}}
+            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
+            title={translate('iou.amount')}
             testID={IOUCreateRequestTabDistance.displayName}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={translate('iou.amount')}
-                            // @TODO onBackButtonPress={navigateBack}
-                            onBackButtonPress={() => {}}
-                        />
-                        {content}
-                    </View>
-                </FullPageNotFoundView>
-            )}
-        </ScreenWrapper>
+            <Text>Distance Tab</Text>
+        </TabContentWithEditing>
     );
 }
 

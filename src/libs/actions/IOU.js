@@ -2126,7 +2126,7 @@ function startMoneeRequest(iouType, reportID = '') {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {wasSaved: false});
 
     // Navigate to it
-    Navigation.navigate(ROUTES.MONEE_REQUEST_START.getRoute(iouType, newTransactionID, reportID));
+    Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(iouType, newTransactionID, reportID));
 }
 
 /**

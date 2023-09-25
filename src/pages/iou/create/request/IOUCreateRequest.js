@@ -10,6 +10,9 @@ import IOUCreateRequestTabManual from './tab/manual/IOUCreateRequestTabManual';
 import IOUCreateRequestTabScan from './tab/scan/IOUCreateRequestTabScan';
 
 const propTypes = {
+    /** The type of IOU being created */
+    iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)).isRequired,
+
     /** The ID of the currently selected tab */
     selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)).isRequired,
 
@@ -17,7 +20,7 @@ const propTypes = {
     shouldDisplayDistanceTab: PropTypes.bool.isRequired,
 };
 
-function IOUCreateRequest({selectedTab, shouldDisplayDistanceTab}) {
+function IOUCreateRequest({selectedTab, shouldDisplayDistanceTab, iouType}) {
     return (
         <OnyxTabNavigator
             id={CONST.TAB.RECEIPT_TAB_ID}
@@ -44,6 +47,7 @@ function IOUCreateRequest({selectedTab, shouldDisplayDistanceTab}) {
                 <TopTab.Screen
                     name={CONST.TAB_REQUEST.DISTANCE}
                     component={IOUCreateRequestTabDistance}
+                    options={{iouType}}
                 />
             )}
         </OnyxTabNavigator>

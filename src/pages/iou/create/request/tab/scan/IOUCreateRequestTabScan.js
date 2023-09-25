@@ -13,8 +13,9 @@ const propTypes = {};
 
 const defaultProps = {};
 
-function IOUCreateRequestTabDistance() {
+function IOUCreateRequestTabScan() {
     const {params: iouType, transactionID, reportID} = useRoute();
+    console.log('[tim] scan', iouType);
     const {translate} = useLocalize();
     const isEditing = false;
 
@@ -42,7 +43,7 @@ function IOUCreateRequestTabDistance() {
             shouldEnableKeyboardAvoidingView={false}
             // @TODO onEntryTransitionEnd={focusTextInput}
             onEntryTransitionEnd={() => {}}
-            testID={IOUCreateRequestTabDistance.displayName}
+            testID={IOUCreateRequestTabScan.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
@@ -60,8 +61,8 @@ function IOUCreateRequestTabDistance() {
     );
 }
 
-IOUCreateRequestTabDistance.propTypes = propTypes;
-IOUCreateRequestTabDistance.defaultProps = defaultProps;
-IOUCreateRequestTabDistance.displayName = 'IOUCreateRequestTabDistance';
+IOUCreateRequestTabScan.propTypes = propTypes;
+IOUCreateRequestTabScan.defaultProps = defaultProps;
+IOUCreateRequestTabScan.displayName = 'IOUCreateRequestTabScan';
 
-export default withOnyx({})(IOUCreateRequestTabDistance);
+export default withOnyx({})(IOUCreateRequestTabScan);

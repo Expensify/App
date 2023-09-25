@@ -74,7 +74,8 @@ function IOUCreatePage({route}) {
                             {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <CreateIOUStartRequest
                                     selectedTab={selectedTab}
-                                    shouldDisplayDistanceTab={!!reportID}
+                                    shouldDisplayDistanceTab={!reportID}
+                                    iouType={iouType}
                                 />
                             ) : (
                                 // @TODO see if this is necessary and if there are any routes using it
