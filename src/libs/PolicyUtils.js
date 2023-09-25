@@ -6,11 +6,12 @@ import ONYXKEYS from '../ONYXKEYS';
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
+ * These are policies that we can use to create reports with in NewDot.
  * @param {Object} policies
  * @returns {Array}
  */
 function getActivePolicies(policies) {
-    return _.filter(policies, (policy) => policy && policy.isPolicyExpenseChatEnabled && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return _.filter(policies, (policy) => policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
@@ -55,6 +56,42 @@ function hasPolicyError(policy) {
  */
 function hasCustomUnitsError(policy) {
     return !_.isEmpty(_.pick(lodashGet(policy, 'customUnits', {}), 'errors'));
+}
+
+/**
+ * @param {Number} value
+ * @param {Function} toLocaleDigit
+ * @returns {Number}
+ */
+function getNumericValue(value, toLocaleDigit) {
+    const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
+    if (Number.isNaN(numValue)) {
+        return NaN;
+    }
+    return numValue.toFixed(CONST.CUSTOM_UNITS.RATE_DECIMALS);
+}
+
+/**
+ * @param {Number} value
+ * @param {Function} toLocaleDigit
+ * @returns {String}
+ */
+function getRateDisplayValue(value, toLocaleDigit) {
+    const numValue = getNumericValue(value, toLocaleDigit);
+    if (Number.isNaN(numValue)) {
+        return '';
+    }
+    return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.length);
+}
+
+/**
+ * @param {Object} customUnitRate
+ * @param {Number} customUnitRate.rate
+ * @param {Function} toLocaleDigit
+ * @returns {String}
+ */
+function getUnitRateValue(customUnitRate, toLocaleDigit) {
+    return getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit);
 }
 
 /**
@@ -166,12 +203,22 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
     return memberEmailsToExclude;
 }
 
+/**
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isPendingDeletePolicy(policy) {
+    return policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
     hasPolicyError,
     hasPolicyErrorFields,
     hasCustomUnitsError,
+    getNumericValue,
+    getUnitRateValue,
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
     isExpensifyTeam,
@@ -179,4 +226,5 @@ export {
     isPolicyAdmin,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
+    isPendingDeletePolicy,
 };
