@@ -144,7 +144,7 @@ class SidebarLinks extends React.PureComponent {
         if (this.props.isCreateMenuOpen || option.reportID === Navigation.getTopmostReportId() || (this.props.isSmallScreenWidth && this.props.isActiveReport(option.reportID))) {
             return;
         }
-        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
         this.props.onLinkClick();
     }
 

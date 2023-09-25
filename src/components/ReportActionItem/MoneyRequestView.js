@@ -143,7 +143,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
                     titleStyle={styles.newKansasLarge}
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
-                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                     brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     subtitle={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                     subtitleTextStyle={styles.textLabelError}
@@ -157,7 +157,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                     wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                     numberOfLinesTitle={0}
                 />
@@ -169,7 +169,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                     brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     subtitle={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                     subtitleTextStyle={styles.textLabelError}
@@ -182,7 +182,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
                     brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     subtitle={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                     subtitleTextStyle={styles.textLabelError}
@@ -196,7 +196,7 @@ function MoneyRequestView({betas, report, parentReport, policyCategories, should
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}
                         titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
                     />
                 </OfflineWithFeedback>
             )}

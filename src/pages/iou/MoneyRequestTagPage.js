@@ -64,7 +64,7 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
     const tagListName = lodashGet(tagList, 'name', translate('common.tag'));
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, report.reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
     };
 
     const updateTag = (selectedTag) => {

@@ -34,7 +34,7 @@ const lightTheme = {
     signInPage: colors.green800,
 
     // Additional keys
-    overlay: colors.lightHighlightBackground,
+    overlay: colors.lightBorders,
     inverse: colors.lightPrimaryText,
     shadow: colors.black,
     componentBG: colors.lightAppBackground,

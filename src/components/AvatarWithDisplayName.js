@@ -57,12 +57,12 @@ const defaultProps = {
 
 const showActorDetails = (report) => {
     if (ReportUtils.isExpenseReport(report)) {
-        Navigation.navigate(ROUTES.getProfileRoute(report.ownerAccountID));
+        Navigation.navigate(ROUTES.PROFILE.getRoute(report.ownerAccountID));
         return;
     }
 
     if (ReportUtils.isIOUReport(report)) {
-        Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
+        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID));
         return;
     }
 
@@ -71,13 +71,13 @@ const showActorDetails = (report) => {
         const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', -1);
         // in an ideal situation account ID won't be 0
         if (actorAccountID > 0) {
-            Navigation.navigate(ROUTES.getProfileRoute(actorAccountID));
+            Navigation.navigate(ROUTES.PROFILE.getRoute(actorAccountID));
             return;
         }
     }
 
     // report detail route is added as fallback but based on the current implementation this route won't be executed
-    Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
+    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
 };
 
 function AvatarWithDisplayName(props) {
@@ -85,7 +85,7 @@ function AvatarWithDisplayName(props) {
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
     const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(props.report) || ReportUtils.isMoneyRequest(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policy, true);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policy);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
