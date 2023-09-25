@@ -136,6 +136,7 @@ function CloseAccountPage(props) {
 
 CloseAccountPage.propTypes = propTypes;
 CloseAccountPage.defaultProps = defaultProps;
+CloseAccountPage.displayName = 'CloseAccountPage';
 
 export default compose(
     withLocalize,
