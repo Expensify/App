@@ -67,13 +67,13 @@ function setLocale(localeString) {
 
 /**
  * Gets the user's stored time zone NVP and returns a localized
- * Moment object for the given ISO-formatted datetime string
+ * Date object for the given ISO-formatted datetime string
  *
  * @private
  * @param {String} locale
  * @param {String} datetime
  * @param {String} [currentSelectedTimezone]
- * @returns  {Moment}
+ * @returns  {Date}
  *
  */
 function getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone = timezone.selected) {
