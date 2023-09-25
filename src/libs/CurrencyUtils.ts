@@ -111,12 +111,9 @@ function convertToDisplayString(amountInCents: number, currency: string = CONST.
 
 /**
  * Checks if passed currency code is a valid currency based on currency list
- *
- * @param {String} currencyCode
- * @returns {Boolean}
  */
-function isValidCurrencyCode(currencyCode) {
-    const currency = lodashGet(currencyList, currencyCode);
+function isValidCurrencyCode(currencyCode: string): boolean {
+    const currency = currencyList?.[currencyCode];
     return Boolean(currency);
 }
 
