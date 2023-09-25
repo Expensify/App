@@ -112,7 +112,7 @@ function ReportActionsList({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const opacity = useSharedValue(0);
-    const userActiveSince = useRef(null);
+    const [userActiveSince, setUserActiveSince] = useState(null);
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
@@ -135,16 +135,14 @@ function ReportActionsList({
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
         // the parent component is sending the previous reportID even when the user isn't active
         // on the report
-        if (userActiveSince.current && prevReportID && prevReportID !== report.reportID) {
-            userActiveSince.current = null;
-        } else {
-            userActiveSince.current = DateUtils.getDBTime();
+        if (prevReportID === report.reportID) {
+            setUserActiveSince(DateUtils.getDBTime());
         }
         prevReportID = report.reportID;
     }, [report.reportID]);
 
     useEffect(() => {
-        if (!userActiveSince.current || report.reportID !== prevReportID) {
+        if (!userActiveSince || report.reportID !== prevReportID) {
             return;
         }
 
@@ -163,7 +161,7 @@ function ReportActionsList({
         reportActionSize.current = sortedReportActions.length;
         setCurrentUnreadMarker(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedReportActions.length, report.reportID]);
+    }, [sortedReportActions.length, report.reportID, userActiveSince]);
 
     useEffect(() => {
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
@@ -202,6 +200,7 @@ function ReportActionsList({
                 return;
             }
             reportScrollManager.scrollToBottom();
+            setUserActiveSince(DateUtils.getDBTime());
         });
 
         const cleanup = () => {
@@ -284,8 +283,7 @@ function ReportActionsList({
                 if (!messageManuallyMarked.read) {
                     shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
-                const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
-
+                const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince : true;
                 if (!currentUnreadMarker && shouldDisplayNewMarker && canDisplayMarker) {
                     setCurrentUnreadMarker(reportAction.reportActionID);
                 }
@@ -305,7 +303,7 @@ function ReportActionsList({
                 />
             );
         },
-        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarked, shouldHideThreadDividerLine, currentUnreadMarker],
+        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarked, shouldHideThreadDividerLine, currentUnreadMarker, userActiveSince],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
