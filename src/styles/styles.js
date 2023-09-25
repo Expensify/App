@@ -1489,7 +1489,8 @@ const styles = (theme) => ({
     },
 
     optionsListSectionHeader: {
-        height: variables.optionsListSectionHeaderHeight,
+        marginTop: 8,
+        marginBottom: 4,
     },
 
     overlayStyles: (current) => ({
@@ -3628,7 +3629,7 @@ const styles = (theme) => ({
 
     mapView: {
         flex: 1,
-        borderRadius: 20,
+        borderRadius: 16,
         overflow: 'hidden',
     },
 
@@ -3645,7 +3646,8 @@ const styles = (theme) => ({
     },
 
     confirmationListMapItem: {
-        ...spacing.m5,
+        ...spacing.mv2,
+        ...spacing.mh5,
         height: 200,
     },
 
