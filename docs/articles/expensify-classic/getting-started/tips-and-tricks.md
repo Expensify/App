@@ -1,5 +1,5 @@
 ---
-title: Tips and Tricks
-description: Tips and Tricks
+title: Tips & Tricks
+description: Tips & Tricks
 ---
 ## Resource Coming Soon!
