@@ -300,7 +300,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     </View>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
+                            <View style={[styles.flexRow, styles.menuItemTextContainer, !props.onIconRightPress && !props.rightComponent && styles.pointerEventsNone]}>
                                 {Boolean(props.badgeText) && (
                                     <Badge
                                         text={props.badgeText}
