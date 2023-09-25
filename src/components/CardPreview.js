@@ -15,6 +15,7 @@ const propTypes = {
         legalFirstName: PropTypes.string,
         legalLastName: PropTypes.string,
     }),
+    /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged-in user email */
         email: PropTypes.string,
