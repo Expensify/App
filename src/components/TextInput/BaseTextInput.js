@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useState, useRef, useEffect, useCallback} from 'react';
-import {Animated, View, AppState, Keyboard, StyleSheet} from 'react-native';
+import {Animated, View, StyleSheet} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import TextInputLabel from './TextInputLabel';
@@ -21,6 +21,7 @@ import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import withLocalize from '../withLocalize';
 import useNativeDriver from '../../libs/useNativeDriver';
+import * as Browser from '../../libs/Browser';
 
 function BaseTextInput(props) {
     const inputValue = props.value || props.defaultValue || '';
@@ -37,24 +38,6 @@ function BaseTextInput(props) {
 
     const input = useRef(null);
     const isLabelActive = useRef(initialActiveLabel);
-
-    useEffect(() => {
-        if (!props.disableKeyboard) {
-            return;
-        }
-
-        const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
-            if (!nextAppState.match(/inactive|background/)) {
-                return;
-            }
-
-            Keyboard.dismiss();
-        });
-
-        return () => {
-            appStateSubscription.remove();
-        };
-    }, [props.disableKeyboard]);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -400,11 +383,17 @@ function BaseTextInput(props) {
                 This Text component is intentionally positioned out of the screen.
             */}
             {(props.autoGrow || props.autoGrowHeight) && (
-                // Add +2 to width so that the first digit of amount do not cut off on mWeb - https://github.com/Expensify/App/issues/8158.
+                // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
+                // https://github.com/Expensify/App/issues/8158
+                // https://github.com/Expensify/App/issues/26628
                 <Text
                     style={[...props.inputStyle, props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width, maxHeight), styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                     onLayout={(e) => {
-                        setTextInputWidth(e.nativeEvent.layout.width + 2);
+                        let additionalWidth = 0;
+                        if (Browser.isMobileSafari() || Browser.isSafari()) {
+                            additionalWidth = 2;
+                        }
+                        setTextInputWidth(e.nativeEvent.layout.width + additionalWidth);
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
                 >

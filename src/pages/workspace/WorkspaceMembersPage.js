@@ -136,7 +136,7 @@ function WorkspaceMembersPage(props) {
      */
     const inviteUser = () => {
         setSearchValue('');
-        Navigation.navigate(ROUTES.getWorkspaceInviteRoute(props.route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.route.params.policyID));
     };
 
     /**
@@ -344,9 +344,10 @@ function WorkspaceMembersPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
+            testID={WorkspaceMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}
+                shouldShow={((_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                 subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
@@ -355,7 +356,7 @@ function WorkspaceMembersPage(props) {
                     subtitle={policyName}
                     onBackButtonPress={() => {
                         setSearchValue('');
-                        Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policyID));
+                        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
                     }}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
