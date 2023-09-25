@@ -11,14 +11,13 @@ import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import useNetwork from '../../../hooks/useNetwork';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Session from '../../../libs/actions/Session';
-import {withNetwork} from '../../../components/OnyxProvider';
-import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** Report object for the current report */
@@ -26,9 +25,6 @@ const propTypes = {
 
     /** Report actions for the current report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** Offline status */
-    isOffline: PropTypes.bool.isRequired,
 
     /** Callback fired when the comment is submitted */
     onSubmitComment: PropTypes.func,
@@ -41,9 +37,6 @@ const propTypes = {
 
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
 };
@@ -58,7 +51,8 @@ const defaultProps = {
 };
 
 function ReportFooter(props) {
-    const chatFooterStyles = {...styles.chatFooter, minHeight: !props.network.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+    const {isOffline} = useNetwork();
+    const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const isAnonymousUser = Session.isAnonymousUser();
 
@@ -105,7 +99,6 @@ ReportFooter.propTypes = propTypes;
 ReportFooter.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
-    withNetwork(),
     withOnyx({
         shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
         initialValue: false,
