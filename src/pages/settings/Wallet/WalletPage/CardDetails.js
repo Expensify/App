@@ -47,14 +47,6 @@ const defaultProps = {
     },
 };
 
-/**
- * Applies common formatting to each piece of an address
- *
- * @param {String} piece
- * @returns {String}
- */
-const formatPiece = (piece) => (piece ? `${piece}, ` : '');
-
 function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
     usePrivatePersonalDetails();
     const privateDetails = privatePersonalDetails || {};
@@ -68,7 +60,7 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
      */
     const getFormattedAddress = () => {
         const [street1, street2] = (address.street || '').split('\n');
-        const formatted = [street1, street2, address.city, address.state, address.zip, address.country].reduce((acc, current) => acc + formatPiece(current), '');
+        const formatted = [street1, street2, address.city, address.state, address.zip, address.country].join(', ');
 
         // Remove the last comma of the address
         return formatted.trim().replace(/,$/, '');
