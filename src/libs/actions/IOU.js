@@ -1488,7 +1488,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
 
     if (shouldDeleteIOUReport) {
         // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ioureport.chatreportid));
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(iouReport.chatReportID));
     }
 }
 
