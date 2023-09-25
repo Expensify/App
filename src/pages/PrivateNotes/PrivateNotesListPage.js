@@ -139,6 +139,7 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
 
 PrivateNotesListPage.propTypes = propTypes;
 PrivateNotesListPage.defaultProps = defaultProps;
+PrivateNotesListPage.displayName = 'PrivateNotesListPage';
 
 export default compose(
     withLocalize,

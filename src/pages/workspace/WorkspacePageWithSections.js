@@ -134,6 +134,7 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
 
 WorkspacePageWithSections.propTypes = propTypes;
 WorkspacePageWithSections.defaultProps = defaultProps;
+WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
 
 export default compose(
     withOnyx({

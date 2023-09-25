@@ -111,6 +111,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
 
 MoneyRequestDatePage.propTypes = propTypes;
 MoneyRequestDatePage.defaultProps = defaultProps;
+MoneyRequestDatePage.displayName = 'MoneyRequestDatePage';
 
 export default withOnyx({
     iou: {
