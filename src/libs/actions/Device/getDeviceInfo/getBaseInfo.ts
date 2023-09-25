@@ -1,10 +1,6 @@
 import packageConfig from '../../../../../package.json';
-import {GetBaseInfo} from "./index";
+import {BaseInfo, GetBaseInfo} from "./types";
 
-export type BaseInfo = {
-    app_version: string;
-    timestamp: string;
-};
 export const getBaseInfo: GetBaseInfo = (): BaseInfo => {
     return {
         app_version: packageConfig.version,

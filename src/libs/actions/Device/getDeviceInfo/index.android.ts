@@ -1,6 +1,6 @@
 import getBaseInfo from './getBaseInfo';
 import getOSAndName from './getOSAndName/index.native';
-import {GetDeviceInfo, DeviceInfo} from "./index";
+import {GetDeviceInfo, DeviceInfo} from './types';
 
 const getDeviceInfo: GetDeviceInfo = (): DeviceInfo => {
     return {
