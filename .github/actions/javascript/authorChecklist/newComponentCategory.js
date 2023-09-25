@@ -1,6 +1,7 @@
 const { parse } = require('@babel/parser');
 const traverse = require('@babel/traverse').default;
 const _ = require('underscore');
+const fs = require('fs');
 
 const items = [
     "I verified that similar component doesn't exist in the codebase",
@@ -45,7 +46,7 @@ function detectReactComponent(code) {
 function detectFunction(changedFiles) {
     console.log('detectFunction', changedFiles);
     const filteredFiles = _.filter((changedFiles), ({ filename }) => filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx'));
-    return _.some(filteredFiles, (file) => detectReactComponent(file.body));
+    return _.some(filteredFiles, ({ filename }) => detectReactComponent(fs.readFileSync(filename, 'utf-8')));
 }
 
 module.exports = {
