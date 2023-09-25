@@ -2119,7 +2119,14 @@ function startMoneyRequest(iouType, reportID = '') {
  * @param {String} reportID
  */
 function startMoneeRequest(iouType, reportID = '') {
-    Navigation.navigate(ROUTES.MONEE_REQUEST_START.getRoute(iouType, NumberUtils.rand64(), reportID));
+    // Generate a brand new transactionID
+    const newTransactionID = NumberUtils.rand64();
+
+    // Store the transaction in Onyx
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`);
+
+    // Navigate to it
+    Navigation.navigate(ROUTES.MONEE_REQUEST_START.getRoute(iouType, newTransactionID, reportID));
 }
 
 /**
