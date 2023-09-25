@@ -1900,14 +1900,62 @@ function leaveRoom(reportID) {
  * Removes people from a room
  * 
  * @param {String} reportID
- * @param {Array} targetAccountIDs
+ * @param {Array} inviteeAccountIDs
  */
-function removeFromRoom(reportID, targetAccountIDs, targetEmails) {
+function inviteToRoom(reportID, inviteeAccountIDs) {
     const report = lodashGet(allReports, [reportID], {});
 
     const {participants, participantAccountIDs} = report;
-    const participantsAfterRemoval = _.filter(participants, email => !targetEmails.includes(email));
+    const participantAccountIDsAfterInvitation = _.uniq([...participantAccountIDs, inviteeAccountIDs]);
+
+    const inviteeEmails = _.map(participantAccountIDs, accountID => allPersonalDetails[accountID].login);
+    const participantsAfterInvitation = _.uniq([...participants, inviteeEmails]);
+
+    API.write(
+        'InviteToRoom',
+        {
+            reportID,
+            inviteeAccountIDs,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        participants: participantsAfterInvitation,
+                        participantAccountIDs: participantAccountIDsAfterInvitation,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        participants,
+                        participantAccountIDs,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
+ * Removes people from a room
+ * 
+ * @param {String} reportID
+ * @param {Array} targetAccountIDs
+ */
+function removeFromRoom(reportID, targetAccountIDs) {
+    const report = lodashGet(allReports, [reportID], {});
+
+    const {participants, participantAccountIDs} = report;
     const participantAccountIDsAfterRemoval = _.filter(participantAccountIDs, accountID => !targetAccountIDs.includes(accountID));
+
+    const targetEmails = _.map(participantAccountIDs, accountID => allPersonalDetails[accountID].login);
+    const participantsAfterRemoval = _.filter(participants, email => !targetEmails.includes(email));
 
     API.write(
         'RemoveFromRoom',
@@ -1956,6 +2004,24 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
     Navigation.isNavigationReady().then(() => {
         setLastOpenedPublicRoom('');
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastOpenedPublicRoomID));
+    });
+}
+
+/**
+ * Called when we open the workspace members and
+ * @param {*} policyID 
+ * @param {*} clientMemberEmails 
+ * @returns 
+ */
+function openWorkspaceMembersPage(policyID, clientMemberEmails) {
+    if (!policyID || !clientMemberEmails) {
+        Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
+        return;
+    }
+
+    API.read('OpenWorkspaceMembersPage', {
+        policyID,
+        clientMemberEmails: JSON.stringify(clientMemberEmails),
     });
 }
 
@@ -2220,6 +2286,7 @@ export {
     hasAccountIDEmojiReacted,
     shouldShowReportActionNotification,
     leaveRoom,
+    inviteToRoom,
     removeFromRoom,
     getCurrentUserAccountID,
     setLastOpenedPublicRoom,

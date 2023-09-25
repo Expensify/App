@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo, useState, useCallback} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -27,6 +27,8 @@ import networkPropTypes from '../components/networkPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as UserUtils from '../libs/UserUtils';
+import * as Report from '../libs/actions/Report';
+import Log from '../libs/Log';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -96,10 +98,57 @@ function RoomMembersPage(props) {
             return;
         }
 
-        Report.removeFromRoom(accountIDsToRemove, props.route.params.policyID);
+        Report.removeFromRoom(props.report.reportID, selectedMembers);
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
     };
+
+    /**
+     * Add user from the selectedMembers list
+     *
+     * @param {String} login
+     */
+    const addUser = useCallback(
+        (accountID) => {
+            setSelectedMembers((prevSelected) => [...prevSelected, accountID]);
+        },
+        [],
+    );
+
+    /**
+     * Remove user from the selectedEmployees list
+     *
+     * @param {String} login
+     */
+    const removeUser = useCallback(
+        (accountID) => {
+            setSelectedMembers((prevSelected) => _.without(prevSelected, accountID));
+        },
+        [],
+    );
+
+    /**
+     * Toggle user from the selectedMembers list
+     *
+     * @param {String} accountID
+     * @param {String} pendingAction
+     *
+     */
+        const toggleUser = useCallback(
+            (accountID, pendingAction) => {
+                if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return;
+                }
+    
+                // Add or remove the user if the checkbox is enabled
+                if (_.contains(selectedMembers, Number(accountID))) {
+                    removeUser(Number(accountID));
+                } else {
+                    addUser(Number(accountID));
+                }
+            },
+            [selectedMembers, addUser, removeUser],
+        );
 
     /**
      * Show the modal to confirm removal of the selected members
@@ -170,7 +219,7 @@ function RoomMembersPage(props) {
 
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies));
     const data = getMemberOptions();
-    const headerMessage = searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
+    const headerMessage = searchValue.trim() && !data.length ? props.translate('roomMembersPage.memberNotFound') : '';
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -179,7 +228,7 @@ function RoomMembersPage(props) {
         >
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(props.report) || !isPolicyMember}
-                subtitleKey={_.isEmpty(props.report) ? undefined : 'workspace.common.notAuthorized'}
+                subtitleKey={_.isEmpty(props.report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
             >
                 <HeaderWithBackButton
@@ -196,7 +245,7 @@ function RoomMembersPage(props) {
                     isVisible={removeMembersConfirmModalVisible}
                     onConfirm={removeUsers}
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={props.translate('workspace.people.removeMembersPrompt')}
+                    prompt={props.translate('roomMembersPage.removeMembersPrompt')}
                     confirmText={props.translate('common.remove')}
                     cancelText={props.translate('common.cancel')}
                 />

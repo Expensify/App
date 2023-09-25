@@ -24,6 +24,7 @@ import * as PolicyUtils from '../libs/PolicyUtils';
 import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import SelectionList from '../components/SelectionList';
+import * as Report from '../libs/actions/Report';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -96,7 +97,7 @@ function RoomInvitePage(props) {
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
 
-        // Update selectedOptions with the latest personalDetails and policyMembers information
+        // Update selectedOptions with the latest personalDetails information
         const detailsMap = {};
         _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail, false)));
         const newSelectedOptions = [];
@@ -108,7 +109,7 @@ function RoomInvitePage(props) {
         setPersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [props.personalDetails, props.policyMembers, props.betas, searchTerm, excludedUsers]);
+    }, [props.personalDetails, props.betas, searchTerm, excludedUsers]);
 
     const getSections = () => {
         const sections = [];
@@ -169,26 +170,17 @@ function RoomInvitePage(props) {
             errors.noUserSelected = true;
         }
 
-        // Policy.setWorkspaceErrors(props.route.params.policyID, errors);
         return _.size(errors) <= 0;
     };
 
-    const inviteUser = () => {
+    const inviteUsers = () => {
         if (!validate()) {
             return;
         }
 
-        const invitedEmailsToAccountIDs = {};
-        _.each(selectedOptions, (option) => {
-            const login = option.login || '';
-            const accountID = lodashGet(option, 'accountID', '');
-            if (!login.toLowerCase().trim() || !accountID) {
-                return;
-            }
-            invitedEmailsToAccountIDs[login] = Number(accountID);
-        });
-        // Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, invitedEmailsToAccountIDs);
-        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID));
+        const inviteeAccountIDs = _.map(selectedOptions, option => option.accountID);
+        Report.inviteToRoom(props.report.reportID, inviteeAccountIDs);
+        Navigation.goBack(backRoute);
     };
 
     const [policyName, shouldShowAlertPrompt] = useMemo(
@@ -211,7 +203,7 @@ function RoomInvitePage(props) {
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
 
     // Non policy members should not be able to view the participants of a room
-    const backRoute = isPolicyMember ? ROUTES.REPORT_PARTICIPANTS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID);
+    const backRoute = isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -223,7 +215,7 @@ function RoomInvitePage(props) {
                 return (
                     <FullPageNotFoundView
                         shouldShow={_.isEmpty(props.report)}
-                        subtitleKey={_.isEmpty(props.report) ? undefined : 'workspace.common.notAuthorized'}
+                        subtitleKey={_.isEmpty(props.report) ? undefined : 'roomMembersPage.notAuthorized'}
                         onBackButtonPress={() => Navigation.goBack(backRoute)}
                     >
                         <HeaderWithBackButton
@@ -234,7 +226,7 @@ function RoomInvitePage(props) {
                                 Navigation.goBack(backRoute);
                             }}
                         />
-                        {/* <SelectionList
+                        <SelectionList
                             canSelectMultiple
                             sections={sections}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -242,7 +234,7 @@ function RoomInvitePage(props) {
                             onChangeText={setSearchTerm}
                             headerMessage={headerMessage}
                             onSelectRow={toggleOption}
-                            onConfirm={inviteUser}
+                            onConfirm={inviteUsers}
                             showScrollIndicator
                             showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
                         />
@@ -250,14 +242,14 @@ function RoomInvitePage(props) {
                             <FormAlertWithSubmitButton
                                 isDisabled={!selectedOptions.length}
                                 isAlertVisible={shouldShowAlertPrompt}
-                                buttonText={translate('common.next')}
-                                onSubmit={inviteUser}
-                                message={props.policy.alertMessage}
+                                buttonText={translate('common.invite')}
+                                onSubmit={inviteUsers}
+                                // message={props.policy.alertMessage}
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
                                 enabledWhenOffline
                                 disablePressOnEnter
                             />
-                        </View> */}
+                        </View>
                     </FullPageNotFoundView>
                 );
             }}
