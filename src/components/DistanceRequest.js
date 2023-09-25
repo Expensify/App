@@ -286,12 +286,12 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
                 )}
             </View>
             <Button
-                isLoading={transaction.isLoading}
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => onSubmit(waypoints)}
-                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError}
+                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute}
                 text={translate(isEditingRequest ? 'common.save' : 'common.next')}
+                isLoading={isLoadingRoute || shouldFetchRoute}
             />
         </ScrollView>
     );

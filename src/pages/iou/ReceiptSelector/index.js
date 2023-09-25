@@ -37,6 +37,9 @@ const propTypes = {
             /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
+
+        /** The current route path */
+        path: PropTypes.string,
     }).isRequired,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
@@ -123,7 +126,7 @@ function ReceiptSelector(props) {
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, report);
+        IOU.navigateToNextPage(iou, iouType, report, props.route.path);
     };
 
     return (

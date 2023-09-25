@@ -2231,7 +2231,7 @@ function buildOptimisticIOUReportAction(
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
-        whisperedToAccountIDs: !_.isEmpty(receipt) ? [currentUserAccountID] : [],
+        whisperedToAccountIDs: _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], receipt.state) ? [currentUserAccountID] : [],
     };
 }
 /**
@@ -2284,6 +2284,7 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
  */
 function buildOptimisticReportPreview(chatReport, iouReport, comment = '', transaction = undefined) {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
     return {
         reportActionID: NumberUtils.rand64(),
@@ -2308,7 +2309,7 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '', trans
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
         childLastReceiptTransactionIDs: hasReceipt ? transaction.transactionID : '',
-        whisperedToAccountIDs: hasReceipt ? [currentUserAccountID] : [],
+        whisperedToAccountIDs: isReceiptBeingScanned ? [currentUserAccountID] : [],
     };
 }
 
@@ -2679,12 +2680,12 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @param {String} parentReportID - Report ID of the chat where the Task is.
  * @param {String} title - Task title.
  * @param {String} description - Task description.
- * @param {String | undefined} policyID - PolicyID of the parent report
+ * @param {String} policyID - PolicyID of the parent report
  *
  * @returns {Object}
  */
 
-function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parentReportID, title, description, policyID = undefined) {
+function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parentReportID, title, description, policyID = CONST.POLICY.OWNER_EMAIL_FAKE) {
     return {
         reportID: generateReportID(),
         reportName: title,
@@ -2694,9 +2695,9 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
+        policyID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS.OPEN,
-        ...(_.isUndefined(policyID) ? {} : {policyID}),
     };
 }
 

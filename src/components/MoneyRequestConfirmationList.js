@@ -184,7 +184,7 @@ function MoneyRequestConfirmationList(props) {
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
     const {onSendMoney, onConfirm, onSelectParticipant, transaction} = props;
-    const {translate} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
@@ -338,9 +338,9 @@ function MoneyRequestConfirmationList(props) {
         if (!props.isDistanceRequest) {
             return;
         }
-        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate);
+        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant(distanceMerchant);
-    }, [hasRoute, distance, unit, rate, currency, translate, props.isDistanceRequest]);
+    }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest]);
 
     /**
      * @param {Object} option
