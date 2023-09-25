@@ -7,6 +7,7 @@ platforms:
   - href: expensify-classic
     title: Expensify Classic
     hub-title: Expensify Classic - Help & Resources
+    hub-description: Questions? Find the answers by clicking a Category or using the search bar located in the left-hand menu.
     url: www.expensify.com
     description: "Your account settings look like this:"
     image: /assets/images/settings-old-dot.svg
@@ -76,6 +77,7 @@ platforms:
   - href: new-expensify
     title: New Expensify
     hub-title: New Expensify - Help & Resources
+    hub-description: Questions? Find the answers by clicking a Category or using the search bar located in the left-hand menu.
     url: new.expensify.com
     description: "Your account settings look like this:"
     image: /assets/images/settings-new-dot.svg
