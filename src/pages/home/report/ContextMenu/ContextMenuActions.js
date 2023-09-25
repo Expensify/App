@@ -25,7 +25,7 @@ import * as Task from '../../../../libs/actions/Task';
 import * as Localize from '../../../../libs/Localize';
 import * as TransactionUtils from '../../../../libs/TransactionUtils';
 import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
-import * as NetworkStore from '../../../../libs/Network/NetworkStore';
+import useNetwork from '../../../../hooks/useNetwork';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -43,6 +43,8 @@ const CONTEXT_MENU_TYPES = {
     EMAIL: 'EMAIL',
     REPORT: 'REPORT',
 };
+
+const {isOffline} = useNetwork();
 
 // A list of all the context actions in this menu.
 export default [
@@ -102,13 +104,7 @@ export default [
         shouldShow: (type, reportAction) => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             const messageHtml = lodashGet(reportAction, ['message', 0, 'html']);
-            return (
-                isAttachment &&
-                messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML &&
-                reportAction.reportActionID &&
-                !ReportActionsUtils.isMessageDeleted(reportAction) &&
-                !NetworkStore.isOffline()
-            );
+            return isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !isOffline;
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
