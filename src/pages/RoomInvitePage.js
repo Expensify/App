@@ -213,7 +213,10 @@ function RoomInvitePage(props) {
     // Non policy members should not be able to view the participants of a room
     const backRoute = isPolicyMember ? ROUTES.REPORT_PARTICIPANTS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID);
     return (
-        <ScreenWrapper shouldEnableMaxHeight>
+        <ScreenWrapper
+            shouldEnableMaxHeight
+            testID={RoomInvitePage.displayName}
+        >
             {({didScreenTransitionEnd}) => {
                 const sections = didScreenTransitionEnd ? getSections() : [];
 

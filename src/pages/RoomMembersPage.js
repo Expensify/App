@@ -175,6 +175,7 @@ function RoomMembersPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
+            testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(props.report) || !isPolicyMember}
