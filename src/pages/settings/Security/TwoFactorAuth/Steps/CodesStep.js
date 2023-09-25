@@ -49,7 +49,7 @@ function CodesStep({account = defaultAccount}) {
                 total: 3,
             }}
         >
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Section
                     title={translate('twoFactorAuth.keepCodesSafe')}
                     icon={Illustrations.ShieldYellow}
@@ -108,27 +108,27 @@ function CodesStep({account = defaultAccount}) {
                         )}
                     </View>
                 </Section>
-            </ScrollView>
-            <FixedFooter style={[styles.mtAuto, styles.pt2]}>
-                {!_.isEmpty(error) && (
-                    <FormHelpMessage
-                        isError
-                        message={translate(error)}
-                        style={[styles.mb3]}
+                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                    {!_.isEmpty(error) && (
+                        <FormHelpMessage
+                            isError
+                            message={translate(error)}
+                            style={[styles.mb3]}
+                        />
+                    )}
+                    <Button
+                        success
+                        text={translate('common.next')}
+                        onPress={() => {
+                            if (!account.codesAreCopied) {
+                                setError('twoFactorAuth.errorStepCodes');
+                                return;
+                            }
+                            setStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY);
+                        }}
                     />
-                )}
-                <Button
-                    success
-                    text={translate('common.next')}
-                    onPress={() => {
-                        if (!account.codesAreCopied) {
-                            setError('twoFactorAuth.errorStepCodes');
-                            return;
-                        }
-                        setStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY);
-                    }}
-                />
-            </FixedFooter>
+                </FixedFooter>
+            </ScrollView>
         </StepWrapper>
     );
 }

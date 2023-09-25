@@ -3,13 +3,14 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as ReportActionUtils from '../ReportActionsUtils';
 import * as ReportUtils from '../ReportUtils';
+import ReportAction from '../../types/onyx/ReportAction';
 
-/**
- * @param {String} reportID
- * @param {Object} reportAction
- */
-function clearReportActionErrors(reportID, reportAction) {
+function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+
+    if (!reportAction.reportActionID) {
+        return;
+    }
 
     if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         // Delete the optimistic action
