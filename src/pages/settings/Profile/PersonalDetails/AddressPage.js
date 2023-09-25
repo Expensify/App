@@ -139,7 +139,9 @@ function AddressPage({privatePersonalDetails, route}) {
     }, []);
 
     useEffect(() => {
-        if (!countryFromUrl) return;
+        if (!countryFromUrl) {
+            return;
+        }
         handleAddressChange(countryFromUrl, 'country');
     }, [countryFromUrl, handleAddressChange]);
 
