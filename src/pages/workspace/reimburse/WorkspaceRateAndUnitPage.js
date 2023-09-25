@@ -87,7 +87,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
     submit(values) {
         this.saveUnitAndRate(values.unit, values.rate);
         Keyboard.dismiss();
-        Navigation.goBack(ROUTES.getWorkspaceReimburseRoute(this.props.policy.id));
+        Navigation.goBack(ROUTES.WORKSPACE_REIMBURSE.getRoute(this.props.policy.id));
     }
 
     validate(values) {
@@ -111,7 +111,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
                 shouldSkipVBBACall
-                backButtonRoute={ROUTES.getWorkspaceReimburseRoute(this.props.policy.id)}
+                backButtonRoute={ROUTES.WORKSPACE_REIMBURSE.getRoute(this.props.policy.id)}
             >
                 {() => (
                     <Form

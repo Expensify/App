@@ -93,7 +93,7 @@ function MoneyRequestConfirmPage(props) {
         if (!isDistanceRequest && prevMoneyRequestId.current !== props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
             if (props.iou.id) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), true);
             }
             return;
         }
@@ -106,7 +106,7 @@ function MoneyRequestConfirmPage(props) {
         }
 
         if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath && !isDistanceRequest) || shouldReset) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), true);
         }
 
         return () => {
@@ -117,9 +117,9 @@ function MoneyRequestConfirmPage(props) {
     const navigateBack = () => {
         let fallback;
         if (reportID.current) {
-            fallback = ROUTES.getMoneyRequestRoute(iouType.current, reportID.current);
+            fallback = ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current);
         } else {
-            fallback = ROUTES.getMoneyRequestParticipantsRoute(iouType.current);
+            fallback = ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType.current);
         }
         Navigation.goBack(fallback);
     };
