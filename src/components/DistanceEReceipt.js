@@ -34,8 +34,8 @@ function DistanceEReceipt({transaction}) {
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     return (
-        <View style={[styles.ph5, styles.pv5, styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-            <ScrollView>
+        <View style={[styles.ph5, styles.pv5, styles.flex1, styles.alignItemsCenter]}>
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}>
                 <View style={styles.eReceiptPanel}>
                     <View style={styles.eReceiptBackgroundContainer}>
                         <EReceiptBackground
