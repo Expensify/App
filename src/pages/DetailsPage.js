@@ -126,7 +126,7 @@ function DetailsPage(props) {
     const isCurrentUser = _.keys(props.loginList).includes(details.login);
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={DetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
                 <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
