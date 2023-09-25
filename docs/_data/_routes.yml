@@ -65,7 +65,7 @@ platforms:
         description: Master the art of overseeing employees and reports by utilizing Expensify’s automation features and approval workflows.
       
       - href: policy-and-domain-settings
-        title: Policy & Domain Setting
+        title: Policy & Domain Settings
         icon: /assets/images/shield.svg
         description: Discover how to set up and manage policies, define user permissions, and implement compliance rules to maintain a secure and compliant financial management landscape.
       
