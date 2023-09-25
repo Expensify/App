@@ -34,10 +34,7 @@ function NewChatSelectorPage(props) {
             shouldEnableMaxHeight
             testID={NewChatSelectorPage.displayName}
         >
-            <HeaderWithBackButton
-                title={props.translate('sidebarScreen.fabNewChat')}
-                onBackButtonPress={Navigation.dismissModal}
-            />
+            <HeaderWithBackButton title={props.translate('sidebarScreen.fabNewChat')} />
             {Permissions.canUsePolicyRooms(props.betas) ? (
                 <OnyxTabNavigator
                     id={CONST.TAB.NEW_CHAT_TAB_ID}
