@@ -1094,16 +1094,17 @@ function getPersonalDetailsForAccountID(accountID) {
  *
  * @param {Number} accountID
  * @param {Boolean} [shouldUseShortForm]
+ * @param {Boolean} shouldNotFallbackToHidden
  * @returns {String}
  */
-function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
+function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, shouldNotFallbackToHidden = false) {
     if (!accountID) {
         return '';
     }
     const personalDetails = getPersonalDetailsForAccountID(accountID);
     const longName = personalDetails.displayName;
     const shortName = personalDetails.firstName || longName;
-    if (!longName && !personalDetails.login) {
+    if (!longName && !personalDetails.login && !shouldNotFallbackToHidden) {
         return Localize.translateLocal('common.hidden');
     }
     return shouldUseShortForm ? shortName : longName;
@@ -1112,12 +1113,13 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
 /**
  * @param {Object} personalDetailsList
  * @param {Boolean} isMultipleParticipantReport
+ * @param {Boolean} shouldNotFallbackToHidden
  * @returns {Array}
  */
-function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
+function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport, shouldNotFallbackToHidden) {
     return _.map(personalDetailsList, (user) => {
         const accountID = Number(user.accountID);
-        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
+        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldNotFallbackToHidden) || user.login || '';
         const avatar = UserUtils.getDefaultAvatar(accountID);
 
         let pronouns = user.pronouns;
