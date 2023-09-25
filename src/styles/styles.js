@@ -3612,7 +3612,7 @@ const styles = (theme) => ({
     eReceiptPanel: {
         ...spacing.p5,
         ...spacing.pb8,
-        color: colors.green800,
+        backgroundColor: colors.green800,
         borderRadius: 20,
         width: 335,
     },
