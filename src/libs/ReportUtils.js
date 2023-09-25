@@ -3598,7 +3598,7 @@ function getReportPreviewDisplayTransactions(reportPreviewAction) {
  * @param {Object} reportAction report action
  * @returns {String}
  */
-function getIouReportActionDisplayMessage(reportAction) {
+function getIOUReportActionDisplayMessage(reportAction) {
     const originalMessage = _.get(reportAction, 'originalMessage', {});
     let displayMessage;
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
@@ -3773,5 +3773,5 @@ export {
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
     hasMissingSmartscanFields,
-    getIouReportActionDisplayMessage,
+    getIOUReportActionDisplayMessage,
 };

@@ -200,7 +200,7 @@ export default [
                     const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                    const displayMessage = ReportUtils.getIouReportActionDisplayMessage(reportAction);
+                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
