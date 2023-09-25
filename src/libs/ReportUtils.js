@@ -1341,6 +1341,7 @@ function getTransactionDetails(transaction) {
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
         category: TransactionUtils.getCategory(transaction),
+        tag: TransactionUtils.getTag(transaction),
     };
 }
 
@@ -1592,6 +1593,11 @@ function getModifiedExpenseMessage(reportAction) {
     if (hasModifiedCategory) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.category, reportActionOriginalMessage.oldCategory, Localize.translateLocal('common.category'), true);
     }
+
+    const hasModifiedTag = _.has(reportActionOriginalMessage, 'oldTag') && _.has(reportActionOriginalMessage, 'tag');
+    if (hasModifiedTag) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.tag, reportActionOriginalMessage.oldTag, Localize.translateLocal('common.tag'), true);
+    }
 }
 
 /**
@@ -1635,6 +1641,11 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     if (_.has(transactionChanges, 'category')) {
         originalMessage.oldCategory = TransactionUtils.getCategory(oldTransaction);
         originalMessage.category = transactionChanges.category;
+    }
+
+    if (_.has(transactionChanges, 'tag')) {
+        originalMessage.oldTag = TransactionUtils.getTag(oldTransaction);
+        originalMessage.tag = transactionChanges.tag;
     }
 
     return originalMessage;
