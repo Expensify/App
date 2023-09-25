@@ -189,12 +189,12 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : ROUTES.HOME);
+        Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
     };
 
     const navigateToNextPage = () => {
         if (isEditing) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
             return;
         }
 
@@ -237,7 +237,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
                                 shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', index))}
+                                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index))}
                                 key={key}
                             />
                         );
@@ -261,7 +261,10 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => Transaction.addStop(iou.transactionID)}
+                    onPress={() => {
+                        const newIndex = _.size(lodashGet(transaction, 'comment.waypoints', {}));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', newIndex));
+                    }}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
@@ -294,8 +297,9 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={navigateToNextPage}
-                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline}
+                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute}
                 text={translate('common.next')}
+                isLoading={isLoadingRoute || shouldFetchRoute}
             />
         </ScrollView>
     );
@@ -308,6 +312,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
+            testID={DistanceRequest.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>

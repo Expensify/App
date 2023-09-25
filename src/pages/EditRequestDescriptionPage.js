@@ -1,6 +1,7 @@
-import React, {useRef} from 'react';
+import React, {useRef, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {useFocusEffect} from '@react-navigation/native';
 import TextInput from '../components/TextInput';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
@@ -10,6 +11,7 @@ import styles from '../styles/styles';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
 import * as Browser from '../libs/Browser';
+import updateMultilineInputRange from '../libs/UpdateMultilineInputRange';
 
 const propTypes = {
     /** Transaction default description value */
@@ -22,11 +24,29 @@ const propTypes = {
 function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
     const {translate} = useLocalize();
     const descriptionInputRef = useRef(null);
+    const focusTimeoutRef = useRef(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                if (descriptionInputRef.current) {
+                    descriptionInputRef.current.focus();
+                }
+                return () => {
+                    if (!focusTimeoutRef.current) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
+            }, CONST.ANIMATED_TRANSITION);
+        }, []),
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => descriptionInputRef.current && descriptionInputRef.current.focus()}
+            testID={EditRequestDescriptionPage.displayName}
         >
             <HeaderWithBackButton title={translate('common.description')} />
             <Form
@@ -45,7 +65,13 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={(e) => (descriptionInputRef.current = e)}
+                        ref={(el) => {
+                            if (!el) {
+                                return;
+                            }
+                            descriptionInputRef.current = el;
+                            updateMultilineInputRange(descriptionInputRef.current);
+                        }}
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
