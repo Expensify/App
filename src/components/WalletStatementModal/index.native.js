@@ -3,7 +3,6 @@ import {WebView} from 'react-native-webview';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-
 import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import * as Report from '../../libs/actions/Report';
