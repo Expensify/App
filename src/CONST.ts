@@ -1145,6 +1145,7 @@ const CONST = {
         DISTANCE_UNIT_KILOMETERS: 'km',
         MILEAGE_IRS_RATE: 0.655,
         DEFAULT_RATE: 'Default Rate',
+        RATE_DECIMALS: 3,
     },
 
     TERMS: {
