@@ -188,7 +188,7 @@ function RoomInvitePage(props) {
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         // Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, invitedEmailsToAccountIDs);
-        Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(props.route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID));
     };
 
     const [policyName, shouldShowAlertPrompt] = useMemo(
@@ -211,7 +211,7 @@ function RoomInvitePage(props) {
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
 
     // Non policy members should not be able to view the participants of a room
-    const backRoute = isPolicyMember ? ROUTES.getReportParticipantsRoute(reportID) : ROUTES.getReportDetailsRoute(reportID);
+    const backRoute = isPolicyMember ? ROUTES.REPORT_PARTICIPANTS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID);
     return (
         <ScreenWrapper shouldEnableMaxHeight>
             {({didScreenTransitionEnd}) => {

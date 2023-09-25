@@ -98,7 +98,7 @@ export default {
     PRIVATE_NOTES_LIST: {                route: 'r/:reportID/notes',                    getRoute: (reportID: string) => `r/${reportID}/notes`},
     PRIVATE_NOTES_EDIT: {                route: 'r/:reportID/notes/:accountID/edit',    getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`},
     ROOM_MEMBERS: {                      route: 'r/:reportID/members',                  getRoute: (reportID: string) => `r/${reportID}/members`},
-    ROOM_INVITE: {                       route: 'r/:reportID/invite',                    getRoute: (reportID: string) => `r/${reportID}/invite`},
+    ROOM_INVITE: {                       route: 'r/:reportID/invite',                   getRoute: (reportID: string) => `r/${reportID}/invite`},
 
     // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
     MONEY_REQUEST: {                     route: ':iouType/new/:reportID?',              getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}`},
