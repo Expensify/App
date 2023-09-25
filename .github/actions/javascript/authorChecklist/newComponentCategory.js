@@ -44,7 +44,7 @@ function detectReactComponent(code) {
 
 function detectFunction(changedFiles) {
     console.log('detectFunction', changedFiles);
-    const filteredFiles = _.filter(changedFiles, (file) => file.name && (file.name.endsWith('.js') || file.name.endsWith('.jsx') || file.name.endsWith('.ts') || file.name.endsWith('.tsx')));
+    const filteredFiles = _.filter((changedFiles), ({ filename }) => filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx'));
     return _.some(filteredFiles, (file) => detectReactComponent(file.body));
 }
 
