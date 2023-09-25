@@ -1055,11 +1055,6 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
         },
-        MONEY_REQUEST_FIELDS: {
-            SEND: 'send',
-            SPLIT: 'split',
-            REQUEST: 'request',
-        },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
