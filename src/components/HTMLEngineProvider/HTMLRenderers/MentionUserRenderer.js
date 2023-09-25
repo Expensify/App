@@ -41,13 +41,13 @@ function MentionUserRenderer(props) {
         const user = lodashGet(props.personalDetails, htmlAttribAccountID);
         accountID = parseInt(htmlAttribAccountID, 10);
         displayNameOrLogin = lodashGet(user, 'login', '') || lodashGet(user, 'displayName', '') || translate('common.hidden');
-        navigationRoute = ROUTES.getProfileRoute(htmlAttribAccountID);
+        navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
     } else if (!_.isEmpty(props.tnode.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         displayNameOrLogin = props.tnode.data.replace(CONST.UNICODE.LTR, '').slice(1);
 
         accountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([displayNameOrLogin]));
-        navigationRoute = ROUTES.getDetailsRoute(displayNameOrLogin);
+        navigationRoute = ROUTES.DETAILS.getRoute(displayNameOrLogin);
     } else {
         // If neither an account ID or email is provided, don't render anything
         return null;
