@@ -86,7 +86,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     );
 
     const savePrivateNote = () => {
-        const editedNote = parser.replace(privateNote);
+        const editedNote = parser.replace(privateNote.trim());
         Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         Keyboard.dismiss();
 
