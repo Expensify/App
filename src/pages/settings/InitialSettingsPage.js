@@ -139,33 +139,6 @@ function InitialSettingsPage(props) {
         Wallet.openInitialSettingsPage();
     }, []);
 
-    useEffect(() => {
-        window.Onyx.merge(`cardList`, {
-            virtual: {
-                cardID: 1234,
-                state: 3,
-                bank: 'Expensify',
-                availableSpend: 10000,
-                domainName: 'Expensify',
-                maskedPan: '•••• •••• •••• ••••',
-                isVirtual: true,
-                cardholderFirstName: 'Test',
-                cardholderLastName: 'Test',
-            },
-            physical: {
-                cardID: 1234,
-                state: 4,
-                bank: '1000',
-                availableSpend: 10000,
-                domainName: 'Expensify',
-                maskedPan: '•••• •••• •••• 2345',
-                isVirtual: false,
-            },
-        });
-
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute('expensify'));
-    }, []);
-
     const toggleSignoutConfirmModal = (value) => {
         setShouldShowSignoutConfirmModal(value);
     };
