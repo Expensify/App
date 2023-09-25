@@ -812,7 +812,7 @@ export default {
     },
     activateCardPage: {
         activateCard: 'Activar tarjeta',
-        pleaseEnterLastFour: 'Introduzca los cuatro últimos dígitos de su tarjeta.',
+        pleaseEnterLastFour: 'Introduce los cuatro últimos dígitos de la tarjeta.',
         activatePhysicalCard: 'Activar tarjeta física',
     },
     transferAmountPage: {
