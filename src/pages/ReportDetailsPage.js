@@ -150,7 +150,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [props.report, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
+    }, [props.report, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom, isPolicyMember]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
