@@ -243,7 +243,6 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                                 state: null,
                             }}
                             predefinedPlaces={recentWaypoints}
-                            resultTypes=""
                         />
                     </View>
                 </Form>
