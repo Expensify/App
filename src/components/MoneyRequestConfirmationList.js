@@ -463,7 +463,7 @@ function MoneyRequestConfirmationList(props) {
                     shouldShowRightIcon={!props.isReadOnly && !props.isDistanceRequest}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    onPress={() => !props.isDistanceRequest && Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
+                    onPress={() => !props.isDistanceRequest && Navigation.navigate(ROUTES.MONEY_REQUEST_AMOUNT.getRoute(props.iouType, props.reportID))}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm || props.isReadOnly}
@@ -513,7 +513,7 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAddressRoute(props.iouType, props.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_ADDRESS.getRoute(props.iouType, props.reportID))}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     ) : (
