@@ -43,7 +43,7 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, report
     const navigateToCurrencySelectionPage = () => {
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
-        Navigation.navigate(ROUTES.getEditRequestCurrencyRoute(reportID, defaultCurrency, activeRoute));
+        Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(reportID, defaultCurrency, activeRoute));
     };
 
     useFocusEffect(
