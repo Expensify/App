@@ -10,6 +10,7 @@ Need to get paid? Check out this guide to see all the ways that you can upload y
 # How-to Upload Receipts
 ## SmartScan
 The easiest way to upload your receipts to Expensify is to SmartScan them with Expensify’s mobile app or forward a receipt from your email inbox! 
+
 When you SmartScan a receipt, we’ll read the Merchant, Date and Amount of the transaction, create an expense, and add it to your Expensify account automatically. The best practice is to take a picture of the receipt at the time of purchase or forward it to your Expensify account from the point of sale system. If you have a credit card connected and you upload a receipt that matches a card expense, the SmartScanned receipt will automatically merge with the imported card expense instead. 
 
 ## Email Receipts
@@ -26,6 +27,7 @@ To activate it, tap on the green camera button in the mobile app and then tap on
 
 ## How do you create an expense from an email address that is different from your Expensify login?
 You can email a receipt from a different email address by adding it as a Secondary Login to your Expensify account - this ensures that any receipts sent from this email to receipts@expensify.com will be associated with your current Expensify account.
+
 Once that email address has been added as a Secondary Login, simply forward your receipt image or emails to receipts@expensify.com.
 
 ## How do you crop or rotate a receipt image?
