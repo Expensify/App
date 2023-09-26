@@ -13,7 +13,6 @@ import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
 import * as LoginUtils from './LoginUtils';
-import * as PolicyUtils from './PolicyUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
