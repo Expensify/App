@@ -1500,7 +1500,7 @@ const styles = (theme) => ({
         top: 0,
         bottom: 0,
         right: 0,
-        backgroundColor: theme.shadow,
+        backgroundColor: theme.overlay,
         opacity: current.progress.interpolate({
             inputRange: [0, 1],
             outputRange: [0, variables.overlayOpacity],
@@ -3671,6 +3671,28 @@ const styles = (theme) => ({
     draggableTopBar: {
         height: 30,
         width: '100%',
+    },
+
+    walletCard: {
+        borderRadius: variables.componentBorderRadiusLarge,
+        position: 'relative',
+        alignSelf: 'center',
+        overflow: 'hidden',
+    },
+
+    walletCardNumber: {
+        color: theme.text,
+        fontSize: variables.fontSizeNormal,
+    },
+
+    walletCardHolder: {
+        position: 'absolute',
+        left: 16,
+        bottom: 16,
+        width: variables.cardNameWidth,
+        color: theme.text,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightLarge,
     },
 });
 

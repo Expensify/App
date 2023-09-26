@@ -48,6 +48,7 @@ function UserDetailsTooltip(props) {
                         source={props.icon ? props.icon.source : UserUtils.getAvatar(userAvatar, userAccountID)}
                         type={props.icon ? props.icon.type : CONST.ICON_TYPE_AVATAR}
                         name={props.icon ? props.icon.name : userLogin}
+                        fallbackIcon={lodashGet(props.icon, 'fallbackIcon')}
                     />
                 </View>
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
