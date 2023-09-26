@@ -272,20 +272,12 @@ const styles = (theme) => ({
         textDecorationLine: 'underline',
     },
 
-    verticalAlignAuto: {
-        verticalAlign: 'auto',
-    },
-
     verticalAlignMiddle: {
         verticalAlign: 'middle',
     },
 
     verticalAlignTop: {
         verticalAlign: 'top',
-    },
-
-    verticalAlignBottom: {
-        verticalAlign: 'bottom',
     },
 
     label: {
@@ -1839,19 +1831,6 @@ const styles = (theme) => ({
         textAlign: 'center',
         verticalAlign: 'middle',
         width: 200,
-    },
-
-    chatSwticherPillWrapper: {
-        marginTop: 5,
-        marginRight: 4,
-    },
-
-    navigationModalOverlay: {
-        ...userSelect.userSelectNone,
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        transform: `translateX(${-variables.sideBarWidth})`,
     },
 
     sidebarVisible: {
