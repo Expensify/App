@@ -41,7 +41,7 @@ async function getChecklistCategoriesForPullRequest() {
         per_page: 100,
     });
 
-    for (const category of CHECKLIST_CATEGORIES) {
+    for (const category of _.values(CHECKLIST_CATEGORIES)) {
         const { detectFunction, items } = category;
         const categoryDetected = await detectFunction(changedFiles);
         if (!categoryDetected) {
