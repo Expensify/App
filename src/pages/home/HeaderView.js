@@ -159,14 +159,14 @@ function HeaderView(props) {
         threeDotMenuItems.push({
             icon: Expensicons.Pin,
             iconFill: themeColors.icon,
-            text: props.translate('common.pinConversation'),
+            text: props.translate('common.pin'),
             onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
         });
     } else {
         threeDotMenuItems.push({
             icon: Expensicons.Pin,
             iconFill: themeColors.icon,
-            text: props.translate('common.unPinConversation'),
+            text: props.translate('common.unPin'),
             onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
         });
     }
