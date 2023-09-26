@@ -8,7 +8,7 @@ import LocalFileDownload from './types';
  * and textContent, so we're able to share it using iOS' share API.
  * After the file is shared, it is removed from the internal dir.
  */
-export default function localFileDownload({fileName, textContent}: LocalFileDownload) {
+const localFileDownload: LocalFileDownload = (fileName, textContent) => {
     const newFileName = FileUtils.appendTimeToFileName(fileName);
     const dir = RNFetchBlob.fs.dirs.DocumentDir;
     const path = `${dir}/${newFileName}.txt`;
@@ -18,4 +18,6 @@ export default function localFileDownload({fileName, textContent}: LocalFileDown
             RNFetchBlob.fs.unlink(path);
         });
     });
-}
+};
+
+export default localFileDownload;
