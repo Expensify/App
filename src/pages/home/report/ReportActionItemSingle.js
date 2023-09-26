@@ -80,11 +80,11 @@ const defaultProps = {
 };
 
 const showUserDetails = (accountID) => {
-    Navigation.navigate(ROUTES.getProfileRoute(accountID));
+    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
 };
 
 const showWorkspaceDetails = (reportID) => {
-    Navigation.navigate(ROUTES.getReportDetailsRoute(reportID));
+    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
 };
 
 function ReportActionItemSingle(props) {
@@ -114,14 +114,16 @@ function ReportActionItemSingle(props) {
     let secondaryAvatar = {};
     const primaryDisplayName = displayName;
     if (displayAllActors) {
-        const secondaryUserDetails = props.personalDetailsList[props.iouReport.ownerAccountID] || {};
+        // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
+        const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
+        const secondaryUserDetails = props.personalDetailsList[secondaryAccountId] || {};
         const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
-            source: UserUtils.getAvatar(secondaryUserDetails.avatar, props.iouReport.ownerAccountID),
+            source: UserUtils.getAvatar(secondaryUserDetails.avatar, secondaryAccountId),
             type: CONST.ICON_TYPE_AVATAR,
             name: secondaryDisplayName,
-            id: props.iouReport.ownerAccountID,
+            id: secondaryAccountId,
         };
     } else if (!isWorkspaceActor) {
         secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1];
@@ -149,7 +151,7 @@ function ReportActionItemSingle(props) {
         } else {
             // Show participants page IOU report preview
             if (displayAllActors) {
-                Navigation.navigate(ROUTES.getReportParticipantsRoute(iouReportID));
+                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID));
                 return;
             }
             showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
