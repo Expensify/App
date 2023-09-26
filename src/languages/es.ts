@@ -803,6 +803,14 @@ export default {
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
+        cardDetails: {
+            cardNumber: 'Número de tarjeta virtual',
+            expiration: 'Expiración',
+            cvv: 'CVV',
+            address: 'Dirección',
+            revealDetails: 'Revelar detalles',
+            copyCardNumber: 'Copiar número de la tarjeta',
+        },
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
