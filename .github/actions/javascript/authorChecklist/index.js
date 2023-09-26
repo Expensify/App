@@ -22,7 +22,6 @@ const checklistEndsWith = '### Screenshots/Videos';
 
 const prNumber = github.context.payload.pull_request.number;
 
-
 const CHECKLIST_CATEGORIES = {
     NEW_COMPONENT: newComponentCategory
 };
@@ -44,14 +43,10 @@ async function getChecklistCategoriesForPullRequest() {
     for (const category of _.values(CHECKLIST_CATEGORIES)) {
         const { detectFunction, items } = category;
         const categoryDetected = await detectFunction(changedFiles);
-        if (!categoryDetected) {
-            return;
+        if (categoryDetected) {
+            categories.push(items);
         }
-        categories.push(items);
     };
-
-    // TODO add more if statements to look for other dynamic checklist categories
-
     return categories;
 }
 
@@ -65,7 +60,7 @@ function partitionWithChecklist(body) {
     const [contentBeforeChecklist, contentAfterStartOfChecklist] = body.split(checklistStartsWith);
     const [checklistContent, contentAfterChecklist] = contentAfterStartOfChecklist.split(checklistEndsWith);
     return [contentBeforeChecklist, checklistContent, contentAfterChecklist];
-};
+}
 
 /**
  * @returns {Promise}
