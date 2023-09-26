@@ -25,8 +25,8 @@ function mapChildren(children, callbackParam) {
 
 function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandleScroll}, outerRef) {
     const [isHovered, setIsHovered] = useState(false);
-    const [isScrolling, setIsScrolling] = useState(false);
 
+    const isScrolling = useRef(false);
     const isHoveredRef = useRef(false);
     const ref = useRef(null);
 
@@ -38,12 +38,12 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
 
             isHoveredRef.current = hovered;
 
-            if (shouldHandleScroll && isScrolling) {
+            if (shouldHandleScroll && isScrolling.current) {
                 return;
             }
             setIsHovered(hovered);
         },
-        [disabled, shouldHandleScroll, isScrolling],
+        [disabled, shouldHandleScroll],
     );
 
     useEffect(() => {
@@ -60,7 +60,7 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
         }
 
         const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
-            setIsScrolling(scrolling);
+            isScrolling.current = scrolling;
             if (!scrolling) {
                 setIsHovered(isHoveredRef.current);
             }
