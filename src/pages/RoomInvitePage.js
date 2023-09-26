@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -59,15 +59,12 @@ const propTypes = {
             policyID: PropTypes.string,
         }),
     }).isRequired,
-
-    isLoadingReportData: PropTypes.bool,
     ...policyPropTypes,
 };
 
 const defaultProps = {
     personalDetails: {},
     betas: [],
-    isLoadingReportData: true,
     ...policyDefaultProps,
 };
 
@@ -94,7 +91,7 @@ function RoomInvitePage(props) {
         setPersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [props.personalDetails, props.betas, searchTerm, excludedUsers]);
+    }, [props.personalDetails, props.betas, searchTerm, excludedUsers, props.report]);
 
     const getSections = () => {
         const sections = [];
@@ -134,9 +131,7 @@ function RoomInvitePage(props) {
         return sections;
     };
 
-    const toggleOption = (option) => {
-        // Policy.clearErrors(props.route.params.policyID);
-
+    const toggleOption = useCallback((option) => {
         const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.login === option.login);
 
         let newSelectedOptions;
@@ -147,18 +142,21 @@ function RoomInvitePage(props) {
         }
 
         setSelectedOptions(newSelectedOptions);
-    };
+    }, [selectedOptions]);
 
-    const validate = () => {
+    const validate = useCallback(() => {
         const errors = {};
         if (selectedOptions.length <= 0) {
             errors.noUserSelected = true;
         }
 
         return _.size(errors) <= 0;
-    };
+    }, [selectedOptions]);
 
-    const inviteUsers = () => {
+
+    // Non policy members should not be able to view the participants of a room
+    const backRoute = useMemo(() => isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID), [isPolicyMember, reportID]);
+    const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;
         }
@@ -166,7 +164,7 @@ function RoomInvitePage(props) {
         const inviteeAccountIDs = _.map(selectedOptions, (option) => option.accountID);
         Report.inviteToRoom(props.report.reportID, inviteeAccountIDs);
         Navigation.goBack(backRoute);
-    };
+    }, [selectedOptions, backRoute, props.report]);
 
     const [policyName, shouldShowAlertPrompt] = useMemo(
         () => [lodashGet(props.policy, 'name'), _.size(lodashGet(props.policy, 'errors', {})) > 0 || lodashGet(props.policy, 'alertMessage', '').length > 0],
@@ -186,9 +184,6 @@ function RoomInvitePage(props) {
 
     const reportID = useMemo(() => props.report.reportID, [props.report]);
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
-
-    // Non policy members should not be able to view the participants of a room
-    const backRoute = isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight

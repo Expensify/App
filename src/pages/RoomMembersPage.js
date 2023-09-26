@@ -1,4 +1,4 @@
-import React, {useMemo, useState, useCallback} from 'react';
+import React, {useMemo, useState, useCallback, useEffect} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -18,12 +18,10 @@ import Button from '../components/Button';
 import SelectionList from '../components/SelectionList';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import {withNetwork} from '../components/OnyxProvider';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
-import networkPropTypes from '../components/networkPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as UserUtils from '../libs/UserUtils';
@@ -58,11 +56,9 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
-    isLoadingReportData: PropTypes.bool,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
-    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -70,7 +66,6 @@ const defaultProps = {
     session: {
         accountID: 0,
     },
-    isLoadingReportData: true,
     report: {},
     policies: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -152,6 +147,22 @@ function RoomMembersPage(props) {
     );
 
     /**
+     * Add or remove all users passed from the selectedMembers list
+     * @param {Object} memberList
+     */
+        const toggleAllUsers = (memberList) => {
+            const enabledAccounts = _.filter(memberList, (member) => !member.isDisabled);
+            const everyoneSelected = _.every(enabledAccounts, (member) => _.contains(selectedMembers, Number(member.keyForList)));
+    
+            if (everyoneSelected) {
+                setSelectedMembers([]);
+            } else {
+                const everyAccountId = _.map(enabledAccounts, (member) => Number(member.keyForList));
+                setSelectedMembers(everyAccountId);
+            }
+        };
+
+    /**
      * Show the modal to confirm removal of the selected members
      */
     const askForConfirmationToRemove = () => {
@@ -213,7 +224,7 @@ function RoomMembersPage(props) {
         return result;
     };
 
-    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies));
+    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
     const data = getMemberOptions();
     const headerMessage = searchValue.trim() && !data.length ? props.translate('roomMembersPage.memberNotFound') : '';
     return (
@@ -225,14 +236,14 @@ function RoomMembersPage(props) {
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(props.report) || !isPolicyMember}
                 subtitleKey={_.isEmpty(props.report) ? undefined : 'roomMembersPage.notAuthorized'}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID))}
             >
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.members')}
                     subtitle={lodashGet(props.report, 'reportName')}
                     onBackButtonPress={() => {
                         setSearchValue('');
-                        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
+                        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
                     }}
                 />
                 <ConfirmModal
@@ -291,7 +302,6 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withReportOrNotFound,
-    withNetwork(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
