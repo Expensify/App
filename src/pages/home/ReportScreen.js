@@ -316,7 +316,8 @@ function ReportScreen({
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room)
         if (
             // non-optimistic case
-            (!prevUserLeavingStatus && userLeavingStatus) || didLoseAccess ||
+            (!prevUserLeavingStatus && userLeavingStatus) ||
+            didLoseAccess ||
             // optimistic case
             (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && prevReport.statusNum === CONST.REPORT.STATUS.OPEN && report.statusNum === CONST.REPORT.STATUS.CLOSED)
         ) {

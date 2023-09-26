@@ -1925,7 +1925,7 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         participants: participantsAfterInvitation,
-                        participantAccountIDs: participantAccountIDsAfterInvitation
+                        participantAccountIDs: participantAccountIDsAfterInvitation,
                     },
                 },
             ],
@@ -2236,7 +2236,7 @@ function clearPrivateNotesError(reportID, accountID) {
 
 /**
  * Clears the report lost access flag
- * @param {Number} reportID 
+ * @param {Number} reportID
  */
 function clearReportLostAccessFlag(reportID) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_LOST_ACCESS}${reportID}`, null);

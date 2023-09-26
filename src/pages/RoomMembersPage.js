@@ -150,17 +150,17 @@ function RoomMembersPage(props) {
      * Add or remove all users passed from the selectedMembers list
      * @param {Object} memberList
      */
-        const toggleAllUsers = (memberList) => {
-            const enabledAccounts = _.filter(memberList, (member) => !member.isDisabled);
-            const everyoneSelected = _.every(enabledAccounts, (member) => _.contains(selectedMembers, Number(member.keyForList)));
-    
-            if (everyoneSelected) {
-                setSelectedMembers([]);
-            } else {
-                const everyAccountId = _.map(enabledAccounts, (member) => Number(member.keyForList));
-                setSelectedMembers(everyAccountId);
-            }
-        };
+    const toggleAllUsers = (memberList) => {
+        const enabledAccounts = _.filter(memberList, (member) => !member.isDisabled);
+        const everyoneSelected = _.every(enabledAccounts, (member) => _.contains(selectedMembers, Number(member.keyForList)));
+
+        if (everyoneSelected) {
+            setSelectedMembers([]);
+        } else {
+            const everyAccountId = _.map(enabledAccounts, (member) => Number(member.keyForList));
+            setSelectedMembers(everyAccountId);
+        }
+    };
 
     /**
      * Show the modal to confirm removal of the selected members

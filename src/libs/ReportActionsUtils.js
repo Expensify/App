@@ -399,7 +399,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
 /**
  * For invite to room and remove from room policy change logs, report URLs are generated in the server,
  * which includes a baseURL placeholder that's replaced in the client.
- * 
+ *
  * @param {Object} reportAction
  * @returns {Object}
  */

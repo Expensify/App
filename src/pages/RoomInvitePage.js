@@ -131,18 +131,21 @@ function RoomInvitePage(props) {
         return sections;
     };
 
-    const toggleOption = useCallback((option) => {
-        const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+    const toggleOption = useCallback(
+        (option) => {
+            const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.login === option.login);
 
-        let newSelectedOptions;
-        if (isOptionInList) {
-            newSelectedOptions = _.reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
-        } else {
-            newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
-        }
+            let newSelectedOptions;
+            if (isOptionInList) {
+                newSelectedOptions = _.reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+            } else {
+                newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
+            }
 
-        setSelectedOptions(newSelectedOptions);
-    }, [selectedOptions]);
+            setSelectedOptions(newSelectedOptions);
+        },
+        [selectedOptions],
+    );
 
     const validate = useCallback(() => {
         const errors = {};
@@ -153,11 +156,10 @@ function RoomInvitePage(props) {
         return _.size(errors) <= 0;
     }, [selectedOptions]);
 
-
     // Non policy members should not be able to view the participants of a room
     const reportID = useMemo(() => props.report.reportID, [props.report]);
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
-    const backRoute = useMemo(() => isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID), [isPolicyMember, reportID]);
+    const backRoute = useMemo(() => (isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)), [isPolicyMember, reportID]);
     const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;
