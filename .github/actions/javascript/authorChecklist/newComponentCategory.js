@@ -57,6 +57,7 @@ async function detectReactComponentInFile(filename) {
     };
     try {
         const { data } = await GithubUtils.octokit.repos.getContent(content);
+        console.log('data', data);
         return detectReactComponent(data);
     } catch (error) {
         console.error(`An unknown error occurred with the GitHub API: ${error}, while fetching ${content}`);
