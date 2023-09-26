@@ -1648,18 +1648,15 @@ function showReportActionNotification(reportID, reportAction) {
     Log.info('[LocalNotification] Creating notification');
     const report = allReports[reportID];
 
+    const notificationParams = {
+        report,
+        reportAction,
+        onClick: () => Navigation.navigate(ROUTES.getReportRoute(reportID)),
+    };
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-        LocalNotification.showModifiedExpenseNotification({
-            report,
-            reportAction,
-            onClick: () => Navigation.navigate(ROUTES.getReportRoute(reportID)),
-        });
+        LocalNotification.showModifiedExpenseNotification(notificationParams);
     } else {
-        LocalNotification.showCommentNotification({
-            report,
-            reportAction,
-            onClick: () => Navigation.navigate(ROUTES.getReportRoute(reportID)),
-        });
+        LocalNotification.showCommentNotification(notificationParams);
     }
 
     notifyNewAction(reportID, reportAction.actorAccountID, reportAction.reportActionID);
