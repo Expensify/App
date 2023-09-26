@@ -123,8 +123,6 @@ const CONST = {
         },
     },
 
-    RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY: 0.4,
-
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
@@ -736,7 +734,7 @@ const CONST = {
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: {}, success: '', isLoading: false},
+    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -1145,6 +1143,7 @@ const CONST = {
         DISTANCE_UNIT_KILOMETERS: 'km',
         MILEAGE_IRS_RATE: 0.655,
         DEFAULT_RATE: 'Default Rate',
+        RATE_DECIMALS: 3,
     },
 
     TERMS: {
@@ -1230,7 +1229,7 @@ const CONST = {
 
         SPECIAL_CHAR_OR_EMOJI:
             // eslint-disable-next-line no-misleading-character-class
-            /[\n\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+            /[\n\s,/?"{}[\]()&_~^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
         SPACE_OR_EMOJI:
             // eslint-disable-next-line no-misleading-character-class
@@ -1360,6 +1359,7 @@ const CONST = {
         MERCHANT: 'merchant',
         CATEGORY: 'category',
         RECEIPT: 'receipt',
+        TAG: 'tag',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,

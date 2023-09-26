@@ -37,6 +37,9 @@ const propTypes = {
             /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
+
+        /** The current route path */
+        path: PropTypes.string,
     }).isRequired,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
@@ -44,12 +47,17 @@ const propTypes = {
 
     /** The id of the transaction we're editing */
     transactionID: PropTypes.string,
+
+    /** Whether or not the receipt selector is in a tab navigator for tab animations */
+    // eslint-disable-next-line react/no-unused-prop-types
+    isInTabNavigator: PropTypes.bool,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
     transactionID: '',
+    isInTabNavigator: true,
 };
 
 function ReceiptSelector(props) {
@@ -119,7 +127,7 @@ function ReceiptSelector(props) {
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, reportID, report);
+        IOU.navigateToNextPage(iou, iouType, reportID, report, props.route.path);
     };
 
     return (

@@ -6,6 +6,7 @@
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
 import {View} from 'react-native';
 import Map, {MapRef, Marker} from 'react-map-gl';
+import mapboxgl from 'mapbox-gl';
 
 import responder from './responder';
 import utils from './utils';
@@ -83,6 +84,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
             >
                 <Map
                     ref={setRef}
+                    mapLib={mapboxgl}
                     mapboxAccessToken={accessToken}
                     initialViewState={{
                         longitude: initialState.location[0],

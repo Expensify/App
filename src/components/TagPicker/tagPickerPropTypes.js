@@ -16,12 +16,7 @@ const propTypes = {
 
     /* Onyx Props */
     /** Collection of tags attached to a policy */
-    policyTags: PropTypes.objectOf(
-        PropTypes.shape({
-            name: PropTypes.string,
-            tags: PropTypes.objectOf(tagPropTypes),
-        }),
-    ),
+    policyTags: tagPropTypes,
 
     /** List of recently used tags */
     policyRecentlyUsedTags: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
