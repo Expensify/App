@@ -29,7 +29,7 @@ const propTypes = {
     policy: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
@@ -58,6 +58,7 @@ const defaultProps = {
     parentReport: {},
     parentReportAction: {},
     transaction: {},
+    policy: undefined,
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}) {
