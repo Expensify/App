@@ -1656,8 +1656,8 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
 
     if (_.has(transactionChanges, 'billable')) {
         const oldBillable = TransactionUtils.getBillable(oldTransaction);
-        originalMessage.oldBillable = oldBillable ? Localize.translateLocal('common.billable') : Localize.translateLocal('common.nonBillable');
-        originalMessage.billable = transactionChanges.billable ? Localize.translateLocal('common.billable') : Localize.translateLocal('common.nonBillable');
+        originalMessage.oldBillable = oldBillable ? Localize.translateLocal('common.billable').toLowerCase() : Localize.translateLocal('common.nonBillable').toLowerCase();
+        originalMessage.billable = transactionChanges.billable ? Localize.translateLocal('common.billable').toLowerCase() : Localize.translateLocal('common.nonBillable').toLowerCase();
     }
 
     return originalMessage;
