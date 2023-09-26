@@ -13,7 +13,7 @@ const checklistEndsWith = '### Screenshots/Videos';
 const prNumber = github.context.payload.pull_request.number;
 
 const CHECKLIST_CATEGORIES = {
-    NEW_COMPONENT: newComponentCategory
+    NEW_COMPONENT: newComponentCategory,
 };
 
 /**
@@ -31,12 +31,12 @@ async function getChecklistCategoriesForPullRequest() {
     });
 
     for (const category of _.values(CHECKLIST_CATEGORIES)) {
-        const { detectFunction, items } = category;
+        const {detectFunction, items} = category;
         const categoryDetected = await detectFunction(changedFiles);
         if (categoryDetected) {
             categories.push(items);
         }
-    };
+    }
     return categories;
 }
 
@@ -134,16 +134,13 @@ async function generateDynamicChecksAndCheckForCompletion() {
     const allChecks = _.flatten(_.map(_.values(CHECKLIST_CATEGORIES), 'items'));
     for (const check of allChecks) {
         if (!checks.has(check)) {
-            console.log('new check', check);
             // Check if some dynamic check has been added with previous commit, but the check is not relevant anymore
             const regex = new RegExp(`- \\[([ x])] ${_.escapeRegExp(check)}\n`);
             const match = regex.exec(checklist);
-            console.log('match', match);
             if (match) {
                 // Remove it from the PR body
                 checklist = checklist.replace(match[0], '');
-            checklistChanged = true;
-
+                checklistChanged = true;
             }
         }
     }
@@ -171,7 +168,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     // check for completion
     try {
         const numberofItems = await getNumberOfItemsFromAuthorChecklist();
-        checkPRForCompletedChecklist(numberofItems, newBody)
+        checkPRForCompletedChecklist(numberofItems, newBody);
     } catch (err) {
         console.error(err);
         core.setFailed(err);
