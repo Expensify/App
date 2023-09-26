@@ -1858,7 +1858,7 @@ const styles = (theme) => ({
     singleAvatarMedium: {
         height: 52,
         width: 52,
-        backgroundColor: themeColors.icon,
+        backgroundColor: theme.icon,
         borderRadius: 52,
     },
 
