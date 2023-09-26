@@ -62,7 +62,18 @@ function BaseReportActionContextMenu(props) {
     }, [props.reportActions, props.reportActionID]);
 
     const shouldShowFilter = (contextAction) =>
-        contextAction.shouldShow(props.type, reportAction, props.isArchivedRoom, props.betas, props.anchor, props.isChronosReport, props.reportID, props.isPinnedChat, props.isUnreadChat, isOffline);
+        contextAction.shouldShow(
+            props.type,
+            reportAction,
+            props.isArchivedRoom,
+            props.betas,
+            props.anchor,
+            props.isChronosReport,
+            props.reportID,
+            props.isPinnedChat,
+            props.isUnreadChat,
+            isOffline,
+        );
 
     const shouldEnableArrowNavigation = !props.isMini && (props.isVisible || shouldKeepOpen);
     const filteredContextMenuActions = _.filter(ContextMenuActions, shouldShowFilter);
