@@ -72,6 +72,7 @@ function WorkspaceNewRoomPage(props) {
     const {translate} = useLocalize();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
+    const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
     const isPolicyAdmin = useMemo(() => {
         if (!policyID) {
@@ -163,7 +164,6 @@ function WorkspaceNewRoomPage(props) {
                         <Form
                             formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                             submitButtonText={translate('newRoomPage.createRoom')}
-                            scrollContextEnabled
                             style={[styles.mh5, styles.flexGrow1]}
                             validate={validate}
                             onSubmit={submit}
@@ -177,7 +177,7 @@ function WorkspaceNewRoomPage(props) {
                                     autoFocus
                                 />
                             </View>
-                            <View style={[styles.mb5]}>
+                            <View style={styles.mb5}>
                                 <TextInput
                                     inputID="welcomeMessage"
                                     label={translate('welcomeMessagePage.welcomeMessageOptional')}
@@ -200,12 +200,13 @@ function WorkspaceNewRoomPage(props) {
                                 />
                             </View>
                             {isPolicyAdmin && (
-                                <View style={[styles.mhn5]}>
+                                <View style={styles.mhn5}>
                                     <ValuePicker
                                         inputID="writeCapability"
                                         label={translate('writeCapabilityPage.label')}
                                         items={writeCapabilityOptions}
-                                        defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
+                                        defaultValue={writeCapability}
+                                        onValueChange={setWriteCapability}
                                     />
                                 </View>
                             )}
@@ -215,7 +216,7 @@ function WorkspaceNewRoomPage(props) {
                                     label={translate('newRoomPage.visibility')}
                                     items={visibilityOptions}
                                     onValueChange={setVisibility}
-                                    defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
+                                    defaultValue={visibility}
                                 />
                             </View>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
