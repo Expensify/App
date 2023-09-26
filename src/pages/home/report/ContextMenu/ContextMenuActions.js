@@ -210,15 +210,8 @@ export default [
                     const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                    const originalMessage = _.get(reportAction, 'originalMessage', {});
-                    const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
-                    const {amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
-                    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
-                    const displaymessage = Localize.translateLocal('iou.requestedAmount', {
-                        formattedAmount,
-                        comment,
-                    });
-                    Clipboard.setString(displaymessage);
+                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
+                    Clipboard.setString(displayMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {

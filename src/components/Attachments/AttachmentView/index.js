@@ -17,6 +17,7 @@ import AttachmentViewPdf from './AttachmentViewPdf';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
+import useNetwork from '../../../hooks/useNetwork';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -62,8 +63,13 @@ function AttachmentView({
     translate,
     isFocused,
     isWorkspaceAvatar,
+    fallbackSource,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
+
+    const [imageError, setImageError] = useState(false);
+
+    useNetwork({onReconnect: () => setImageError(false)});
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(source)) {
@@ -113,7 +119,7 @@ function AttachmentView({
     if (isImage || (file && Str.isImage(file.name))) {
         return (
             <AttachmentViewImage
-                source={source}
+                source={imageError ? fallbackSource : source}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 isUsedInCarousel={isUsedInCarousel}
@@ -122,6 +128,9 @@ function AttachmentView({
                 isImage={isImage}
                 onPress={onPress}
                 onScaleChanged={onScaleChanged}
+                onError={() => {
+                    setImageError(true);
+                }}
             />
         );
     }

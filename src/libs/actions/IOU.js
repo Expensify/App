@@ -75,11 +75,29 @@ Onyx.connect({
     },
 });
 
+let didInitCurrency = false;
+Onyx.connect({
+    key: ONYXKEYS.IOU,
+    callback: (val) => {
+        didInitCurrency = lodashGet(val, 'didInitCurrency');
+    },
+});
+
+let shouldResetIOUAfterLogin = true;
 let currentUserPersonalDetails = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         currentUserPersonalDetails = lodashGet(val, userAccountID, {});
+        if (!val || !shouldResetIOUAfterLogin || didInitCurrency) {
+            return;
+        }
+        // eslint-disable-next-line no-use-before-define
+        resetMoneyRequestInfo();
+        shouldResetIOUAfterLogin = false;
+        Onyx.merge(ONYXKEYS.IOU, {
+            didInitCurrency: true,
+        });
     },
 });
 
@@ -102,9 +120,7 @@ function resetMoneyRequestInfo(id = '') {
         amount: 0,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
-        // TODO: remove participants after all instances of iou.participants will be replaced with iou.participantAccountIDs
         participants: [],
-        participantAccountIDs: [],
         merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
         category: '',
         tag: '',
@@ -1136,6 +1152,17 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         updatedChatReport.lastMessageHtml = messageText;
     }
 
+    const optimisticPolicyRecentlyUsedTags = {};
+    if (_.has(transactionChanges, 'tag')) {
+        const tagListName = transactionChanges.tagListName;
+        const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
+
+        if (recentlyUsedPolicyTags) {
+            const uniquePolicyRecentlyUsedTags = _.filter(recentlyUsedPolicyTags[tagListName], (recentlyUsedPolicyTag) => recentlyUsedPolicyTag !== transactionChanges.tag);
+            optimisticPolicyRecentlyUsedTags[tagListName] = [transactionChanges.tag, ...uniquePolicyRecentlyUsedTags];
+        }
+    }
+
     // STEP 4: Compose the optimistic data
     const currentTime = DateUtils.getDBTime();
     const optimisticData = [
@@ -1171,6 +1198,14 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         },
     ];
 
+    if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
+            value: optimisticPolicyRecentlyUsedTags,
+        });
+    }
+
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1190,6 +1225,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                     currency: null,
                     merchant: null,
                     category: null,
+                    tag: null,
                 },
             },
         },
@@ -1236,7 +1272,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     ];
 
     // STEP 6: Call the API endpoint
-    const {created, amount, currency, comment, merchant, category} = ReportUtils.getTransactionDetails(updatedTransaction);
+    const {created, amount, currency, comment, merchant, category, tag} = ReportUtils.getTransactionDetails(updatedTransaction);
     API.write(
         'EditMoneyRequest',
         {
@@ -1248,6 +1284,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             comment,
             merchant,
             category,
+            tag,
         },
         {optimisticData, successData, failureData},
     );
@@ -2049,9 +2086,7 @@ function setMoneyRequestBillable(billable) {
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
-    // TODO: temporarily we want to save both participants and participantAccountIDs, then we can remove participants (and rename the function)
-    // more info: https://github.com/Expensify/App/issues/25714#issuecomment-1712924903 and https://github.com/Expensify/App/issues/25714#issuecomment-1716335802
-    Onyx.merge(ONYXKEYS.IOU, {participants, participantAccountIDs: _.map(participants, 'accountID')});
+    Onyx.merge(ONYXKEYS.IOU, {participants});
 }
 
 /**
