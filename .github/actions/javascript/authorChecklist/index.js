@@ -200,10 +200,12 @@ module.exports = generateDynamicChecksAndCheckForCompletion;
 
 const { parse } = __nccwpck_require__(639);
 const traverse = __nccwpck_require__(5008).default;
+const github = __nccwpck_require__(5438);
 const _ = __nccwpck_require__(2947);
 const fs = __nccwpck_require__(5747);
 const path = __nccwpck_require__(5622);
 const CONST = __nccwpck_require__(4097);
+const GithubUtils = __nccwpck_require__(7999);
 
 const items = [
     "I verified that similar component doesn't exist in the codebase",
@@ -248,28 +250,24 @@ function detectReactComponent(code) {
     return isReactComponent;
 };
 
-function readFile(filename) {
-    const filePath = path.resolve(__dirname, `../../../../${filename}`);
-    const filePath2 = path.resolve(filename);
-
+function fetchFile(filename) {
+    console.log('debug', github.context.payload.pull_request);
+    const content = {
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
+        path: filename,
+        ref: github.context.payload.pull_request.head.ref,
+    };
     try {
-        console.log('reading', filePath2, fs.existsSync(path.join(process.env.GITHUB_WORKSPACE, 'package.json')));
-        return fs.readFileSync(filePath2, 'utf-8');
+        return GithubUtils.octokit.rest.repos.getContent(content);
     } catch (error) {
-        console.error(`Error reading ${filePath2}`, error);
+        console.error(`An unknown error occurred with the GitHub API: ${error}, while fetching ${content}`);
     }
 }
 
 function detectFunction(changedFiles) {
-    console.log('detectFunction', process.cwd(), __dirname, process.env.GITHUB_WORKSPACE, path.join(process.env.GITHUB_WORKSPACE, 'package.json'));
-
-    fs.readdirSync(__dirname).forEach(file => {
-        console.log(file);
-      });
-
-
     const filteredFiles = _.filter((changedFiles), ({ filename }) => filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx'));
-    return _.some(filteredFiles, ({ filename }) => detectReactComponent(readFile(filename)));
+    return _.some(filteredFiles, ({ filename }) => detectReactComponent(fetchFile(filename)));
 }
 
 module.exports = {
