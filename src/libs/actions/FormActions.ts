@@ -5,8 +5,7 @@ import {OnyxFormKey} from '../../ONYXKEYS';
 import {Form} from '../../types/onyx';
 import * as OnyxCommon from '../../types/onyx/OnyxCommon';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type ExcludeDraft<T> = T extends `${infer R}Draft` ? never : T;
+type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
 type OnyxFormKeyWithoutDraft = ExcludeDraft<OnyxFormKey>;
 
 function setIsLoading(formID: OnyxFormKey, isLoading: boolean) {
