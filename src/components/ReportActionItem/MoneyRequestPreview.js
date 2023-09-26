@@ -23,6 +23,7 @@ import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
@@ -239,7 +240,9 @@ function MoneyRequestPreview(props) {
                             isHovered={isScanning}
                         />
                     )}
-                    {_.isEmpty(props.transaction) ? (
+                    {_.isEmpty(props.transaction) &&
+                    !ReportActionsUtils.isMessageDeleted(props.action) &&
+                    lodashGet(props.action, 'pendingAction') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
                         <MoneyRequestSkeletonView />
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>

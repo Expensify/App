@@ -1500,7 +1500,7 @@ const styles = (theme) => ({
         top: 0,
         bottom: 0,
         right: 0,
-        backgroundColor: theme.shadow,
+        backgroundColor: theme.overlay,
         opacity: current.progress.interpolate({
             inputRange: [0, 1],
             outputRange: [0, variables.overlayOpacity],
@@ -1599,6 +1599,16 @@ const styles = (theme) => ({
         lineHeight: variables.lineHeightXLarge,
         maxWidth: '100%',
         ...cursor.cursorAuto,
+        ...whiteSpace.preWrap,
+        ...wordBreak.breakWord,
+    },
+
+    renderHTMLTitle: {
+        color: theme.text,
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.EXP_NEUE,
+        lineHeight: variables.lineHeightXLarge,
+        maxWidth: '100%',
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
