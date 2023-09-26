@@ -1,6 +1,4 @@
-import lodashGet from 'lodash/get';
-import Onyx from 'react-native-onyx';
-import _ from 'underscore';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
@@ -9,12 +7,12 @@ import * as OnyxTypes from '../types/onyx';
 
 type PersonalDetailsList = Record<string, OnyxTypes.PersonalDetails | null>;
 
-let personalDetails = [];
-let allPersonalDetails = {};
+let personalDetails: OnyxTypes.PersonalDetails[] = [];
+let allPersonalDetails: OnyxEntry<Record<string, OnyxTypes.PersonalDetails>> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        personalDetails = _.values(val);
+        personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
     },
 });
@@ -22,24 +20,21 @@ Onyx.connect({
 /**
  * @param [defaultValue] optional default display name value
  */
-function getDisplayNameOrDefault(passedPersonalDetails: unknown, pathToDisplayName: string[], defaultValue: string): string {
-    const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
-
-    return displayName || defaultValue || Localize.translateLocal('common.hidden');
+function getDisplayNameOrDefault(displayName: string, defaultValue?: string): string {
+    return displayName ?? defaultValue ?? Localize.translateLocal('common.hidden');
 }
 
 /**
  * Given a list of account IDs (as number) it will return an array of personal details objects.
- * @param {Array<number>} accountIDs  - Array of accountIDs
- * @param {Number} currentUserAccountID
- * @param {Boolean} shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
- * @returns {Array} - Array of personal detail objects
+ * @param accountIDs  - Array of accountIDs
+ * @param shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
+ * @returns Array of personal detail objects
  */
 function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: number, shouldChangeUserDisplayName = false): OnyxTypes.PersonalDetails[] {
     const result: OnyxTypes.PersonalDetails[] = [];
-    _.each(
-        _.filter(personalDetails, (detail) => accountIDs.includes(detail.accountID)),
-        (detail) => {
+    personalDetails
+        .filter((detail) => accountIDs.includes(detail.accountID))
+        .forEach((detail) => {
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 result.push({
                     ...detail,
@@ -48,70 +43,61 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
             } else {
                 result.push(detail);
             }
-        },
-    );
+        });
     return result;
 }
 
 /**
  * Given a list of logins, find the associated personal detail and return related accountIDs.
  *
- * @param {Array<string>} logins Array of user logins
- * @returns {Array} - Array of accountIDs according to passed logins
+ * @param logins Array of user logins
+ * @returns Array of accountIDs according to passed logins
  */
-function getAccountIDsByLogins(logins: string[]): string[] {
-    return _.reduce(
-        logins,
-        (foundAccountIDs, login) => {
-            const currentDetail = _.find(personalDetails, (detail) => detail.login === login);
-            if (!currentDetail) {
-                // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
-                foundAccountIDs.push(UserUtils.generateAccountID(login));
-            } else {
-                foundAccountIDs.push(Number(currentDetail.accountID));
-            }
-            return foundAccountIDs;
-        },
-        [],
-    );
+function getAccountIDsByLogins(logins: string[]): number[] {
+    return logins.reduce((foundAccountIDs: number[], login) => {
+        const currentDetail = personalDetails.find((detail) => detail.login === login);
+        if (!currentDetail) {
+            // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
+            foundAccountIDs.push(UserUtils.generateAccountID(login));
+        } else {
+            foundAccountIDs.push(Number(currentDetail.accountID));
+        }
+        return foundAccountIDs;
+    }, []);
 }
 
 /**
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
- * @param {Array<number>} accountIDs Array of user accountIDs
- * @returns {Array} - Array of logins according to passed accountIDs
+ * @param accountIDs Array of user accountIDs
+ * @returns Array of logins according to passed accountIDs
  */
-function getLoginsByAccountIDs(accountIDs: number[]): number[] {
-    return _.reduce(
-        accountIDs,
-        (foundLogins, accountID) => {
-            const currentDetail = _.find(personalDetails, (detail) => Number(detail.accountID) === Number(accountID)) || {};
-            if (currentDetail.login) {
-                foundLogins.push(currentDetail.login);
-            }
-            return foundLogins;
-        },
-        [],
-    );
+function getLoginsByAccountIDs(accountIDs: number[]): string[] {
+    return accountIDs.reduce((foundLogins: string[], accountID) => {
+        const currentDetail: Partial<OnyxTypes.PersonalDetails> = personalDetails.find((detail) => Number(detail.accountID) === Number(accountID)) ?? {};
+        if (currentDetail.login) {
+            foundLogins.push(currentDetail.login);
+        }
+        return foundLogins;
+    }, []);
 }
 
 /**
  * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored
  *
- * @param {Array<string>} logins Array of user logins
- * @param {Array<number>} accountIDs Array of user accountIDs
- * @returns {Object} - Object with optimisticData, successData and failureData (object of personal details objects)
+ * @param logins Array of user logins
+ * @param accountIDs Array of user accountIDs
+ * @returns Object with optimisticData, successData and failureData (object of personal details objects)
  */
 function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]) {
     const optimisticData: PersonalDetailsList = {};
     const successData: PersonalDetailsList = {};
     const failureData: PersonalDetailsList = {};
 
-    _.each(logins, (login, index) => {
+    logins.forEach((login, index) => {
         const accountID = accountIDs[index];
 
-        if (_.isEmpty(allPersonalDetails[accountID])) {
+        if (allPersonalDetails && Object.keys(allPersonalDetails[accountID]).length === 0) {
             optimisticData[accountID] = {
                 login,
                 accountID,
