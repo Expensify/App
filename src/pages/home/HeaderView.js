@@ -99,6 +99,8 @@ function HeaderView(props) {
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
+    const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -135,7 +137,7 @@ function HeaderView(props) {
         }
     }
 
-    if (isChatThread) {
+    if (isChatThread && !isEmptyChat) {
         if (props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
