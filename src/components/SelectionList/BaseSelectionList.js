@@ -209,6 +209,13 @@ function BaseSelectionList({
         }
     };
 
+    const selectAllRow = () => {
+        onSelectAll();
+        if (shouldShowTextInput && textInputRef.current) {
+            textInputRef.current.focus();
+        }
+    };
+
     const selectFocusedOption = () => {
         const focusedOption = flattenedSections.allOptions[focusedIndex];
 
@@ -362,7 +369,7 @@ function BaseSelectionList({
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
                                     <PressableWithFeedback
                                         style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
-                                        onPress={onSelectAll}
+                                        onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
                                         accessibilityRole="button"
                                         accessibilityState={{checked: flattenedSections.allSelected}}
@@ -372,7 +379,7 @@ function BaseSelectionList({
                                         <Checkbox
                                             accessibilityLabel={translate('workspace.people.selectAll')}
                                             isChecked={flattenedSections.allSelected}
-                                            onPress={onSelectAll}
+                                            onPress={selectAllRow}
                                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         />
                                         <View style={[styles.flex1]}>
