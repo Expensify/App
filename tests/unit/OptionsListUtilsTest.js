@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import CONST from '../../src/CONST';
 
 describe('OptionsListUtils', () => {
@@ -280,7 +280,7 @@ describe('OptionsListUtils', () => {
             },
         });
         Onyx.registerLogger(() => {});
-        return waitForPromisesToResolve().then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS));
+        return waitForBatchedUpdates().then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS));
     });
 
     it('getSearchOptions()', () => {
@@ -308,7 +308,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports[0].text).toBe('Mister Fantastic');
         expect(results.recentReports[1].text).toBe('Mister Fantastic');
 
-        return waitForPromisesToResolve()
+        return waitForBatchedUpdates()
             .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
             .then(() => {
                 // When we filter again but provide a searchValue that should match with periods
@@ -320,12 +320,12 @@ describe('OptionsListUtils', () => {
             });
     });
 
-    it('getNewChatOptions()', () => {
+    it('getFilteredOptions()', () => {
         // maxRecentReportsToShow in src/libs/OptionsListUtils.js
         const MAX_RECENT_REPORTS = 5;
 
-        // When we call getNewChatOptions() with no search value
-        let results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '');
+        // When we call getFilteredOptions() with no search value
+        let results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], '');
 
         // We should expect maximimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(MAX_RECENT_REPORTS);
@@ -345,7 +345,7 @@ describe('OptionsListUtils', () => {
         expect(personalDetailWithExistingReport.reportID).toBe(2);
 
         // When we only pass personal details
-        results = OptionsListUtils.getNewChatOptions([], PERSONAL_DETAILS, [], '');
+        results = OptionsListUtils.getFilteredOptions([], PERSONAL_DETAILS, [], '');
 
         // We should expect personal details sorted alphabetically
         expect(results.personalDetails[0].text).toBe('Black Panther');
@@ -354,13 +354,13 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[3].text).toBe('Invisible Woman');
 
         // When we provide a search value that does not match any personal details
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'magneto');
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], 'magneto');
 
         // Then no options will be returned
         expect(results.personalDetails.length).toBe(0);
 
         // When we provide a search value that matches an email
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'peterparker@expensify.com');
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], 'peterparker@expensify.com');
 
         // Then one recentReports will be returned and it will be the correct option
         // personalDetails should be empty array
@@ -369,7 +369,7 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(0);
 
         // When we provide a search value that matches a partial display name or email
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '.com');
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], '.com');
 
         // Then several options will be returned and they will be each have the search string in their email or name
         // even though the currently logged in user matches they should not show.
@@ -382,7 +382,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports[2].text).toBe('Black Panther');
 
         // Test for Concierge's existence in chat options
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
+        results = OptionsListUtils.getFilteredOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
         // (minus the 5 that are already showing and the currently logged in user)
@@ -390,30 +390,30 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Concierge from the results
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, [], '', [], [CONST.EMAIL.CONCIERGE]);
+        results = OptionsListUtils.getFilteredOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, [], '', [], [CONST.EMAIL.CONCIERGE]);
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
         expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 2 - MAX_RECENT_REPORTS);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, [], '', [], [CONST.EMAIL.CHRONOS]);
+        results = OptionsListUtils.getFilteredOptions(REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, [], '', [], [CONST.EMAIL.CHRONOS]);
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
         expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CHRONOS) - 2 - MAX_RECENT_REPORTS);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
 
         // Test by excluding Receipts from the results
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, [], '', [], [CONST.EMAIL.RECEIPTS]);
+        results = OptionsListUtils.getFilteredOptions(REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, [], '', [], [CONST.EMAIL.RECEIPTS]);
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
         expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_RECEIPTS) - 2 - MAX_RECENT_REPORTS);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
     });
 
-    it('getNewChatOptions() for group Chat', () => {
-        // When we call getNewChatOptions() with no search value
-        let results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '');
+    it('getFilteredOptions() for group Chat', () => {
+        // When we call getFilteredOptions() with no search value
+        let results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], '');
 
         // Then we should expect only a maxmimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(5);
@@ -434,7 +434,7 @@ describe('OptionsListUtils', () => {
         expect(personalDetailsOverlapWithReports).toBe(false);
 
         // When we search for an option that is only in a personalDetail with no existing report
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'hulk');
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], 'hulk');
 
         // Then reports should return no results
         expect(results.recentReports.length).toBe(0);
@@ -444,7 +444,7 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[0].login).toBe('brucebanner@expensify.com');
 
         // When we search for an option that matches things in both personalDetails and reports
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '.com');
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], '.com');
 
         // Then all single participant reports that match will show up in the recentReports array, Recently used contact should be at the top
         expect(results.recentReports.length).toBe(5);
@@ -454,16 +454,16 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(4);
         expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
 
-        // When we provide no selected options to getNewChatOptions()
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '', []);
+        // When we provide no selected options to getFilteredOptions()
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], '', []);
 
         // Then one of our older report options (not in our five most recent) should appear in the personalDetails
         // but not in recentReports
         expect(_.every(results.recentReports, (option) => option.login !== 'peterparker@expensify.com')).toBe(true);
         expect(_.every(results.personalDetails, (option) => option.login !== 'peterparker@expensify.com')).toBe(false);
 
-        // When we provide a "selected" option to getNewChatOptions()
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '', [{login: 'peterparker@expensify.com'}]);
+        // When we provide a "selected" option to getFilteredOptions()
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], '', [{login: 'peterparker@expensify.com'}]);
 
         // Then the option should not appear anywhere in either list
         expect(_.every(results.recentReports, (option) => option.login !== 'peterparker@expensify.com')).toBe(true);
@@ -471,7 +471,7 @@ describe('OptionsListUtils', () => {
 
         // When we add a search term for which no options exist and the searchValue itself
         // is not a potential email or phone
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'marc@expensify');
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], 'marc@expensify');
 
         // Then we should have no options or personal details at all and also that there is no userToInvite
         expect(results.recentReports.length).toBe(0);
@@ -480,7 +480,7 @@ describe('OptionsListUtils', () => {
 
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential email
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'marc@expensify.com');
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], 'marc@expensify.com');
 
         // Then we should have no options or personal details at all but there should be a userToInvite
         expect(results.recentReports.length).toBe(0);
@@ -488,7 +488,7 @@ describe('OptionsListUtils', () => {
         expect(results.userToInvite).not.toBe(null);
 
         // When we add a search term with a period, with options for it that don't contain the period
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'peter.parker@expensify.com');
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], 'peter.parker@expensify.com');
 
         // Then we should have no options at all but there should be a userToInvite
         expect(results.recentReports.length).toBe(0);
@@ -496,7 +496,7 @@ describe('OptionsListUtils', () => {
 
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential phone number without country code added
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '5005550006');
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], '5005550006');
 
         // Then we should have no options or personal details at all but there should be a userToInvite and the login
         // should have the country code included
@@ -507,7 +507,7 @@ describe('OptionsListUtils', () => {
 
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential phone number with country code added
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '+15005550006');
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], '+15005550006');
 
         // Then we should have no options or personal details at all but there should be a userToInvite and the login
         // should have the country code included
@@ -518,7 +518,7 @@ describe('OptionsListUtils', () => {
 
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential phone number with special characters added
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '+1 (800)324-3233');
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], '+1 (800)324-3233');
 
         // Then we should have no options or personal details at all but there should be a userToInvite and the login
         // should have the country code included
@@ -528,7 +528,7 @@ describe('OptionsListUtils', () => {
         expect(results.userToInvite.login).toBe('+18003243233');
 
         // When we use a search term for contact number that contains alphabet characters
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '998243aaaa');
+        results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], '998243aaaa');
 
         // Then we shouldn't have any results or user to invite
         expect(results.recentReports.length).toBe(0);
@@ -536,7 +536,7 @@ describe('OptionsListUtils', () => {
         expect(results.userToInvite).toBe(null);
 
         // Test Concierge's existence in new group options
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
+        results = OptionsListUtils.getFilteredOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
         // (minus the 5 that are already showing and the currently logged in user)
@@ -544,7 +544,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Concierge from the results
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, [], '', [], [CONST.EMAIL.CONCIERGE]);
+        results = OptionsListUtils.getFilteredOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, [], '', [], [CONST.EMAIL.CONCIERGE]);
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
         // the currently logged in user and Concierge)
@@ -553,7 +553,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, [], '', [], [CONST.EMAIL.CHRONOS]);
+        results = OptionsListUtils.getFilteredOptions(REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, [], '', [], [CONST.EMAIL.CHRONOS]);
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
         // the currently logged in user and Concierge)
@@ -562,7 +562,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
 
         // Test by excluding Receipts from the results
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, [], '', [], [CONST.EMAIL.RECEIPTS]);
+        results = OptionsListUtils.getFilteredOptions(REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, [], '', [], [CONST.EMAIL.RECEIPTS]);
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
         // the currently logged in user and Concierge)
@@ -650,6 +650,900 @@ describe('OptionsListUtils', () => {
         // Then one personal should be in personalDetails list
         expect(results.personalDetails.length).toBe(1);
         expect(results.personalDetails[0].text).toBe('Spider-Man');
+    });
+
+    it('getFilteredOptions() for categories', () => {
+        const search = 'Food';
+        const emptySearch = '';
+        const wrongSearch = 'bla bla';
+        const recentlyUsedCategories = ['Taxi', 'Restaurant'];
+        const selectedOptions = [
+            {
+                name: 'Medical',
+                enabled: true,
+            },
+        ];
+        const smallCategoriesList = {
+            Taxi: {
+                enabled: false,
+                name: 'Taxi',
+            },
+            Restaurant: {
+                enabled: true,
+                name: 'Restaurant',
+            },
+            Food: {
+                enabled: true,
+                name: 'Food',
+            },
+            'Food: Meat': {
+                enabled: true,
+                name: 'Food: Meat',
+            },
+        };
+        const smallResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Restaurant',
+                        keyForList: 'Restaurant',
+                        searchText: 'Restaurant',
+                        tooltipText: 'Restaurant',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food',
+                        keyForList: 'Food',
+                        searchText: 'Food',
+                        tooltipText: 'Food',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    Meat',
+                        keyForList: 'Meat',
+                        searchText: 'Food: Meat',
+                        tooltipText: 'Meat',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const smallSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Food',
+                        keyForList: 'Food',
+                        searchText: 'Food',
+                        tooltipText: 'Food',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food: Meat',
+                        keyForList: 'Food: Meat',
+                        searchText: 'Food: Meat',
+                        tooltipText: 'Food: Meat',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const smallWrongSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [],
+            },
+        ];
+        const largeCategoriesList = {
+            Taxi: {
+                enabled: false,
+                name: 'Taxi',
+            },
+            Restaurant: {
+                enabled: true,
+                name: 'Restaurant',
+            },
+            Food: {
+                enabled: true,
+                name: 'Food',
+            },
+            'Food: Meat': {
+                enabled: true,
+                name: 'Food: Meat',
+            },
+            'Food: Milk': {
+                enabled: true,
+                name: 'Food: Milk',
+            },
+            'Food: Vegetables': {
+                enabled: false,
+                name: 'Food: Vegetables',
+            },
+            'Cars: Audi': {
+                enabled: true,
+                name: 'Cars: Audi',
+            },
+            'Cars: BMW': {
+                enabled: false,
+                name: 'Cars: BMW',
+            },
+            'Cars: Mercedes-Benz': {
+                enabled: true,
+                name: 'Cars: Mercedes-Benz',
+            },
+            Medical: {
+                enabled: false,
+                name: 'Medical',
+            },
+            'Travel: Meals': {
+                enabled: true,
+                name: 'Travel: Meals',
+            },
+            'Travel: Meals: Breakfast': {
+                enabled: true,
+                name: 'Travel: Meals: Breakfast',
+            },
+            'Travel: Meals: Dinner': {
+                enabled: false,
+                name: 'Travel: Meals: Dinner',
+            },
+            'Travel: Meals: Lunch': {
+                enabled: true,
+                name: 'Travel: Meals: Lunch',
+            },
+        };
+        const largeResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                    },
+                ],
+            },
+            {
+                title: 'Recent',
+                shouldShow: true,
+                indexOffset: 1,
+                data: [
+                    {
+                        text: 'Restaurant',
+                        keyForList: 'Restaurant',
+                        searchText: 'Restaurant',
+                        tooltipText: 'Restaurant',
+                        isDisabled: false,
+                    },
+                ],
+            },
+            {
+                title: 'All',
+                shouldShow: true,
+                indexOffset: 3,
+                data: [
+                    {
+                        text: 'Restaurant',
+                        keyForList: 'Restaurant',
+                        searchText: 'Restaurant',
+                        tooltipText: 'Restaurant',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food',
+                        keyForList: 'Food',
+                        searchText: 'Food',
+                        tooltipText: 'Food',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    Meat',
+                        keyForList: 'Meat',
+                        searchText: 'Food: Meat',
+                        tooltipText: 'Meat',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    Milk',
+                        keyForList: 'Milk',
+                        searchText: 'Food: Milk',
+                        tooltipText: 'Milk',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Cars',
+                        keyForList: 'Cars',
+                        searchText: 'Cars',
+                        tooltipText: 'Cars',
+                        isDisabled: true,
+                    },
+                    {
+                        text: '    Audi',
+                        keyForList: 'Audi',
+                        searchText: 'Cars: Audi',
+                        tooltipText: 'Audi',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    Mercedes-Benz',
+                        keyForList: 'Mercedes-Benz',
+                        searchText: 'Cars: Mercedes-Benz',
+                        tooltipText: 'Mercedes-Benz',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Travel',
+                        keyForList: 'Travel',
+                        searchText: 'Travel',
+                        tooltipText: 'Travel',
+                        isDisabled: true,
+                    },
+                    {
+                        text: '    Meals',
+                        keyForList: 'Meals',
+                        searchText: 'Travel: Meals',
+                        tooltipText: 'Meals',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '        Breakfast',
+                        keyForList: 'Breakfast',
+                        searchText: 'Travel: Meals: Breakfast',
+                        tooltipText: 'Breakfast',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '        Lunch',
+                        keyForList: 'Lunch',
+                        searchText: 'Travel: Meals: Lunch',
+                        tooltipText: 'Lunch',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const largeSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Food',
+                        keyForList: 'Food',
+                        searchText: 'Food',
+                        tooltipText: 'Food',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food: Meat',
+                        keyForList: 'Food: Meat',
+                        searchText: 'Food: Meat',
+                        tooltipText: 'Food: Meat',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food: Milk',
+                        keyForList: 'Food: Milk',
+                        searchText: 'Food: Milk',
+                        tooltipText: 'Food: Milk',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const largeWrongSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [],
+            },
+        ];
+        const emptyCategoriesList = {};
+        const emptySelectedResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+
+        const smallResult = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], emptySearch, [], [], false, false, true, smallCategoriesList);
+        expect(smallResult.categoryOptions).toStrictEqual(smallResultList);
+
+        const smallSearchResult = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], search, [], [], false, false, true, smallCategoriesList);
+        expect(smallSearchResult.categoryOptions).toStrictEqual(smallSearchResultList);
+
+        const smallWrongSearchResult = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], wrongSearch, [], [], false, false, true, smallCategoriesList);
+        expect(smallWrongSearchResult.categoryOptions).toStrictEqual(smallWrongSearchResultList);
+
+        const largeResult = OptionsListUtils.getFilteredOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            emptySearch,
+            selectedOptions,
+            [],
+            false,
+            false,
+            true,
+            largeCategoriesList,
+            recentlyUsedCategories,
+        );
+        expect(largeResult.categoryOptions).toStrictEqual(largeResultList);
+
+        const largeSearchResult = OptionsListUtils.getFilteredOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            search,
+            selectedOptions,
+            [],
+            false,
+            false,
+            true,
+            largeCategoriesList,
+            recentlyUsedCategories,
+        );
+        expect(largeSearchResult.categoryOptions).toStrictEqual(largeSearchResultList);
+
+        const largeWrongSearchResult = OptionsListUtils.getFilteredOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            wrongSearch,
+            selectedOptions,
+            [],
+            false,
+            false,
+            true,
+            largeCategoriesList,
+            recentlyUsedCategories,
+        );
+        expect(largeWrongSearchResult.categoryOptions).toStrictEqual(largeWrongSearchResultList);
+
+        const emptyResult = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], search, selectedOptions, [], false, false, true, emptyCategoriesList);
+        expect(emptyResult.categoryOptions).toStrictEqual(emptySelectedResultList);
+    });
+
+    it('getFilteredOptions() for tags', () => {
+        const search = 'ing';
+        const emptySearch = '';
+        const wrongSearch = 'bla bla';
+        const recentlyUsedTags = ['Engineering', 'HR'];
+
+        const selectedOptions = [
+            {
+                name: 'Medical',
+            },
+        ];
+        const smallTagsList = {
+            Engineering: {
+                enabled: false,
+                name: 'Engineering',
+            },
+            Medical: {
+                enabled: true,
+                name: 'Medical',
+            },
+            Accounting: {
+                enabled: true,
+                name: 'Accounting',
+            },
+            HR: {
+                enabled: true,
+                name: 'HR',
+            },
+        };
+        const smallResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Accounting',
+                        keyForList: 'Accounting',
+                        searchText: 'Accounting',
+                        tooltipText: 'Accounting',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'HR',
+                        keyForList: 'HR',
+                        searchText: 'HR',
+                        tooltipText: 'HR',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const smallSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Accounting',
+                        keyForList: 'Accounting',
+                        searchText: 'Accounting',
+                        tooltipText: 'Accounting',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const smallWrongSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [],
+            },
+        ];
+        const largeTagsList = {
+            Engineering: {
+                enabled: false,
+                name: 'Engineering',
+            },
+            Medical: {
+                enabled: true,
+                name: 'Medical',
+            },
+            Accounting: {
+                enabled: true,
+                name: 'Accounting',
+            },
+            HR: {
+                enabled: true,
+                name: 'HR',
+            },
+            Food: {
+                enabled: true,
+                name: 'Food',
+            },
+            Traveling: {
+                enabled: false,
+                name: 'Traveling',
+            },
+            Cleaning: {
+                enabled: true,
+                name: 'Cleaning',
+            },
+            Software: {
+                enabled: true,
+                name: 'Software',
+            },
+            OfficeSupplies: {
+                enabled: false,
+                name: 'Office Supplies',
+            },
+            Taxes: {
+                enabled: true,
+                name: 'Taxes',
+            },
+            Benefits: {
+                enabled: true,
+                name: 'Benefits',
+            },
+        };
+        const largeResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                    },
+                ],
+            },
+            {
+                title: 'Recent',
+                shouldShow: true,
+                indexOffset: 1,
+                data: [
+                    {
+                        text: 'HR',
+                        keyForList: 'HR',
+                        searchText: 'HR',
+                        tooltipText: 'HR',
+                        isDisabled: false,
+                    },
+                ],
+            },
+            {
+                title: 'All',
+                shouldShow: true,
+                indexOffset: 2,
+                data: [
+                    {
+                        text: 'Accounting',
+                        keyForList: 'Accounting',
+                        searchText: 'Accounting',
+                        tooltipText: 'Accounting',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'HR',
+                        keyForList: 'HR',
+                        searchText: 'HR',
+                        tooltipText: 'HR',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food',
+                        keyForList: 'Food',
+                        searchText: 'Food',
+                        tooltipText: 'Food',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Cleaning',
+                        keyForList: 'Cleaning',
+                        searchText: 'Cleaning',
+                        tooltipText: 'Cleaning',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Software',
+                        keyForList: 'Software',
+                        searchText: 'Software',
+                        tooltipText: 'Software',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Taxes',
+                        keyForList: 'Taxes',
+                        searchText: 'Taxes',
+                        tooltipText: 'Taxes',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Benefits',
+                        keyForList: 'Benefits',
+                        searchText: 'Benefits',
+                        tooltipText: 'Benefits',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const largeSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Accounting',
+                        keyForList: 'Accounting',
+                        searchText: 'Accounting',
+                        tooltipText: 'Accounting',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Cleaning',
+                        keyForList: 'Cleaning',
+                        searchText: 'Cleaning',
+                        tooltipText: 'Cleaning',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const largeWrongSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [],
+            },
+        ];
+
+        const smallResult = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], emptySearch, [], [], false, false, false, {}, [], true, smallTagsList);
+        expect(smallResult.tagOptions).toStrictEqual(smallResultList);
+
+        const smallSearchResult = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], search, [], [], false, false, false, {}, [], true, smallTagsList);
+        expect(smallSearchResult.tagOptions).toStrictEqual(smallSearchResultList);
+
+        const smallWrongSearchResult = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], wrongSearch, [], [], false, false, false, {}, [], true, smallTagsList);
+        expect(smallWrongSearchResult.tagOptions).toStrictEqual(smallWrongSearchResultList);
+
+        const largeResult = OptionsListUtils.getFilteredOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            emptySearch,
+            selectedOptions,
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            true,
+            largeTagsList,
+            recentlyUsedTags,
+        );
+        expect(largeResult.tagOptions).toStrictEqual(largeResultList);
+
+        const largeSearchResult = OptionsListUtils.getFilteredOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            search,
+            selectedOptions,
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            true,
+            largeTagsList,
+            recentlyUsedTags,
+        );
+        expect(largeSearchResult.tagOptions).toStrictEqual(largeSearchResultList);
+
+        const largeWrongSearchResult = OptionsListUtils.getFilteredOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            wrongSearch,
+            selectedOptions,
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            true,
+            largeTagsList,
+            recentlyUsedTags,
+        );
+        expect(largeWrongSearchResult.tagOptions).toStrictEqual(largeWrongSearchResultList);
+    });
+
+    it('getCategoryOptionTree()', () => {
+        const categories = {
+            Taxi: {
+                enabled: false,
+                name: 'Taxi',
+            },
+            Restaurant: {
+                enabled: true,
+                name: 'Restaurant',
+            },
+            Food: {
+                enabled: true,
+                name: 'Food',
+            },
+            'Food: Meat': {
+                enabled: true,
+                name: 'Food: Meat',
+            },
+            'Food: Milk': {
+                enabled: true,
+                name: 'Food: Milk',
+            },
+            'Food: Vegetables': {
+                enabled: false,
+                name: 'Food: Vegetables',
+            },
+            'Cars: Audi': {
+                enabled: true,
+                name: 'Cars: Audi',
+            },
+            'Cars: BMW': {
+                enabled: false,
+                name: 'Cars: BMW',
+            },
+            'Cars: Mercedes-Benz': {
+                enabled: true,
+                name: 'Cars: Mercedes-Benz',
+            },
+            Medical: {
+                enabled: false,
+                name: 'Medical',
+            },
+            'Travel: Meals': {
+                enabled: true,
+                name: 'Travel: Meals',
+            },
+            'Travel: Meals: Breakfast': {
+                enabled: true,
+                name: 'Travel: Meals: Breakfast',
+            },
+            'Travel: Meals: Dinner': {
+                enabled: false,
+                name: 'Travel: Meals: Dinner',
+            },
+            'Travel: Meals: Lunch': {
+                enabled: true,
+                name: 'Travel: Meals: Lunch',
+            },
+            Plain: {
+                enabled: true,
+                name: 'Plain',
+            },
+            Health: {
+                enabled: true,
+                name: 'Health',
+            },
+            'A: B: C': {
+                enabled: true,
+                name: 'A: B: C',
+            },
+            'A: B: C: D: E': {
+                enabled: true,
+                name: 'A: B: C: D: E',
+            },
+        };
+        const result = [
+            {
+                text: 'Restaurant',
+                keyForList: 'Restaurant',
+                searchText: 'Restaurant',
+                tooltipText: 'Restaurant',
+                isDisabled: false,
+            },
+            {
+                text: 'Food',
+                keyForList: 'Food',
+                searchText: 'Food',
+                tooltipText: 'Food',
+                isDisabled: false,
+            },
+            {
+                text: '    Meat',
+                keyForList: 'Meat',
+                searchText: 'Food: Meat',
+                tooltipText: 'Meat',
+                isDisabled: false,
+            },
+            {
+                text: '    Milk',
+                keyForList: 'Milk',
+                searchText: 'Food: Milk',
+                tooltipText: 'Milk',
+                isDisabled: false,
+            },
+            {
+                text: 'Cars',
+                keyForList: 'Cars',
+                searchText: 'Cars',
+                tooltipText: 'Cars',
+                isDisabled: true,
+            },
+            {
+                text: '    Audi',
+                keyForList: 'Audi',
+                searchText: 'Cars: Audi',
+                tooltipText: 'Audi',
+                isDisabled: false,
+            },
+            {
+                text: '    Mercedes-Benz',
+                keyForList: 'Mercedes-Benz',
+                searchText: 'Cars: Mercedes-Benz',
+                tooltipText: 'Mercedes-Benz',
+                isDisabled: false,
+            },
+            {
+                text: 'Travel',
+                keyForList: 'Travel',
+                searchText: 'Travel',
+                tooltipText: 'Travel',
+                isDisabled: true,
+            },
+            {
+                text: '    Meals',
+                keyForList: 'Meals',
+                searchText: 'Travel: Meals',
+                tooltipText: 'Meals',
+                isDisabled: false,
+            },
+            {
+                text: '        Breakfast',
+                keyForList: 'Breakfast',
+                searchText: 'Travel: Meals: Breakfast',
+                tooltipText: 'Breakfast',
+                isDisabled: false,
+            },
+            {
+                text: '        Lunch',
+                keyForList: 'Lunch',
+                searchText: 'Travel: Meals: Lunch',
+                tooltipText: 'Lunch',
+                isDisabled: false,
+            },
+            {
+                text: 'Plain',
+                keyForList: 'Plain',
+                searchText: 'Plain',
+                tooltipText: 'Plain',
+                isDisabled: false,
+            },
+            {
+                text: 'Health',
+                keyForList: 'Health',
+                searchText: 'Health',
+                tooltipText: 'Health',
+                isDisabled: false,
+            },
+            {
+                text: 'A',
+                keyForList: 'A',
+                searchText: 'A',
+                tooltipText: 'A',
+                isDisabled: true,
+            },
+            {
+                text: '    B',
+                keyForList: 'B',
+                searchText: 'A: B',
+                tooltipText: 'B',
+                isDisabled: true,
+            },
+            {
+                text: '        C',
+                keyForList: 'C',
+                searchText: 'A: B: C',
+                tooltipText: 'C',
+                isDisabled: false,
+            },
+            {
+                text: '            D',
+                keyForList: 'D',
+                searchText: 'A: B: C: D',
+                tooltipText: 'D',
+                isDisabled: true,
+            },
+            {
+                text: '                E',
+                keyForList: 'E',
+                searchText: 'A: B: C: D: E',
+                tooltipText: 'E',
+                isDisabled: false,
+            },
+        ];
+
+        expect(OptionsListUtils.getCategoryOptionTree(categories)).toStrictEqual(result);
     });
 
     it('formatMemberForList()', () => {

@@ -80,7 +80,12 @@ function MiniQuickEmojiReactions(props) {
                     tooltipText={`:${EmojiUtils.getLocalizedEmojiName(emoji.name, props.preferredLocale)}:`}
                     onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji, props.emojiReactions))}
                 >
-                    <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
+                    <Text
+                        style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                    >
+                        {EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}
+                    </Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem
