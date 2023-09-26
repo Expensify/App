@@ -113,7 +113,6 @@ async function generateDynamicChecksAndCheckForCompletion() {
 
     // eslint-disable-next-line prefer-const
     let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
-    console.log('checklist', checklist);
 
     let isPassing = true;
     let checklistChanged = false;
@@ -122,10 +121,9 @@ async function generateDynamicChecksAndCheckForCompletion() {
         const regex = new RegExp(`- \\[([ x])] ${_.escapeRegExp(check)}`);
         const match = regex.exec(checklist);
         if (!match) {
-            console.log('Did not match', check, regex)
             // Add it to the PR body
             isPassing = false;
-            checklist += `- [ ] ${check}\n`;
+            checklist += `- [ ] ${check}\r\n`;
             checklistChanged = true;
         } else {
             const isChecked = match[1] === 'x';
@@ -138,7 +136,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     for (const check of allChecks) {
         if (!checks.has(check)) {
             // Check if some dynamic check has been added with previous commit, but the check is not relevant anymore
-            const regex = new RegExp(`- \\[([ x])] ${_.escapeRegExp(check)}\n`);
+            const regex = new RegExp(`- \\[([ x])] ${_.escapeRegExp(check)}\r\n`);
             const match = regex.exec(checklist);
             if (match) {
                 // Remove it from the PR body
