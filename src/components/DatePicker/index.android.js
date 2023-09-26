@@ -78,6 +78,7 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
 
 DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = defaultProps;
+DatePicker.displayName = 'DatePicker';
 
 export default forwardRef((props, ref) => (
     <DatePicker
