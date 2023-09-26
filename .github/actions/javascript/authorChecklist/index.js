@@ -41,13 +41,14 @@ async function getChecklistCategoriesForPullRequest() {
         per_page: 100,
     });
 
-    _.each(CHECKLIST_CATEGORIES, async ({ detectFunction, items }) => {
+    for (const category of CHECKLIST_CATEGORIES) {
+        const { detectFunction, items } = category;
         const categoryDetected = await detectFunction(changedFiles);
         if (!categoryDetected) {
             return;
         }
         categories.push(items);
-    });
+    };
 
     // TODO add more if statements to look for other dynamic checklist categories
 
