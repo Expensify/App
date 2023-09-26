@@ -1,14 +1,14 @@
+import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import * as API from '../API';
-import * as UserUtils from '../UserUtils';
-import * as LocalePhoneNumber from '../LocalePhoneNumber';
+import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
+import * as API from '../API';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import Navigation from '../Navigation/Navigation';
+import * as UserUtils from '../UserUtils';
 
 let currentUserEmail = '';
 let currentUserAccountID;
@@ -526,21 +526,21 @@ function getPrivatePersonalDetails() {
 }
 
 export {
+    clearAvatarErrors,
+    deleteAvatar,
+    extractFirstAndLastNameFromAvailableDetails,
+    getCountryISO,
     getDisplayName,
     getDisplayNameForTypingIndicator,
-    updateAvatar,
-    deleteAvatar,
+    getPrivatePersonalDetails,
     openPersonalDetailsPage,
     openPublicProfilePage,
-    extractFirstAndLastNameFromAvailableDetails,
+    updateAddress,
+    updateAutomaticTimezone,
+    updateAvatar,
+    updateDateOfBirth,
     updateDisplayName,
     updateLegalName,
-    updateDateOfBirth,
-    updateAddress,
     updatePronouns,
-    clearAvatarErrors,
-    updateAutomaticTimezone,
     updateSelectedTimezone,
-    getCountryISO,
-    getPrivatePersonalDetails,
 };
