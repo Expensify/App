@@ -98,13 +98,7 @@ export default [
         shouldShow: (type, reportAction, isOffline) => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             const messageHtml = lodashGet(reportAction, ['message', 0, 'html']);
-            return (
-                isAttachment &&
-                messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML &&
-                reportAction.reportActionID &&
-                !ReportActionsUtils.isMessageDeleted(reportAction) &&
-                !isOffline
-            );
+            return isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !isOffline;
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
