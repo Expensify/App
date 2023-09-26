@@ -28,8 +28,8 @@ function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
  * Request focus on the ReportActionComposer
  */
 function focus() {
-    if (typeof focusCallback !== 'function') {
-        if (typeof mainComposerFocusCallback !== 'function') {
+    if ((typeof focusCallback !== 'function') || (composerRef.current && composerRef.current.isFocused())) {
+        if (typeof mainComposerFocusCallback !== 'function' || ((editComposerRef.current && editComposerRef.current.isFocused()))) {
             return;
         }
 
