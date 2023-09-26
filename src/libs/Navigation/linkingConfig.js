@@ -69,6 +69,10 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
+                            Settings_Wallet_DomainCards: {
+                                path: ROUTES.SETTINGS_WALLET_DOMAINCARDS.route,
+                                exact: true,
+                            },
                             Settings_Wallet_EnablePayments: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
