@@ -9,6 +9,7 @@ const monthsArray = eachMonthOfInterval({
     start: new Date(new Date().getFullYear(), 0, 1), // January 1st of the current year
     end: new Date(new Date().getFullYear(), 11, 31), // December 31st of the current year
 });
+// eslint-disable-next-line rulesdir/prefer-underscore-method
 const monthNames = monthsArray.map((monthDate) => format(monthDate, 'MMMM'));
 
 jest.mock('@react-navigation/native', () => ({
