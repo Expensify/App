@@ -2586,6 +2586,7 @@ const CONST = {
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
+        HIDDEN_MESSSAGE: 'parentReportAction.hiddenMessage',
     },
     TEACHERS_UNITE: {
         PUBLIC_ROOM_ID: '207591744844000',

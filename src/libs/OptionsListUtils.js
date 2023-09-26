@@ -403,6 +403,9 @@ function getLastMessageTextForReport(report) {
         // then set the last message text to the text of the latest visible action that is not a whisper or the report creation message.
         const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
         if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
+            if (ReportActionUtils.isThreadParentMessage(lastNonWhisper)) {
+                return Localize.translateLocal(CONST.TRANSLATION_KEYS.HIDDEN_MESSSAGE);
+            }
             const latestVisibleAction =
                 _.find(
                     allSortedReportActions[report.reportID],
