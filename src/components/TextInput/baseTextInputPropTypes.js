@@ -95,7 +95,7 @@ const propTypes = {
     shouldUseDefaultValue: PropTypes.bool,
 
     /** Indicate whether or not the input should prevent swipe actions in tabs */
-    interceptSwipe: PropTypes.bool,
+    canInterceptSwipe: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -132,7 +132,7 @@ const defaultProps = {
     icon: null,
     shouldUseDefaultValue: false,
     multiline: false,
-    interceptSwipe: false,
+    canInterceptSwipe: false,
 };
 
 export {propTypes, defaultProps};
