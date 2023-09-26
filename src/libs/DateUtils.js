@@ -384,6 +384,9 @@ const DateUtils = {
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
     getStatusUntilDate,
+    isToday,
+    isTomorrow,
+    isYesterday,
 };
 
 export default DateUtils;
