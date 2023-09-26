@@ -163,7 +163,8 @@ function RoomInvitePage(props) {
             return;
         }
 
-        const inviteeEmails = _.map(selectedOptions, (option) => option.email);
+        const inviteeEmails = _.map(selectedOptions, (option) => option.login);
+        console.log(">>>>", inviteeEmails);
         Report.inviteToRoom(props.report.reportID, inviteeEmails);
         Navigation.goBack(backRoute);
     }, [selectedOptions, backRoute, props.report, validate]);
