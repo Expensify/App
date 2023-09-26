@@ -1,16 +1,15 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
+import ONYXKEYS, {OnyxValues} from '../ONYXKEYS';
 import CONST from '../CONST';
 import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
-let currencyList = {};
+let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
+
 Onyx.connect({
     key: ONYXKEYS.CURRENCY_LIST,
     callback: (val) => {
-        if (_.isEmpty(val)) {
+        if (!val || Object.keys(val).length === 0) {
             return;
         }
 
@@ -23,56 +22,45 @@ Onyx.connect({
  * For currencies that have decimal places > 2, floor to 2 instead:
  * https://github.com/Expensify/App/issues/15878#issuecomment-1496291464
  *
- * @param {String} currency - IOU currency
- * @returns {Number}
+ * @param currency - IOU currency
  */
-function getCurrencyDecimals(currency = CONST.CURRENCY.USD) {
-    const decimals = lodashGet(currencyList, [currency, 'decimals']);
-    return _.isUndefined(decimals) ? 2 : decimals;
+function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
+    const decimals = currencyList?.[currency]?.decimals;
+    return decimals ?? 2;
 }
 
 /**
  * Returns the currency's minor unit quantity
  * e.g. Cent in USD
  *
- * @param {String} currency - IOU currency
- * @returns {Number}
+ * @param currency - IOU currency
  */
-function getCurrencyUnit(currency = CONST.CURRENCY.USD) {
+function getCurrencyUnit(currency: string = CONST.CURRENCY.USD): number {
     return 10 ** getCurrencyDecimals(currency);
 }
 
 /**
  * Get localized currency symbol for currency(ISO 4217) Code
- *
- * @param {String} currencyCode
- * @returns {String}
  */
-function getLocalizedCurrencySymbol(currencyCode) {
+function getLocalizedCurrencySymbol(currencyCode: string): string | undefined {
     const parts = NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
         style: 'currency',
         currency: currencyCode,
     });
-    return _.find(parts, (part) => part.type === 'currency').value;
+    return parts.find((part) => part.type === 'currency')?.value;
 }
 
 /**
  * Get the currency symbol for a currency(ISO 4217) Code
- *
- * @param {String} currencyCode
- * @returns {String|undefined}
  */
-function getCurrencySymbol(currencyCode) {
-    return lodashGet(currencyList, [currencyCode, 'symbol']);
+function getCurrencySymbol(currencyCode: string): string | undefined {
+    return currencyList?.[currencyCode]?.symbol;
 }
 
 /**
  * Whether the currency symbol is left-to-right.
- *
- * @param {String} currencyCode
- * @returns {Boolean}
  */
-function isCurrencySymbolLTR(currencyCode) {
+function isCurrencySymbolLTR(currencyCode: string): boolean {
     const parts = NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
         style: 'currency',
         currency: currencyCode,
@@ -88,11 +76,8 @@ function isCurrencySymbolLTR(currencyCode) {
  * when doing math operations.
  *
  * @note we do not currently support any currencies with more than two decimal places. Decimal past the second place will be rounded. Sorry Tunisia :(
- *
- * @param {Number} amountAsFloat
- * @returns {Number}
  */
-function convertToBackendAmount(amountAsFloat) {
+function convertToBackendAmount(amountAsFloat: number): number {
     return Math.round(amountAsFloat * 100);
 }
 
@@ -100,11 +85,8 @@ function convertToBackendAmount(amountAsFloat) {
  * Takes an amount in "cents" as an integer and converts it to a floating point amount used in the frontend.
  *
  * @note we do not support any currencies with more than two decimal places.
- *
- * @param {Number} amountAsInt
- * @returns {Number}
  */
-function convertToFrontendAmount(amountAsInt) {
+function convertToFrontendAmount(amountAsInt: number): number {
     return Math.trunc(amountAsInt) / 100.0;
 }
 
@@ -112,11 +94,10 @@ function convertToFrontendAmount(amountAsInt) {
  * Given an amount in the "cents", convert it to a string for display in the UI.
  * The backend always handle things in "cents" (subunit equal to 1/100)
  *
- * @param {Number} amountInCents – should be an integer. Anything after a decimal place will be dropped.
- * @param {String} currency
- * @returns {String}
+ * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
+ * @param currency - IOU currency
  */
-function convertToDisplayString(amountInCents, currency = CONST.CURRENCY.USD) {
+function convertToDisplayString(amountInCents: number, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = convertToFrontendAmount(amountInCents);
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
@@ -130,12 +111,9 @@ function convertToDisplayString(amountInCents, currency = CONST.CURRENCY.USD) {
 
 /**
  * Checks if passed currency code is a valid currency based on currency list
- *
- * @param {String} currencyCode
- * @returns {Boolean}
  */
-function isValidCurrencyCode(currencyCode) {
-    const currency = lodashGet(currencyList, currencyCode);
+function isValidCurrencyCode(currencyCode: string): boolean {
+    const currency = currencyList?.[currencyCode];
     return Boolean(currency);
 }
 

@@ -221,9 +221,10 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
  * @param {Object} personalDetails
  * @param {String} preferredLocale
  * @param {Object} [policy]
+ * @param {Object} parentReportAction
  * @returns {Object}
  */
-function getOptionData(report, reportActions, personalDetails, preferredLocale, policy) {
+function getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -277,8 +278,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
     if (result.isTaskReport) {
-        result.isCompletedTaskReport = ReportUtils.isCompletedTaskReport(report);
-        result.isTaskAssignee = ReportUtils.isReportManager(report);
+        result.isWaitingForTaskCompleteFromAssignee = ReportUtils.isWaitingForTaskCompleteFromAssignee(report, parentReportAction);
     }
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);

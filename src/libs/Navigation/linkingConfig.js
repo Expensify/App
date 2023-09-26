@@ -69,6 +69,10 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
+                            Settings_Wallet_DomainCards: {
+                                path: ROUTES.SETTINGS_WALLET_DOMAINCARDS.route,
+                                exact: true,
+                            },
                             Settings_Wallet_EnablePayments: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
@@ -263,7 +267,7 @@ export default {
                     },
                     NewTask: {
                         screens: {
-                            NewTask_Root: ROUTES.NEW_TASK_WITH_REPORT_ID,
+                            NewTask_Root: ROUTES.NEW_TASK,
                             NewTask_TaskAssigneeSelector: ROUTES.NEW_TASK_ASSIGNEE,
                             NewTask_TaskShareDestinationSelector: ROUTES.NEW_TASK_SHARE_DESTINATION,
                             NewTask_Details: ROUTES.NEW_TASK_DETAILS,

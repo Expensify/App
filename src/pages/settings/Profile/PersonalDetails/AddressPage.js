@@ -139,11 +139,11 @@ function AddressPage({privatePersonalDetails, route}) {
     }, []);
 
     useEffect(() => {
-        if (!countryFromUrl) {
+        if (!countryFromUrl || countryFromUrl === currentCountry) {
             return;
         }
         handleAddressChange(countryFromUrl, 'country');
-    }, [countryFromUrl, handleAddressChange]);
+    }, [countryFromUrl, handleAddressChange, currentCountry]);
 
     return (
         <ScreenWrapper
