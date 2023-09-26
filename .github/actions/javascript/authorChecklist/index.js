@@ -18,7 +18,7 @@ const newComponentCategory = __nccwpck_require__(8045);
 
 const pathToAuthorChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md';
 const checklistStartsWith = '### PR Author Checklist';
-const checklistEndsWith = "\n### Screenshots/Videos";
+const checklistEndsWith = "\n\n### Screenshots/Videos";
 
 const prNumber = github.context.payload.pull_request.number;
 
@@ -121,17 +121,18 @@ async function generateDynamicChecksAndCheckForCompletion() {
 
     const body = github.context.payload.pull_request.body;
 
-    console.log('body', body);
     // eslint-disable-next-line prefer-const
     let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
+    console.log('checklist', checklist);
 
     let isPassing = true;
     let checklistChanged = false;
     for (const check of checks) {
         // Check if it's already in the PR body, capturing the whether or not it's already checked
-        const regex = new RegExp(`- \\[([ x])] ${_.escapeRegExp(check)}\n`);
+        const regex = new RegExp(`- \\[([ x])] ${_.escapeRegExp(check)}`);
         const match = regex.exec(checklist);
         if (!match) {
+            console.log('Did not match', check, regex)
             // Add it to the PR body
             isPassing = false;
             checklist += `- [ ] ${check}\n`;
