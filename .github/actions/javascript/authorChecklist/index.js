@@ -120,6 +120,8 @@ async function generateDynamicChecksAndCheckForCompletion() {
     }
 
     const body = github.context.payload.pull_request.body;
+
+    console.log('body', body);
     // eslint-disable-next-line prefer-const
     let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
 
