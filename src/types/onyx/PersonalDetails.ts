@@ -33,6 +33,8 @@ type PersonalDetails = {
     /** Avatar thumbnail URL of the current user from their personal details */
     avatarThumbnail?: string;
 
+    originalFileName?: string;
+
     /** Flag to set when Avatar uploading */
     avatarUploading?: boolean;
 
@@ -52,10 +54,10 @@ type PersonalDetails = {
     isLoading?: boolean;
 
     /** Field-specific server side errors keyed by microtime */
-    errorFields?: OnyxCommon.ErrorFields;
+    errorFields?: OnyxCommon.ErrorFields<'avatar'>;
 
     /** Field-specific pending states for offline UI status */
-    pendingFields?: OnyxCommon.ErrorFields;
+    pendingFields?: OnyxCommon.PendingFields<'avatar' | 'originalFileName'>;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: string;

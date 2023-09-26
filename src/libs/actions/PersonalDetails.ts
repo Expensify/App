@@ -436,7 +436,7 @@ function updateAvatar(file: FileWithUri | CustomRNImageManipulatorResult) {
         return;
     }
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -457,7 +457,7 @@ function updateAvatar(file: FileWithUri | CustomRNImageManipulatorResult) {
             },
         },
     ];
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -470,7 +470,7 @@ function updateAvatar(file: FileWithUri | CustomRNImageManipulatorResult) {
             },
         },
     ];
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -506,7 +506,7 @@ function deleteAvatar() {
     // We want to use the old dot avatar here as this affects both platforms.
     const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserAccountID);
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -518,7 +518,7 @@ function deleteAvatar() {
             },
         },
     ];
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
