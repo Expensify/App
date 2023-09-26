@@ -263,12 +263,7 @@ function BaseTextInput(props) {
                             <>
                                 {/* Adding this background to the label only for multiline text input,
                                 to prevent text overlapping with label when scrolling */}
-                                {isMultiline && (
-                                    <View
-                                        style={styles.textInputLabelBackground}
-                                        pointerEvents="none"
-                                    />
-                                )}
+                                {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
                                     isLabelActive={isLabelActive.current}
                                     label={props.label}
@@ -278,16 +273,12 @@ function BaseTextInput(props) {
                                 />
                             </>
                         ) : null}
-                        <View
-                            style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer]}
-                            pointerEvents="box-none"
-                        >
+                        <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {Boolean(props.prefixCharacter) && (
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
-                                        pointerEvents="none"
-                                        selectable={false}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0]}
+                                        tabIndex={-1}
+                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {props.prefixCharacter}

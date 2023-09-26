@@ -62,9 +62,8 @@ function ReportActionItemParentAction(props) {
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
                 <Image
-                    pointerEvents="none"
                     source={EmptyStateBackgroundImage}
-                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
+                    style={[StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth), styles.pointerEventsNone]}
                 />
                 <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
                 {parentReportAction && (
