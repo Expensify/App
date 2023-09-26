@@ -1,10 +1,11 @@
-import {subYears, addYears, addMinutes, startOfDay, endOfMonth, isAfter, isBefore, isValid, isWithinInterval, isSameDay, parse, set, format} from 'date-fns';
+import {subYears, addYears, addMinutes, startOfDay, endOfMonth, isAfter, isBefore, isValid, isWithinInterval, isSameDay, parse, set, format, parseISO} from 'date-fns';
 import _ from 'underscore';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
+import DateUtils from './DateUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -483,15 +484,21 @@ function isValidAccountRoute(accountID) {
 
 /**
  * Checks if the time input is at least one minute in the future.
- * @param {String} inputTime
- * @param {String} inputDateTime
+ * @param {String} inputTime '12:00 PM'
+ * @param {String} inputDateTime '2023-09-27'
  * @returns {Boolean}
  * */
 const isTimeAtLeastOneMinuteInFuture = (inputTime = '', inputDateTime = '') => {
-    if (!inputTime) return false;
+    if (!inputTime) {
+        return false;
+    }
     // Parse the hour and minute from the time input
     const [hourStr, minuteStr, period] = inputTime.split(/[:\s]+/);
     let hour = parseInt(hourStr, 10);
+
+    if (hour === 0) {
+        return false;
+    }
 
     // Convert 12-hour format to 24-hour format
     if (period.toUpperCase() === 'PM' && hour !== 12) {
@@ -516,6 +523,28 @@ const isTimeAtLeastOneMinuteInFuture = (inputTime = '', inputDateTime = '') => {
 
     // Check if the combinedDate is at least one minute later than the current date and time
     return isAfter(combinedDate, addMinutes(now, 1));
+};
+
+/**
+ * Validates that the date and time are at least one minute in the future.
+ * @param {String} data - A date and time string in 'YYYY-MM-DDTHH:mm:ss.sssZ' format
+ * @returns {Object} - An object containing the error messages for the date and time
+ */
+const validateDateTimeIsAtLeastOneMinuteInFuture = (data) => {
+    if (!data) {
+        return {
+            dateValidationErrorKey: '',
+            timeValidationErrorKey: '',
+        };
+    }
+    const parsedInputData = parseISO(data);
+
+    const dateValidationErrorKey = DateUtils.getDateValidationErrorKey(parsedInputData);
+    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(parsedInputData);
+    return {
+        dateValidationErrorKey,
+        timeValidationErrorKey,
+    };
 };
 
 export {
@@ -553,4 +582,5 @@ export {
     getDatePassedError,
     isTimeAtLeastOneMinuteInFuture,
     isValidRecoveryCode,
+    validateDateTimeIsAtLeastOneMinuteInFuture,
 };
