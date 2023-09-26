@@ -5,6 +5,7 @@ import linkingConfig from './linkingConfig';
 import getTopmostReportId from './getTopmostReportId';
 import getStateFromPath from './getStateFromPath';
 import CONST from '../../CONST';
+import getTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
 
 /**
  * Motivation for this function is described in NAVIGATION.md
@@ -66,7 +67,11 @@ export default function linkTo(navigation, path, type) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
-        } else if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && getTopmostReportId(root.getState()) !== getTopmostReportId(state)) {
+        } else if (
+            action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR &&
+            (getTopmostReportId(root.getState()) !== getTopmostReportId(state) || getTopMostCentralPaneRouteName(root.getState()) !== getTopMostCentralPaneRouteName(state))
+            // getTopmostReportId(root.getState()) !== getTopmostReportId(state)
+        ) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
 
             // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow

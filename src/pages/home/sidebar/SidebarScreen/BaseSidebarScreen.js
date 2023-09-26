@@ -2,12 +2,11 @@ import React from 'react';
 import {View} from 'react-native';
 import styles from '../../../../styles/styles';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import CONST from '../../../../CONST';
 import sidebarPropTypes from './sidebarPropTypes';
 import * as Browser from '../../../../libs/Browser';
-import GlobalNavigation from '../GlobalNavigation';
+import GlobalNavigation from '../GlobalNavigation/GlobalNavigation';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import SidebarMenu from './SidebarMenu';
+import SubNavigation from '../SubNavigation/SubNavigation';
 
 const propTypes = {
     ...sidebarPropTypes,
@@ -15,12 +14,6 @@ const propTypes = {
 };
 
 function BaseSidebarScreen(props) {
-    const [shownSidebarMenu, setShownSidebarMenu] = React.useState(CONST.SIDEBAR_MENU_OPTIONS.CHATS);
-
-    const switchSidebarMenu = (sidebarOption) => {
-        setShownSidebarMenu(sidebarOption);
-    };
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -32,12 +25,8 @@ function BaseSidebarScreen(props) {
                 <GlobalNavigation
                     isSmallScreenWidth={props.isSmallScreenWidth}
                     isCreateMenuOpen={props.isCreateMenuOpen}
-                    switchSidebarMenu={switchSidebarMenu}
                 />
-                <SidebarMenu
-                    isSmallScreenWidth={props.isSmallScreenWidth}
-                    shownSidebarMenu={shownSidebarMenu}
-                />
+                <SubNavigation isSmallScreenWidth={props.isSmallScreenWidth} />
             </View>
             {props.children}
         </ScreenWrapper>

@@ -24,4 +24,17 @@ export default {
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
+
+    // Iframe screens from olddot
+    HOME_OD: 'Home_OD',
+
+    // Spend tab
+    EXPENSES_OD: 'Expenses_OD',
+    REPORTS_OD: 'Reports_OD',
+    INSIGHTS_OD: 'INSIGHTS_OD',
+
+    // Workspaces tab
+    INDIVIDUALS_OD: 'Individuals_OD',
+    GROUPS_OD: 'Groups_OD',
+    CARDS_AND_DOMAINS_OD: 'CardsAndDomains_OD',
 } as const;

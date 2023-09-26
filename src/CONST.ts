@@ -2669,9 +2669,11 @@ const CONST = {
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
 
-    SIDEBAR_MENU_OPTIONS: {
+    GLOBAL_NAVIGATION_OPTION: {
+        HOME: 'home',
         CHATS: 'chats',
-        EXPENSES: 'expenses',
+        SPEND: 'spend',
+        WORKSPACES: 'workspaces',
     },
 } as const;
 

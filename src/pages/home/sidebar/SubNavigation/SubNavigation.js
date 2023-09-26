@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import SidebarLinksData from '../SidebarLinksData';
@@ -11,7 +10,6 @@ import * as Browser from '../../../../libs/Browser';
 
 const propTypes = {
     isSmallScreenWidth: PropTypes.bool.isRequired,
-    shownSidebarMenu: PropTypes.string.isRequired,
 };
 
 /**
@@ -22,7 +20,7 @@ const startTimer = () => {
     Performance.markStart(CONST.TIMING.SWITCH_REPORT);
 };
 
-function SidebarMenu(props) {
+function SubNavigation(props) {
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
@@ -33,27 +31,20 @@ function SidebarMenu(props) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
+            testID={SubNavigation.displayName}
         >
-            {({insets}) => {
-                if (props.shownSidebarMenu === CONST.SIDEBAR_MENU_OPTIONS.CHATS) {
-                    return (
-                        <SidebarLinksData
-                            onLinkClick={startTimer}
-                            insets={insets}
-                            isSmallScreenWidth={props.isSmallScreenWidth}
-                        />
-                    );
-                }
-                if (props.shownSidebarMenu === CONST.SIDEBAR_MENU_OPTIONS.EXPENSES) {
-                    // TODO: Add all other sidebar menus
-                    return null;
-                }
-            }}
+            {({insets}) => (
+                <SidebarLinksData
+                    onLinkClick={startTimer}
+                    insets={insets}
+                    isSmallScreenWidth={props.isSmallScreenWidth}
+                />
+            )}
         </ScreenWrapper>
     );
 }
 
-SidebarMenu.propTypes = propTypes;
-SidebarMenu.displayName = 'SidebarMenu';
+SubNavigation.propTypes = propTypes;
+SubNavigation.displayName = 'SubNavigation';
 
-export default SidebarMenu;
+export default SubNavigation;

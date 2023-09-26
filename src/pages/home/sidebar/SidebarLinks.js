@@ -29,7 +29,6 @@ import * as Session from '../../../libs/actions/Session';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
-import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -169,13 +168,12 @@ class SidebarLinks extends React.PureComponent {
                         <PressableWithoutFeedback
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            style={[styles.flexRow, styles.ph5]}
+                            style={styles.flexRow}
                             onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </PressableWithoutFeedback>
                     </Tooltip>
-                    <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={this.props.isCreateMenuOpen} />
                 </View>
 
                 <LHNOptionsList

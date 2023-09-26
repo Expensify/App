@@ -152,4 +152,17 @@ export default {
     // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
     SAASTR:                                     'saastr',
     SBE:                                        'sbe',
+
+    // Iframe screens from olddot
+    HOME_OD:                                    'home',
+
+    // Spend tab
+    EXPENSES_OD:                                'expenses',
+    REPORTS_OD:                                 'reports',
+    INSIGHTS_OD:                                'insights',
+
+    // Workspaces tab
+    INDIVIDUALS_OD:                             'individuals',
+    GROUPS_OD:                                  'groups',
+    CARDS_AND_DOMAINS_OD:                       'cards-and-domains',
 } as const;

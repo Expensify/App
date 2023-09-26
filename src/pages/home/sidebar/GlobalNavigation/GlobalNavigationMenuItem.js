@@ -1,16 +1,17 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../../components/Text';
-import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import Icon from '../../../components/Icon';
-import getButtonState from '../../../libs/getButtonState';
-import CONST from '../../../CONST';
-import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
-import Hoverable from '../../../components/Hoverable';
-import variables from '../../../styles/variables';
-import stylePropTypes from '../../../styles/stylePropTypes';
+import _ from 'underscore';
+import Text from '../../../../components/Text';
+import styles from '../../../../styles/styles';
+import * as StyleUtils from '../../../../styles/StyleUtils';
+import Icon from '../../../../components/Icon';
+import getButtonState from '../../../../libs/getButtonState';
+import CONST from '../../../../CONST';
+import PressableWithSecondaryInteraction from '../../../../components/PressableWithSecondaryInteraction';
+import Hoverable from '../../../../components/Hoverable';
+import variables from '../../../../styles/variables';
+import stylePropTypes from '../../../../styles/stylePropTypes';
 
 const propTypes = {
     /** Used to apply offline styles to child text components */
@@ -69,7 +70,7 @@ const GlobalNavigationMenuItem = React.forwardRef((props, ref) => (
     <Hoverable>
         {(isHovered) => (
             <PressableWithSecondaryInteraction
-                onPress={props.onPress}
+                onPress={props.focused ? () => {} : props.onPress}
                 style={({pressed}) => [
                     props.style,
                     !props.interactive && styles.cursorDefault,
@@ -90,10 +91,7 @@ const GlobalNavigationMenuItem = React.forwardRef((props, ref) => (
                                     src={props.icon}
                                     width={props.iconWidth}
                                     height={props.iconHeight}
-                                    fill={
-                                        props.iconFill ||
-                                        StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed), true)
-                                    }
+                                    fill={props.iconFill || StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed), true)}
                                 />
                             </View>
                             <View style={[styles.mt1, styles.alignItemsCenter]}>
