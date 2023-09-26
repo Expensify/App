@@ -28,7 +28,7 @@ const propTypes = {
 
 const defaultProps = {
     errorText: '',
-    value: '',
+    value: undefined,
     forwardedRef: () => {},
 };
 
