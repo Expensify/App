@@ -53,7 +53,9 @@ function ValuePicker({value, label, items, placeholder, errorText, onInputChange
     };
 
     const updateInput = (item) => {
-        onInputChange(item.value);
+        if (item.value !== value) {
+            onInputChange(item.value);
+        }
         hidePickerModal();
     };
 
