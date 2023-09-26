@@ -22,7 +22,6 @@ import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickE
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import * as Task from '../../../../libs/actions/Task';
-import * as NetworkStore from '../../../../libs/Network/NetworkStore';
 
 /**
  * Gets the HTML version of the message in an action.
