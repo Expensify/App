@@ -1,6 +1,6 @@
 import Card from './Card';
 
-type CardList = Record<string, Card> & {
+type CardList = Record<number, Card> & {
     isLoading: boolean;
 };
 
