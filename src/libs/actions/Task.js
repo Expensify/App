@@ -894,6 +894,10 @@ function getTaskOwnerAccountID(taskReport) {
  * @returns {Boolean}
  */
 function canModifyTask(taskReport, sessionAccountID) {
+    if (ReportUtils.isCanceledTaskReport(taskReport)) {
+        return false;
+    }
+
     if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
         return true;
     }
