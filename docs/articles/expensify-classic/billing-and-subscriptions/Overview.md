@@ -2,4 +2,4 @@
 title: Overview
 description: Overview
 ---
-## Resources Coming Soon!
+## Resource Coming Soon!

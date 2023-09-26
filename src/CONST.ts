@@ -123,8 +123,6 @@ const CONST = {
         },
     },
 
-    RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY: 0.4,
-
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
@@ -1145,6 +1143,7 @@ const CONST = {
         DISTANCE_UNIT_KILOMETERS: 'km',
         MILEAGE_IRS_RATE: 0.655,
         DEFAULT_RATE: 'Default Rate',
+        RATE_DECIMALS: 3,
     },
 
     TERMS: {
@@ -1360,6 +1359,7 @@ const CONST = {
         MERCHANT: 'merchant',
         CATEGORY: 'category',
         RECEIPT: 'receipt',
+        TAG: 'tag',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,

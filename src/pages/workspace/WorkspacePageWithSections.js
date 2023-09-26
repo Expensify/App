@@ -106,7 +106,7 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy)}
+                shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
                 subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
                 <HeaderWithBackButton
@@ -114,7 +114,7 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
                     subtitle={policyName}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={guidesCallTaskID}
-                    onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                 />
                 {shouldUseScrollView ? (
                     <ScrollViewWithContext
@@ -134,6 +134,7 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
 
 WorkspacePageWithSections.propTypes = propTypes;
 WorkspacePageWithSections.defaultProps = defaultProps;
+WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
 
 export default compose(
     withOnyx({
