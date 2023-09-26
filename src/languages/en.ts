@@ -359,6 +359,11 @@ export default {
         termsOfService: 'Terms of Service',
         privacy: 'Privacy',
     },
+    samlSignIn: {
+        welcomeSAMLEnabled: 'Continue logging in with your company\'s Single Sign-On',
+        orContinueWithMagicCode: 'Or, optionally, your company allows signing in with a magic code',
+        useSingleSignOn: 'Use Single Sign-On',
+        useMagicCode: 'Use Magic Code',
     reportActionCompose: {
         addAction: 'Actions',
         dropToUpload: 'Drop to upload',
