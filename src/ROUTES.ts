@@ -225,7 +225,7 @@ export default {
         route: ':iouType/new/receipt/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/receipt/${reportID}`,
     },
-    MONEY_REQUEST_ADDRESS: {
+    MONEY_REQUEST_DISTANCE: {
         route: ':iouType/new/address/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}`,
     },
