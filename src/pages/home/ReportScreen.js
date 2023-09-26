@@ -177,7 +177,7 @@ function ReportScreen({
 
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
-    const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails) || firstRenderRef.current;
+    const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
@@ -364,7 +364,16 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
+        () =>
+            (!firstRenderRef.current &&
+                !_.isEmpty(report) &&
+                !isDefaultReport &&
+                !report.reportID &&
+                !isOptimisticDelete &&
+                !report.isLoadingReportActions &&
+                !isLoading &&
+                !userLeavingStatus) ||
+            shouldHideReport,
         [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete, userLeavingStatus],
     );
 
