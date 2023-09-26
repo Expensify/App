@@ -33,8 +33,8 @@ type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | ''
  * }}
  */
 function hasLoginListError(loginList: Login): boolean {
-    const errorFields: ErrorFields = loginList?.errorFields ?? {};
-    return Object.values(errorFields).some((field) => Object.keys(field).length > 0);
+    const errorFields = loginList?.errorFields ?? {};
+    return Object.values(errorFields).some((field) => Object.keys(field ?? {}).length > 0);
 }
 
 /**
