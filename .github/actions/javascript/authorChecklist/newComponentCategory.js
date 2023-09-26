@@ -1,7 +1,7 @@
 const { parse } = require('@babel/parser');
 const traverse = require('@babel/traverse').default;
 const github = require('@actions/github');
-const _ = require('underscore');
+const _ = require('lodash');
 const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 

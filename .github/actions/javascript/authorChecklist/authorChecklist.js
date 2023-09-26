@@ -1,7 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const https = require('https');
-const _ = require('underscore');
+const _ = require('lodash');
 const GithubUtils = require('../../../libs/GithubUtils');
 const CONST = require('../../../libs/CONST');
 const newComponentCategory = require('./newComponentCategory');
@@ -122,7 +122,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     let isPassing = true;
     for (const check of checks) {
         // Check if it's already in the PR body, capturing the whether or not it's already checked
-        const regex = new RegExp(`- \\[([ x])] ${check}\n`);
+        const regex = new RegExp(`- \\[([ x])] ${_.escapeRegExp(check)}\n`);
         const match = regex.exec(checklist);
         if (!match) {
             // Add it to the PR body
