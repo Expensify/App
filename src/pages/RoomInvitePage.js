@@ -162,10 +162,16 @@ function RoomInvitePage(props) {
         if (!validate()) {
             return;
         }
-
-        const inviteeEmails = _.map(selectedOptions, (option) => option.login);
-        console.log(">>>>", inviteeEmails);
-        Report.inviteToRoom(props.report.reportID, inviteeEmails);
+        const invitedEmailsToAccountIDs = {};
+        _.each(selectedOptions, (option) => {
+            const login = option.login || '';
+            const accountID = lodashGet(option, 'accountID', '');
+            if (!login.toLowerCase().trim() || !accountID) {
+                return;
+            }
+            invitedEmailsToAccountIDs[login] = Number(accountID);
+        });
+        Report.inviteToRoom(props.report.reportID, invitedEmailsToAccountIDs);
         Navigation.goBack(backRoute);
     }, [selectedOptions, backRoute, props.report, validate]);
 
