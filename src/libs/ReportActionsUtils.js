@@ -404,7 +404,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
  * @returns {Object}
  */
 function replaceBaseURL(reportAction) {
-    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVEFROMROOM) {
+    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM) {
         return reportAction;
     }
     const updatedReportAction = _.clone(reportAction);
