@@ -827,6 +827,15 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`,
+            value: {
+                [parentReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
     ];
 
     const failureData = [
@@ -843,6 +852,15 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {
                 [optimisticReportActionID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`,
+            value: {
+                [parentReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
             },
         },
     ];
