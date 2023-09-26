@@ -82,7 +82,7 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     componentDidMount() {
         if (_.isEmpty(this.props.invitedEmailsToAccountIDsDraft)) {
-            Navigation.goBack(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID), true);
+            Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(this.props.route.params.policyID), true);
             return;
         }
         this.focusWelcomeMessageInput();
@@ -123,7 +123,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, {});
         // Pop the invite message page before navigating to the members page.
         Navigation.goBack(ROUTES.HOME);
-        Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(this.props.route.params.policyID));
     }
 
     /**
