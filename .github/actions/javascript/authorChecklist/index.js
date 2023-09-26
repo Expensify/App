@@ -202,8 +202,6 @@ const { parse } = __nccwpck_require__(639);
 const traverse = __nccwpck_require__(5008).default;
 const github = __nccwpck_require__(5438);
 const _ = __nccwpck_require__(2947);
-const fs = __nccwpck_require__(5747);
-const path = __nccwpck_require__(5622);
 const CONST = __nccwpck_require__(4097);
 const GithubUtils = __nccwpck_require__(7999);
 
@@ -251,7 +249,6 @@ function detectReactComponent(code) {
 };
 
 function fetchFile(filename) {
-    console.log('debug', github.context.payload.pull_request);
     const content = {
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
@@ -259,7 +256,7 @@ function fetchFile(filename) {
         ref: github.context.payload.pull_request.head.ref,
     };
     try {
-        return GithubUtils.octokit.rest.repos.getContent(content);
+        return GithubUtils.octokit.repos.getContent(content);
     } catch (error) {
         console.error(`An unknown error occurred with the GitHub API: ${error}, while fetching ${content}`);
     }

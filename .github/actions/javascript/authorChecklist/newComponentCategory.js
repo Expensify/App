@@ -2,8 +2,6 @@ const { parse } = require('@babel/parser');
 const traverse = require('@babel/traverse').default;
 const github = require('@actions/github');
 const _ = require('underscore');
-const fs = require('fs');
-const path = require('path');
 const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 
@@ -51,7 +49,6 @@ function detectReactComponent(code) {
 };
 
 function fetchFile(filename) {
-    console.log('debug', github.context.payload.pull_request);
     const content = {
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
@@ -59,7 +56,7 @@ function fetchFile(filename) {
         ref: github.context.payload.pull_request.head.ref,
     };
     try {
-        return GithubUtils.octokit.rest.repos.getContent(content);
+        return GithubUtils.octokit.repos.getContent(content);
     } catch (error) {
         console.error(`An unknown error occurred with the GitHub API: ${error}, while fetching ${content}`);
     }
