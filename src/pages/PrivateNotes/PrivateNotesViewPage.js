@@ -66,6 +66,7 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(lodashGet(report, 'reportID', '')))}
                     subtitle={isCurrentUserNote ? translate('privateNotes.myNote') : `${lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')} note`}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
