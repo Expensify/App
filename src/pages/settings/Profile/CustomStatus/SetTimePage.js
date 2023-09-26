@@ -50,7 +50,10 @@ function SetTimePage({translate, privatePersonalDetails, customStatus}) {
         return <FullscreenLoadingIndicator />;
     }
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={SetTimePage.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('statusPage.time')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
@@ -61,7 +64,8 @@ function SetTimePage({translate, privatePersonalDetails, customStatus}) {
                     formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_TIME_FORM}
                     onSubmit={onSubmit}
                     submitButtonText={translate('common.save')}
-                    submitButtonContainerStyles={[styles.flex0, styles.justifyContentStart, styles.mh5, styles.setTimeFormButtonContainer]}
+                    submitButtonContainerStyles={[styles.flex0, styles.justifyContentStart, styles.mh5, styles.setTimeFormButtonContainer, styles.pt3]}
+                    errorMessageStyle={styles.timePickerButtonErrorText}
                     validate={validate}
                     enabledWhenOffline
                     shouldUseDefaultValue
