@@ -51,7 +51,6 @@ const clearToken = () => {
 };
 
 const fetchToken = () => {
-    console.debug('[MapboxToken] Token does not exist so fetching one');
     API.read('GetMapboxAccessToken');
     isCurrentlyFetchingToken = true;
 };
