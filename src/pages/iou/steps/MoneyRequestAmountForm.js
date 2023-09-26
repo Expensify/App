@@ -12,6 +12,7 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
 import useLocalize from '../../../hooks/useLocalize';
 import CONST from '../../../CONST';
+import FormHelpMessage from '../../../components/FormHelpMessage';
 import refPropTypes from '../../../components/refPropTypes';
 import getOperatingSystem from '../../../libs/getOperatingSystem';
 import * as Browser from '../../../libs/Browser';
@@ -57,6 +58,8 @@ const getNewSelection = (oldSelection, prevLength, newLength) => {
     return {start: cursorPosition, end: cursorPosition};
 };
 
+const isAmountValid = (amount) => !amount.length || parseFloat(amount) < 0.01;
+
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
@@ -70,6 +73,9 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
+    const [isInvalidAmount, setIsInvalidAmount] = useState(isAmountValid(selectedAmountAsString));
+    const [firstPress, setFirstPress] = useState(false);
+    const [formError, setFormError] = useState('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
     const [selection, setSelection] = useState({
@@ -127,6 +133,9 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
+        const checkInvalidAmount = isAmountValid(newAmountWithoutSpaces);
+        setIsInvalidAmount(checkInvalidAmount);
+        setFormError(checkInvalidAmount ? 'iou.error.invalidAmount' : '');
         setCurrentAmount((prevAmount) => {
             const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
             const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
@@ -177,8 +186,13 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(() => {
+        if (isInvalidAmount) {
+            setFirstPress(true);
+            setFormError('iou.error.invalidAmount');
+            return;
+        }
         onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount]);
+    }, [onSubmitButtonPress, currentAmount, isInvalidAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -231,9 +245,16 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     onKeyPress={textInputKeyPress}
                 />
             </View>
+            {!_.isEmpty(formError) && firstPress && (
+                <FormHelpMessage
+                    style={[styles.ph5]}
+                    isError
+                    message={translate(formError)}
+                />
+            )}
             <View
                 onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
-                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
+                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
                 nativeID={NUM_PAD_CONTAINER_VIEW_ID}
             >
                 {DeviceCapabilities.canUseTouchScreen() ? (
@@ -249,7 +270,6 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     style={[styles.w100, styles.mt5]}
                     onPress={submitAndNavigateToNextPage}
                     pressOnEnter
-                    isDisabled={!currentAmount.length || parseFloat(currentAmount) < 0.01}
                     text={buttonText}
                 />
             </View>
