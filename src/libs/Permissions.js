@@ -103,6 +103,14 @@ function canUseTags(betas) {
 }
 
 /**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseSAML(betas) {
+    return _.contains(betas, CONST.BETAS.NEW_DOT_SAML || canUseAllBetas(betas));
+}
+
+/**
  * Link previews are temporarily disabled.
  * @returns {Boolean}
  */
@@ -123,4 +131,5 @@ export default {
     canUseCategories,
     canUseTags,
     canUseLinkPreviews,
+    canUseSAML,
 };

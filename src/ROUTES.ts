@@ -171,6 +171,7 @@ export default {
     APPLE_SIGN_IN: 'sign-in-with-apple',
     GOOGLE_SIGN_IN: 'sign-in-with-google',
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
+    SAML_SIGN_IN: 'sign-in-with-saml',
 
     // Routes related to private notes added to the report
     PRIVATE_NOTES_VIEW: 'r/:reportID/notes/:accountID',

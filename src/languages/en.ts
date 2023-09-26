@@ -364,6 +364,8 @@ export default {
         orContinueWithMagicCode: 'Or, optionally, your company allows signing in with a magic code',
         useSingleSignOn: 'Use Single Sign-On',
         useMagicCode: 'Use Magic Code',
+        launchingSSOPortal: 'Launching your company\'s Single Sign-On portal',
+    },
     reportActionCompose: {
         addAction: 'Actions',
         dropToUpload: 'Drop to upload',
