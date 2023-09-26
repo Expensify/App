@@ -77,10 +77,9 @@ function getNumberOfItemsFromAuthorChecklist() {
 
 /**
  * @param {Number} numberOfChecklistItems
+ * @param {String} pullRequestBody
  */
-function checkPRForCompletedChecklist(numberOfChecklistItems) {
-    const pullRequestBody = github.context.payload.pull_request.body;
-
+function checkPRForCompletedChecklist(numberOfChecklistItems, pullRequestBody) {
     // eslint-disable-next-line no-unused-vars
     const [_start, checklist] = partitionWithChecklist(pullRequestBody);
 
@@ -130,7 +129,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
             }
         }
     }
-    const allChecks = _.flatten(_.values(CHECKLIST_CATEGORIES));
+    const allChecks = _.flatten(_.map(_.values(CHECKLIST_CATEGORIES), 'items'));
     for (const check of allChecks) {
         if (!checks.has(check)) {
             // Check if some dynamic check has been added with previous commit, but the check is not relevant anymore
@@ -166,7 +165,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     // check for completion
     try {
         const numberofItems = await getNumberOfItemsFromAuthorChecklist();
-        checkPRForCompletedChecklist(numberofItems)
+        checkPRForCompletedChecklist(numberofItems, newBody)
     } catch (err) {
         console.error(err);
         core.setFailed(err);
