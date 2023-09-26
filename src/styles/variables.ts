@@ -89,7 +89,7 @@ export default {
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
-    overlayOpacity: 0.6,
+    overlayOpacity: 0.72,
     lineHeightXSmall: getValueUsingPixelRatio(11, 17),
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
@@ -159,4 +159,8 @@ export default {
     moneyRequestSkeletonHeight: 107,
 
     distanceScrollEventThrottle: 16,
+
+    cardPreviewHeight: 148,
+    cardPreviewWidth: 235,
+    cardNameWidth: 156,
 } as const;
