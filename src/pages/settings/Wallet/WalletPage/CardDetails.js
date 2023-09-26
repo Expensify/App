@@ -7,6 +7,7 @@ import Clipboard from '../../../../libs/Clipboard';
 import useLocalize from '../../../../hooks/useLocalize';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
+import _ from 'underscore';
 
 const propTypes = {
     /** Card number */
@@ -59,7 +60,14 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
     const getFormattedAddress = () => {
         const address = privatePersonalDetails.address || {};
         const [street1, street2] = (address.street || '').split('\n');
-        const formatted = [street1, street2, address.city, address.state, address.zip, address.country].join(', ');
+        const addressItems = [street1, street2, address.city, address.state, address.zip, address.country];
+        const areAllAddressItemsEmpty = [street1, street2, address.city, address.state, address.zip, address.country].every((item) => _.isEmpty(item));
+
+        if (areAllAddressItemsEmpty) {
+            return null;
+        }
+
+        const formatted = addressItems.join(', ');
 
         // Remove the last comma of the address
         return formatted.trim().replace(/,$/, '');
