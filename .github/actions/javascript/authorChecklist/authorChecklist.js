@@ -31,8 +31,9 @@ async function getChecklistCategoriesForPullRequest() {
         per_page: 100,
     });
 
-    _.each(CHECKLIST_CATEGORIES, ({ detectFunction, items }) => {
-        if (!detectFunction(changedFiles)) {
+    _.each(CHECKLIST_CATEGORIES, async ({ detectFunction, items }) => {
+        const categoryDetected = await detectFunction(changedFiles);
+        if (!categoryDetected) {
             return;
         }
         categories.push(items);

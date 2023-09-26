@@ -48,7 +48,7 @@ function detectReactComponent(code) {
     return isReactComponent;
 };
 
-function fetchFile(filename) {
+async function detectReactComponentInFile(filename) {
     const content = {
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
@@ -56,16 +56,17 @@ function fetchFile(filename) {
         ref: github.context.payload.pull_request.head.ref,
     };
     try {
-        return GithubUtils.octokit.repos.getContent(content);
+        const { data } = await GithubUtils.octokit.repos.getContent(content);
+        return detectReactComponent(data);
     } catch (error) {
         console.error(`An unknown error occurred with the GitHub API: ${error}, while fetching ${content}`);
     }
 }
-
-function detectFunction(changedFiles) {
+;
+async function detectFunction(changedFiles) {
     const filteredFiles = _.filter((changedFiles), ({ filename }) => filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx'));
-    return _.some(filteredFiles, ({ filename }) => detectReactComponent(fetchFile(filename)));
-}
+    return Promise.race(_.map(filteredFiles, ({ filename }) => detectReactComponentInFile(filename)));
+};
 
 module.exports = {
     detectFunction,
