@@ -1,10 +1,12 @@
 import Onyx from 'react-native-onyx';
 import {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
 import isObject from 'lodash/isObject';
+import {LiteralUnion} from 'type-fest';
 import ONYXKEYS from '../../ONYXKEYS';
-import Pusher from './library/types';
+import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
+import DeepValueOf from '../../types/utils/DeepValueOf';
 
 type States = {
     previous: string;
@@ -21,15 +23,21 @@ type ChunkedDataEvents = {chunks: unknown[]; receivedFinal: boolean};
 
 type EventData = {id?: string; chunk?: unknown; final?: boolean; index: number};
 
-type SocketEventCallback = <T>(eventName: string, data?: T) => void;
+type SocketEventName = LiteralUnion<'error' | 'connected' | 'disconnected' | 'state_change', string>;
 
-type PusherWithAuthParams = Pusher & {
+type SocketEventCallback = (eventName: SocketEventName, data?: unknown) => void;
+
+type PusherWithAuthParams = InstanceType<typeof Pusher> & {
     config: {
         auth?: {
             params?: unknown;
         };
     };
 };
+
+type PusherEventName = LiteralUnion<DeepValueOf<typeof TYPE>, string>;
+
+type PusherSubscribtionErrorData = {type?: string; error?: string; status?: string};
 
 let shouldForceOffline = false;
 Onyx.connect({
@@ -50,7 +58,7 @@ let customAuthorizer: ChannelAuthorizerGenerator;
 /**
  * Trigger each of the socket event callbacks with the event information
  */
-function callSocketEventCallbacks<T>(eventName: string, data?: T) {
+function callSocketEventCallbacks(eventName: SocketEventName, data?: unknown) {
     socketEventCallbacks.forEach((cb) => cb(eventName, data));
 }
 
@@ -81,7 +89,6 @@ function init(args: Args, params?: unknown): Promise<void> {
         }
 
         socket = new Pusher(args.appKey, options);
-
         // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
         // as per the documentation
         // (https://pusher.com/docs/channels/using_channels/connection#channels-options-parameter).
@@ -93,8 +100,7 @@ function init(args: Args, params?: unknown): Promise<void> {
         }
 
         // Listen for connection errors and log them
-        // TODO: check if true
-        socket?.connection.bind('error', (error: string) => {
+        socket?.connection.bind('error', (error: unknown) => {
             callSocketEventCallbacks('error', error);
         });
 
@@ -128,7 +134,7 @@ function getChannel(channelName: string): Channel | undefined {
 /**
  * Binds an event callback to a channel + eventName
  */
-function bindEventToChannel(channel: Channel | undefined, eventName: string, eventCallback: <T>(data: T) => void = () => {}) {
+function bindEventToChannel(channel: Channel | undefined, eventName: PusherEventName, eventCallback: (data: unknown) => void = () => {}) {
     if (!eventName) {
         return;
     }
@@ -196,7 +202,7 @@ function bindEventToChannel(channel: Channel | undefined, eventName: string, eve
  * Subscribe to a channel and an event
  * @param [onResubscribe] Callback to be called when reconnection happen
  */
-function subscribe(channelName: string, eventName: string, eventCallback = () => {}, onResubscribe = () => {}): Promise<void> {
+function subscribe(channelName: string, eventName: PusherEventName, eventCallback = () => {}, onResubscribe = () => {}): Promise<void> {
     return new Promise((resolve, reject) => {
         // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
@@ -226,7 +232,7 @@ function subscribe(channelName: string, eventName: string, eventCallback = () =>
                 onResubscribe();
             });
 
-            channel.bind('pusher:subscription_error', (data: {type?: string; error?: string; status?: string} = {}) => {
+            channel.bind('pusher:subscription_error', (data: PusherSubscribtionErrorData = {}) => {
                 const {type, error, status} = data;
                 Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
                     channelName,
@@ -246,7 +252,7 @@ function subscribe(channelName: string, eventName: string, eventCallback = () =>
 /**
  * Unsubscribe from a channel and optionally a specific event
  */
-function unsubscribe(channelName: string, eventName = '') {
+function unsubscribe(channelName: string, eventName: PusherEventName = '') {
     const channel = getChannel(channelName);
 
     if (!channel) {
@@ -296,7 +302,7 @@ function isSubscribed(channelName: string): boolean {
 /**
  * Sends an event over a specific event/channel in pusher.
  */
-function sendEvent<T>(channelName: string, eventName: string, payload: T) {
+function sendEvent<T>(channelName: string, eventName: PusherEventName, payload: T) {
     // Check to see if we are subscribed to this channel before sending the event. Sending client events over channels
     // we are not subscribed too will throw errors and cause reconnection attempts. Subscriptions are not instant and
     // can happen later than we expect.

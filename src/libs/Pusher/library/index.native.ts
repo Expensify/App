@@ -5,4 +5,4 @@
 import PusherNative from 'pusher-js/react-native';
 import Pusher from './types';
 
-export default PusherNative as unknown as Pusher;
+export default PusherNative satisfies Pusher;

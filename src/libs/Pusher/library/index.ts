@@ -5,4 +5,4 @@
 import PusherWeb from 'pusher-js/with-encryption';
 import Pusher from './types';
 
-export default PusherWeb as unknown as Pusher;
+export default PusherWeb satisfies Pusher;
