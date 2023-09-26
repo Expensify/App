@@ -4,7 +4,6 @@ import _ from 'lodash';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import moment from 'moment';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Form from '../../../../components/Form';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
@@ -24,7 +23,6 @@ import compose from '../../../../libs/compose';
 import DateUtils from '../../../../libs/DateUtils';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import personalDetailsPropType from '../../../personalDetailsPropType';
-import {parseISO} from 'date-fns';
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -60,8 +58,8 @@ const useValidateCustomDate = (data) => {
     const localize = useLocalize();
     const [customDateError, setCustomDateError] = useState('');
     const [customTimeError, setCustomTimeError] = useState('');
-    const validate = (inputData = data) => {
-        const {dateValidationErrorKey, timeValidationErrorKey} = ValidationUtils.validateDateTimeIsAtLeastOneMinuteInFuture(inputData);
+    const validate = () => {
+        const {dateValidationErrorKey, timeValidationErrorKey} = ValidationUtils.validateDateTimeIsAtLeastOneMinuteInFuture(data);
 
         const dateError = dateValidationErrorKey ? localize.translate(dateValidationErrorKey) : '';
         setCustomDateError(dateError);
@@ -76,15 +74,14 @@ const useValidateCustomDate = (data) => {
     };
 
     useEffect(() => {
-        if (data) {
-            validate();
+        if (!data) {
+            return;
         }
+        validate();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data]);
 
-    const validateCustomDate = (inputData) => {
-        return validate(inputData);
-    };
+    const validateCustomDate = () => validate();
 
     return {customDateError, customTimeError, validateCustomDate};
 };
@@ -116,9 +113,11 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
         [customTimeError, customDateError],
     );
 
-    const onSubmit = (v) => {
+    const onSubmit = () => {
         const {dateError, timeError} = validateCustomDate();
-        if (dateError || timeError) return;
+        if (dateError || timeError) {
+            return;
+        }
         let calculatedDraftDate = '';
         if (draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
             calculatedDraftDate = customDateTemporary;
@@ -132,7 +131,9 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
 
     const updateMode = useCallback(
         (mode) => {
-            if (mode.value === draftPeriod) return;
+            if (mode.value === draftPeriod) {
+                return;
+            }
             User.updateDraftCustomStatus({
                 customDateTemporary: mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM ? DateUtils.getOneHourFromNow() : DateUtils.getDateFromStatusType(mode.value),
             });

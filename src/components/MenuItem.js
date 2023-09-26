@@ -1,8 +1,8 @@
 import _ from 'underscore';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import FormHelpMessage from './FormHelpMessage';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import FormHelpMessage from './FormHelpMessage';
 import Text from './Text';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';

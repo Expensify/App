@@ -35,7 +35,7 @@ const propTypes = {
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed: PropTypes.func,
 
-    /** Style for the error message for submit button*/
+    /** Style for the error message for submit button */
     errorMessageStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
@@ -43,6 +43,7 @@ const propTypes = {
 
 const defaultProps = {
     containerStyles: [],
+    errorMessageStyle: [],
     isAlertVisible: false,
     isMessageHtml: false,
     message: '',

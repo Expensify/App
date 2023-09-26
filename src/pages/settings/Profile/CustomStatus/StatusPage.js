@@ -51,7 +51,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const isValidClearAfterDate = useCallback(() => {
         const clearAfterTime = draftClearAfter || currentUserClearAfter;
-        if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER) return true;
+        if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER) {
+            return true;
+        }
 
         return !DateUtils.hasDateExpired(clearAfterTime);
     }, [draftClearAfter, currentUserClearAfter]);

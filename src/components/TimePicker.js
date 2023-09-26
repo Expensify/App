@@ -2,7 +2,6 @@ import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
 import FormHelpMessage from './FormHelpMessage';
 import AmountTextInput from './AmountTextInput';
@@ -65,7 +64,9 @@ function insertAtPosition(originalString, newSubstring, selectionPositionFrom, s
     // If the positions are the same, it means we're inserting at a point
     if (selectionPositionFrom === selectionPositionTo) {
         if (selectionPositionFrom === originalString.length) {
-            if (typeof fn === 'function') fn();
+            if (typeof fn === 'function') {
+                fn();
+            }
             return originalString; // If the insertion point is at the end, simply return the original string
         }
         return originalString.slice(0, selectionPositionFrom) + newSubstring + originalString.slice(selectionPositionFrom);
@@ -243,7 +244,9 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                 setTimeout(() => setSelectionHour({start: 0, end: 0}), 10);
             }
 
-            if (key === '.') return;
+            if (key === '.') {
+                return;
+            }
             if (key === '<' || key === 'Backspace') {
                 if (isHourFocused) {
                     const newHour = replaceWithZeroAtPosition(hours, selectionHour.start);
@@ -302,7 +305,9 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
 
     const handleFocusOnBackspace = useCallback(
         (e) => {
-            if (selectionMinute.start !== 0 || e.key !== 'Backspace') return;
+            if (selectionMinute.start !== 0 || e.key !== 'Backspace') {
+                return;
+            }
             hourInputRef.current.focus();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -312,7 +317,9 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
     const {styleForAM, styleForPM} = StyleUtils.getStatusAMandPMButtonStyle(amPmValue);
 
     const numberPad = useCallback(() => {
-        if (!canUseTouchScreen) return null;
+        if (!canUseTouchScreen) {
+            return null;
+        }
         return (
             <BigNumberPad
                 nativeID={NUM_PAD_VIEW_ID}

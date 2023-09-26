@@ -85,7 +85,7 @@ const propTypes = {
     /** Style for the button */
     submitButtonStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    /** Style for the error message for submit button*/
+    /** Style for the error message for submit button */
     errorMessageStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     submitButtonContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -106,6 +106,7 @@ const defaultProps = {
     shouldValidateOnBlur: true,
     footerContent: null,
     style: [],
+    errorMessageStyle: [],
     validate: () => ({}),
     submitButtonStyle: {},
     submitButtonContainerStyles: [],
@@ -488,6 +489,7 @@ function Form(props) {
             props.submitButtonText,
             props.submitButtonStyle,
             props.useSmallerSubmitButtonSize,
+            props.errorMessageStyle,
         ],
     );
 

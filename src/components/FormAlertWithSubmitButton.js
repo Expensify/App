@@ -54,7 +54,7 @@ const propTypes = {
     /** Whether to use a smaller submit button size */
     useSmallerSubmitButtonSize: PropTypes.bool,
 
-    /** Style for the error message for submit button*/
+    /** Style for the error message for submit button */
     errorMessageStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
 
@@ -71,6 +71,7 @@ const defaultProps = {
     useSmallerSubmitButtonSize: false,
     footerContent: null,
     buttonStyles: [],
+    errorMessageStyle: [],
 };
 
 function FormAlertWithSubmitButton(props) {
