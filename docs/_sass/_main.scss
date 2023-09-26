@@ -299,7 +299,6 @@ button {
     }
 
     .selected {
-        cursor: auto;
         font-weight: bold;
         color: $color-text;
     }
@@ -445,21 +444,22 @@ button {
     }
 }
 
-.cards-group, .platform-cards-group {
+.cards-group {
     display: grid;
     grid-template-columns: auto;
     row-gap: 20px;
     column-gap: 20px;
     padding-bottom: 20px;
-}
 
-.cards-group {
     @include breakpoint($breakpoint-desktop) {
         grid-template-columns: 50% 50%;
     }
 }
 
+
 .platform-cards-group {
+    @extend .cards-group;
+
     @include breakpoint($breakpoint-desktop) {
         grid-template-columns: 33.33% 33.33% 33.33%;
     }

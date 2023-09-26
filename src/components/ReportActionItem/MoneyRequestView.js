@@ -127,6 +127,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     }
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    const pendingAction = lodashGet(transaction, 'pendingAction');
+    const getPendingFieldAction = (fieldPath) => lodashGet(transaction, fieldPath) || pendingAction;
 
     return (
         <View>
@@ -139,15 +141,17 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
             </View>
 
             {hasReceipt && (
-                <View style={styles.moneyRequestViewImage}>
-                    <ReportActionItemImage
-                        thumbnail={receiptURIs.thumbnail}
-                        image={receiptURIs.image}
-                        enablePreviewModal
-                    />
-                </View>
+                <OfflineWithFeedback pendingAction={pendingAction}>
+                    <View style={styles.moneyRequestViewImage}>
+                        <ReportActionItemImage
+                            thumbnail={receiptURIs.thumbnail}
+                            image={receiptURIs.image}
+                            enablePreviewModal
+                        />
+                    </View>
+                </OfflineWithFeedback>
             )}
-            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.amount') || lodashGet(transaction, 'pendingAction')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
                 <MenuItemWithTopDescription
                     title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
                     shouldShowTitleIcon={isSettled}
@@ -162,7 +166,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment') || lodashGet(transaction, 'pendingAction')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.comment')}>
                 <MenuItemWithTopDescription
                     description={translate('common.description')}
                     shouldParseTitle
@@ -175,7 +179,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     numberOfLinesTitle={0}
                 />
             </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.created') || lodashGet(transaction, 'pendingAction')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.created')}>
                 <MenuItemWithTopDescription
                     description={translate('common.date')}
                     title={transactionDate}
@@ -188,7 +192,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.merchant')}>
                 <MenuItemWithTopDescription
                     description={isDistanceRequest ? translate('common.distance') : translate('common.merchant')}
                     title={transactionMerchant}
