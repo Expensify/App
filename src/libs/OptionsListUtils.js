@@ -386,6 +386,7 @@ function getLastMessageTextForReport(report) {
         (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     let lastMessageTextFromReport = '';
+    const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
@@ -396,6 +397,12 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getModifiedExpenseMessage(lastReportAction);
+    } else if (
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
+    ) {
+        lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
