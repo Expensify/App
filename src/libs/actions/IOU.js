@@ -765,6 +765,15 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
         },
     });
 
+    if (_.has(transactionChanges, 'waypoints')) {
+        // Delete the backup transaction when editing waypoints when the server responds successfully and there are no errors
+        successData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}-backup`,
+            value: null,
+        });
+    }
+
     // Clear out loading states, pending fields, and add the error fields
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,

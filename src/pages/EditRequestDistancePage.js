@@ -60,7 +60,7 @@ function EditRequestDistancePage({report, route, transaction}) {
         if (prevIsLoading && !transaction.isLoading && !hasWaypointError.current) {
             Navigation.dismissModal(report.reportID);
         }
-    }, [transaction, prevIsLoading]);
+    }, [transaction, prevIsLoading, report]);
 
     useEffect(() => {
         // This effect runs when the component is mounted and unmounted. It's purpose is to be able to properly
@@ -72,25 +72,12 @@ function EditRequestDistancePage({report, route, transaction}) {
         TransactionEdit.createBackupTransaction(transaction);
 
         return () => {
-            // Unmounting happens when:
-            // 1. The transaction was saved offline or with no server errors
-            // 2. The user cancels out of the modal
-
-            // If 1 happened, then only the backup transaction needs to be removed because it is no longer needed
-            if (transactionWasSaved.current && !hasWaypointError.current) {
-                TransactionEdit.removeBackupTransaction(transaction.transactionID);
+            // If the user cancels out of the modal without without saving changes, then the original transaction
+            // needs to be restored from the backup so that all changes are removed.
+            if (transactionWasSaved.current) {
                 return;
             }
-
-            // If 2 happened, then the original transaction needs to be restored so that no user changes are stored to onyx permanently.
-            // This also also deletes the backup.
             TransactionEdit.restoreOriginalTransactionFromBackup(transaction.transactionID);
-
-            // You might be asking yourself "What about the case where the user saves the transaction, but there are server errors?"
-            // When this happens, the modal remains open so the user can fix the errors. Therefore, this component is never unmounted and this
-            // logic doesn't run. Once the user fixes the errors, they can:
-            // - Cancel out of the modal (triggering flow 2 above)
-            // - Fix the errors and save the transaction (triggering flow 1 above)
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
