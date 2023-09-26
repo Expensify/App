@@ -180,7 +180,7 @@ function HeaderView(props) {
                 Link.openExternalLink(props.guideCalendarLink);
             },
         });
-    } else if ((isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport)) {
+    } else if (!isAutomatedExpensifyAccount && !isTaskReport) {
         threeDotMenuItems.push({
             icon: ZoomIcon,
             iconFill: themeColors.icon,
