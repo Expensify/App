@@ -37,12 +37,10 @@ function DistanceEReceipt({transaction}) {
         <View style={[styles.ph5, styles.pv5, styles.flex1, styles.alignItemsCenter]}>
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}>
                 <View style={styles.eReceiptPanel}>
-                    <View style={styles.eReceiptBackgroundContainer}>
-                        <EReceiptBackground
-                            style={styles.eReceiptBackground}
-                            pointerEvents="none"
-                        />
-                    </View>
+                    <EReceiptBackground
+                        style={styles.eReceiptBackground}
+                        pointerEvents="none"
+                    />
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5]}>
                         <ThumbnailImage
                             previewSourceURL={thumbnailSource}
