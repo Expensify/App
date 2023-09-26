@@ -85,6 +85,9 @@ const propTypes = {
     /** Style for the button */
     submitButtonStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Style for the error message for submit button*/
+    errorMessageStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     submitButtonContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
@@ -460,6 +463,7 @@ function Form(props) {
                         buttonStyles={[props.submitButtonStyle]}
                         useSmallerSubmitButtonSize={props.useSmallerSubmitButtonSize}
                         disablePressOnEnter
+                        errorMessageStyle={props.errorMessageStyle}
                     />
                 )}
             </FormSubmit>

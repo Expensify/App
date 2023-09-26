@@ -53,6 +53,9 @@ const propTypes = {
 
     /** Whether to use a smaller submit button size */
     useSmallerSubmitButtonSize: PropTypes.bool,
+
+    /** Style for the error message for submit button*/
+    errorMessageStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
 
 const defaultProps = {
@@ -80,6 +83,7 @@ function FormAlertWithSubmitButton(props) {
             isMessageHtml={props.isMessageHtml}
             message={props.message}
             onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
+            errorMessageStyle={props.errorMessageStyle}
         >
             {(isOffline) => (
                 <View>

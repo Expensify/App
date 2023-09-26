@@ -35,6 +35,9 @@ const propTypes = {
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed: PropTypes.func,
 
+    /** Style for the error message for submit button*/
+    errorMessageStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
@@ -73,7 +76,7 @@ function FormAlertWrapper(props) {
             {props.isAlertVisible && (
                 <FormHelpMessage
                     message={props.message}
-                    style={[styles.mb3]}
+                    style={[styles.mb3, props.errorMessageStyle]}
                 >
                     {children}
                 </FormHelpMessage>
