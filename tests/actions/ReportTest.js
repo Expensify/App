@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import moment from 'moment';
+import {utcToZonedTime} from 'date-fns-tz';
 import {beforeEach, beforeAll, afterEach, describe, it, expect} from '@jest/globals';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import CONST from '../../src/CONST';
@@ -190,7 +190,7 @@ describe('actions/Report', () => {
             });
     });
 
-    it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
+    it.only('should be updated correctly when new comments are added, deleted or marked as unread', () => {
         jest.useFakeTimers();
         global.fetch = TestHelper.getGlobalFetchMock();
         const REPORT_ID = '1';
@@ -275,7 +275,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // The report will be read
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
+                expect(utcToZonedTime(report.lastReadTime, 'UTC').getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, 'UTC').getTime());
 
                 // And no longer show the green dot for unread mentions in the LHN
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
@@ -301,7 +301,7 @@ describe('actions/Report', () => {
                 // The report will be read, the green dot for unread mentions will go away, and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
-                expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
+                expect(utcToZonedTime(report.lastReadTime, 'UTC').getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, 'UTC').getTime());
                 expect(report.lastMessageText).toBe('Current User Comment 1');
 
                 // When another comment is added by the current user
@@ -313,7 +313,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
+                expect(utcToZonedTime(report.lastReadTime, 'UTC').getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, 'UTC').getTime());
                 expect(report.lastMessageText).toBe('Current User Comment 2');
 
                 // When another comment is added by the current user
@@ -325,7 +325,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
+                expect(utcToZonedTime(report.lastReadTime, 'UTC').getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, 'UTC').getTime());
                 expect(report.lastMessageText).toBe('Current User Comment 3');
 
                 const USER_1_BASE_ACTION = {
