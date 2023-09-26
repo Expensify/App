@@ -3731,7 +3731,7 @@ const styles = (theme) => ({
     },
     timePickerButtonErrorText: {
         position: 'absolute',
-        top: -20,
+        top: -36,
     },
 
     walletCard: {

@@ -91,7 +91,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
     const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
     const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
-    const [draftPeriod, setDraftPeriod] = useState(getSelectedStatusType(clearAfter || draftClearAfter));
+    const [draftPeriod, setDraftPeriod] = useState(getSelectedStatusType(draftClearAfter || clearAfter));
     const statusType = useMemo(
         () =>
             _.map(CONST.CUSTOM_STATUS_TYPES, (value, key) => ({
