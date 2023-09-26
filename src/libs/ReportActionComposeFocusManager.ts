@@ -11,6 +11,20 @@ let focusCallback: FocusCallback | null = null;
 let mainComposerFocusCallback: FocusCallback | null = null;
 
 /**
+ * Exposes the current focus state of the report action composer.
+ */
+function isFocused(): boolean {
+    return !!composerRef.current?.isFocused();
+}
+
+/**
+ * Exposes the current focus state of the edit message composer.
+ */
+function isEditFocused(): boolean {
+    return !!editComposerRef.current?.isFocused();
+}
+
+/**
  * Register a callback to be called when focus is requested.
  * Typical uses of this would be call the focus on the ReportActionComposer.
  *
@@ -28,16 +42,17 @@ function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
  * Request focus on the ReportActionComposer
  */
 function focus() {
-    if ((typeof focusCallback !== 'function') || (composerRef.current && composerRef.current.isFocused())) {
-        if (typeof mainComposerFocusCallback !== 'function' || ((editComposerRef.current && editComposerRef.current.isFocused()))) {
-            return;
-        }
-
-        mainComposerFocusCallback();
+    if (typeof focusCallback !== 'function' && typeof mainComposerFocusCallback !== 'function') {
         return;
     }
 
-    focusCallback();
+    if (typeof focusCallback === 'function' && !isFocused()) {
+        focusCallback();
+        return;
+    }
+    if (typeof mainComposerFocusCallback === 'function' && !isEditFocused()) {
+        mainComposerFocusCallback();
+    }
 }
 
 /**
@@ -49,20 +64,6 @@ function clear(isMainComposer = false) {
     } else {
         focusCallback = null;
     }
-}
-
-/**
- * Exposes the current focus state of the report action composer.
- */
-function isFocused(): boolean {
-    return !!composerRef.current?.isFocused();
-}
-
-/**
- * Exposes the current focus state of the edit message composer.
- */
-function isEditFocused(): boolean {
-    return !!editComposerRef.current?.isFocused();
 }
 
 export default {
