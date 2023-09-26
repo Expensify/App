@@ -1554,6 +1554,9 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
 /**
  * Get the report action message when expense has been modified.
  *
+ * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
+ * If we change this function be sure to update the backend as well.
+ *
  * @param {Object} reportAction
  * @returns {String}
  */
