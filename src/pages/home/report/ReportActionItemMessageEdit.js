@@ -40,6 +40,7 @@ import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import focusWithDelay from '../../../libs/focusWithDelay';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Browser from '../../../libs/Browser';
+import willBlurTextInputOnTapOutsideFunc from "../../../libs/willBlurTextInputOnTapOutside";
 
 const propTypes = {
     /** All the data of the action */
@@ -87,6 +88,7 @@ const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 const isMobileSafari = Browser.isMobileSafari();
+const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function ReportActionItemMessageEdit(props) {
     const reportScrollManager = useReportScrollManager();
@@ -132,6 +134,26 @@ function ReportActionItemMessageEdit(props) {
         () => isFocusedRef.current || EmojiPickerAction.isActive(props.action.reportActionID) || ReportActionContextMenu.isActiveReportAction(props.action.reportActionID),
         [props.action.reportActionID],
     );
+
+    /**
+     * Focus the composer text input
+     * @param {Boolean} [shouldDelay=false] Impose delay before focusing the composer
+     * @memberof ReportActionCompose
+     */
+    const focus = useCallback((shouldDelay = false) => {
+        focusWithDelay(textInputRef.current)(shouldDelay);
+    }, []);
+
+    const setUpComposeFocusManager = useCallback(() => {
+        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            if (!willBlurTextInputOnTapOutside) {
+                return;
+            }
+
+            focus(true);
+        });
+    }, [focus]);
 
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
@@ -325,11 +347,6 @@ function ReportActionItemMessageEdit(props) {
         [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
     );
 
-    /**
-     * Focus the composer text input
-     */
-    const focus = focusWithDelay(textInputRef.current);
-
     return (
         <>
             <View style={[styles.chatItemMessage, styles.flexRow]}>
@@ -385,6 +402,7 @@ function ReportActionItemMessageEdit(props) {
                                 setIsFocused(true);
                                 reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
                                 setShouldShowComposeInputKeyboardAware(false);
+                                setUpComposeFocusManager();
 
                                 // Clear active report action when another action gets focused
                                 if (!EmojiPickerAction.isActive(props.action.reportActionID)) {
@@ -410,8 +428,7 @@ function ReportActionItemMessageEdit(props) {
                         <EmojiPickerButton
                             isDisabled={props.shouldDisableEmojiPicker}
                             onModalHide={() => {
-                                setIsFocused(true);
-                                focus(true);
+                                ReportActionComposeFocusManager.focus();
                             }}
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
