@@ -19,7 +19,6 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import useLocalize from '../../hooks/useLocalize';
 import useNetwork from '../../hooks/useNetwork';
-import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** The user's wallet */
