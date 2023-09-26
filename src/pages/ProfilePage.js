@@ -36,6 +36,7 @@ import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import Permissions from '../libs/Permissions';
+import ROUTES from '../ROUTES';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -98,13 +99,6 @@ const getPhoneNumber = (details) => {
 function ProfilePage(props) {
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (ValidationUtils.isValidAccountRoute(accountID)) {
-            PersonalDetails.openPublicProfilePage(accountID);
-        }
-    }, [accountID]);
-
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
@@ -138,10 +132,19 @@ function ProfilePage(props) {
     const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const navigateBackTo = lodashGet(props.route, 'params.backTo', '');
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
+
+    const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : 0;
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (ValidationUtils.isValidAccountRoute(accountID) && !hasMinimumDetails) {
+            PersonalDetails.openPublicProfilePage(accountID);
+        }
+    }, [accountID, hasMinimumDetails]);
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={ProfilePage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
@@ -233,6 +236,17 @@ function ProfilePage(props) {
                                 onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
+                            />
+                        )}
+                        {!_.isEmpty(chatReportWithCurrentUser) && (
+                            <MenuItem
+                                title={`${props.translate('privateNotes.title')}`}
+                                titleStyle={styles.flex1}
+                                icon={Expensicons.Pencil}
+                                onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(chatReportWithCurrentUser.reportID))}
+                                wrapperStyle={styles.breakAll}
+                                shouldShowRightIcon
+                                brickRoadIndicator={Report.hasErrorInPrivateNotes(chatReportWithCurrentUser) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             />
                         )}
                     </ScrollView>

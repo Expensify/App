@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ActivityIndicator, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -23,10 +23,12 @@ import useWindowDimensions from '../../../../../hooks/useWindowDimensions';
 import StepWrapper from '../StepWrapper/StepWrapper';
 import {defaultAccount, TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes';
 import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
+import FormHelpMessage from '../../../../../components/FormHelpMessage';
 
 function CodesStep({account = defaultAccount}) {
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const [error, setError] = useState('');
 
     const {setStep} = useTwoFactorAuthContext();
 
@@ -47,7 +49,7 @@ function CodesStep({account = defaultAccount}) {
                 total: 3,
             }}
         >
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Section
                     title={translate('twoFactorAuth.keepCodesSafe')}
                     icon={Illustrations.ShieldYellow}
@@ -83,6 +85,7 @@ function CodesStep({account = defaultAccount}) {
                                         inline={false}
                                         onPress={() => {
                                             Clipboard.setString(account.recoveryCodes);
+                                            setError('');
                                             TwoFactorAuthActions.setCodesAreCopied();
                                         }}
                                         styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
@@ -93,6 +96,7 @@ function CodesStep({account = defaultAccount}) {
                                         icon={Expensicons.Download}
                                         onPress={() => {
                                             localFileDownload('two-factor-auth-codes', account.recoveryCodes);
+                                            setError('');
                                             TwoFactorAuthActions.setCodesAreCopied();
                                         }}
                                         inline={false}
@@ -104,15 +108,27 @@ function CodesStep({account = defaultAccount}) {
                         )}
                     </View>
                 </Section>
+                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                    {!_.isEmpty(error) && (
+                        <FormHelpMessage
+                            isError
+                            message={translate(error)}
+                            style={[styles.mb3]}
+                        />
+                    )}
+                    <Button
+                        success
+                        text={translate('common.next')}
+                        onPress={() => {
+                            if (!account.codesAreCopied) {
+                                setError('twoFactorAuth.errorStepCodes');
+                                return;
+                            }
+                            setStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY);
+                        }}
+                    />
+                </FixedFooter>
             </ScrollView>
-            <FixedFooter style={[styles.mtAuto, styles.pt2]}>
-                <Button
-                    success
-                    text={translate('common.next')}
-                    onPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY)}
-                    isDisabled={!account.codesAreCopied}
-                />
-            </FixedFooter>
         </StepWrapper>
     );
 }
