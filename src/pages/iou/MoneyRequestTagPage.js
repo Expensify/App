@@ -98,11 +98,22 @@ MoneyRequestTagPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
-        },
         iou: {
             key: ONYXKEYS.IOU,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        report: {
+            key: ({route, iou}) => {
+                let reportID = lodashGet(route, 'params.reportID', '');
+                if (!reportID) {
+                    // When the money request or split bill creation flow is initialized on Global Create, the reportID is not passed as a navigation parameter.
+                    // Get the report id from the participants list on the IOU object stored in Onyx.
+                    reportID = lodashGet(iou, 'participants.0.reportID', '');
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            },
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file

@@ -381,7 +381,7 @@ export default compose(
             key: ({route, iou}) => {
                 let reportID = lodashGet(route, 'params.reportID', '');
                 if (!reportID) {
-                    // When the money request creation flow is initialized on Global Create, the reportID is not passed as a navigation parameter.
+                    // When the money request or split bill creation flow is initialized on Global Create, the reportID is not passed as a navigation parameter.
                     // Get the report id from the participants list on the IOU object stored in Onyx.
                     reportID = lodashGet(iou, 'participants.0.reportID', '');
                 }

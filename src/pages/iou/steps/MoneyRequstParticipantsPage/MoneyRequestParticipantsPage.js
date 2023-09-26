@@ -45,7 +45,6 @@ const defaultProps = {
 function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
-    const isNewReportIDSelectedLocally = useRef(false);
     const optionsSelectorRef = useRef();
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
@@ -63,19 +62,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
         setHeaderTitle(_.isEmpty(iou.participants) ? translate('tabSelector.manual') : translate('iou.split'));
     }, [iou.participants, isDistanceRequest, translate]);
 
-    const navigateToRequestStep = (moneyRequestType, option) => {
-        if (option.reportID) {
-            isNewReportIDSelectedLocally.current = true;
-            IOU.setMoneyRequestId(`${moneyRequestType}${option.reportID}`);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, option.reportID));
-            return;
-        }
-
-        IOU.setMoneyRequestId(moneyRequestType);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID.current));
-    };
-
-    const navigateToSplitStep = (moneyRequestType) => {
+    const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID.current));
     };
@@ -88,7 +75,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing
-            if (iou.id && !isDistanceRequest && !isSplitRequest && !isNewReportIDSelectedLocally.current) {
+            if (iou.id && !isDistanceRequest && !isSplitRequest) {
                 navigateBack(true);
             }
             return;
@@ -96,7 +83,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = iou.id !== moneyRequestId && !isNewReportIDSelectedLocally.current;
+        const shouldReset = iou.id !== moneyRequestId;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
@@ -126,8 +113,8 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                         ref={(el) => (optionsSelectorRef.current = el)}
                         participants={iou.participants}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
-                        navigateToRequest={(option) => navigateToRequestStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, option)}
-                        navigateToSplit={() => navigateToSplitStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
+                        navigateToRequest={() => navigateToConfirmationStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)}
+                        navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         iouType={iouType.current}
                         isDistanceRequest={isDistanceRequest}

@@ -90,15 +90,13 @@ export default compose(
             key: ONYXKEYS.IOU,
         },
     }),
-    // This is a temporary hack to forward forward iou value to next getter.
-    // There is a problem that with one withOnyx it does not forward value from first to second.
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         report: {
             key: ({route, iou}) => {
                 let reportID = lodashGet(route, 'params.reportID', '');
                 if (!reportID) {
-                    // When the money request creation flow is initialized on Global Create, the reportID is not passed as a navigation parameter.
+                    // When the money request or split bill creation flow is initialized on Global Create, the reportID is not passed as a navigation parameter.
                     // Get the report id from the participants list on the IOU object stored in Onyx.
                     reportID = lodashGet(iou, 'participants.0.reportID', '');
                 }
