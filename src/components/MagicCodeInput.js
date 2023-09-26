@@ -302,7 +302,7 @@ function MagicCodeInput(props) {
                         onPress(Math.floor(e.nativeEvent.x / (inputWidth.current / props.maxLength)));
                     }}
                 >
-                    {/* Android does not handle touch on invisible Views so I created wrapper around inivisble TextInput just to handle taps */}
+                    {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
                     <View
                         style={[StyleSheet.absoluteFillObject, styles.w100, styles.h100, styles.invisibleOverlay]}
                         collapsable={false}
