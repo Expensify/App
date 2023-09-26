@@ -385,7 +385,7 @@ function getLastMessageTextForReport(report) {
         allSortedReportActions[report.reportID],
         (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
-    const lastReportAction = _.last(visibleActions);
+    const lastReportAction = _.first(visibleActions);
     let lastMessageTextFromReport = '';
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
