@@ -103,7 +103,7 @@ export default [
                 messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML &&
                 reportAction.reportActionID &&
                 !ReportActionsUtils.isMessageDeleted(reportAction) &&
-                !NetworkStore.isOffline()
+                !isOffline
             );
         },
         onPress: (closePopover, {reportAction}) => {
