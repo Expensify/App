@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Text from './Text';
@@ -24,7 +24,7 @@ import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import RenderHTML from './RenderHTML';
+import MenuItemRenderHTMLTitle from './MenuItemRenderHTMLTitle';
 
 const propTypes = menuItemPropTypes;
 
@@ -118,6 +118,18 @@ const MenuItem = React.forwardRef((props, ref) => {
         setHtml(parser.replace(convertToLTR(props.title)));
         titleRef.current = props.title;
     }, [props.title, props.shouldParseTitle]);
+
+    const getProcessedTitle = useMemo(() => {
+        if (props.shouldRenderAsHTML) {
+            return convertToLTR(props.title);
+        }
+
+        if (props.shouldParseTitle) {
+            return html;
+        }
+
+        return '';
+    }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
 
     return (
         <Hoverable>
@@ -235,11 +247,10 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(props.title) && Boolean(props.shouldRenderAsHTML) && <RenderHTML html={convertToLTR(props.title)} />}
-
-                                            {Boolean(props.shouldParseTitle) && Boolean(html.length) && !props.shouldRenderAsHTML && <RenderHTML html={`<comment>${html}</comment>`} />}
-
-                                            {!props.shouldRenderAsHTML && !html.length && Boolean(props.title) && (
+                                            {Boolean(props.title) && (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) && (
+                                                <MenuItemRenderHTMLTitle title={getProcessedTitle} />
+                                            )}
+                                            {!props.shouldRenderAsHTML && !props.shouldParseTitle && Boolean(props.title) && (
                                                 <Text
                                                     style={titleTextStyle}
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
@@ -248,7 +259,6 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     {convertToLTR(props.title)}
                                                 </Text>
                                             )}
-
                                             {Boolean(props.shouldShowTitleIcon) && (
                                                 <View style={[styles.ml2]}>
                                                     <Icon

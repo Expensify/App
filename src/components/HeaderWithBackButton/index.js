@@ -22,7 +22,7 @@ import useKeyboardState from '../../hooks/useKeyboardState';
 function HeaderWithBackButton({
     iconFill = undefined,
     guidesCallTaskID = '',
-    onBackButtonPress = () => Navigation.goBack(),
+    onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
@@ -47,6 +47,8 @@ function HeaderWithBackButton({
     },
     threeDotsMenuItems = [],
     children = null,
+    onModalHide = () => {},
+    shouldOverlay = false,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
@@ -119,7 +121,7 @@ function HeaderWithBackButton({
                     {shouldShowGetAssistanceButton && (
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
-                                onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(guidesCallTaskID))}
+                                onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
@@ -137,6 +139,8 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
+                            onModalHide={onModalHide}
+                            shouldOverlay={shouldOverlay}
                         />
                     )}
                     {shouldShowCloseButton && (

@@ -13,6 +13,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
+import * as Localize from '../Localize';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -58,9 +59,10 @@ function clearOutTaskInfo() {
  * @param {String} assigneeEmail
  * @param {Number} assigneeAccountID
  * @param {Object} assigneeChatReport - The chat report between you and the assignee
+ * @param {String} policyID - the policyID of the parent report
  */
-function createTaskAndNavigate(parentReportID, title, description, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null) {
-    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description);
+function createTaskAndNavigate(parentReportID, title, description, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null, policyID = CONST.POLICY.OWNER_EMAIL_FAKE) {
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : 0;
     const taskReportID = optimisticTaskReport.reportID;
@@ -640,7 +642,7 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
     let chatReport;
 
     if (!isCurrentUser) {
-        chatReport = ReportUtils.getChatByParticipantsByLoginList([assigneeEmail]) || ReportUtils.getChatByParticipants([assigneeAccountID]);
+        chatReport = ReportUtils.getChatByParticipants([assigneeAccountID]);
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
             chatReport.isOptimisticReport = true;
@@ -741,7 +743,7 @@ function getShareDestination(reportID, reports, personalDetails) {
         subtitle = ReportUtils.getChatRoomSubtitle(report);
     }
     return {
-        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
+        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
         displayName: ReportUtils.getReportName(report),
         subtitle,
     };
@@ -913,6 +915,35 @@ function clearEditTaskErrors(reportID) {
     });
 }
 
+/**
+ * @param {string} actionName
+ * @param {string} reportID
+ * @param {boolean} isCreateTaskAction
+ * @returns {string}
+ */
+function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
+    const report = ReportUtils.getReport(reportID);
+    if (isCreateTaskAction) {
+        return `Created a task: ${report.reportName}`;
+    }
+    let taskStatusText = '';
+    switch (actionName) {
+        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
+            taskStatusText = Localize.translateLocal('task.messages.completed');
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED:
+            taskStatusText = Localize.translateLocal('task.messages.canceled');
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
+            taskStatusText = Localize.translateLocal('task.messages.reopened');
+            break;
+        default:
+            taskStatusText = Localize.translateLocal('task.task');
+    }
+
+    return `${taskStatusText} ${report.reportName}`;
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -934,4 +965,5 @@ export {
     getTaskAssigneeAccountID,
     clearEditTaskErrors,
     canModifyTask,
+    getTaskReportActionMessage,
 };

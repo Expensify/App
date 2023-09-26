@@ -511,12 +511,10 @@ function ReportActionItem(props) {
                         checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
                     }}
                 >
-                    <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                        <MoneyRequestView
-                            report={props.report}
-                            shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                        />
-                    </OfflineWithFeedback>
+                    <MoneyRequestView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
                 </ShowContextMenuContext.Provider>
             );
         }
@@ -538,12 +536,10 @@ function ReportActionItem(props) {
             }
 
             return (
-                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                    <TaskView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
-                </OfflineWithFeedback>
+                <TaskView
+                    report={props.report}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                />
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
@@ -593,7 +589,10 @@ function ReportActionItem(props) {
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={props.translate('accessibilityHints.chatMessage')}
         >
-            <Hoverable disabled={Boolean(props.draftMessage)}>
+            <Hoverable
+                shouldHandleScroll
+                disabled={Boolean(props.draftMessage)}
+            >
                 {(hovered) => (
                     <View>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
@@ -620,6 +619,7 @@ function ReportActionItem(props) {
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
+                                shouldDisableStrikeThrough
                             >
                                 {isWhisper && (
                                     <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
@@ -677,7 +677,11 @@ export default compose(
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
         iouReport: {
-            key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT}${ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}`,
+            key: ({action}) => {
+                const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
+                return iouReportID ? `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}` : undefined;
+            },
+            initialValue: {},
         },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
