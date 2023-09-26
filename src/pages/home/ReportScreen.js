@@ -181,6 +181,8 @@ function ReportScreen({
     const didSubscribeToReportLeavingEvents = useRef(false);
 
     const isDefaultReport = checkDefaultReport(report);
+    const isThread = ReportUtils.isThread(report);
+    const isNotificationPreferenceHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 
     let headerView = (
         <HeaderView
@@ -351,17 +353,13 @@ function ReportScreen({
         [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete, userLeavingStatus],
     );
 
+    // When the report screen is unmounted or no longer in focus, and the user has no comments on that thread, call LeaveRoom
     useEffect(() => {
-        if (isFocused) {
+        if (isFocused || !isThread || !isNotificationPreferenceHidden) {
             return;
         }
-        // When the report screen is unmounted or no longer in focus, and the user has no comments on that thread, call LeaveRoom
-        if (ReportUtils.isThread(report) && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
-            Report.leaveRoom(report.reportID, false);
-        }
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused]);
+        Report.leaveRoom(reportID, false);
+    }, [isFocused, isThread, isNotificationPreferenceHidden, reportID]);
 
     return (
         <ReportScreenContext.Provider
