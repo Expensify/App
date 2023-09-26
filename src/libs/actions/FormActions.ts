@@ -1,12 +1,13 @@
 import Onyx from 'react-native-onyx';
-import {PartialDeep} from 'type-fest';
 import {KeyValueMapping} from 'react-native-onyx/lib/types';
-import * as OnyxCommon from '../../types/onyx/OnyxCommon';
-import {OnyxFormKey, OnyxKey, OnyxKeysMap} from '../../ONYXKEYS';
+import {PartialDeep} from 'type-fest';
+import {OnyxFormKey} from '../../ONYXKEYS';
 import {Form} from '../../types/onyx';
+import * as OnyxCommon from '../../types/onyx/OnyxCommon';
 
-type KeysWhichCouldBeDraft<T extends OnyxFormKey | OnyxKeysMap['REIMBURSEMENT_ACCOUNT']> = T extends `${infer U}Draft` ? U : never;
-type DraftKeysWithoutDraftSuffix = KeysWhichCouldBeDraft<OnyxFormKey | OnyxKeysMap['REIMBURSEMENT_ACCOUNT']>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type ExcludeDraft<T> = T extends `${infer R}Draft` ? never : T;
+type OnyxFormKeyWithoutDraft = ExcludeDraft<OnyxFormKey>;
 
 function setIsLoading(formID: OnyxFormKey, isLoading: boolean) {
     Onyx.merge(formID, {isLoading} satisfies Form);
@@ -20,10 +21,8 @@ function setErrorFields(formID: OnyxFormKey, errorFields: OnyxCommon.ErrorFields
     Onyx.merge(formID, {errorFields} satisfies Form);
 }
 
-function setDraftValues<T extends DraftKeysWithoutDraftSuffix | OnyxKeysMap['REIMBURSEMENT_ACCOUNT']>(formID: T, draftValues: PartialDeep<KeyValueMapping[`${T}Draft`]>) {
-    Onyx.merge(`${formID}Draft` as OnyxKey, draftValues);
+function setDraftValues<T extends OnyxFormKeyWithoutDraft>(formID: T, draftValues: PartialDeep<KeyValueMapping[`${T}Draft`]>) {
+    Onyx.merge(`${formID}Draft`, draftValues);
 }
-// TODO: Remove this once we have fix for a types
-setDraftValues('reimbursementAccount', {});
 
-export {setIsLoading, setErrors, setErrorFields, setDraftValues};
+export {setDraftValues, setErrorFields, setErrors, setIsLoading};
