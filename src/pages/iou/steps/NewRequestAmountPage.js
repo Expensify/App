@@ -111,7 +111,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
-            if (!isDistanceRequestTab && (_.isEmpty(iou.participantAccountIDs) || iou.amount === 0 || shouldReset)) {
+            if (!isDistanceRequestTab && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
             }
         }
@@ -119,7 +119,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         return () => {
             prevMoneyRequestID.current = iou.id;
         };
-    }, [iou.participantAccountIDs, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
+    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
 
     const navigateBack = () => {
         Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
