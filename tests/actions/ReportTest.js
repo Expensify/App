@@ -190,7 +190,7 @@ describe('actions/Report', () => {
             });
     });
 
-    it.only('should be updated correctly when new comments are added, deleted or marked as unread', () => {
+    it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
         jest.useFakeTimers();
         global.fetch = TestHelper.getGlobalFetchMock();
         const REPORT_ID = '1';
