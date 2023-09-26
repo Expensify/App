@@ -22,6 +22,7 @@ import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import withLocalize from '../withLocalize';
 import useNativeDriver from '../../libs/useNativeDriver';
 import * as Browser from '../../libs/Browser';
+import SwipeInterceptPanResponder from '../SwipeInterceptPanResponder';
 
 function BaseTextInput(props) {
     const inputValue = props.value || props.defaultValue || '';
@@ -257,7 +258,11 @@ function BaseTextInput(props) {
 
     return (
         <>
-            <View style={styles.pointerEventsNone}>
+            <View
+                style={styles.pointerEventsNone}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(props.interceptSwipe && SwipeInterceptPanResponder.panHandlers)}
+            >
                 <PressableWithoutFeedback
                     onPress={onPress}
                     focusable={false}
