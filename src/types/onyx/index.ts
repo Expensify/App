@@ -42,7 +42,7 @@ import ReportActionReactions from './ReportActionReactions';
 import SecurityGroup from './SecurityGroup';
 import Transaction from './Transaction';
 import Form, {AddDebitCardForm} from './Form';
-import RecentWaypoints from './RecentWaypoints';
+import RecentWaypoint from './RecentWaypoint';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
 import RecentlyUsedTags from './RecentlyUsedTags';
 import PolicyTag from './PolicyTag';
@@ -93,8 +93,8 @@ export type {
     Form,
     AddDebitCardForm,
     OnyxUpdatesFromServer,
+    RecentWaypoint,
     OnyxUpdateEvent,
-    RecentWaypoints,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     PolicyTag,

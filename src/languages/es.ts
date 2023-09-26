@@ -804,6 +804,12 @@ export default {
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
     },
+    cardPage: {
+        expensifyCard: 'Tarjeta Expensify',
+        availableSpend: 'Capacidad de gasto restante',
+        virtualCardNumber: 'Número de la tarjeta virtual',
+        physicalCardNumber: 'Número de la tarjeta física',
+    },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,
         instant: 'Instante',

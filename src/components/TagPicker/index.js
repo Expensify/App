@@ -7,6 +7,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import useLocalize from '../../hooks/useLocalize';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import OptionsSelector from '../OptionsSelector';
 import {propTypes, defaultProps} from './tagPickerPropTypes';
 
@@ -15,7 +16,7 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
     const [searchValue, setSearchValue] = useState('');
 
     const policyRecentlyUsedTagsList = lodashGet(policyRecentlyUsedTags, tag, []);
-    const policyTagList = lodashGet(policyTags, [tag, 'tags'], {});
+    const policyTagList = PolicyUtils.getTagList(policyTags, tag);
     const policyTagsCount = _.size(_.filter(policyTagList, (policyTag) => policyTag.enabled));
     const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
 

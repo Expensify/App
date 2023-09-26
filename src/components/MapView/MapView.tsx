@@ -71,6 +71,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                 onMapIdle={setMapIdle}
                 pitchEnabled={pitchEnabled}
                 attributionPosition={{...styles.r2, ...styles.b2}}
+                scaleBarEnabled={false}
                 logoPosition={{...styles.l2, ...styles.b2}}
                 // eslint-disable-next-line
                 {...responder.panHandlers}
