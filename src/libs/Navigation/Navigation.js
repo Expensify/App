@@ -255,6 +255,51 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+function navContainsConcierge(state) {
+    if (!state || !state.routeNames || !_.isArray(state.routeNames)) {
+        return false;
+    }
+
+    return _.includes(state.routeNames, SCREENS.CONCIERGE);
+}
+
+/**
+ * Waits for the navigation state to contain protected routes (specifically 'Concierge').
+ * If the navigation is in a state, where protected routes are available, the promise will resolve immediately.
+ *
+ * @function
+ * @returns {Promise<void>} A promise that resolves to `true` when the Concierge route is present.
+ *                             Rejects with an error if the navigation is not ready.
+ *
+ * @example
+ * waitForProtectedRoutes()
+ *   .then(() => console.log('Protected routes are present!'))
+ *   .catch(error => console.error(error.message));
+ */
+function waitForProtectedRoutes() {
+    return new Promise((resolve, reject) => {
+        const isReady = navigationRef.current && navigationRef.current.isReady();
+        if (!isReady) {
+            reject(new Error('[Navigation] is not ready yet!'));
+            return;
+        }
+        const currentState = navigationRef.current.getState();
+        if (navContainsConcierge(currentState)) {
+            resolve();
+            return;
+        }
+        let unsubscribe;
+        const handleStateChange = ({data}) => {
+            const state = lodashGet(data, 'state');
+            if (navContainsConcierge(state)) {
+                unsubscribe();
+                resolve();
+            }
+        };
+        unsubscribe = navigationRef.current.addListener('state', handleStateChange);
+    });
+}
+
 export default {
     setShouldPopAllStateOnUP,
     canNavigate,
@@ -268,6 +313,7 @@ export default {
     setIsNavigationReady,
     getTopmostReportId,
     getRouteNameFromStateEvent,
+    waitForProtectedRoutes,
 };
 
 export {navigationRef};
