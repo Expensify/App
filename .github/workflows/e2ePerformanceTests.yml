@@ -56,7 +56,9 @@ jobs:
 
       - name: Build APK
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
+        # TODO: Change back before merging:
+        #uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
+        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@andrew-fix-e2e-fork
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
 
@@ -125,7 +127,9 @@ jobs:
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Build APK
-        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
+        # TODO: Change back before merging:
+        #uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
+        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@andrew-fix-e2e-fork
         with:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
 
