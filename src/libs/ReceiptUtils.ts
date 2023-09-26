@@ -12,6 +12,11 @@ type ThumbnailAndImageURI = {
     thumbnail: string | null;
 };
 
+type FileNameAndExtension = {
+    fileExtension?: string;
+    fileName?: string;
+};
+
 /**
  * Grab the appropriate receipt image and thumbnail URIs based on file type
  *
@@ -30,7 +35,7 @@ function getThumbnailAndImageURIs(path: string, filename: string): ThumbnailAndI
         return {thumbnail: `${path}.1024.jpg`, image: path};
     }
 
-    const {fileExtension} = FileUtils.splitExtensionFromFileName(filename) as {fileExtension?: string};
+    const {fileExtension} = FileUtils.splitExtensionFromFileName(filename) as FileNameAndExtension;
     let image = ReceiptGeneric;
     if (fileExtension === CONST.IOU.FILE_TYPES.HTML) {
         image = ReceiptHTML;
