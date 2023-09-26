@@ -19,13 +19,12 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import * as User from '../../../../libs/actions/User';
-import CONST from '../../../../CONST';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
-import NotFoundPage from '../../../ErrorPage/NotFoundPage';
 import ValidateCodeForm from './ValidateCodeForm';
 import ROUTES from '../../../../ROUTES';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import FullPageNotFoundView from '../../../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /* Onyx Props */
@@ -108,16 +107,21 @@ class ContactMethodDetailsPage extends Component {
     }
 
     componentDidMount() {
+        const contactMethod = this.getContactMethod();
+        const loginData = lodashGet(this.props.loginList, contactMethod, {});
+        if (_.isEmpty(loginData)) {
+            return;
+        }
         User.resetContactMethodValidateCodeSentState(this.getContactMethod());
     }
 
     componentDidUpdate(prevProps) {
-        const errorFields = lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {});
-        const prevPendingFields = lodashGet(prevProps.loginList, [this.getContactMethod(), 'pendingFields'], {});
+        const validatedDate = lodashGet(this.props.loginList, [this.getContactMethod(), 'validatedDate']);
+        const prevValidatedDate = lodashGet(prevProps.loginList, [this.getContactMethod(), 'validatedDate']);
 
         // Navigate to methods page on successful magic code verification
-        // validateLogin property of errorFields & prev pendingFields is responsible to decide the status of the magic code verification
-        if (!errorFields.validateLogin && prevPendingFields.validateLogin === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
+        // validatedDate property is responsible to decide the status of the magic code verification
+        if (!prevValidatedDate && validatedDate) {
             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
         }
     }
@@ -211,7 +215,16 @@ class ContactMethodDetailsPage extends Component {
 
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
-            return <NotFoundPage />;
+            return (
+                <ScreenWrapper testID={ContactMethodDetailsPage.displayName}>
+                    <FullPageNotFoundView
+                        shouldShow
+                        linkKey="contacts.goBackContactMethods"
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                        onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                    />
+                </ScreenWrapper>
+            );
         }
 
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
@@ -219,7 +232,10 @@ class ContactMethodDetailsPage extends Component {
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
 
         return (
-            <ScreenWrapper onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}>
+            <ScreenWrapper
+                onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}
+                testID={ContactMethodDetailsPage.displayName}
+            >
                 <HeaderWithBackButton
                     title={formattedContactMethod}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}

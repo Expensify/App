@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {memo} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import Navigation from '../../../libs/Navigation/Navigation';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import styles from '../../../styles/styles';
@@ -8,12 +10,15 @@ import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import ROUTES from '../../../ROUTES';
+import ONYXKEYS from '../../../ONYXKEYS';
+import useLocalize from '../../../hooks/useLocalize';
 
-const propTypes = {...htmlRendererPropTypes, ...withLocalizePropTypes};
+const propTypes = {...htmlRendererPropTypes};
 
 function ImageRenderer(props) {
+    const {translate} = useLocalize();
+
     const htmlAttribs = props.tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
@@ -57,7 +62,7 @@ function ImageRenderer(props) {
                 <PressableWithoutFocus
                     style={[styles.noOutline]}
                     onPress={() => {
-                        const route = ROUTES.getReportAttachmentRoute(report.reportID, source);
+                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report.reportID, source);
                         Navigation.navigate(route);
                     }}
                     onLongPress={(event) =>
@@ -72,7 +77,7 @@ function ImageRenderer(props) {
                         )
                     }
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                    accessibilityLabel={props.translate('accessibilityHints.viewAttachment')}
+                    accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
@@ -90,4 +95,15 @@ function ImageRenderer(props) {
 ImageRenderer.propTypes = propTypes;
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default withLocalize(ImageRenderer);
+export default withOnyx({
+    user: {
+        key: ONYXKEYS.USER,
+    },
+})(
+    memo(
+        ImageRenderer,
+        (prevProps, nextProps) =>
+            lodashGet(prevProps, 'tnode.attributes') === lodashGet(nextProps, 'tnode.attributes') &&
+            lodashGet(prevProps, 'user.shouldUseStagingServer') === lodashGet(nextProps, 'user.shouldUseStagingServer'),
+    ),
+);

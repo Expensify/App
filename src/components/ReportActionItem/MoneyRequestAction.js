@@ -58,6 +58,9 @@ const propTypes = {
 
     network: networkPropTypes.isRequired,
 
+    /** Whether a message is a whisper */
+    isWhisper: PropTypes.bool,
+
     /** Styles to be assigned to Container */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
@@ -71,6 +74,7 @@ const defaultProps = {
     reportActions: {},
     isHovered: false,
     style: [],
+    isWhisper: false,
 };
 
 function MoneyRequestAction({
@@ -86,6 +90,7 @@ function MoneyRequestAction({
     isHovered,
     network,
     style,
+    isWhisper,
 }) {
     const {translate} = useLocalize();
     const isSplitBillAction = lodashGet(action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
@@ -93,7 +98,7 @@ function MoneyRequestAction({
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
             const reportActionID = lodashGet(action, 'reportActionID', '0');
-            Navigation.navigate(ROUTES.getSplitBillDetailsRoute(chatReportID, reportActionID));
+            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID));
             return;
         }
 
@@ -103,11 +108,11 @@ function MoneyRequestAction({
             const thread = ReportUtils.buildTransactionThread(action, requestReportID);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             Report.openReport(thread.reportID, userLogins, thread, action.reportActionID);
-            Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
             return;
         }
         Report.openReport(childReportID);
-        Navigation.navigate(ROUTES.getReportRoute(childReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };
 
     let shouldShowPendingConversionMessage = false;
@@ -137,6 +142,7 @@ function MoneyRequestAction({
             onPreviewPressed={onMoneyRequestPreviewPressed}
             containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, ...style]}
             isHovered={isHovered}
+            isWhisper={isWhisper}
         />
     );
 }

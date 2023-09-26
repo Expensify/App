@@ -1,3 +1,3 @@
-import getBaseNavigationModalCardStyles from './getBaseNavigationModalCardStyles';
-
-export default getBaseNavigationModalCardStyles;
+export default () => ({
+    height: '100%',
+});

@@ -5,24 +5,23 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
+import Permissions from '../libs/Permissions';
 import * as ReportUtils from '../libs/ReportUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import * as Report from '../libs/actions/Report';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
+import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import * as Browser from '../libs/Browser';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
+import variables from '../styles/variables';
 
 const propTypes = {
-    /** Whether screen is used to create group chat */
-    isGroupChat: PropTypes.bool,
-
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -38,7 +37,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isGroupChat: false,
     betas: [],
     personalDetails: {},
     reports: {},
@@ -46,7 +44,7 @@ const defaultProps = {
 
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
-function NewChatPage(props) {
+function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
@@ -57,31 +55,30 @@ function NewChatPage(props) {
     const headerMessage = OptionsListUtils.getHeaderMessage(
         filteredPersonalDetails.length + filteredRecentReports.length !== 0,
         Boolean(filteredUserToInvite),
-        searchTerm,
+        searchTerm.trim(),
         maxParticipantsReached,
+        _.some(selectedOptions, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
+    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     const sections = useMemo(() => {
         const sectionsList = [];
         let indexOffset = 0;
 
-        if (props.isGroupChat) {
-            sectionsList.push({
-                title: undefined,
-                data: selectedOptions,
-                shouldShow: !_.isEmpty(selectedOptions),
-                indexOffset,
-            });
-            indexOffset += selectedOptions.length;
+        sectionsList.push({
+            title: undefined,
+            data: selectedOptions,
+            shouldShow: !_.isEmpty(selectedOptions),
+            indexOffset,
+        });
+        indexOffset += selectedOptions.length;
 
-            if (maxParticipantsReached) {
-                return sectionsList;
-            }
+        if (maxParticipantsReached) {
+            return sectionsList;
         }
 
         sectionsList.push({
-            title: props.translate('common.recents'),
+            title: translate('common.recents'),
             data: filteredRecentReports,
             shouldShow: !_.isEmpty(filteredRecentReports),
             indexOffset,
@@ -89,7 +86,7 @@ function NewChatPage(props) {
         indexOffset += filteredRecentReports.length;
 
         sectionsList.push({
-            title: props.translate('common.contacts'),
+            title: translate('common.contacts'),
             data: filteredPersonalDetails,
             shouldShow: !_.isEmpty(filteredPersonalDetails),
             indexOffset,
@@ -106,8 +103,7 @@ function NewChatPage(props) {
         }
 
         return sectionsList;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, props.isGroupChat, selectedOptions]);
+    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -124,18 +120,15 @@ function NewChatPage(props) {
             newSelectedOptions = [...selectedOptions, option];
         }
 
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            searchTerm,
-            newSelectedOptions,
-            excludedGroupEmails,
-        );
+        const {
+            recentReports,
+            personalDetails: newChatPersonalDetails,
+            userToInvite,
+        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, newSelectedOptions, excludedGroupEmails);
 
         setSelectedOptions(newSelectedOptions);
         setFilteredRecentReports(recentReports);
-        setFilteredPersonalDetails(personalDetails);
+        setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
     }
 
@@ -154,9 +147,6 @@ function NewChatPage(props) {
      * or navigates to the existing chat if one with those participants already exists.
      */
     const createGroup = () => {
-        if (!props.isGroupChat) {
-            return;
-        }
         const logins = _.pluck(selectedOptions, 'login');
         if (logins.length < 1) {
             return;
@@ -165,49 +155,59 @@ function NewChatPage(props) {
     };
 
     useEffect(() => {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            searchTerm,
-            selectedOptions,
-            props.isGroupChat ? excludedGroupEmails : [],
-        );
+        const {
+            recentReports,
+            personalDetails: newChatPersonalDetails,
+            userToInvite,
+        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, selectedOptions, isGroupChat ? excludedGroupEmails : []);
         setFilteredRecentReports(recentReports);
-        setFilteredPersonalDetails(personalDetails);
+        setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
-        // props.betas and props.isGroupChat are not added as dependencies since they don't change during the component lifecycle
+        // props.betas is not added as dependency since it doesn't change during the component lifecycle
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.reports, props.personalDetails, searchTerm]);
+    }, [reports, personalDetails, searchTerm]);
 
     return (
         <ScreenWrapper
+            shouldEnableKeyboardAvoidingView={false}
             includeSafeAreaPaddingBottom={false}
+            includePaddingTop={false}
             shouldEnableMaxHeight
+            testID={NewChatPage.displayName}
         >
-            {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton title={props.isGroupChat ? props.translate('sidebarScreen.newGroup') : props.translate('sidebarScreen.newChat')} />
+            {({safeAreaPaddingBottomStyle, insets}) => (
+                <KeyboardAvoidingView
+                    style={{height: '100%'}}
+                    behavior="padding"
+                    // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
+                    // This is because when wrapping whole screen the screen was freezing when changing Tabs.
+                    keyboardVerticalOffset={
+                        variables.contentHeaderHeight + insets.top + (Permissions.canUsePolicyRooms(betas) ? variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0)
+                    }
+                >
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                         <OptionsSelector
-                            canSelectMultipleOptions={props.isGroupChat}
+                            canSelectMultipleOptions
+                            shouldShowMultipleOptionSelectorAsButton
+                            multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
+                            onAddToSelection={(option) => toggleOption(option)}
                             sections={sections}
                             selectedOptions={selectedOptions}
                             value={searchTerm}
-                            onSelectRow={(option) => (props.isGroupChat ? toggleOption(option) : createChat(option))}
+                            onSelectRow={(option) => createChat(option)}
                             onChangeText={setSearchTerm}
                             headerMessage={headerMessage}
                             boldStyle
-                            shouldFocusOnSelectRow={props.isGroupChat && !Browser.isMobile()}
-                            shouldShowConfirmButton={props.isGroupChat}
-                            shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
-                            confirmButtonText={props.translate('newChatPage.createGroup')}
+                            shouldFocusOnSelectRow={!Browser.isMobile()}
+                            shouldShowOptions={isOptionsDataReady}
+                            shouldShowConfirmButton
+                            confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
                             onConfirmSelection={createGroup}
-                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     </View>
-                </>
+                </KeyboardAvoidingView>
             )}
         </ScreenWrapper>
     );

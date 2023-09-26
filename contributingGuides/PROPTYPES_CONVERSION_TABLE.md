@@ -1,5 +1,7 @@
 # Expensify PropTypes Conversion Table
 
+This is a reference to help you convert PropTypes to TypeScript types. 
+
 ## Table of Contents
 
 - [Important Considerations](#important-considerations)
