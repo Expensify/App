@@ -8,7 +8,7 @@ const newComponentCategory = require('./newComponentCategory');
 
 const pathToAuthorChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md';
 const checklistStartsWith = '### PR Author Checklist';
-const checklistEndsWith = "\n### Screenshots/Videos";
+const checklistEndsWith = "\r\n### Screenshots/Videos";
 
 const prNumber = github.context.payload.pull_request.number;
 
