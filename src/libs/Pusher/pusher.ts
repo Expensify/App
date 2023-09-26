@@ -316,7 +316,7 @@ function sendEvent<T>(channelName: string, eventName: PusherEventName, payload: 
  * Register a method that will be triggered when a socket event happens (like disconnecting)
  */
 function registerSocketEventCallback<T>(cb: SocketEventCallback<T>) {
-    socketEventCallbacks.push(cb);
+    socketEventCallbacks.push(cb as SocketEventCallback<unknown>);
 }
 
 /**
