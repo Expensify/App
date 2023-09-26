@@ -159,4 +159,8 @@ export default {
     moneyRequestSkeletonHeight: 107,
 
     distanceScrollEventThrottle: 16,
+
+    cardPreviewHeight: 148,
+    cardPreviewWidth: 235,
+    cardNameWidth: 156,
 } as const;
