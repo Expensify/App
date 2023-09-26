@@ -73,8 +73,7 @@ function IdologyQuestions({questions, walletAdditionalDetails, idNumber}) {
             };
         }),
     );
-    const errorMessage = error;
-    // const errorMessage = ErrorUtils.getLatestErrorMessage(walletAdditionalDetails) || error;
+    const errorMessage = ErrorUtils.getLatestErrorMessage(walletAdditionalDetails) || error;
 
     /**
      * Put question answer in the state.
