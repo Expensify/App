@@ -1,11 +1,14 @@
 import {SvgProps} from 'react-native-svg';
+import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
 import hashCode from './hashCode';
 import {ConciergeAvatar, FallbackAvatar} from '../components/Icon/Expensicons';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
-import LoginList from '../types/onyx/LoginList';
+import Login from '../types/onyx/Login';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
+
+type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '';
 
 /**
  * Searches through given loginList for any contact method / login with an error.
@@ -28,7 +31,7 @@ type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 
  *      }
  * }}
  */
-function hasLoginListError(loginList: LoginList): boolean {
+function hasLoginListError(loginList: Login): boolean {
     const errorFields = loginList?.errorFields ?? {};
     return Object.values(errorFields).some((field) => Object.keys(field).length > 0);
 }
@@ -38,18 +41,15 @@ function hasLoginListError(loginList: LoginList): boolean {
  * an Info brick road status indicator. Currently this only applies if the user
  * has an unvalidated contact method.
  */
-function hasLoginListInfo(loginList: LoginList): boolean {
+function hasLoginListInfo(loginList: Login): boolean {
     return !loginList.validatedDate;
 }
 
 /**
  * Gets the appropriate brick road indicator status for a given loginList.
  * Error status is higher priority, so we check for that first.
- *
- * @param loginList
- * @returns
  */
-function getLoginListBrickRoadIndicator(loginList: LoginList): '' | 'error' | 'info' {
+function getLoginListBrickRoadIndicator(loginList: Login): LoginListIndicator {
     if (hasLoginListError(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }

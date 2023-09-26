@@ -11,7 +11,7 @@ import Task from './Task';
 import Currency from './Currency';
 import ScreenShareRequest from './ScreenShareRequest';
 import User from './User';
-import LoginList from './LoginList';
+import Login from './Login';
 import Session from './Session';
 import Beta from './Beta';
 import BlockedFromConcierge from './BlockedFromConcierge';
@@ -60,7 +60,7 @@ export type {
     Currency,
     ScreenShareRequest,
     User,
-    LoginList,
+    Login,
     Session,
     Beta,
     BlockedFromConcierge,

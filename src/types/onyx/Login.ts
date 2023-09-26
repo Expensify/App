@@ -1,6 +1,6 @@
 import * as OnyxCommon from './OnyxCommon';
 
-type LoginList = {
+type Login = {
     /** Phone/Email associated with user */
     partnerUserID?: string;
 
@@ -17,4 +17,4 @@ type LoginList = {
     pendingFields?: OnyxCommon.ErrorFields;
 };
 
-export default LoginList;
+export default Login;
