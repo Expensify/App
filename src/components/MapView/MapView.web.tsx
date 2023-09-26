@@ -91,7 +91,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                         latitude: initialState.location[1],
                         zoom: initialState.zoom,
                     }}
-                    style={StyleUtils.getTextColorStyle(themeColors.shadow) as React.CSSProperties}
+                    style={StyleUtils.getTextColorStyle(themeColors.mapAttributionText) as React.CSSProperties}
                     mapStyle={styleURL}
                 >
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
