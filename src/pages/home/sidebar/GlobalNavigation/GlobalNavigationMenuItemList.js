@@ -19,6 +19,13 @@ const propTypes = {
             onSelected: PropTypes.func.isRequired,
         }),
     ).isRequired,
+
+    /* Styles for the menu items list */
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+};
+
+const defaultProps = {
+    style: {},
 };
 
 function GlobalNavigationMenuItemList(props) {
@@ -29,7 +36,7 @@ function GlobalNavigationMenuItemList(props) {
     };
 
     return (
-        <View>
+        <View style={props.style}>
             {_.map(props.menuItems, (item) => (
                 <GlobalNavigationMenuItem
                     key={item.text}
@@ -47,6 +54,7 @@ function GlobalNavigationMenuItemList(props) {
 }
 
 GlobalNavigationMenuItemList.propTypes = propTypes;
+GlobalNavigationMenuItemList.defaultProps = defaultProps;
 GlobalNavigationMenuItemList.displayName = 'GlobalNavigationMenuItemList';
 
 export default GlobalNavigationMenuItemList;

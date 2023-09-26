@@ -1393,13 +1393,16 @@ const styles = (theme) => ({
 
     sidebarLink: {
         textDecorationLine: 'none',
+        marginLeft: 12,
+        marginRight: 12,
+        borderRadius: 12,
     },
 
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
-        paddingLeft: 20,
-        paddingRight: 20,
+        paddingLeft: 8,
+        paddingRight: 8,
     },
 
     sidebarLinkText: {
@@ -1414,7 +1417,7 @@ const styles = (theme) => ({
     },
 
     sidebarLinkActive: {
-        backgroundColor: theme.border,
+        backgroundColor: theme.highlightBG,
         textDecorationLine: 'none',
     },
 
@@ -3671,6 +3674,10 @@ const styles = (theme) => ({
     draggableTopBar: {
         height: 30,
         width: '100%',
+    },
+    globalNavigation: {
+        width: variables.globalNavigationWidth,
+        backgroundColor: theme.highlightBG,
     },
 });
 

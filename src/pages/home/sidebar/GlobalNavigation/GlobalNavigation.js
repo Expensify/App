@@ -6,7 +6,6 @@ import styles from '../../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import GlobalNavigationMenuItemList from './GlobalNavigationMenuItemList';
-import variables from '../../../../styles/variables';
 import CONST from '../../../../CONST';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
@@ -36,9 +35,12 @@ function GlobalNavigation({isCreateMenuOpen}) {
     );
 
     return (
-        <View style={[styles.ph5, styles.pv3, styles.alignItemsCenter, styles.h100, {width: variables.globalNavigationWidth, backgroundColor: styles.sidebarLinkActive.backgroundColor}]}>
+        <View style={[styles.ph5, styles.pv3, styles.alignItemsCenter, styles.h100, styles.globalNavigation]}>
             <PressableAvatarWithIndicator isCreateMenuOpen={isCreateMenuOpen} />
-            <GlobalNavigationMenuItemList menuItems={items} />
+            <GlobalNavigationMenuItemList
+                menuItems={items}
+                style={styles.mt4}
+            />
         </View>
     );
 }
