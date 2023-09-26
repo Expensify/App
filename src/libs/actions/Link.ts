@@ -5,13 +5,13 @@ import * as API from '../API';
 import * as Environment from '../Environment/Environment';
 import * as Url from '../Url';
 
-let isNetworkOffline = false;
+let isNetworkOffline: boolean | undefined = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (value) => (isNetworkOffline = value?.isOffline ?? false),
 });
 
-let currentUserEmail: string;
+let currentUserEmail: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => (currentUserEmail = value?.email ?? ''),
@@ -22,7 +22,7 @@ function buildOldDotURL(url?: string, shortLivedAuthToken?: string): Promise<str
     const hasURLParams = url?.indexOf('?') !== -1;
 
     const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
-    const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
+    const emailParam = `email=${encodeURIComponent(currentUserEmail ?? '')}`;
     const paramsArray = [authTokenParam, emailParam];
     const params = paramsArray.filter(Boolean).join('&');
 
