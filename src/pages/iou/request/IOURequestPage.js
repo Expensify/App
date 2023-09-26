@@ -74,7 +74,7 @@ function IOURequestPage({route}) {
                             {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <CreateIOUStartRequest
                                     selectedTab={selectedTab}
-                                    shouldDisplayDistanceTab={!reportID}
+                                    shouldDisplayDistanceTab={reportID !== CONST.IOU.OPTIMISTIC_REPORT_ID}
                                     iouType={iouType}
                                 />
                             ) : (

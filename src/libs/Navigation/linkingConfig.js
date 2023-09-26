@@ -304,6 +304,20 @@ export default {
                             Monee_Request_Create: {
                                 path: ROUTES.MONEE_REQUEST_CREATE.route,
                                 exact: true,
+                                screens: {
+                                    distance: {
+                                        path: ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE,
+                                        exact: true,
+                                    },
+                                    manual: {
+                                        path: ROUTES.MONEE_REQUEST_CREATE_TAB_MANUAL,
+                                        exact: true,
+                                    },
+                                    scan: {
+                                        path: ROUTES.MONEE_REQUEST_CREATE_TAB_SCAN,
+                                        exact: true,
+                                    },
+                                },
                             },
                             Monee_Request_Field: {
                                 path: ROUTES.MONEE_REQUEST_FIELD.route,

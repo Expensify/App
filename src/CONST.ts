@@ -1043,6 +1043,7 @@ const CONST = {
     },
 
     IOU: {
+        OPTIMISTIC_TRANSACTION_ID: 'new',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         PAYMENT_TYPE: {

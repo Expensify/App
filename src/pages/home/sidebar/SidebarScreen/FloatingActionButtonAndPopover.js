@@ -26,6 +26,7 @@ import * as Session from '../../../../libs/actions/Session';
 import * as IOU from '../../../../libs/actions/IOU';
 import usePrevious from '../../../../hooks/usePrevious';
 import * as App from '../../../../libs/actions/App';
+import * as NumberUtils from '../../../../libs/NumberUtils';
 
 /**
  * @param {Object} [policy]
@@ -193,7 +194,7 @@ function FloatingActionButtonAndPopover(props) {
                                   onSelected: () =>
                                       interceptAnonymousUser(() => {
                                           // @TODO IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)
-                                          IOU.startMoneeRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND);
+                                          IOU.startMoneeRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND, NumberUtils.rand64());
                                       }),
                               },
                           ]
@@ -204,7 +205,7 @@ function FloatingActionButtonAndPopover(props) {
                         onSelected: () =>
                             interceptAnonymousUser(() => {
                                 // @TODO IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)
-                                IOU.startMoneeRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
+                                IOU.startMoneeRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, NumberUtils.rand64());
                             }),
                     },
                     ...(Permissions.canUseTasks(props.betas)
