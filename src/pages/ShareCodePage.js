@@ -47,8 +47,8 @@ class ShareCodePage extends React.Component {
         const subtitle = isReport ? ReportUtils.getParentNavigationSubtitle(this.props.report).workspaceName || ReportUtils.getChatRoomSubtitle(this.props.report) : formattedEmail;
         const urlWithTrailingSlash = Url.addTrailingForwardSlash(this.props.environmentURL);
         const url = isReport
-            ? `${urlWithTrailingSlash}${ROUTES.getReportRoute(this.props.report.reportID)}`
-            : `${urlWithTrailingSlash}${ROUTES.getProfileRoute(this.props.session.accountID)}`;
+            ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(this.props.report.reportID)}`
+            : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(this.props.session.accountID)}`;
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
@@ -57,7 +57,7 @@ class ShareCodePage extends React.Component {
             <ScreenWrapper testID={ShareCodePage.displayName}>
                 <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}
-                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.getReportDetailsRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
+                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
                 />
 
                 <ScrollView style={[styles.flex1, styles.mt3]}>
