@@ -43,22 +43,15 @@ jobs:
       - name: Checkout "Baseline" commit (last release)
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
         run: |
-          git fetch origin andrew-fix-e2e-fork
-          git checkout andrew-fix-e2e-fork
-
-# TODO: Uncomment before merging
-#        run: |
-#          git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
-#          git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
+          git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
+          git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Build APK
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        # TODO: Change back before merging:
-        #uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
-        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@andrew-fix-e2e-fork
+        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
 
@@ -127,17 +120,9 @@ jobs:
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Build APK
-        # TODO: Change back before merging:
-        #uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
-        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@andrew-fix-e2e-fork
+        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
-
-      - name: Setup tmate session
-        if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
 
   runTestsInAWS:
     runs-on: ubuntu-latest
