@@ -118,7 +118,12 @@ function OptionRowLHN(props) {
         !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
 
     const sortedDisplayNames =
-        optionItem.displayNamesWithTooltips && optionItem.displayNamesWithTooltips.length > 1 ? _.map(optionItem.displayNamesWithTooltips, ({displayName}) => displayName).join(', ') : '';
+        optionItem.type !== CONST.REPORT.TYPE.IOU && !optionItem.isArchivedRoom && optionItem.participantsList && optionItem.participantsList.length > 1
+            ? _.filter(
+                  _.map(optionItem.displayNamesWithTooltips, ({displayName}) => displayName),
+                  (displayName) => !_.isEmpty(displayName),
+              ).join(', ')
+            : '';
 
     /**
      * Show the ReportActionContextMenu modal popover.
