@@ -178,10 +178,6 @@ function BaseSelectionList({
      * @param {Boolean} shouldUnfocusRow - flag to decide if we should unfocus all rows. True when selecting a row with click or press (not keyboard)
      */
     const selectRow = (item, shouldUnfocusRow = false) => {
-        if (shouldShowTextInput) {
-            focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
-        }
-
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
             if (sections.length > 1) {
@@ -205,15 +201,12 @@ function BaseSelectionList({
                 setFocusedIndex(-1);
             }
         }
-        
-        return () => {
-            if (!focusTimeoutRef.current) {
-                return;
-            }
-            clearTimeout(focusTimeoutRef.current);
-        };
 
         onSelectRow(item);
+
+        if (shouldShowTextInput && textInputRef.current) {
+            textInputRef.current.focus();   
+        }
     };
 
     const selectFocusedOption = () => {
