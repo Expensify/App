@@ -139,7 +139,6 @@ function MoneyRequestConfirmPage(props) {
                 props.currentUserPersonalDetails.accountID,
                 selectedParticipants[0],
                 trimmedComment,
-                receipt,
                 props.iou.category,
                 props.iou.tag,
                 props.iou.billable,
@@ -333,6 +332,7 @@ function MoneyRequestConfirmPage(props) {
                             <MoneyRequestConfirmationList
                                 transactionID={props.iou.transactionID}
                                 hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                                isPartialSplitBill={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && !_.isEmpty(props.iou.receiptPath)}
                                 selectedParticipants={participants}
                                 iouAmount={props.iou.amount}
                                 iouComment={props.iou.comment}

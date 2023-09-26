@@ -49,6 +49,7 @@ function getCurrencyUnit(currency = CONST.CURRENCY.USD) {
  * @returns {String}
  */
 function getLocalizedCurrencySymbol(currencyCode) {
+    console.log('c', currencyCode);
     const parts = NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
         style: 'currency',
         currency: currencyCode,

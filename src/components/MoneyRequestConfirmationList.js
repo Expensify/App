@@ -241,7 +241,7 @@ function MoneyRequestConfirmationList(props) {
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
                 participantsList,
                 CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode),
-                !_.isEmpty(props.receiptPath),
+                props.isPartialSplitBill,
             );
         },
         [props.iouAmount, props.iouCurrencyCode, props.receiptPath],
@@ -271,7 +271,7 @@ function MoneyRequestConfirmationList(props) {
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
     const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
-    const missingSmartScanFields = TransactionUtils.getMissingSmartScanFields(transaction);
+    const missingSmartScanFields = transaction && transaction.receipt ? TransactionUtils.getMissingSmartScanFields(transaction) : [];
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
@@ -291,7 +291,7 @@ function MoneyRequestConfirmationList(props) {
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
                 payeePersonalDetails,
                 CurrencyUtils.convertToDisplayString(myIOUAmount, props.iouCurrencyCode),
-                !_.isEmpty(props.receiptPath),
+                props.isPartialSplitBill,
             );
 
             sections.push(
@@ -409,8 +409,7 @@ function MoneyRequestConfirmationList(props) {
         }
 
         const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0 || TransactionUtils.hasMissingSmartscanFields(transaction) || TransactionUtils.isReceiptBeingScanned(transaction);
-
+        const shouldDisableButton = selectedParticipants.length === 0 || (props.isPartialSplitBill && props.isEditingSplitBill);
         return shouldShowSettlementButton ? (
             <SettlementButton
                 isDisabled={shouldDisableButton}
@@ -437,6 +436,13 @@ function MoneyRequestConfirmationList(props) {
         );
     }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, transaction]);
 
+    const shouldShowAmountInput = useMemo(() => {
+        if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && transaction.receipt && TransactionUtils.hasMissingSmartscanFields(transaction)) {
+            return true;
+        }
+        return _.isEmpty(props.receiptPath);
+    }, [props.iouType, transaction]);
+
     return (
         <OptionsSelector
             sections={optionSelectorSections}
@@ -461,12 +467,13 @@ function MoneyRequestConfirmationList(props) {
                     <ConfirmedRoute transactionID={props.transactionID} />
                 </View>
             )}
-            {!_.isEmpty(props.receiptPath) ? (
+            {!_.isEmpty(props.receiptPath) && (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptSource).image}}
                 />
-            ) : (
+            )}
+            {shouldShowAmountInput && (
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!props.isReadOnly && !props.isDistanceRequest}
                     title={formattedAmount}
@@ -475,7 +482,7 @@ function MoneyRequestConfirmationList(props) {
                         if (props.isDistanceRequest) {
                             return;
                         }
-                        if (props.iouType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
+                        if (props.isEditingSplitBill) {
                             Navigation.navigate(ROUTES.getEditSplitBillRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
@@ -492,13 +499,19 @@ function MoneyRequestConfirmationList(props) {
                 shouldParseTitle
                 title={props.iouComment}
                 description={translate('common.description')}
-                onPress={() => Navigation.navigate(ROUTES.getEditSplitBillRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                onPress={() => {
+                    if (props.isEditingSplitBill) {
+                        Navigation.navigate(ROUTES.getEditSplitBillRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID));
+                }}
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
                 numberOfLinesTitle={2}
             />
-            {!shouldShowAllFields && (
+            {!shouldShowAllFields && !TransactionUtils.hasMissingSmartscanFields(transaction) && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
                     <Button
@@ -513,7 +526,7 @@ function MoneyRequestConfirmationList(props) {
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
                 </View>
             )}
-            {shouldShowAllFields && (
+            {(shouldShowAllFields || TransactionUtils.hasMissingSmartscanFields(transaction)) && (
                 <>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
@@ -543,7 +556,7 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.getEditSplitBillRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
-                            brickRoadIndicator={_.includes(missingSmartScanFields, CONST.EDIT_REQUEST_FIELD.MERCHANT) && 'error'}
+                            brickRoadIndicator={_.includes(missingSmartScanFields, CONST.EDIT_REQUEST_FIELD.MERCHANT) && !TransactionUtils.isReceiptBeingScanned(transaction) && 'error'}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}

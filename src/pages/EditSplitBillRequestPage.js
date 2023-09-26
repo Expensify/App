@@ -67,10 +67,11 @@ const defaultProps = {
     },
 };
 
-function EditRequestPage({report, reportActions, route}) {
+function EditSplitBillRequestPage({report, reportActions, route}) {
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
     const reportAction = reportActions[route.params.reportActionID];
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+    console.log('ediit split');
 
     const {
         amount: transactionAmount,
@@ -82,8 +83,8 @@ function EditRequestPage({report, reportActions, route}) {
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
 
-    function editSplitBillRequest(transactionChanges) {
-        IOU.editSplitBillRequest(transaction.transactionID, transactionChanges);
+    function updateSplitBillTransaction(transactionChanges) {
+        IOU.updateSplitBillTransaction(transaction.transactionID, transactionChanges);
         const route = ROUTES.getSplitBillDetailsRoute(report.reportID, reportAction.reportActionID);
         Navigation.navigate(route);
     }
@@ -112,9 +113,10 @@ function EditRequestPage({report, reportActions, route}) {
         return (
             <EditRequestAmountPage
                 defaultAmount={transactionAmount}
-                defaultCurrency={defaultCurrency}
+                defaultCurrency={defaultCurrency || CONST.CURRENCY.USD}
                 reportID={report.reportID}
                 reportActionID={reportAction.reportActionID}
+                isSplitRequest
                 onSubmit={(transactionChanges) => {
                     const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
 
@@ -124,7 +126,7 @@ function EditRequestPage({report, reportActions, route}) {
                         return;
                     }
 
-                    editSplitBillRequest({
+                    updateSplitBillTransaction({
                         amount,
                         currency: defaultCurrency,
                     });
@@ -134,15 +136,27 @@ function EditRequestPage({report, reportActions, route}) {
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
-        return <EditRequestMerchantPage defaultMerchant={''} />;
+        return (
+            <EditRequestMerchantPage
+                defaultMerchant={transactionMerchant}
+                onSubmit={(transactionChanges) => {
+                    console.log(transactionChanges);
+                    if (transactionMerchant === transactionChanges.merchant) {
+                        Navigation.goBack();
+                        return;
+                    }
+                    updateSplitBillTransaction({merchant: transactionChanges.merchant});
+                }}
+            />
+        );
     }
 
     return <FullPageNotFoundView shouldShow />;
 }
 
-EditRequestPage.displayName = 'EditRequestPage';
-EditRequestPage.propTypes = propTypes;
-EditRequestPage.defaultProps = defaultProps;
+EditSplitBillRequestPage.displayName = 'EditSplitBillRequestPage';
+EditSplitBillRequestPage.propTypes = propTypes;
+EditSplitBillRequestPage.defaultProps = defaultProps;
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
@@ -157,4 +171,4 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
     }),
-)(EditRequestPage);
+)(EditSplitBillRequestPage);

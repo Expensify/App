@@ -26,6 +26,7 @@ const propTypes = {
 function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, reportID, reportActionID, isSplitRequest}) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
+    console.log(isSplitRequest);
 
     const focusTextInput = () => {
         // Component may not be initialized due to navigation transitions

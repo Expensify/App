@@ -19,6 +19,7 @@ import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as IOU from '../../libs/actions/IOU';
 
 const propTypes = {
     /* Onyx Props */
@@ -69,7 +70,9 @@ function SplitBillDetailsPage(props) {
     }
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
-    const {amount: splitAmount, currency: splitCurrency, comment: splitComment} = ReportUtils.getTransactionDetails(transaction);
+    const {amount: splitAmount, currency: splitCurrency, comment: splitComment, merchant: splitMerchant} = ReportUtils.getTransactionDetails(transaction);
+    const isPartialSplitBill = transaction && transaction.receipt && (TransactionUtils.hasMissingSmartscanFields(transaction) || TransactionUtils.isReceiptBeingScanned(transaction));
+    const isReadOnly = _.isEmpty(transaction.receipt) || (!_.isEmpty(transaction.receipt) && TransactionUtils.isReceiptBeingScanned(transaction));
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
@@ -86,6 +89,7 @@ function SplitBillDetailsPage(props) {
                             selectedParticipants={participantsExcludingPayee}
                             iouAmount={splitAmount}
                             iouComment={splitComment}
+                            iouMerchant={splitMerchant}
                             iouCurrencyCode={splitCurrency}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             shouldShowFooter={false}
@@ -94,6 +98,10 @@ function SplitBillDetailsPage(props) {
                             receiptPath={transaction.receipt.source}
                             receiptSource={transaction.filename}
                             transaction={transaction}
+                            isPartialSplitBill={isPartialSplitBill}
+                            isReadOnly={isReadOnly}
+                            onConfirm={() => IOU.completeSplitBillRequest(transaction)}
+                            isEditingSplitBill
                         />
                     )}
                 </View>

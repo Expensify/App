@@ -1290,10 +1290,10 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
  * @param {String} amountText
  * @returns {Array}
  */
-function getIOUConfirmationOptionsFromParticipants(participants, amountText, isScanRequest) {
+function getIOUConfirmationOptionsFromParticipants(participants, amountText, isPartialSplitBill) {
     return _.map(participants, (participant) => ({
         ...participant,
-        descriptiveText: isScanRequest ? '' : amountText,
+        descriptiveText: isPartialSplitBill ? '' : amountText,
     }));
 }
 

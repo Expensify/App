@@ -1317,10 +1317,14 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
-function editSplitBillRequest(transactionID, transactionChanges) {
+function updateSplitBillTransaction(transactionID, transactionChanges) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, updatedTransaction);
+}
 
+function completeSplitBillRequest(updatedTransaction) {
+    const transactionID = updatedTransaction.transactionID;
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1350,11 +1354,20 @@ function editSplitBillRequest(transactionID, transactionChanges) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction,
+            value: {
+                ...updatedTransaction,
+                modifiedAmount: updatedTransaction.amount,
+                modifiedMerchant: updatedTransaction.merchant,
+                modifiedCreated: updatedTransaction.created,
+                modifiedComment: updatedTransaction.comment,
+                modifiedCategory: updatedTransaction.category,
+                modifiedCurrency: updatedTransaction.currency,
+            },
         },
     ];
 
     const {created, amount, currency, comment, merchant, category} = ReportUtils.getTransactionDetails(updatedTransaction);
+
     API.write(
         'CompleteSplitBillRequest',
         {
@@ -2398,7 +2411,7 @@ function navigateToNextPage(iou, iouType, reportID, report) {
 export {
     createDistanceRequest,
     editMoneyRequest,
-    editSplitBillRequest,
+    completeSplitBillRequest,
     deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
@@ -2426,4 +2439,5 @@ export {
     createEmptyTransaction,
     navigateToNextPage,
     replaceReceipt,
+    updateSplitBillTransaction,
 };
