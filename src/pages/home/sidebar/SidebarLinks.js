@@ -45,6 +45,7 @@ const propTypes = {
 
     isLoading: PropTypes.bool.isRequired,
 
+    // eslint-disable-next-line react/require-default-props
     priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
 
     isActiveReport: PropTypes.func.isRequired,
