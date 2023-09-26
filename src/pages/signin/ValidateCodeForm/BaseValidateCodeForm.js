@@ -52,9 +52,6 @@ const propTypes = {
         authToken: PropTypes.string,
     }),
 
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: PropTypes.string,
-
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -76,7 +73,6 @@ const defaultProps = {
     session: {
         authToken: null,
     },
-    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 function BaseValidateCodeForm(props) {
@@ -283,11 +279,11 @@ function BaseValidateCodeForm(props) {
 
         const accountID = lodashGet(props.credentials, 'accountID');
         if (accountID) {
-            Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale, recoveryCodeOr2faCode);
+            Session.signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);
         } else {
-            Session.signIn(validateCode, recoveryCodeOr2faCode, props.preferredLocale);
+            Session.signIn(validateCode, recoveryCodeOr2faCode);
         }
-    }, [props.account, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode, props.isUsingRecoveryCode, recoveryCode]);
+    }, [props.account, props.credentials, twoFactorAuthCode, validateCode, props.isUsingRecoveryCode, recoveryCode]);
 
     return (
         <>
@@ -404,7 +400,6 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
-        preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
         session: {key: ONYXKEYS.SESSION},
     }),
     withNetwork(),
