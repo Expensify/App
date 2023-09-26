@@ -13,6 +13,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
+import * as Localize from '../Localize';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -58,9 +59,10 @@ function clearOutTaskInfo() {
  * @param {String} assigneeEmail
  * @param {Number} assigneeAccountID
  * @param {Object} assigneeChatReport - The chat report between you and the assignee
+ * @param {String} policyID - the policyID of the parent report
  */
-function createTaskAndNavigate(parentReportID, title, description, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null) {
-    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description);
+function createTaskAndNavigate(parentReportID, title, description, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null, policyID = CONST.POLICY.OWNER_EMAIL_FAKE) {
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : 0;
     const taskReportID = optimisticTaskReport.reportID;
@@ -187,6 +189,8 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
         value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
     });
 
+    clearOutTaskInfo();
+
     API.write(
         'CreateTask',
         {
@@ -269,12 +273,6 @@ function completeTask(taskReport, taskTitle) {
             },
         },
     ];
-
-    // Update optimistic data for parent report action
-    const optimisticDataForParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!_.isEmpty(optimisticDataForParentReportAction)) {
-        optimisticData.push(optimisticDataForParentReportAction);
-    }
 
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
@@ -362,12 +360,6 @@ function reopenTask(taskReport, taskTitle) {
             },
         },
     ];
-
-    // Update optimistic data for parent report action
-    const optimisticDataForParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!_.isEmpty(optimisticDataForParentReportAction)) {
-        optimisticData.push(optimisticDataForParentReportAction);
-    }
 
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
@@ -650,7 +642,7 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
     let chatReport;
 
     if (!isCurrentUser) {
-        chatReport = ReportUtils.getChatByParticipantsByLoginList([assigneeEmail]) || ReportUtils.getChatByParticipants([assigneeAccountID]);
+        chatReport = ReportUtils.getChatByParticipants([assigneeAccountID]);
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
             chatReport.isOptimisticReport = true;
@@ -743,12 +735,15 @@ function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
     let subtitle = '';
     if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
-        subtitle = LocalePhoneNumber.formatPhoneNumber(report.participants[0]);
+        const participantAccountID = lodashGet(report, 'participantAccountIDs[0]');
+        const displayName = lodashGet(personalDetails, [participantAccountID, 'displayName']);
+        const login = lodashGet(personalDetails, [participantAccountID, 'login']);
+        subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
     } else {
         subtitle = ReportUtils.getChatRoomSubtitle(report);
     }
     return {
-        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
+        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
         displayName: ReportUtils.getReportName(report),
         subtitle,
     };
@@ -762,19 +757,33 @@ function getShareDestination(reportID, reports, personalDetails) {
  * @param {number} originalStatusNum
  */
 function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
-    const message = `canceled task: ${taskTitle}`;
+    const message = `deleted task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
+    const taskReport = ReportUtils.getReport(taskReportID);
+    const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
+    const parentReport = ReportUtils.getParentReport(taskReport);
+
+    const optimisticReportActions = {
+        [parentReportAction.reportActionID]: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            previousMessage: parentReportAction.message,
+            message: [
+                {
+                    translationKey: '',
+                    type: 'COMMENT',
+                    html: '',
+                    text: '',
+                    isEdited: true,
+                    isDeletedParentAction: true,
+                },
+            ],
+            errors: null,
+            linkMetaData: [],
+        },
+    };
 
     const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
-            value: {
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-            },
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
@@ -782,6 +791,16 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
+                updateReportInLHN: true,
+                isDeletedParentAction: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+            value: {
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport.reportID, {[parentReportAction.reportActionID]: null}).lastMessageText,
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport.reportID, {[parentReportAction.reportActionID]: null}).created,
             },
         },
         {
@@ -790,6 +809,11 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             value: {
                 [optimisticReportActionID]: optimisticCancelReportAction,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`,
+            value: optimisticReportActions,
         },
     ];
 
@@ -891,6 +915,35 @@ function clearEditTaskErrors(reportID) {
     });
 }
 
+/**
+ * @param {string} actionName
+ * @param {string} reportID
+ * @param {boolean} isCreateTaskAction
+ * @returns {string}
+ */
+function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
+    const report = ReportUtils.getReport(reportID);
+    if (isCreateTaskAction) {
+        return `Created a task: ${report.reportName}`;
+    }
+    let taskStatusText = '';
+    switch (actionName) {
+        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
+            taskStatusText = Localize.translateLocal('task.messages.completed');
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED:
+            taskStatusText = Localize.translateLocal('task.messages.canceled');
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
+            taskStatusText = Localize.translateLocal('task.messages.reopened');
+            break;
+        default:
+            taskStatusText = Localize.translateLocal('task.task');
+    }
+
+    return `${taskStatusText} ${report.reportName}`;
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -912,4 +965,5 @@ export {
     getTaskAssigneeAccountID,
     clearEditTaskErrors,
     canModifyTask,
+    getTaskReportActionMessage,
 };

@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useRef, useImperativeHandle} from 'react';
+import React, {useState, useCallback, useRef, useImperativeHandle, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -45,6 +45,7 @@ const defaultProps = {
 function SuggestionMention({
     value,
     setValue,
+    selection,
     setSelection,
     isComposerFullSize,
     personalDetails,
@@ -168,6 +169,7 @@ function SuggestionMention({
                             name: detail.login,
                             source: UserUtils.getAvatar(detail.avatar, detail.accountID),
                             type: 'avatar',
+                            fallbackIcon: detail.fallbackIcon,
                         },
                     ],
                 });
@@ -198,7 +200,7 @@ function SuggestionMention({
             }
 
             const leftString = value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
-            const words = leftString.split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
+            const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord = _.last(words);
 
             let atSignIndex;
@@ -231,12 +233,9 @@ function SuggestionMention({
         [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value],
     );
 
-    const onSelectionChange = useCallback(
-        (e) => {
-            calculateMentionSuggestion(e.nativeEvent.selection.end);
-        },
-        [calculateMentionSuggestion],
-    );
+    useEffect(() => {
+        calculateMentionSuggestion(selection.end);
+    }, [selection, calculateMentionSuggestion]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -262,12 +261,11 @@ function SuggestionMention({
         forwardedRef,
         () => ({
             resetSuggestions,
-            onSelectionChange,
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
     );
 
     if (!isMentionSuggestionsMenuVisible) {
