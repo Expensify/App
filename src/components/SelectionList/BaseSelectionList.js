@@ -205,7 +205,7 @@ function BaseSelectionList({
         onSelectRow(item);
 
         if (shouldShowTextInput && textInputRef.current) {
-            textInputRef.current.focus();   
+            textInputRef.current.focus();
         }
     };
 
