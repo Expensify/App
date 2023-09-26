@@ -244,6 +244,7 @@ export default {
     IOU_SEND_ENABLE_PAYMENTS: 'send/new/enable-payments',
 
     NEW_TASK: 'new/task',
+    NEW_TASK_WITH_REPORT_ID: 'new/task/:reportID?',
     NEW_TASK_ASSIGNEE: 'new/task/assignee',
     NEW_TASK_SHARE_DESTINATION: 'new/task/share-destination',
     NEW_TASK_DETAILS: 'new/task/details',
