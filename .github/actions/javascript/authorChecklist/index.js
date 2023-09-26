@@ -295,8 +295,8 @@ module.exports = {
 /***/ ((module) => {
 
 const CONST = {
-    GITHUB_OWNER: 'software-mansion-labs',
-    APP_REPO: 'expensify-app-fork',
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
     APPLAUSE_BOT: 'applausebot',
     OS_BOTIFY: 'OSBotify',
     LABELS: {
