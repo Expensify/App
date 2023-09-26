@@ -66,7 +66,7 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
             }
         });
 
-        return scrollingListener.remove;
+        return () => scrollingListener.remove();
     }, [shouldHandleScroll]);
 
     /**
