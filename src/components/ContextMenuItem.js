@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {forwardRef, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
 import MenuItem from './MenuItem';
 import Icon from './Icon';
@@ -34,6 +34,12 @@ const propTypes = {
 
     /** The action accept for anonymous user or not */
     isAnonymousAction: PropTypes.bool,
+
+    /** Whether the menu item is focused or not */
+    isFocused: PropTypes.bool,
+
+    /** Forwarded ref to ContextMenuItem */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 const defaultProps = {
@@ -42,9 +48,11 @@ const defaultProps = {
     successText: '',
     description: '',
     isAnonymousAction: false,
+    isFocused: false,
+    innerRef: null,
 };
 
-function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction}) {
+function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
@@ -60,6 +68,8 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             setThrottledButtonInactive();
         }
     };
+
+    useImperativeHandle(innerRef, () => ({triggerPressAndUpdateSuccess}));
 
     const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
     const itemText = !isThrottledButtonActive && successText ? successText : text;
@@ -89,6 +99,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             descriptionTextStyle={styles.breakAll}
             style={getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
+            focused={isFocused}
         />
     );
 }
@@ -97,4 +108,10 @@ ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
 ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default ContextMenuItem;
+export default forwardRef((props, ref) => (
+    <ContextMenuItem
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));

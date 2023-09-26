@@ -1,10 +1,12 @@
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
 import OnyxTabNavigator, {TopTab} from '../libs/Navigation/OnyxTabNavigator';
 import TabSelector from '../components/TabSelector/TabSelector';
 import Navigation from '../libs/Navigation/Navigation';
 import NewChatPage from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -29,6 +31,7 @@ function NewChatSelectorPage(props) {
             shouldEnableKeyboardAvoidingView={false}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={NewChatSelectorPage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('sidebarScreen.fabNewChat')}
@@ -65,4 +68,10 @@ NewChatSelectorPage.propTypes = propTypes;
 NewChatSelectorPage.defaultProps = defaultProps;
 NewChatSelectorPage.displayName = 'NewChatPage';
 
-export default compose(withLocalize, withWindowDimensions)(NewChatSelectorPage);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        betas: {key: ONYXKEYS.BETAS},
+    }),
+)(NewChatSelectorPage);
