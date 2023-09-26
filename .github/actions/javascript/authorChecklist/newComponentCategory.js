@@ -18,8 +18,7 @@ const items = [
     "I verified that each component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions",
 ];
 
-function detectReactComponent(code) {
-    console.log('code', code);
+function detectReactComponent(code, filename) {
     if (!code) {
         return;
     }
@@ -41,6 +40,7 @@ function detectReactComponent(code) {
                     (node) => node.type === 'ReturnStatement' && node.argument.type === 'JSXElement'
                 )
             ) {
+                console.log('detected react component in file', filename)
                 isReactComponent = true;
             }
         },
@@ -62,8 +62,11 @@ async function detectReactComponentInFile(filename) {
     };
     try {
         const { data } = await GithubUtils.octokit.repos.getContent(params);
+        if (!data) {
+            console.log('no data', data, params);
+        }
         const content = 'content' in data ? nodeBase64ToUtf8(data.content || '') : data;
-        return detectReactComponent(content);
+        return detectReactComponent(content, filename);
     } catch (error) {
         console.error(`An unknown error occurred with the GitHub API: ${error}, while fetching ${params}`);
     }
