@@ -92,6 +92,18 @@ Onyx.connect({
     },
 });
 
+let allTransactions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        allTransactions = _.pick(val, (transaction) => transaction);
+    },
+});
+
 /**
  * Get the option for a policy expense report.
  * @param {Object} report
@@ -354,9 +366,10 @@ function getAllReportErrors(report, reportActions) {
         {},
     );
 
-    const parentReportAction = ReportActionUtils.getParentReportAction(report);
+    const parentReportAction = !report.parentReportID || !report.parentReportActionID ? {} : lodashGet(allSortedReportActions, [report.parentReportID, report.parentReportActionID], {});
     if (parentReportAction.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
-        const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+        const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], '');
+        const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
         if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
