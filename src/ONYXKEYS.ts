@@ -136,6 +136,7 @@ const ONYXKEYS = {
 
     /** The user's bank accounts */
     BANK_ACCOUNT_LIST: 'bankAccountList',
+
     /** The user's payment and P2P cards */
     FUND_LIST: 'fundList',
 
