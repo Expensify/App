@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {ScrollView} from 'react-native';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
@@ -127,11 +128,13 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
-                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-                ) : (
-                    _.map(privateNotes, (item, index) => getMenuItem(item, index))
-                )}
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
+                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    ) : (
+                        _.map(privateNotes, (item, index) => getMenuItem(item, index))
+                    )}
+                </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
