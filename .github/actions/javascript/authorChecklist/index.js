@@ -145,11 +145,11 @@ async function generateDynamicChecksAndCheckForCompletion() {
             }
         }
     }
-    const allChecks = _.flatten(CHECKLIST_CATEGORIES.values);
+    const allChecks = _.flatten(_.values(CHECKLIST_CATEGORIES));
     for (const check of allChecks) {
         if (!checks.has(check)) {
             // Check if some dynamic check has been added with previous commit, but the check is not relevant anymore
-            const regex = new RegExp(`- \\[([ x])] ${check}\n`);
+            const regex = new RegExp(`- \\[([ x])] ${_.escapeRegExp(check)}\n`);
             const match = regex.exec(checklist);
             if (match) {
                 // Remove it from the PR body
@@ -162,7 +162,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     const newBody = contentBeforeChecklist + checklistStartsWith + checklist + checklistEndsWith + contentAfterChecklist;
 
     // Update the PR body
-    if (checks.length > 0) {
+    if (checks.size > 0) {
         await GithubUtils.octokit.pulls.update({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
