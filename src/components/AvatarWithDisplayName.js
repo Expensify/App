@@ -85,12 +85,13 @@ function AvatarWithDisplayName(props) {
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
     const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(props.report) || ReportUtils.isMoneyRequest(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policy, true);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policy);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(props.report);
     const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : props.size;
+    const avatarBorderColor = props.isAnonymous ? themeColors.highlightBG : themeColors.componentBG;
 
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
@@ -103,7 +104,7 @@ function AvatarWithDisplayName(props) {
                     >
                         {shouldShowSubscriptAvatar ? (
                             <SubscriptAvatar
-                                backgroundColor={themeColors.highlightBG}
+                                backgroundColor={avatarBorderColor}
                                 mainAvatar={icons[0]}
                                 secondaryAvatar={icons[1]}
                                 size={defaultSubscriptSize}
@@ -112,7 +113,7 @@ function AvatarWithDisplayName(props) {
                             <MultipleAvatars
                                 icons={icons}
                                 size={props.size}
-                                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG)]}
+                                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
                             />
                         )}
                     </PressableWithoutFeedback>

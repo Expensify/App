@@ -150,6 +150,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
 
 MoneyRequestDescriptionPage.propTypes = propTypes;
 MoneyRequestDescriptionPage.defaultProps = defaultProps;
+MoneyRequestDescriptionPage.displayName = 'MoneyRequestDescriptionPage';
 
 export default withOnyx({
     iou: {

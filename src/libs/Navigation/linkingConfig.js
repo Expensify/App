@@ -69,6 +69,10 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
+                            Settings_Wallet_DomainCards: {
+                                path: ROUTES.SETTINGS_WALLET_DOMAINCARDS.route,
+                                exact: true,
+                            },
                             Settings_Wallet_EnablePayments: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
@@ -335,6 +339,7 @@ export default {
                             Money_Request_Tag: ROUTES.MONEY_REQUEST_TAG.route,
                             Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT.route,
                             Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT.route,
+                            Money_Request_Receipt: ROUTES.MONEY_REQUEST_RECEIPT.route,
                             Money_Request_Address: ROUTES.MONEY_REQUEST_ADDRESS.route,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,

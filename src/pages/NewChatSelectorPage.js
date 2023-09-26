@@ -3,7 +3,6 @@ import {withOnyx} from 'react-native-onyx';
 import OnyxTabNavigator, {TopTab} from '../libs/Navigation/OnyxTabNavigator';
 import TabSelector from '../components/TabSelector/TabSelector';
 import Navigation from '../libs/Navigation/Navigation';
-import Permissions from '../libs/Permissions';
 import NewChatPage from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 import CONST from '../CONST';

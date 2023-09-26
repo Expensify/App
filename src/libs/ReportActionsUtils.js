@@ -9,6 +9,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as Environment from './Environment/Environment';
 
 const allReports = {};
 Onyx.connect({
@@ -41,6 +42,9 @@ Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
 });
+
+let environmentURL;
+Environment.getEnvironmentURL().then((url) => (environmentURL = url));
 
 /**
  * @param {Object} reportAction
@@ -250,6 +254,23 @@ function extractLinksFromMessageHtml(reportAction) {
 }
 
 /**
+ * Returns the report action immediately before the specified index.
+ * @param {Array} reportActions - all actions
+ * @param {Number} actionIndex - index of the action
+ * @returns {Object|null}
+ */
+function findPreviousAction(reportActions, actionIndex) {
+    for (let i = actionIndex + 1; i < reportActions.length; i++) {
+        // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
+        // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
+        if (isNetworkOffline || reportActions[i].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return reportActions[i];
+        }
+    }
+    return null;
+}
+
+/**
  * Returns true when the report action immediately before the specified index is a comment made by the same actor who who is leaving a comment in the action at the specified index.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
@@ -258,9 +279,7 @@ function extractLinksFromMessageHtml(reportAction) {
  * @returns {Boolean}
  */
 function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
-    // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
-    // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-    const previousAction = _.find(_.drop(reportActions, actionIndex + 1), (action) => isNetworkOffline || action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const previousAction = findPreviousAction(reportActions, actionIndex);
     const currentAction = reportActions[actionIndex];
 
     // It's OK for there to be no previous action, and in that case, false will be returned
@@ -332,7 +351,11 @@ function shouldReportActionBeVisible(reportAction, key) {
     }
 
     // Filter out any unsupported reportAction types
-    if (!Object.values(CONST.REPORT.ACTIONS.TYPE).includes(reportAction.actionName) && !Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG).includes(reportAction.actionName)) {
+    if (
+        !Object.values(CONST.REPORT.ACTIONS.TYPE).includes(reportAction.actionName) &&
+        !Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG).includes(reportAction.actionName) &&
+        !Object.values(CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG).includes(reportAction.actionName)
+    ) {
         return false;
     }
 
@@ -371,6 +394,22 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
     return (
         shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction)) && !isDeletedAction(reportAction)
     );
+}
+
+/**
+ * For invite to room and remove from room policy change logs, report URLs are generated in the server,
+ * which includes a baseURL placeholder that's replaced in the client.
+ * 
+ * @param {Object} reportAction
+ * @returns {Object}
+ */
+function replaceBaseURL(reportAction) {
+    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVEFROMROOM) {
+        return reportAction;
+    }
+    const updatedReportAction = _.clone(reportAction);
+    updatedReportAction.message[0].html = reportAction.message[0].html.replace('%baseURL', environmentURL);
+    return updatedReportAction;
 }
 
 /**
@@ -449,7 +488,8 @@ function filterOutDeprecatedReportActions(reportActions) {
  */
 function getSortedReportActionsForDisplay(reportActions) {
     const filteredReportActions = _.filter(reportActions, (reportAction, key) => shouldReportActionBeVisible(reportAction, key));
-    return getSortedReportActions(filteredReportActions, true);
+    const baseURLAdjustedReportActions = _.map(filteredReportActions, (reportAction) => replaceBaseURL(reportAction));
+    return getSortedReportActions(baseURLAdjustedReportActions, true);
 }
 
 /**

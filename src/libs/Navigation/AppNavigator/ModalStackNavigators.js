@@ -47,6 +47,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator({
     IOU_Send_Add_Debit_Card: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default,
     IOU_Send_Enable_Payments: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,
     Money_Request_Waypoint: () => require('../../../pages/iou/WaypointEditorPage').default,
+    Money_Request_Receipt: () => require('../../../pages/EditRequestReceiptPage').default,
     Money_Request_Address: () => require('../../../pages/iou/DistanceRequestPage').default,
 });
 
@@ -147,6 +148,7 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     Settings_App_Download_Links: () => require('../../../pages/settings/AppDownloadLinks').default,
     Settings_Lounge_Access: () => require('../../../pages/settings/Profile/LoungeAccessPage').default,
     Settings_Wallet: () => require('../../../pages/settings/Wallet/WalletPage').default,
+    Settings_Wallet_DomainCards: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default,
     Settings_Wallet_Transfer_Balance: () => require('../../../pages/settings/Wallet/TransferBalancePage').default,
     Settings_Wallet_Choose_Transfer_Account: () => require('../../../pages/settings/Wallet/ChooseTransferAccountPage').default,
     Settings_Wallet_EnablePayments: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,

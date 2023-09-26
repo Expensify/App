@@ -39,11 +39,15 @@ function isInternalTestBuild() {
 /**
  * Get the URL based on the environment we are in
  *
+ * @param {String} [environment]
  * @returns {Promise}
  */
-function getEnvironmentURL() {
+function getEnvironmentURL(environment) {
+    if (environment) {
+        return ENVIRONMENT_URLS[environment];
+    }
     return new Promise((resolve) => {
-        getEnvironment().then((environment) => resolve(ENVIRONMENT_URLS[environment]));
+        getEnvironment().then((env) => resolve(ENVIRONMENT_URLS[env]));
     });
 }
 
