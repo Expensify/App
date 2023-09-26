@@ -471,8 +471,10 @@ function triggerNotifications(onyxUpdates) {
 
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = _.values(update.value);
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(reportActions);
-        Report.showReportActionNotification(reportID, _.last(sortedReportActions));
+
+        // eslint-disable-next-line rulesdir/no-negated-variables
+        const notifiableActions = _.filter(reportActions, (action) => ReportActionsUtils.isNotifiableReportAction(action));
+        _.each(notifiableActions, (action) => Report.showReportActionNotification(reportID, action));
     });
 }
 

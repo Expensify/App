@@ -3733,6 +3733,28 @@ const styles = (theme) => ({
         position: 'absolute',
         top: -20,
     },
+
+    walletCard: {
+        borderRadius: variables.componentBorderRadiusLarge,
+        position: 'relative',
+        alignSelf: 'center',
+        overflow: 'hidden',
+    },
+
+    walletCardNumber: {
+        color: theme.text,
+        fontSize: variables.fontSizeNormal,
+    },
+
+    walletCardHolder: {
+        position: 'absolute',
+        left: 16,
+        bottom: 16,
+        width: variables.cardNameWidth,
+        color: theme.text,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightLarge,
+    },
 });
 
 // For now we need to export the styles function that takes the theme as an argument
