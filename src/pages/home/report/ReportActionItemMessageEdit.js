@@ -370,6 +370,7 @@ function ReportActionItemMessageEdit(props) {
                         <Composer
                             multiline
                             ref={(el) => {
+                                ReportActionComposeFocusManager.editComposerRef.current = el;
                                 textInputRef.current = el;
                                 // eslint-disable-next-line no-param-reassign
                                 props.forwardedRef.current = el;

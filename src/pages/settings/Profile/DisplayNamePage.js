@@ -1,11 +1,10 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Form from '../../../components/Form';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
@@ -17,6 +16,8 @@ import compose from '../../../libs/compose';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
+import FormProvider from '../../../components/Form/FormProvider';
+import InputWrapper from '../../../components/Form/InputWrapper';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -61,7 +62,6 @@ function DisplayNamePage(props) {
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
             errors.lastName = 'personalDetails.error.hasInvalidCharacter';
         }
-
         return errors;
     };
 
@@ -69,22 +69,26 @@ function DisplayNamePage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={DisplayNamePage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('displayNamePage.headerTitle')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                 validate={validate}
                 onSubmit={updateDisplayName}
                 submitButtonText={props.translate('common.save')}
                 enabledWhenOffline
+                shouldValidateOnBlur
+                shouldValidateOnChange
             >
                 <Text style={[styles.mb6]}>{props.translate('displayNamePage.isShownOnProfile')}</Text>
                 <View style={styles.mb4}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="firstName"
                         name="fname"
                         label={props.translate('common.firstName')}
@@ -96,7 +100,8 @@ function DisplayNamePage(props) {
                     />
                 </View>
                 <View>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="lastName"
                         name="lname"
                         label={props.translate('common.lastName')}
@@ -107,7 +112,7 @@ function DisplayNamePage(props) {
                         spellCheck={false}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

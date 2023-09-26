@@ -49,6 +49,7 @@ function RoomHeaderAvatars(props) {
                             size={CONST.AVATAR_SIZE.LARGE}
                             name={props.icons[0].name}
                             type={props.icons[0].type}
+                            fallbackIcon={props.icons[0].fallbackIcon}
                         />
                     </PressableWithoutFocus>
                 )}
@@ -93,6 +94,7 @@ function RoomHeaderAvatars(props) {
                                         containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                         name={icon.name}
                                         type={icon.type}
+                                        fallbackIcon={icon.fallbackIcon}
                                     />
                                 </PressableWithoutFocus>
                             )}

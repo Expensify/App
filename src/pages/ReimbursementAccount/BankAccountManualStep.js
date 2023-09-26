@@ -73,7 +73,10 @@ function BankAccountManualStep(props) {
     const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, 'achData.bankAccountID'));
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={BankAccountManualStep.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('workspace.common.connectBankAccount')}
                 stepCounter={{step: 1, total: 5}}

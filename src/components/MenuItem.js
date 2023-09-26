@@ -24,11 +24,7 @@ import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import RenderHTML from './RenderHTML';
-import getPlatform from '../libs/getPlatform';
-
-const platform = getPlatform();
-const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+import MenuItemRenderHTMLTitle from './MenuItemRenderHTMLTitle';
 
 const propTypes = menuItemPropTypes;
 
@@ -251,16 +247,10 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(props.title) &&
-                                                (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) &&
-                                                (isNative ? (
-                                                    <RenderHTML html={getProcessedTitle} />
-                                                ) : (
-                                                    <View style={styles.chatItemMessage}>
-                                                        <RenderHTML html={getProcessedTitle} />
-                                                    </View>
-                                                ))}
-                                            {!props.shouldRenderAsHTML && !html.length && Boolean(props.title) && (
+                                            {Boolean(props.title) && (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) && (
+                                                <MenuItemRenderHTMLTitle title={getProcessedTitle} />
+                                            )}
+                                            {!props.shouldRenderAsHTML && !props.shouldParseTitle && Boolean(props.title) && (
                                                 <Text
                                                     style={titleTextStyle}
                                                     numberOfLines={props.numberOfLinesTitle || undefined}

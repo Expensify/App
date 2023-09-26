@@ -169,6 +169,7 @@ function SuggestionMention({
                             name: detail.login,
                             source: UserUtils.getAvatar(detail.avatar, detail.accountID),
                             type: 'avatar',
+                            fallbackIcon: detail.fallbackIcon,
                         },
                     ],
                 });
@@ -199,7 +200,7 @@ function SuggestionMention({
             }
 
             const leftString = value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
-            const words = leftString.split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
+            const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord = _.last(words);
 
             let atSignIndex;

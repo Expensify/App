@@ -38,7 +38,7 @@ function ParentNavigationSubtitle(props) {
     return (
         <PressableWithoutFeedback
             onPress={() => {
-                Navigation.navigate(ROUTES.getReportRoute(props.parentReportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.parentReportID));
             }}
             accessibilityLabel={translate('threads.parentNavigationSummary', {rootReportName, workspaceName})}
             role={CONST.ACCESSIBILITY_ROLE.LINK}

@@ -145,7 +145,7 @@ const defaultProps = {
     style: [],
     innerStyles: [],
     textStyles: [],
-    shouldUseDefaultHover: false,
+    shouldUseDefaultHover: true,
     success: false,
     danger: false,
     children: null,
@@ -306,6 +306,7 @@ class Button extends Component {
                 ]}
                 id={this.props.id}
                 accessibilityLabel={this.props.accessibilityLabel}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 hoverDimmingValue={1}
             >
                 {this.renderContent()}

@@ -25,6 +25,7 @@ import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
+import TabNavigationAwareCamera from './TabNavigationAwareCamera';
 
 const propTypes = {
     /** React Navigation route */
@@ -37,6 +38,9 @@ const propTypes = {
             /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
+
+        /** The current route path */
+        path: PropTypes.string,
     }).isRequired,
 
     /** The report on which the request is initiated on */
@@ -47,12 +51,16 @@ const propTypes = {
 
     /** The id of the transaction we're editing */
     transactionID: PropTypes.string,
+
+    /** Whether or not the receipt selector is in a tab navigator for tab animations */
+    isInTabNavigator: PropTypes.bool,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
     transactionID: '',
+    isInTabNavigator: true,
 };
 
 /**
@@ -80,7 +88,7 @@ function getImagePickerOptions(type) {
     };
 }
 
-function ReceiptSelector({route, report, iou, transactionID}) {
+function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -95,6 +103,8 @@ function ReceiptSelector({route, report, iou, transactionID}) {
     const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
+
+    const CameraComponent = isInTabNavigator ? TabNavigationAwareCamera : NavigationAwareCamera;
 
     // We want to listen to if the app has come back from background and refresh the permissions status to show camera when permissions were granted
     useEffect(() => {
@@ -213,13 +223,13 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                     return;
                 }
 
-                IOU.navigateToNextPage(iou, iouType, reportID, report);
+                IOU.navigateToNextPage(iou, iouType, reportID, report, route.path);
             })
             .catch((error) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, iou, report, reportID, translate, transactionID]);
+    }, [flash, iouType, iou, report, reportID, translate, transactionID, route.path]);
 
     CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
@@ -260,7 +270,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                 </View>
             )}
             {permissions === RESULTS.GRANTED && device != null && (
-                <NavigationAwareCamera
+                <CameraComponent
                     ref={camera}
                     device={device}
                     style={[styles.cameraView]}
@@ -288,7 +298,7 @@ function ReceiptSelector({route, report, iou, transactionID}) {
                                     return;
                                 }
 
-                                IOU.navigateToNextPage(iou, iouType, reportID, report);
+                                IOU.navigateToNextPage(iou, iouType, reportID, report, route.path);
                             })
                             .catch(() => {
                                 Log.info('User did not select an image from gallery');

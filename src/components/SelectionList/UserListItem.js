@@ -25,6 +25,7 @@ function UserListItem({item, isFocused = false, showTooltip, onSelectRow, onDism
             source={lodashGet(item, 'avatar.source', '')}
             name={lodashGet(item, 'avatar.name', item.text)}
             type={lodashGet(item, 'avatar.type', CONST.ICON_TYPE_AVATAR)}
+            fallbackIcon={lodashGet(item, 'avatar.fallbackIcon')}
         />
     );
 
@@ -62,7 +63,6 @@ function UserListItem({item, isFocused = false, showTooltip, onSelectRow, onDism
                 accessibilityState={{checked: item.isSelected}}
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
-                focusStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <View style={styles.checkboxPressable}>
