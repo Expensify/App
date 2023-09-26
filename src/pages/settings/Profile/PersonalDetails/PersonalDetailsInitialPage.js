@@ -60,6 +60,7 @@ function PersonalDetailsInitialPage(props) {
     const privateDetails = props.privatePersonalDetails || {};
     const address = privateDetails.address || {};
     const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
+    const isLoadingPersonalDetails = lodashGet(props.privatePersonalDetails, 'isLoading', true);
 
     /**
      * Applies common formatting to each piece of an address
@@ -83,42 +84,42 @@ function PersonalDetailsInitialPage(props) {
         return formattedAddress.trim().replace(/,$/, '');
     };
 
-    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
-        return <FullscreenLoadingIndicator />;
-    }
-
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={PersonalDetailsInitialPage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.personalDetails')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
-            <ScrollView>
-                <View style={styles.flex1}>
-                    <View style={[styles.ph5, styles.mb5]}>
-                        <Text>{props.translate('privatePersonalDetails.privateDataMessage')}</Text>
+            {isLoadingPersonalDetails ? (
+                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            ) : (
+                <ScrollView>
+                    <View style={styles.flex1}>
+                        <View style={[styles.ph5, styles.mb5]}>
+                            <Text>{props.translate('privatePersonalDetails.privateDataMessage')}</Text>
+                        </View>
+                        <MenuItemWithTopDescription
+                            title={legalName}
+                            description={props.translate('privatePersonalDetails.legalName')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME)}
+                        />
+                        <MenuItemWithTopDescription
+                            title={privateDetails.dob || ''}
+                            description={props.translate('common.dob')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
+                            titleStyle={[styles.flex1]}
+                        />
+                        <MenuItemWithTopDescription
+                            title={getFormattedAddress()}
+                            description={props.translate('privatePersonalDetails.homeAddress')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
+                        />
                     </View>
-                    <MenuItemWithTopDescription
-                        title={legalName}
-                        description={props.translate('privatePersonalDetails.legalName')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME)}
-                    />
-                    <MenuItemWithTopDescription
-                        title={privateDetails.dob || ''}
-                        description={props.translate('common.dob')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
-                        titleStyle={[styles.flex1]}
-                    />
-                    <MenuItemWithTopDescription
-                        title={getFormattedAddress()}
-                        description={props.translate('privatePersonalDetails.homeAddress')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
-                    />
-                </View>
-            </ScrollView>
+                </ScrollView>
+            )}
         </ScreenWrapper>
     );
 }

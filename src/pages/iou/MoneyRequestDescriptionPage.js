@@ -1,6 +1,7 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -17,7 +18,7 @@ import * as IOU from '../../libs/actions/IOU';
 import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
-import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
 import * as Browser from '../../libs/Browser';
 
 const propTypes = {
@@ -54,9 +55,26 @@ const defaultProps = {
 function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
     const {translate} = useLocalize();
     const inputRef = useRef(null);
+    const focusTimeoutRef = useRef(null);
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
+
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                }
+                return () => {
+                    if (!focusTimeoutRef.current) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
+            }, CONST.ANIMATED_TRANSITION);
+        }, []),
+    );
 
     useEffect(() => {
         const moneyRequestId = `${iouType}${reportID}`;
@@ -66,12 +84,12 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
         }
 
         if (!isDistanceRequest && (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
         }
     }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID, isDistanceRequest]);
 
     function navigateBack() {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     }
 
     /**
@@ -89,47 +107,56 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
+            testID={MoneyRequestDescriptionPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('common.description')}
-                onBackButtonPress={() => navigateBack()}
-            />
-            <Form
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
-                onSubmit={(value) => updateComment(value)}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
-            >
-                <View style={styles.mb4}>
-                    <TextInput
-                        inputID="moneyRequestComment"
-                        name="moneyRequestComment"
-                        defaultValue={iou.comment}
-                        label={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={(el) => (inputRef.current = el)}
-                        autoGrowHeight
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
-                        submitOnEnter={!Browser.isMobile()}
-                    />
-                </View>
-            </Form>
+            <>
+                <HeaderWithBackButton
+                    title={translate('common.description')}
+                    onBackButtonPress={() => navigateBack()}
+                />
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
+                    onSubmit={(value) => updateComment(value)}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <View style={styles.mb4}>
+                        <TextInput
+                            inputID="moneyRequestComment"
+                            name="moneyRequestComment"
+                            defaultValue={iou.comment}
+                            label={translate('moneyRequestConfirmationList.whatsItFor')}
+                            accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            ref={(el) => {
+                                if (!el) {
+                                    return;
+                                }
+                                inputRef.current = el;
+                                updateMultilineInputRange(inputRef.current);
+                            }}
+                            autoGrowHeight
+                            containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            textAlignVertical="top"
+                            submitOnEnter={!Browser.isMobile()}
+                        />
+                    </View>
+                </Form>
+            </>
         </ScreenWrapper>
     );
 }
 
 MoneyRequestDescriptionPage.propTypes = propTypes;
 MoneyRequestDescriptionPage.defaultProps = defaultProps;
+MoneyRequestDescriptionPage.displayName = 'MoneyRequestDescriptionPage';
 
 export default withOnyx({
     iou: {
         key: ONYXKEYS.IOU,
     },
     selectedTab: {
-        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(MoneyRequestDescriptionPage);

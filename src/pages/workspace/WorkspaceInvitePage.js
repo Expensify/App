@@ -177,7 +177,7 @@ function WorkspaceInvitePage(props) {
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, invitedEmailsToAccountIDs);
-        Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(props.route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(props.route.params.policyID));
     };
 
     const [policyName, shouldShowAlertPrompt] = useMemo(
@@ -186,7 +186,7 @@ function WorkspaceInvitePage(props) {
     );
 
     const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim();
+        const searchValue = searchTerm.trim().toLowerCase();
         if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
@@ -197,13 +197,16 @@ function WorkspaceInvitePage(props) {
     }, [excludedUsers, translate, searchTerm, policyName, userToInvite, personalDetails]);
 
     return (
-        <ScreenWrapper shouldEnableMaxHeight>
+        <ScreenWrapper
+            shouldEnableMaxHeight
+            testID={WorkspaceInvitePage.displayName}
+        >
             {({didScreenTransitionEnd}) => {
                 const sections = didScreenTransitionEnd ? getSections() : [];
 
                 return (
                     <FullPageNotFoundView
-                        shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}
+                        shouldShow={((_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                         subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     >
@@ -214,7 +217,7 @@ function WorkspaceInvitePage(props) {
                             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                             onBackButtonPress={() => {
                                 Policy.clearErrors(props.route.params.policyID);
-                                Navigation.goBack(ROUTES.getWorkspaceMembersRoute(props.route.params.policyID));
+                                Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(props.route.params.policyID));
                             }}
                         />
                         <SelectionList
@@ -227,7 +230,6 @@ function WorkspaceInvitePage(props) {
                             onSelectRow={toggleOption}
                             onConfirm={inviteUser}
                             showScrollIndicator
-                            shouldDelayFocus
                             showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
                         />
                         <View style={[styles.flexShrink0]}>

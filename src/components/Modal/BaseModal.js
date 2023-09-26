@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
@@ -13,6 +13,8 @@ import useWindowDimensions from '../../hooks/useWindowDimensions';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
 import ComposerFocusManager from '../../libs/ComposerFocusManager';
+import useNativeDriver from '../../libs/useNativeDriver';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     ...modalPropTypes,
@@ -40,7 +42,7 @@ function BaseModal({
     fullscreen,
     animationIn,
     animationOut,
-    useNativeDriver,
+    useNativeDriver: useNativeDriverProp,
     hideModalContentWhileAnimating,
     animationInTiming,
     animationOutTiming,
@@ -53,6 +55,9 @@ function BaseModal({
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
 
     const safeAreaInsets = useSafeAreaInsets();
+
+    const isVisibleRef = useRef(isVisible);
+    const wasVisible = usePrevious(isVisible);
 
     /**
      * Hides modal
@@ -75,20 +80,25 @@ function BaseModal({
     );
 
     useEffect(() => {
-        Modal.willAlertModalBecomeVisible(isVisible);
-
-        // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-        Modal.setCloseModal(isVisible ? onClose : null);
-    }, [isVisible, onClose]);
+        isVisibleRef.current = isVisible;
+        if (isVisible) {
+            Modal.willAlertModalBecomeVisible(true);
+            // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
+            Modal.setCloseModal(onClose);
+        } else if (wasVisible && !isVisible) {
+            Modal.willAlertModalBecomeVisible(false);
+            Modal.setCloseModal(null);
+        }
+    }, [isVisible, wasVisible, onClose]);
 
     useEffect(
         () => () => {
             // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
-            if (isVisible) {
-                hideModal(true);
-                Modal.willAlertModalBecomeVisible(false);
+            if (!isVisibleRef.current) {
+                return;
             }
-
+            hideModal(true);
+            Modal.willAlertModalBecomeVisible(false);
             // To prevent closing any modal already unmounted when this modal still remains as visible state
             Modal.setCloseModal(null);
         },
@@ -187,7 +197,7 @@ function BaseModal({
             deviceWidth={windowWidth}
             animationIn={animationIn || modalStyleAnimationIn}
             animationOut={animationOut || modalStyleAnimationOut}
-            useNativeDriver={useNativeDriver}
+            useNativeDriver={useNativeDriverProp && useNativeDriver}
             hideModalContentWhileAnimating={hideModalContentWhileAnimating}
             animationInTiming={animationInTiming}
             animationOutTiming={animationOutTiming}

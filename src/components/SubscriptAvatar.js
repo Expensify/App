@@ -60,6 +60,7 @@ function SubscriptAvatar(props) {
                         size={props.size || CONST.AVATAR_SIZE.DEFAULT}
                         name={props.mainAvatar.name}
                         type={props.mainAvatar.type}
+                        fallbackIcon={props.mainAvatar.fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -83,6 +84,7 @@ function SubscriptAvatar(props) {
                         fill={themeColors.iconSuccessFill}
                         name={props.secondaryAvatar.name}
                         type={props.secondaryAvatar.type}
+                        fallbackIcon={props.secondaryAvatar.fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
