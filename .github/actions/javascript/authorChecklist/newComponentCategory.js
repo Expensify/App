@@ -19,6 +19,7 @@ const items = [
 ];
 
 function detectReactComponent(code) {
+    console.log('code', code);
     if (!code) {
         return;
     }
@@ -48,19 +49,23 @@ function detectReactComponent(code) {
     return isReactComponent;
 };
 
+function nodeBase64ToUtf8(data) {
+    return Buffer.from(data, "base64").toString("utf-8");
+  }
+
 async function detectReactComponentInFile(filename) {
-    const content = {
+    const params = {
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
         path: filename,
         ref: github.context.payload.pull_request.head.ref,
     };
     try {
-        const { data } = await GithubUtils.octokit.repos.getContent(content);
-        console.log('data', data);
-        return detectReactComponent(data);
+        const { data } = await GithubUtils.octokit.repos.getContent(params);
+        const content = 'content' in data ? nodeBase64ToUtf8(data.content || '') : data;
+        return detectReactComponent(content);
     } catch (error) {
-        console.error(`An unknown error occurred with the GitHub API: ${error}, while fetching ${content}`);
+        console.error(`An unknown error occurred with the GitHub API: ${error}, while fetching ${params}`);
     }
 }
 ;
