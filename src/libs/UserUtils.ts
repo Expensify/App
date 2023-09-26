@@ -5,6 +5,7 @@ import hashCode from './hashCode';
 import {ConciergeAvatar, FallbackAvatar} from '../components/Icon/Expensicons';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 import Login from '../types/onyx/Login';
+import {ErrorFields} from '../types/onyx/OnyxCommon';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
@@ -32,7 +33,7 @@ type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | ''
  * }}
  */
 function hasLoginListError(loginList: Login): boolean {
-    const errorFields = loginList?.errorFields ?? {};
+    const errorFields: ErrorFields = loginList?.errorFields ?? {};
     return Object.values(errorFields).some((field) => Object.keys(field).length > 0);
 }
 
