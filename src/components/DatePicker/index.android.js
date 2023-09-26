@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, forwardRef} from 'react';
 import {Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
@@ -8,87 +8,78 @@ import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import styles from '../../styles/styles';
 
-class DatePicker extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            isPickerVisible: false,
-        };
-
-        this.showPicker = this.showPicker.bind(this);
-        this.setDate = this.setDate.bind(this);
-    }
+function DatePicker({value, defaultValue, label, placeholder, errorText, containerStyles, disabled, maxDate, minDate, innerRef, onBlur, onInputChange}) {
+    const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     /**
      * @param {Event} event
      * @param {Date} selectedDate
      */
-    setDate(event, selectedDate) {
-        this.setState({isPickerVisible: false});
+    const setDate = (event, selectedDate) => {
+        setIsPickerVisible(false);
 
         if (event.type === 'set') {
             const asMoment = moment(selectedDate, true);
-            this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+            onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
-    }
+    };
 
-    showPicker() {
+    const showPicker = () => {
         Keyboard.dismiss();
-        this.setState({isPickerVisible: true});
-    }
+        setIsPickerVisible(true);
+    };
 
-    render() {
-        const dateAsText = this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+    const setRef = (element) => {
+        if (!_.isFunction(innerRef)) {
+            return;
+        }
+        if (element && element.focus && typeof element.focus === 'function') {
+            let inputRef = {...element};
+            inputRef = {...inputRef, focus: showPicker};
+            innerRef(inputRef);
+            return;
+        }
 
-        return (
-            <>
-                <TextInput
-                    label={this.props.label}
-                    accessibilityLabel={this.props.label}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    value={dateAsText}
-                    forceActiveLabel
-                    placeholder={this.props.placeholder}
-                    errorText={this.props.errorText}
-                    containerStyles={this.props.containerStyles}
-                    textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
-                    onPress={this.showPicker}
-                    editable={false}
-                    disabled={this.props.disabled}
-                    onBlur={this.props.onBlur}
-                    ref={(el) => {
-                        if (!_.isFunction(this.props.innerRef)) {
-                            return;
-                        }
-                        if (el && el.focus && typeof el.focus === 'function') {
-                            let inputRef = {...el};
-                            inputRef = {...inputRef, focus: this.showPicker};
-                            this.props.innerRef(inputRef);
-                            return;
-                        }
+        innerRef(element);
+    };
 
-                        this.props.innerRef(el);
-                    }}
+    const dateAsText = value || defaultValue ? moment(value || defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+
+    return (
+        <>
+            <TextInput
+                label={label}
+                accessibilityLabel={label}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                value={dateAsText}
+                forceActiveLabel
+                placeholder={placeholder}
+                errorText={errorText}
+                containerStyles={containerStyles}
+                textInputContainerStyles={isPickerVisible ? [styles.borderColorFocus] : []}
+                onPress={showPicker}
+                editable={false}
+                disabled={disabled}
+                onBlur={onBlur}
+                ref={setRef}
+            />
+            {isPickerVisible && (
+                <RNDatePicker
+                    value={value || defaultValue ? moment(value || defaultValue).toDate() : new Date()}
+                    mode="date"
+                    onChange={setDate}
+                    maximumDate={maxDate}
+                    minimumDate={minDate}
                 />
-                {this.state.isPickerVisible && (
-                    <RNDatePicker
-                        value={this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).toDate() : new Date()}
-                        mode="date"
-                        onChange={this.setDate}
-                        maximumDate={this.props.maxDate}
-                        minimumDate={this.props.minDate}
-                    />
-                )}
-            </>
-        );
-    }
+            )}
+        </>
+    );
 }
 
 DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+export default forwardRef((props, ref) => (
     <DatePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
