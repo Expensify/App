@@ -71,4 +71,11 @@ function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>
     return iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && selectedTab === CONST.TAB.DISTANCE;
 }
 
-export {stripCommaFromAmount, stripSpacesFromAmount, addLeadingZero, validateAmount, replaceAllDigits, isDistanceRequest};
+/**
+ * Check if scan request or not
+ */
+function isScanRequest(selectedTab: ValueOf<typeof CONST.TAB>): boolean {
+    return selectedTab === CONST.TAB.SCAN;
+}
+
+export {stripCommaFromAmount, stripSpacesFromAmount, addLeadingZero, validateAmount, replaceAllDigits, isDistanceRequest, isScanRequest};

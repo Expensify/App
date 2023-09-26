@@ -110,26 +110,25 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
                 title: Number(lodashGet(session, 'accountID', null)) === Number(accountID) ? translate('privateNotes.myNote') : lodashGet(personalDetailsList, [accountID, 'login'], ''),
                 icon: UserUtils.getAvatar(lodashGet(personalDetailsList, [accountID, 'avatar'], UserUtils.getDefaultAvatar(accountID)), accountID),
                 iconType: CONST.ICON_TYPE_AVATAR,
-                action: () => Navigation.navigate(ROUTES.getPrivateNotesViewRoute(report.reportID, accountID)),
+                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.reportID, accountID)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
             }))
             .value();
     }, [report, personalDetailsList, session, translate]);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <FullPageNotFoundView
-                shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {})))}
-                onBackButtonPress={() => Navigation.goBack()}
-            >
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={PrivateNotesListPage.displayName}
+        >
+            <FullPageNotFoundView shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {})))}>
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
-                    <FullScreenLoadingIndicator />
+                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
                     _.map(privateNotes, (item, index) => getMenuItem(item, index))
                 )}
@@ -140,6 +139,7 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
 
 PrivateNotesListPage.propTypes = propTypes;
 PrivateNotesListPage.defaultProps = defaultProps;
+PrivateNotesListPage.displayName = 'PrivateNotesListPage';
 
 export default compose(
     withLocalize,
