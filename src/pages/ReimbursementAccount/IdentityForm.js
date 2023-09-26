@@ -134,8 +134,8 @@ function IdentityForm(props) {
     const dobErrorText = (props.errors.dob ? props.translate('bankAccount.error.dob') : '') || (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
     const identityFormInputKeys = ['firstName', 'lastName', 'dob', 'ssnLast4'];
 
-    const minDate = subYears(currentDate, CONST.DATE_BIRTH.MAX_AGE);
-    const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
+    const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
+    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
     return (
         <View style={props.style}>

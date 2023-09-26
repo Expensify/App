@@ -81,8 +81,8 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                         inputID="dob"
                         label={translate('common.date')}
                         defaultValue={privatePersonalDetails.dob || ''}
-                        minDate={subYears(currentDate, CONST.DATE_BIRTH.MAX_AGE)}
-                        maxDate={subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE)}
+                        minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
+                        maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
                     />
                 </Form>
             )}
