@@ -2,9 +2,10 @@ import CONST from '../CONST';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import Response from '../types/onyx/Response';
-import {ErrorFields} from '../types/onyx/OnyxCommon';
+import {ErrorFields, Errors} from '../types/onyx/OnyxCommon';
+import {TranslationFlatObject} from '../languages/types';
 
-function getAuthenticateErrorMessage(response: Response): string {
+function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatObject {
     switch (response.jsonCode) {
         case CONST.JSON_CODE.UNABLE_TO_RETRY:
             return 'session.offlineMessageRetry';
@@ -42,7 +43,7 @@ function getMicroSecondOnyxError(error: string): Record<number, string> {
 }
 
 type OnyxDataWithErrors = {
-    errors: Record<string, string>;
+    errors?: Errors;
 };
 
 function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): string {
@@ -58,11 +59,11 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: T
 }
 
 type OnyxDataWithErrorFields = {
-    errorFields: ErrorFields;
+    errorFields?: ErrorFields;
 };
 
 function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, string> {
-    const errorsForField = onyxData.errorFields[fieldName] ?? {};
+    const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
         return {};
@@ -74,7 +75,7 @@ function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData
 }
 
 function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, string> {
-    const errorsForField = onyxData.errorFields[fieldName] ?? {};
+    const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
         return {};
