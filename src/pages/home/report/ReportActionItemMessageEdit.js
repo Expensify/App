@@ -40,7 +40,7 @@ import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import focusWithDelay from '../../../libs/focusWithDelay';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Browser from '../../../libs/Browser';
-import willBlurTextInputOnTapOutsideFunc from "../../../libs/willBlurTextInputOnTapOutside";
+import willBlurTextInputOnTapOutsideFunc from '../../../libs/willBlurTextInputOnTapOutside';
 
 const propTypes = {
     /** All the data of the action */
@@ -156,6 +156,8 @@ function ReportActionItemMessageEdit(props) {
     }, [focus]);
 
     useEffect(() => {
+        setUpComposeFocusManager();
+
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
@@ -170,6 +172,8 @@ function ReportActionItemMessageEdit(props) {
         }
 
         return () => {
+            ReportActionComposeFocusManager.clear();
+
             // Skip if the current report action is not active
             if (!isActive()) {
                 return;
@@ -402,7 +406,6 @@ function ReportActionItemMessageEdit(props) {
                                 setIsFocused(true);
                                 reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
                                 setShouldShowComposeInputKeyboardAware(false);
-                                setUpComposeFocusManager();
 
                                 // Clear active report action when another action gets focused
                                 if (!EmojiPickerAction.isActive(props.action.reportActionID)) {
