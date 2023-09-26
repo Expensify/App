@@ -389,10 +389,14 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
     return validWaypoints;
 }
 
+/**
+ * Returns the most recent transactions in an object
+ * @param {Object} transactions - Shaped with transctions as keys and inserted dated as values
+ * @param {Number} total
+ * @returns {Array}
+ */
 function getLatestTransactions (transactions, total = 2) {
-    return _.sortBy(_.keys(transactions), (transaction) => {
-        return -new Date(transactions[transaction]);
-    }).slice(0, total);
+    return _.sortBy(_.keys(transactions), transaction => -new Date(transactions[transaction])).slice(0, total);
 }
 
 export {

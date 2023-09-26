@@ -2372,11 +2372,8 @@ function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = fals
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const recentReceiptTransactions = lodashGet(reportPreviewAction, 'childRecentReceiptTransactionIDs', {});
     const transactionsToKeep = TransactionUtils.getLatestTransactions(recentReceiptTransactions);
-    let previousTransactions =_.mapObject(recentReceiptTransactions, (value, key) => {
-       if (_.contains(transactionsToKeep, key)) {
-           return value;
-       }
-       return null;
+    const previousTransactions =_.mapObject(recentReceiptTransactions, (value, key) => {
+        return _.contains(transactionsToKeep, key) ? value : null;
     });
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
