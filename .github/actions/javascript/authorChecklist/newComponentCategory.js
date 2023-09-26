@@ -20,6 +20,7 @@ const items = [
 
 function detectReactComponent(code, filename) {
     if (!code) {
+        console.log('no code', code, filename);
         return;
     }
     const ast = parse(code, {
@@ -70,10 +71,17 @@ async function detectReactComponentInFile(filename) {
     } catch (error) {
         console.error(`An unknown error occurred with the GitHub API: ${error}, while fetching ${params}`);
     }
-}
-;
+};
+
+function filterFiles({ filename, status }) {
+    if (status !== 'added') {
+        return false;
+    }
+    return filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx');
+};
+
 async function detectFunction(changedFiles) {
-    const filteredFiles = _.filter((changedFiles), ({ filename }) => filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx'));
+    const filteredFiles = _.filter((changedFiles), filterFiles);
     for (const file of filteredFiles) {
         const result = await detectReactComponentInFile(file.filename);
         if (result) {
