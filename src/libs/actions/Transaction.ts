@@ -203,12 +203,12 @@ function getRoute(transactionID: string, waypoints: WaypointCollection) {
 /**
  * Updates full set of waypoints for the specific transaction.
  *
- * @param {String} transactionID - The ID of the transaction to be updated
- * @param {Object} waypoints - An object containing all the waypoints
+ * @param transactionID - The ID of the transaction to be updated
+ * @param waypoints - An object containing all the waypoints
  *                             which will replace the existing ones.
  */
-function updateWaypoints(transactionID, waypoints) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+function updateWaypoints(transactionID: string, waypoints: WaypointCollection) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints,
         },
@@ -221,6 +221,7 @@ function updateWaypoints(transactionID, waypoints) {
         // Clear the existing route so that we don't show an old route
         routes: {
             route0: {
+                distance: null,
                 geometry: {
                     coordinates: null,
                 },
