@@ -261,7 +261,7 @@ function BaseTextInput(props) {
             <View
                 style={styles.pointerEventsNone}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props.canInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
+                {...(props.shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
                 <PressableWithoutFeedback
                     onPress={onPress}
