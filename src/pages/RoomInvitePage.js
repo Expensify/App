@@ -75,7 +75,7 @@ function RoomInvitePage(props) {
     const [personalDetails, setPersonalDetails] = useState([]);
     const [userToInvite, setUserToInvite] = useState(null);
 
-    const excludedUsers = useMemo(() => lodashGet(props.report, 'participants', []), [props.report.participants]);
+    const excludedUsers = useMemo(() => lodashGet(props.report, 'participants', []), [props.report]);
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
 
@@ -155,6 +155,8 @@ function RoomInvitePage(props) {
 
 
     // Non policy members should not be able to view the participants of a room
+    const reportID = useMemo(() => props.report.reportID, [props.report]);
+    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
     const backRoute = useMemo(() => isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID), [isPolicyMember, reportID]);
     const inviteUsers = useCallback(() => {
         if (!validate()) {
@@ -164,7 +166,7 @@ function RoomInvitePage(props) {
         const inviteeAccountIDs = _.map(selectedOptions, (option) => option.accountID);
         Report.inviteToRoom(props.report.reportID, inviteeAccountIDs);
         Navigation.goBack(backRoute);
-    }, [selectedOptions, backRoute, props.report]);
+    }, [selectedOptions, backRoute, props.report, validate]);
 
     const [policyName, shouldShowAlertPrompt] = useMemo(
         () => [lodashGet(props.policy, 'name'), _.size(lodashGet(props.policy, 'errors', {})) > 0 || lodashGet(props.policy, 'alertMessage', '').length > 0],
@@ -181,9 +183,6 @@ function RoomInvitePage(props) {
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
     }, [excludedUsers, translate, searchTerm, policyName, userToInvite, personalDetails]);
-
-    const reportID = useMemo(() => props.report.reportID, [props.report]);
-    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
