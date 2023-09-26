@@ -205,7 +205,7 @@ function MoneyRequestParticipantsSelector({
 
             onAddParticipants(newSelectedOptions);
         },
-        [participants, onAddParticipants, reports, personalDetails, betas, searchTerm, iouType, isDistanceRequest],
+        [participants, onAddParticipants],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(
