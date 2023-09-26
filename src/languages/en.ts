@@ -255,6 +255,7 @@ export default {
         recent: 'Recent',
         all: 'All',
         tbd: 'TBD',
+        loading: 'Loading',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',

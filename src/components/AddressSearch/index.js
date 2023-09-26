@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {LogBox, ScrollView, View, Text} from 'react-native';
+import {LogBox, ScrollView, View, Text, ActivityIndicator} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
 import compose from '../../libs/compose';
@@ -287,10 +287,19 @@ function AddressSearch(props) {
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
                     predefinedPlaces={props.predefinedPlaces}
-                    ListEmptyComponent={
+                    listEmptyComponent={
                         props.network.isOffline || !isTyping ? null : (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
                         )
+                    }
+                    listLoaderComponent={
+                        <View style={[styles.flex1, styles.autoCompleteSuggestionContainer, styles.ph3]}>
+                            <ActivityIndicator
+                                color={themeColors.spinner}
+                                size="small"
+                            />
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.loading')}</Text>
+                        </View>
                     }
                     onPress={(data, details) => {
                         saveLocationDetails(data, details);
