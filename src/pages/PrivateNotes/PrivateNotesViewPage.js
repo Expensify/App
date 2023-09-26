@@ -19,6 +19,7 @@ import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 import CONST from '../../CONST';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -61,7 +62,7 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
             testID={PrivateNotesViewPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note'])}
+                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || ReportUtils.isArchivedRoom(report)}
                 subtitleKey="privateNotes.notesUnavailable"
             >
                 <HeaderWithBackButton
