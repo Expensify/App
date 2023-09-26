@@ -17,8 +17,13 @@ import {
     isSameDay,
     isAfter,
     isSameYear,
+    addMinutes,
+    addHours,
+    addDays,
+    parse,
+    set,
+    isSameMinute,
 } from 'date-fns';
-import moment from 'moment';
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
@@ -295,28 +300,32 @@ function getDateStringFromISOTimestamp(isoTimestamp) {
  * @returns {string} example: 2023-05-16 05:34:14
  */
 function getThirtyMinutesFromNow() {
-    return moment().add(30, 'minutes').format('YYYY-MM-DD HH:mm:ss');
+    const date = addMinutes(new Date(), 30);
+    return format(date, 'yyyy-MM-dd HH:mm:ss');
 }
 
 /**
  * @returns {string} example: 2023-05-16 05:34:14
  */
 function getOneHourFromNow() {
-    return moment().add(1, 'hours').format('YYYY-MM-DD HH:mm:ss');
+    const date = addHours(new Date(), 1);
+    return format(date, 'yyyy-MM-dd HH:mm:ss');
 }
 
 /**
  * @returns {string} example: 2023-05-16 05:34:14
  */
 function getEndOfToday() {
-    return moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
+    const date = endOfDay(new Date());
+    return format(date, 'yyyy-MM-dd HH:mm:ss');
 }
 
 /**
  * @returns {string} example: 2023-05-16 05:34:14
  */
 function getEndOfWeekFromNow() {
-    return moment().add(7, 'days').format('YYYY-MM-DD HH:mm:ss');
+    const date = addDays(new Date(), 7);
+    return format(date, 'yyyy-MM-dd HH:mm:ss');
 }
 
 /**
@@ -324,7 +333,14 @@ function getEndOfWeekFromNow() {
  * @returns {string} example: 2023-05-16
  */
 function extractDate(dateTimeString) {
-    return moment(dateTimeString).format('YYYY-MM-DD');
+    if (!dateTimeString) {
+        return '';
+    }
+    if (dateTimeString === 'never') {
+        return '';
+    }
+    const date = new Date(dateTimeString);
+    return format(date, 'yyyy-MM-dd');
 }
 
 /**
@@ -332,7 +348,11 @@ function extractDate(dateTimeString) {
  * @returns {string} example: 11:10 PM
  */
 function extractTime12Hour(dateTimeString) {
-    return moment(dateTimeString).format('hh:mm A');
+    if (!dateTimeString || dateTimeString === 'never') {
+        return '';
+    }
+    const date = new Date(dateTimeString);
+    return format(date, 'hh:mm a');
 }
 
 /**
@@ -340,8 +360,11 @@ function extractTime12Hour(dateTimeString) {
  * @returns {string} example: 2023-05-16 11:10 PM
  */
 function formatDateTimeTo12Hour(dateTimeString) {
-    if (!dateTimeString) return '';
-    return moment(dateTimeString).format('YYYY-MM-DD hh:mm A');
+    if (!dateTimeString) {
+        return '';
+    }
+    const date = new Date(dateTimeString);
+    return format(date, 'yyyy-MM-dd hh:mm a');
 }
 
 /**
@@ -421,44 +444,50 @@ function getStatusUntilDate(inputDate) {
  * Update the time for a given date.
  *
  * @param {string} updatedTime - Time in "hh:mm A" format (like "10:55 AM").
- * @param {string} inputDateTime - Date in "YYYY-MM-DD HH:mm:ss" format.
+ * @param {string} inputDateTime - Date in "YYYY-MM-DD HH:mm:ss" or "YYYY-MM-DD" format.
  * @returns {string} - Date with updated time in "YYYY-MM-DD HH:mm:ss" format.
  */
 const combineDateAndTime = (updatedTime, inputDateTime) => {
-    // Parse the time from the input
-    const parsedTime = moment(updatedTime, 'hh:mm A');
+    if (!updatedTime || !inputDateTime) {
+        return '';
+    }
 
-    // Create a moment object from the input date-time (or just date)
-    const parsedDateTime = moment(inputDateTime, inputDateTime.includes(':') ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD');
+    const parsedTime = parse(updatedTime, 'hh:mm a', new Date());
 
-    // Set the hour and minute from the time input to the date from the date-time input
-    parsedDateTime.set({
-        hour: parsedTime.get('hour'),
-        minute: parsedTime.get('minute'),
+    let parsedDateTime;
+    if (inputDateTime.includes(':')) {
+        // Check if it includes time
+        parsedDateTime = parse(inputDateTime, 'yyyy-MM-dd HH:mm:ss', new Date());
+    } else {
+        parsedDateTime = parse(inputDateTime, 'yyyy-MM-dd', new Date());
+    }
+
+    const updatedDateTime = set(parsedDateTime, {
+        hours: parsedTime.getHours(),
+        minutes: parsedTime.getMinutes(),
     });
 
-    return parsedDateTime.format('YYYY-MM-DD HH:mm:ss');
+    return format(updatedDateTime, 'yyyy-MM-dd HH:mm:ss');
 };
 
 /**
- * @param {String} dateTime // 'YYYY-MM-DD HH:mm:ss'
+ * @param {String} dateTime // 'HH:mm:ss'
  * @returns {Object}
- * @example get12HourTimeObjectFromDate('2023-08-29 11:10:00') // {hour: '11', minute: '10', period: 'AM'}
+ * @example get12HourTimeObjectFromDate('11:10:00') // {hour: '11', minute: '10', period: 'AM'}
  */
 function get12HourTimeObjectFromDate(dateTime) {
     if (!dateTime) {
         return {
-            hour: '00',
-            minute: '01',
-            period: 'AM',
+            hour: '12',
+            minute: '00',
+            period: 'PM',
         };
     }
-    const parsedTime = moment(dateTime, 'h:mm A');
-
+    const parsedTime = parse(dateTime, 'hh:mm a', new Date());
     return {
-        hour: parsedTime.format('hh'), // Hour in 12-hour format
-        minute: parsedTime.format('mm'), // Minute
-        period: parsedTime.format('A'), // AM or PM
+        hour: format(parsedTime, 'hh'),
+        minute: format(parsedTime, 'mm'),
+        period: format(parsedTime, 'a').toUpperCase(),
     };
 }
 
@@ -468,8 +497,8 @@ function get12HourTimeObjectFromDate(dateTime) {
  * @example getTimePeriod('11:10 PM') // 'PM'
  */
 function getTimePeriod(timeString) {
-    const formattedDateString = `2023-08-29 ${timeString}`; // Assuming a random date for formatting
-    return moment(formattedDateString, 'YYYY-MM-DD h:mm A').format('A');
+    const parts = timeString.split(' ');
+    return parts[1];
 }
 
 /**
@@ -478,10 +507,10 @@ function getTimePeriod(timeString) {
  * @returns {Boolean}
  */
 function areDatesIdentical(dateTimeStringFirst, dateTimeStringSecond) {
-    const date1 = moment(dateTimeStringFirst);
-    const date2 = moment(dateTimeStringSecond);
+    const date1 = parse(dateTimeStringFirst, 'yyyy-MM-dd HH:mm:ss', new Date());
+    const date2 = parse(dateTimeStringSecond, 'yyyy-MM-dd HH:mm:ss', new Date());
 
-    return date1.isSame(date2);
+    return isSameMinute(date1, date2);
 }
 
 /**
@@ -489,10 +518,44 @@ function areDatesIdentical(dateTimeStringFirst, dateTimeStringSecond) {
  * @returns {Boolean}
  */
 function hasDateExpired(dateTimeString) {
-    const validUntil = moment().add(1, 'minutes');
-    const dateToCheck = moment(dateTimeString);
-    return dateToCheck.isBefore(validUntil);
+    const validUntil = addMinutes(new Date(), 1);
+    const dateToCheck = parse(dateTimeString, 'yyyy-MM-dd HH:mm:ss', new Date());
+
+    return isBefore(dateToCheck, validUntil);
 }
+
+/**
+ * Checks if the input date is in the future compared to the reference date.
+ * @param {Date} inputDate - The date to validate.
+ * @param {Date} referenceDate - The date to compare against.
+ * @returns {string} - Returns an error key if validation fails, otherwise an empty string.
+ */
+const getDateValidationErrorKey = (inputDate) => {
+    // const startOfCurrentDay = new Date();
+    if (!inputDate) {
+        return '';
+    }
+    const currentYear = new Date().getFullYear();
+    const inputYear = inputDate.getFullYear();
+    if (inputYear < currentYear) {
+        return 'common.error.invalidDateShouldBeFuture';
+    }
+    return '';
+};
+
+/**
+ * Checks if the input time is at least one minute in the future compared to the reference time.
+ * @param {Date} inputTime - The time to validate.
+ * @param {Date} referenceTime - The time to compare against.
+ * @returns {string} - Returns an error key if validation fails, otherwise an empty string.
+ */
+const getTimeValidationErrorKey = (inputTime) => {
+    const startOfCurrentDay = addMinutes(new Date(), 1);
+    if (isBefore(inputTime, startOfCurrentDay)) {
+        return 'common.error.invalidTimeShouldBeFuture';
+    }
+    return '';
+};
 
 /**
  * @namespace DateUtils
@@ -528,6 +591,8 @@ const DateUtils = {
     getLocalizedTimePeriodDescription,
     hasDateExpired,
     combineDateAndTime,
+    getDateValidationErrorKey,
+    getTimeValidationErrorKey,
 };
 
 export default DateUtils;
