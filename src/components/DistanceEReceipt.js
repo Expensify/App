@@ -41,7 +41,7 @@ function DistanceEReceipt({transaction}) {
                         style={styles.eReceiptBackground}
                         pointerEvents="none"
                     />
-                    <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5]}>
+                    <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
                         <ThumbnailImage
                             previewSourceURL={thumbnailSource}
                             style={[styles.w100, styles.h100]}
