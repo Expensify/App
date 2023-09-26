@@ -18,11 +18,13 @@ import useLocalize from '../../../../hooks/useLocalize';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
 import * as User from '../../../../libs/actions/User';
+import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import withLocalize from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import DateUtils from '../../../../libs/DateUtils';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import personalDetailsPropType from '../../../personalDetailsPropType';
+import {parseISO} from 'date-fns';
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -58,37 +60,33 @@ const useValidateCustomDate = (data) => {
     const localize = useLocalize();
     const [customDateError, setCustomDateError] = useState('');
     const [customTimeError, setCustomTimeError] = useState('');
+    const validate = (inputData = data) => {
+        const {dateValidationErrorKey, timeValidationErrorKey} = ValidationUtils.validateDateTimeIsAtLeastOneMinuteInFuture(inputData);
 
-    const validate = () => {
-        const inputData = moment(data, 'YYYY-MM-DD HH:mm:ss');
-        const currentDate = moment().startOf('day');
-        const currentDateTimePlus2 = moment().add(1, 'minutes');
+        const dateError = dateValidationErrorKey ? localize.translate(dateValidationErrorKey) : '';
+        setCustomDateError(dateError);
 
-        // Date validation
-        if (inputData.isBefore(currentDate)) {
-            setCustomDateError(localize.translate('common.error.invalidDateShouldBeFuture'));
-        } else {
-            setCustomDateError('');
-        }
+        const timeError = timeValidationErrorKey ? localize.translate(timeValidationErrorKey) : '';
+        setCustomTimeError(timeError);
 
-        // Time validation
-        if (inputData.isBefore(currentDateTimePlus2)) {
-            setCustomTimeError(localize.translate('common.error.invalidTimeShouldBeFuture'));
-        } else {
-            setCustomTimeError('');
-        }
+        return {
+            dateError,
+            timeError,
+        };
     };
 
     useEffect(() => {
-        validate();
+        if (data) {
+            validate();
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data]);
 
-    const triggerValidation = () => {
-        validate();
+    const validateCustomDate = (inputData) => {
+        return validate(inputData);
     };
 
-    return {customDateError, customTimeError, triggerValidation};
+    return {customDateError, customTimeError, validateCustomDate};
 };
 
 function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
@@ -97,7 +95,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
     const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
     const [draftPeriod, setDraftPeriod] = useState(getSelectedStatusType(clearAfter || draftClearAfter));
-    const localesToThemes = useMemo(
+    const statusType = useMemo(
         () =>
             _.map(CONST.CUSTOM_STATUS_TYPES, (value, key) => ({
                 value,
@@ -108,7 +106,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
         [draftPeriod, localize],
     );
 
-    const {customDateError, customTimeError, triggerValidation} = useValidateCustomDate(customDateTemporary);
+    const {customDateError, customTimeError, validateCustomDate} = useValidateCustomDate(customDateTemporary);
 
     const {redBrickDateIndicator, redBrickTimeIndicator} = useMemo(
         () => ({
@@ -118,14 +116,14 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
         [customTimeError, customDateError],
     );
 
-    const onSubmit = () => {
-        triggerValidation();
-        if (customDateError || customTimeError) return;
+    const onSubmit = (v) => {
+        const {dateError, timeError} = validateCustomDate();
+        if (dateError || timeError) return;
         let calculatedDraftDate = '';
         if (draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
             calculatedDraftDate = customDateTemporary;
         } else {
-            const selectedRange = _.find(localesToThemes, (item) => item.isSelected);
+            const selectedRange = _.find(statusType, (item) => item.isSelected);
             calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange.value);
         }
         User.updateDraftCustomStatus({clearAfter: calculatedDraftDate, customDateTemporary: calculatedDraftDate});
@@ -177,7 +175,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
             >
                 <View>
                     <SelectionList
-                        sections={[{data: localesToThemes, indexOffset: 0}]}
+                        sections={[{data: statusType, indexOffset: 0}]}
                         onSelectRow={updateMode}
                         disableInitialFocusOptionStyle
                         wrapperStyle={{flex: null}}

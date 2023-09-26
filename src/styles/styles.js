@@ -1,3 +1,4 @@
+import {StyleSheet} from 'react-native';
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
@@ -3727,6 +3728,10 @@ const styles = (theme) => ({
     },
     timePickerInputsContainer: {
         maxHeight: 70,
+    },
+    timePickerButtonErrorText: {
+        position: 'absolute',
+        top: -20,
     },
 });
 

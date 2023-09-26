@@ -15,6 +15,7 @@ import DateUtils from '../libs/DateUtils';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import useKeyboardShortcut from '../hooks/useKeyboardShortcut';
 import useLocalize from '../hooks/useLocalize';
+import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
 
 const propTypes = {
@@ -92,12 +93,12 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
     const {numberFormat} = useLocalize();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const localize = useLocalize();
-    const [hours, setHours] = useState(DateUtils.get12HourTimeObjectFromDate(value).hour);
-    const [minute, setMinute] = useState(DateUtils.get12HourTimeObjectFromDate(value).minute);
+    const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).hour);
+    const [minute, setMinute] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).minute);
     const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
     const [selectionMinute, setSelectionMinute] = useState({start: 2, end: 2}); // we focus it by default so need  to have selection on the end
 
-    const [amPmValue, setAmPmValue] = useState(DateUtils.getTimePeriod(value));
+    const [amPmValue, setAmPmValue] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).period);
 
     const hourInputRef = useRef(null);
     const minuteInputRef = useRef(null);
@@ -308,15 +309,7 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
         [selectionMinute.start],
     );
 
-    const {styleForAM, styleForPM} = useMemo(() => {
-        const computedStyleForAM = amPmValue !== CONST.TIME_PERIOD.AM ? {backgroundColor: themeColors.componentBG} : {};
-        const computedStyleForPM = amPmValue !== CONST.TIME_PERIOD.PM ? {backgroundColor: themeColors.componentBG} : {};
-
-        return {
-            styleForAM: [styles.timePickerWidth100, computedStyleForAM],
-            styleForPM: [styles.timePickerWidth100, computedStyleForPM],
-        };
-    }, [amPmValue]);
+    const {styleForAM, styleForPM} = StyleUtils.getStatusAMandPMButtonStyle(amPmValue);
 
     const numberPad = useCallback(() => {
         if (!canUseTouchScreen) return null;
@@ -411,7 +404,7 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                     />
                     <Button
                         shouldEnableHapticFeedback
-                        innerStyles={styleForPM}
+                        innerStyles={[...styleForPM, styles.ml1]}
                         medium={isExtraSmallScreenHeight}
                         text={localize.translate('common.pm')}
                         onLongPress={() => {}}

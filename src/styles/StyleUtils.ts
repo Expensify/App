@@ -1216,6 +1216,19 @@ function getTransparentColor(color: string) {
     return `${color}00`;
 }
 
+/**
+ * Get the style for the AM and PM buttons in the TimePicker
+ */
+function getStatusAMandPMButtonStyle(amPmValue: string): {styleForAM: ViewStyle | CSSProperties; styleForPM: ViewStyle | CSSProperties} {
+    const computedStyleForAM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.AM ? {backgroundColor: themeColors.componentBG} : {};
+    const computedStyleForPM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.PM ? {backgroundColor: themeColors.componentBG} : {};
+
+    return {
+        styleForAM: [styles.timePickerWidth100, computedStyleForAM] as ViewStyle,
+        styleForPM: [styles.timePickerWidth100, computedStyleForPM] as ViewStyle,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarWidthStyle,
@@ -1293,4 +1306,5 @@ export {
     getDropDownButtonHeight,
     getAmountFontSizeAndLineHeight,
     getTransparentColor,
+    getStatusAMandPMButtonStyle,
 };
