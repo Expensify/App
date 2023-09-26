@@ -381,10 +381,11 @@ function getAllReportErrors(report, reportActions) {
  * @returns {String}
  */
 function getLastMessageTextForReport(report) {
-    const lastReportAction = _.find(
+    const visibleActions = _.filter(
         allSortedReportActions[report.reportID],
         (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
+    const lastReportAction = _.last(visibleActions);
     let lastMessageTextFromReport = '';
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
@@ -401,7 +402,7 @@ function getLastMessageTextForReport(report) {
 
         // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove
         // then set the last message text to the text of the latest visible action that is not a whisper or the report creation message.
-        const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
+        const lastNonWhisper = _.find(visibleActions, (action) => !ReportActionUtils.isWhisperAction(action)) || {};
         if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
             if (ReportActionUtils.isThreadParentMessage(lastNonWhisper)) {
                 return Localize.translateLocal(CONST.TRANSLATION_KEYS.HIDDEN_MESSSAGE);
