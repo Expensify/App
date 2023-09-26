@@ -394,9 +394,7 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const isPolicyAdmin = PolicyUtils.isPolicyAdmin(ReportUtils.getPolicy(report.policyID));
-        const lastActorDisplayName = ReportUtils.isSettled(iouReport.reportID) && !isPolicyAdmin ? `${ReportUtils.getPolicyName(report)} ` : '';
-        lastMessageTextFromReport = lastActorDisplayName + ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getModifiedExpenseMessage(lastReportAction);
     } else {
