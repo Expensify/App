@@ -147,7 +147,7 @@ function ACHContractStep(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="ACHContractStep"
+            testID={ACHContractStep.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('beneficialOwnersStep.additionalInformation')}

@@ -126,7 +126,7 @@ function DetailsPage(props) {
     const isCurrentUser = _.keys(props.loginList).includes(details.login);
 
     return (
-        <ScreenWrapper testID="DetailsPage">
+        <ScreenWrapper testID={DetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
                 <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
@@ -155,6 +155,7 @@ function DetailsPage(props) {
                                                     imageStyles={[styles.avatarLarge]}
                                                     source={UserUtils.getAvatar(details.avatar, details.accountID)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
+                                                    fallbackIcon={details.fallbackIcon}
                                                 />
                                             </OfflineWithFeedback>
                                         </PressableWithoutFocus>

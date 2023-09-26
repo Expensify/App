@@ -78,7 +78,7 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID="CountrySelectorModal"
+                testID={CountrySelectorModal.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('common.country')}

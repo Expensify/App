@@ -72,7 +72,7 @@ function TaskView(props) {
                                     e.currentTarget.blur();
                                 }
 
-                                Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
+                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(props.report.reportID));
                             })}
                             style={({pressed}) => [
                                 styles.ph5,
@@ -132,7 +132,7 @@ function TaskView(props) {
                         shouldParseTitle
                         description={props.translate('task.description')}
                         title={props.report.description || ''}
-                        onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.TASK_DESCRIPTION.getRoute(props.report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -150,7 +150,7 @@ function TaskView(props) {
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
-                            onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(props.report.reportID))}
                             shouldShowRightIcon={isOpen}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}
@@ -162,7 +162,7 @@ function TaskView(props) {
                 ) : (
                     <MenuItemWithTopDescription
                         description={props.translate('task.assignee')}
-                        onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(props.report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2]}

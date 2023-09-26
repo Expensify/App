@@ -78,7 +78,7 @@ function CloseAccountPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="CloseAccountPage"
+            testID={CloseAccountPage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('closeAccountPage.closeAccount')}
@@ -136,6 +136,7 @@ function CloseAccountPage(props) {
 
 CloseAccountPage.propTypes = propTypes;
 CloseAccountPage.defaultProps = defaultProps;
+CloseAccountPage.displayName = 'CloseAccountPage';
 
 export default compose(
     withLocalize,

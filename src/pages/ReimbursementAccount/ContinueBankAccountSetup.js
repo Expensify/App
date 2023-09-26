@@ -43,7 +43,7 @@ function ContinueBankAccountSetup(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="ContinueBankAccountSetup"
+            testID={ContinueBankAccountSetup.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('workspace.common.connectBankAccount')}

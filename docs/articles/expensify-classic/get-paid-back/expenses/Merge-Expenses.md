@@ -2,4 +2,4 @@
 title: Merge Expenses
 description: Merge Expenses
 ---
-## Resources Coming Soon!
+## Resource Coming Soon!

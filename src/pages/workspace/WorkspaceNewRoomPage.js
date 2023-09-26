@@ -150,7 +150,7 @@ function WorkspaceNewRoomPage(props) {
                 includeSafeAreaPaddingBottom={false}
                 includePaddingTop={false}
                 shouldEnablePickerAvoiding={false}
-                testID="WorkspaceNewRoomPage"
+                testID={WorkspaceNewRoomPage.displayName}
             >
                 {({insets}) => (
                     <KeyboardAvoidingView

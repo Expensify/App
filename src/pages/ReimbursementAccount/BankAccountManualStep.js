@@ -75,7 +75,7 @@ function BankAccountManualStep(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="BankAccountManualStep"
+            testID={BankAccountManualStep.displayName}
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.connectBankAccount')}

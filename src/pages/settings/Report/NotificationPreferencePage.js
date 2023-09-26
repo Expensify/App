@@ -45,12 +45,12 @@ function NotificationPreferencePage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="NotificationPreferencePage"
+            testID={NotificationPreferencePage.displayName}
         >
             <FullPageNotFoundView shouldShow={shouldDisableNotificationPreferences}>
                 <HeaderWithBackButton
                     title={props.translate('notificationPreferencesPage.header')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
                 />
                 <OptionsList
                     sections={[{data: notificationPreferenceOptions}]}

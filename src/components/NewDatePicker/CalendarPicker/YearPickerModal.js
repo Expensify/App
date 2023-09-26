@@ -64,7 +64,7 @@ function YearPickerModal(props) {
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID="YearPickerModal"
+                testID={YearPickerModal.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('yearPickerPage.year')}

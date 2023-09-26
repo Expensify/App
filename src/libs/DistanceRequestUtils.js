@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import CONST from '../CONST';
 import * as CurrencyUtils from './CurrencyUtils';
+import * as PolicyUtils from './PolicyUtils';
 
 /**
  * Retrieves the default mileage rate based on a given policy.
@@ -79,16 +80,17 @@ const getRoundedDistanceInUnits = (distanceInMeters, unit) => {
  * @param {Number} rate Expensable amount allowed per unit
  * @param {String} currency The currency associated with the rate
  * @param {Function} translate Translate function
+ * @param {Function} toLocaleDigit Function to convert to localized digit
  * @returns {String} A string that describes the distance traveled and the rate used for expense calculation
  */
-const getDistanceMerchant = (hasRoute, distanceInMeters, unit, rate, currency, translate) => {
+const getDistanceMerchant = (hasRoute, distanceInMeters, unit, rate, currency, translate, toLocaleDigit) => {
     const distanceInUnits = hasRoute ? getRoundedDistanceInUnits(distanceInMeters, unit) : translate('common.tbd');
 
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const unitString = distanceInUnits === 1 ? singularDistanceUnit : distanceUnit;
 
-    const ratePerUnit = rate * 0.01;
+    const ratePerUnit = PolicyUtils.getUnitRateValue({rate}, toLocaleDigit);
     const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
 
     return `${distanceInUnits} ${unitString} @ ${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
