@@ -71,7 +71,13 @@ async function detectReactComponentInFile(filename) {
 ;
 async function detectFunction(changedFiles) {
     const filteredFiles = _.filter((changedFiles), ({ filename }) => filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx'));
-    return Promise.race(_.map(filteredFiles, ({ filename }) => detectReactComponentInFile(filename)));
+    for (const file of filteredFiles) {
+        const result = await detectReactComponentInFile(file.filename);
+        if (result) {
+            return true; // If the check is true, exit directly
+        }
+    }
+    return false;
 };
 
 module.exports = {
