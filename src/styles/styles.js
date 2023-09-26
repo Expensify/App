@@ -3463,17 +3463,6 @@ const styles = (theme) => ({
     willChangeTransform: {
         willChange: 'transform',
     },
-    statusClearAfter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-        paddingHorizontal: 20,
-    },
-    statusClearAfterContent: {
-        borderBottomWidth: 1,
-        borderColor: theme.border,
-        paddingVertical: 12,
-    },
 
     dropDownButtonCartIconContainerPadding: {
         paddingRight: 0,
