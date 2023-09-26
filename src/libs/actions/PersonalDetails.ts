@@ -1,6 +1,5 @@
 import Str from 'expensify-common/lib/str';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
@@ -70,7 +69,7 @@ function getDisplayNameForTypingIndicator(userAccountIDOrLogin: string, defaultD
     // If the user is typing on OldDot, userAccountIDOrLogin will be a string (the user's login),
     // so Number(string) is NaN. Search for personalDetails by login to get the display name.
     if (Number.isNaN(accountID)) {
-        const detailsByLogin = _.findWhere(allPersonalDetails ?? {}, {login: userAccountIDOrLogin});
+        const detailsByLogin = Object.entries(allPersonalDetails ?? {}).find(([, value]) => value?.login === userAccountIDOrLogin)?.[1];
         return detailsByLogin?.displayName ?? userAccountIDOrLogin;
     }
 
@@ -108,10 +107,11 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
  * This is for backward compatibility of stored data before E/App#15507
  */
 function getCountryISO(countryName: string): string {
-    if (_.isEmpty(countryName) || countryName.length === 2) {
+    if (!countryName || countryName.length === 2) {
         return countryName;
     }
-    return _.findKey(CONST.ALL_COUNTRIES, (country) => country === countryName) ?? '';
+
+    return Object.entries(CONST.ALL_COUNTRIES).find(([, value]) => value === countryName)?.[0] ?? '';
 }
 
 function updatePronouns(pronouns: string) {
