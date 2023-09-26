@@ -150,6 +150,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     if (_.has(transactionChanges, 'billable')) {
         updatedTransaction.billable = transactionChanges.billable;
     }
+
     if (_.has(transactionChanges, 'category')) {
         updatedTransaction.category = transactionChanges.category;
     }
