@@ -13,18 +13,14 @@ const propTypes = {
     /** The type of IOU being created */
     iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)).isRequired,
 
-    /** The ID of the currently selected tab */
-    selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)).isRequired,
-
     /** Whether or not the distance tab should be shown */
     shouldDisplayDistanceTab: PropTypes.bool.isRequired,
 };
 
-function IOURequestCreate({selectedTab, shouldDisplayDistanceTab, iouType}) {
+function IOURequestCreate({shouldDisplayDistanceTab, iouType}) {
     return (
         <OnyxTabNavigator
             id={CONST.TAB.RECEIPT_TAB_ID}
-            selectedTab={selectedTab}
             tabBar={({state, navigation, position}) => (
                 <TabSelector
                     state={state}

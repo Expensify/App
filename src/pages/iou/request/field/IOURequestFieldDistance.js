@@ -6,7 +6,6 @@ import lodashIsNil from 'lodash/isNil';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../../../CONST';
-import ROUTES from '../../../../ROUTES';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import variables from '../../../../styles/variables';
@@ -14,15 +13,12 @@ import LinearGradient from '../../../../components/LinearGradient';
 import * as MapboxToken from '../../../../libs/actions/MapboxToken';
 import useNetwork from '../../../../hooks/useNetwork';
 import useLocalize from '../../../../hooks/useLocalize';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import reportPropTypes from '../../../reportPropTypes';
 import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import usePrevious from '../../../../hooks/usePrevious';
 import theme from '../../../../styles/themes/default';
 import * as Transaction from '../../../../libs/actions/Transaction';
 import * as TransactionUtils from '../../../../libs/TransactionUtils';
-import * as IOUUtils from '../../../../libs/IOUUtils';
 import Button from '../../../../components/Button';
 import DistanceMapView from '../../../../components/DistanceMapView';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
@@ -30,9 +26,6 @@ import PendingMapView from '../../../../components/MapView/PendingMapView';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import * as StyleUtils from '../../../../styles/StyleUtils';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import FullPageNotFoundView from '../../../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -40,9 +33,6 @@ const MAX_WAYPOINTS_TO_DISPLAY = 4;
 const propTypes = {
     /** The transactionID of this request */
     transactionID: PropTypes.string,
-
-    /** The report to which the distance request is associated */
-    report: reportPropTypes,
 
     /** Data about Mapbox token for calling Mapbox API */
     mapboxAccessToken: PropTypes.shape({
@@ -59,6 +49,9 @@ const propTypes = {
     /** Called on submit of this page */
     onSubmit: PropTypes.func.isRequired,
 
+    /** Called when a waypoint is selected */
+    onWaypointSelect: PropTypes.func.isRequired,
+
     /* Onyx Props */
     /** The transaction being modified */
     transaction: transactionPropTypes,
@@ -66,7 +59,6 @@ const propTypes = {
 
 const defaultProps = {
     transactionID: '',
-    report: {},
     isEditingRequest: false,
     mapboxAccessToken: {
         token: '',
@@ -74,7 +66,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestFieldDistance({transactionID, report, transaction, mapboxAccessToken, isEditingRequest, onSubmit}) {
+function IOURequestFieldDistance({transactionID, transaction, mapboxAccessToken, isEditingRequest, onSubmit, onWaypointSelect}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -170,14 +162,6 @@ function IOURequestFieldDistance({transactionID, report, transaction, mapboxAcce
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
-    /**
-     * Takes the user to the page for editing a specific waypoint
-     * @param {Number} index of the waypoint to edit
-     */
-    const navigateToWaypointEditPage = (index) => {
-        Navigation.navigate(isEditingRequest ? ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.getRoute(report.reportID, transactionID, index) : ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index));
-    };
-
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View
@@ -214,7 +198,7 @@ function IOURequestFieldDistance({transactionID, report, transaction, mapboxAcce
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
                                 shouldShowRightIcon
-                                onPress={() => navigateToWaypointEditPage(index)}
+                                onPress={() => onWaypointSelect(index)}
                                 key={key}
                             />
                         );
@@ -238,7 +222,7 @@ function IOURequestFieldDistance({transactionID, report, transaction, mapboxAcce
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
+                    onPress={() => onWaypointSelect(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
