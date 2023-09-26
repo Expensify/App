@@ -245,7 +245,7 @@ export default {
         recent: 'Reciente',
         all: 'Todo',
         tbd: 'Por determinar',
-        loading: 'Sobreprima',
+        loading: 'Cargando',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
