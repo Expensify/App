@@ -50,7 +50,7 @@ const propTypes = {
     maxLength: PropTypes.number,
 
     /** Specifies if the keyboard should be disabled */
-    disableKeyboard: PropTypes.bool,
+    isDisableKeyboard: PropTypes.bool,
 
     /** Last pressed digit on BigDigitPad */
     lastPressedDigit: PropTypes.string,
@@ -67,7 +67,7 @@ const defaultProps = {
     onFulfill: () => {},
     hasError: false,
     maxLength: CONST.MAGIC_CODE_LENGTH,
-    disableKeyboard: false,
+    isDisableKeyboard: false,
     lastPressedDigit: '',
 };
 
@@ -246,14 +246,14 @@ function MagicCodeInput(props) {
     };
 
     /**
-     *  If disableKeyboard is true we will have to call onKeyPress and onChangeText manually
+     *  If isDisableKeyboard is true we will have to call onKeyPress and onChangeText manually
      *  as the press on digit pad will not trigger native events. We take lastPressedDigit from props
      *  as it stores the last pressed digit pressed on digit pad. We take only the first character
      *  as anything after that is added to differentiate between two same digits passed in a row.
      */
 
     useEffect(() => {
-        if (!props.disableKeyboard) {
+        if (!props.isDisableKeyboard) {
             return;
         }
 
@@ -264,7 +264,7 @@ function MagicCodeInput(props) {
         // We have not added:
         // + the onChangeText and onKeyPress as the dependencies because we only want to run this when lastPressedDigit changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.lastPressedDigit, props.disableKeyboard]);
+    }, [props.lastPressedDigit, props.isDisableKeyboard]);
 
     return (
         <>
@@ -294,9 +294,9 @@ function MagicCodeInput(props) {
                                         ref.setAttribute('type', 'search');
                                     }
                                 }}
-                                disableKeyboard={props.disableKeyboard}
+                                disableKeyboard={props.isDisableKeyboard}
                                 autoFocus={index === 0 && props.autoFocus}
-                                inputMode={props.disableKeyboard ? 'none' : 'numeric'}
+                                inputMode={props.isDisableKeyboard ? 'none' : 'numeric'}
                                 textContentType="oneTimeCode"
                                 name={props.name}
                                 maxLength={props.maxLength}

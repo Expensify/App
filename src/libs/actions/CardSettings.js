@@ -8,7 +8,6 @@ import * as API from '../API';
  * @param {Number} lastFourDigits
  * @param {Number} cardID
  */
-
 function activatePhysicalExpensifyCard(lastFourDigits, cardID) {
     API.write(
         'ActivatePhysicalExpensifyCard',

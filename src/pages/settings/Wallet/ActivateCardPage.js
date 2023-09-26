@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {isUndefined} from 'lodash';
+import _ from 'underscore';
 import Text from '../../../components/Text';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
@@ -21,18 +22,16 @@ import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import useLocalize from '../../../hooks/useLocalize';
 import ROUTES from '../../../ROUTES';
+import CONST from '../../../CONST';
 import assignedCardPropTypes from './assignedCardPropTypes';
 
 const propTypes = {
     /* Onyx Props */
+
     /** The details about the Expensify cards */
     cardList: PropTypes.shape({
         isLoading: PropTypes.bool,
-        [PropTypes.string]: PropTypes.objectOf(assignedCardPropTypes),
-        [PropTypes.string]: PropTypes.shape({
-            // eslint-disable-next-line react/forbid-prop-types
-            errors: PropTypes.object,
-        }),
+        [PropTypes.number]: PropTypes.objectOf(assignedCardPropTypes),
     }),
 
     /** Navigation route context info provided by react navigation */
@@ -49,7 +48,6 @@ const defaultProps = {
 };
 
 const ACTIVATE_CARD_CODE_DESIRED_LENGTH = 4;
-const CARD_ACTIVATED_STATE = 3;
 
 function ActivateCardPage({
     cardList,
@@ -64,21 +62,26 @@ function ActivateCardPage({
     const [activateCardCode, setActivateCardCode] = useState('');
     const [lastPressedDigit, setLastPressedDigit] = useState('');
 
-    const cardID = lodashGet(cardList, 'physical.cardID', 0);
+    const cardID = lodashGet(
+        _.find(cardList, (card) => !card.isVirtual),
+        'cardID',
+        0,
+    );
+
     const activateCardCodeInputRef = useRef(null);
 
     /**
-     * If state of the card is CARD_ACTIVATED_STATE, navigate to card details screen.
+     * If state of the card is CONST.CARD_STATE.OPEN, navigate to card details screen.
      */
     useEffect(() => {
         if (cardList.isLoading) {
             return;
         }
 
-        if (!cardList.isLoading && lodashGet(cardList, 'physical.state', 0) === CARD_ACTIVATED_STATE) {
+        if (!cardList.isLoading && lodashGet(cardList, `${cardID}.state`, 0) === CONST.CARD_STATE.OPEN) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
         }
-    }, [cardList, domain]);
+    }, [cardID, cardList, domain]);
 
     /**
      * Set form error if there is one for cardID in onyx
@@ -129,14 +132,14 @@ function ActivateCardPage({
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={() => Navigation.goBack()}
+            onBackButtonPress={Navigation.goBack}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.Magician}
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
             <View style={[styles.mh5]}>
                 <MagicCodeInput
-                    disableKeyboard
+                    isDisableKeyboard
                     autoComplete="off"
                     maxLength={ACTIVATE_CARD_CODE_DESIRED_LENGTH}
                     name="activateCardCode"
@@ -149,7 +152,7 @@ function ActivateCardPage({
                 />
             </View>
             <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}>
-                {DeviceCapabilities.canUseTouchScreen() ? <BigNumberPad numberPressed={updateLastPressedDigit} /> : null}
+                {DeviceCapabilities.canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}
                 <Button
                     success
                     isLoading={cardList.isLoading}
