@@ -114,6 +114,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
 
     let isPassing = true;
+    let checklistChanged = false;
     for (const check of checks) {
         // Check if it's already in the PR body, capturing the whether or not it's already checked
         const regex = new RegExp(`- \\[([ x])] ${_.escapeRegExp(check)}\n`);
@@ -122,6 +123,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
             // Add it to the PR body
             isPassing = false;
             checklist += `- [ ] ${check}\n`;
+            checklistChanged = true;
         } else {
             const isChecked = match[1] === 'x';
             if (!isChecked) {
@@ -132,12 +134,16 @@ async function generateDynamicChecksAndCheckForCompletion() {
     const allChecks = _.flatten(_.map(_.values(CHECKLIST_CATEGORIES), 'items'));
     for (const check of allChecks) {
         if (!checks.has(check)) {
+            console.log('new check', check);
             // Check if some dynamic check has been added with previous commit, but the check is not relevant anymore
             const regex = new RegExp(`- \\[([ x])] ${_.escapeRegExp(check)}\n`);
             const match = regex.exec(checklist);
+            console.log('match', match);
             if (match) {
                 // Remove it from the PR body
                 checklist = checklist.replace(match[0], '');
+            checklistChanged = true;
+
             }
         }
     }
@@ -146,7 +152,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     const newBody = contentBeforeChecklist + checklistStartsWith + checklist + checklistEndsWith + contentAfterChecklist;
 
     // Update the PR body
-    if (checks.size > 0) {
+    if (checklistChanged) {
         await GithubUtils.octokit.pulls.update({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
