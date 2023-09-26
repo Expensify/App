@@ -92,7 +92,6 @@ function ComposerWithSuggestions({
     setIsFullComposerAvailable,
     setIsCommentEmpty,
     submitForm,
-    shouldShowReportRecipientLocalTime,
     shouldShowComposeInput,
     measureParentContainer,
     // Refs
@@ -535,7 +534,6 @@ function ComposerWithSuggestions({
                 isComposerFullSize={isComposerFullSize}
                 updateComment={updateComment}
                 composerHeight={composerHeight}
-                shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
                 onInsertedEmoji={onInsertedEmoji}
                 measureParentContainer={measureParentContainer}
                 // Input
