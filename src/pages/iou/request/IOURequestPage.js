@@ -15,8 +15,8 @@ import styles from '../../../styles/styles';
 import DragAndDropProvider from '../../../components/DragAndDrop/Provider';
 import * as IOUUtils from '../../../libs/IOUUtils';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import CreateIOUStartTabManual from './request/tab/manual/IOUCreateRequestTabManual';
-import CreateIOUStartRequest from './request/IOUCreateRequest';
+import CreateIOUStartTabManual from './create/tab/IOURequestCreateTabManual';
+import CreateIOUStartRequest from './create/IOURequestCreate';
 
 const propTypes = {
     /** Route from navigation */
@@ -40,7 +40,7 @@ const propTypes = {
 
 const defaultProps = {};
 
-function IOUCreatePage({route}) {
+function IOURequestPage({route}) {
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const iouType = lodashGet(route, 'params.iouType');
@@ -57,7 +57,7 @@ function IOUCreatePage({route}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
-            testID={IOUCreatePage.displayName}
+            testID={IOURequestPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
@@ -89,12 +89,12 @@ function IOUCreatePage({route}) {
     );
 }
 
-IOUCreatePage.displayName = 'IOUCreatePage';
-IOUCreatePage.propTypes = propTypes;
-IOUCreatePage.defaultProps = defaultProps;
+IOURequestPage.displayName = 'IOURequestPage';
+IOURequestPage.propTypes = propTypes;
+IOURequestPage.defaultProps = defaultProps;
 
 export default withOnyx({
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
     },
-})(IOUCreatePage);
+})(IOURequestPage);

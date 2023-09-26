@@ -2,19 +2,20 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {useRoute} from '@react-navigation/native';
-import useLocalize from '../../../../../../hooks/useLocalize';
-import * as IOUUtils from '../../../../../../libs/IOUUtils';
-import FullPageNotFoundView from '../../../../../../components/BlockingViews/FullPageNotFoundView';
-import styles from '../../../../../../styles/styles';
-import HeaderWithBackButton from '../../../../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../../../../components/ScreenWrapper';
+import useLocalize from '../../../../../hooks/useLocalize';
+import * as IOUUtils from '../../../../../libs/IOUUtils';
+import FullPageNotFoundView from '../../../../../components/BlockingViews/FullPageNotFoundView';
+import styles from '../../../../../styles/styles';
+import HeaderWithBackButton from '../../../../../components/HeaderWithBackButton';
+import ScreenWrapper from '../../../../../components/ScreenWrapper';
 
 const propTypes = {};
 
 const defaultProps = {};
 
-function IOUCreateRequestTabManual() {
+function IOURequestCreateTabScan() {
     const {params: iouType, transactionID, reportID} = useRoute();
+    console.log('[tim] scan', iouType);
     const {translate} = useLocalize();
     const isEditing = false;
 
@@ -28,7 +29,7 @@ function IOUCreateRequestTabManual() {
     //         onSubmitButtonPress={navigateToNextPage}
     //     />
     // );
-    const content = <Text>Manual Tab</Text>;
+    const content = <Text>Scan Tab</Text>;
 
     // ScreenWrapper is only needed in edit mode because we have a dedicated route for the edit amount page (MoneyRequestEditAmountPage).
     // The rest of the cases this component is rendered through <MoneyRequestSelectorPage /> which has it's own ScreenWrapper
@@ -42,7 +43,7 @@ function IOUCreateRequestTabManual() {
             shouldEnableKeyboardAvoidingView={false}
             // @TODO onEntryTransitionEnd={focusTextInput}
             onEntryTransitionEnd={() => {}}
-            testID={IOUCreateRequestTabManual.displayName}
+            testID={IOURequestCreateTabScan.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
@@ -60,8 +61,8 @@ function IOUCreateRequestTabManual() {
     );
 }
 
-IOUCreateRequestTabManual.propTypes = propTypes;
-IOUCreateRequestTabManual.defaultProps = defaultProps;
-IOUCreateRequestTabManual.displayName = 'IOUCreateRequestTabManual';
+IOURequestCreateTabScan.propTypes = propTypes;
+IOURequestCreateTabScan.defaultProps = defaultProps;
+IOURequestCreateTabScan.displayName = 'IOURequestCreateTabScan';
 
-export default withOnyx({})(IOUCreateRequestTabManual);
+export default withOnyx({})(IOURequestCreateTabScan);

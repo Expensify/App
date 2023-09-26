@@ -5,9 +5,9 @@ import _ from 'underscore';
 import CONST from '../../../../CONST';
 import TabSelector from '../../../../components/TabSelector/TabSelector';
 import OnyxTabNavigator, {TopTab} from '../../../../libs/Navigation/OnyxTabNavigator';
-import IOUCreateRequestTabDistance from './tab/distance/IOUCreateRequestTabDistance';
-import IOUCreateRequestTabManual from './tab/manual/IOUCreateRequestTabManual';
-import IOUCreateRequestTabScan from './tab/scan/IOUCreateRequestTabScan';
+import IOURequestCreateTabDistance from './tab/IOURequestCreateTabDistance';
+import IOURequestCreateTabManual from './tab/IOURequestCreateTabManual';
+import IOURequestCreateTabScan from './tab/IOURequestCreateTabScan';
 
 const propTypes = {
     /** The type of IOU being created */
@@ -20,7 +20,7 @@ const propTypes = {
     shouldDisplayDistanceTab: PropTypes.bool.isRequired,
 };
 
-function IOUCreateRequest({selectedTab, shouldDisplayDistanceTab, iouType}) {
+function IOURequestCreate({selectedTab, shouldDisplayDistanceTab, iouType}) {
     return (
         <OnyxTabNavigator
             id={CONST.TAB.RECEIPT_TAB_ID}
@@ -37,16 +37,16 @@ function IOUCreateRequest({selectedTab, shouldDisplayDistanceTab, iouType}) {
         >
             <TopTab.Screen
                 name={CONST.TAB_REQUEST.MANUAL}
-                component={IOUCreateRequestTabManual}
+                component={IOURequestCreateTabManual}
             />
             <TopTab.Screen
                 name={CONST.TAB_REQUEST.SCAN}
-                component={IOUCreateRequestTabScan}
+                component={IOURequestCreateTabScan}
             />
             {shouldDisplayDistanceTab && (
                 <TopTab.Screen
                     name={CONST.TAB_REQUEST.DISTANCE}
-                    component={IOUCreateRequestTabDistance}
+                    component={IOURequestCreateTabDistance}
                     options={{iouType}}
                 />
             )}
@@ -54,7 +54,7 @@ function IOUCreateRequest({selectedTab, shouldDisplayDistanceTab, iouType}) {
     );
 }
 
-IOUCreateRequest.displayName = 'IOUCreateRequest';
-IOUCreateRequest.propTypes = propTypes;
+IOURequestCreate.displayName = 'IOURequestCreate';
+IOURequestCreate.propTypes = propTypes;
 
-export default IOUCreateRequest;
+export default IOURequestCreate;

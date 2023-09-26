@@ -46,7 +46,7 @@ const propTypes = {
 
 const defaultProps = {};
 
-function CreateIOUFieldPage({
+function IOURequestFieldPage({
     route: {
         params: {field},
     },
@@ -98,7 +98,7 @@ function CreateIOUFieldPage({
     return <FullPageNotFoundView shouldShow />;
 }
 
-CreateIOUFieldPage.displayName = 'CreateIOUFieldPage';
-CreateIOUFieldPage.propTypes = propTypes;
-CreateIOUFieldPage.defaultProps = defaultProps;
-export default CreateIOUFieldPage;
+IOURequestFieldPage.displayName = 'IOURequestFieldPage';
+IOURequestFieldPage.propTypes = propTypes;
+IOURequestFieldPage.defaultProps = defaultProps;
+export default IOURequestFieldPage;

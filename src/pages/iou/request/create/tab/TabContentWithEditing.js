@@ -10,6 +10,9 @@ const propTypes = {
     /** The main content to display in the tab */
     children: PropTypes.node.isRequired,
 
+    /** Whether or not the field is being created the first time or changed later (but before saved) */
+    isEditing: PropTypes.bool.isRequired,
+
     /** A function that is called when the back button is pressed */
     onBackButtonPress: PropTypes.func.isRequired,
 
@@ -23,10 +26,7 @@ const propTypes = {
     testID: PropTypes.string.isRequired,
 };
 
-function TabContentWithEditing({children, onBackButtonPress, shouldShowNotFound, testID, title}) {
-    // @TODO make this logic dynamic
-    const isEditing = false;
-
+function TabContentWithEditing({children, onBackButtonPress, shouldShowNotFound, testID, title, isEditing}) {
     // ScreenWrapper is only needed in edit mode because we have a dedicated route for the edit amount page (MoneyRequestEditAmountPage).
     // The rest of the cases this component is rendered through <MoneyRequestSelectorPage /> which has it's own ScreenWrapper
     if (!isEditing) {
