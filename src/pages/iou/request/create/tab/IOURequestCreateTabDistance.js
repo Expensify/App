@@ -21,8 +21,8 @@ function IOURequestCreateTabDistance({transaction}) {
     /**
      * @param {Number} index of the waypoint being clicked on
      */
-    const navigateToWaypointEditPage = (index) => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_WAYPOINT.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, index));
+    const navigateToWaypointPage = (index) => {
+        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, transaction.transactionID, transaction.reportID, 'waypoint', index));
     };
     const goToNextStep = () => {
         // @TODO figure this out
@@ -32,7 +32,7 @@ function IOURequestCreateTabDistance({transaction}) {
     return (
         <IOURequestFieldDistance
             transactionID={transaction.transactionID}
-            onWaypointSelect={navigateToWaypointEditPage}
+            onWaypointSelect={navigateToWaypointPage}
             onSubmit={goToNextStep}
         />
     );
