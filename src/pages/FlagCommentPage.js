@@ -2,6 +2,7 @@ import React, {useCallback} from 'react';
 import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import reportPropTypes from './reportPropTypes';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
@@ -20,6 +21,7 @@ import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as Session from '../libs/actions/Session';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** Array of report actions for this report */
@@ -152,7 +154,10 @@ function FlagCommentPage(props) {
     ));
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={FlagCommentPage.displayName}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
                     <HeaderWithBackButton title={props.translate('reportActionContextMenu.flagAsOffensive')} />
@@ -178,4 +183,13 @@ FlagCommentPage.propTypes = propTypes;
 FlagCommentPage.defaultProps = defaultProps;
 FlagCommentPage.displayName = 'FlagCommentPage';
 
-export default compose(withLocalize, withReportAndReportActionOrNotFound)(FlagCommentPage);
+export default compose(
+    withLocalize,
+    withReportAndReportActionOrNotFound,
+    withOnyx({
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID || report.reportID}`,
+            canEvict: false,
+        },
+    }),
+)(FlagCommentPage);

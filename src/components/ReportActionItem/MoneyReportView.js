@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
@@ -14,6 +15,7 @@ import variables from '../../styles/variables';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
+import SpacerView from '../SpacerView';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -50,10 +52,10 @@ function MoneyReportView(props) {
                 </View>
                 <View style={[styles.flexRow, styles.justifyContentCenter]}>
                     {isSettled && (
-                        <View style={[styles.defaultCheckmarkWrapper, styles.mh1]}>
+                        <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
                             <Icon
                                 src={Expensicons.Checkmark}
-                                fill={styles.success}
+                                fill={themeColors.success}
                             />
                         </View>
                     )}
@@ -65,7 +67,10 @@ function MoneyReportView(props) {
                     </Text>
                 </View>
             </View>
-            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
+            <SpacerView
+                shouldShow={props.shouldShowHorizontalRule}
+                style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+            />
         </View>
     );
 }

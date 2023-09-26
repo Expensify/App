@@ -1,7 +1,9 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 import {propTypes, defaultProps} from './hoverablePropTypes';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import CONST from '../../CONST';
 
 /**
  * It is necessary to create a Hoverable component instead of relying solely on Pressable support for hover state,
@@ -13,16 +15,42 @@ class Hoverable extends Component {
         super(props);
 
         this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+        this.checkHover = this.checkHover.bind(this);
 
         this.state = {
             isHovered: false,
         };
 
+        this.isHoveredRef = false;
+        this.isScrollingRef = false;
         this.wrapperView = null;
     }
 
     componentDidMount() {
         document.addEventListener('visibilitychange', this.handleVisibilityChange);
+        document.addEventListener('mouseover', this.checkHover);
+
+        /**
+         * Only add the scrolling listener if the shouldHandleScroll prop is true
+         * and the scrollingListener is not already set.
+         */
+        if (!this.scrollingListener && this.props.shouldHandleScroll) {
+            this.scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
+                /**
+                 * If user has stopped scrolling and the isHoveredRef is true, then we should update the hover state.
+                 */
+                if (!scrolling && this.isHoveredRef) {
+                    this.setState({isHovered: this.isHoveredRef}, this.props.onHoverIn);
+                } else if (scrolling && this.isHoveredRef) {
+                    /**
+                     * If the user has started scrolling and the isHoveredRef is true, then we should set the hover state to false.
+                     * This is to hide the existing hover and reaction bar.
+                     */
+                    this.setState({isHovered: false}, this.props.onHoverOut);
+                }
+                this.isScrollingRef = scrolling;
+            });
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -37,6 +65,10 @@ class Hoverable extends Component {
 
     componentWillUnmount() {
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+        document.removeEventListener('mouseover', this.checkHover);
+        if (this.scrollingListener) {
+            this.scrollingListener.remove();
+        }
     }
 
     /**
@@ -49,9 +81,40 @@ class Hoverable extends Component {
             return;
         }
 
+        /**
+         * Capture whther or not the user is hovering over the component.
+         * We will use this to determine if we should update the hover state when the user has stopped scrolling.
+         */
+        this.isHoveredRef = isHovered;
+
+        /**
+         * If the isScrollingRef is true, then the user is scrolling and we should not update the hover state.
+         */
+        if (this.isScrollingRef && this.props.shouldHandleScroll && !this.state.isHovered) {
+            return;
+        }
+
         if (isHovered !== this.state.isHovered) {
             this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
         }
+    }
+
+    /**
+     * Checks the hover state of a component and updates it based on the event target.
+     * This is necessary to handle cases where the hover state might get stuck due to an unreliable mouseleave trigger,
+     * such as when an element is removed before the mouseleave event is triggered.
+     * @param {Event} e - The hover event object.
+     */
+    checkHover(e) {
+        if (!this.wrapperView || !this.state.isHovered) {
+            return;
+        }
+
+        if (this.wrapperView.contains(e.target)) {
+            return;
+        }
+
+        this.setIsHovered(false);
     }
 
     handleVisibilityChange() {
