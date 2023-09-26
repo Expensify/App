@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useMemo} from 'react';
+import React, {useMemo, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
@@ -40,15 +40,25 @@ const defaultProps = {
 function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySelected, setSearchValue, searchValue}) {
     const {translate} = useLocalize();
 
+    useEffect(() => {
+        if (isVisible) {
+            return;
+        }
+        setSearchValue('');
+    }, [isVisible, setSearchValue]);
+
     const countries = useMemo(
         () =>
-            _.map(translate('allCountries'), (countryName, countryISO) => ({
-                value: countryISO,
-                keyForList: countryISO,
-                text: countryName,
-                isSelected: currentCountry === countryISO,
-                searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-            })),
+            _.map(_.keys(CONST.ALL_COUNTRIES), (countryISO) => {
+                const countryName = translate(`allCountries.${countryISO}`);
+                return {
+                    value: countryISO,
+                    keyForList: countryISO,
+                    text: countryName,
+                    isSelected: currentCountry === countryISO,
+                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+                };
+            }),
         [translate, currentCountry],
     );
 
@@ -68,6 +78,7 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
+                testID={CountrySelectorModal.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('common.country')}
@@ -76,12 +87,10 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                 <SelectionList
                     headerMessage={headerMessage}
                     textInputLabel={translate('common.country')}
-                    textInputPlaceholder={translate('countrySelectorModal.placeholderText')}
                     textInputValue={searchValue}
                     sections={[{data: searchResults, indexOffset: 0}]}
                     onSelectRow={onCountrySelected}
                     onChangeText={setSearchValue}
-                    shouldDelayFocus
                     initiallyFocusedOptionKey={currentCountry}
                 />
             </ScreenWrapper>

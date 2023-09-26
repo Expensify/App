@@ -1,6 +1,7 @@
 import _ from 'underscore';
-import React, {useMemo} from 'react';
+import React, {useMemo, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../../CONST';
 import Modal from '../Modal';
 import HeaderWithBackButton from '../HeaderWithBackButton';
@@ -44,15 +45,26 @@ const defaultProps = {
 function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
     const {translate} = useLocalize();
 
+    useEffect(() => {
+        if (isVisible) {
+            return;
+        }
+        setSearchValue('');
+    }, [isVisible, setSearchValue]);
+
     const countryStates = useMemo(
         () =>
-            _.map(translate('allStates'), (state) => ({
-                value: state.stateISO,
-                keyForList: state.stateISO,
-                text: state.stateName,
-                isSelected: currentState === state.stateISO,
-                searchValue: StringUtils.sanitizeString(`${state.stateISO}${state.stateName}`),
-            })),
+            _.map(_.keys(COMMON_CONST.STATES), (state) => {
+                const stateName = translate(`allStates.${state}.stateName`);
+                const stateISO = translate(`allStates.${state}.stateISO`);
+                return {
+                    value: stateISO,
+                    keyForList: stateISO,
+                    text: stateName,
+                    isSelected: currentState === stateISO,
+                    searchValue: StringUtils.sanitizeString(`${stateISO}${stateName}`),
+                };
+            }),
         [translate, currentState],
     );
 
@@ -72,6 +84,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
+                testID={StateSelectorModal.displayName}
             >
                 <HeaderWithBackButton
                     title={label || translate('common.state')}
@@ -81,12 +94,10 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                 <SelectionList
                     headerMessage={headerMessage}
                     textInputLabel={label || translate('common.state')}
-                    textInputPlaceholder={translate('stateSelectorModal.placeholderText')}
                     textInputValue={searchValue}
                     sections={[{data: searchResults, indexOffset: 0}]}
                     onSelectRow={onStateSelected}
                     onChangeText={setSearchValue}
-                    shouldDelayFocus
                     initiallyFocusedOptionKey={currentState}
                 />
             </ScreenWrapper>

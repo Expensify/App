@@ -1,7 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
-import moment from 'moment-timezone';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -37,12 +36,12 @@ function TimezoneInitialPage(props) {
     const updateAutomaticTimezone = (isAutomatic) => {
         PersonalDetails.updateAutomaticTimezone({
             automatic: isAutomatic,
-            selected: isAutomatic ? moment.tz.guess() : timezone.selected,
+            selected: isAutomatic ? Intl.DateTimeFormat().resolvedOptions().timeZone : timezone.selected,
         });
     };
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={TimezoneInitialPage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
