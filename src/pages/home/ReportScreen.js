@@ -177,7 +177,7 @@ function ReportScreen({
 
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
-    const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
+    const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails) || firstRenderRef.current;
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
