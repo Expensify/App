@@ -1,0 +1,73 @@
+diff --git a/node_modules/lottie-react-native/src/LottieView.tsx b/node_modules/lottie-react-native/src/LottieView.tsx
+index 6372ca2..c5cfad7 100644
+--- a/node_modules/lottie-react-native/src/LottieView.tsx
++++ b/node_modules/lottie-react-native/src/LottieView.tsx
+@@ -4,6 +4,7 @@ import {
+   NativeSyntheticEvent,
+   ViewProps,
+   processColor,
++  StyleSheet,
+ } from 'react-native';
+ 
+ import type { LottieViewProps } from './LottieView.types';
+@@ -12,7 +13,7 @@ import NativeLottieAnimationView, {
+   Commands,
+ } from './specs/LottieAnimationViewNativeComponent';
+ 
+-type Props = LottieViewProps & { containerProps?: ViewProps };
++type Props = LottieViewProps & { containerProps?: ViewProps; autoSize?: boolean };
+ 
+ const defaultProps: Props = {
+   source: undefined,
+@@ -27,6 +28,7 @@ const defaultProps: Props = {
+   colorFilters: [],
+   textFiltersAndroid: [],
+   textFiltersIOS: [],
++  autoSize: false,
+ };
+ 
+ export class LottieView extends React.PureComponent<Props, {}> {
+@@ -132,6 +134,7 @@ export class LottieView extends React.PureComponent<Props, {}> {
+       textFiltersAndroid,
+       textFiltersIOS,
+       resizeMode,
++      autoSize,
+       ...rest
+     } = this.props;
+ 
+@@ -149,6 +152,22 @@ export class LottieView extends React.PureComponent<Props, {}> {
+       color: processColor(colorFilter.color),
+     }));
+ 
++    const aspectRatioStyle = sources.sourceJson
++      ? { aspectRatio: (source as any).w / (source as any).h }
++      : undefined;
++
++    const styleObject = StyleSheet.flatten(style);
++    let sizeStyle;
++    if (
++      !styleObject ||
++      (styleObject.width === undefined && styleObject.height === undefined)
++    ) {
++      sizeStyle =
++        autoSize && sources.sourceJson
++          ? { width: (source as any).w }
++          : StyleSheet.absoluteFill;
++    }
++    
+     return (
+       <NativeLottieAnimationView
+         ref={this.captureRef}
+@@ -157,7 +176,11 @@ export class LottieView extends React.PureComponent<Props, {}> {
+         textFiltersAndroid={textFiltersAndroid}
+         textFiltersIOS={textFiltersIOS}
+         speed={speed}
+-        style={style}
++        style={[
++           aspectRatioStyle,
++           sizeStyle,
++           style,
++        ]}
+         onAnimationFinish={this.onAnimationFinish}
+         onAnimationFailure={this.onAnimationFailure}
+         autoPlay={autoPlay}
