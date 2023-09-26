@@ -2233,6 +2233,14 @@ function clearPrivateNotesError(reportID, accountID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
+/**
+ * Clears the report lost access flag
+ * @param {Number} reportID 
+ */
+function clearReportLostAccessFlag(reportID) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_LOST_ACCESS}${reportID}`, null);
+}
+
 export {
     addComment,
     addAttachment,
@@ -2290,4 +2298,5 @@ export {
     clearPrivateNotesError,
     hasErrorInPrivateNotes,
     openRoomMembersPage,
+    clearReportLostAccessFlag,
 };
