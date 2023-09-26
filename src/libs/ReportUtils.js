@@ -1238,8 +1238,15 @@ function isWaitingForIOUActionFromCurrentUser(report) {
     return false;
 }
 
-function isWaitingForTaskCompleteFromAssignee(report) {
-    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report);
+/**
+ * Checks if a report is an open task report assigned to current user.
+ *
+ * @param {Object} report
+ * @param {Object} parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
+ * @returns {Boolean}
+ */
+function isWaitingForTaskCompleteFromAssignee(report, parentReportAction = {}) {
+    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
 }
 
 /**
@@ -1343,6 +1350,7 @@ function getTransactionDetails(transaction) {
         merchant: TransactionUtils.getMerchant(transaction),
         waypoints: TransactionUtils.getWaypoints(transaction),
         category: TransactionUtils.getCategory(transaction),
+        tag: TransactionUtils.getTag(transaction),
     };
 }
 
@@ -1594,6 +1602,11 @@ function getModifiedExpenseMessage(reportAction) {
     if (hasModifiedCategory) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.category, reportActionOriginalMessage.oldCategory, Localize.translateLocal('common.category'), true);
     }
+
+    const hasModifiedTag = _.has(reportActionOriginalMessage, 'oldTag') && _.has(reportActionOriginalMessage, 'tag');
+    if (hasModifiedTag) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.tag, reportActionOriginalMessage.oldTag, Localize.translateLocal('common.tag'), true);
+    }
 }
 
 /**
@@ -1637,6 +1650,11 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     if (_.has(transactionChanges, 'category')) {
         originalMessage.oldCategory = TransactionUtils.getCategory(oldTransaction);
         originalMessage.category = transactionChanges.category;
+    }
+
+    if (_.has(transactionChanges, 'tag')) {
+        originalMessage.oldTag = TransactionUtils.getTag(oldTransaction);
+        originalMessage.tag = transactionChanges.tag;
     }
 
     return originalMessage;
@@ -3739,4 +3757,5 @@ export {
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
     hasMissingSmartscanFields,
+    isWaitingForTaskCompleteFromAssignee,
 };

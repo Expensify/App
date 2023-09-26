@@ -136,6 +136,9 @@ function BaseSelectionList({
         };
     }, [canSelectMultiple, sections]);
 
+    // Disable `Enter` hotkey if the active element is a button or checkbox
+    const shouldDisableHotkeys = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
+
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
 
@@ -168,22 +171,34 @@ function BaseSelectionList({
         listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
     };
 
-    const selectRow = (item, index) => {
+    /**
+     * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
+     *
+     * @param {Object} item - the list item
+     * @param {Boolean} shouldUnfocusRow - flag to decide if we should unfocus all rows. True when selecting a row with click or press (not keyboard)
+     */
+    const selectRow = (item, shouldUnfocusRow = false) => {
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
-            if (sections.length === 1) {
-                // If the list has only 1 section (e.g. Workspace Members list), we always focus the next available item
-                const nextAvailableIndex = _.findIndex(flattenedSections.allOptions, (option, i) => i > index && !option.isDisabled);
-                setFocusedIndex(nextAvailableIndex);
-            } else {
-                // If the list has multiple sections (e.g. Workspace Invite list), we focus the first one after all the selected (selected items are always at the top)
+            if (sections.length > 1) {
+                // If the list has only 1 section (e.g. Workspace Members list), we do nothing.
+                // If the list has multiple sections (e.g. Workspace Invite list), and `shouldUnfocusRow` is false,
+                // we focus the first one after all the selected (selected items are always at the top).
                 const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
-                setFocusedIndex(selectedOptionsCount);
+
+                if (!shouldUnfocusRow) {
+                    setFocusedIndex(selectedOptionsCount);
+                }
 
                 if (!item.isSelected) {
                     // If we're selecting an item, scroll to it's position at the top, so we can see it
                     scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
                 }
+            }
+
+            if (shouldUnfocusRow) {
+                // Unfocus all rows when selecting row with click/press
+                setFocusedIndex(-1);
             }
         }
 
@@ -197,7 +212,7 @@ function BaseSelectionList({
             return;
         }
 
-        selectRow(focusedOption, focusedIndex);
+        selectRow(focusedOption);
     };
 
     /**
@@ -254,7 +269,7 @@ function BaseSelectionList({
                 <UserListItem
                     item={item}
                     isFocused={isItemFocused}
-                    onSelectRow={() => selectRow(item, index)}
+                    onSelectRow={() => selectRow(item, true)}
                     onDismissError={onDismissError}
                     showTooltip={showTooltip}
                 />
@@ -266,7 +281,7 @@ function BaseSelectionList({
                 item={item}
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
-                onSelectRow={() => selectRow(item, index)}
+                onSelectRow={() => selectRow(item, true)}
             />
         );
     };
@@ -290,7 +305,7 @@ function BaseSelectionList({
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        isActive: !activeElement && isFocused,
+        isActive: !shouldDisableHotkeys && isFocused,
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
