@@ -1499,9 +1499,8 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         return `approved ${formattedAmount}`;
     }
 
-    if (shouldConsiderReceiptBeingScanned && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
-
+    if (shouldConsiderReceiptBeingScanned && ReportActionsUtils.isReportPreviewAction(reportAction)) {
+        const linkedTransaction = TransactionUtils.getTransaction(reportAction.childLastReceiptTransactionIDs);
         if (!_.isEmpty(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
             return Localize.translateLocal('iou.receiptScanning');
         }
