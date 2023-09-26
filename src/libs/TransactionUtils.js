@@ -389,6 +389,12 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
     return validWaypoints;
 }
 
+function getLatestTransactions (transactions, total = 2) {
+    return _.sortBy(_.keys(transactions), (transaction) => {
+        return -new Date(transactions[transaction]);
+    }).slice(0, total);
+}
+
 export {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -409,4 +415,5 @@ export {
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
+    getLatestTransactions,
 };

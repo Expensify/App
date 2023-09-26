@@ -2370,11 +2370,14 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
  */
 function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = false, comment = '', transaction = undefined) {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const recentReceiptTransactionIDs = lodashGet(reportPreviewAction, 'childRecentReceiptTransactionIDs', {});
-    const oldestTransaction = _.reduce(_.keys(recentReceiptTransactionIDs), (transactionID, oldestTransactionID) => {
-        return new Date(recentReceiptTransactionIDs[transactionID]) > new Date(recentReceiptTransactionIDs[transactionID]) ? transactionID : oldestTransactionID;
+    const recentReceiptTransactions = lodashGet(reportPreviewAction, 'childRecentReceiptTransactionIDs', {});
+    const transactionsToKeep = TransactionUtils.getLatestTransactions(recentReceiptTransactions);
+    let previousTransactions =_.mapObject(recentReceiptTransactions, (value, key) => {
+       if (_.contains(transactionsToKeep, key)) {
+           return value;
+       }
+       return null;
     });
-    const previousTransactions = _.omit(recentReceiptTransactionIDs, oldestTransaction);
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
@@ -2393,7 +2396,7 @@ function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = fals
         childRecentReceiptTransactionIDs: hasReceipt ? {
             [transaction.transactionID]: transaction.created,
             ...previousTransactions
-            } : recentReceiptTransactionIDs,
+            } : recentReceiptTransactions,
         // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
         // so we remove the whisper
         whisperedToAccountIDs: hasReceipt ? reportPreviewAction.whisperedToAccountIDs : [],
@@ -3594,9 +3597,11 @@ function getReportPreviewDisplayTransactions(reportPreviewAction) {
     return _.reduce(
         _.keys(transactionIDs),
         (transactions, transactionID) => {
-            const transaction = TransactionUtils.getTransaction(transactionID);
-            if (TransactionUtils.hasReceipt(transaction)) {
-                transactions.push(transaction);
+            if (transactionIDs[transactionID] !== null) {
+                const transaction = TransactionUtils.getTransaction(transactionID);
+                if (TransactionUtils.hasReceipt(transaction)) {
+                    transactions.push(transaction);
+                }
             }
             return transactions;
         },
