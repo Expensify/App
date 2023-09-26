@@ -250,7 +250,7 @@ function ReportScreen({
     }, []);
 
     const chatWithAccountManager = useCallback(() => {
-        Navigation.navigate(ROUTES.getReportRoute(accountManagerReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID));
     }, [accountManagerReportID]);
 
     /**
@@ -360,7 +360,7 @@ function ReportScreen({
             <ScreenWrapper
                 style={screenWrapperStyle}
                 shouldEnableKeyboardAvoidingView={isTopMostReportId}
-                testID="ReportScreen"
+                testID={ReportScreen.displayName}
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundPage}

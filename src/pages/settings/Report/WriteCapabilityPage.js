@@ -53,13 +53,13 @@ function WriteCapabilityPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="WriteCapabilityPage"
+            testID={WriteCapabilityPage.displayName}
         >
             <FullPageNotFoundView shouldShow={!isAbleToEdit}>
                 <HeaderWithBackButton
                     title={props.translate('writeCapabilityPage.label')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
                 />
                 <OptionsList
                     sections={[{data: writeCapabilityOptions}]}

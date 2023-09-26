@@ -67,7 +67,7 @@ function PronounsPage({currentUserPersonalDetails}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="PronounsPage"
+            testID={PronounsPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('pronounsPage.pronouns')}

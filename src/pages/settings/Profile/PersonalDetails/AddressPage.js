@@ -131,7 +131,7 @@ function AddressPage({privatePersonalDetails}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="AddressPage"
+            testID={AddressPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('privatePersonalDetails.homeAddress')}
@@ -234,6 +234,7 @@ function AddressPage({privatePersonalDetails}) {
 
 AddressPage.propTypes = propTypes;
 AddressPage.defaultProps = defaultProps;
+AddressPage.displayName = 'AddressPage';
 
 export default withOnyx({
     privatePersonalDetails: {
