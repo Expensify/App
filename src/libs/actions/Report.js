@@ -1897,7 +1897,7 @@ function leaveRoom(reportID) {
 }
 
 /**
- * Removes people from a room
+ * Invites people to a room
  *
  * @param {String} reportID
  * @param {Array} inviteeAccountIDs
