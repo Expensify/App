@@ -22,9 +22,6 @@ import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickE
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import * as Task from '../../../../libs/actions/Task';
-import * as Localize from '../../../../libs/Localize';
-import * as TransactionUtils from '../../../../libs/TransactionUtils';
-import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -203,15 +200,8 @@ export default [
                     const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                    const originalMessage = _.get(reportAction, 'originalMessage', {});
-                    const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
-                    const {amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
-                    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
-                    const displaymessage = Localize.translateLocal('iou.requestedAmount', {
-                        formattedAmount,
-                        comment,
-                    });
-                    Clipboard.setString(displaymessage);
+                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
+                    Clipboard.setString(displayMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
@@ -298,11 +288,11 @@ export default [
                     const thread = ReportUtils.buildTransactionThread(reportAction, reportID);
                     const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
                     Report.openReport(thread.reportID, userLogins, thread, reportAction.reportActionID);
-                    Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
                     return;
                 }
                 Report.openReport(childReportID);
-                Navigation.navigate(ROUTES.getReportRoute(childReportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
             }
             const editAction = () => Report.saveReportActionDraft(reportID, reportAction.reportActionID, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
@@ -382,10 +372,10 @@ export default [
             reportAction.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
-                hideContextMenu(false, () => Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID)));
+                hideContextMenu(false, () => Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction.reportActionID)));
             }
 
-            Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID));
+            Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction.reportActionID));
         },
         getDescription: () => {},
     },

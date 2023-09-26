@@ -102,5 +102,6 @@ function TimezoneSelectPage(props) {
 
 TimezoneSelectPage.propTypes = propTypes;
 TimezoneSelectPage.defaultProps = defaultProps;
+TimezoneSelectPage.displayName = 'TimezoneSelectPage';
 
 export default withCurrentUserPersonalDetails(TimezoneSelectPage);
