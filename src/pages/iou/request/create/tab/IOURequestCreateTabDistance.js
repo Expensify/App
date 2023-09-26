@@ -1,35 +1,21 @@
-import React from 'react';
-import {Text} from 'react-native';
+import React, {useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {useRoute} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
-import useLocalize from '../../../../../hooks/useLocalize';
-import * as IOUUtils from '../../../../../libs/IOUUtils';
-import TabContentWithEditing from './TabContentWithEditing';
 import ONYXKEYS from '../../../../../ONYXKEYS';
-import MoneyRequestAmountForm from '../../../steps/MoneyRequestAmountForm';
+import transactionPropTypes from '../../../../../components/transactionPropTypes';
+import IOURequestFieldDistance from '../../field/IOURequestFieldDistance';
 
-const propTypes = {};
+const propTypes = {
+    /* Onyx Props */
+    /** The transaction object storing all the data for creation */
+    transaction: transactionPropTypes,
+};
 
-const defaultProps = {};
+const defaultProps = {
+    transaction: {},
+};
 
-function IOURequestCreateTabDistance(props) {
-    console.log('[tim] distance', props);
-
-    const currentCurrency = lodashGet(route, 'params.currency', '');
-
-    const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : iou.currency;
-
-    return (
-        <MoneyRequestAmountForm
-            isEditing={false}
-            currency={transaction.currency}
-            amount={transaction.amount}
-            ref={(e) => (textInput.current = e)}
-            onCurrencyButtonPress={navigateToCurrencySelectionPage}
-            onSubmitButtonPress={navigateToNextPage}
-        />
-    );
+function IOURequestCreateTabDistance({transaction}) {
+    return <IOURequestFieldDistance transactionID={transaction.transactionID} />;
 }
 
 IOURequestCreateTabDistance.propTypes = propTypes;

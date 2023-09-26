@@ -2162,7 +2162,12 @@ function startMoneeRequest(iouType, reportID = '') {
     const newTransactionID = 'new';
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {wasSaved: false});
+    // Use set() here so that there is no way that data will be leaked between objects when it gets reset
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {
+        wasSaved: false,
+        reportID,
+        transactionID: newTransactionID,
+    });
 
     // Navigate to it
     Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(iouType, newTransactionID, reportID));
