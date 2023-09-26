@@ -2261,4 +2261,7 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
     },
+    eReceipt: {
+        guaranteed: 'eRecibo garantizado',
+    },
 } satisfies EnglishTranslation;
