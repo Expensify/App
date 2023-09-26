@@ -1,13 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import Clipboard from '../../../../libs/Clipboard';
 import useLocalize from '../../../../hooks/useLocalize';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import _ from 'underscore';
 
 const propTypes = {
     /** Card number */
@@ -61,7 +61,7 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
         const address = privatePersonalDetails.address || {};
         const [street1, street2] = (address.street || '').split('\n');
         const addressItems = [street1, street2, address.city, address.state, address.zip, address.country];
-        const areAllAddressItemsEmpty = [street1, street2, address.city, address.state, address.zip, address.country].every((item) => _.isEmpty(item));
+        const areAllAddressItemsEmpty = _.every(addressItems, (item) => _.isEmpty(item));
 
         if (areAllAddressItemsEmpty) {
             return null;
