@@ -1900,22 +1900,19 @@ function leaveRoom(reportID) {
  * Invites people to a room
  *
  * @param {String} reportID
- * @param {Array} inviteeAccountIDs
+ * @param {Array} inviteeEmails
  */
-function inviteToRoom(reportID, inviteeAccountIDs) {
+function inviteToRoom(reportID, inviteeEmails) {
     const report = lodashGet(allReports, [reportID], {});
 
-    const {participants, participantAccountIDs} = report;
-    const participantAccountIDsAfterInvitation = _.uniq([...participantAccountIDs, inviteeAccountIDs]);
-
-    const inviteeEmails = _.map(participantAccountIDs, (accountID) => allPersonalDetails[accountID].login);
+    const {participants} = report;
     const participantsAfterInvitation = _.uniq([...participants, inviteeEmails]);
 
     API.write(
         'InviteToRoom',
         {
             reportID,
-            inviteeAccountIDs,
+            inviteeEmails,
         },
         {
             optimisticData: [
@@ -1924,7 +1921,6 @@ function inviteToRoom(reportID, inviteeAccountIDs) {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         participants: participantsAfterInvitation,
-                        participantAccountIDs: participantAccountIDsAfterInvitation,
                     },
                 },
             ],
@@ -1934,7 +1930,6 @@ function inviteToRoom(reportID, inviteeAccountIDs) {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         participants,
-                        participantAccountIDs,
                     },
                 },
             ],
