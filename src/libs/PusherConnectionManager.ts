@@ -1,11 +1,12 @@
 import {ValueOf} from 'type-fest';
+import {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import * as Pusher from './Pusher/pusher';
 import * as Session from './actions/Session';
 import Log from './Log';
 import CONST from '../CONST';
+import {SocketEventName} from './Pusher/library/types';
 
 type EventCallbackError = {type: ValueOf<typeof CONST.ERROR>; data: {code: number}};
-type CustomAuthorizerChannel = {name: string};
 
 function init() {
     /**
@@ -14,13 +15,13 @@ function init() {
      * current valid token to generate the signed auth response
      * needed to subscribe to Pusher channels.
      */
-    Pusher.registerCustomAuthorizer((channel: CustomAuthorizerChannel) => ({
-        authorize: (socketID: string, callback: () => void) => {
-            Session.authenticatePusher(socketID, channel.name, callback);
+    Pusher.registerCustomAuthorizer((channel) => ({
+        authorize: (socketId: string, callback: ChannelAuthorizationCallback) => {
+            Session.authenticatePusher(socketId, channel.name, callback);
         },
     }));
 
-    Pusher.registerSocketEventCallback((eventName: string, error: EventCallbackError) => {
+    Pusher.registerSocketEventCallback((eventName: SocketEventName, error?: EventCallbackError) => {
         switch (eventName) {
             case 'error': {
                 const errorType = error?.type;

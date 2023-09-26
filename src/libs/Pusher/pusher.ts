@@ -7,6 +7,7 @@ import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
 import DeepValueOf from '../../types/utils/DeepValueOf';
+import {SocketEventName} from './library/types';
 
 type States = {
     previous: string;
@@ -23,9 +24,7 @@ type ChunkedDataEvents = {chunks: unknown[]; receivedFinal: boolean};
 
 type EventData = {id?: string; chunk?: unknown; final?: boolean; index: number};
 
-type SocketEventName = LiteralUnion<'error' | 'connected' | 'disconnected' | 'state_change', string>;
-
-type SocketEventCallback = (eventName: SocketEventName, data?: unknown) => void;
+type SocketEventCallback<T> = (eventName: SocketEventName, data?: T) => void;
 
 type PusherWithAuthParams = InstanceType<typeof Pusher> & {
     config: {
@@ -52,13 +51,13 @@ Onyx.connect({
 
 let socket: PusherWithAuthParams | null;
 let pusherSocketID = '';
-const socketEventCallbacks: SocketEventCallback[] = [];
+const socketEventCallbacks: Array<SocketEventCallback<unknown>> = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
 
 /**
  * Trigger each of the socket event callbacks with the event information
  */
-function callSocketEventCallbacks(eventName: SocketEventName, data?: unknown) {
+function callSocketEventCallbacks<T>(eventName: SocketEventName, data?: T) {
     socketEventCallbacks.forEach((cb) => cb(eventName, data));
 }
 
@@ -316,7 +315,7 @@ function sendEvent<T>(channelName: string, eventName: PusherEventName, payload: 
 /**
  * Register a method that will be triggered when a socket event happens (like disconnecting)
  */
-function registerSocketEventCallback(cb: SocketEventCallback) {
+function registerSocketEventCallback<T>(cb: SocketEventCallback<T>) {
     socketEventCallbacks.push(cb);
 }
 
