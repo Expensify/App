@@ -22,9 +22,6 @@ import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickE
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import * as Task from '../../../../libs/actions/Task';
-import * as Localize from '../../../../libs/Localize';
-import * as TransactionUtils from '../../../../libs/TransactionUtils';
-import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
 import * as NetworkStore from '../../../../libs/Network/NetworkStore';
 
 /**
