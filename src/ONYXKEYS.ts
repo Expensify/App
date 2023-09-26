@@ -42,9 +42,6 @@ const ONYXKEYS = {
     // Contains loading data for the IOU feature (MoneyRequestModal, IOUDetail, & MoneyRequestPreview Components)
     IOU: 'iou',
 
-    // Contains loading data for the DistanceRequest components (MoneyRequestEditWaypointPage)
-    DISTANCE_REQUEST: 'distanceRequest',
-
     /** Keeps track if there is modal currently visible or not */
     MODAL: 'modal',
 
