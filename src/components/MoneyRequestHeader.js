@@ -18,6 +18,7 @@ import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import * as TransactionUtils from '../libs/TransactionUtils';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import transactionPropTypes from './transactionPropTypes';
 import useWindowDimensions from '../hooks/useWindowDimensions';
@@ -84,7 +85,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 <HeaderWithBackButton
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton={isActionOwner && !isSettled}
+                    shouldShowThreeDotsButton={isActionOwner && !isSettled && !ReportActionsUtils.isDeletedAction(parentReportAction)}
                     threeDotsMenuItems={[
                         ...(TransactionUtils.hasReceipt(transaction)
                             ? []
