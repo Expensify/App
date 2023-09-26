@@ -47,6 +47,22 @@ type Transaction = {
     routes?: Routes;
     transactionID: string;
     tag: string;
+
+    /** Card Transactions */
+
+    reimbursable?: boolean;
+    /** The CC for this transaction */
+    cardID?: string;
+    /** If the transaction is pending or posted */
+    status?: ValueOf<typeof CONST.TRANSACTION.STATUS>;
+    /** If an EReceipt should be generated for this transaction */
+    hasEReceipt?: boolean;
+    /** The MCC Group for this transaction */
+    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+    modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+    /** If the transaction was made in a foreign currency, we send the original amount and currency */
+    originalAmount?: number;
+    originalCurrency?: string;
 };
 
 export default Transaction;
