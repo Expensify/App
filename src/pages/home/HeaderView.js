@@ -88,6 +88,8 @@ function HeaderView(props) {
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
     const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    // Use sorted display names for the fullTitle instead of title for group chats on native small screen widths
+    const sortedDisplayNames = isMultipleParticipant ? _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ') : '';
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -234,7 +236,7 @@ function HeaderView(props) {
                             )}
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
-                                    fullTitle={title}
+                                    fullTitle={!_.isEmpty(sortedDisplayNames) ? sortedDisplayNames : title}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}

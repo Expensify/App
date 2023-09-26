@@ -1191,7 +1191,7 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
  * @returns {Array}
  */
 function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
-    return _.map(personalDetailsList, (user) => {
+    const displayNames = _.map(personalDetailsList, (user) => {
         const accountID = Number(user.accountID);
         const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
         const avatar = UserUtils.getDefaultAvatar(accountID);
@@ -1210,6 +1210,19 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
             pronouns,
         };
     });
+
+    return _.chain(displayNames)
+        .sort((first, second) => {
+            // First sort by displayName/login
+            const displayNameLoginOrder = first.displayName.localeCompare(second.displayName);
+            if (displayNameLoginOrder !== 0) {
+                return displayNameLoginOrder;
+            }
+
+            // Then fallback on accountID as the final sorting criteria.
+            return first.accountID > second.accountID;
+        })
+        .value();
 }
 
 /**
