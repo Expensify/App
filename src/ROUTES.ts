@@ -243,12 +243,12 @@ export default {
     IOU_SEND_ADD_DEBIT_CARD: 'send/new/add-debit-card',
     IOU_SEND_ENABLE_PAYMENTS: 'send/new/enable-payments',
 
-    NEW_TASK:                                   'new/task',
-    NEW_TASK_ASSIGNEE:                          'new/task/assignee',
-    NEW_TASK_SHARE_DESTINATION:                 'new/task/share-destination',
-    NEW_TASK_DETAILS:                           'new/task/details',
-    NEW_TASK_TITLE:                             'new/task/title',
-    NEW_TASK_DESCRIPTION:                       'new/task/description',
+    NEW_TASK: 'new/task',
+    NEW_TASK_ASSIGNEE: 'new/task/assignee',
+    NEW_TASK_SHARE_DESTINATION: 'new/task/share-destination',
+    NEW_TASK_DETAILS: 'new/task/details',
+    NEW_TASK_TITLE: 'new/task/title',
+    NEW_TASK_DESCRIPTION: 'new/task/description',
 
     TEACHERS_UNITE: 'teachersunite',
     I_KNOW_A_TEACHER: 'teachersunite/i-know-a-teacher',
