@@ -19,6 +19,11 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
+import SAMLEnabledForm from './SAMLEnabledForm';
+import getPlatform from '../../libs/getPlatform';
+import Permissions from '../../libs/Permissions';
+import CONST from '../../CONST';
+import SAMLSignInPage from './SAMLSignInPage';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -48,6 +53,9 @@ const propTypes = {
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -59,23 +67,36 @@ const defaultProps = {
 /**
  * @param {Boolean} hasLogin
  * @param {Boolean} hasValidateCode
+ * @param {Boolean} hasAccount
  * @param {Boolean} isPrimaryLogin
  * @param {Boolean} isAccountValidated
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, hasEmailDeliveryFailure}) {
+function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, isSAMLEnabled, isSAMLRequired, hasEmailDeliveryFailure}) {
     const shouldShowLoginForm = !hasLogin && !hasValidateCode;
-    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure;
+    let shouldShowSAMLEnabledForm = false;
+    let shouldInitiateSAMLLogin = false;
+    const platform = getPlatform();
+
+    // SAML is temporarily restricted to users on the beta or to users signing in on web and mweb
+    if (Permissions.canUseSAML() || platform === CONST.PLATFORM.WEB) {
+        shouldShowSAMLEnabledForm = hasLogin && isSAMLEnabled && !isSAMLRequired;
+        shouldInitiateSAMLLogin = hasLogin && isSAMLRequired;
+    }
+
+    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !(shouldShowSAMLEnabledForm || shouldInitiateSAMLLogin);
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
-    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure;
-    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm;
+    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowSAMLEnabledForm && !shouldInitiateSAMLLogin;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowSAMLEnabledForm || isUnvalidatedSecondaryLogin;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowSAMLEnabledForm;
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
         shouldShowUnlinkLoginForm: isUnvalidatedSecondaryLogin,
         shouldShowValidateCodeForm,
+        shouldShowSAMLEnabledForm,
+        shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
     };
@@ -93,13 +114,15 @@ function SignInPage({credentials, account, isInModal}) {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
 
-    const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions(
+    const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowSAMLEnabledForm, shouldInitiateSAMLLogin, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions(
         {
             hasLogin: Boolean(credentials.login),
             hasValidateCode: Boolean(credentials.validateCode),
             hasAccount: !_.isEmpty(account),
             isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
             isAccountValidated: Boolean(account.validated),
+            isSAMLEnabled: Boolean(account.isSAMLEnabled),
+            isSAMLRequired: Boolean(account.isSAMLRequired),
             hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
         },
     );
@@ -132,11 +155,11 @@ function SignInPage({credentials, account, isInModal}) {
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
         }
-    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
+    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowSAMLEnabledForm) {
         welcomeHeader = shouldShowSmallScreen ? headerText : translate('welcomeText.welcomeBack');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
-        if (shouldShowEmailDeliveryFailurePage) {
+        if (shouldShowEmailDeliveryFailurePage || shouldShowSAMLEnabledForm) {
             welcomeText = '';
         }
     } else {
@@ -164,6 +187,8 @@ function SignInPage({credentials, account, isInModal}) {
                 />
                 {shouldShowValidateCodeForm && <ValidateCodeForm />}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
+                {shouldShowSAMLEnabledForm && <SAMLEnabledForm />}
+                {shouldInitiateSAMLLogin && <SAMLSignInPage />}
                 {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
         </View>
@@ -177,4 +202,5 @@ SignInPage.displayName = 'SignInPage';
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
+    betas: {key: ONYXKEYS.BETAS,},
 })(SignInPage);
