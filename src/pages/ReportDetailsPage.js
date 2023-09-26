@@ -82,7 +82,7 @@ function ReportDetailsPage(props) {
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
                 isAnonymousAction: true,
-                action: () => Navigation.navigate(ROUTES.getReportShareCodeRoute(props.report.reportID)),
+                action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(props.report.reportID)),
             },
         ];
 
@@ -98,7 +98,7 @@ function ReportDetailsPage(props) {
                 subtitle: participants.length,
                 isAnonymousAction: false,
                 action: () => {
-                    Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID));
+                    Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(props.report.reportID));
                 },
             });
         }
@@ -110,8 +110,20 @@ function ReportDetailsPage(props) {
                 icon: Expensicons.Gear,
                 isAnonymousAction: false,
                 action: () => {
-                    Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID));
+                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID));
                 },
+            });
+        }
+
+        // Prevent displaying private notes option for threads and task reports
+        if (!isThread && !ReportUtils.isTaskReport(props.report)) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
+                translationKey: 'privateNotes.title',
+                icon: Expensicons.Pencil,
+                isAnonymousAction: false,
+                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID)),
+                brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             });
         }
 
@@ -126,7 +138,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [props.report.reportID, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
+    }, [props.report, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -145,7 +157,7 @@ function ReportDetailsPage(props) {
     ) : null;
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                 <HeaderWithBackButton title={props.translate('common.details')} />
                 <ScrollView style={[styles.flex1]}>
@@ -177,7 +189,7 @@ function ReportDetailsPage(props) {
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.report.policyID));
+                                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.report.policyID));
                                     }}
                                 >
                                     {chatRoomSubtitleText}
@@ -206,7 +218,7 @@ function ReportDetailsPage(props) {
                                 onPress={item.action}
                                 isAnonymousAction={item.isAnonymousAction}
                                 shouldShowRightIcon
-                                brickRoadIndicator={brickRoadIndicator}
+                                brickRoadIndicator={brickRoadIndicator || item.brickRoadIndicator}
                             />
                         );
                     })}

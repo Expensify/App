@@ -174,7 +174,7 @@ class ReimbursementAccountPage extends React.Component {
         // user left off in the flow.
         const backTo = lodashGet(this.props.route.params, 'backTo');
         const policyId = lodashGet(this.props.route.params, 'policyID');
-        Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep), policyId, backTo));
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(this.getRouteForCurrentStep(currentStep), policyId, backTo));
     }
 
     /*
@@ -206,7 +206,7 @@ class ReimbursementAccountPage extends React.Component {
      * @returns {String}
      */
     getStepToOpenFromRouteParams() {
-        switch (lodashGet(this.props.route, ['params', 'stepToOpen'])) {
+        switch (lodashGet(this.props.route, ['params', 'stepToOpen'], '')) {
             case 'new':
                 return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
             case 'company':
@@ -284,7 +284,7 @@ class ReimbursementAccountPage extends React.Component {
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const subStep = achData.subStep;
         const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
-        const backTo = lodashGet(this.props.route.params, 'backTo');
+        const backTo = lodashGet(this.props.route.params, 'backTo', ROUTES.HOME);
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 if (this.hasInProgressVBBA()) {
@@ -339,7 +339,7 @@ class ReimbursementAccountPage extends React.Component {
 
         if (_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy)) {
             return (
-                <ScreenWrapper>
+                <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                     <FullPageNotFoundView
                         shouldShow
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
@@ -385,7 +385,7 @@ class ReimbursementAccountPage extends React.Component {
 
         if (errorText) {
             return (
-                <ScreenWrapper>
+                <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                     <HeaderWithBackButton
                         title={this.props.translate('workspace.common.connectBankAccount')}
                         subtitle={policyName}
@@ -405,7 +405,7 @@ class ReimbursementAccountPage extends React.Component {
                     continue={this.continue}
                     policyName={policyName}
                     onBackButtonPress={() => {
-                        Navigation.goBack(lodashGet(this.props.route.params, 'backTo'));
+                        Navigation.goBack(lodashGet(this.props.route.params, 'backTo', ROUTES.HOME));
                     }}
                 />
             );
@@ -421,6 +421,7 @@ class ReimbursementAccountPage extends React.Component {
                     plaidLinkOAuthToken={this.props.plaidLinkToken}
                     getDefaultStateForField={this.getDefaultStateForField}
                     policyName={policyName}
+                    policyID={policyID}
                 />
             );
         }

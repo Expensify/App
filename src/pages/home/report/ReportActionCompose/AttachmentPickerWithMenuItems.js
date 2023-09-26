@@ -76,6 +76,9 @@ const propTypes = {
     /** Called when the add action button is pressed */
     onAddActionPressed: PropTypes.func.isRequired,
 
+    /** Called when the menu item is selected */
+    onItemSelected: PropTypes.func.isRequired,
+
     /** A ref for the add action button */
     actionButtonRef: PropTypes.shape({
         // eslint-disable-next-line react/forbid-prop-types
@@ -111,6 +114,7 @@ function AttachmentPickerWithMenuItems({
     onCanceledAttachmentPicker,
     onMenuClosed,
     onAddActionPressed,
+    onItemSelected,
     actionButtonRef,
 }) {
     const {translate} = useLocalize();
@@ -257,6 +261,7 @@ function AttachmentPickerWithMenuItems({
                             onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {
                                 setMenuVisibility(false);
+                                onItemSelected();
 
                                 // In order for the file picker to open dynamically, the click
                                 // function must be called from within a event handler that was initiated

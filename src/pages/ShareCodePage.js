@@ -55,7 +55,7 @@ class ShareCodePage extends React.Component {
         }
 
         if (isReport) {
-            return ReportUtils.getChatRoomSubtitle(this.props.report);
+            return ReportUtils.getParentNavigationSubtitle(this.props.report).workspaceName || ReportUtils.getChatRoomSubtitle(this.props.report);
         }
 
         return this.props.formatPhoneNumber(this.props.session.email);
@@ -65,20 +65,19 @@ class ShareCodePage extends React.Component {
         const isReport = this.props.report != null && this.props.report.reportID != null;
         const title = isReport ? ReportUtils.getReportName(this.props.report) : this.props.currentUserPersonalDetails.displayName;
         const subtitle = this.getSubtitle(isReport);
-
         const urlWithTrailingSlash = Url.addTrailingForwardSlash(this.props.environmentURL);
         const url = isReport
-            ? `${urlWithTrailingSlash}${ROUTES.getReportRoute(this.props.report.reportID)}`
-            : `${urlWithTrailingSlash}${ROUTES.getProfileRoute(this.props.session.accountID)}`;
+            ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(this.props.report.reportID)}`
+            : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(this.props.session.accountID)}`;
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper testID={ShareCodePage.displayName}>
                 <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}
-                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.getReportDetailsRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
+                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
                 />
 
                 <ScrollView style={[styles.flex1, styles.mt3]}>

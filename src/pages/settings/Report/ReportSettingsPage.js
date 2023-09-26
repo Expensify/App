@@ -82,11 +82,11 @@ function ReportSettingsPage(props) {
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={ReportSettingsPage.displayName}>
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportDetailsRoute(report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID))}
                 />
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
@@ -94,7 +94,7 @@ function ReportSettingsPage(props) {
                             shouldShowRightIcon
                             title={notificationPreference}
                             description={translate('notificationPreferencesPage.label')}
-                            onPress={() => Navigation.navigate(ROUTES.getReportSettingsNotificationPreferencesRoute(report.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID))}
                         />
                     )}
                     {shouldShowRoomName && (
@@ -124,7 +124,7 @@ function ReportSettingsPage(props) {
                                     shouldShowRightIcon
                                     title={report.reportName}
                                     description={translate('newRoomPage.roomName')}
-                                    onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoomNameRoute(report.reportID))}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(report.reportID))}
                                 />
                             )}
                         </OfflineWithFeedback>
@@ -135,7 +135,7 @@ function ReportSettingsPage(props) {
                                 shouldShowRightIcon
                                 title={writeCapabilityText}
                                 description={translate('writeCapabilityPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.getReportSettingsWriteCapabilityRoute(report.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(report.reportID))}
                             />
                         ) : (
                             <View style={[styles.ph5, styles.pv3]}>
@@ -192,7 +192,7 @@ function ReportSettingsPage(props) {
                         <MenuItem
                             title={translate('welcomeMessagePage.welcomeMessage')}
                             icon={Expensicons.ChatBubble}
-                            onPress={() => Navigation.navigate(ROUTES.getReportWelcomeMessageRoute(report.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_WELCOME_MESSAGE.getRoute(report.reportID))}
                             shouldShowRightIcon
                         />
                     )}

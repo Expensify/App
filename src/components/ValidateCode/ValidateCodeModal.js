@@ -4,7 +4,7 @@ import {compose} from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
@@ -39,7 +39,7 @@ const defaultProps = {
 };
 
 function ValidateCodeModal(props) {
-    const signInHere = useCallback(() => Session.signInWithValidateCode(props.accountID, props.code, props.preferredLocale), [props.accountID, props.code, props.preferredLocale]);
+    const signInHere = useCallback(() => Session.signInWithValidateCode(props.accountID, props.code), [props.accountID, props.code]);
 
     return (
         <View style={styles.deeplinkWrapperContainer}>
@@ -71,7 +71,7 @@ function ValidateCodeModal(props) {
                 <Icon
                     width={variables.modalWordmarkWidth}
                     height={variables.modalWordmarkHeight}
-                    fill={colors.green}
+                    fill={themeColors.success}
                     src={Expensicons.ExpensifyWordmark}
                 />
             </View>
