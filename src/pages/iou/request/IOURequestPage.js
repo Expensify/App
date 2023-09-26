@@ -17,6 +17,7 @@ import * as IOUUtils from '../../../libs/IOUUtils';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import CreateIOUStartTabManual from './create/tab/IOURequestCreateTabManual';
 import CreateIOUStartRequest from './create/IOURequestCreate';
+import transactionPropTypes from '../../../components/transactionPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -36,16 +37,21 @@ const propTypes = {
             selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
         }),
     }).isRequired,
+
+    /* Onyx Props */
+    /** The transaction with changes saved to it in Onyx */
+    transaction: transactionPropTypes,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    transaction: {},
+};
 
-function IOURequestPage({route}) {
+function IOURequestPage({route, transaction}) {
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const iouType = lodashGet(route, 'params.iouType');
     const selectedTab = lodashGet(route, 'params.selectedTab');
-    const reportID = lodashGet(route, 'params.reportID');
     const tabTitles = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
@@ -74,7 +80,7 @@ function IOURequestPage({route}) {
                             {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <CreateIOUStartRequest
                                     selectedTab={selectedTab}
-                                    shouldDisplayDistanceTab={reportID !== CONST.IOU.OPTIMISTIC_REPORT_ID}
+                                    shouldDisplayDistanceTab={transaction.reportExistsOnServer}
                                     iouType={iouType}
                                 />
                             ) : (
@@ -94,7 +100,7 @@ IOURequestPage.propTypes = propTypes;
 IOURequestPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+    transaction: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`,
     },
 })(IOURequestPage);
