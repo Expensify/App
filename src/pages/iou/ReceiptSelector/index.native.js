@@ -134,7 +134,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
             title,
             reason,
         });
-    }, [])
+    }, []);
 
     function validateReceipt(file) {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'fileName', ''));
