@@ -77,9 +77,7 @@ Onyx.connect({
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: (val) => {
-        isNetworkOffline = lodashGet(val, 'isOffline', false);
-    },
+    callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
 });
 
 let allPersonalDetails;

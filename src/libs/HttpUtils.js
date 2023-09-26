@@ -5,6 +5,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
 import * as ApiUtils from './ApiUtils';
 import alert from '../components/Alert';
+import * as NetworkActions from './actions/Network';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -58,8 +59,7 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
                 const endTime = new Date().valueOf();
                 const latency = (endTime - startTime) / 2;
                 const skew = serverTime - startTime + latency;
-                // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: skew});
+                NetworkActions.setTimeSkew(skew);
             }
             return response;
         })

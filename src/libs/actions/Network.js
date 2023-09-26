@@ -9,6 +9,13 @@ function setIsOffline(isOffline) {
 }
 
 /**
+ * @param {Number} skew
+ */
+function setTimeSkew(skew) {
+    Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: skew});
+}
+
+/**
  *
  * @param {Boolean} shouldForceOffline
  */
@@ -24,4 +31,4 @@ function setShouldFailAllRequests(shouldFailAllRequests) {
     Onyx.merge(ONYXKEYS.NETWORK, {shouldFailAllRequests});
 }
 
-export {setIsOffline, setShouldForceOffline, setShouldFailAllRequests};
+export {setIsOffline, setShouldForceOffline, setShouldFailAllRequests, setTimeSkew};
