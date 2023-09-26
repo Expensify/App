@@ -511,12 +511,10 @@ function ReportActionItem(props) {
                         checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
                     }}
                 >
-                    <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                        <MoneyRequestView
-                            report={props.report}
-                            shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                        />
-                    </OfflineWithFeedback>
+                    <MoneyRequestView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
                 </ShowContextMenuContext.Provider>
             );
         }
@@ -538,12 +536,10 @@ function ReportActionItem(props) {
             }
 
             return (
-                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                    <TaskView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
-                </OfflineWithFeedback>
+                <TaskView
+                    report={props.report}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                />
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
@@ -681,7 +677,11 @@ export default compose(
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
         iouReport: {
-            key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT}${ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}`,
+            key: ({action}) => {
+                const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
+                return iouReportID ? `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}` : undefined;
+            },
+            initialValue: {},
         },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,

@@ -1,7 +1,8 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -23,7 +24,7 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
 import ROUTES from '../../ROUTES';
 
 const propTypes = {
@@ -66,9 +67,26 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
 
     // To focus on the input field when the page loads
     const privateNotesInput = useRef(null);
+    const focusTimeoutRef = useRef(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                if (privateNotesInput.current) {
+                    privateNotesInput.current.focus();
+                }
+                return () => {
+                    if (!focusTimeoutRef.current) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
+            }, CONST.ANIMATED_TRANSITION);
+        }, []),
+    );
 
     const savePrivateNote = () => {
-        const editedNote = parser.replace(privateNote);
+        const editedNote = parser.replace(privateNote.trim());
         Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         Keyboard.dismiss();
 
@@ -79,7 +97,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(privateNotesInput.current)}
+            testID={PrivateNotesEditPage.displayName}
         >
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || !isCurrentUserNote}
@@ -120,6 +138,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                                 label={translate('privateNotes.composerLabel')}
                                 accessibilityLabel={translate('privateNotes.title')}
                                 autoCompleteType="off"
+                                maxLength={CONST.MAX_COMMENT_LENGTH}
                                 autoCorrect={false}
                                 autoGrowHeight
                                 textAlignVertical="top"
@@ -127,7 +146,13 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                                 defaultValue={privateNote}
                                 value={privateNote}
                                 onChangeText={(text) => setPrivateNote(text)}
-                                ref={(el) => (privateNotesInput.current = el)}
+                                ref={(el) => {
+                                    if (!el) {
+                                        return;
+                                    }
+                                    privateNotesInput.current = el;
+                                    updateMultilineInputRange(privateNotesInput.current);
+                                }}
                             />
                         </OfflineWithFeedback>
                     </Form>
