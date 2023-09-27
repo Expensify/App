@@ -3,7 +3,7 @@ import {propTypes, defaultProps} from './displayNamesPropTypes';
 import Text from '../Text';
 import RenderHTML from '../RenderHTML';
 import * as StringUtils from '../../libs/StringUtils';
-import * as StyleUtils from "../../styles/StyleUtils";
+import * as StyleUtils from '../../styles/StyleUtils';
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
 function DisplayNames(props) {
@@ -14,7 +14,7 @@ function DisplayNames(props) {
         <Text
             accessibilityLabel={props.accessibilityLabel}
             // Set a fixed height to prevent RenderHTML's text overflow on iOS
-            style={[containsHtml? StyleUtils.getHeightOfRenderHtmlText(props.numberOfLines) : {}, ...props.textStyles]}
+            style={[containsHtml ? StyleUtils.getHeightOfRenderHtmlText(props.numberOfLines) : {}, ...props.textStyles]}
             numberOfLines={props.numberOfLines || undefined}
         >
             {fullTitle}

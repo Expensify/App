@@ -19,7 +19,4 @@ function sanitizeString(str: string): string {
     return _.deburr(str).toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
 }
 
-export {
-    containsHtml,
-    sanitizeString
-};
+export {containsHtml, sanitizeString};
