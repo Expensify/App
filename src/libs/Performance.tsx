@@ -1,5 +1,8 @@
 import React, {Profiler, forwardRef} from 'react';
 import {Alert, InteractionManager} from 'react-native';
+import lodashTransform from 'lodash/transform';
+import isObject from 'lodash/isObject';
+import isEqual from 'lodash/isEqual';
 import {Performance as RNPerformance, PerformanceEntry, PerformanceMark, PerformanceMeasure} from 'react-native-performance';
 import {PerformanceObserverEntryList} from 'react-native-performance/lib/typescript/performance-observer';
 
@@ -54,23 +57,14 @@ let rnPerformance: RNPerformance;
  */
 function diffObject(object: Record<string, unknown>, base: Record<string, unknown>): Record<string, unknown> {
     function changes(obj: Record<string, unknown>, comparisonObject: Record<string, unknown>): Record<string, unknown> {
-        return Object.entries(obj).reduce((result: Record<string, unknown>, [key, value]) => {
-            if (Object.hasOwn(comparisonObject, key) && typeof value === 'object' && typeof comparisonObject[key] === 'object') {
-                const nestedChanges = changes(value as Record<string, unknown>, comparisonObject[key] as Record<string, unknown>);
-
-                if (Object.keys(nestedChanges).length > 0) {
-                    return {...result, [key]: nestedChanges};
-                }
-
-                return result;
+        return lodashTransform(obj, (result, value, key) => {
+            if (isEqual(value, comparisonObject[key])) {
+                return;
             }
 
-            if (!Object.hasOwn(comparisonObject, key) || value !== comparisonObject[key]) {
-                return {...result, [key]: value};
-            }
-
-            return result;
-        }, {});
+            // eslint-disable-next-line no-param-reassign
+            result[key] = isObject(value) && isObject(comparisonObject[key]) ? changes(value as Record<string, unknown>, comparisonObject[key] as Record<string, unknown>) : value;
+        });
     }
     return changes(object, base);
 }
