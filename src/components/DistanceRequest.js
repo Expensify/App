@@ -189,6 +189,10 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
 
     const updateWaypoints = useCallback(
         ({data}) => {
+            if (_.isEqual(waypointsList, data)) {
+                return;
+            }
+
             const newWaypoints = {};
             _.each(data, (waypoint, index) => {
                 const newWaypoint = lodashGet(waypoints, waypoint, {});
@@ -196,7 +200,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
             });
             Transaction.updateWaypoints(iou.transactionID, newWaypoints);
         },
-        [iou.transactionID, waypoints],
+        [iou.transactionID, waypoints, waypointsList],
     );
 
     const renderItem = ({item, drag, getIndex, isActive}) => {
