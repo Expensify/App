@@ -120,9 +120,7 @@ function resetMoneyRequestInfo(id = '') {
         amount: 0,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
-        // TODO: remove participants after all instances of iou.participants will be replaced with iou.participantAccountIDs
         participants: [],
-        participantAccountIDs: [],
         merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
         category: '',
         tag: '',
@@ -606,8 +604,9 @@ function getMoneyRequestInformation(
  * @param {Number} amount
  * @param {String} currency
  * @param {String} merchant
+ * @param {Boolean} [billable]
  */
-function createDistanceRequest(report, participant, comment, created, transactionID, category, tag, amount, currency, merchant) {
+function createDistanceRequest(report, participant, comment, created, transactionID, category, tag, amount, currency, merchant, billable) {
     const optimisticReceipt = {
         source: ReceiptGeneric,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
@@ -626,6 +625,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
         transactionID,
         category,
         tag,
+        billable,
     );
     API.write(
         'CreateDistanceRequest',
@@ -642,6 +642,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
             created,
             category,
             tag,
+            billable,
         },
         onyxData,
     );
@@ -1226,6 +1227,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                     created: null,
                     currency: null,
                     merchant: null,
+                    billable: null,
                     category: null,
                     tag: null,
                 },
@@ -1274,7 +1276,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     ];
 
     // STEP 6: Call the API endpoint
-    const {created, amount, currency, comment, merchant, category, tag} = ReportUtils.getTransactionDetails(updatedTransaction);
+    const {created, amount, currency, comment, merchant, category, billable, tag} = ReportUtils.getTransactionDetails(updatedTransaction);
     API.write(
         'EditMoneyRequest',
         {
@@ -1286,6 +1288,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             comment,
             merchant,
             category,
+            billable,
             tag,
         },
         {optimisticData, successData, failureData},
@@ -2088,9 +2091,7 @@ function setMoneyRequestBillable(billable) {
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
-    // TODO: temporarily we want to save both participants and participantAccountIDs, then we can remove participants (and rename the function)
-    // more info: https://github.com/Expensify/App/issues/25714#issuecomment-1712924903 and https://github.com/Expensify/App/issues/25714#issuecomment-1716335802
-    Onyx.merge(ONYXKEYS.IOU, {participants, participantAccountIDs: _.map(participants, 'accountID')});
+    Onyx.merge(ONYXKEYS.IOU, {participants});
 }
 
 /**

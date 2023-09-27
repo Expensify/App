@@ -103,6 +103,7 @@ function ProfilePage(props) {
 
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
+    const fallbackIcon = lodashGet(details, 'fallbackIcon', '');
     const originalFileName = lodashGet(details, 'originalFileName', '');
     const login = lodashGet(details, 'login', '');
     const timezone = lodashGet(details, 'timezone', {});
@@ -161,6 +162,7 @@ function ProfilePage(props) {
                                 source={UserUtils.getFullSizeAvatar(avatar, accountID)}
                                 isAuthTokenRequired
                                 originalFileName={originalFileName}
+                                fallbackSource={fallbackIcon}
                             >
                                 {({show}) => (
                                     <PressableWithoutFocus
@@ -175,6 +177,7 @@ function ProfilePage(props) {
                                                 imageStyles={[styles.avatarLarge]}
                                                 source={UserUtils.getAvatar(avatar, accountID)}
                                                 size={CONST.AVATAR_SIZE.LARGE}
+                                                fallbackIcon={fallbackIcon}
                                             />
                                         </OfflineWithFeedback>
                                     </PressableWithoutFocus>

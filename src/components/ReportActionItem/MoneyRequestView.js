@@ -9,13 +9,15 @@ import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
+import Permissions from '../../libs/Permissions';
 import Navigation from '../../libs/Navigation/Navigation';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
-import Permissions from '../../libs/Permissions';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as IOU from '../../libs/actions/IOU';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -30,6 +32,7 @@ import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import transactionPropTypes from '../transactionPropTypes';
 import Image from '../Image';
+import Switch from '../Switch';
 import ReportActionItemImage from './ReportActionItemImage';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
@@ -103,7 +106,6 @@ function getNotesCount(transaction) {
 function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
     const {
@@ -112,6 +114,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
         currency: transactionCurrency,
         comment: transactionDescription,
         merchant: transactionMerchant,
+        billable: transactionBillable,
         category: transactionCategory,
         tag: transactionTag,
     } = ReportUtils.getTransactionDetails(transaction);
@@ -131,6 +134,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     // Flags for showing categories and tags
     const shouldShowCategory = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
     const shouldShowTag = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
+    const shouldShowBillable = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
@@ -154,6 +158,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     }
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    const pendingAction = lodashGet(transaction, 'pendingAction');
+    const getPendingFieldAction = (fieldPath) => lodashGet(transaction, fieldPath) || pendingAction;
 
     return (
         <View>
@@ -166,13 +172,15 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
             </View>
 
             {hasReceipt && (
-                <View style={styles.moneyRequestViewImage}>
-                    <ReportActionItemImage
-                        thumbnail={receiptURIs.thumbnail}
-                        image={receiptURIs.image}
-                        enablePreviewModal
-                    />
-                </View>
+                <OfflineWithFeedback pendingAction={pendingAction}>
+                    <View style={styles.moneyRequestViewImage}>
+                        <ReportActionItemImage
+                            thumbnail={receiptURIs.thumbnail}
+                            image={receiptURIs.image}
+                            enablePreviewModal
+                        />
+                    </View>
+                </OfflineWithFeedback>
             )}
     <Icon
         width={32}
@@ -182,7 +190,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
 <Text>
         Receipt Audit • {getNotesCount(transaction) > 0 ? `${getNotesCount(transaction)} Issue(s) Found` : 'No issues Found'}
 </Text>
-            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.amount') || lodashGet(transaction, 'pendingAction')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
                 <MenuItemWithTopDescription
                     title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
                     shouldShowTitleIcon={isSettled}
@@ -202,7 +210,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     </View>
                 )}
             </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment') || lodashGet(transaction, 'pendingAction')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.comment')}>
                 <MenuItemWithTopDescription
                     description={translate('common.description')}
                     shouldParseTitle
@@ -215,7 +223,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     numberOfLinesTitle={0}
                 />
             </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.created') || lodashGet(transaction, 'pendingAction')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.created')}>
                 <MenuItemWithTopDescription
                     description={translate('common.date')}
                     title={transactionDate}
@@ -233,7 +241,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                 </View>
             )}
             </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.merchant')}>
                 <MenuItemWithTopDescription
                     description={isDistanceRequest ? translate('common.distance') : translate('common.merchant')}
                     title={transactionMerchant}
@@ -269,6 +277,16 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
                     />
                 </OfflineWithFeedback>
+            )}
+            {shouldShowBillable && (
+                <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <Text color={!transactionBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                    <Switch
+                        accessibilityLabel={translate('common.billable')}
+                        isOn={transactionBillable}
+                        onToggle={(value) => IOU.editMoneyRequest(transaction.transactionID, report.reportID, {billable: value})}
+                    />
+                </View>
             )}
             <SpacerView
                 shouldShow={shouldShowHorizontalRule}

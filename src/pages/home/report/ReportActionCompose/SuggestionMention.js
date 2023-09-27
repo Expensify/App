@@ -51,7 +51,6 @@ function SuggestionMention({
     personalDetails,
     updateComment,
     composerHeight,
-    shouldShowReportRecipientLocalTime,
     forwardedRef,
     isAutoSuggestionPickerLarge,
     measureParentContainer,
@@ -169,6 +168,7 @@ function SuggestionMention({
                             name: detail.login,
                             source: UserUtils.getAvatar(detail.avatar, detail.accountID),
                             type: 'avatar',
+                            fallbackIcon: detail.fallbackIcon,
                         },
                     ],
                 });
@@ -284,7 +284,6 @@ function SuggestionMention({
             isComposerFullSize={isComposerFullSize}
             isMentionPickerLarge={isAutoSuggestionPickerLarge}
             composerHeight={composerHeight}
-            shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
             measureParentContainer={measureParentContainer}
         />
     );

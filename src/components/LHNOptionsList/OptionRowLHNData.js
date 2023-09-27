@@ -156,6 +156,7 @@ const personalDetailsSelector = (personalDetails) =>
                 firstName: personalData.firstName,
                 status: personalData.status,
                 avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
+                fallbackIcon: personalData.fallbackIcon,
             };
             return finalPersonalDetails;
         },
