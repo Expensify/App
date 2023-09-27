@@ -50,7 +50,7 @@ function Popover(props) {
 
     return (
         <View
-            style={[{zIndex: 1}, modalStyle]}
+            style={[modalStyle, {zIndex: 1}]}
             ref={ref}
         >
             <SafeAreaInsetsContext.Consumer>

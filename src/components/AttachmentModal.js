@@ -32,6 +32,7 @@ import ROUTES from '../ROUTES';
 import useNativeDriver from '../libs/useNativeDriver';
 import Receipt from '../libs/actions/Receipt';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import useNetwork from '../hooks/useNetwork';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -123,6 +124,7 @@ function AttachmentModal(props) {
             : undefined,
     );
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     const onCarouselAttachmentChange = props.onCarouselAttachmentChange;
 
@@ -352,7 +354,7 @@ function AttachmentModal(props) {
                 <HeaderWithBackButton
                     title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
                     shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !isAttachmentReceipt}
+                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !isAttachmentReceipt && !isOffline}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
@@ -365,7 +367,7 @@ function AttachmentModal(props) {
                             icon: Expensicons.Camera,
                             text: props.translate('common.replace'),
                             onSelected: () => {
-                                onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
+                                onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
                                 closeModal();
                             },
                         },
@@ -406,6 +408,7 @@ function AttachmentModal(props) {
                                 file={file}
                                 onToggleKeyboard={updateConfirmButtonVisibility}
                                 isWorkspaceAvatar={props.isWorkspaceAvatar}
+                                fallbackSource={props.fallbackSource}
                             />
                         )
                     )}
