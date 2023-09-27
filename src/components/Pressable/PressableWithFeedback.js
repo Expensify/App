@@ -7,7 +7,7 @@ import OpacityView from '../OpacityView';
 import variables from '../../styles/variables';
 import useSingleExecution from '../../hooks/useSingleExecution';
 
-const omittedProps = ['wrapperStyle'];
+const omittedProps = ['wrapperStyle', 'needsOffscreenAlphaCompositing'];
 
 const PressableWithFeedbackPropTypes = {
     ...GenericPressablePropTypes.pressablePropTypes,
@@ -27,6 +27,9 @@ const PressableWithFeedbackPropTypes = {
      *  Used to locate this view from native classes.
      */
     nativeID: propTypes.string,
+
+    /** Whether the view needs to be rendered offscreen (for Android only) */
+    needsOffscreenAlphaCompositing: propTypes.bool,
 };
 
 const PressableWithFeedbackDefaultProps = {
@@ -35,10 +38,11 @@ const PressableWithFeedbackDefaultProps = {
     hoverDimmingValue: variables.hoverDimValue,
     nativeID: '',
     wrapperStyle: [],
+    needsOffscreenAlphaCompositing: false,
 };
 
 const PressableWithFeedback = forwardRef((props, ref) => {
-    const propsWithoutWrapperStyles = _.omit(props, omittedProps);
+    const propsWithoutWrapperProps = _.omit(props, omittedProps);
     const {isExecuting, singleExecution} = useSingleExecution();
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -49,11 +53,12 @@ const PressableWithFeedback = forwardRef((props, ref) => {
             shouldDim={Boolean(!isDisabled && (isPressed || isHovered))}
             dimmingValue={isPressed ? props.pressDimmingValue : props.hoverDimmingValue}
             style={props.wrapperStyle}
+            needsOffscreenAlphaCompositing={props.needsOffscreenAlphaCompositing}
         >
             <GenericPressable
                 ref={ref}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...propsWithoutWrapperStyles}
+                {...propsWithoutWrapperProps}
                 disabled={isDisabled}
                 isExecuting={isExecuting}
                 onHoverIn={() => {

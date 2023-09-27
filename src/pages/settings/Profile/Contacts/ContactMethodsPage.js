@@ -100,7 +100,7 @@ function ContactMethodsPage(props) {
                 <MenuItem
                     title={menuItemTitle}
                     description={description}
-                    onPress={() => Navigation.navigate(ROUTES.getEditContactMethodRoute(partnerUserID))}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID))}
                     brickRoadIndicator={indicator}
                     shouldShowBasicTitle
                     shouldShowRightIcon

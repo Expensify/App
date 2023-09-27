@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState, useRef, useEffect, useCallback} from 'react';
+import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import {Animated, View, StyleSheet} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
@@ -21,6 +21,7 @@ import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import withLocalize from '../withLocalize';
 import useNativeDriver from '../../libs/useNativeDriver';
+import * as Browser from '../../libs/Browser';
 
 function BaseTextInput(props) {
     const inputValue = props.value || props.defaultValue || '';
@@ -235,6 +236,25 @@ function BaseTextInput(props) {
     ]);
     const isMultiline = props.multiline || props.autoGrowHeight;
 
+    /* To prevent text jumping caused by virtual DOM calculations on Safari and mobile Chrome,
+    make sure to include the `lineHeight`.
+    Reference: https://github.com/Expensify/App/issues/26735
+
+    For other platforms, explicitly remove `lineHeight` from single-line inputs
+    to prevent long text from disappearing once it exceeds the input space.
+    See https://github.com/Expensify/App/issues/13802 */
+    const lineHeight = useMemo(() => {
+        if (Browser.isSafari() && _.isArray(props.inputStyle)) {
+            const lineHeightValue = _.find(props.inputStyle, (f) => f.lineHeight !== undefined);
+            if (lineHeightValue) {
+                return lineHeightValue.lineHeight;
+            }
+        } else if (Browser.isSafari() || Browser.isMobileChrome()) {
+            return height;
+        }
+        return undefined;
+    }, [props.inputStyle, height]);
+
     return (
         <>
             <View style={styles.pointerEventsNone}>
@@ -320,7 +340,7 @@ function BaseTextInput(props) {
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
                                     // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
-                                    !isMultiline && {height, lineHeight: undefined},
+                                    !isMultiline && {height, lineHeight},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
@@ -382,11 +402,17 @@ function BaseTextInput(props) {
                 This Text component is intentionally positioned out of the screen.
             */}
             {(props.autoGrow || props.autoGrowHeight) && (
-                // Add +2 to width so that the first digit of amount do not cut off on mWeb - https://github.com/Expensify/App/issues/8158.
+                // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
+                // https://github.com/Expensify/App/issues/8158
+                // https://github.com/Expensify/App/issues/26628
                 <Text
                     style={[...props.inputStyle, props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width, maxHeight), styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                     onLayout={(e) => {
-                        setTextInputWidth(e.nativeEvent.layout.width + 2);
+                        let additionalWidth = 0;
+                        if (Browser.isMobileSafari() || Browser.isSafari()) {
+                            additionalWidth = 2;
+                        }
+                        setTextInputWidth(e.nativeEvent.layout.width + additionalWidth);
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
                 >
