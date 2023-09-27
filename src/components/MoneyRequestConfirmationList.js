@@ -549,7 +549,7 @@ function MoneyRequestConfirmationList(props) {
                         />
                     )}
                     {shouldShowBillable && (
-                        <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                        <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.mt2]}>
                             <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
                             <Switch
                                 accessibilityLabel={translate('common.billable')}
