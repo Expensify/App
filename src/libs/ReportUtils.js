@@ -1469,7 +1469,6 @@ function getTransactionReportName(reportAction) {
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
-
     if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
         return Localize.translateLocal('iou.receiptMissingDetails');
     }
