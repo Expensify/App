@@ -12,7 +12,7 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import SelectionList from '../../../../components/SelectionList';
+import RadioListItem from '../../../../components/SelectionList/RadioListItem';
 import useLocalize from '../../../../hooks/useLocalize';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
@@ -157,6 +157,20 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const customStatusDate = DateUtils.extractDate(draftClearAfter);
     const customStatusTime = DateUtils.extractTime12Hour(draftClearAfter);
 
+    const timePeriodOptions = useCallback(
+        () =>
+            statusType.map((item, index) => {
+                return (
+                    <RadioListItem
+                        item={item}
+                        key={index}
+                        onSelectRow={() => updateMode(item)}
+                    />
+                );
+            }),
+        [statusType, updateMode],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -178,14 +192,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 enabledWhenOffline
             >
                 <View>
-                    <SelectionList
-                        sections={[{data: statusType, indexOffset: 0}]}
-                        onSelectRow={updateMode}
-                        disableInitialFocusOptionStyle
-                        wrapperStyle={{flex: null}}
-                        useSeparator
-                    />
-
+                    {timePeriodOptions()}
                     {draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM && (
                         <>
                             <MenuItemWithTopDescription
