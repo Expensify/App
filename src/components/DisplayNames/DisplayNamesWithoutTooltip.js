@@ -4,7 +4,6 @@ import styles from '../../styles/styles';
 import Text from '../Text';
 import RenderHTML from '../RenderHTML';
 import * as StringUtils from '../../libs/StringUtils';
-import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     /** The full title of the DisplayNames component (not split up) */

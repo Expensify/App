@@ -30,7 +30,6 @@ import PressableWithoutFeedback from '../../components/Pressable/PressableWithou
 import PinButton from '../../components/PinButton';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as StyleUtils from '../../styles/StyleUtils';
 import ParentNavigationSubtitle from '../../components/ParentNavigationSubtitle';
 
 const propTypes = {
