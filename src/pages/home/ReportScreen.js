@@ -435,6 +435,7 @@ function ReportScreen({
                                         isComposerFullSize={isComposerFullSize}
                                         onSubmitComment={onSubmitComment}
                                         policies={policies}
+                                        personalDetails={personalDetails}
                                     />
                                 </>
                             )}

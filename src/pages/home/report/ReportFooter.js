@@ -17,6 +17,7 @@ import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Session from '../../../libs/actions/Session';
+import participantPropTypes from '../../../components/participantPropTypes';
 
 const propTypes = {
     /** Report object for the current report */
@@ -34,6 +35,9 @@ const propTypes = {
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
 
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
     /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
 
@@ -48,6 +52,7 @@ const defaultProps = {
     reportActions: [],
     onSubmitComment: () => {},
     pendingAction: null,
+    personalDetails: {},
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
 };
@@ -68,6 +73,7 @@ function ReportFooter(props) {
                         <AnonymousReportFooter
                             report={props.report}
                             isSmallSizeLayout={isSmallSizeLayout}
+                            personalDetails={props.personalDetails}
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
