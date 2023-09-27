@@ -15,8 +15,6 @@ const requestsToIgnoreLastUpdateID = ['OpenApp', 'ReconnectApp', 'GetMissingOnyx
  */
 function SaveResponseInOnyx(requestResponse, request) {
     return requestResponse.then((response) => {
-        console.log('RORY_DEBUG', request, response);
-
         // Make sure we have response data (i.e. response isn't a promise being passed down to us by a failed retry request and response undefined)
         if (!response) {
             return;

@@ -3,7 +3,6 @@ import * as NetworkStore from '../../src/libs/Network/NetworkStore';
 import * as Request from '../../src/libs/Request';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as TestHelper from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as MainQueue from '../../src/libs/Network/MainQueue';
@@ -24,6 +23,7 @@ beforeEach(async () => {
     NetworkStore.checkRequiredData();
     await waitForNetworkPromises();
     jest.clearAllMocks();
+    Request.clearMiddlewares();
 });
 
 describe('Middleware', () => {
@@ -31,7 +31,7 @@ describe('Middleware', () => {
         test('Normal request', async () => {
             const actual = jest.requireActual('../../src/libs/Middleware/HandleUnusedOptimisticID');
             const handleUnusedOptimisticID = jest.spyOn(actual, 'default');
-            Request.use(handleUnusedOptimisticID);
+            // Request.use(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'OpenReport',
@@ -46,11 +46,13 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
             SequentialQueue.unpause();
-            await waitForBatchedUpdates();
             await waitForNetworkPromises();
 
-            expect(global.fetch).expect(global.fetch).toHaveBeenCalledTimes(2);
-            expect(handleUnusedOptimisticID).not.toHaveBeenCalled();
+            expect(global.fetch).toHaveBeenCalledTimes(2);
+            expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api?command=AddComment', expect.anything());
+            TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[1][1].body, {reportID: '1234', reportActionID: '5678', reportComment: 'foo'});
+            expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api?command=OpenReport', expect.anything());
+            TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[0][1].body, {reportID: '1234'});
         });
     });
 });
