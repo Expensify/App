@@ -27,6 +27,8 @@ const PressableWithFeedbackPropTypes = {
      *  Used to locate this view from native classes.
      */
     nativeID: propTypes.string,
+
+    /** Whether the view needs to be rendered offscreen (for Android only) */
     needsOffscreenAlphaCompositing: propTypes.bool,
 };
 
