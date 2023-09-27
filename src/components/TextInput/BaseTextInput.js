@@ -153,7 +153,13 @@ function BaseTextInput(props) {
     // Activate or deactivate the label when either focus changes, or for controlled
     // components when the value prop changes:
     useEffect(() => {
-        if (hasValue || isFocused || isInputAutoFilled(input.current)) {
+        if (
+            hasValue ||
+            isFocused ||
+            // If the text has been supplied by Chrome autofill, the value state is not synced with the value
+            // as Chrome doesn't trigger a change event. When there is autofill text, keep the label activated.
+            isInputAutoFilled(input.current)
+        ) {
             activateLabel();
         } else {
             deactivateLabel();
