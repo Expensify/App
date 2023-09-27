@@ -17,6 +17,7 @@ import * as IOU from '../../../../libs/actions/IOU';
 import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 import useLocalize from '../../../../hooks/useLocalize';
+import compose from '../../../../libs/compose';
 
 const propTypes = {
     /** React Navigation route */
@@ -42,7 +43,7 @@ const defaultProps = {
     iou: iouDefaultProps,
 };
 
-function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
+function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
     const isNewReportIDSelectedLocally = useRef(false);
@@ -53,7 +54,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
-
+    const isEmptyWaypoint = _.isEmpty(lodashGet(transaction, 'comment.waypoints.waypoint0', {}));
     useEffect(() => {
         if (isDistanceRequest) {
             setHeaderTitle(translate('common.distance'));
@@ -85,10 +86,12 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     };
 
     useEffect(() => {
+        const isInvalidDistanceRequest = !isDistanceRequest || isEmptyWaypoint;
+
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing
-            if (iou.id && !isDistanceRequest && !isSplitRequest && !isNewReportIDSelectedLocally.current) {
+            if (iou.id && isInvalidDistanceRequest && !isSplitRequest && !isNewReportIDSelectedLocally.current) {
                 navigateBack(true);
             }
             return;
@@ -100,14 +103,14 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
-        if (!isDistanceRequest && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
+        if (isInvalidDistanceRequest && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
             navigateBack(true);
         }
 
         return () => {
             prevMoneyRequestId.current = iou.id;
         };
-    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest]);
+    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, isEmptyWaypoint]);
 
     return (
         <ScreenWrapper
@@ -143,11 +146,18 @@ MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    iou: {
-        key: ONYXKEYS.IOU,
-    },
-    selectedTab: {
-        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
-    },
-})(MoneyRequestParticipantsPage);
+export default compose(
+    withOnyx({
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
+        selectedTab: {
+            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+    }),
+    withOnyx({
+        transaction: {
+            key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${iou.transactionID}`,
+        },
+    }),
+)(MoneyRequestParticipantsPage);
