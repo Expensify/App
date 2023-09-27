@@ -163,10 +163,22 @@ const CONST = {
         },
         FIELDS: {
             BankAccountStep: ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'],
-            CompanyStep: ['companyName', 'addressStreet', 'addressZipCode', 'addressCity', 'addressState', 'companyPhone', 'website','companyTaxID', 'incorporationType', 'incorporationDate', 'incorporationState'],
+            CompanyStep: [
+                'companyName',
+                'addressStreet',
+                'addressZipCode',
+                'addressCity',
+                'addressState',
+                'companyPhone',
+                'website',
+                'companyTaxID',
+                'incorporationType',
+                'incorporationDate',
+                'incorporationState',
+            ],
             RequestorStep: ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'],
             ACHContractStep: [],
-            ENABLE: []
+            ENABLE: [],
         },
         STEP: {
             // In the order they appear in the VBA flow
