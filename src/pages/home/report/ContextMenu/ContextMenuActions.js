@@ -253,7 +253,7 @@ export default [
             type === CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
         onPress: (closePopover, {reportAction, reportID}) => {
             const lastReadTime = Report.markCommentAsUnread(reportID, reportAction.created);
-            DeviceEventEmitter.emit('unreadAction', lastReadTime);
+            DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }

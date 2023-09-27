@@ -75,6 +75,9 @@ const MSG_VISIBLE_THRESHOLD = 250;
 // the subscriptions could otherwise be conflicting.
 const newActionUnsubscribeMap = {};
 
+// We cache the unread markers for each report, because the unread marker isn't
+// kept between reports.
+const cacheUnreadMarkers = new Map();
 /**
  * Create a unique key for each action in the FlatList.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
@@ -111,7 +114,14 @@ function ReportActionsList({
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
     const prevReportID = useRef(null);
-    const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
+    const unreadActionSubscription = useRef(null);
+    const markerInit = () => {
+        if (!cacheUnreadMarkers.has(report.reportID)) {
+            return null;
+        }
+        return cacheUnreadMarkers.get(report.reportID);
+    };
+    const [currentUnreadMarker, setCurrentUnreadMarker] = useState(markerInit);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
@@ -159,6 +169,7 @@ function ReportActionsList({
             return;
         }
 
+        cacheUnreadMarkers.delete(report.reportID);
         reportActionSize.current = sortedReportActions.length;
         setCurrentUnreadMarker(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -169,19 +180,29 @@ function ReportActionsList({
             return;
         }
 
+        if (!messageManuallyMarked && lastReadRef.current && lastReadRef.current < report.lastReadTime) {
+            cacheUnreadMarkers.delete(report.reportID);
+        }
         lastReadRef.current = report.lastReadTime;
         setMessageManuallyMarked(0);
     }, [report.lastReadTime, report.reportID]);
 
     useEffect(() => {
-        const unreadActionSubscription = DeviceEventEmitter.addListener('unreadAction', (newLastReadTime) => {
-            setCurrentUnreadMarker(null);
+        // If the reportID changes, we reset the userActiveSince to null, we need to do it because
+        // this component doesn't unmount when the reportID changes
+        if (unreadActionSubscription.current) {
+            unreadActionSubscription.current.remove();
+            unreadActionSubscription.current = null;
+        }
+
+        // Need to listen for the specific reportID, otherwise we could be listening to all the reports
+        unreadActionSubscription.current = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime) => {
+            cacheUnreadMarkers.delete(report.reportID);
             lastReadRef.current = newLastReadTime;
+            setCurrentUnreadMarker(null);
             setMessageManuallyMarked(new Date().getTime());
         });
-
-        return () => unreadActionSubscription.remove();
-    }, []);
+    }, [report.reportID]);
 
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
@@ -278,7 +299,6 @@ function ReportActionsList({
     const renderItem = useCallback(
         ({item: reportAction, index}) => {
             let shouldDisplayNewMarker = false;
-
             if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadRef.current);
@@ -293,6 +313,7 @@ function ReportActionsList({
                     isMessageInScope = true;
                 }
                 if (!currentUnreadMarker && canDisplayNewMarker && isMessageInScope) {
+                    cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
                     setCurrentUnreadMarker(reportAction.reportActionID);
                     shouldDisplayNewMarker = true;
                 }
