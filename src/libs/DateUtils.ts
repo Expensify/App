@@ -18,12 +18,12 @@ import {
 } from 'date-fns';
 
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line you-dont-need-lodash-underscore/throttle
 import throttle from 'lodash/throttle';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as CurrentDate from './actions/CurrentDate';
+import {Timezone} from '../types/onyx/PersonalDetails';
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({
@@ -38,20 +38,20 @@ Onyx.connect({
     },
 });
 
-type Timezone = {
-    automatic: boolean;
-    selected: string;
-};
-
-let timezone: Timezone = CONST.DEFAULT_TIME_ZONE;
+let timezone: Required<Timezone> = CONST.DEFAULT_TIME_ZONE;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
+    callback: (value) => {
         if (!currentUserAccountID) {
             return;
         }
 
-        timezone = val?.[currentUserAccountID]?.timezone ?? CONST.DEFAULT_TIME_ZONE;
+        const personalDetailsTimezone = value?.[currentUserAccountID]?.timezone;
+
+        timezone = {
+            selected: personalDetailsTimezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
+            automatic: personalDetailsTimezone?.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
+        };
     },
 });
 
@@ -87,11 +87,11 @@ function getLocalDateFromDatetime(locale: string, datetime: string, currentSelec
 /**
  * Checks if a given date is today in the specified time zone.
  *
- * @param {Date} date - The date to compare.
- * @param {String} timeZone - The time zone to consider.
- * @returns {Boolean} True if the date is today; otherwise, false.
+ * @param date - The date to compare.
+ * @param timeZone - The time zone to consider.
+ * @returns True if the date is today; otherwise, false.
  */
-function isToday(date, timeZone) {
+function isToday(date: Date, timeZone: string): boolean {
     const currentDate = new Date();
     const currentDateInTimeZone = utcToZonedTime(currentDate, timeZone);
     return isSameDay(date, currentDateInTimeZone);
@@ -100,11 +100,11 @@ function isToday(date, timeZone) {
 /**
  * Checks if a given date is tomorrow in the specified time zone.
  *
- * @param {Date} date - The date to compare.
- * @param {String} timeZone - The time zone to consider.
- * @returns {Boolean} True if the date is tomorrow; otherwise, false.
+ * @param date - The date to compare.
+ * @param timeZone - The time zone to consider.
+ * @returns True if the date is tomorrow; otherwise, false.
  */
-function isTomorrow(date, timeZone) {
+function isTomorrow(date: Date, timeZone: string): boolean {
     const currentDate = new Date();
     const tomorrow = addDays(currentDate, 1); // Get the date for tomorrow in the current time zone
     const tomorrowInTimeZone = utcToZonedTime(tomorrow, timeZone);
@@ -114,11 +114,11 @@ function isTomorrow(date, timeZone) {
 /**
  * Checks if a given date is yesterday in the specified time zone.
  *
- * @param {Date} date - The date to compare.
- * @param {String} timeZone - The time zone to consider.
- * @returns {Boolean} True if the date is yesterday; otherwise, false.
+ * @param date - The date to compare.
+ * @param timeZone - The time zone to consider.
+ * @returns True if the date is yesterday; otherwise, false.
  */
-function isYesterday(date, timeZone) {
+function isYesterday(date: Date, timeZone: string): boolean {
     const currentDate = new Date();
     const yesterday = subDays(currentDate, 1); // Get the date for yesterday in the current time zone
     const yesterdayInTimeZone = utcToZonedTime(yesterday, timeZone);
