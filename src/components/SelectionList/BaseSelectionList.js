@@ -1,8 +1,9 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {withOnyx} from 'react-native-onyx';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
@@ -24,6 +25,8 @@ import useLocalize from '../../hooks/useLocalize';
 import Log from '../../libs/Log';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import useActiveElement from '../../hooks/useActiveElement';
+import ONYXKEYS from '../../ONYXKEYS';
+import compose from '../../libs/compose';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -52,6 +55,7 @@ function BaseSelectionList({
     showLoadingPlaceholder = false,
     showConfirmButton = false,
     isKeyboardShown = false,
+    modal,
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -62,7 +66,6 @@ function BaseSelectionList({
     const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElement = useActiveElement();
     const isFocused = useIsFocused();
-
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
@@ -326,6 +329,14 @@ function BaseSelectionList({
         isActive: Boolean(onConfirm) && isFocused,
     });
 
+    /**Refocus the text input when the modal is closed */
+    useEffect(() => {
+        if (modal.isVisible || !textInputRef || !textInputRef.current || !shouldShowTextInput) {
+            return;
+        }
+        textInputRef.current.focus();
+    }, [modal.isVisible]);
+
     return (
         <ArrowKeyFocusManager
             disabledIndexes={flattenedSections.disabledOptionsIndexes}
@@ -438,4 +449,11 @@ function BaseSelectionList({
 BaseSelectionList.displayName = 'BaseSelectionList';
 BaseSelectionList.propTypes = propTypes;
 
-export default withKeyboardState(BaseSelectionList);
+export default compose(
+    withKeyboardState,
+    withOnyx({
+        modal: {
+            key: ONYXKEYS.MODAL,
+        },
+    }),
+)(BaseSelectionList);
