@@ -88,6 +88,7 @@ class EmojiPickerMenu extends Component {
             },
             isFocused: false,
             isUsingKeyboardMovement: false,
+            searchTerm: '',
         };
     }
 
@@ -397,7 +398,7 @@ class EmojiPickerMenu extends Component {
         const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.props.preferredLocale, this.emojis.length);
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
-        this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
+        this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0, searchTerm});
         this.setFirstNonHeaderIndex(newFilteredEmojiList);
     }
 
@@ -509,6 +510,7 @@ class EmojiPickerMenu extends Component {
                         onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
                         onBlur={() => this.setState({isFocused: false})}
                         autoCorrect={false}
+                        blurOnSubmit={this.state.searchTerm.length > 0 && this.state.filteredEmojis.length > 0}
                     />
                 </View>
                 {!isFiltered && (
