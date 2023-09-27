@@ -395,8 +395,8 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
  * @param {Number} total
  * @returns {Array}
  */
-function getLatestTransactions (transactions, total = 2) {
-    return _.sortBy(_.keys(transactions), transaction => -new Date(transactions[transaction])).slice(0, total);
+function getLatestTransactions(transactions, total = 2) {
+    return _.sortBy(_.keys(transactions), (transaction) => -new Date(transactions[transaction])).slice(0, total);
 }
 
 export {

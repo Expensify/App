@@ -2311,7 +2311,7 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '', trans
         actorAccountID: hasReceipt ? currentUserAccountID : iouReport.managerID || 0,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
-        childRecentReceiptTransactionIDs: hasReceipt ? {[transaction.transactionID] : created} : [],
+        childRecentReceiptTransactionIDs: hasReceipt ? {[transaction.transactionID]: created} : [],
         whisperedToAccountIDs: isReceiptBeingScanned ? [currentUserAccountID] : [],
     };
 }
@@ -2372,7 +2372,7 @@ function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = fals
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const recentReceiptTransactions = lodashGet(reportPreviewAction, 'childRecentReceiptTransactionIDs', {});
     const transactionsToKeep = TransactionUtils.getLatestTransactions(recentReceiptTransactions);
-    const previousTransactions =_.mapObject(recentReceiptTransactions, (value, key) => _.contains(transactionsToKeep, key) ? value : null);
+    const previousTransactions = _.mapObject(recentReceiptTransactions, (value, key) => (_.contains(transactionsToKeep, key) ? value : null));
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
@@ -2388,10 +2388,12 @@ function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = fals
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
         childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + (isPayRequest ? 0 : 1),
-        childRecentReceiptTransactionIDs: hasReceipt ? {
-            [transaction.transactionID]: transaction.created,
-            ...previousTransactions
-            } : recentReceiptTransactions,
+        childRecentReceiptTransactionIDs: hasReceipt
+            ? {
+                  [transaction.transactionID]: transaction.created,
+                  ...previousTransactions,
+              }
+            : recentReceiptTransactions,
         // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
         // so we remove the whisper
         whisperedToAccountIDs: hasReceipt ? reportPreviewAction.whisperedToAccountIDs : [],
