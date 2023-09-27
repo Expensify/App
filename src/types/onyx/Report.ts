@@ -83,6 +83,8 @@ type Report = {
     participantAccountIDs?: number[];
     total?: number;
     currency?: string;
+    description?: string;
+    managerEmail?: string;
 };
 
 export default Report;

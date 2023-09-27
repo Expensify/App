@@ -14,21 +14,22 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import * as Localize from '../Localize';
+import {PersonalDetails, Report, Task} from '../../types/onyx';
 
-let currentUserEmail;
-let currentUserAccountID;
+let currentUserEmail: string;
+let currentUserAccountID: number;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        currentUserEmail = lodashGet(val, 'email', '');
-        currentUserAccountID = lodashGet(val, 'accountID', 0);
+    callback: (value) => {
+        currentUserEmail = value?.email ?? '';
+        currentUserAccountID = value?.accountID ?? 0;
     },
 });
 
-let allPersonalDetails;
+let allPersonalDetails: Record<string, PersonalDetails> | null;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (allPersonalDetails = val),
+    callback: (value) => (allPersonalDetails = value),
 });
 
 /**
@@ -52,16 +53,16 @@ function clearOutTaskInfo() {
  * 3. The chat report between you and the assignee
  * 3a. The CreatedReportAction for the assignee chat report
  * 3b. The TaskReportAction on the assignee chat report
- *
- * @param {String} parentReportID
- * @param {String} title
- * @param {String} description
- * @param {String} assigneeEmail
- * @param {Number} assigneeAccountID
- * @param {Object} assigneeChatReport - The chat report between you and the assignee
- * @param {String} policyID - the policyID of the parent report
  */
-function createTaskAndNavigate(parentReportID, title, description, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null, policyID = CONST.POLICY.OWNER_EMAIL_FAKE) {
+function createTaskAndNavigate(
+    parentReportID: string,
+    title: string,
+    description: string,
+    assigneeEmail: string,
+    assigneeAccountID = 0,
+    assigneeChatReport: Report | null = null,
+    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
+) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : 0;
@@ -203,12 +204,8 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
             assignee: assigneeEmail,
             assigneeAccountID,
             assigneeChatReportID,
-            assigneeChatReportActionID:
-                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticAssigneeAddComment
-                    ? assigneeChatReportOnyxData.optimisticAssigneeAddComment.reportAction.reportActionID
-                    : 0,
-            assigneeChatCreatedReportActionID:
-                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticChatCreatedReportAction ? assigneeChatReportOnyxData.optimisticChatCreatedReportAction.reportActionID : 0,
+            assigneeChatReportActionID: assigneeChatReportOnyxData?.optimisticAssigneeAddComment.reportAction.reportActionID ?? 0,
+            assigneeChatCreatedReportActionID: assigneeChatReportOnyxData?.optimisticChatCreatedReportAction.reportActionID ?? 0,
         },
         {optimisticData, successData, failureData},
     );
@@ -305,7 +302,7 @@ function completeTask(taskReport, taskTitle) {
  * @param {Object} taskReport task report
  * @param {String} taskTitle Title of the task
  */
-function reopenTask(taskReport, taskTitle) {
+function reopenTask(taskReport: Report, taskTitle: string) {
     const taskReportID = taskReport.reportID;
     const message = `reopened task: ${taskTitle}`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
@@ -393,15 +390,15 @@ function reopenTask(taskReport, taskTitle) {
  * @param {Object} editedTask
  * @param {Object} assigneeChatReport - The chat report between you and the assignee
  */
-function editTaskAndNavigate(report, ownerAccountID, {title, description, assignee = '', assigneeAccountID = 0}, assigneeChatReport = null) {
+function editTaskAndNavigate(report: Report, ownerAccountID: number, {title, description, assignee = '', assigneeAccountID = 0}: Task, assigneeChatReport: Report | null = null) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
-    const reportName = (title || report.reportName).trim();
+    const reportName = (title ?? report?.reportName).trim();
 
     // Description can be unset, so we default to an empty string if so
-    const reportDescription = (!_.isUndefined(description) ? description : lodashGet(report, 'description', '')).trim();
+    const reportDescription = (description ?? report.description ?? '').trim();
 
     let assigneeChatReportOnyxData;
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : 0;
@@ -418,8 +415,8 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
             value: {
                 reportName,
                 description: reportDescription,
-                managerID: assigneeAccountID || report.managerID,
-                managerEmail: assignee || report.managerEmail,
+                managerID: assigneeAccountID ?? report.managerID,
+                managerEmail: assignee ?? report.managerEmail,
                 pendingFields: {
                     ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                     ...(description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -487,12 +484,8 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
             assigneeAccountID: assigneeAccountID || report.managerID,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportID,
-            assigneeChatReportActionID:
-                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticAssigneeAddComment
-                    ? assigneeChatReportOnyxData.optimisticAssigneeAddComment.reportAction.reportActionID
-                    : 0,
-            assigneeChatCreatedReportActionID:
-                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticChatCreatedReportAction ? assigneeChatReportOnyxData.optimisticChatCreatedReportAction.reportActionID : 0,
+            assigneeChatReportActionID: assigneeChatReportOnyxData.optimisticAssigneeAddComment.reportAction.reportActionID ?? 0,
+            assigneeChatCreatedReportActionID: assigneeChatReportOnyxData.optimisticChatCreatedReportAction.reportActionID ?? 0,
         },
         {optimisticData, successData, failureData},
     );
@@ -500,10 +493,10 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
     Navigation.dismissModal(report.reportID);
 }
 
-function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null) {
+function editTaskAssigneeAndNavigate(report: Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID = 0, assigneeChatReport: Report | null = null) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
-    const reportName = report.reportName.trim();
+    const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : 0;
