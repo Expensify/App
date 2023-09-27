@@ -56,12 +56,12 @@ const defaultProps = {
 function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
     const defaultWebsite = useMemo(() => (lodashGet(user, 'isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(session.email, '')}`), [user, session]);
     const [companyInfomation, setCompanyInfomation] = useState({
-        street: getDefaultStateForField('addressStreet'),
-        city: getDefaultStateForField('addressCity'),
-        state: getDefaultStateForField('addressState'),
-        zipCode: getDefaultStateForField('addressZipCode'),
-        companyPhone: getDefaultStateForField('companyPhone'),
-        website: getDefaultStateForField('website', defaultWebsite),
+        street: getDefaultStateForField('addressStreet') || reimbursementAccountDraft.addressStreet,
+        city: getDefaultStateForField('addressCity') || reimbursementAccountDraft.addressCity,
+        state: getDefaultStateForField('addressState') || reimbursementAccountDraft.addressState,
+        zipCode: getDefaultStateForField('addressZipCode') || reimbursementAccountDraft.addressZipCode,
+        companyPhone: getDefaultStateForField('companyPhone') || reimbursementAccountDraft.companyPhone,
+        website: getDefaultStateForField('website', defaultWebsite) || reimbursementAccountDraft.website,
     });
 
     const onFieldChange = (field) => {
