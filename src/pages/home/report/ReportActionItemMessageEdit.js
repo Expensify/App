@@ -30,7 +30,6 @@ import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as User from '../../../libs/actions/User';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import getButtonState from '../../../libs/getButtonState';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import useLocalize from '../../../hooks/useLocalize';
 import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
@@ -64,8 +63,6 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -83,7 +80,7 @@ const isMobileSafari = Browser.isMobileSafari();
 
 function ReportActionItemMessageEdit(props) {
     const reportScrollManager = useReportScrollManager();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -200,7 +197,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
+            const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 insertedEmojis.current = [...insertedEmojis.current, ...emojis];
@@ -228,7 +225,7 @@ function ReportActionItemMessageEdit(props) {
                 debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, props.preferredLocale],
+        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale],
     );
 
     /**
@@ -438,12 +435,10 @@ ReportActionItemMessageEdit.propTypes = propTypes;
 ReportActionItemMessageEdit.defaultProps = defaultProps;
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-export default withLocalize(
-    React.forwardRef((props, ref) => (
-        <ReportActionItemMessageEdit
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+export default React.forwardRef((props, ref) => (
+    <ReportActionItemMessageEdit
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
