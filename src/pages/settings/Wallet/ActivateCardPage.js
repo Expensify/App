@@ -11,7 +11,7 @@ import styles from '../../../styles/styles';
 import MagicCodeInput from '../../../components/MagicCodeInput';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
-import * as CardSettings from '../../../libs/actions/CardSettings';
+import * as CardSettings from '../../../libs/actions/Card';
 import BigNumberPad from '../../../components/BigNumberPad';
 import Button from '../../../components/Button';
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
@@ -24,14 +24,14 @@ import useLocalize from '../../../hooks/useLocalize';
 import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
 import assignedCardPropTypes from './assignedCardPropTypes';
+import * as CardUtils from '../../../libs/CardUtils';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The details about the Expensify cards */
     cardList: PropTypes.shape({
-        isLoading: PropTypes.bool,
-        [PropTypes.number]: PropTypes.objectOf(assignedCardPropTypes),
+        [PropTypes.string]: assignedCardPropTypes,
     }),
 
     /** Navigation route context info provided by react navigation */
@@ -59,14 +59,12 @@ function ActivateCardPage({
     const {translate} = useLocalize();
 
     const [formError, setFormError] = useState('');
-    const [activateCardCode, setActivateCardCode] = useState('');
+    const [lastFourDigits, setLastFourDigits] = useState('');
     const [lastPressedDigit, setLastPressedDigit] = useState('');
 
-    const cardID = lodashGet(
-        _.find(cardList, (card) => !card.isVirtual),
-        'cardID',
-        0,
-    );
+    const domainCards = CardUtils.getDomainCards(cardList)[domain];
+    const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
+    const cardID = lodashGet(physicalCard, 'cardID', 0);
 
     const activateCardCodeInputRef = useRef(null);
 
@@ -74,11 +72,11 @@ function ActivateCardPage({
      * If state of the card is CONST.CARD_STATE.OPEN, navigate to card details screen.
      */
     useEffect(() => {
-        if (cardList.isLoading) {
+        if (cardList[cardID].isLoading) {
             return;
         }
 
-        if (!cardList.isLoading && lodashGet(cardList, `${cardID}.state`, 0) === CONST.CARD_STATE.OPEN) {
+        if (!cardList[cardID].isLoading && lodashGet(cardList, `${cardID}.state`, 0) === CONST.CARD_STATE.OPEN) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
         }
     }, [cardID, cardList, domain]);
@@ -120,19 +118,22 @@ function ActivateCardPage({
      */
     const onCodeInput = (text) => {
         setFormError('');
-        setActivateCardCode(text);
+        setLastFourDigits(text);
     };
 
     const submitAndNavigateToNextPage = useCallback(() => {
         activateCardCodeInputRef.current.blur();
         CardSettings.clearCardListErrors(cardID);
-        CardSettings.activatePhysicalExpensifyCard(Number(activateCardCode), cardID);
-    }, [activateCardCode, cardID]);
+        CardSettings.activatePhysicalExpensifyCard(Number(lastFourDigits), cardID);
+    }, [lastFourDigits, cardID]);
 
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={Navigation.goBack}
+            onBackButtonPress={() => {
+                CardSettings.clearCardListErrors(cardID);
+                Navigation.goBack(ROUTES.SETTINGS);
+            }}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.Magician}
         >
@@ -143,7 +144,7 @@ function ActivateCardPage({
                     autoComplete="off"
                     maxLength={ACTIVATE_CARD_CODE_DESIRED_LENGTH}
                     name="activateCardCode"
-                    value={activateCardCode}
+                    value={lastFourDigits}
                     lastPressedDigit={lastPressedDigit}
                     onChangeText={onCodeInput}
                     errorText={formError}
@@ -155,7 +156,7 @@ function ActivateCardPage({
                 {DeviceCapabilities.canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}
                 <Button
                     success
-                    isLoading={cardList.isLoading}
+                    isLoading={cardList[cardID].isLoading}
                     medium={isExtraSmallScreenHeight}
                     style={[styles.w100, styles.mt5]}
                     onPress={submitAndNavigateToNextPage}

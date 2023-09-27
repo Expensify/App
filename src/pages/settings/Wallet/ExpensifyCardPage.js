@@ -23,8 +23,7 @@ const propTypes = {
     /* Onyx Props */
     /** The details about the Expensify cards */
     cardList: PropTypes.shape({
-        isLoading: PropTypes.bool,
-        [PropTypes.number]: PropTypes.objectOf(assignedCardPropTypes),
+        [PropTypes.string]: assignedCardPropTypes,
     }),
 
     /** Navigation route context info provided by react navigation */

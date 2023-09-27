@@ -18,7 +18,9 @@ function activatePhysicalExpensifyCard(lastFourDigits, cardID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.CARD_LIST,
                     value: {
-                        isLoading: true,
+                        [cardID]: {
+                            isLoading: true,
+                        },
                     },
                 },
             ],
@@ -27,7 +29,9 @@ function activatePhysicalExpensifyCard(lastFourDigits, cardID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.CARD_LIST,
                     value: {
-                        isLoading: false,
+                        [cardID]: {
+                            isLoading: false,
+                        },
                     },
                 },
             ],
@@ -36,7 +40,9 @@ function activatePhysicalExpensifyCard(lastFourDigits, cardID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.CARD_LIST,
                     value: {
-                        isLoading: false,
+                        [cardID]: {
+                            isLoading: false,
+                        },
                     },
                 },
             ],
@@ -50,7 +56,7 @@ function activatePhysicalExpensifyCard(lastFourDigits, cardID) {
  * @param {Number} cardID
  */
 function clearCardListErrors(cardID) {
-    Onyx.merge(ONYXKEYS.CARD_LIST, {isLoading: false, [cardID]: {errors: null}});
+    Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
 }
 
 export {activatePhysicalExpensifyCard, clearCardListErrors};
