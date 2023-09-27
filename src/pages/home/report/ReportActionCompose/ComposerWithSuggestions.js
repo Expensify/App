@@ -92,7 +92,6 @@ function ComposerWithSuggestions({
     setIsFullComposerAvailable,
     setIsCommentEmpty,
     submitForm,
-    shouldShowReportRecipientLocalTime,
     shouldShowComposeInput,
     measureParentContainer,
     // Refs
@@ -328,7 +327,7 @@ function ComposerWithSuggestions({
                     (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
                 );
                 if (lastReportAction) {
-                    Report.saveReportActionDraft(reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
+                    Report.saveReportActionDraft(reportID, lastReportAction, _.last(lastReportAction.message).html);
                 }
             }
         },
@@ -535,7 +534,6 @@ function ComposerWithSuggestions({
                 isComposerFullSize={isComposerFullSize}
                 updateComment={updateComment}
                 composerHeight={composerHeight}
-                shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
                 onInsertedEmoji={onInsertedEmoji}
                 measureParentContainer={measureParentContainer}
                 // Input

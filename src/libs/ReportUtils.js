@@ -1355,6 +1355,7 @@ function getTransactionDetails(transaction) {
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
         category: TransactionUtils.getCategory(transaction),
+        billable: TransactionUtils.getBillable(transaction),
         tag: TransactionUtils.getTag(transaction),
     };
 }
@@ -1615,6 +1616,11 @@ function getModifiedExpenseMessage(reportAction) {
     if (hasModifiedTag) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.tag, reportActionOriginalMessage.oldTag, Localize.translateLocal('common.tag'), true);
     }
+
+    const hasModifiedBillable = _.has(reportActionOriginalMessage, 'oldBillable') && _.has(reportActionOriginalMessage, 'billable');
+    if (hasModifiedBillable) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.billable, reportActionOriginalMessage.oldBillable, Localize.translateLocal('iou.request'), true);
+    }
 }
 
 /**
@@ -1663,6 +1669,12 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     if (_.has(transactionChanges, 'tag')) {
         originalMessage.oldTag = TransactionUtils.getTag(oldTransaction);
         originalMessage.tag = transactionChanges.tag;
+    }
+
+    if (_.has(transactionChanges, 'billable')) {
+        const oldBillable = TransactionUtils.getBillable(oldTransaction);
+        originalMessage.oldBillable = oldBillable ? Localize.translateLocal('common.billable').toLowerCase() : Localize.translateLocal('common.nonBillable').toLowerCase();
+        originalMessage.billable = transactionChanges.billable ? Localize.translateLocal('common.billable').toLowerCase() : Localize.translateLocal('common.nonBillable').toLowerCase();
     }
 
     return originalMessage;
@@ -3625,6 +3637,46 @@ function getReportPreviewDisplayTransactions(reportPreviewAction) {
     );
 }
 
+/**
+ * Return iou report action display message
+ *
+ * @param {Object} reportAction report action
+ * @returns {String}
+ */
+function getIOUReportActionDisplayMessage(reportAction) {
+    const originalMessage = _.get(reportAction, 'originalMessage', {});
+    let displayMessage;
+    if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        const {amount, currency, IOUReportID} = originalMessage;
+        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+        const iouReport = getReport(IOUReportID);
+        const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport.managerID);
+        let translationKey;
+        switch (originalMessage.paymentType) {
+            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+                translationKey = 'iou.paidElsewhereWithAmount';
+                break;
+            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            case CONST.IOU.PAYMENT_TYPE.VBBA:
+                translationKey = 'iou.paidUsingExpensifyWithAmount';
+                break;
+            default:
+                translationKey = '';
+                break;
+        }
+        displayMessage = Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
+    } else {
+        const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
+        const {amount, currency, comment} = getTransactionDetails(transaction);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+        displayMessage = Localize.translateLocal('iou.requestedAmount', {
+            formattedAmount,
+            comment,
+        });
+    }
+    return displayMessage;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3765,5 +3817,6 @@ export {
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
     hasMissingSmartscanFields,
+    getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
 };
