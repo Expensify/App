@@ -17,7 +17,6 @@ import * as IOU from '../../../../libs/actions/IOU';
 import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 import useLocalize from '../../../../hooks/useLocalize';
-import compose from '../../../../libs/compose';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
 
 const propTypes = {
@@ -151,18 +150,14 @@ MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        iou: {
-            key: ONYXKEYS.IOU,
-        },
-        selectedTab: {
-            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
-        },
-    }),
-    withOnyx({
-        transaction: {
-            key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${iou.transactionID}`,
-        },
-    }),
-)(MoneyRequestParticipantsPage);
+export default withOnyx({
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+    },
+    transaction: {
+        key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${iou.transactionID}`,
+    },
+})(MoneyRequestParticipantsPage);
