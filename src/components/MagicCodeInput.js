@@ -201,6 +201,22 @@ function MagicCodeInput(props) {
         if (keyValue === 'Backspace' || keyValue === '<') {
             let numbers = decomposeString(props.value, props.maxLength);
 
+            // If keyboard is disabled and no input is focused we need to remove
+            // the last entered digit and focus on the correct input
+            if (props.isDisableKeyboard && focusedIndex === undefined) {
+                const indexBeforeLastEditIndex = editIndex === 0 ? editIndex : editIndex - 1;
+
+                if (numbers[editIndex] === CONST.MAGIC_CODE_EMPTY_CHAR) {
+                    inputRefs.current[indexBeforeLastEditIndex].focus();
+                    props.onChangeText(props.value.substring(0, indexBeforeLastEditIndex));
+                } else {
+                    inputRefs.current[editIndex].focus();
+                    props.onChangeText(props.value.substring(0, editIndex));
+                }
+
+                return;
+            }
+
             // If the currently focused index already has a value, it will delete
             // that value but maintain the focus on the same input.
             if (numbers[focusedIndex] !== CONST.MAGIC_CODE_EMPTY_CHAR) {

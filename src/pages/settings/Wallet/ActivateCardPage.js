@@ -30,9 +30,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** The details about the Expensify cards */
-    cardList: PropTypes.shape({
-        [PropTypes.string]: assignedCardPropTypes,
-    }),
+    cardList: PropTypes.objectOf(assignedCardPropTypes),
 
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
