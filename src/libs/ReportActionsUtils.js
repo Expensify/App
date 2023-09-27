@@ -652,6 +652,11 @@ function isReportActionAttachment(reportAction) {
     return _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : isReportMessageAttachment(message);
 }
 
+// eslint-disable-next-line rulesdir/no-negated-variables
+function isNotifiableReportAction(reportAction) {
+    return reportAction && _.contains([CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE], reportAction.actionName);
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -690,4 +695,5 @@ export {
     isTaskAction,
     getAllReportActions,
     isReportActionAttachment,
+    isNotifiableReportAction,
 };

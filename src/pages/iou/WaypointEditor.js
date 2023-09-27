@@ -4,7 +4,7 @@ import lodashGet from 'lodash/get';
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {useIsFocused} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import AddressSearch from '../../components/AddressSearch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -76,7 +76,8 @@ const defaultProps = {
 function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
-    const isFocused = useIsFocused();
+    const navigation = useNavigation();
+    const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const textInput = useRef(null);
