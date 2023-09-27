@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
@@ -54,6 +54,23 @@ const defaultProps = {
 };
 
 function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
+    const defaultWebsite = useMemo(() => (lodashGet(user, 'isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(session.email, '')}`), [user, session]);
+    const [companyInfomation, setCompanyInfomation] = useState({
+        street: getDefaultStateForField('addressStreet'),
+        city: getDefaultStateForField('addressCity'),
+        state: getDefaultStateForField('addressState'),
+        zipCode: getDefaultStateForField('addressZipCode'),
+        companyPhone: getDefaultStateForField('companyPhone'),
+        website: getDefaultStateForField('website', defaultWebsite),
+    });
+
+    const onFieldChange = (field) => {
+        setCompanyInfomation((prevCompanyInformation) => ({
+            ...prevCompanyInformation,
+            ...field,
+        }));
+    };
+
     /**
      * @param {Array} fieldNames
      *
@@ -63,8 +80,6 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
         ..._.pick(lodashGet(reimbursementAccount, 'achData'), ...fieldNames),
         ..._.pick(reimbursementAccountDraft, ...fieldNames),
     });
-
-    const defaultWebsite = useMemo(() => (lodashGet(user, 'isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(session.email, '')}`), [user, session]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -173,11 +188,11 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 />
                 <AddressForm
                     translate={translate}
-                    defaultValues={{
-                        street: getDefaultStateForField('addressStreet'),
-                        city: getDefaultStateForField('addressCity'),
-                        state: getDefaultStateForField('addressState'),
-                        zipCode: getDefaultStateForField('addressZipCode'),
+                    values={{
+                        street: companyInfomation.street,
+                        city: companyInfomation.city,
+                        state: companyInfomation.state,
+                        zipCode: companyInfomation.zipCode,
                     }}
                     inputKeys={{
                         street: 'addressStreet',
@@ -185,6 +200,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                         state: 'addressState',
                         zipCode: 'addressZipCode',
                     }}
+                    onFieldChange={onFieldChange}
                     shouldSaveDraft
                     streetTranslationKey="common.companyAddress"
                 />
@@ -196,7 +212,8 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     containerStyles={[styles.mt4]}
                     keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                     placeholder={translate('common.phoneNumberPlaceholder')}
-                    defaultValue={getDefaultStateForField('companyPhone')}
+                    value={companyInfomation.companyPhone}
+                    onValueChange={(value) => onFieldChange({companyPhone: value})}
                     shouldSaveDraft
                 />
                 <TextInput
@@ -205,7 +222,8 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     accessibilityLabel={translate('companyStep.companyWebsite')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     containerStyles={[styles.mt4]}
-                    defaultValue={getDefaultStateForField('website', defaultWebsite)}
+                    value={companyInfomation.website}
+                    onValueChange={(value) => onFieldChange({website: value})}
                     shouldSaveDraft
                     hint={translate('common.websiteExample')}
                     keyboardType={CONST.KEYBOARD_TYPE.URL}
