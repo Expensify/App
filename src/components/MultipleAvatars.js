@@ -71,27 +71,8 @@ const defaultProps = {
     maxAvatarsInRow: CONST.AVATAR_ROW_SIZE.DEFAULT,
 };
 
-function getContainerStyles(size, isInReportAction) {
-    let containerStyles;
-
-    switch (size) {
-        case CONST.AVATAR_SIZE.SMALL:
-            containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
-            break;
-        case CONST.AVATAR_SIZE.SMALLER:
-            containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
-            break;
-        case CONST.AVATAR_SIZE.MEDIUM:
-            containerStyles = [styles.emptyAvatarMedium, styles.emptyAvatarMargin];
-            break;
-        default:
-            containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];
-    }
-
-    return containerStyles;
-}
 function MultipleAvatars(props) {
-    let avatarContainerStyles = getContainerStyles(props.size, props.isInReportAction);
+    let avatarContainerStyles = StyleUtils.getContainerStyles(props.size, props.isInReportAction);
     const singleAvatarStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
