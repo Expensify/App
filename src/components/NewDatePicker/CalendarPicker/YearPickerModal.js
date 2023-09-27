@@ -64,6 +64,7 @@ function YearPickerModal(props) {
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
+                testID={YearPickerModal.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('yearPickerPage.year')}
@@ -80,6 +81,7 @@ function YearPickerModal(props) {
                     sections={sections}
                     onSelectRow={(option) => props.onYearChange(option.value)}
                     initiallyFocusedOptionKey={props.currentYear.toString()}
+                    showScrollIndicator
                 />
             </ScreenWrapper>
         </Modal>

@@ -11,11 +11,13 @@ jobs:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - name: Lint JavaScript with ESLint
+      - name: Lint JavaScript and Typescript with ESLint
         run: npm run lint
         env:
           CI: true
@@ -31,3 +33,7 @@ jobs:
             echo 'Error: Prettier diff detected! Please run `npm run prettier` and commit the changes.'
             exit 1
           fi
+
+      - name: Run unused style searcher
+        shell: bash
+        run: ./.github/scripts/findUnusedKeys.sh

@@ -1,5 +1,3 @@
-// TODO: Remove this after CONST.ts is migrated to TS
-/* eslint-disable @typescript-eslint/no-duplicate-type-constituents */
 import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 
@@ -139,4 +137,4 @@ type OriginalMessage =
     | OriginalMessagePolicyTask;
 
 export default OriginalMessage;
-export type {Reaction};
+export type {Reaction, ChronosOOOEvent};

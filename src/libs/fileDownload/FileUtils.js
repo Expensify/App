@@ -125,6 +125,8 @@ function cleanFileName(fileName) {
 function appendTimeToFileName(fileName) {
     const file = splitExtensionFromFileName(fileName);
     let newFileName = `${file.fileName}-${DateUtils.getDBTime()}`;
+    // Replace illegal characters before trying to download the attachment.
+    newFileName = newFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
     if (file.fileExtension) {
         newFileName += `.${file.fileExtension}`;
     }

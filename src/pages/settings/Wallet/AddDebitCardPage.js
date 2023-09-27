@@ -20,18 +20,24 @@ import Form from '../../../components/Form';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import usePrevious from '../../../hooks/usePrevious';
+import NotFoundPage from '../../ErrorPage/NotFoundPage';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     /* Onyx Props */
     formData: PropTypes.shape({
         setupComplete: PropTypes.bool,
     }),
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     formData: {
         setupComplete: false,
     },
+    betas: [],
 };
 
 function DebitCardPage(props) {
@@ -94,10 +100,15 @@ function DebitCardPage(props) {
         return errors;
     };
 
+    if (!Permissions.canUseWallet(props.betas)) {
+        return <NotFoundPage />;
+    }
+
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => nameOnCardRef.current && nameOnCardRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
+            testID={DebitCardPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('addDebitCardPage.addADebitCard')}
@@ -156,6 +167,8 @@ function DebitCardPage(props) {
                         label={translate('addDebitCardPage.billingAddress')}
                         containerStyles={[styles.mt4]}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                        // Limit the address search only to the USA until we fully can support international debit cards
+                        isLimitedToUSA
                     />
                 </View>
                 <TextInput
@@ -189,9 +202,13 @@ function DebitCardPage(props) {
 
 DebitCardPage.propTypes = propTypes;
 DebitCardPage.defaultProps = defaultProps;
+DebitCardPage.displayName = 'DebitCardPage';
 
 export default withOnyx({
     formData: {
         key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
     },
 })(DebitCardPage);

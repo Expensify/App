@@ -42,11 +42,12 @@
            overscroll-behavior: none;
            touch-action: none;
         }
-        #drag-area {
+        [data-drag-area='true'] {
             -webkit-app-region: drag;
         }
-        #no-drag-area {
+        [data-drag-area='false'], [data-drag-area='true'] [data-tag="pressable"] {
             -webkit-app-region: no-drag;
+
         }
         input::placeholder {
             user-select: none;
@@ -132,7 +133,7 @@
     <% } %>
 </head>
 <body>
-    <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" id="drag-area"></div>
+    <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" data-drag-area="true"></div>
     <div id="root"></div>
     <div id="splash">
         <div class="splash-logo">

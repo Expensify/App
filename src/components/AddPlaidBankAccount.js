@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
+import * as App from '../libs/actions/App';
 import * as BankAccounts from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
@@ -22,6 +23,9 @@ import useLocalize from '../hooks/useLocalize';
 import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
+    /** If the user has been throttled from Plaid */
+    isPlaidDisabled: PropTypes.bool,
+
     /** Contains plaid data */
     plaidData: plaidDataPropTypes.isRequired,
 
@@ -63,9 +67,22 @@ const defaultProps = {
     plaidLinkOAuthToken: '',
     allowDebit: false,
     bankAccountID: 0,
+    isPlaidDisabled: false,
 };
 
-function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken, onExitPlaid, onSelect, text, receivedRedirectURI, plaidLinkOAuthToken, bankAccountID, allowDebit}) {
+function AddPlaidBankAccount({
+    plaidData,
+    selectedPlaidAccountID,
+    plaidLinkToken,
+    onExitPlaid,
+    onSelect,
+    text,
+    receivedRedirectURI,
+    plaidLinkOAuthToken,
+    bankAccountID,
+    allowDebit,
+    isPlaidDisabled,
+}) {
     const subscribedKeyboardShortcuts = useRef([]);
     const previousNetworkState = useRef();
 
@@ -154,6 +171,14 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
     const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
     const bankName = lodashGet(plaidData, 'bankName');
 
+    if (isPlaidDisabled) {
+        return (
+            <View>
+                <Text style={[styles.formError]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
+            </View>
+        );
+    }
+
     // Plaid Link view
     if (!plaidBankAccounts.length) {
         return (
@@ -176,6 +201,20 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
                         }}
                         onError={(error) => {
                             Log.hmmm('[PlaidLink] Error: ', error.message);
+                        }}
+                        onEvent={(event, metadata) => {
+                            // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
+                            if (event === 'ERROR') {
+                                Log.hmmm('[PlaidLink] Error: ', metadata);
+                                if (bankAccountID && metadata.error_code) {
+                                    BankAccounts.handlePlaidError(bankAccountID, metadata.error_code, metadata.error_message, metadata.request_id);
+                                }
+                            }
+
+                            // Limit the number of times a user can submit Plaid credentials
+                            if (event === 'SUBMIT_CREDENTIALS') {
+                                App.handleRestrictedEvent(event);
+                            }
                         }}
                         // User prematurely exited the Plaid flow
                         // eslint-disable-next-line react/jsx-props-no-multi-spaces
@@ -223,5 +262,8 @@ export default withOnyx({
     plaidLinkToken: {
         key: ONYXKEYS.PLAID_LINK_TOKEN,
         initWithStoredValues: false,
+    },
+    isPlaidDisabled: {
+        key: ONYXKEYS.IS_PLAID_DISABLED,
     },
 })(AddPlaidBankAccount);

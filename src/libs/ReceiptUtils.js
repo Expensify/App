@@ -1,34 +1,10 @@
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import * as FileUtils from './fileDownload/FileUtils';
 import CONST from '../CONST';
-import Receipt from './actions/Receipt';
-import * as Localize from './Localize';
 import ReceiptHTML from '../../assets/images/receipt-html.png';
 import ReceiptDoc from '../../assets/images/receipt-doc.png';
 import ReceiptGeneric from '../../assets/images/receipt-generic.png';
 import ReceiptSVG from '../../assets/images/receipt-svg.png';
-
-function validateReceipt(file) {
-    const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-    if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-        Receipt.setUploadReceiptError(true, Localize.translateLocal('attachmentPicker.wrongFileType'), Localize.translateLocal('attachmentPicker.notAllowedExtension'));
-        return false;
-    }
-
-    if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-        Receipt.setUploadReceiptError(true, Localize.translateLocal('attachmentPicker.attachmentTooLarge'), Localize.translateLocal('attachmentPicker.sizeExceeded'));
-        return false;
-    }
-
-    if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-        Receipt.setUploadReceiptError(true, Localize.translateLocal('attachmentPicker.attachmentTooSmall'), Localize.translateLocal('attachmentPicker.sizeNotMet'));
-        return false;
-    }
-
-    return true;
-}
 
 /**
  * Grab the appropriate receipt image and thumbnail URIs based on file type
@@ -38,18 +14,18 @@ function validateReceipt(file) {
  * @returns {Object}
  */
 function getThumbnailAndImageURIs(path, filename) {
+    const isReceiptImage = Str.isImage(filename);
+
     // For local files, we won't have a thumbnail yet
-    if (path.startsWith('blob:') || path.startsWith('file:')) {
+    if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
         return {thumbnail: null, image: path};
     }
-
-    const {fileExtension} = FileUtils.splitExtensionFromFileName(filename);
-    const isReceiptImage = Str.isImage(filename);
 
     if (isReceiptImage) {
         return {thumbnail: `${path}.1024.jpg`, image: path};
     }
 
+    const {fileExtension} = FileUtils.splitExtensionFromFileName(filename);
     let image = ReceiptGeneric;
     if (fileExtension === CONST.IOU.FILE_TYPES.HTML) {
         image = ReceiptHTML;
@@ -65,4 +41,5 @@ function getThumbnailAndImageURIs(path, filename) {
     return {thumbnail: null, image};
 }
 
-export {validateReceipt, getThumbnailAndImageURIs};
+// eslint-disable-next-line import/prefer-default-export
+export {getThumbnailAndImageURIs};
