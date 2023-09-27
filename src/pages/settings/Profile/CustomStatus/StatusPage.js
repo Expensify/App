@@ -6,8 +6,8 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes}
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import withLocalize from '../../../../components/withLocalize';
-import MenuItem from '../../../../components/MenuItem';
 import Text from '../../../../components/Text';
+import MenuItem from '../../../../components/MenuItem';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as User from '../../../../libs/actions/User';
 import themeColors from '../../../../styles/themes/default';
@@ -186,10 +186,11 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                         <MenuItem
                             title={localize.translate('statusPage.clearStatus')}
+                            titleStyle={styles.ml0}
                             icon={Expensicons.Trashcan}
                             onPress={clearStatus}
                             iconFill={themeColors.danger}
-                            wrapperStyle={[styles.cardMenuItem]}
+                            wrapperStyle={[styles.pl2]}
                         />
                     )}
                 </View>
