@@ -70,6 +70,7 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
             initialFocusedIndex={initialFocusedIndex}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
+            shouldDebounceRowSelect
         />
     );
 }
