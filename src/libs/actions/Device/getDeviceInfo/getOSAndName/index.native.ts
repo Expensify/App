@@ -9,6 +9,6 @@ const getOSAndName: GetOSAndName = () => {
         device_name: RNDeviceInfo.isEmulatorSync() ? `Emulator - ${prettyName}` : prettyName,
         os_version: RNDeviceInfo.getSystemVersion(),
     };
-}
+};
 
 export default getOSAndName;

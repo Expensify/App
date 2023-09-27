@@ -16,8 +16,6 @@ const uniqueID = Str.guid();
  * which is also different/reset under the same circumstances
  */
 
-const generateDeviceID: GenerateDeviceID = () => {
-    return Promise.resolve(uniqueID);
-}
+const generateDeviceID: GenerateDeviceID = () => Promise.resolve(uniqueID)
 
 export default generateDeviceID;
