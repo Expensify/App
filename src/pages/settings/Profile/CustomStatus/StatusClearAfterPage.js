@@ -167,7 +167,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 title="Status"
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
             />
-            <Text style={[styles.textNormal, styles.mh5, styles.mv4]}>When should we clear your status?</Text>
+            <Text style={[styles.textNormal, styles.mh5, styles.mv4]}>{localize.translate('statusPage.whenClearStatus')}</Text>
             <Form
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM}
                 submitButtonText="Save"
