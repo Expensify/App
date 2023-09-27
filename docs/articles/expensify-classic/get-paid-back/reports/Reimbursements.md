@@ -2,4 +2,4 @@
 title: Reimbursements
 description: Reimbursements
 ---
-## Resources Coming Soon!
+## Resource Coming Soon!

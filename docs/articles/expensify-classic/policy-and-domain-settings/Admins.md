@@ -2,4 +2,4 @@
 title: Admins
 description: Admins
 ---
-## Resources Coming Soon!
+## Resource Coming Soon!
