@@ -1508,7 +1508,9 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     if (shouldConsiderReceiptBeingScanned && ReportActionsUtils.isReportPreviewAction(reportAction)) {
-        const linkedTransaction = TransactionUtils.getTransaction(reportAction.childLastReceiptTransactionIDs);
+        const lastTransactionID = reportAction.childLastReceiptTransactionIDs.split(',')[0];
+        const linkedTransaction = TransactionUtils.getTransaction(lastTransactionID);
+
         if (!_.isEmpty(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
             return Localize.translateLocal('iou.receiptScanning');
         }
@@ -1516,7 +1518,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
 
     if (shouldConsiderReceiptBeingScanned && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
-        
+
         if (!_.isEmpty(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
             return Localize.translateLocal('iou.receiptScanning');
         }
