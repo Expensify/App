@@ -3,11 +3,11 @@ import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkStore from './Network/NetworkStore';
 import Request from '../types/onyx/Request';
 
-type Middleware = (response: Promise<unknown>, request: Request, isFromSequentialQueue: boolean) => Promise<unknown>;
+type Middleware = (response: Promise<Record<string, unknown>>, request: Request, isFromSequentialQueue: boolean) => Promise<Record<string, unknown>>;
 
 let middlewares: Middleware[] = [];
 
-function makeXHR(request: Request): Promise<unknown> {
+function makeXHR(request: Request): Promise<Record<string, unknown>> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return NetworkStore.hasReadRequiredDataFromStorage().then(() => {
         // If we're using the Supportal token and this is not a Supportal request
@@ -19,7 +19,7 @@ function makeXHR(request: Request): Promise<unknown> {
     });
 }
 
-function processWithMiddleware(request: Request, isFromSequentialQueue = false): Promise<unknown> {
+function processWithMiddleware(request: Request, isFromSequentialQueue = false): Promise<Record<string, unknown>> {
     return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
 }
 

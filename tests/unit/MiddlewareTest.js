@@ -31,7 +31,7 @@ describe('Middleware', () => {
         test('Normal request', async () => {
             const actual = jest.requireActual('../../src/libs/Middleware/HandleUnusedOptimisticID');
             const handleUnusedOptimisticID = jest.spyOn(actual, 'default');
-            // Request.use(handleUnusedOptimisticID);
+            Request.use(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'OpenReport',
@@ -51,6 +51,42 @@ describe('Middleware', () => {
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api?command=AddComment', expect.anything());
             TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[1][1].body, {reportID: '1234', reportActionID: '5678', reportComment: 'foo'});
+            expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api?command=OpenReport', expect.anything());
+            TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[0][1].body, {reportID: '1234'});
+        });
+
+        test('Request with preexistingReportID', async () => {
+            const actual = jest.requireActual('../../src/libs/Middleware/HandleUnusedOptimisticID');
+            const handleUnusedOptimisticID = jest.spyOn(actual, 'default');
+            Request.use(handleUnusedOptimisticID);
+            const requests = [
+                {
+                    command: 'OpenReport',
+                    data: {authToken: 'testToken', reportID: '1234'},
+                },
+                {
+                    command: 'AddComment',
+                    data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678', reportComment: 'foo'},
+                },
+            ];
+            for (const request of requests) {
+                SequentialQueue.push(request);
+            }
+
+            global.fetch.mockImplementationOnce(async () => ({
+                ok: true,
+                json: async () => ({
+                    jsonCode: 200,
+                    preexistingReportID: '5555',
+                }),
+            }));
+
+            SequentialQueue.unpause();
+            await waitForNetworkPromises();
+
+            expect(global.fetch).toHaveBeenCalledTimes(2);
+            expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api?command=AddComment', expect.anything());
+            TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[1][1].body, {reportID: '5555', reportActionID: '5678', reportComment: 'foo'});
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api?command=OpenReport', expect.anything());
             TestHelper.assertFormDataMatchesObject(global.fetch.mock.calls[0][1].body, {reportID: '1234'});
         });
