@@ -440,6 +440,12 @@ const CONST = {
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
     EXPENSIFY_URL: 'https://www.expensify.com',
+    BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
+        'https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account',
+    PERSONAL_DATA_PROTECTION_INFO_URL: 'https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information',
+    ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
+    ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
+    ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
@@ -981,6 +987,10 @@ const CONST = {
         TIER_NAME: {
             GOLD: 'GOLD',
             SILVER: 'SILVER',
+        },
+        WEB_MESSAGE_TYPE: {
+            STATEMENT: 'STATEMENT_NAVIGATE',
+            CONCIERGE: 'CONCIERGE_NAVIGATE',
         },
     },
 
