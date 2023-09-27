@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
@@ -54,23 +54,6 @@ const defaultProps = {
 };
 
 function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
-    const defaultWebsite = useMemo(() => (lodashGet(user, 'isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(session.email, '')}`), [user, session]);
-    const [companyInformation, setCompanyInformation] = useState({
-        street: getDefaultStateForField('addressStreet') || reimbursementAccountDraft.addressStreet,
-        city: getDefaultStateForField('addressCity') || reimbursementAccountDraft.addressCity,
-        state: getDefaultStateForField('addressState') || reimbursementAccountDraft.addressState,
-        zipCode: getDefaultStateForField('addressZipCode') || reimbursementAccountDraft.addressZipCode,
-        companyPhone: getDefaultStateForField('companyPhone') || reimbursementAccountDraft.companyPhone,
-        website: getDefaultStateForField('website', defaultWebsite) || reimbursementAccountDraft.website,
-    });
-
-    const onFieldChange = (field) => {
-        setCompanyInformation((prevCompanyInformation) => ({
-            ...prevCompanyInformation,
-            ...field,
-        }));
-    };
-
     /**
      * @param {Array} fieldNames
      *
@@ -80,6 +63,8 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
         ..._.pick(lodashGet(reimbursementAccount, 'achData'), ...fieldNames),
         ..._.pick(reimbursementAccountDraft, ...fieldNames),
     });
+
+    const defaultWebsite = useMemo(() => (lodashGet(user, 'isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(session.email, '')}`), [user, session]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -172,6 +157,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 onSubmit={submit}
                 scrollContextEnabled
                 submitButtonText={translate('common.saveAndContinue')}
+                shouldPriorityDefaultValue
                 style={[styles.mh5, styles.flexGrow1]}
             >
                 <Text>{translate('companyStep.subtitle')}</Text>
@@ -188,11 +174,11 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 />
                 <AddressForm
                     translate={translate}
-                    values={{
-                        street: companyInformation.street,
-                        city: companyInformation.city,
-                        state: companyInformation.state,
-                        zipCode: companyInformation.zipCode,
+                    defaultValues={{
+                        street: getDefaultStateForField('addressStreet'),
+                        city: getDefaultStateForField('addressCity'),
+                        state: getDefaultStateForField('addressState'),
+                        zipCode: getDefaultStateForField('addressZipCode'),
                     }}
                     inputKeys={{
                         street: 'addressStreet',
@@ -200,7 +186,6 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                         state: 'addressState',
                         zipCode: 'addressZipCode',
                     }}
-                    onFieldChange={onFieldChange}
                     shouldSaveDraft
                     streetTranslationKey="common.companyAddress"
                 />
@@ -212,8 +197,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     containerStyles={[styles.mt4]}
                     keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                     placeholder={translate('common.phoneNumberPlaceholder')}
-                    value={companyInformation.companyPhone}
-                    onValueChange={(value) => onFieldChange({companyPhone: value})}
+                    defaultValuevalue={getDefaultStateForField('companyPhone')}
                     shouldSaveDraft
                 />
                 <TextInput
@@ -222,8 +206,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     accessibilityLabel={translate('companyStep.companyWebsite')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     containerStyles={[styles.mt4]}
-                    value={companyInformation.website}
-                    onValueChange={(value) => onFieldChange({website: value})}
+                    defaultValue={getDefaultStateForField('website', defaultWebsite)}
                     shouldSaveDraft
                     hint={translate('common.websiteExample')}
                     keyboardType={CONST.KEYBOARD_TYPE.URL}

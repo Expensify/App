@@ -79,6 +79,7 @@ function getVBBADataForOnyx() {
                 value: {
                     isLoading: false,
                     errors: null,
+                    shouldUpdateDataToDraft: true,
                 },
             },
         ],

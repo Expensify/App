@@ -257,10 +257,6 @@ function AddressSearch(props) {
             props.onInputChange(values);
         }
 
-        if (_.isFunction(props.onValueChange)) {
-            props.onValueChange(values);
-        }
-
         props.onPress(values);
     };
 
@@ -339,10 +335,6 @@ function AddressSearch(props) {
                                 props.onInputChange(text);
                             } else {
                                 props.onInputChange({street: text});
-                            }
-
-                            if (_.isFunction(props.onValueChange)) {
-                                props.onValueChange({street: text});
                             }
 
                             // If the text is empty, we set displayListViewBorder to false to prevent UI flickering

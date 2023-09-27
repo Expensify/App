@@ -158,6 +158,9 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         const currentStepRouteParam = this.getStepToOpenFromRouteParams();
+        if (this.props.reimbursementAccount.shouldUpdateDataToDraft) {
+            BankAccounts.updateReimbursementAccountDraft(this.getBankAccountFields(this.getFieldsOfCurrentStep(currentStepRouteParam)));
+        }
         if (currentStepRouteParam === currentStep) {
             // The route is showing the correct step, no need to update the route param or clear errors.
             return;
@@ -175,6 +178,42 @@ class ReimbursementAccountPage extends React.Component {
         const backTo = lodashGet(this.props.route.params, 'backTo');
         const policyId = lodashGet(this.props.route.params, 'policyID');
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(this.getRouteForCurrentStep(currentStep), policyId, backTo));
+    }
+
+    getFieldsOfCurrentStep(currentStep) {
+        switch (currentStep) {
+            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+                return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
+            case CONST.BANK_ACCOUNT.STEP.COMPANY:
+                return [
+                    'companyName',
+                    'addressStreet',
+                    'addressZipCode',
+                    'addressCity',
+                    'addressState',
+                    'companyPhone',
+                    'website',
+                    'companyTaxID',
+                    'incorporationType',
+                    'incorporationDate',
+                    'incorporationState',
+                ];
+            case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+                return ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
+            default:
+                return [];
+        }
+    }
+
+    /**
+     * @param {Array} fieldNames
+     *
+     * @returns {*}
+     */
+    getBankAccountFields(fieldNames) {
+        return {
+            ..._.pick(lodashGet(this.props.reimbursementAccount, 'achData'), ...fieldNames),
+        };
     }
 
     /*
