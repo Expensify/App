@@ -355,7 +355,7 @@ function AttachmentModal(props) {
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
         threeDotMenuItems.push({
             icon: Expensicons.Trashcan,
-            text: props.traIOUnslate('receipt.deleteReceipt'),
+            text: props.translate('receipt.deleteReceipt'),
             onSelected: () => {
                 IOU.detachReceipt(transaction.transactionID);
             },
@@ -396,7 +396,7 @@ function AttachmentModal(props) {
                     onCloseButtonPress={closeModal}
                     shouldShowThreeDotsButton={isAttachmentReceipt}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
-                    threeDotsMenuItems
+                    threeDotsMenuItems={threeDotMenuItems}
                     shouldOverlay
                 />
                 <View style={styles.imageModalImageCenterContainer}>
@@ -477,5 +477,5 @@ export default compose(
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
         },
-        }
-    )(AttachmentModal));
+    }),
+)(AttachmentModal);
