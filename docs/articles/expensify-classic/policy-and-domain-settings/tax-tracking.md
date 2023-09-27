@@ -9,7 +9,7 @@ Expensify’s tax tracking feature allows you to:
 - Set a default tax for Workspace currency expenses and, optionally, another default tax (including exempt) for foreign currency expenses which - will automatically apply to all new expenses.
 
 # How to Enable Tax Tracking
-Tax tracking can be enabled in Tax section of the Workspace settings of any Workspace, whether group or individual. 
+Tax tracking can be enabled in the Tax section of the Workspace settings of any Workspace, whether group or individual. 
 ## If Connected to an Accounting Integration
 If your group Workspace is connected to Xero, QuickBooks Online, Sage Intacct, or NetSuite, make sure to first enable tax via the connection configuration page (Settings > Policies > Group > [Workspace Name] > Connections > Configure) and then sync the connection. Your tax rates will be imported from the accounting system and indicated by its logo.
 ## Not Connected to an Accounting Integration
