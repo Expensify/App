@@ -53,7 +53,7 @@ const defaultProps = {
  * Get the most recently accessed report for the user
  *
  * @param {Object} reports
- * @param {Boolean} [ignoreDefaultRooms]
+ * @param {Boolean} ignoreDefaultRooms
  * @param {Object} policies
  * @param {Boolean} isFirstTimeNewExpensifyUser
  * @param {Boolean} openOnAdminRoom
@@ -74,35 +74,27 @@ const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, isFirstT
 };
 
 // This wrapper is reponsible for opening the last accessed report if there is no reportID specified in the route params
-function ReportScreenIDSetter(props) {
+function ReportScreenIDSetter({route, reports, policies, isFirstTimeNewExpensifyUser, navigation}) {
     const {canUseDefaultRooms} = usePermissions();
 
     useEffect(() => {
         // Don't update if there is a reportID in the params already
-        if (lodashGet(props.route, 'params.reportID', null)) {
+        if (lodashGet(route, 'params.reportID', null)) {
             App.confirmReadyToOpenApp();
             return;
         }
 
         // If there is no reportID in route, try to find last accessed and use it for setParams
-        const reportID = getLastAccessedReportID(
-            props.reports,
-            !canUseDefaultRooms,
-            props.policies,
-            props.isFirstTimeNewExpensifyUser,
-            lodashGet(props.route, 'params.openOnAdminRoom', false),
-        );
+        const reportID = getLastAccessedReportID(reports, !canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, lodashGet(route, 'params.openOnAdminRoom', false));
 
-        // It's possible that props.reports aren't fully loaded yet
+        // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
         if (reportID) {
-            performance.mark('ReportScreenConfirmer_hook');
-            performance.measure('ReportScreenConfirmer_hook_meassure', {start: 'ReportScreenConfirmer_hook', duration: 100});
-            props.navigation.setParams({reportID: String(reportID)});
+            navigation.setParams({reportID: String(reportID)});
         } else {
             App.confirmReadyToOpenApp();
         }
-    }, [props.route, props.navigation, props.reports, canUseDefaultRooms, props.policies, props.isFirstTimeNewExpensifyUser]);
+    }, [route, navigation, reports, canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser]);
 
     // The ReportScreen without the reportID set will display a skeleton
     // until the reportID is loaded and set in the route param

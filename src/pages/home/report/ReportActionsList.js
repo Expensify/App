@@ -177,9 +177,10 @@ function ReportActionsList({
             // Clearing the current unread marker so that it can be recalculated
             setCurrentUnreadMarker(null);
             setMessageManuallyMarkedUnread(new Date().getTime());
-        } else {
-            setMessageManuallyMarkedUnread(0);
+            return;
         }
+
+        setMessageManuallyMarkedUnread(0);
 
         // We only care when a new lastReadTime is set in the report
         // eslint-disable-next-line react-hooks/exhaustive-deps
