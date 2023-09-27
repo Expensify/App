@@ -279,7 +279,7 @@ function getMicroseconds(): number {
 /**
  * Returns the current time in milliseconds in the format expected by the database
  */
-function getDBTime(timestamp = ''): string {
+function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
     return datetime.toISOString().replace('T', ' ').replace('Z', '');
 }
@@ -287,7 +287,8 @@ function getDBTime(timestamp = ''): string {
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
     const date = zonedTimeToUtc(dateTime, 'UTC');
     const newTimestamp = subMilliseconds(date, milliseconds).valueOf();
-    return getDBTime(newTimestamp.toString());
+
+    return getDBTime(newTimestamp);
 }
 
 /**
