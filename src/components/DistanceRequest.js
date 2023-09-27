@@ -1,8 +1,9 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashIsNil from 'lodash/isNil';
+import lodashIsEmpty from 'lodash/isEmpty';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -186,13 +187,17 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
         IOU.navigateToNextPage(iou, iouType, reportID, report);
     };
 
-    const updateWaypoints = ({data}) => {
-        const newWaypoints = {};
-        _.each(data, (waypoint, index) => {
-            newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, null);
-        });
-        Transaction.updateWaypoints(iou.transactionID, newWaypoints);
-    };
+    const updateWaypoints = useCallback(
+        ({data}) => {
+            const newWaypoints = {};
+            _.each(data, (waypoint, index) => {
+                const newWaypoint = lodashGet(waypoints, waypoint, {});
+                newWaypoints[`waypoint${index}`] = lodashIsEmpty(newWaypoint) ? null : newWaypoint;
+            });
+            Transaction.updateWaypoints(iou.transactionID, newWaypoints);
+        },
+        [iou.transactionID, waypoints],
+    );
 
     const renderItem = ({item, drag, getIndex, isActive}) => {
         const index = getIndex();
