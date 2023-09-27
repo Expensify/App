@@ -775,29 +775,36 @@ function getReport(reportID) {
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction, reportID) {
-    // For now, users cannot delete split actions
-    if (ReportActionsUtils.isMoneyRequestAction(reportAction) && lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
-        return false;
-    }
-    const isActionOwner = reportAction.actorAccountID === currentUserAccountID;
     const report = getReport(reportID);
-    if (isActionOwner && ReportActionsUtils.isMoneyRequestAction(reportAction) && !isSettled(reportAction.originalMessage.IOUReportID) && !isReportApproved(report)) {
-        return true;
+
+    const isActionOwner = reportAction.actorAccountID === currentUserAccountID;
+
+    if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+        // For now, users cannot delete split actions
+        const isSplitAction = lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+
+        if (isSplitAction || isSettled(reportAction.originalMessage.IOUReportID) || isReportApproved(report)) {
+            return false;
+        }
+
+        if (isActionOwner) {
+            return true;
+        }
     }
+
     if (
         reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
         reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
-        (ReportActionsUtils.isMoneyRequestAction(reportAction) && (isSettled(reportAction.originalMessage.IOUReportID) || isReportApproved(report))) ||
         reportAction.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
     ) {
         return false;
     }
-    if (isActionOwner) {
-        return true;
-    }
+
     const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`) || {};
-    return policy.role === CONST.POLICY.ROLE.ADMIN && !isDM(report);
+    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN && !isDM(report);
+
+    return isActionOwner || isAdmin;
 }
 
 /**
@@ -1199,17 +1206,6 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
             pronouns,
         };
     });
-}
-
-/**
- * Get the report given a reportID
- *
- * @param {String} reportID
- * @returns {Object}
- */
-function getReport(reportID) {
-    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
 }
 
 /**
