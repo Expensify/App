@@ -81,29 +81,31 @@ function ExpensifyCardPage({
                             interactive={false}
                             titleStyle={styles.newKansasLarge}
                         />
-                        {shouldShowCardDetails ? (
-                            <CardDetails
-                                pan="1234123412341234"
-                                expiration="11/02/2024"
-                                cvv="321"
-                            />
-                        ) : (
-                            !_.isEmpty(physicalCard) && (
-                                <MenuItemWithTopDescription
-                                    description={translate('cardPage.virtualCardNumber')}
-                                    title={CardUtils.maskCard(virtualCard.lastFourPAN)}
-                                    interactive={false}
-                                    titleStyle={styles.walletCardNumber}
-                                    shouldShowRightComponent
-                                    rightComponent={
-                                        <Button
-                                            medium
-                                            text={translate('cardPage.cardDetails.revealDetails')}
-                                            onPress={handleRevealDetails}
-                                        />
-                                    }
-                                />
-                            )
+                        {!_.isEmpty(virtualCard) && (
+                            <>
+                                {shouldShowCardDetails ? (
+                                    <CardDetails
+                                        pan="1234123412341234"
+                                        expiration="11/02/2024"
+                                        cvv="321"
+                                    />
+                                ) : (
+                                    <MenuItemWithTopDescription
+                                        description={translate('cardPage.virtualCardNumber')}
+                                        title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                        interactive={false}
+                                        titleStyle={styles.walletCardNumber}
+                                        shouldShowRightComponent
+                                        rightComponent={
+                                            <Button
+                                                medium
+                                                text={translate('cardPage.cardDetails.revealDetails')}
+                                                onPress={handleRevealDetails}
+                                            />
+                                        }
+                                    />
+                                )}
+                            </>
                         )}
                         {!_.isEmpty(physicalCard) && (
                             <MenuItemWithTopDescription
