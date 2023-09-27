@@ -21,10 +21,10 @@ const propTypes = {
 };
 
 function CustomClearAfterPage({translate, customStatus}) {
-    const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
+    const customClearAfter = lodashGet(customStatus, 'clearAfter', '');
 
     const onSubmit = (v) => {
-        User.updateDraftCustomStatus({customDateTemporary: v.dob});
+        User.updateDraftCustomStatus({clearAfter: DateUtils.combineDateAndTime(customClearAfter, v.dob)});
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
@@ -61,7 +61,7 @@ function CustomClearAfterPage({translate, customStatus}) {
                 <NewDatePicker
                     inputID="dob"
                     label={translate('statusPage.date')}
-                    defaultValue={DateUtils.extractDate(customDateTemporary)}
+                    defaultValue={DateUtils.extractDate(customClearAfter)}
                     minDate={moment().toDate()}
                 />
             </Form>

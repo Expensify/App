@@ -3490,7 +3490,6 @@ const styles = (theme) => ({
         alignItems: 'center',
         paddingLeft: 10,
         paddingRight: 4,
-        marginBottom: 32,
         alignSelf: 'flex-start',
     },
 

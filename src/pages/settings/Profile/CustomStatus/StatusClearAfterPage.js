@@ -32,7 +32,6 @@ const propTypes = {
     currentUserPersonalDetails: personalDetailsPropType,
     customStatus: PropTypes.shape({
         clearAfter: PropTypes.string,
-        customDateTemporary: PropTypes.string,
     }),
 };
 
@@ -90,7 +89,6 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const localize = useLocalize();
     const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
     const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
-    const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
     const [draftPeriod, setDraftPeriod] = useState(getSelectedStatusType(draftClearAfter || clearAfter));
     const statusType = useMemo(
         () =>
@@ -99,11 +97,12 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 text: localize.translate(`statusPage.timePeriods.${value}`),
                 keyForList: key,
                 isSelected: draftPeriod === value,
+                value,
             })),
         [draftPeriod, localize],
     );
 
-    const {customDateError, customTimeError, validateCustomDate} = useValidateCustomDate(customDateTemporary);
+    const {customDateError, customTimeError, validateCustomDate} = useValidateCustomDate(draftClearAfter);
 
     const {redBrickDateIndicator, redBrickTimeIndicator} = useMemo(
         () => ({
@@ -120,12 +119,12 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
         }
         let calculatedDraftDate = '';
         if (draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
-            calculatedDraftDate = customDateTemporary;
+            calculatedDraftDate = draftClearAfter;
         } else {
             const selectedRange = _.find(statusType, (item) => item.isSelected);
             calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange.value);
         }
-        User.updateDraftCustomStatus({clearAfter: calculatedDraftDate, customDateTemporary: calculatedDraftDate});
+        User.updateDraftCustomStatus({clearAfter: calculatedDraftDate});
         Navigation.goBack(ROUTES.SETTINGS_STATUS);
     };
 
@@ -134,25 +133,30 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
             if (mode.value === draftPeriod) {
                 return;
             }
-            User.updateDraftCustomStatus({
-                customDateTemporary: mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM ? DateUtils.getOneHourFromNow() : DateUtils.getDateFromStatusType(mode.value),
-            });
             setDraftPeriod(mode.value);
+
+            if (mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
+                User.updateDraftCustomStatus({clearAfter: DateUtils.getOneHourFromNow()});
+            } else {
+                const selectedRange = _.find(statusType, (item) => item.value === mode.value);
+                const calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange.value);
+                User.updateDraftCustomStatus({clearAfter: calculatedDraftDate});
+                Navigation.goBack(ROUTES.SETTINGS_STATUS);
+            }
         },
         [draftPeriod],
     );
 
     useEffect(() => {
         User.updateDraftCustomStatus({
-            customDateTemporary: draftClearAfter || clearAfter,
             clearAfter: draftClearAfter || clearAfter,
         });
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const customStatusDate = DateUtils.extractDate(customDateTemporary);
-    const customStatusTime = DateUtils.extractTime12Hour(customDateTemporary);
+    const customStatusDate = DateUtils.extractDate(draftClearAfter);
+    const customStatusTime = DateUtils.extractTime12Hour(draftClearAfter);
 
     return (
         <ScreenWrapper
@@ -171,7 +175,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 onSubmit={onSubmit}
                 style={styles.flexGrow1}
                 scrollContextEnabled={false}
-                submitButtonStyle={styles.mh5}
+                isSubmitButtonVisible={false}
                 enabledWhenOffline
             >
                 <View>

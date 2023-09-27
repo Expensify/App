@@ -28,18 +28,18 @@ function SetTimePage({translate, privatePersonalDetails, customStatus}) {
     usePrivatePersonalDetails();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const localize = useLocalize();
-    const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
+    const clearAfter = lodashGet(customStatus, 'clearAfter', '');
 
     const onSubmit = ({timePicker}) => {
-        const timeToUse = DateUtils.combineDateAndTime(timePicker, customDateTemporary);
+        const timeToUse = DateUtils.combineDateAndTime(timePicker, clearAfter);
 
-        User.updateDraftCustomStatus({customDateTemporary: timeToUse});
+        User.updateDraftCustomStatus({clearAfter: timeToUse});
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
     const validate = (v) => {
         const error = {};
 
-        if (!ValidationUtils.isTimeAtLeastOneMinuteInFuture(v.timePicker, customDateTemporary)) {
+        if (!ValidationUtils.isTimeAtLeastOneMinuteInFuture(v.timePicker, clearAfter)) {
             error.timePicker = localize.translate('common.error.invalidTimeShouldBeFuture');
         }
 
@@ -73,7 +73,7 @@ function SetTimePage({translate, privatePersonalDetails, customStatus}) {
                 >
                     <TimePicker
                         inputID="timePicker"
-                        defaultValue={DateUtils.extractTime12Hour(customDateTemporary)}
+                        defaultValue={DateUtils.extractTime12Hour(clearAfter)}
                         style={styles.flexGrow1}
                     />
                 </Form>
