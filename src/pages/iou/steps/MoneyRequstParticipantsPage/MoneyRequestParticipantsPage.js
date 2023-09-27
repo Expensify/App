@@ -18,6 +18,7 @@ import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import compose from '../../../../libs/compose';
+import transactionPropTypes from '../../../../components/transactionPropTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -37,10 +38,14 @@ const propTypes = {
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
+
+    /** Transaction that stores the distance request data */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     iou: iouDefaultProps,
+    transaction: {},
 };
 
 function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
