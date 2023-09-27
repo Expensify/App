@@ -1469,6 +1469,7 @@ function getTransactionReportName(reportAction) {
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
+
     if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
         return Localize.translateLocal('iou.receiptMissingDetails');
     }
@@ -1515,6 +1516,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
 
     if (shouldConsiderReceiptBeingScanned && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+        
         if (!_.isEmpty(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
             return Localize.translateLocal('iou.receiptScanning');
         }
