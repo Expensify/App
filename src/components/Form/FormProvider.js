@@ -108,6 +108,7 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
         (values) => {
             const validateErrors = validate(values);
             setErrors(validateErrors);
+            return validateErrors;
         },
         [validate],
     );
