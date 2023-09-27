@@ -313,6 +313,8 @@ function ReportScreen({
         const prevOnyxReportID = prevReport.reportID;
         const routeReportID = getReportID(route);
 
+        console.log(">>>>", {didLoseAccess})
+
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room)
         if (
             // non-optimistic case
@@ -324,6 +326,7 @@ function ReportScreen({
             Report.clearReportLostAccessFlag();
             Navigation.goBack();
             Report.navigateToConciergeChat();
+            // debugger;
             return;
         }
 

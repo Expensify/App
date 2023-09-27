@@ -34,7 +34,7 @@ const personalDetailsPropTypes = PropTypes.shape({
     policies: PropTypes.shape({
         /** ID of the policy */
         id: PropTypes.string,
-    }),
+    }).isRequired,
 
     /** The URL of the person's avatar (there should already be a default avatar if
     the person doesn't have their own avatar uploaded yet, except for anon users) */
