@@ -477,6 +477,7 @@ function Form(props) {
             props.isSubmitActionDangerous,
             props.isSubmitButtonVisible,
             props.submitButtonText,
+            props.buttonStyles,
         ],
     );
 
