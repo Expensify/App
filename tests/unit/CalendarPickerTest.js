@@ -5,12 +5,13 @@ import CalendarPicker from '../../src/components/NewDatePicker/CalendarPicker';
 import CONST from '../../src/CONST';
 
 DateUtils.setLocale(CONST.LOCALES.EN);
+const fullYear = new Date().getFullYear();
 const monthsArray = eachMonthOfInterval({
-    start: new Date(new Date().getFullYear(), 0, 1), // January 1st of the current year
-    end: new Date(new Date().getFullYear(), 11, 31), // December 31st of the current year
+    start: new Date(fullYear, 0, 1), // January 1st of the current year
+    end: new Date(fullYear, 11, 31), // December 31st of the current year
 });
 // eslint-disable-next-line rulesdir/prefer-underscore-method
-const monthNames = monthsArray.map((monthDate) => format(monthDate, 'MMMM'));
+const monthNames = monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
 
 jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({navigate: jest.fn()}),

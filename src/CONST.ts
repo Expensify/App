@@ -137,6 +137,7 @@ const CONST = {
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         LOCAL_TIME_FORMAT: 'h:mm a',
         YEAR_MONTH_FORMAT: 'yyyyMM',
+        MONTH_FORMAT: 'MMMM',
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
