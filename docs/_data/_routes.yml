@@ -142,3 +142,6 @@ platforms:
         title: Workspace & Domain Settings
         icon: /assets/images/shield.svg
         description: Discover how to set up and manage your workspace, define user permissions, and implement domain-level rules.
+
+      - href: Security
+        title: Security
