@@ -982,6 +982,10 @@ const CONST = {
             GOLD: 'GOLD',
             SILVER: 'SILVER',
         },
+        WEB_MESSAGE_TYPE: {
+            STATEMENT: 'STATEMENT_NAVIGATE',
+            CONCIERGE: 'CONCIERGE_NAVIGATE',
+        },
     },
 
     PLAID: {
