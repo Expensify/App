@@ -59,6 +59,7 @@ function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, no
             size={size || CONST.AVATAR_SIZE.DEFAULT}
             name={mainAvatar.name}
             type={mainAvatar.type}
+            fallbackIcon={mainAvatar.fallbackIcon}
         />
     );
 
@@ -79,6 +80,7 @@ function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, no
                 fill={themeColors.iconSuccessFill}
                 name={secondaryAvatar.name}
                 type={secondaryAvatar.type}
+                fallbackIcon={secondaryAvatar.fallbackIcon}
             />
         </View>
     );

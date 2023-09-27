@@ -21,7 +21,11 @@ const propTypes = {
     }).isRequired,
 
     /** The id of the transaction we're editing */
-    transactionID: PropTypes.string.isRequired,
+    transactionID: PropTypes.string,
+};
+
+const defaultProps = {
+    transactionID: '',
 };
 
 function EditRequestReceiptPage({route, transactionID}) {
@@ -31,6 +35,7 @@ function EditRequestReceiptPage({route, transactionID}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={EditRequestReceiptPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.receipt')}
@@ -40,6 +45,7 @@ function EditRequestReceiptPage({route, transactionID}) {
                 <ReceiptSelector
                     route={route}
                     transactionID={transactionID}
+                    isInTabNavigator={false}
                 />
             </DragAndDropProvider>
         </ScreenWrapper>
@@ -47,6 +53,7 @@ function EditRequestReceiptPage({route, transactionID}) {
 }
 
 EditRequestReceiptPage.propTypes = propTypes;
+EditRequestReceiptPage.defaultProps = defaultProps;
 EditRequestReceiptPage.displayName = 'EditRequestReceiptPage';
 
 export default EditRequestReceiptPage;

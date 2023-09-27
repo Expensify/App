@@ -24,11 +24,7 @@ import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import RenderHTML from './RenderHTML';
-import getPlatform from '../libs/getPlatform';
-
-const platform = getPlatform();
-const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+import MenuItemRenderHTMLTitle from './MenuItemRenderHTMLTitle';
 
 const propTypes = menuItemPropTypes;
 
@@ -60,7 +56,6 @@ const defaultProps = {
     disabled: false,
     isSelected: false,
     subtitle: undefined,
-    subtitleTextStyle: {},
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
     onSecondaryInteraction: undefined,
@@ -80,6 +75,7 @@ const defaultProps = {
     title: '',
     numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
+    error: '',
     shouldRenderAsHTML: false,
 };
 
@@ -251,16 +247,10 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(props.title) &&
-                                                (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) &&
-                                                (isNative ? (
-                                                    <RenderHTML html={getProcessedTitle} />
-                                                ) : (
-                                                    <View style={styles.chatItemMessage}>
-                                                        <RenderHTML html={getProcessedTitle} />
-                                                    </View>
-                                                ))}
-                                            {!props.shouldRenderAsHTML && !html.length && Boolean(props.title) && (
+                                            {Boolean(props.title) && (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) && (
+                                                <MenuItemRenderHTMLTitle title={getProcessedTitle} />
+                                            )}
+                                            {!props.shouldRenderAsHTML && !props.shouldParseTitle && Boolean(props.title) && (
                                                 <Text
                                                     style={titleTextStyle}
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
@@ -285,6 +275,11 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             >
                                                 {props.description}
                                             </Text>
+                                        )}
+                                        {props.error && (
+                                            <View style={[styles.mt1]}>
+                                                <Text style={[styles.textLabelError]}>{props.error}</Text>
+                                            </View>
                                         )}
                                         {Boolean(props.furtherDetails) && (
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
@@ -319,7 +314,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                                 {(props.subtitle || props.subtitle === 0) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                        <Text style={[props.subtitleTextStyle || styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
+                                        <Text style={[styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
                                     </View>
                                 )}
                                 {!_.isEmpty(props.floatRightAvatars) && (

@@ -36,7 +36,7 @@ const darkTheme = {
     signInPage: colors.green800,
 
     // Additional keys
-    overlay: colors.darkHighlightBackground,
+    overlay: colors.darkBorders,
     inverse: colors.darkPrimaryText,
     shadow: colors.black,
     componentBG: colors.darkAppBackground,
@@ -84,6 +84,7 @@ const darkTheme = {
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
     selectionListIndicatorColor: colors.white,
+    mapAttributionText: colors.black,
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
