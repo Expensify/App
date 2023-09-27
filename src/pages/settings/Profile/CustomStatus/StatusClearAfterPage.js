@@ -97,7 +97,6 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 text: localize.translate(`statusPage.timePeriods.${value}`),
                 keyForList: key,
                 isSelected: draftPeriod === value,
-                value,
             })),
         [draftPeriod, localize],
     );
@@ -144,7 +143,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
             }
         },
-        [draftPeriod],
+        [draftPeriod, statusType],
     );
 
     useEffect(() => {
@@ -184,7 +183,6 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                         onSelectRow={updateMode}
                         disableInitialFocusOptionStyle
                         wrapperStyle={{flex: null}}
-                        scrollEnabled={false}
                         useSeparator
                     />
 

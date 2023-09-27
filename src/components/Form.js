@@ -269,7 +269,7 @@ const Form = forwardRef((props, forwardedRef) => {
             });
             setErrors({});
         },
-        [props.draftValues, inputValues],
+        [inputValues],
     );
 
     useImperativeHandle(forwardedRef, () => ({
@@ -516,6 +516,7 @@ const Form = forwardRef((props, forwardedRef) => {
             props.submitButtonStyle,
             props.useSmallerSubmitButtonSize,
             props.errorMessageStyle,
+            props.isDisabled,
         ],
     );
 

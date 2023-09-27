@@ -147,7 +147,6 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     Settings_Add_Debit_Card: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default,
     Settings_Add_Bank_Account: () => require('../../../pages/AddPersonalBankAccountPage').default,
     [SCREENS.SETTINGS.STATUS]: () => require('../../../pages/settings/Profile/CustomStatus/StatusPage').default,
-    Settings_Status_Set: () => require('../../../pages/settings/Profile/CustomStatus/StatusSetPage').default,
     Settings_Status_Clear_After: () => require('../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default,
     Settings_Status_Clear_After_Custom: () => require('../../../pages/settings/Profile/CustomStatus/CustomClearAfterPage').default,
     Settings_Status_Clear_After_Time: () => require('../../../pages/settings/Profile/CustomStatus/SetTimePage').default,

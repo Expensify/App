@@ -75,7 +75,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
             User.updateCustomStatus({
                 text: statusText,
-                emojiCode: emojiCode,
+                emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
 
@@ -118,17 +118,19 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     useEffect(() => {
         setFormDirty(!!brickRoadIndicator || currentUserClearAfter !== draftClearAfter);
-    }, [checkIfFormIsDirty, brickRoadIndicator]);
+    }, [currentUserClearAfter, draftClearAfter, brickRoadIndicator]);
 
+    const validateForm = useCallback(
+        (v) => {
+            checkIfFormIsDirty(v);
 
-    const validateForm = useCallback((v) => {
-      checkIfFormIsDirty(v);
-
-      if (brickRoadIndicator) {
-          return {clearAfter: ''};
-      }
-      return {};
-  }, [brickRoadIndicator, checkIfFormIsDirty]);
+            if (brickRoadIndicator) {
+                return {clearAfter: ''};
+            }
+            return {};
+        },
+        [brickRoadIndicator, checkIfFormIsDirty],
+    );
     return (
         <ScreenWrapper
             testID={StatusPage.displayName}
