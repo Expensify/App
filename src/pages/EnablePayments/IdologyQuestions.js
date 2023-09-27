@@ -149,7 +149,7 @@ function IdologyQuestions({questions, walletAdditionalDetails, idNumber}) {
                     message={errorMessage}
                     isLoading={walletAdditionalDetails.isLoading}
                     buttonText={translate('common.saveAndContinue')}
-                    containerStyles={[styles.m0]}
+                    containerStyles={[styles.mh0, styles.mb0]}
                 />
                 <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
             </FixedFooter>
