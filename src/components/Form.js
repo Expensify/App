@@ -454,28 +454,29 @@ function Form(props) {
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
-                        disablePressOnEnters
+                        disablePressOnEnter
                         buttonStyles={props.buttonStyles}
                     />
                 )}
             </FormSubmit>
         ),
         [
+            childrenWrapperWithProps,
+            errors,
+            formContentRef,
+            formRef,
+            errorMessage,
+            inputRefs,
+            inputValues,
+            submit,
             props.style,
-            props.isSubmitButtonVisible,
-            props.submitButtonText,
-            props.formState.errorFields,
-            props.formState.isLoading,
+            children,
+            props.formState,
             props.footerContent,
             props.enabledWhenOffline,
             props.isSubmitActionDangerous,
-            props.buttonStyles,
-            submit,
-            childrenWrapperWithProps,
-            children,
-            inputValues,
-            errors,
-            errorMessage,
+            props.isSubmitButtonVisible,
+            props.submitButtonText,
         ],
     );
 
