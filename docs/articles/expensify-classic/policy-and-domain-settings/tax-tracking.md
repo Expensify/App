@@ -16,4 +16,4 @@ If your group Workspace is connected to Xero, QuickBooks Online, Sage Intacct, o
 If your Workspace is not connected to an accounting system, go to Settings > Policies > Group > [Workspace Name] > Tax to enable tax.
 
 # Tracking Tax by Expense Category
-To set a different tax rate for a specific expense type in the Workspace currency, go Settings > Workspaces > Group > [Workspace Name] > Categories page. Click "Edit Rules" next to the desired category and set the "Category default tax". This will be applied to new expenses, overriding the default Workspace currency tax rate.
+To set a different tax rate for a specific expense type in the Workspace currency, go to Settings > Workspaces > Group > [Workspace Name] > Categories page. Click "Edit Rules" next to the desired category and set the "Category default tax". This will be applied to new expenses, overriding the default Workspace currency tax rate.
