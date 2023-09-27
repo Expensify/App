@@ -29,7 +29,7 @@ const propTypes = {
     shouldShowOnfido: PropTypes.bool.isRequired,
 };
 
-const REQUIRED_FIELDS = ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
+const REQUIRED_FIELDS = CONST.BANK_ACCOUNT.FIELDS.RequestorStep;
 const INPUT_KEYS = {
     firstName: 'firstName',
     lastName: 'lastName',
