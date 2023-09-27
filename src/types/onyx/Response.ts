@@ -7,8 +7,8 @@ type Response = {
     onyxData?: OnyxUpdate[];
     requestID?: string;
     shouldPauseQueue?: boolean;
-    authToken: string;
-    encryptedAuthToken: string;
+    authToken?: string;
+    encryptedAuthToken?: string;
     message?: string;
 };
 
