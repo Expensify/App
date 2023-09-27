@@ -18,10 +18,10 @@ function canUseDefaultRooms(betas: Beta[]): boolean {
 }
 
 /**
- * IOU Send feature is temporarily disabled.
+ * @param {Array<String>} betas
  */
-function canUseIOUSend(): boolean {
-    return false;
+function canUseIOUSend(betas: Beta[]): boolean {
+    return betas?.includes(CONST.BETAS.IOU_SEND) || canUseAllBetas(betas);
 }
 
 function canUseWallet(betas: Beta[]): boolean {
