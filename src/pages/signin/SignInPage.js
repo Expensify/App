@@ -23,7 +23,8 @@ import SAMLEnabledForm from './SAMLEnabledForm';
 import getPlatform from '../../libs/getPlatform';
 import Permissions from '../../libs/Permissions';
 import CONST from '../../CONST';
-import SAMLSignInPage from './SAMLSignInPage';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -42,6 +43,9 @@ const propTypes = {
 
         /** Is this account having trouble receiving emails */
         hasEmailDeliveryFailure: PropTypes.bool,
+
+        /** Whether the account is in a loading state */
+        isLoading: PropTypes.bool,
     }),
 
     /** The credentials of the person signing in */
@@ -127,6 +131,12 @@ function SignInPage({credentials, account, isInModal}) {
         },
     );
 
+    // If the user has SAML required and we're not already loading their account
+    // bypass the rest of the sign in logic and open up their SSO provider login page
+    if (shouldInitiateSAMLLogin && !account.isLoading) {
+        Navigation.navigate(ROUTES.SAML_SIGN_IN);
+    }
+
     let welcomeHeader = '';
     let welcomeText = '';
     const headerText = translate('login.hero.header');
@@ -188,7 +198,6 @@ function SignInPage({credentials, account, isInModal}) {
                 {shouldShowValidateCodeForm && <ValidateCodeForm />}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
                 {shouldShowSAMLEnabledForm && <SAMLEnabledForm />}
-                {shouldInitiateSAMLLogin && <SAMLSignInPage />}
                 {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
         </View>

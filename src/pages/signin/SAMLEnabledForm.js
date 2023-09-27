@@ -71,7 +71,6 @@ function SAMLEnabledForm (props) {
                         isLoading={props.account.isLoading}
                         onPress={() => {
                             Navigation.navigate(ROUTES.SAML_SIGN_IN);
-                            //setShowSAMLSignInPage(true)
                         }}
                     />
 
