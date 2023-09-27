@@ -70,3 +70,4 @@ type BankAccount = {
 };
 
 export default BankAccount;
+export type {AccountData};

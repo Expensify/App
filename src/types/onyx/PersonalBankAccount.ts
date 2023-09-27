@@ -10,6 +10,9 @@ type PersonalBankAccount = {
 
     /** The account ID of the selected bank account from Plaid */
     plaidAccountID?: string;
+
+    /** Any reportID we should redirect to at the end of the flow */
+    exitReportID?: string;
 };
 
 export default PersonalBankAccount;
