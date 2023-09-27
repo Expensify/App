@@ -334,7 +334,7 @@ function isReportActionDeprecated(reportAction, key) {
  * and supported type, it's not deleted and also not closed.
  *
  * @param {Object} reportAction
- * @param {String} key
+ * @param {String | Number} key
  * @returns {Boolean}
  */
 function shouldReportActionBeVisible(reportAction, key) {

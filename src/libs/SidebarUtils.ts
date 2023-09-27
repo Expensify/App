@@ -13,9 +13,11 @@ import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import ReportAction from '../types/onyx/ReportAction';
 
-const visibleReportActionItems = {};
-const lastReportActions = {};
+const visibleReportActionItems: Record<string, ReportAction> = {};
+const lastReportActions: Record<string, ReportAction> = {};
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -24,38 +26,37 @@ Onyx.connect({
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
 
-        const actionsArray = ReportActionsUtils.getSortedReportActions(_.toArray(actions));
-        lastReportActions[reportID] = _.last(actionsArray);
+        const actionsArray: ReportAction[] = ReportActionsUtils.getSortedReportActions(Object.values(actions));
+        lastReportActions[reportID] = actionsArray[actionsArray.length - 1];
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
-        const reportActionsForDisplay = _.filter(
-            actionsArray,
+        const reportActionsForDisplay = actionsArray.filter(
             (reportAction, actionKey) =>
                 ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
                 reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
-        visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
+        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
     },
 });
 
 // Session can remain stale because the only way for the current user to change is to
 // sign out and sign in, which would clear out all the Onyx
 // data anyway and cause SidebarLinks to rerender.
-let currentUserAccountID;
+let currentUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        if (!val) {
+    callback: (session) => {
+        if (!session) {
             return;
         }
 
-        currentUserAccountID = val.accountID;
+        currentUserAccountID = session.accountID;
     },
 });
 
-let resolveSidebarIsReadyPromise;
+let resolveSidebarIsReadyPromise: (args?: unknown[]) => void;
 
 let sidebarIsReadyPromise = new Promise((resolve) => {
     resolveSidebarIsReadyPromise = resolve;
@@ -71,11 +72,11 @@ function isSidebarLoadedReady() {
     return sidebarIsReadyPromise;
 }
 
-function compareStringDates(stringA, stringB) {
-    if (stringA < stringB) {
+function compareStringDates(a: string, b: string) {
+    if (a < b) {
         return -1;
     }
-    if (stringA > stringB) {
+    if (a > b) {
         return 1;
     }
     return 0;
@@ -89,7 +90,7 @@ function setIsSidebarLoadedReady() {
 const reportIDsCache = new Map();
 
 // Function to set a key-value pair while maintaining the maximum key limit
-function setWithLimit(map, key, value) {
+function setWithLimit<TKey, TValue>(map: Map<TKey, TValue>, key: TKey, value: TValue) {
     if (map.size >= 5) {
         // If the map has reached its limit, remove the first (oldest) key-value pair
         const firstKey = map.keys().next().value;
@@ -102,18 +103,11 @@ function setWithLimit(map, key, value) {
 let hasInitialReportActions = false;
 
 /**
- * @param {String} currentReportId
- * @param {Object} allReportsDict
- * @param {Object} betas
- * @param {String[]} policies
- * @param {String} priorityMode
- * @param {Object} allReportActions
- * @returns {String[]} An array of reportIDs sorted in the proper order
+ * @returns An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions) {
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
-        // eslint-disable-next-line es/no-optional-chaining
         [currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
         (key, value) => {
             /**
@@ -216,13 +210,13 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  *
- * @param {Object} report
- * @param {Object} reportActions
- * @param {Object} personalDetails
- * @param {String} preferredLocale
- * @param {Object} [policy]
- * @param {Object} parentReportAction
- * @returns {Object}
+ * @param report
+ * @param reportActions
+ * @param personalDetails
+ * @param preferredLocale
+ * @param [policy]
+ * @param parentReportAction
+ * @returns
  */
 function getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
@@ -331,14 +325,11 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
               }
             : null;
     }
-    let lastMessageText =
-        hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
+    let lastMessageText = hasMultipleParticipants && lastActorDetails?.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
 
     if (result.isArchivedRoom) {
-        const archiveReason =
-            (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
-            CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+        const archiveReason = lastReportActions[report.reportID]?.originalMessage?.reason || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
             displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
             policyName: ReportUtils.getPolicyName(report, false, policy),
