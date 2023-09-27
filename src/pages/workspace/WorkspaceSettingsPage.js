@@ -65,7 +65,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
 
             Policy.updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
             Keyboard.dismiss();
-            Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policy.id));
+            Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id));
         },
         [policy.id, policy.isPolicyUpdating, policy.outputCurrency],
     );

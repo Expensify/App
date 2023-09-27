@@ -59,9 +59,10 @@ function clearOutTaskInfo() {
  * @param {String} assigneeEmail
  * @param {Number} assigneeAccountID
  * @param {Object} assigneeChatReport - The chat report between you and the assignee
+ * @param {String} policyID - the policyID of the parent report
  */
-function createTaskAndNavigate(parentReportID, title, description, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null) {
-    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description);
+function createTaskAndNavigate(parentReportID, title, description, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null, policyID = CONST.POLICY.OWNER_EMAIL_FAKE) {
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : 0;
     const taskReportID = optimisticTaskReport.reportID;
@@ -641,7 +642,7 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
     let chatReport;
 
     if (!isCurrentUser) {
-        chatReport = ReportUtils.getChatByParticipantsByLoginList([assigneeEmail]) || ReportUtils.getChatByParticipants([assigneeAccountID]);
+        chatReport = ReportUtils.getChatByParticipants([assigneeAccountID]);
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
             chatReport.isOptimisticReport = true;
@@ -742,7 +743,7 @@ function getShareDestination(reportID, reports, personalDetails) {
         subtitle = ReportUtils.getChatRoomSubtitle(report);
     }
     return {
-        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
+        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
         displayName: ReportUtils.getReportName(report),
         subtitle,
     };
