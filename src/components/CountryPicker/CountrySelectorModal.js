@@ -9,7 +9,7 @@ import Modal from '../Modal';
 import ScreenWrapper from '../ScreenWrapper';
 import styles from '../../styles/styles';
 import searchCountryOptions from '../../libs/searchCountryOptions';
-import StringUtils from '../../libs/StringUtils';
+import * as StringUtils from '../../libs/StringUtils';
 
 const propTypes = {
     /** Whether the modal is visible */

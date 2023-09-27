@@ -22,6 +22,7 @@ import linkingConfig from './Navigation/linkingConfig';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
+import * as StringUtils from './StringUtils';
 import * as UserUtils from './UserUtils';
 
 let currentUserEmail;
@@ -1535,16 +1536,6 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
 }
 
 /**
- * Check if the text contains HTML
- *
- * @param {String} text
- * @return {Boolean}
- */
-function containsHtml(text) {
-    return /<\/?[a-z][\s\S]*>/i.test(text);
-}
-
-/**
  * Get the proper message schema for modified expense message.
  *
  * @param {String} newValue
@@ -1744,13 +1735,17 @@ function getThreadReportNameHtml(parentReportActionMessage) {
  * Get the title for a thread based on parent message.
  * Only the first line of the message should display.
  *
- * @param {String} parentReportActionMessage
+ * @param {Object} parentReportAction
  * @param {Boolean} shouldRenderHTML
  * @returns {String}
  */
-function getThreadReportName(parentReportActionMessage, shouldRenderHTML) {
-    const threadReportNameHtml = getThreadReportNameHtml(parentReportActionMessage);
-    return shouldRenderHTML ? `<body></body><thread-title>${threadReportNameHtml}</thread-title>` : Str.stripHTML(threadReportNameHtml).trim();
+function getThreadReportName(parentReportAction, shouldRenderHTML) {
+    if (!shouldRenderHTML) {
+        return lodashGet(parentReportAction, ['message', 0, 'text']);
+    }
+
+    const threadReportNameHtml = getThreadReportNameHtml(lodashGet(parentReportAction, ['message', 0, 'html']));
+    return StringUtils.containsHtml(threadReportNameHtml) ? `<thread-title>${threadReportNameHtml}</thread-title>` : threadReportNameHtml;
 }
 
 /**
@@ -1770,7 +1765,7 @@ function getReportName(report, policy = undefined, shouldRenderHTML = false) {
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(parentReportAction);
-        const parentReportActionMessage = getThreadReportName(lodashGet(parentReportAction, ['message', 0, 'html']), shouldRenderHTML);
+        const parentReportActionMessage = getThreadReportName(parentReportAction, shouldRenderHTML);
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
@@ -3780,7 +3775,6 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
-    containsHtml,
     getThreadReportNameHtml,
     getReportName,
     getReport,

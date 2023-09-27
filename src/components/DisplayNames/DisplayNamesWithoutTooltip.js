@@ -3,13 +3,11 @@ import React from 'react';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import RenderHTML from '../RenderHTML';
+import * as StringUtils from "../../libs/StringUtils";
 
 const propTypes = {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle: PropTypes.string,
-
-    /** The full title of the DisplayNames component in HTML */
-    fullTitleHtml: PropTypes.string,
 
     /** Arbitrary styles of the displayName text */
     // eslint-disable-next-line react/forbid-prop-types
@@ -21,13 +19,12 @@ const propTypes = {
 
 const defaultProps = {
     fullTitle: '',
-    fullTitleHtml: '',
     textStyles: [],
     numberOfLines: 1,
 };
 
-function DisplayNamesWithoutTooltip({textStyles, numberOfLines, fullTitle, fullTitleHtml}) {
-    const title = fullTitleHtml ? <RenderHTML html={fullTitleHtml} /> : fullTitle;
+function DisplayNamesWithoutTooltip({textStyles, numberOfLines, fullTitle}) {
+    const title = StringUtils.containsHtml(fullTitle) ? <RenderHTML html={fullTitle} /> : fullTitle;
 
     return (
         <Text

@@ -137,6 +137,7 @@ function HeaderView(props) {
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldShowBorderBottom = !isTaskReport || !props.isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
+    const headerTextHeight = styles.webViewStyles.baseFontStyle.lineHeight;
 
     return (
         <View
@@ -186,11 +187,10 @@ function HeaderView(props) {
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
                                     fullTitle={title}
-                                    fullTitleHtml={ReportUtils.containsHtml(title) ? title : ''}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
-                                    textStyles={[styles.headerText, styles.pre]}
+                                    textStyles={[styles.headerText, styles.pre, {height: headerTextHeight}]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
                                 />
                                 {!_.isEmpty(parentNavigationSubtitleData) && (
