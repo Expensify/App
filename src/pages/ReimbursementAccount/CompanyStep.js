@@ -157,7 +157,6 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 onSubmit={submit}
                 scrollContextEnabled
                 submitButtonText={translate('common.saveAndContinue')}
-                shouldPriorityDefaultValue
                 style={[styles.mh5, styles.flexGrow1]}
             >
                 <Text>{translate('companyStep.subtitle')}</Text>
@@ -197,7 +196,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     containerStyles={[styles.mt4]}
                     keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                     placeholder={translate('common.phoneNumberPlaceholder')}
-                    defaultValuevalue={getDefaultStateForField('companyPhone')}
+                    defaultValue={getDefaultStateForField('companyPhone')}
                     shouldSaveDraft
                 />
                 <TextInput
