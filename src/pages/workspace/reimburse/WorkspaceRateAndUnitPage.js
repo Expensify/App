@@ -44,7 +44,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
 
         this.state = {
             rate: 0,
-            unit: 'mi',
+            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
         };
     }
 
@@ -99,7 +99,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
 
         this.setState({
             rate: PolicyUtils.getUnitRateValue(distanceCustomRate, this.props.toLocaleDigit),
-            unit: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
+            unit: lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
         });
     }
 
