@@ -38,11 +38,11 @@ function PreRenderer(props) {
     }, []);
 
     useEffect(() => {
-        if (!scrollViewRef.current) {
+        const eventListenerRefValue = scrollViewRef.current;
+        if (!eventListenerRefValue) {
             return;
         }
-        scrollViewRef.current.getScrollableNode().addEventListener('wheel', scrollNode);
-        const eventListenerRefValue = scrollViewRef.current;
+        eventListenerRefValue.getScrollableNode().addEventListener('wheel', scrollNode);
 
         return () => {
             eventListenerRefValue.getScrollableNode().removeEventListener('wheel', scrollNode);
