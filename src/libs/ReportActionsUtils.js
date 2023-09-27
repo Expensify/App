@@ -356,7 +356,7 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
-    const isThreadParent = reportAction && reportAction.childReportID && reportAction.childReportID !== 0;
+    const isThreadParent = isThreadParentMessage(reportAction, '');
     if (isPendingRemove(reportAction) && !isThreadParent) {
         return false;
     }
