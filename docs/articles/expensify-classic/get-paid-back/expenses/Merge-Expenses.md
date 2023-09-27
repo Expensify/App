@@ -15,6 +15,7 @@ Keep in mind:
 2. You can only merge two expenses at a time.
 3. You can merge a cash expense with a credit card expense, or two cash expenses - but not two credit card expenses.
 4. In order to merge, both expenses will need to be in an Open or Unreported state.
+
 # How to merge expenses on the web app
 To merge two expenses from the Expenses page:
 1. Sign into your Expensify account.
