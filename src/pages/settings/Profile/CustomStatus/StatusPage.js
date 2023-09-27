@@ -89,7 +89,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         User.clearCustomStatus();
         User.updateDraftCustomStatus({
             text: '',
-            emojiCode: initialEmoji,
+            emojiCode: '',
             clearAfter: DateUtils.getEndOfToday(),
         });
         formRef.current.resetForm({[INPUT_IDS.EMOJI_CODE]: initialEmoji});
@@ -110,7 +110,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const checkIfFormIsDirty = useCallback(
         ({emojiCode, statusText}) => {
-            const isDirty = currentUserEmojiCode !== emojiCode || currentUserStatusText !== statusText || currentUserClearAfter !== draftClearAfter;
+            const isDirty = currentUserEmojiCode !== emojiCode || currentUserStatusText !== statusText || currentUserClearAfter !== draftClearAfter || initialEmoji === emojiCode;
             setFormDirty(isDirty);
         },
         [currentUserEmojiCode, currentUserStatusText, currentUserClearAfter, draftClearAfter],
