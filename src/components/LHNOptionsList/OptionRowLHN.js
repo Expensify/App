@@ -177,6 +177,7 @@ function OptionRowLHN(props) {
                         ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
+                        needsOffscreenAlphaCompositing={props.optionItem.icons.length >= 2}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
