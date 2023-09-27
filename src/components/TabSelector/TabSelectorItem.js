@@ -1,4 +1,4 @@
-import {Animated} from 'react-native';
+import {Animated, View, StyleSheet} from 'react-native';
 import React from 'react';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -47,15 +47,22 @@ const defaultProps = {
     isFocused: false,
 };
 
+const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
+
 function TabSelectorItem({icon, title, onPress, backgroundColor, hoverBackgroundColor, activeOpacity, inactiveOpacity, isFocused}) {
     return (
-        <PressableWithFeedback
+        <AnimatedPressableWithFeedback
             accessibilityLabel={title}
+            style={[styles.tabSelectorButton, {backgroundColor}]}
             wrapperStyle={[styles.flex1]}
             onPress={onPress}
         >
-            {({hovered}) => (
-                <Animated.View style={[styles.tabSelectorButton, {backgroundColor: Boolean(hoverBackgroundColor) && hovered && !isFocused ? hoverBackgroundColor : backgroundColor}]}>
+            {({ hovered }) => (
+                <View style={[
+                    styles.tabSelectorButton,
+                    StyleSheet.absoluteFill,
+                    { backgroundColor: Boolean(hoverBackgroundColor) && hovered && !isFocused ? hoverBackgroundColor : {} }
+                ]}>
                     <TabIcon
                         icon={icon}
                         activeOpacity={hovered && !isFocused ? 1 : activeOpacity}
@@ -66,9 +73,9 @@ function TabSelectorItem({icon, title, onPress, backgroundColor, hoverBackground
                         activeOpacity={hovered && !isFocused ? 1 : activeOpacity}
                         inactiveOpacity={hovered && !isFocused ? 0 : inactiveOpacity}
                     />
-                </Animated.View>
+                </View>
             )}
-        </PressableWithFeedback>
+        </AnimatedPressableWithFeedback>
     );
 }
 
