@@ -98,7 +98,7 @@ const propTypes = {
     interactive: PropTypes.bool,
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.func,
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
 
     /** Avatars to show on the right of the menu item */
     floatRightAvatars: PropTypes.arrayOf(avatarPropTypes),

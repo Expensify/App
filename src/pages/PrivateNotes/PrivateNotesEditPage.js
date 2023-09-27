@@ -86,7 +86,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     );
 
     const savePrivateNote = () => {
-        const editedNote = parser.replace(privateNote);
+        const editedNote = parser.replace(privateNote.trim());
         Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         Keyboard.dismiss();
 
@@ -138,6 +138,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                                 label={translate('privateNotes.composerLabel')}
                                 accessibilityLabel={translate('privateNotes.title')}
                                 autoCompleteType="off"
+                                maxLength={CONST.MAX_COMMENT_LENGTH}
                                 autoCorrect={false}
                                 autoGrowHeight
                                 textAlignVertical="top"
