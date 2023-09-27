@@ -1,12 +1,13 @@
 home:
   href: home
   title: Welcome to ExpensifyHelp!
-  description: Questions? Find the answers by clicking a Category or using the search bar located in the left-hand menu.
+  description: Find answers by using the search bar in the left-hand menu or by clicking the version of Expensify you're using to access the relevant resources.
 
 platforms:
   - href: expensify-classic
     title: Expensify Classic
     hub-title: Expensify Classic - Help & Resources
+    hub-description: Questions? Find the answers by clicking a Category or using the search bar located in the left-hand menu.
     url: www.expensify.com
     description: "Your account settings look like this:"
     image: /assets/images/settings-old-dot.svg
@@ -64,7 +65,7 @@ platforms:
         description: Master the art of overseeing employees and reports by utilizing Expensify’s automation features and approval workflows.
       
       - href: policy-and-domain-settings
-        title: Policy & Domain Setting
+        title: Policy & Domain Settings
         icon: /assets/images/shield.svg
         description: Discover how to set up and manage policies, define user permissions, and implement compliance rules to maintain a secure and compliant financial management landscape.
       
@@ -76,6 +77,7 @@ platforms:
   - href: new-expensify
     title: New Expensify
     hub-title: New Expensify - Help & Resources
+    hub-description: Questions? Find the answers by clicking a Category or using the search bar located in the left-hand menu.
     url: new.expensify.com
     description: "Your account settings look like this:"
     image: /assets/images/settings-new-dot.svg
