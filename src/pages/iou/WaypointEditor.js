@@ -1,10 +1,10 @@
 import React, {useMemo, useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {useIsFocused} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import AddressSearch from '../../components/AddressSearch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -76,7 +76,8 @@ const defaultProps = {
 function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
-    const isFocused = useIsFocused();
+    const navigation = useNavigation();
+    const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const textInput = useRef(null);
@@ -117,6 +118,16 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         return errors;
     };
 
+    const saveWaypoint = (waypoint) => {
+        if (parsedWaypointIndex < _.size(allWaypoints)) {
+            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+        } else {
+            const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
+            Transaction.saveWaypoint(transactionID, waypointIndex, finishWaypoint);
+            Transaction.saveWaypoint(transactionID, waypointIndex - 1, waypoint);
+        }
+    };
+
     const onSubmit = (values) => {
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
 
@@ -133,18 +144,17 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                 lng: null,
                 address: waypointValue,
             };
-
-            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+            saveWaypoint(waypoint);
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
-        Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
 
     const deleteStopAndHideModal = () => {
         Transaction.removeWaypoint(transactionID, waypointIndex);
         setIsDeleteStopModalOpen(false);
-        Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
 
     const selectWaypoint = (values) => {
@@ -153,9 +163,17 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             lng: values.lng,
             address: values.address,
         };
+        saveWaypoint(waypoint);
+        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
+    };
 
-        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
-        Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+    const focusAddressInput = () => {
+        InteractionManager.runAfterInteractions(() => {
+            if (!textInput.current) {
+                return;
+            }
+            textInput.current.focus();
+        });
     };
 
     return (
@@ -163,13 +181,14 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             shouldEnableMaxHeight
+            testID={WaypointEditor.displayName}
         >
-            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount - 1) && isFocused}>
+            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount) && isFocused}>
                 <HeaderWithBackButton
                     title={translate(wayPointDescriptionKey)}
                     shouldShowBackButton
                     onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+                        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
                     }}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
@@ -180,12 +199,14 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             onSelected: () => setIsDeleteStopModalOpen(true),
                         },
                     ]}
+                    onModalHide={focusAddressInput}
                 />
                 <ConfirmModal
                     title={translate('distance.deleteWaypoint')}
                     isVisible={isDeleteStopModalOpen}
                     onConfirm={deleteStopAndHideModal}
                     onCancel={() => setIsDeleteStopModalOpen(false)}
+                    onModalHide={focusAddressInput}
                     prompt={translate('distance.deleteWaypointConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}

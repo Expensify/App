@@ -43,7 +43,9 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     };
 
     const updateCountryInput = (country) => {
-        onInputChange(country.value);
+        if (country.value !== value) {
+            onInputChange(country.value);
+        }
         hidePickerModal();
     };
 

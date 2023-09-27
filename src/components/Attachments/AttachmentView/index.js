@@ -22,6 +22,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import * as TransactionUtils from '../../../libs/TransactionUtils';
 import DistanceEReceipt from '../../DistanceEReceipt';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import useNetwork from '../../../hooks/useNetwork';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -67,9 +68,14 @@ function AttachmentView({
     translate,
     isFocused,
     isWorkspaceAvatar,
+    fallbackSource,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
     const currentRoute = useRoute();
+
+    const [imageError, setImageError] = useState(false);
+
+    useNetwork({onReconnect: () => setImageError(false)});
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(source)) {
@@ -131,7 +137,7 @@ function AttachmentView({
     if (isImage || (file && Str.isImage(file.name))) {
         return (
             <AttachmentViewImage
-                source={source}
+                source={imageError ? fallbackSource : source}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 isUsedInCarousel={isUsedInCarousel}
@@ -140,6 +146,9 @@ function AttachmentView({
                 isImage={isImage}
                 onPress={onPress}
                 onScaleChanged={onScaleChanged}
+                onError={() => {
+                    setImageError(true);
+                }}
             />
         );
     }

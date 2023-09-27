@@ -244,6 +244,7 @@ export default {
         merchant: 'Merchant',
         category: 'Category',
         billable: 'Billable',
+        nonBillable: 'Non-billable',
         tag: 'Tag',
         receipt: 'Receipt',
         replace: 'Replace',
@@ -489,6 +490,7 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        addReceipt: 'Add receipt',
     },
     iou: {
         amount: 'Amount',
@@ -808,6 +810,12 @@ export default {
         },
         addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
     },
+    cardPage: {
+        expensifyCard: 'Expensify Card',
+        availableSpend: 'Remaining spending power',
+        virtualCardNumber: 'Virtual card number',
+        physicalCardNumber: 'Physical card number',
+    },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
         instant: 'Instant (Debit card)',
@@ -1064,7 +1072,7 @@ export default {
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',
             website: 'Please enter a valid website',
-            zipCode: 'Please enter a valid zip code',
+            zipCode: `Incorrect zip code format. Acceptable format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Please enter a valid phone number',
             companyName: 'Please enter a valid legal business name',
             addressCity: 'Please enter a valid city',
@@ -1361,7 +1369,6 @@ export default {
         reimburse: {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
-            kilometers: 'Kilometers',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
             trackDistance: 'Track distance',
