@@ -1969,7 +1969,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     Navigation.dismissModal(chatReport.reportID);
 }
 
-function detachReceipt(transactionID, reportID) {
+function detachReceipt(transactionID) {
     const transaction = lodashGet(allTransactions, 'transactionID', {});
     const oldReceipt = lodashGet(transaction, 'receipt', {});
     const optimisticData = [
@@ -1994,7 +1994,7 @@ function detachReceipt(transactionID, reportID) {
         },
     ];
 
-    API.write('DetachReceipt', {transactionID, receipt}, {optimisticData, failureData});
+    API.write('DetachReceipt', {transactionID}, {optimisticData, failureData});
 }
 
 /**
@@ -2211,4 +2211,5 @@ export {
     createEmptyTransaction,
     navigateToNextPage,
     replaceReceipt,
+    detachReceipt,
 };

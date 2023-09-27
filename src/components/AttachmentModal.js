@@ -30,9 +30,13 @@ import useWindowDimensions from '../hooks/useWindowDimensions';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import useNativeDriver from '../libs/useNativeDriver';
-import Receipt from '../libs/actions/Receipt';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import useNetwork from '../hooks/useNetwork';
+import * as IOU from '../libs/actions/IOU';
+import ONYXKEYS from "../ONYXKEYS";
+import {withOnyx} from "react-native-onyx";
+import transactionPropTypes from "./transactionPropTypes";
+import * as TransactionUtils from "../libs/TransactionUtils";
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -76,6 +80,9 @@ const propTypes = {
     /** The report that has this attachment */
     report: reportPropTypes,
 
+    /** The transaction associated with the receipt, if any */
+    transaction: transactionPropTypes,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -94,6 +101,7 @@ const defaultProps = {
     allowDownload: false,
     headerTitle: null,
     report: {},
+    transaction: {},
     onModalShow: () => {},
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
@@ -328,6 +336,32 @@ function AttachmentModal(props) {
 
     const sourceForAttachmentView = props.source || source;
 
+    let threeDotMenuItems = [
+        {
+            icon: Expensicons.Camera,
+            text: props.translate('common.replace'),
+            onSelected: () => {
+                onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
+                closeModal();
+            },
+        },
+        {
+            icon: Expensicons.Download,
+            text: props.translate('common.download'),
+            onSelected: () => downloadAttachment(source),
+        },
+    ];
+
+    if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
+        threeDotMenuItems.push({
+            icon: Expensicons.Trashcan,
+            text: props.traIOUnslate('receipt.deleteReceipt'),
+            onSelected: () => {
+                IOU.detachReceipt(transaction.transactionID);
+            },
+        });
+    }
+
     return (
         <>
             <Modal
@@ -362,30 +396,7 @@ function AttachmentModal(props) {
                     onCloseButtonPress={closeModal}
                     shouldShowThreeDotsButton={isAttachmentReceipt}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Expensicons.Camera,
-                            text: props.translate('common.replace'),
-                            onSelected: () => {
-                                onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
-                                closeModal();
-                            },
-                        },
-                        {
-                            icon: Expensicons.Download,
-                            text: props.translate('common.download'),
-                            onSelected: () => downloadAttachment(source),
-                        },
-                        {
-                            icon: Expensicons.Trashcan,
-                            text: props.translate('receipt.deleteReceipt'),
-                            onSelected: () => {
-                                const parentReportAction = ReportActionsUtils.getReportAction(props.report.parentReportID, props.report.parentReportActionID);
-                                const transactionID = lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', '');
-                                Receipt.detachReceipt(transactionID, props.report.reportID)
-                            },
-                        },
-                    ]}
+                    threeDotsMenuItems
                     shouldOverlay
                 />
                 <View style={styles.imageModalImageCenterContainer}>
@@ -455,4 +466,16 @@ function AttachmentModal(props) {
 AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
 AttachmentModal.displayName = 'AttachmentModal';
-export default compose(withWindowDimensions, withLocalize)(AttachmentModal);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withOnyx({
+        transaction: {
+            key: ({report}) => {
+                const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
+                const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+            },
+        },
+        }
+    )(AttachmentModal));
