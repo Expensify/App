@@ -8,7 +8,6 @@ import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
 import CONST from '../../../CONST';
 import ReceiptUpload from '../../../../assets/images/receipt-upload.svg';
-import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Button from '../../../components/Button';
 import styles from '../../../styles/styles';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
@@ -155,24 +154,20 @@ function ReceiptSelector(props) {
                     </Text>
                     <AttachmentPicker>
                         {({openPicker}) => (
-                            <PressableWithFeedback
+                            <Button
+                                medium
+                                success
+                                text={translate('receipt.chooseFile')}
                                 accessibilityLabel={translate('receipt.chooseFile')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            >
-                                <Button
-                                    medium
-                                    success
-                                    text={translate('receipt.chooseFile')}
-                                    style={[styles.p9]}
-                                    onPress={() => {
-                                        openPicker({
-                                            onPicked: (file) => {
-                                                setReceiptAndNavigate(file, props.iou, props.report);
-                                            },
-                                        });
-                                    }}
-                                />
-                            </PressableWithFeedback>
+                                style={[styles.p9]}
+                                onPress={() => {
+                                    openPicker({
+                                        onPicked: (file) => {
+                                            setReceiptAndNavigate(file, props.iou, props.report);
+                                        },
+                                    });
+                                }}
+                            />
                         )}
                     </AttachmentPicker>
                 </>
