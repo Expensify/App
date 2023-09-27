@@ -4,7 +4,7 @@ import deepReplaceKeysAndValues from '../deepReplaceKeysAndValues';
 
 const handleUnusedOptimisticID: Middleware = (requestResponse, request) =>
     requestResponse.then((response) => {
-        if ('preexistingReportID' in response) {
+        if (response && typeof response === 'object' && 'preexistingReportID' in response) {
             const oldReportID = request.data?.reportID;
             PersistedRequests.getAll().forEach((persistedRequest, index) => {
                 // eslint-disable-next-line no-param-reassign
