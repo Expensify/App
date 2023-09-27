@@ -517,12 +517,10 @@ function ReportActionItem(props) {
                         checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
                     }}
                 >
-                    <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                        <MoneyRequestView
-                            report={props.report}
-                            shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                        />
-                    </OfflineWithFeedback>
+                    <MoneyRequestView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
                 </ShowContextMenuContext.Provider>
             );
         }

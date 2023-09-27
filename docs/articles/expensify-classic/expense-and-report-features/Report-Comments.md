@@ -2,4 +2,4 @@
 title: Report Comments
 description: Report Comments
 ---
-## Resources Coming Soon!
+## Resource Coming Soon!
