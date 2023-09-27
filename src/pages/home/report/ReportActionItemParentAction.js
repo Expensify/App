@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Image} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -15,6 +15,7 @@ import withLocalize from '../../../components/withLocalize';
 import ReportActionItem from './ReportActionItem';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 
 const propTypes = {
     /** Flag to show, hide the thread divider line */
@@ -53,12 +54,18 @@ function ReportActionItemParentAction(props) {
     }
     return (
         <OfflineWithFeedback
+            shouldDisableOpacity={Boolean(lodashGet(parentReportAction, 'pendingAction'))}
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
             errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
+                <Image
+                    pointerEvents="none"
+                    source={EmptyStateBackgroundImage}
+                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
+                />
                 <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
                 {parentReportAction && (
                     <ReportActionItem

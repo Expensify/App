@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import CONST from '../CONST';
 import * as CurrencyUtils from './CurrencyUtils';
+import * as PolicyUtils from './PolicyUtils';
 
 /**
  * Retrieves the default mileage rate based on a given policy.
@@ -64,21 +65,35 @@ function convertDistanceUnit(distanceInMeters, unit) {
  *
  * @param {Number} distanceInMeters Distance traveled
  * @param {'mi' | 'km'} unit Unit that should be used to display the distance
+ * @returns {String} The distance in requested units, rounded to 2 decimals
+ */
+const getRoundedDistanceInUnits = (distanceInMeters, unit) => {
+    const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
+    return convertedDistance.toFixed(2);
+};
+
+/**
+ *
+ * @param {boolean} hasRoute Whether the route exists for the distance request
+ * @param {Number} distanceInMeters Distance traveled
+ * @param {'mi' | 'km'} unit Unit that should be used to display the distance
  * @param {Number} rate Expensable amount allowed per unit
  * @param {String} currency The currency associated with the rate
  * @param {Function} translate Translate function
- * @returns {String} A string that describes the distance travled and the rate used for expense calculation
+ * @param {Function} toLocaleDigit Function to convert to localized digit
+ * @returns {String} A string that describes the distance traveled and the rate used for expense calculation
  */
-const getDistanceMerchant = (distanceInMeters, unit, rate, currency, translate) => {
-    const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
+const getDistanceMerchant = (hasRoute, distanceInMeters, unit, rate, currency, translate, toLocaleDigit) => {
+    const distanceInUnits = hasRoute ? getRoundedDistanceInUnits(distanceInMeters, unit) : translate('common.tbd');
+
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const roundedDistance = convertedDistance.toFixed(2);
-    const unitString = roundedDistance === 1 ? singularDistanceUnit : distanceUnit;
-    const ratePerUnit = rate * 0.01;
+    const unitString = distanceInUnits === 1 ? singularDistanceUnit : distanceUnit;
+
+    const ratePerUnit = PolicyUtils.getUnitRateValue({rate}, toLocaleDigit);
     const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
 
-    return `${roundedDistance} ${unitString} @ ${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
+    return `${distanceInUnits} ${unitString} @ ${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
 };
 
 /**
@@ -91,7 +106,8 @@ const getDistanceMerchant = (distanceInMeters, unit, rate, currency, translate) 
  */
 const getDistanceRequestAmount = (distance, unit, rate) => {
     const convertedDistance = convertDistanceUnit(distance, unit);
-    return convertedDistance * rate;
+    const roundedDistance = convertedDistance.toFixed(2);
+    return roundedDistance * rate;
 };
 
 export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};

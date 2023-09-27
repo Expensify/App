@@ -31,7 +31,6 @@ const defaultProps = {
 
 function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
-    const allCountries = translate('allCountries');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [searchValue, setSearchValue] = useState('');
 
@@ -44,11 +43,13 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     };
 
     const updateCountryInput = (country) => {
-        onInputChange(country.value);
+        if (country.value !== value) {
+            onInputChange(country.value);
+        }
         hidePickerModal();
     };
 
-    const title = allCountries[value] || '';
+    const title = value ? translate(`allCountries.${value}`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (

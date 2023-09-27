@@ -5,6 +5,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import {useAnimatedRef} from 'react-native-reanimated';
+import {PortalHost} from '@gorhom/portal';
 import styles from '../../../../styles/styles';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as Report from '../../../../libs/actions/Report';
@@ -30,12 +31,12 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import reportActionPropTypes from '../reportActionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import getModalState from '../../../../libs/getModalState';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
+import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -75,7 +76,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    modal: {},
     report: {},
     blockedFromConcierge: {},
     personalDetails: {},
@@ -105,7 +105,6 @@ function ReportActionCompose({
     reportID,
     reportActions,
     shouldShowComposeInput,
-    isCommentEmpty: isCommentEmptyProp,
 }) {
     const {translate} = useLocalize();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -125,7 +124,10 @@ function ReportActionCompose({
      * Updates the should clear state of the composer
      */
     const [textInputShouldClear, setTextInputShouldClear] = useState(false);
-    const [isCommentEmpty, setIsCommentEmpty] = useState(isCommentEmptyProp);
+    const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
+        const draftComment = getDraftComment(reportID);
+        return !draftComment || !!draftComment.match(/^(\s)*$/);
+    });
 
     /**
      * Updates the visibility state of the menu
@@ -205,6 +207,10 @@ function ReportActionCompose({
         composerRef.current.blur();
     }, []);
 
+    const onItemSelected = useCallback(() => {
+        isKeyboardVisibleWhenShowingModalRef.current = false;
+    }, []);
+
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
             return;
@@ -217,10 +223,6 @@ function ReportActionCompose({
      */
     const addAttachment = useCallback(
         (file) => {
-            // Since we're submitting the form here which should clear the composer
-            // We don't really care about saving the draft the user was typing
-            // We need to make sure an empty draft gets saved instead
-            debouncedSaveReportComment.cancel();
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
@@ -248,11 +250,6 @@ function ReportActionCompose({
                 e.preventDefault();
             }
 
-            // Since we're submitting the form here which should clear the composer
-            // We don't really care about saving the draft the user was typing
-            // We need to make sure an empty draft gets saved instead
-            debouncedSaveReportComment.cancel();
-
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             if (!newComment) {
                 return;
@@ -271,11 +268,14 @@ function ReportActionCompose({
             suggestionsRef.current.setShouldBlockSuggestionCalc(true);
         }
         isNextModalWillOpenRef.current = true;
+        isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
 
     const onBlur = useCallback((e) => {
         setIsFocused(false);
-        suggestionsRef.current.resetSuggestions();
+        if (suggestionsRef.current) {
+            suggestionsRef.current.resetSuggestions();
+        }
         if (e.relatedTarget && e.relatedTarget === actionButtonRef.current) {
             isKeyboardVisibleWhenShowingModalRef.current = true;
         }
@@ -319,6 +319,7 @@ function ReportActionCompose({
             ref={containerRef}
             style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}
         >
+            <PortalHost name="suggestions" />
             <OfflineWithFeedback
                 pendingAction={pendingAction}
                 style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
@@ -358,6 +359,7 @@ function ReportActionCompose({
                                     onCanceledAttachmentPicker={restoreKeyboardState}
                                     onMenuClosed={restoreKeyboardState}
                                     onAddActionPressed={onAddActionPressed}
+                                    onItemSelected={onItemSelected}
                                     actionButtonRef={actionButtonRef}
                                 />
                                 <ComposerWithSuggestions
@@ -380,7 +382,6 @@ function ReportActionCompose({
                                     setIsFullComposerAvailable={setIsFullComposerAvailable}
                                     setIsCommentEmpty={setIsCommentEmpty}
                                     submitForm={submitForm}
-                                    shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
                                     shouldShowComposeInput={shouldShowComposeInput}
                                     onFocus={onFocus}
                                     onBlur={onBlur}
@@ -441,10 +442,6 @@ export default compose(
     withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
-        isCommentEmpty: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-            selector: (comment) => _.isEmpty(comment),
-        },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
