@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef, useImperativeHandle, forwardRef} from 'react';
 import lodashGet from 'lodash/get';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
@@ -24,7 +24,7 @@ const propTypes = {
     formID: PropTypes.string.isRequired,
 
     /** Text to be displayed in the submit button */
-    submitButtonText: PropTypes.string.isRequired,
+    submitButtonText: PropTypes.string,
 
     /** Controls the submit button's visibility */
     isSubmitButtonVisible: PropTypes.bool,
@@ -110,9 +110,10 @@ const defaultProps = {
     validate: () => ({}),
     submitButtonStyle: {},
     submitButtonContainerStyles: [],
+    submitButtonText: '',
 };
 
-function Form(props) {
+const Form = forwardRef((props, forwardedRef) => {
     const [errors, setErrors] = useState({});
     const [inputValues, setInputValues] = useState({...props.draftValues});
     const formRef = useRef(null);
@@ -250,6 +251,30 @@ function Form(props) {
         // Call submit handler
         onSubmit(inputValues);
     }, [props.formState, onSubmit, inputRefs, inputValues, onValidate, touchedInputs, props.network.isOffline, props.enabledWhenOffline]);
+
+    /**
+     * Resets the form
+     */
+    const resetForm = useCallback(
+        (optionalValue) => {
+            _.each(inputValues, (inputRef, inputID) => {
+                setInputValues((prevState) => {
+                    const copyPrevState = _.clone(prevState);
+
+                    touchedInputs.current[inputID] = false;
+                    copyPrevState[inputID] = optionalValue[inputID] || '';
+
+                    return copyPrevState;
+                });
+            });
+            setErrors({});
+        },
+        [props.draftValues, inputValues],
+    );
+
+    useImperativeHandle(forwardedRef, () => ({
+        resetForm,
+    }));
 
     /**
      * Loops over Form's children and automatically supplies Form props to them
@@ -465,6 +490,7 @@ function Form(props) {
                         useSmallerSubmitButtonSize={props.useSmallerSubmitButtonSize}
                         disablePressOnEnter
                         errorMessageStyle={props.errorMessageStyle}
+                        isDisabled={props.isDisabled}
                     />
                 )}
             </FormSubmit>
@@ -540,7 +566,7 @@ function Form(props) {
             }
         </SafeAreaConsumer>
     );
-}
+});
 
 Form.displayName = 'Form';
 Form.propTypes = propTypes;
