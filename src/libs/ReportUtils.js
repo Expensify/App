@@ -1745,7 +1745,8 @@ function getThreadReportName(parentReportAction, shouldRenderHTML) {
     }
 
     const threadReportNameHtml = getThreadReportNameHtml(lodashGet(parentReportAction, ['message', 0, 'html']));
-    return StringUtils.containsHtml(threadReportNameHtml) ? `<thread-title>${threadReportNameHtml}</thread-title>` : threadReportNameHtml;
+    // <body></body> is to prevent the redundant body div which causes text overflown
+    return StringUtils.containsHtml(threadReportNameHtml) ? `<body></body><thread-title>${threadReportNameHtml}</thread-title>` : threadReportNameHtml;
 }
 
 /**
