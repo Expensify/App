@@ -203,7 +203,7 @@ export default {
         marginTop: 'auto',
     },
 
-    mtn6 : {
+    mtn6: {
         marginTop: -24,
     },
 

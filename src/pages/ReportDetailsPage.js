@@ -103,15 +103,15 @@ function ReportDetailsPage(props) {
             });
         }
 
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
-                translationKey: 'common.settings',
-                icon: Expensicons.Gear,
-                isAnonymousAction: false,
-                action: () => {
-                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID));
-                },
-            });
+        items.push({
+            key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
+            translationKey: 'common.settings',
+            icon: Expensicons.Gear,
+            isAnonymousAction: false,
+            action: () => {
+                Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID));
+            },
+        });
 
         // Prevent displaying private notes option for threads and task reports
         if (!isThread && !ReportUtils.isTaskReport(props.report)) {

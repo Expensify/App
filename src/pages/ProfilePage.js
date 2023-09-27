@@ -238,13 +238,13 @@ function ProfilePage(props) {
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
                         {chatReportWithCurrentUser.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && (
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={notificationPreference}
-                                    description={props.translate('notificationPreferencesPage.label')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(chatReportWithCurrentUser.reportID))}
-                                    wrapperStyle={[styles.mtn6, styles.mb5]}
-                                />
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={notificationPreference}
+                                description={props.translate('notificationPreferencesPage.label')}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(chatReportWithCurrentUser.reportID))}
+                                wrapperStyle={[styles.mtn6, styles.mb5]}
+                            />
                         )}
                         {!isCurrentUser && !Session.isAnonymousUser() && (
                             <MenuItem
