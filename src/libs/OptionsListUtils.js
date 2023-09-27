@@ -430,7 +430,7 @@ function getLastMessageTextForReport(report) {
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function createOption(accountIDs, personalDetails, report, reportActions = {}, {showChatPreviewLine = false, forcePolicyNamePreview = false}) {
+function createOption(accountIDs, personalDetails, report, reportActions = {}, {showChatPreviewLine = false, forcePolicyNamePreview = false, shouldNotFallbackToHidden = false}) {
     const result = {
         text: null,
         alternateText: null,
@@ -528,7 +528,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         }
         reportName = ReportUtils.getReportName(report);
     } else {
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0], false, shouldNotFallbackToHidden);
         result.keyForList = String(accountIDs[0]);
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, [accountIDs[0], 'login'], ''));
     }
@@ -998,6 +998,7 @@ function getOptions(
         };
         userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
             showChatPreviewLine,
+            shouldNotFallbackToHidden: true,
         });
         userToInvite.isOptimisticAccount = true;
         userToInvite.login = searchValue;

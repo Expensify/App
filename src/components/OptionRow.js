@@ -162,7 +162,6 @@ class OptionRow extends Component {
         const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
             (this.props.option.participantsList || (this.props.option.accountID ? [this.props.option] : [])).slice(0, 10),
             isMultipleParticipant,
-            true,
         );
         let subscriptColor = themeColors.appBG;
         if (this.props.optionIsFocused) {

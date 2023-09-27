@@ -1089,6 +1089,11 @@ function getPersonalDetailsForAccountID(accountID) {
     );
 }
 
+function hasOnlyAvatarField(obj) {
+    const keys = _.keys(obj);
+    return keys.length === 1 && keys[0] === 'avatar';
+}
+
 /**
  * Get the displayName for a single report participant.
  *
@@ -1102,6 +1107,10 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, sho
         return '';
     }
     const personalDetails = getPersonalDetailsForAccountID(accountID);
+    // check if it's invite account
+    if (hasOnlyAvatarField(personalDetails)) {
+        return '';
+    }
     const longName = personalDetails.displayName;
     const shortName = personalDetails.firstName || longName;
     if (!longName && !personalDetails.login && !shouldNotFallbackToHidden) {
