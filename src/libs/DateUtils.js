@@ -482,7 +482,7 @@ function getStatusUntilDate(inputDate) {
 /**
  * Update the time for a given date.
  *
- * @param {string} updatedTime - Time in "hh:mm A" format (like "10:55 AM").
+ * @param {string} updatedTime - Time in "hh:mm A" or "HH:mm:ss" or "yyyy-MM-dd HH:mm:ss" format.
  * @param {string} inputDateTime - Date in "YYYY-MM-DD HH:mm:ss" or "YYYY-MM-DD" format.
  * @returns {string} - Date with updated time in "YYYY-MM-DD HH:mm:ss" format.
  */
@@ -491,7 +491,14 @@ const combineDateAndTime = (updatedTime, inputDateTime) => {
         return '';
     }
 
-    const parsedTime = parse(updatedTime, 'hh:mm a', new Date());
+    let parsedTime;
+    if (updatedTime.includes('-')) {
+        // it's in "yyyy-MM-dd HH:mm:ss" format
+        parsedTime = parse(updatedTime, 'yyyy-MM-dd HH:mm:ss', new Date());
+    } else if (updatedTime.includes(':')) {
+        // it's in "hh:mm a" format
+        parsedTime = parse(updatedTime, 'hh:mm a', new Date());
+    }
 
     let parsedDateTime;
     if (inputDateTime.includes(':')) {
@@ -504,6 +511,7 @@ const combineDateAndTime = (updatedTime, inputDateTime) => {
     const updatedDateTime = set(parsedDateTime, {
         hours: parsedTime.getHours(),
         minutes: parsedTime.getMinutes(),
+        seconds: parsedTime.getSeconds(),
     });
 
     return format(updatedDateTime, 'yyyy-MM-dd HH:mm:ss');

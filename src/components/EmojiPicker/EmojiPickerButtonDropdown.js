@@ -39,7 +39,7 @@ function EmojiPickerButtonDropdown(props) {
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
-                style={styles.emojiPickerButtonDropdown}
+                style={[styles.emojiPickerButtonDropdown, props.style]}
                 disabled={props.isDisabled}
                 onPress={onPress}
                 nativeID="emojiDropdownButton"
