@@ -55,7 +55,7 @@ const defaultProps = {
 
 function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
     const defaultWebsite = useMemo(() => (lodashGet(user, 'isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(session.email, '')}`), [user, session]);
-    const [companyInfomation, setCompanyInfomation] = useState({
+    const [companyInformation, setCompanyInformation] = useState({
         street: getDefaultStateForField('addressStreet') || reimbursementAccountDraft.addressStreet,
         city: getDefaultStateForField('addressCity') || reimbursementAccountDraft.addressCity,
         state: getDefaultStateForField('addressState') || reimbursementAccountDraft.addressState,
@@ -65,7 +65,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
     });
 
     const onFieldChange = (field) => {
-        setCompanyInfomation((prevCompanyInformation) => ({
+        setCompanyInformation((prevCompanyInformation) => ({
             ...prevCompanyInformation,
             ...field,
         }));
@@ -189,10 +189,10 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 <AddressForm
                     translate={translate}
                     values={{
-                        street: companyInfomation.street,
-                        city: companyInfomation.city,
-                        state: companyInfomation.state,
-                        zipCode: companyInfomation.zipCode,
+                        street: companyInformation.street,
+                        city: companyInformation.city,
+                        state: companyInformation.state,
+                        zipCode: companyInformation.zipCode,
                     }}
                     inputKeys={{
                         street: 'addressStreet',
@@ -212,7 +212,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     containerStyles={[styles.mt4]}
                     keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                     placeholder={translate('common.phoneNumberPlaceholder')}
-                    value={companyInfomation.companyPhone}
+                    value={companyInformation.companyPhone}
                     onValueChange={(value) => onFieldChange({companyPhone: value})}
                     shouldSaveDraft
                 />
@@ -222,7 +222,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     accessibilityLabel={translate('companyStep.companyWebsite')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     containerStyles={[styles.mt4]}
-                    value={companyInfomation.website}
+                    value={companyInformation.website}
                     onValueChange={(value) => onFieldChange({website: value})}
                     shouldSaveDraft
                     hint={translate('common.websiteExample')}
