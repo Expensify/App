@@ -208,8 +208,8 @@ function ReportActionItemMessageEdit(props) {
             }
             setDraft((prevDraft) => {
                 if (newDraftInput !== newDraft) {
-                    setSelection((prevSelection) => {
-                        const remainder = prevDraft.slice(prevSelection.end).length;
+                    setSelection(() => {
+                        const remainder = ComposerUtils.getCommonSuffixLength(prevDraft, newDraft);
                         return {
                             start: newDraft.length - remainder,
                             end: newDraft.length - remainder,
