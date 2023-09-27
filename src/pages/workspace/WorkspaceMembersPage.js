@@ -155,11 +155,19 @@ function WorkspaceMembersPage(props) {
         setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
 
+        // Refocus the text input after removing user
+        // We need to use bot InteractionManager.runAfterInteractions and setTimeout to make sure no animation block focus
         InteractionManager.runAfterInteractions(() => {
             if (!textInputRef || !textInputRef.current) {
                 return;
             }
-            textInputRef.current.focus();
+            const focusTimeout = setTimeout(() => {
+                textInputRef.current.focus();
+            }, CONST.ANIMATED_TRANSITION);
+
+            return () => {
+                clearTimeout(focusTimeout);
+            };
         });
     };
 
@@ -409,7 +417,7 @@ function WorkspaceMembersPage(props) {
                             onDismissError={dismissError}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
                             showScrollIndicator
-                            innputRef={textInputRef}
+                            inputRef={textInputRef}
                         />
                     </View>
                 </View>
