@@ -8,7 +8,6 @@ import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 import {defaultProps, propTypes} from './displayNamesPropTypes';
 import RenderHTML from '../RenderHTML';
 import * as StringUtils from "../../libs/StringUtils";
-import * as StyleUtils from "../../styles/StyleUtils";
 
 function DisplayNamesWithToolTip(props) {
     const containerRef = useRef(null);
@@ -51,13 +50,12 @@ function DisplayNamesWithToolTip(props) {
         return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
     }, []);
 
-    const containsHtml = StringUtils.containsHtml(props.fullTitle);
-    const fullTitle = containsHtml ? <RenderHTML html={props.fullTitle} /> : props.fullTitle;
+    const fullTitle = StringUtils.containsHtml(props.fullTitle) ? <RenderHTML html={props.fullTitle} /> : props.fullTitle;
 
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text
-            style={[...props.textStyles, styles.pRelative, props.numberOfLines === 1 ? styles.noWrap : {}, containsHtml? StyleUtils.getHeightOfRenderHtmlText(props.numberOfLines) : {}]}
+            style={[...props.textStyles, styles.pRelative, props.numberOfLines === 1 ? styles.noWrap : {}]}
             numberOfLines={props.numberOfLines || undefined}
             ref={(el) => (containerRef.current = el)}
         >

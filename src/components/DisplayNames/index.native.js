@@ -13,7 +13,8 @@ function DisplayNames(props) {
     return (
         <Text
             accessibilityLabel={props.accessibilityLabel}
-            style={[...props.textStyles, containsHtml? StyleUtils.getHeightOfRenderHtmlText(props.numberOfLines) : {}]}
+            // Set a fixed height to prevent RenderHTML's text overflow on iOS
+            style={[containsHtml? StyleUtils.getHeightOfRenderHtmlText(props.numberOfLines) : {}, ...props.textStyles]}
             numberOfLines={props.numberOfLines || undefined}
         >
             {fullTitle}

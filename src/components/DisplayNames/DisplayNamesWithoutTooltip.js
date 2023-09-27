@@ -25,12 +25,11 @@ const defaultProps = {
 };
 
 function DisplayNamesWithoutTooltip({textStyles, numberOfLines, fullTitle}) {
-    const containsHtml = StringUtils.containsHtml(fullTitle);
-    const title = containsHtml ? <RenderHTML html={fullTitle} /> : fullTitle;
+    const title = StringUtils.containsHtml(fullTitle) ? <RenderHTML html={fullTitle} /> : fullTitle;
 
     return (
         <Text
-            style={[...textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap, containsHtml? StyleUtils.getHeightOfRenderHtmlText(numberOfLines) : {}]}
+            style={[...textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap]}
             numberOfLines={numberOfLines}
         >
             {title}
