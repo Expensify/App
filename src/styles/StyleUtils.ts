@@ -157,9 +157,8 @@ function getAvatarSize(size: AvatarSizeName): number {
 /**
  * Return the height of RenderHtml text container with numberOfLines=1
  */
-function getHeightOfRenderHtmlTextOneLine(): ViewStyle | CSSProperties {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {height: styles.webViewStyles.baseFontStyle.lineHeight};
+function getHeightOfRenderHtmlText(numberOfLines: number): ViewStyle | CSSProperties {
+    return numberOfLines === 1 ? {height: styles.webViewStyles.baseFontStyle.lineHeight} : {};
 }
 
 /**
@@ -1290,7 +1289,7 @@ export {
     getMentionStyle,
     getMentionTextColor,
     getComposeTextAreaPadding,
-    getHeightOfRenderHtmlTextOneLine,
+    getHeightOfRenderHtmlText,
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
     getWrappingStyle,

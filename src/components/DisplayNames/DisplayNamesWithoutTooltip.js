@@ -4,6 +4,7 @@ import styles from '../../styles/styles';
 import Text from '../Text';
 import RenderHTML from '../RenderHTML';
 import * as StringUtils from "../../libs/StringUtils";
+import * as StyleUtils from "../../styles/StyleUtils";
 
 const propTypes = {
     /** The full title of the DisplayNames component (not split up) */
@@ -24,11 +25,12 @@ const defaultProps = {
 };
 
 function DisplayNamesWithoutTooltip({textStyles, numberOfLines, fullTitle}) {
-    const title = StringUtils.containsHtml(fullTitle) ? <RenderHTML html={fullTitle} /> : fullTitle;
+    const containsHtml = StringUtils.containsHtml(fullTitle);
+    const title = containsHtml ? <RenderHTML html={fullTitle} /> : fullTitle;
 
     return (
         <Text
-            style={[...textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap]}
+            style={[...textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap, containsHtml? StyleUtils.getHeightOfRenderHtmlText(numberOfLines) : {}]}
             numberOfLines={numberOfLines}
         >
             {title}

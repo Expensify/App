@@ -3,15 +3,17 @@ import {propTypes, defaultProps} from './displayNamesPropTypes';
 import Text from '../Text';
 import RenderHTML from '../RenderHTML';
 import * as StringUtils from '../../libs/StringUtils';
+import * as StyleUtils from "../../styles/StyleUtils";
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
 function DisplayNames(props) {
-    const fullTitle = StringUtils.containsHtml(props.fullTitle) ? <RenderHTML html={props.fullTitle} /> : props.fullTitle;
+    const containsHtml = StringUtils.containsHtml(props.fullTitle);
+    const fullTitle = containsHtml ? <RenderHTML html={props.fullTitle} /> : props.fullTitle;
 
     return (
         <Text
             accessibilityLabel={props.accessibilityLabel}
-            style={props.textStyles}
+            style={[...props.textStyles, containsHtml? StyleUtils.getHeightOfRenderHtmlText(props.numberOfLines) : {}]}
             numberOfLines={props.numberOfLines || undefined}
         >
             {fullTitle}
