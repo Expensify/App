@@ -2,6 +2,7 @@ import React, {useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
@@ -55,7 +56,8 @@ const defaultProps = {
 
 function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
     const {translate} = useLocalize();
-    const formattedCurrency = policy ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
+
+    const formattedCurrency = policy && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
 
     const submit = useCallback(
         (values) => {
