@@ -1,16 +1,10 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
+import {ChronosOOOEvent} from '../../types/onyx/OriginalMessage';
 
-/**
- * @param {String} reportID
- * @param {String} reportActionID
- * @param {String} eventID
- * @param {Object[]} events
- */
-const removeEvent = (reportID, reportActionID, eventID, events) => {
+const removeEvent = (reportID: string, reportActionID: string, eventID: string, events: ChronosOOOEvent[]) => {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -19,7 +13,7 @@ const removeEvent = (reportID, reportActionID, eventID, events) => {
                 [reportActionID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     originalMessage: {
-                        events: _.reject(events, (event) => event.id === eventID),
+                        events: events.filter((event) => event.id !== eventID),
                     },
                 },
             },
