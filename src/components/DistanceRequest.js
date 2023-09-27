@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -93,9 +93,10 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
+    const [optimisticWaypoints, setOptimisticWaypoints] = useState(null);
     const isEditing = lodashGet(route, 'path', '').includes('address');
     const reportID = lodashGet(report, 'reportID', '');
-    const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
+    const waypoints = useMemo(() => optimisticWaypoints || lodashGet(transaction, 'comment.waypoints', {}), [optimisticWaypoints, transaction]);
     const waypointsList = _.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
@@ -198,7 +199,12 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                 const newWaypoint = lodashGet(waypoints, waypoint, {});
                 newWaypoints[`waypoint${index}`] = lodashIsEmpty(newWaypoint) ? null : newWaypoint;
             });
-            Transaction.updateWaypoints(iou.transactionID, newWaypoints);
+
+            setOptimisticWaypoints(newWaypoints);
+            // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+            Transaction.updateWaypoints(iou.transactionID, newWaypoints).then(() => {
+                setOptimisticWaypoints(null);
+            });
         },
         [iou.transactionID, waypoints, waypointsList],
     );
@@ -231,6 +237,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                 onSecondaryInteraction={drag}
                 focused={isActive}
                 key={item}
+                disabled={isLoadingRoute}
             />
         );
     };

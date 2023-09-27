@@ -207,8 +207,8 @@ function getRoute(transactionID: string, waypoints: WaypointCollection) {
  * @param waypoints - An object containing all the waypoints
  *                             which will replace the existing ones.
  */
-function updateWaypoints(transactionID: string, waypoints: WaypointCollection) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+function updateWaypoints(transactionID: string, waypoints: WaypointCollection): Promise<void> {
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints,
         },
