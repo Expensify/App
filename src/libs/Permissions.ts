@@ -17,9 +17,6 @@ function canUseDefaultRooms(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
 
-/**
- * @param {Array<String>} betas
- */
 function canUseIOUSend(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.IOU_SEND) || canUseAllBetas(betas);
 }
