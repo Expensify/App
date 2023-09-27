@@ -1249,11 +1249,12 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  * Saves the draft for a comment report action. This will put the comment into "edit mode"
  *
  * @param {String} reportID
- * @param {Number} reportActionID
+ * @param {Object} reportAction
  * @param {String} draftMessage
  */
-function saveReportActionDraft(reportID, reportActionID, draftMessage) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
+function saveReportActionDraft(reportID, reportAction, draftMessage) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${reportAction.reportActionID}`, draftMessage);
 }
 
 /**
@@ -1627,9 +1628,9 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
         return false;
     }
 
-    // Don't show a notification if no comment exists
-    if (action && !_.some(action.message, (f) => f.type === 'COMMENT')) {
-        Log.info(`${tag} No notification because no comments exist for the current action`);
+    // Only show notifications for supported types of report actions
+    if (!ReportActionsUtils.isNotifiableReportAction(action)) {
+        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: action.actionName});
         return false;
     }
 
@@ -1638,23 +1639,28 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
 
 /**
  * @param {String} reportID
- * @param {Object} action
+ * @param {Object} reportAction
  */
-function showReportActionNotification(reportID, action) {
-    if (!shouldShowReportActionNotification(reportID, action)) {
+function showReportActionNotification(reportID, reportAction) {
+    if (!shouldShowReportActionNotification(reportID, reportAction)) {
         return;
     }
 
     Log.info('[LocalNotification] Creating notification');
-    LocalNotification.showCommentNotification({
-        report: allReports[reportID],
-        reportAction: action,
-        onClick: () => {
-            // Navigate to this report onClick
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-        },
-    });
-    notifyNewAction(reportID, action.actorAccountID, action.reportActionID);
+    const report = allReports[reportID];
+
+    const notificationParams = {
+        report,
+        reportAction,
+        onClick: () => Navigation.navigate(ROUTES.getReportRoute(reportID)),
+    };
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+        LocalNotification.showModifiedExpenseNotification(notificationParams);
+    } else {
+        LocalNotification.showCommentNotification(notificationParams);
+    }
+
+    notifyNewAction(reportID, reportAction.actorAccountID, reportAction.reportActionID);
 }
 
 /**
