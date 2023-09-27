@@ -10,8 +10,11 @@ Onyx.connect({
     callback: (val) => (persistedRequests = val ?? []),
 });
 
+/**
+ * This promise is only used by tests. DO NOT USE THIS PROMISE IN THE APPLICATION CODE
+ */
 function clear() {
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
+    return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 
 function save(requestsToPersist: Request[]) {

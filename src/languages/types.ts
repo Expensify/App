@@ -124,9 +124,9 @@ type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
-type PaidElsewhereWithAmountParams = {amount: string};
+type PaidElsewhereWithAmountParams = {payer: string; amount: string};
 
-type PaidWithExpensifyWithAmountParams = {amount: string};
+type PaidWithExpensifyWithAmountParams = {payer: string; amount: string};
 
 type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
@@ -189,6 +189,8 @@ type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
+
+type FormattedMaxLengthParams = {formattedMaxLength: string};
 
 type TagSelectionParams = {tagName: string};
 
@@ -303,5 +305,6 @@ export type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    FormattedMaxLengthParams,
     TagSelectionParams,
 };
