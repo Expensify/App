@@ -31,7 +31,7 @@ To merge two expenses from the Reports page:
 5. Select the two expenses that you wish to merge.
 6. You'll be able to choose which aspect of each of the two expenses you would like to be used on the resulting expense, such as the receipt image, card, merchant, category, and more.   
 # How to merge expenses on the Expensify mobile app
-On the mobile app, merging is prompted when you see the message "_Potential duplicate expense detected_". Simply tap **Resolve Now** to take a closer look, then hit **Merge Expense**, and you're done! 
+On the mobile app, merging is prompted when you see the message _"Potential duplicate expense detected"_. Simply tap **Resolve Now** to take a closer look, then hit **Merge Expense**, and you're done! 
 
 If the expenses exist on two different reports, you will be asked which report you'd like the newly created single expense to be reported onto.
 
