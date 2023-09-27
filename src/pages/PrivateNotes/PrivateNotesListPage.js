@@ -15,7 +15,6 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import * as Report from '../../libs/actions/Report';
 import personalDetailsPropType from '../personalDetailsPropType';
 import * as UserUtils from '../../libs/UserUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
 import reportPropTypes from '../reportPropTypes';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -117,12 +116,6 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
             .value();
     }, [report, personalDetailsList, session, translate]);
 
-    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
-    const fallbackPath =
-        participantAccountIDs.length === 1 && !(ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)) || ReportUtils.isChatRoom(report))
-            ? ROUTES.PROFILE.getRoute(participantAccountIDs[0])
-            : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(lodashGet(report, 'reportID', ''));
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -132,7 +125,6 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack(fallbackPath)}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
