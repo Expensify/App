@@ -80,26 +80,26 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
     return (
         <>
             <MenuItemWithTopDescription
-                description={translate('walletPage.cardDetails.cardNumber')}
+                description={translate('cardPage.cardDetails.cardNumber')}
                 title={pan}
                 iconRight={Expensicons.Copy}
                 shouldShowRightIcon
                 interactive={false}
                 onIconRightPress={handleCopyToClipboard}
-                iconRightAccessibilityLabel={translate('walletPage.cardDetails.copyCardNumber')}
+                iconRightAccessibilityLabel={translate('cardPage.cardDetails.copyCardNumber')}
             />
             <MenuItemWithTopDescription
-                description={translate('walletPage.cardDetails.expiration')}
+                description={translate('cardPage.cardDetails.expiration')}
                 title={expiration}
                 interactive={false}
             />
             <MenuItemWithTopDescription
-                description={translate('walletPage.cardDetails.cvv')}
+                description={translate('cardPage.cardDetails.cvv')}
                 title={cvv}
                 interactive={false}
             />
             <MenuItemWithTopDescription
-                description={translate('walletPage.cardDetails.address')}
+                description={translate('cardPage.cardDetails.address')}
                 title={getFormattedAddress()}
                 interactive={false}
             />

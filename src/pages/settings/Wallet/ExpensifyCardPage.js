@@ -98,7 +98,7 @@ function ExpensifyCardPage({
                                     rightComponent={
                                         <Button
                                             medium
-                                            text={translate('walletPage.cardDetails.revealDetails')}
+                                            text={translate('cardPage.cardDetails.revealDetails')}
                                             onPress={handleRevealDetails}
                                         />
                                     }
