@@ -11,6 +11,7 @@ import participantPropTypes from './participantPropTypes';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
 import ConfirmModal from './ConfirmModal';
@@ -86,6 +87,15 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton={isActionOwner && !isSettled && !isApproved}
                     threeDotsMenuItems={[
+                        ...(TransactionUtils.hasReceipt(transaction)
+                            ? []
+                            : [
+                                  {
+                                      icon: Expensicons.Receipt,
+                                      text: translate('receipt.addReceipt'),
+                                      onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+                                  },
+                              ]),
                         {
                             icon: Expensicons.Trashcan,
                             text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),

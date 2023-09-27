@@ -38,6 +38,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => merchantInputRef.current && merchantInputRef.current.focus()}
+            testID={EditRequestMerchantPage.displayName}
         >
             <HeaderWithBackButton title={translate('common.merchant')} />
             <Form
