@@ -61,7 +61,7 @@ function TabSelectorItem({icon, title, onPress, backgroundColor, hoverBackground
                 <View style={[
                     styles.tabSelectorButton,
                     StyleSheet.absoluteFill,
-                    { backgroundColor: Boolean(hoverBackgroundColor) && hovered && !isFocused ? hoverBackgroundColor : {} }
+                    { backgroundColor: Boolean(hoverBackgroundColor) && hovered && !isFocused ? hoverBackgroundColor : undefined }
                 ]}>
                     <TabIcon
                         icon={icon}
