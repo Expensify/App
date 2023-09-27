@@ -3680,7 +3680,7 @@ const styles = (theme) => ({
         overflow: 'hidden',
     },
 
-    walletCardNumber: {
+    walletCardMenuItem: {
         color: theme.text,
         fontSize: variables.fontSizeNormal,
     },

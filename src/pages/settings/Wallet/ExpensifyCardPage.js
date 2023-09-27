@@ -15,6 +15,7 @@ import useLocalize from '../../../hooks/useLocalize';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as CardUtils from '../../../libs/CardUtils';
 
 const propTypes = {
@@ -73,20 +74,29 @@ function ExpensifyCardPage({
                             interactive={false}
                             titleStyle={styles.newKansasLarge}
                         />
-                        {!_.isEmpty(physicalCard) && (
-                            <MenuItemWithTopDescription
-                                description={translate('cardPage.virtualCardNumber')}
-                                title={CardUtils.maskCard(virtualCard.lastFourPAN)}
-                                interactive={false}
-                                titleStyle={styles.walletCardNumber}
-                            />
+                        {!_.isEmpty(virtualCard) && (
+                            <>
+                                <MenuItemWithTopDescription
+                                    description={translate('cardPage.virtualCardNumber')}
+                                    title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                    interactive={false}
+                                    titleStyle={styles.walletCardMenuItem}
+                                />
+                                <MenuItemWithTopDescription
+                                    title={translate('cardPage.reportFraud')}
+                                    titleStyle={styles.walletCardMenuItem}
+                                    icon={Expensicons.Flag}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain))}
+                                />
+                            </>
                         )}
                         {!_.isEmpty(physicalCard) && (
                             <MenuItemWithTopDescription
                                 description={translate('cardPage.physicalCardNumber')}
                                 title={CardUtils.maskCard(physicalCard.lastFourPAN)}
                                 interactive={false}
-                                titleStyle={styles.walletCardNumber}
+                                titleStyle={styles.walletCardMenuItem}
                             />
                         )}
                     </ScrollView>

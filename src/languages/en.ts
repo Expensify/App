@@ -814,6 +814,13 @@ export default {
         availableSpend: 'Remaining spending power',
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
+        reportFraud: 'Report virtual card fraud',
+    },
+    reportFraudPage: {
+        title: 'Report virtual card fraud',
+        description: 'If your virtual card details have been stolen or compromised, we’ll permanently deactivate your existing card and provide you with a new virtual card and number.',
+        deactivateCard: 'Deactivate card',
+        reportVirtualCardFraud: 'Report virtual card fraud',
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
