@@ -1,5 +1,6 @@
 import SCREENS from '../../SCREENS';
 import colors from '../colors';
+import type {ThemeDefault} from './types';
 
 const lightTheme = {
     // Figma keys
@@ -91,6 +92,6 @@ const lightTheme = {
         [SCREENS.SETTINGS.STATUS]: colors.green700,
         [SCREENS.SETTINGS.ROOT]: colors.lightHighlightBackground,
     },
-};
+} satisfies ThemeDefault;
 
 export default lightTheme;
