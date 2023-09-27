@@ -139,8 +139,8 @@ function BaseSelectionList({
         };
     }, [canSelectMultiple, sections]);
 
-    // Disable `Enter` hotkey if the active element is a button or checkbox
-    const shouldDisableHotkeys = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
+    // Disable `Enter` shortcut if the active element is a button or checkbox
+    const disableEnterShortcut = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
 
     /**
      * Scrolls to the desired item index in the section list
@@ -325,7 +325,7 @@ function BaseSelectionList({
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        isActive: !disableKeyboardShortcuts && !shouldDisableHotkeys && isFocused,
+        isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
