@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import styles from '../../../styles/styles';
 import compose from '../../../libs/compose';
 import * as Policy from '../../../libs/actions/Policy';
+import * as PolicyUtils from '../../../libs/PolicyUtils';
 import CONST from '../../../CONST';
 import Picker from '../../../components/Picker';
 import TextInput from '../../../components/TextInput';
@@ -69,13 +70,9 @@ class WorkspaceRateAndUnitPage extends React.Component {
         this.resetRateAndUnit();
     }
 
-    getUnitRateValue(customUnitRate) {
-        return this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
-    }
-
     getUnitItems() {
         return [
-            {label: this.props.translate('workspace.reimburse.kilometers'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+            {label: this.props.translate('common.kilometers'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
             {label: this.props.translate('common.miles'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
         ];
     }
@@ -101,7 +98,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
         const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
 
         this.setState({
-            rate: this.getUnitRateValue(distanceCustomRate),
+            rate: PolicyUtils.getUnitRateValue(distanceCustomRate, this.props.toLocaleDigit),
             unit: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
         });
     }
@@ -114,7 +111,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
         const currentCustomUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (r) => r.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
         const unitID = lodashGet(distanceCustomUnit, 'customUnitID', '');
         const unitName = lodashGet(distanceCustomUnit, 'name', '');
-        const rateNumValue = this.getNumericValue(rate);
+        const rateNumValue = PolicyUtils.getNumericValue(rate, this.props.toLocaleDigit);
 
         const newCustomUnit = {
             customUnitID: unitID,
@@ -131,7 +128,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
     submit() {
         this.saveUnitAndRate(this.state.unit, this.state.rate);
         Keyboard.dismiss();
-        Navigation.goBack(ROUTES.getWorkspaceReimburseRoute(this.props.policy.id));
+        Navigation.goBack(ROUTES.WORKSPACE_REIMBURSE.getRoute(this.props.policy.id));
     }
 
     validate(values) {
@@ -155,7 +152,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
                 shouldSkipVBBACall
-                backButtonRoute={ROUTES.getWorkspaceReimburseRoute(this.props.policy.id)}
+                backButtonRoute={ROUTES.WORKSPACE_REIMBURSE.getRoute(this.props.policy.id)}
             >
                 {() => (
                     <Form
@@ -181,6 +178,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="rate"
                                 containerStyles={[styles.mt4]}
+                                defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, this.props.toLocaleDigit)}
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                 accessibilityLabel={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                 placeholder={lodashGet(this.props, 'policy.outputCurrency', CONST.CURRENCY.USD)}
