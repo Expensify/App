@@ -604,8 +604,9 @@ function getMoneyRequestInformation(
  * @param {Number} amount
  * @param {String} currency
  * @param {String} merchant
+ * @param {Boolean} [billable]
  */
-function createDistanceRequest(report, participant, comment, created, transactionID, category, tag, amount, currency, merchant) {
+function createDistanceRequest(report, participant, comment, created, transactionID, category, tag, amount, currency, merchant, billable) {
     const optimisticReceipt = {
         source: ReceiptGeneric,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
@@ -624,6 +625,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
         transactionID,
         category,
         tag,
+        billable,
     );
     API.write(
         'CreateDistanceRequest',
@@ -640,6 +642,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
             created,
             category,
             tag,
+            billable,
         },
         onyxData,
     );
@@ -1224,6 +1227,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                     created: null,
                     currency: null,
                     merchant: null,
+                    billable: null,
                     category: null,
                     tag: null,
                 },
@@ -1272,7 +1276,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     ];
 
     // STEP 6: Call the API endpoint
-    const {created, amount, currency, comment, merchant, category, tag} = ReportUtils.getTransactionDetails(updatedTransaction);
+    const {created, amount, currency, comment, merchant, category, billable, tag} = ReportUtils.getTransactionDetails(updatedTransaction);
     API.write(
         'EditMoneyRequest',
         {
@@ -1284,6 +1288,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             comment,
             merchant,
             category,
+            billable,
             tag,
         },
         {optimisticData, successData, failureData},
