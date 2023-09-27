@@ -9,7 +9,7 @@ import ROUTES from '../../ROUTES';
 import * as ReimbursementAccount from './ReimbursementAccount';
 import PlaidBankAccount from '../../types/onyx/PlaidBankAccount';
 import {ACHContractStepProps, BankAccountStepProps, CompanyStepProps, OnfidoData, ReimbursementAccountProps, RequestorStepProps} from '../../types/onyx/ReimbursementAccountDraft';
-import {Request} from '../../types/onyx';
+import {OnyxData} from '../../types/onyx/Request';
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -62,7 +62,7 @@ function clearOnfidoToken() {
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  */
-function getVBBADataForOnyx(): Request {
+function getVBBADataForOnyx(): OnyxData {
     return {
         optimisticData: [
             {
