@@ -156,6 +156,11 @@ const propTypes = {
 
     /** Whether to show the default confirm button */
     showConfirmButton: PropTypes.bool,
+
+    /** The modal state */
+    modal: PropTypes.shape({
+        isVisible: PropTypes.bool,
+    }),
 };
 
 export {propTypes, radioListItemPropTypes, userListItemPropTypes};
