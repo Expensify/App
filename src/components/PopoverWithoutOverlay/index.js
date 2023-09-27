@@ -8,6 +8,7 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getModalStyles from '../../styles/getModalStyles';
 import withWindowDimensions from '../withWindowDimensions';
+import usePrevious from '../../hooks/usePrevious';
 
 function Popover(props) {
     const ref = React.useRef(null);
@@ -24,6 +25,7 @@ function Popover(props) {
         props.outerStyle,
     );
 
+    const prevIsVisible = usePrevious(props.isVisible);
     React.useEffect(() => {
         if (props.isVisible) {
             props.onModalShow();
@@ -38,11 +40,15 @@ function Popover(props) {
             Modal.onModalDidClose();
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
+        
+        if (prevIsVisible === props.isVisible) {
+            return;
+        }
         Modal.setCloseModal(props.isVisible ? () => props.onClose(props.anchorRef) : null);
 
         // We want this effect to run strictly ONLY when isVisible prop changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isVisible]);
+    }, [props.isVisible, prevIsVisible]);
 
     if (!props.isVisible) {
         return null;
