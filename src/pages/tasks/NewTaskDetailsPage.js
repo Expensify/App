@@ -16,6 +16,7 @@ import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
 import CONST from '../../CONST';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Beta features list */
@@ -76,6 +77,7 @@ function NewTaskDetailsPage(props) {
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={NewTaskDetailsPage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.assignTask')}
@@ -109,7 +111,7 @@ function NewTaskDetailsPage(props) {
                         label={props.translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
-                        submitOnEnter
+                        submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
                         value={taskDescription}

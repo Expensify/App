@@ -11,6 +11,7 @@ import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
+import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
@@ -25,6 +26,10 @@ import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
+import * as ReceiptUtils from '../../libs/ReceiptUtils';
+import * as ReportActionUtils from '../../libs/ReportActionsUtils';
+import * as TransactionUtils from '../../libs/TransactionUtils';
+import ReportActionItemImages from './ReportActionItemImages';
 
 const propTypes = {
     /** All the data of the action */
@@ -36,6 +41,9 @@ const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
     // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: PropTypes.string.isRequired,
+
+    /** The report's policyID, used for Onyx subscription */
+    policyID: PropTypes.string.isRequired,
 
     /* Onyx Props */
     /** chatReport associated with iouReport */
@@ -78,6 +86,9 @@ const propTypes = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
 
+    /** Whether a message is a whisper */
+    isWhisper: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -90,18 +101,45 @@ const defaultProps = {
     session: {
         accountID: null,
     },
+    isWhisper: false,
 };
 
 function ReportPreview(props) {
-    const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
+    const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
-    let displayAmount;
-    if (reportTotal) {
-        displayAmount = CurrencyUtils.convertToDisplayString(reportTotal, props.iouReport.currency);
-    } else {
+
+    const iouSettled = ReportUtils.isSettled(props.iouReportID);
+    const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
+    const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
+    const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
+
+    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
+    const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
+    const hasReceipts = transactionsWithReceipts.length > 0;
+    const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
+    const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID);
+    const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
+    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || ''));
+
+    const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
+    const previewSubtitle = hasOnlyOneReceiptRequest
+        ? TransactionUtils.getMerchant(transactionsWithReceipts[0])
+        : props.translate('iou.requestCount', {
+              count: numberOfRequests,
+              scanningReceipts: numberOfScanningReceipts,
+          });
+
+    const getDisplayAmount = () => {
+        if (reportTotal) {
+            return CurrencyUtils.convertToDisplayString(reportTotal, props.iouReport.currency);
+        }
+        if (isScanning) {
+            return props.translate('iou.receiptScanning');
+        }
+
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
-        displayAmount = '';
+        let displayAmount = '';
         const actionMessage = lodashGet(props.action, ['message', 0, 'text'], '');
         const splits = actionMessage.split(' ');
         for (let i = 0; i < splits.length; i++) {
@@ -109,57 +147,92 @@ function ReportPreview(props) {
                 displayAmount = splits[i];
             }
         }
-    }
+        return displayAmount;
+    };
 
-    const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+    const getPreviewMessage = () => {
+        if (isScanning) {
+            return props.translate('common.receipt');
+        }
+        if (ReportUtils.isControlPolicyExpenseChat(props.chatReport) && ReportUtils.isReportApproved(props.iouReport)) {
+            return props.translate('iou.managerApproved', {manager: ReportUtils.getDisplayNameForParticipant(managerID, true)});
+        }
+        const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+        return props.translate(iouSettled || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
+    };
+
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const previewMessage = props.translate(ReportUtils.isSettled(props.iouReportID) || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
-    const shouldShowSettlementButton =
-        !_.isEmpty(props.iouReport) && isCurrentUserManager && !ReportUtils.isSettled(props.iouReportID) && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
+    const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
+        ? props.policy.role === CONST.POLICY.ROLE.ADMIN && ReportUtils.isReportApproved(props.iouReport) && !iouSettled && !iouCanceled
+        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
+
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
                 onPress={() => {
-                    Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.iouReportID));
                 }}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
-                style={[styles.flexRow, styles.justifyContentBetween]}
+                style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                 accessibilityRole="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
-                <View style={[styles.iouPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
-                    <View style={styles.flexRow}>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{previewMessage}</Text>
-                        </View>
-                    </View>
-                    <View style={styles.flexRow}>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={styles.textHeadline}>{displayAmount}</Text>
-                            {ReportUtils.isSettled(props.iouReportID) && (
-                                <View style={styles.defaultCheckmarkWrapper}>
-                                    <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={themeColors.iconSuccessFill}
-                                    />
-                                </View>
-                            )}
-                        </View>
-                    </View>
-                    {shouldShowSettlementButton && (
-                        <SettlementButton
-                            currency={props.iouReport.currency}
-                            policyID={props.iouReport.policyID}
-                            chatReportID={props.chatReportID}
-                            iouReport={props.iouReport}
-                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
-                            enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                            addBankAccountRoute={bankAccountRoute}
-                            style={[styles.requestPreviewBox]}
+                <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                    {hasReceipts && (
+                        <ReportActionItemImages
+                            images={lastThreeReceipts}
+                            size={3}
+                            total={transactionsWithReceipts.length}
+                            isHovered={props.isHovered || isScanning}
                         />
                     )}
+                    <View style={styles.reportPreviewBoxBody}>
+                        <View style={styles.flexRow}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
+                            </View>
+                            {hasErrors && (
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={themeColors.danger}
+                                />
+                            )}
+                        </View>
+                        <View style={styles.flexRow}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
+                                {ReportUtils.isSettled(props.iouReportID) && (
+                                    <View style={styles.defaultCheckmarkWrapper}>
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            fill={themeColors.iconSuccessFill}
+                                        />
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+                        {!isScanning && (numberOfRequests > 1 || hasReceipts) && (
+                            <View style={styles.flexRow}>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                </View>
+                            </View>
+                        )}
+                        {shouldShowSettlementButton && (
+                            <SettlementButton
+                                currency={props.iouReport.currency}
+                                policyID={props.policyID}
+                                chatReportID={props.chatReportID}
+                                iouReport={props.iouReport}
+                                onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
+                                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                addBankAccountRoute={bankAccountRoute}
+                                style={[styles.requestPreviewBox]}
+                            />
+                        )}
+                    </View>
                 </View>
             </PressableWithoutFeedback>
         </View>
@@ -173,6 +246,9 @@ ReportPreview.displayName = 'ReportPreview';
 export default compose(
     withLocalize,
     withOnyx({
+        policy: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        },
         chatReport: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
         },

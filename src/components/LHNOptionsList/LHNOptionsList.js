@@ -8,6 +8,10 @@ import OptionRowLHNData from './OptionRowLHNData';
 import variables from '../../styles/variables';
 
 const propTypes = {
+    /** Wrapper style for the section list */
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.arrayOf(PropTypes.object),
+
     /** Extra styles for the section list container */
     // eslint-disable-next-line react/forbid-prop-types
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object).isRequired,
@@ -26,10 +30,11 @@ const propTypes = {
 };
 
 const defaultProps = {
+    style: styles.flex1,
     shouldDisableFocusOptions: false,
 };
 
-function LHNOptionsList({contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions}) {
+function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions}) {
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
@@ -67,7 +72,7 @@ function LHNOptionsList({contentContainerStyles, data, onSelectRow, optionMode, 
     );
 
     return (
-        <View style={[styles.flex1]}>
+        <View style={style}>
             <FlatList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"

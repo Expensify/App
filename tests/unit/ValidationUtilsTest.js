@@ -1,6 +1,6 @@
+import {addDays, format, subYears, startOfDay} from 'date-fns';
 import CONST from '../../src/CONST';
 
-const moment = require('moment');
 const ValidationUtils = require('../../src/libs/ValidationUtils');
 
 describe('ValidationUtils', () => {
@@ -50,7 +50,7 @@ describe('ValidationUtils', () => {
         });
 
         test('Should return false for a future date', () => {
-            const futureDate = moment().add(1, 'day').format(CONST.DATE.MOMENT_FORMAT_STRING);
+            const futureDate = format(addDays(new Date(), 1), CONST.DATE.FNS_FORMAT_STRING);
             const isValid = ValidationUtils.isValidPastDate(futureDate);
             expect(isValid).toBe(false);
         });
@@ -76,7 +76,7 @@ describe('ValidationUtils', () => {
         });
 
         test('Should return true for a valid date value', () => {
-            const dateValue = moment();
+            const dateValue = new Date();
             const isFulfilled = ValidationUtils.isRequiredFulfilled(dateValue);
             expect(isFulfilled).toBe(true);
         });
@@ -139,13 +139,13 @@ describe('ValidationUtils', () => {
 
     describe('meetsMinimumAgeRequirement', () => {
         test('Should return true for a date that meets the minimum age requirement', () => {
-            const validDate = moment().subtract(18, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 18 years ago
+            const validDate = format(subYears(new Date(), 18), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 18 years ago
             const meetsRequirement = ValidationUtils.meetsMinimumAgeRequirement(validDate);
             expect(meetsRequirement).toBe(true);
         });
 
         test('Should return false for a date that does not meet the minimum age requirement', () => {
-            const invalidDate = moment().subtract(17, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 17 years ago
+            const invalidDate = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
             const meetsRequirement = ValidationUtils.meetsMinimumAgeRequirement(invalidDate);
             expect(meetsRequirement).toBe(false);
         });
@@ -159,13 +159,13 @@ describe('ValidationUtils', () => {
 
     describe('meetsMaximumAgeRequirement', () => {
         test('Should return true for a date that meets the maximum age requirement', () => {
-            const validDate = moment().subtract(65, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 65 years ago
+            const validDate = format(subYears(new Date(), 65), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 65 years ago
             const meetsRequirement = ValidationUtils.meetsMaximumAgeRequirement(validDate);
             expect(meetsRequirement).toBe(true);
         });
 
         test('Should return false for a date that does not meet the maximum age requirement', () => {
-            const invalidDate = moment().subtract(151, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 151 years ago
+            const invalidDate = format(subYears(new Date(), 151), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 151 years ago
             const meetsRequirement = ValidationUtils.meetsMaximumAgeRequirement(invalidDate);
             expect(meetsRequirement).toBe(false);
         });
@@ -179,21 +179,21 @@ describe('ValidationUtils', () => {
 
     describe('getAgeRequirementError', () => {
         test('Should return an empty string for a date within the specified range', () => {
-            const validDate = moment().subtract(30, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 30 years ago
+            const validDate = format(subYears(new Date(), 30), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 30 years ago
             const error = ValidationUtils.getAgeRequirementError(validDate, 18, 150);
             expect(error).toBe('');
         });
 
         test('Should return an error message for a date before the minimum age requirement', () => {
-            const invalidDate = moment().subtract(17, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 17 years ago
+            const invalidDate = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
             const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
-            expect(error).toEqual(['privatePersonalDetails.error.dateShouldBeBefore', {dateString: moment().subtract(18, 'years').startOf('day').format(CONST.DATE.MOMENT_FORMAT_STRING)}]);
+            expect(error).toEqual(['privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)}]);
         });
 
         test('Should return an error message for a date after the maximum age requirement', () => {
-            const invalidDate = moment().subtract(160, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 160 years ago
+            const invalidDate = format(subYears(new Date(), 160), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 160 years ago
             const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
-            expect(error).toEqual(['privatePersonalDetails.error.dateShouldBeAfter', {dateString: moment().subtract(150, 'years').startOf('day').format(CONST.DATE.MOMENT_FORMAT_STRING)}]);
+            expect(error).toEqual(['privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)}]);
         });
 
         test('Should return an error message for an invalid date', () => {

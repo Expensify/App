@@ -55,14 +55,17 @@ class EnablePaymentsPage extends React.Component {
         }
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={EnablePaymentsPage.displayName}
+            >
                 {() => {
                     if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
                         return (
                             <>
                                 <HeaderWithBackButton
                                     title={this.props.translate('additionalDetailsStep.headerTitle')}
-                                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
+                                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
                                 />
                                 <FailedKYC />
                             </>

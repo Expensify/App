@@ -20,6 +20,11 @@ jobs:
           ref: staging
           token: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
+      - name: Setup git for OSBotify
+        uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
       - name: Tag version
         run: git tag "$(npm run print-version --silent)"
 
@@ -36,11 +41,14 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           ref: production
           token: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
-      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+      - name: Setup git for OSBotify
+        uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 

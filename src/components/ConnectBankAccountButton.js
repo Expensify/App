@@ -10,6 +10,7 @@ import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import networkPropTypes from './networkPropTypes';
 import Text from './Text';
+import Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -29,6 +30,7 @@ const defaultProps = {
 };
 
 function ConnectBankAccountButton(props) {
+    const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
     return props.network.isOffline ? (
         <View style={props.style}>
             <Text>{`${props.translate('common.youAppearToBeOffline')} ${props.translate('common.thisFeatureRequiresInternet')}`}</Text>
@@ -36,7 +38,7 @@ function ConnectBankAccountButton(props) {
     ) : (
         <Button
             text={props.translate('workspace.common.connectBankAccount')}
-            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
+            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID, activeRoute)}
             icon={Expensicons.Bank}
             style={props.style}
             iconStyles={[styles.buttonCTAIcon]}

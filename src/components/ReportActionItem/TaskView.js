@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions from '../withWindowDimensions';
@@ -11,12 +12,12 @@ import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import Hoverable from '../Hoverable';
 import MenuItem from '../MenuItem';
+import OfflineWithFeedback from '../OfflineWithFeedback';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as Task from '../../libs/actions/Task';
-import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import Checkbox from '../Checkbox';
 import convertToLTR from '../../libs/convertToLTR';
@@ -26,6 +27,7 @@ import getButtonState from '../../libs/getButtonState';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as Session from '../../libs/actions/Session';
 import * as Expensicons from '../Icon/Expensicons';
+import SpacerView from '../SpacerView';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -41,107 +43,138 @@ const propTypes = {
 
 function TaskView(props) {
     useEffect(() => {
-        Task.setTaskReport({...props.report, isExistingTaskReport: true});
+        Task.setTaskReport({...props.report});
     }, [props.report]);
 
     const taskTitle = convertToLTR(props.report.reportName || '');
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
-    const policy = ReportUtils.getPolicy(props.report.policyID);
-    const canEdit = PolicyUtils.isPolicyAdmin(policy) || Task.isTaskAssigneeOrTaskOwner(props.report, props.currentUserPersonalDetails.accountID);
-    const disableState = !canEdit || !isOpen;
+    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
+    const disableState = !canModifyTask || isCanceled;
+    const isDisableInteractive = !canModifyTask || !isOpen;
     return (
         <View>
-            <Hoverable>
-                {(hovered) => (
-                    <PressableWithSecondaryInteraction
-                        onPress={Session.checkIfActionIsAllowed((e) => {
-                            if (e && e.type === 'click') {
-                                e.currentTarget.blur();
-                            }
+            <OfflineWithFeedback
+                shouldShowErrorMessages
+                errors={lodashGet(props, 'report.errorFields.editTask')}
+                onClose={() => Task.clearEditTaskErrors(props.report.reportID)}
+                errorRowStyles={styles.ph5}
+            >
+                <Hoverable>
+                    {(hovered) => (
+                        <PressableWithSecondaryInteraction
+                            onPress={Session.checkIfActionIsAllowed((e) => {
+                                if (isDisableInteractive) {
+                                    return;
+                                }
+                                if (e && e.type === 'click') {
+                                    e.currentTarget.blur();
+                                }
 
-                            Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
-                        })}
-                        style={({pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState), true)]}
-                        ref={props.forwardedRef}
-                        disabled={disableState}
-                        accessibilityLabel={taskTitle || props.translate('task.task')}
-                    >
-                        {({pressed}) => (
-                            <>
-                                <Text style={styles.taskTitleDescription}>{props.translate('task.title')}</Text>
-                                <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
-                                    <Checkbox
-                                        onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
-                                        isChecked={isCompleted}
-                                        style={styles.taskMenuItemCheckbox}
-                                        containerSize={24}
-                                        containerBorderRadius={8}
-                                        caretSize={16}
-                                        accessibilityLabel={taskTitle || props.translate('task.task')}
-                                        disabled={isCanceled || !canEdit}
-                                    />
-                                    <View style={[styles.flexRow, styles.flex1]}>
-                                        <Text
-                                            numberOfLines={3}
-                                            style={styles.taskTitleMenuItem}
-                                        >
-                                            {taskTitle}
-                                        </Text>
-                                    </View>
-                                    {isOpen && (
-                                        <View style={styles.taskRightIconContainer}>
-                                            <Icon
-                                                additionalStyles={[styles.alignItemsCenter]}
-                                                src={Expensicons.ArrowRight}
-                                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
-                                            />
+                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(props.report.reportID));
+                            })}
+                            style={({pressed}) => [
+                                styles.ph5,
+                                styles.pv2,
+                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
+                                isDisableInteractive && !disableState && styles.cursorDefault,
+                            ]}
+                            ref={props.forwardedRef}
+                            disabled={disableState}
+                            accessibilityLabel={taskTitle || props.translate('task.task')}
+                        >
+                            {({pressed}) => (
+                                <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.reportName')}>
+                                    <Text style={styles.taskTitleDescription}>{props.translate('task.title')}</Text>
+                                    <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
+                                        <Checkbox
+                                            onPress={Session.checkIfActionIsAllowed(() => {
+                                                if (isCompleted) {
+                                                    Task.reopenTask(props.report, taskTitle);
+                                                } else {
+                                                    Task.completeTask(props.report, taskTitle);
+                                                }
+                                            })}
+                                            isChecked={isCompleted}
+                                            style={styles.taskMenuItemCheckbox}
+                                            containerSize={24}
+                                            containerBorderRadius={8}
+                                            caretSize={16}
+                                            accessibilityLabel={taskTitle || props.translate('task.task')}
+                                            disabled={isCanceled || !canModifyTask}
+                                        />
+                                        <View style={[styles.flexRow, styles.flex1]}>
+                                            <Text
+                                                numberOfLines={3}
+                                                style={styles.taskTitleMenuItem}
+                                            >
+                                                {taskTitle}
+                                            </Text>
                                         </View>
-                                    )}
-                                </View>
-                            </>
-                        )}
-                    </PressableWithSecondaryInteraction>
+                                        {isOpen && (
+                                            <View style={styles.taskRightIconContainer}>
+                                                <Icon
+                                                    additionalStyles={[styles.alignItemsCenter]}
+                                                    src={Expensicons.ArrowRight}
+                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
+                                                />
+                                            </View>
+                                        )}
+                                    </View>
+                                </OfflineWithFeedback>
+                            )}
+                        </PressableWithSecondaryInteraction>
+                    )}
+                </Hoverable>
+                <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.description')}>
+                    <MenuItemWithTopDescription
+                        shouldParseTitle
+                        description={props.translate('task.description')}
+                        title={props.report.description || ''}
+                        onPress={() => Navigation.navigate(ROUTES.TASK_DESCRIPTION.getRoute(props.report.reportID))}
+                        shouldShowRightIcon={isOpen}
+                        disabled={disableState}
+                        wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                        shouldGreyOutWhenDisabled={false}
+                        numberOfLinesTitle={0}
+                        interactive={!isDisableInteractive}
+                    />
+                </OfflineWithFeedback>
+                {props.report.managerID ? (
+                    <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.managerID')}>
+                        <MenuItem
+                            label={props.translate('task.assignee')}
+                            title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
+                            icon={OptionsListUtils.getAvatarsForAccountIDs([props.report.managerID], props.personalDetails)}
+                            iconType={CONST.ICON_TYPE_AVATAR}
+                            avatarSize={CONST.AVATAR_SIZE.SMALLER}
+                            titleStyle={styles.assigneeTextStyle}
+                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(props.report.reportID))}
+                            shouldShowRightIcon={isOpen}
+                            disabled={disableState}
+                            wrapperStyle={[styles.pv2]}
+                            isSmallAvatarSubscriptMenu
+                            shouldGreyOutWhenDisabled={false}
+                            interactive={!isDisableInteractive}
+                        />
+                    </OfflineWithFeedback>
+                ) : (
+                    <MenuItemWithTopDescription
+                        description={props.translate('task.assignee')}
+                        onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(props.report.reportID))}
+                        shouldShowRightIcon={isOpen}
+                        disabled={disableState}
+                        wrapperStyle={[styles.pv2]}
+                        shouldGreyOutWhenDisabled={false}
+                        interactive={!isDisableInteractive}
+                    />
                 )}
-            </Hoverable>
-            <MenuItemWithTopDescription
-                description={props.translate('task.description')}
-                title={props.report.description || ''}
-                onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
-                shouldShowRightIcon={isOpen}
-                disabled={disableState}
-                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                shouldGreyOutWhenDisabled={false}
-                numberOfLinesTitle={0}
+            </OfflineWithFeedback>
+            <SpacerView
+                shouldShow={props.shouldShowHorizontalRule}
+                style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
             />
-            {props.report.managerID ? (
-                <MenuItem
-                    label={props.translate('task.assignee')}
-                    title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
-                    icon={OptionsListUtils.getAvatarsForAccountIDs([props.report.managerID], props.personalDetails)}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    avatarSize={CONST.AVATAR_SIZE.SMALLER}
-                    titleStyle={styles.assigneeTextStyle}
-                    onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
-                    shouldShowRightIcon={isOpen}
-                    disabled={disableState}
-                    wrapperStyle={[styles.pv2]}
-                    isSmallAvatarSubscriptMenu
-                    shouldGreyOutWhenDisabled={false}
-                />
-            ) : (
-                <MenuItemWithTopDescription
-                    description={props.translate('task.assignee')}
-                    onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
-                    shouldShowRightIcon={isOpen}
-                    disabled={disableState}
-                    wrapperStyle={[styles.pv2]}
-                    shouldGreyOutWhenDisabled={false}
-                />
-            )}
-
-            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
 }

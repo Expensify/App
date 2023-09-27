@@ -29,6 +29,9 @@ const propTypes = {
     /* The workspace name */
     policyName: PropTypes.string,
 
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -38,11 +41,15 @@ function ContinueBankAccountSetup(props) {
     const errors = lodashGet(props.reimbursementAccount, 'errors', {});
     const pendingAction = lodashGet(props.reimbursementAccount, 'pendingAction', null);
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ContinueBankAccountSetup.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('workspace.common.connectBankAccount')}
                 subtitle={props.policyName}
                 shouldShowGetAssistanceButton
+                onBackButtonPress={props.onBackButtonPress}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
             />
             <ScrollView style={styles.flex1}>

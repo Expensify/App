@@ -22,10 +22,11 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** All personal details asssociated with user */
-    personalDetailsList: personalDetailsPropType,
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
@@ -71,11 +72,16 @@ function TaskPreview(props) {
     const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
     const taskAssignee = assigneeLogin || assigneeDisplayName;
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
+    const isDeletedParentAction = ReportUtils.isCanceledTaskReport(props.taskReport, props.action);
+
+    if (isDeletedParentAction) {
+        return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />;
+    }
 
     return (
         <View style={[styles.chatItemMessage]}>
             <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
+                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.taskReportID))}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={props.translate('task.task')}
@@ -86,13 +92,13 @@ function TaskPreview(props) {
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
                         disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
-                        onPress={() => {
+                        onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
-                                Task.reopenTask(props.taskReportID, taskTitle);
+                                Task.reopenTask(props.taskReport, taskTitle);
                             } else {
-                                Task.completeTask(props.taskReportID, taskTitle);
+                                Task.completeTask(props.taskReport, taskTitle);
                             }
-                        }}
+                        })}
                         accessibilityLabel={props.translate('task.task')}
                     />
                     <RenderHTML html={htmlForTaskPreview} />

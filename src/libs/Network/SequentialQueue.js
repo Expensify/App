@@ -19,6 +19,31 @@ resolveIsReadyPromise();
 
 let isSequentialQueueRunning = false;
 let currentRequest = null;
+let isQueuePaused = false;
+
+/**
+ * Puts the queue into a paused state so that no requests will be processed
+ */
+function pause() {
+    if (isQueuePaused) {
+        return;
+    }
+
+    console.debug('[SequentialQueue] Pausing the queue');
+    isQueuePaused = true;
+}
+
+/**
+ * Gets the current Onyx queued updates, apply them and clear the queue if the queue is not paused.
+ */
+function flushOnyxUpdatesQueue() {
+    // The only situation where the queue is paused is if we found a gap between the app current data state and our server's. If that happens,
+    // we'll trigger async calls to make the client updated again. While we do that, we don't want to insert anything in Onyx.
+    if (isQueuePaused) {
+        return;
+    }
+    QueuedOnyxUpdates.flushQueue();
+}
 
 /**
  * Process any persisted requests, when online, one at a time until the queue is empty.
@@ -30,6 +55,11 @@ let currentRequest = null;
  * @returns {Promise}
  */
 function process() {
+    // When the queue is paused, return early. This prevents any new requests from happening. The queue will be flushed again when the queue is unpaused.
+    if (isQueuePaused) {
+        return Promise.resolve();
+    }
+
     const persistedRequests = PersistedRequests.getAll();
     if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
         return Promise.resolve();
@@ -38,7 +68,12 @@ function process() {
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequest = Request.processWithMiddleware(requestToProcess, true)
-        .then(() => {
+        .then((response) => {
+            // A response might indicate that the queue should be paused. This happens when a gap in onyx updates is detected between the client and the server and
+            // that gap needs resolved before the queue can continue.
+            if (response.shouldPauseQueue) {
+                pause();
+            }
             PersistedRequests.remove(requestToProcess);
             RequestThrottle.clear();
             return process();
@@ -57,6 +92,11 @@ function process() {
 }
 
 function flush() {
+    // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
+    if (isQueuePaused) {
+        return;
+    }
+
     if (isSequentialQueueRunning || _.isEmpty(PersistedRequests.getAll())) {
         return;
     }
@@ -83,10 +123,25 @@ function flush() {
                 isSequentialQueueRunning = false;
                 resolveIsReadyPromise();
                 currentRequest = null;
-                Onyx.update(QueuedOnyxUpdates.getQueuedUpdates()).then(QueuedOnyxUpdates.clear);
+                flushOnyxUpdatesQueue();
             });
         },
     });
+}
+
+/**
+ * Unpauses the queue and flushes all the requests that were in it or were added to it while paused
+ */
+function unpause() {
+    if (!isQueuePaused) {
+        return;
+    }
+
+    const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
+    console.debug(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
+    isQueuePaused = false;
+    flushOnyxUpdatesQueue();
+    flush();
 }
 
 /**
@@ -138,4 +193,4 @@ function waitForIdle() {
     return isReadyPromise;
 }
 
-export {flush, getCurrentRequest, isRunning, push, waitForIdle};
+export {flush, getCurrentRequest, isRunning, push, waitForIdle, pause, unpause};
