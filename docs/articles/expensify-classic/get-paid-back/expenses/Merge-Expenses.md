@@ -1,5 +1,5 @@
 ---
-title: Merge-Expenses.md
+title: Merge-Expenses
 description: This article shows you all the ways that you can merge your expenses in Expensify!
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
@@ -41,7 +41,7 @@ If the expenses exist on two different reports, you will be asked which report y
 
 ## Can you merge expenses across different reports?
 
-You can not merge expenses across different reports. Expenses will only merge if they are on the same report. If you have expenses across different reports that you wish to merge, you’ll need to move both expenses onto the same report (and ensure they are in the Open status) in order to merge them.
+You cannot merge expenses across different reports. Expenses will only merge if they are on the same report. If you have expenses across different reports that you wish to merge, you’ll need to move both expenses onto the same report (and ensure they are in the Open status) in order to merge them.
 
 ## Can you merge expenses across different accounts?
 
