@@ -395,7 +395,7 @@ function MoneyRequestConfirmationList(props) {
                 onSendMoney(paymentMethod);
             } else {
                 // validate the amount
-                if (!MoneyRequestUtils.validateAmount(formattedAmount)) {
+                if (!isDistanceRequestWithoutRoute && !MoneyRequestUtils.validateAmount(formattedAmount)) {
                     setFormError('common.error.invalidAmount');
                     return;
                 }
@@ -404,7 +404,7 @@ function MoneyRequestConfirmationList(props) {
                 onConfirm(selectedParticipants);
             }
         },
-        [selectedParticipants, onSendMoney, onConfirm, props.iouType, formattedAmount],
+        [selectedParticipants, onSendMoney, onConfirm, props.iouType, isDistanceRequestWithoutRoute, formattedAmount],
     );
 
     const footerContent = useMemo(() => {
@@ -444,7 +444,7 @@ function MoneyRequestConfirmationList(props) {
             <>
                 {!_.isEmpty(formError) && (
                     <FormHelpMessage
-                        style={[styles.ph5, styles.mb2]}
+                        style={[styles.ph1, styles.mb2]}
                         isError
                         message={translate(formError)}
                     />
