@@ -52,7 +52,7 @@ Yes, you can merge expenses with different currencies. The conversion amount wil
 
 ## Can Expensify automatically merge a cash expense with a credit card expense?
 
-Yes, Expensify can merge a cash expense with a credit card expense. A receipt will need to be SmartScanned via the app or forwarded to receipts@expensify.com in order to merge with a card expense. Note that the SmartScan must be fully completed and not stopped or edited, otherwise the two won’t merge. 
+Yes, Expensify can merge a cash expense with a credit card expense. A receipt will need to be SmartScanned via the app or forwarded to [receipts@expensify.com](mailto:receipts@expensify.com) in order to merge with a card expense. Note that the SmartScan must be fully completed and not stopped or edited, otherwise the two won’t merge. 
 
 ## It doesn’t look like my cash and card expenses merged properly. What are some troubleshooting tips?
 First, check the expense types - you can only merge a SmartScanned receipt (which will initially show with a cash icon) with a card transaction imported from a bank or via CSV.  
