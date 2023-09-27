@@ -222,6 +222,11 @@ function BaseSelectionList({
         selectRow(focusedOption);
     };
 
+    // This debounce happens on the trailing edge because on repeated enter presses, rapid component state update cancels the existing debounce and the redundant
+    // enter presses runs the debounced function again. This is solved by running the debounce on trailing edge.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const debouncedSelectFocusedOption = useCallback(shouldDebounceRowSelect ? _.debounce(selectFocusedOption, 50) : selectFocusedOption, [selectFocusedOption]);
+
     /**
      * This function is used to compute the layout of any given item in our list.
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
@@ -303,6 +308,16 @@ function BaseSelectionList({
         };
     }, [debouncedOnSelectRow, shouldDebounceRowSelect]);
 
+    useEffect(() => {
+        if (!(shouldDebounceRowSelect && debouncedSelectFocusedOption.cancel)) {
+            return;
+        }
+
+        return () => {
+            debouncedSelectFocusedOption.cancel();
+        };
+    }, [debouncedSelectFocusedOption, shouldDebounceRowSelect]);
+
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
         useCallback(() => {
@@ -319,7 +334,7 @@ function BaseSelectionList({
     );
 
     /** Selects row when pressing Enter */
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, debouncedSelectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
         isActive: !shouldDisableHotkeys && isFocused,
@@ -359,7 +374,7 @@ function BaseSelectionList({
                                     keyboardType={keyboardType}
                                     selectTextOnFocus
                                     spellCheck={false}
-                                    onSubmitEditing={selectFocusedOption}
+                                    onSubmitEditing={debouncedSelectFocusedOption}
                                 />
                             </View>
                         )}
