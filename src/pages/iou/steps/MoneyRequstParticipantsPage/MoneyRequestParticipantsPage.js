@@ -158,6 +158,6 @@ export default withOnyx({
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
     },
     transaction: {
-        key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${iou?.transactionID}`,
+        key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${iou ? iou.transactionID : ''}`,
     },
 })(MoneyRequestParticipantsPage);
