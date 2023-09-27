@@ -107,7 +107,10 @@ function ProfilePage(props) {
     }, [props.currentUserPersonalDetails]);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ProfilePage.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
@@ -129,6 +132,7 @@ function ProfilePage(props) {
                     originalFileName={currentUserDetails.originalFileName}
                     headerTitle={props.translate('profilePage.profileAvatar')}
                     style={[styles.mh5]}
+                    fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
                 />
                 <View style={[styles.mt4]}>
                     {_.map(profileSettingsOptions, (detail, index) => (

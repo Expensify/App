@@ -1,6 +1,6 @@
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -25,6 +25,7 @@ import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import themeColors from '../../styles/themes/default';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** React Navigation route */
@@ -77,6 +78,17 @@ function MoneyRequestSelectorPage(props) {
     };
 
     const isAllowedToCreateRequest = _.isEmpty(props.report) || ReportUtils.canCreateRequest(props.report, props.betas, iouType);
+    const prevSelectedTab = usePrevious(props.selectedTab);
+
+    useEffect(() => {
+        if (prevSelectedTab === props.selectedTab) {
+            return;
+        }
+
+        resetMoneyRequestInfo();
+        // resetMoneyRequestInfo function is not added as dependencies since they don't change between renders
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.selectedTab, prevSelectedTab]);
 
     return (
         <ScreenWrapper
@@ -91,6 +103,7 @@ function MoneyRequestSelectorPage(props) {
                       ]
                     : []
             }
+            testID={MoneyRequestSelectorPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType) || !isAllowedToCreateRequest}>
@@ -111,7 +124,6 @@ function MoneyRequestSelectorPage(props) {
                                         <TabSelector
                                             state={state}
                                             navigation={navigation}
-                                            onTabPress={resetMoneyRequestInfo}
                                             position={position}
                                         />
                                     )}

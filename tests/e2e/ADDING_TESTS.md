@@ -37,7 +37,7 @@ that you might need to pass to the test running inside the app:
 
 ### Create the actual test
 
-We created a new test file in `src/libs/E2E/tests/`. Typically, the 
+We created a new test file in `src/libs/E2E/tests/`. Typically, the
 tests ends on `.e2e.js`, so we can distinguish it from the other tests.
 
 Inside this test, we write logic that gets executed in the app. You can basically do
@@ -61,9 +61,9 @@ import E2EClient from "./client.js";
 
 const test = () => {
   const firstReportIDInList = // ... some logic to get a report
-  
+
   performance.markStart("navigateToReport");
-  Navigation.navigate(ROUTES.getReportRoute(firstReportIDInList));
+  Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(firstReportIDInList));
 
   // markEnd will be called in the Screen's implementation
   performance.subscribeToMeasurements("navigateToReport", (measurement) => {
@@ -73,7 +73,7 @@ const test = () => {
           duration: measurement.duration,
       }).then(E2EClient.submitTestDone)
   });
-    
+
 };
 
 export default test;
