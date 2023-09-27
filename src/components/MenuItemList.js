@@ -4,18 +4,25 @@ import PropTypes from 'prop-types';
 import MenuItem from './MenuItem';
 import menuItemPropTypes from './menuItemPropTypes';
 import * as ReportActionContextMenu from '../pages/home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../pages/home/report/ContextMenu/ContextMenuActions';
+import { CONTEXT_MENU_TYPES } from '../pages/home/report/ContextMenu/ContextMenuActions';
+import useSingleExecution from '../hooks/useSingleExecution';
+import useWaitForNavigation from '../hooks/useWaitForNavigation';
 
 const propTypes = {
     /** An array of props that are pass to individual MenuItem components */
     menuItems: PropTypes.arrayOf(PropTypes.shape(menuItemPropTypes)),
+    /** Whether or not to use the single execution hook */
+    shouldUseSingleExecution: PropTypes.bool,
 };
 const defaultProps = {
     menuItems: [],
+    shouldUseSingleExecution: false,
 };
 
 function MenuItemList(props) {
     let popoverAnchor;
+    const { isExecuting, singleExecution } = useSingleExecution();
+    const waitForNavigate = useWaitForNavigation();
 
     /**
      * Handle the secondary interaction for a menu item.
@@ -35,12 +42,14 @@ function MenuItemList(props) {
         <>
             {_.map(props.menuItems, (menuItemProps) => (
                 <MenuItem
-                    key={menuItemProps.title}
+                    key={menuItemProps.key || menuItemProps.title}
                     onSecondaryInteraction={!_.isUndefined(menuItemProps.link) ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
                     ref={(el) => (popoverAnchor = el)}
                     shouldBlockSelection={Boolean(menuItemProps.link)}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...menuItemProps}
+                    disabled={menuItemProps.disabled || isExecuting}
+                    onPress={props.shouldUseSingleExecution ? singleExecution(waitForNavigate(menuItemProps.onPress)) : menuItemProps.onPress}
                 />
             ))}
         </>

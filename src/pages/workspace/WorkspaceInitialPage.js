@@ -1,8 +1,8 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useState} from 'react';
-import {View, ScrollView} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, ScrollView } from 'react-native';
+import { withOnyx } from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -13,12 +13,11 @@ import ConfirmModal from '../../components/ConfirmModal';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import MenuItem from '../../components/MenuItem';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import { policyPropTypes, policyDefaultProps } from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import reportPropTypes from '../reportPropTypes';
 import * as Policy from '../../libs/actions/Policy';
@@ -31,6 +30,7 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import * as ReportUtils from '../../libs/ReportUtils';
 import withWindowDimensions from '../../components/withWindowDimensions';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
+import MenuItemList from '../../components/MenuItemList';
 
 const propTypes = {
     ...policyPropTypes,
@@ -171,12 +171,12 @@ function WorkspaceInitialPage(props) {
         },
         {
             icon: Expensicons.Hashtag,
-            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
+            text: props.translate('workspace.common.goToRoom', { roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS }),
             onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
         },
         {
             icon: Expensicons.Hashtag,
-            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
+            text: props.translate('workspace.common.goToRoom', { roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE }),
             onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
         },
     ];
@@ -186,7 +186,7 @@ function WorkspaceInitialPage(props) {
             includeSafeAreaPaddingBottom={false}
             testID={WorkspaceInitialPage.displayName}
         >
-            {({safeAreaPaddingBottomStyle}) => (
+            {({ safeAreaPaddingBottomStyle }) => (
                 <FullPageNotFoundView
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
@@ -250,19 +250,22 @@ function WorkspaceInitialPage(props) {
                                         )}
                                     </View>
                                 </View>
-                                {_.map(menuItems, (item) => (
-                                    <MenuItem
-                                        key={item.translationKey}
-                                        disabled={hasPolicyCreationError}
-                                        interactive={!hasPolicyCreationError}
-                                        title={props.translate(item.translationKey)}
-                                        icon={item.icon}
-                                        iconRight={item.iconRight}
-                                        onPress={() => item.action()}
-                                        shouldShowRightIcon
-                                        brickRoadIndicator={item.brickRoadIndicator}
-                                    />
-                                ))}
+                               <MenuItemList
+                                    menuItems={
+                                        _.map(menuItems, (item) => ({
+                                            key: item.translationKey,
+                                            disabled: hasPolicyCreationError,
+                                            interactive: !hasPolicyCreationError,
+                                            title: props.translate(item.translationKey),
+                                            icon: item.icon,
+                                            iconRight: item.iconRight,
+                                            onPress: item.action,
+                                            shouldShowRightIcon: true,
+                                            brickRoadIndicator: item.brickRoadIndicator,
+                                        }))
+                                    }
+                                    shouldUseSingleExecution
+                                />
                             </View>
                         </OfflineWithFeedback>
                     </ScrollView>
