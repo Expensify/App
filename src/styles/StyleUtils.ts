@@ -155,6 +155,14 @@ function getAvatarSize(size: AvatarSizeName): number {
 }
 
 /**
+ * Return the height of RenderHtml text container with numberOfLines=1
+ */
+function getHeightOfRenderHtmlTextOneLine(): ViewStyle | CSSProperties {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {height: styles.webViewStyles.baseFontStyle.lineHeight};
+}
+
+/**
  * Return the height of magic code input container
  */
 function getHeightOfMagicCodeInput(): ViewStyle | CSSProperties {
@@ -1282,6 +1290,7 @@ export {
     getMentionStyle,
     getMentionTextColor,
     getComposeTextAreaPadding,
+    getHeightOfRenderHtmlTextOneLine,
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
     getWrappingStyle,

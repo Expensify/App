@@ -27,6 +27,7 @@ import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
+import * as StyleUtils from "../styles/StyleUtils";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -168,7 +169,7 @@ function ReportDetailsPage(props) {
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={isChatRoom && !isThread ? 0 : 1}
-                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isThread ? undefined : styles.pre]}
+                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isThread ? undefined : StyleUtils.combineStyles(styles.pre, StyleUtils.getHeightOfRenderHtmlTextOneLine())]}
                                     shouldUseFullTitle={shouldUseFullTitle}
                                 />
                             </View>

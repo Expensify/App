@@ -30,6 +30,7 @@ import PressableWithoutFeedback from '../../components/Pressable/PressableWithou
 import PinButton from '../../components/PinButton';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as StyleUtils from '../../styles/StyleUtils';
 import ParentNavigationSubtitle from '../../components/ParentNavigationSubtitle';
 
 const propTypes = {
@@ -137,7 +138,6 @@ function HeaderView(props) {
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldShowBorderBottom = !isTaskReport || !props.isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
-    const headerTextHeight = styles.webViewStyles.baseFontStyle.lineHeight;
 
     return (
         <View
@@ -190,7 +190,7 @@ function HeaderView(props) {
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
-                                    textStyles={[styles.headerText, styles.pre, {height: headerTextHeight}]}
+                                    textStyles={[styles.headerText, styles.pre, StyleUtils.getHeightOfRenderHtmlTextOneLine()]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
                                 />
                                 {!_.isEmpty(parentNavigationSubtitleData) && (
