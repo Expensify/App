@@ -1,6 +1,4 @@
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
@@ -215,10 +213,8 @@ function createTaskAndNavigate(
 
 /**
  * Complete a task
- * @param {Object} taskReport task report
- * @param {String} taskTitle Title of the task
  */
-function completeTask(taskReport, taskTitle) {
+function completeTask(taskReport: Report, taskTitle: string) {
     const taskReportID = taskReport.reportID;
     const message = `completed task: ${taskTitle}`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
@@ -251,6 +247,7 @@ function completeTask(taskReport, taskTitle) {
             },
         },
     ];
+
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -274,7 +271,7 @@ function completeTask(taskReport, taskTitle) {
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
     const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
-    if (!_.isEmpty(assigneeReportAction)) {
+    if (Object.keys(assigneeReportAction).length > 0) {
         const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
             taskReportID,
             completedTaskReportAction.created,
@@ -282,7 +279,7 @@ function completeTask(taskReport, taskTitle) {
             assigneeReportAction.reportID,
             assigneeReportAction.reportActionID,
         );
-        if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
+        if (Object.keys(optimisticDataForClonedParentReportAction).length > 0) {
             optimisticData.push(optimisticDataForClonedParentReportAction);
         }
     }
@@ -299,8 +296,6 @@ function completeTask(taskReport, taskTitle) {
 
 /**
  * Reopen a closed task
- * @param {Object} taskReport task report
- * @param {String} taskTitle Title of the task
  */
 function reopenTask(taskReport: Report, taskTitle: string) {
     const taskReportID = taskReport.reportID;
@@ -361,7 +356,7 @@ function reopenTask(taskReport: Report, taskTitle: string) {
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
     const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
-    if (!_.isEmpty(assigneeReportAction)) {
+    if (Object.keys(assigneeReportAction).length > 0 && taskReportID) {
         const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
             taskReportID,
             reopenedTaskReportAction.created,
@@ -369,7 +364,7 @@ function reopenTask(taskReport: Report, taskTitle: string) {
             assigneeReportAction.reportID,
             assigneeReportAction.reportActionID,
         );
-        if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
+        if (Object.keys(optimisticDataForClonedParentReportAction).length > 0) {
             optimisticData.push(optimisticDataForClonedParentReportAction);
         }
     }
@@ -384,12 +379,6 @@ function reopenTask(taskReport: Report, taskTitle: string) {
     );
 }
 
-/**
- * @param {object} report
- * @param {Number} ownerAccountID
- * @param {Object} editedTask
- * @param {Object} assigneeChatReport - The chat report between you and the assignee
- */
 function editTaskAndNavigate(report: Report, ownerAccountID: number, {title, description, assignee = '', assigneeAccountID = 0}: Task, assigneeChatReport: Report | null = null) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
@@ -458,7 +447,7 @@ function editTaskAndNavigate(report: Report, ownerAccountID: number, {title, des
 
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     // Check if the assignee actually changed
-    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
+    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport && report.reportID) {
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,
             assignee,
@@ -480,12 +469,12 @@ function editTaskAndNavigate(report: Report, ownerAccountID: number, {title, des
             taskReportID: report.reportID,
             title: reportName,
             description: reportDescription,
-            assignee: assignee || report.managerEmail,
-            assigneeAccountID: assigneeAccountID || report.managerID,
+            assignee: assignee ?? report.managerEmail,
+            assigneeAccountID: assigneeAccountID ?? report.managerID,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportID,
-            assigneeChatReportActionID: assigneeChatReportOnyxData.optimisticAssigneeAddComment.reportAction.reportActionID ?? 0,
-            assigneeChatCreatedReportActionID: assigneeChatReportOnyxData.optimisticChatCreatedReportAction.reportActionID ?? 0,
+            assigneeChatReportActionID: assigneeChatReportOnyxData?.optimisticAssigneeAddComment.reportAction.reportActionID ?? 0,
+            assigneeChatCreatedReportActionID: assigneeChatReportOnyxData?.optimisticChatCreatedReportAction.reportActionID ?? 0,
         },
         {optimisticData, successData, failureData},
     );
@@ -512,8 +501,8 @@ function editTaskAssigneeAndNavigate(report: Report, ownerAccountID: number, ass
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 reportName,
-                managerID: assigneeAccountID || report.managerID,
-                managerEmail: assigneeEmail || report.managerEmail,
+                managerID: assigneeAccountID ?? report.managerID,
+                managerEmail: assigneeEmail ?? report.managerEmail,
             },
         },
     ];
@@ -533,7 +522,7 @@ function editTaskAssigneeAndNavigate(report: Report, ownerAccountID: number, ass
 
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     // Check if the assignee actually changed
-    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
+    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport && report.reportID) {
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,
             assigneeEmail,
@@ -553,16 +542,12 @@ function editTaskAssigneeAndNavigate(report: Report, ownerAccountID: number, ass
         'EditTaskAssignee',
         {
             taskReportID: report.reportID,
-            assignee: assigneeEmail || report.managerEmail,
-            assigneeAccountID: assigneeAccountID || report.managerID,
+            assignee: assigneeEmail ?? report.managerEmail,
+            assigneeAccountID: assigneeAccountID ?? report.managerID,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportID,
-            assigneeChatReportActionID:
-                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticAssigneeAddComment
-                    ? assigneeChatReportOnyxData.optimisticAssigneeAddComment.reportAction.reportActionID
-                    : 0,
-            assigneeChatCreatedReportActionID:
-                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticChatCreatedReportAction ? assigneeChatReportOnyxData.optimisticChatCreatedReportAction.reportActionID : 0,
+            assigneeChatReportActionID: assigneeChatReportOnyxData?.optimisticAssigneeAddComment.reportAction.reportActionID ?? 0,
+            assigneeChatCreatedReportActionID: assigneeChatReportOnyxData?.optimisticChatCreatedReportAction.reportActionID ?? 0,
         },
         {optimisticData, successData, failureData},
     );
@@ -575,49 +560,43 @@ function editTaskAssigneeAndNavigate(report: Report, ownerAccountID: number, ass
  *
  * @param {Object} report
  */
-function setTaskReport(report) {
+function setTaskReport(report: Report) {
     Onyx.merge(ONYXKEYS.TASK, {report});
 }
 
 /**
  * Sets the title and description values for the task
- * @param {string} title
- * @param {string} description
  */
-function setDetailsValue(title, description) {
+function setDetailsValue(title: string, description: string) {
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {title: title.trim(), description: description.trim()});
 }
 
 /**
  * Sets the title value for the task
- * @param {string} title
  */
-function setTitleValue(title) {
+function setTitleValue(title: string) {
     Onyx.merge(ONYXKEYS.TASK, {title: title.trim()});
 }
 
 /**
  * Sets the description value for the task
- * @param {string} description
  */
-function setDescriptionValue(description) {
+function setDescriptionValue(description: string) {
     Onyx.merge(ONYXKEYS.TASK, {description: description.trim()});
 }
 
 /**
  * Sets the shareDestination value for the task
- * @param {string} shareDestination
  */
-function setShareDestinationValue(shareDestination) {
+function setShareDestinationValue(shareDestination: string) {
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {shareDestination});
 }
 
 /* Sets the assigneeChatReport details for the task
- * @param {Object} chatReport
  */
-function setAssigneeChatReport(chatReport) {
+function setAssigneeChatReport(chatReport: Report) {
     Onyx.merge(ONYXKEYS.TASK, {assigneeChatReport: chatReport});
 }
 
@@ -625,14 +604,9 @@ function setAssigneeChatReport(chatReport) {
  * Sets the assignee value for the task and checks for an existing chat with the assignee
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
- * @param {string} assigneeEmail
- * @param {Number} assigneeAccountID
- * @param {string} shareDestination
- * @param {boolean} isCurrentUser
  */
-
-function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, isCurrentUser = false) {
-    let chatReport;
+function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shareDestination: string, isCurrentUser = false) {
+    let chatReport: Report | undefined;
 
     if (!isCurrentUser) {
         chatReport = ReportUtils.getChatByParticipants([assigneeAccountID]);
@@ -644,14 +618,16 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
             // However, the DM doesn't exist yet - and will be created optimistically once the task is created
             // We don't want to show the new DM yet, because if you select an assignee and then change the assignee, the previous DM will still be shown
             // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
-            chatReport.isHidden = true;
+            if (chatReport) {
+                chatReport.isHidden = true;
+            }
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
 
             // If this is an optimistic report, we likely don't have their personal details yet so we set it here optimistically as well
             const optimisticPersonalDetailsListAction = {
                 accountID: assigneeAccountID,
-                avatar: lodashGet(allPersonalDetails, [assigneeAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(assigneeAccountID)),
-                displayName: lodashGet(allPersonalDetails, [assigneeAccountID, 'displayName'], assigneeEmail),
+                avatar: allPersonalDetails?.[assigneeAccountID]?.avatar ?? UserUtils.getDefaultAvatarURL(assigneeAccountID),
+                displayName: allPersonalDetails?.[assigneeAccountID]?.displayName ?? assigneeEmail,
                 login: assigneeEmail,
             };
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneeAccountID]: optimisticPersonalDetailsListAction});
@@ -662,7 +638,7 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
         if (!shareDestination) {
-            setShareDestinationValue(chatReport.reportID);
+            setShareDestinationValue(chatReport?.reportID ?? '');
         }
     }
 
@@ -677,31 +653,25 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
 
 /**
  * Sets the parentReportID value for the task
- * @param {string} parentReportID
  */
-function setParentReportID(parentReportID) {
+function setParentReportID(parentReportID: string) {
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {parentReportID});
 }
 
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
- * @param {string} reportID
  */
-function clearOutTaskInfoAndNavigate(reportID) {
+function clearOutTaskInfoAndNavigate(reportID: string) {
     clearOutTaskInfo();
     setParentReportID(reportID);
-    Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
+    Navigation.navigate(ROUTES.NEW_TASK_DETAILS, '');
 }
 
 /**
  * Get the assignee data
- *
- * @param {Number} assigneeAccountID
- * @param {Object} personalDetails
- * @returns {Object}
  */
-function getAssignee(assigneeAccountID, personalDetails) {
+function getAssignee(assigneeAccountID: number, personalDetails: Record<string, PersonalDetails>) {
     const details = personalDetails[assigneeAccountID];
     if (!details) {
         return {
@@ -719,18 +689,15 @@ function getAssignee(assigneeAccountID, personalDetails) {
 
 /**
  * Get the share destination data
- * @param {Object} reportID
- * @param {Object} reports
- * @param {Object} personalDetails
- * @returns {Object}
  * */
-function getShareDestination(reportID, reports, personalDetails) {
-    const report = lodashGet(reports, `report_${reportID}`, {});
+function getShareDestination(reportID: string, reports: Record<string, Report>, personalDetails: Record<string, PersonalDetails>) {
+    const report = reports[`report_${reportID}`] ?? {};
     let subtitle = '';
     if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
-        const participantAccountID = lodashGet(report, 'participantAccountIDs[0]');
-        const displayName = lodashGet(personalDetails, [participantAccountID, 'displayName']);
-        const login = lodashGet(personalDetails, [participantAccountID, 'login']);
+        const participantAccountID = report.participantAccountIDs?.[0];
+
+        const displayName = personalDetails[participantAccountID ?? 0]?.displayName ?? '';
+        const login = personalDetails[participantAccountID ?? 0]?.login ?? '';
         subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
     } else {
         subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -744,12 +711,8 @@ function getShareDestination(reportID, reports, personalDetails) {
 
 /**
  * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
- * @param {string} taskReportID
- * @param {string} taskTitle
- * @param {number} originalStateNum
- * @param {number} originalStatusNum
  */
-function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
+function cancelTask(taskReportID: string, taskTitle: string, originalStateNum: number, originalStatusNum: number) {
     const message = `deleted task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
@@ -853,11 +816,8 @@ function dismissModalAndClearOutTaskInfo() {
 
 /**
  * Returns Task assignee accountID
- *
- * @param {Object} taskReport
- * @returns {Number|null}
  */
-function getTaskAssigneeAccountID(taskReport) {
+function getTaskAssigneeAccountID(taskReport: Report): number | null {
     if (!taskReport) {
         return null;
     }
@@ -867,26 +827,20 @@ function getTaskAssigneeAccountID(taskReport) {
     }
 
     const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
-    return lodashGet(reportAction, 'childManagerAccountID');
+    return reportAction.childManagerAccountID;
 }
 
 /**
  * Returns Task owner accountID
- *
- * @param {Object} taskReport
- * @returns {Number|null}
  */
-function getTaskOwnerAccountID(taskReport) {
-    return lodashGet(taskReport, 'ownerAccountID', null);
+function getTaskOwnerAccountID(taskReport: Report): number | null {
+    return taskReport.ownerAccountID ?? null;
 }
 
 /**
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
- * @param {Object} taskReport
- * @param {Number} sessionAccountID
- * @returns {Boolean}
  */
-function canModifyTask(taskReport, sessionAccountID) {
+function canModifyTask(taskReport: Report, sessionAccountID: number): boolean {
     if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
         return true;
     }
@@ -898,23 +852,14 @@ function canModifyTask(taskReport, sessionAccountID) {
     return ReportUtils.isAllowedToComment(parentReport);
 }
 
-/**
- * @param {String} reportID
- */
-function clearEditTaskErrors(reportID) {
+function clearEditTaskErrors(reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         pendingFields: null,
         errorFields: null,
     });
 }
 
-/**
- * @param {string} actionName
- * @param {string} reportID
- * @param {boolean} isCreateTaskAction
- * @returns {string}
- */
-function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
+function getTaskReportActionMessage(actionName: string, reportID: string, isCreateTaskAction: boolean): string {
     const report = ReportUtils.getReport(reportID);
     if (isCreateTaskAction) {
         return `Created a task: ${report.reportName}`;

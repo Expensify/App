@@ -85,6 +85,7 @@ type Report = {
     currency?: string;
     description?: string;
     managerEmail?: string;
+    isHidden?: boolean;
 };
 
 export default Report;
