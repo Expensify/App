@@ -1846,15 +1846,11 @@ function getParentNavigationSubtitle(report) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
-        return;
-    }
-    if (participantAccountIDs.length === 1) {
+    if (isDM(report) && participantAccountIDs.length === 1) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
         return;
     }
-    Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID));
+    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
 }
 
 /**
@@ -3458,14 +3454,6 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
     return expenseChat.reportID;
 }
 
-/*
- * @param {Object|null} report
- * @returns {Boolean}
- */
-function shouldDisableSettings(report) {
-    return !isPolicyExpenseChat(report) && !isChatRoom(report) && !isChatThread(report);
-}
-
 /**
  * @param {Object|null} report
  * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
@@ -3791,7 +3779,6 @@ export {
     isDM,
     getPolicy,
     getPolicyExpenseChatReportIDByOwner,
-    shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
     getReportRecipientAccountIDs,

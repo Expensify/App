@@ -60,8 +60,7 @@ const defaultProps = {
 function ReportDetailsPage(props) {
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
-    const shouldDisableSettings = useMemo(() => ReportUtils.shouldDisableSettings(props.report), [props.report]);
-    const shouldUseFullTitle = !shouldDisableSettings || ReportUtils.isTaskReport(props.report);
+    const shouldUseFullTitle = ReportUtils.isTaskReport(props.report);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
     const isThread = useMemo(() => ReportUtils.isChatThread(props.report), [props.report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(props.report), [props.report]);
@@ -72,16 +71,20 @@ function ReportDetailsPage(props) {
     const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
     const participants = useMemo(() => lodashGet(props.report, 'participantAccountIDs', []), [props.report]);
 
+    const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
+
     const menuItems = useMemo(() => {
-        const items = [
-            {
+        const items = [];
+
+        if (!isGroupDMChat) {
+            items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
                 isAnonymousAction: true,
                 action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(props.report.reportID)),
-            },
-        ];
+            });
+        }
 
         if (isArchivedRoom) {
             return items;
@@ -100,7 +103,6 @@ function ReportDetailsPage(props) {
             });
         }
 
-        if (!shouldDisableSettings) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
@@ -110,7 +112,6 @@ function ReportDetailsPage(props) {
                     Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID));
                 },
             });
-        }
 
         // Prevent displaying private notes option for threads and task reports
         if (!isThread && !ReportUtils.isTaskReport(props.report)) {
@@ -135,7 +136,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [props.report, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
+    }, [props.report, participants, isArchivedRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom, isGroupDMChat]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
