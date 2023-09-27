@@ -100,7 +100,7 @@ function getNotesCount(transaction) {
     return _.intersection(transaction.violations, notes).length;
 }
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction, policy}) {
+function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
