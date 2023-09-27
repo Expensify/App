@@ -45,7 +45,7 @@ const defaultProps = {
     cardList: {},
 };
 
-const ACTIVATE_CARD_CODE_DESIRED_LENGTH = 4;
+const LAST_FOUR_DIGITS_LENGTH = 4;
 
 function ActivateCardPage({
     cardList,
@@ -140,7 +140,7 @@ function ActivateCardPage({
                 <MagicCodeInput
                     isDisableKeyboard
                     autoComplete="off"
-                    maxLength={ACTIVATE_CARD_CODE_DESIRED_LENGTH}
+                    maxLength={LAST_FOUR_DIGITS_LENGTH}
                     name="activateCardCode"
                     value={lastFourDigits}
                     lastPressedDigit={lastPressedDigit}
