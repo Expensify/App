@@ -246,18 +246,14 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     />
                     <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
                     <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
-                    <PressableWithFeedback
+                    <Button
+                        medium
+                        success
+                        text={translate('receipt.givePermission')}
                         accessibilityLabel={translate('receipt.givePermission')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    >
-                        <Button
-                            medium
-                            success
-                            text={translate('receipt.givePermission')}
-                            style={[styles.p9, styles.pt5]}
-                            onPress={askForPermissions}
-                        />
-                    </PressableWithFeedback>
+                        style={[styles.p9, styles.pt5]}
+                        onPress={askForPermissions}
+                    />
                 </View>
             )}
             {permissions === RESULTS.GRANTED && device == null && (

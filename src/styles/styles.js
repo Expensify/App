@@ -767,10 +767,15 @@ const styles = (theme) => ({
         marginRight: 20,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 40,
+        paddingVertical: 40,
         gap: 4,
         flex: 1,
     }),
+
+    receiptViewTextContainer: {
+        paddingHorizontal: 40,
+        ...sizing.w100,
+    },
 
     cameraView: {
         flex: 1,
@@ -3390,7 +3395,7 @@ const styles = (theme) => ({
     },
 
     signInIconButton: {
-        padding: 2,
+        paddingVertical: 2,
     },
 
     googleButtonContainer: {
