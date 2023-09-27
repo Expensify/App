@@ -11,6 +11,7 @@ import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
+import CONST from '../../../CONST';
 import * as Report from '../../../libs/actions/Report';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -26,24 +27,30 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 function NotificationPreferencePage(props) {
     const shouldDisableNotificationPreferences = ReportUtils.shouldDisableSettings(props.report) || ReportUtils.isArchivedRoom(props.report);
-    const notificationPreferenceOptions = _.map(props.translate('notificationPreferencesPage.notificationPreferences'), (preference, key) => ({
-        value: key,
-        text: preference,
-        keyForList: key,
+    const notificationPreferenceOptions = _.map(
+        _.filter(_.values(CONST.REPORT.NOTIFICATION_PREFERENCE), (pref) => pref !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN),
+        (preference) => ({
+            value: preference,
+            text: props.translate(`notificationPreferencesPage.notificationPreferences.${preference}`),
+            keyForList: preference,
 
-        // Include the green checkmark icon to indicate the currently selected value
-        customIcon: key === props.report.notificationPreference ? greenCheckmark : null,
+            // Include the green checkmark icon to indicate the currently selected value
+            customIcon: preference === props.report.notificationPreference ? greenCheckmark : null,
 
-        // This property will make the currently selected value have bold text
-        boldStyle: key === props.report.notificationPreference,
-    }));
+            // This property will make the currently selected value have bold text
+            boldStyle: preference === props.report.notificationPreference,
+        }),
+    );
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={NotificationPreferencePage.displayName}
+        >
             <FullPageNotFoundView shouldShow={shouldDisableNotificationPreferences}>
                 <HeaderWithBackButton
                     title={props.translate('notificationPreferencesPage.header')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
                 />
                 <OptionsList
                     sections={[{data: notificationPreferenceOptions}]}

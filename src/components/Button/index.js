@@ -145,7 +145,7 @@ const defaultProps = {
     style: [],
     innerStyles: [],
     textStyles: [],
-    shouldUseDefaultHover: false,
+    shouldUseDefaultHover: true,
     success: false,
     danger: false,
     children: null,
@@ -218,6 +218,7 @@ class Button extends Component {
                     this.props.icon && styles.textAlignLeft,
                     ...this.props.textStyles,
                 ]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {this.props.text}
             </Text>
@@ -305,6 +306,7 @@ class Button extends Component {
                 ]}
                 nativeID={this.props.nativeID}
                 accessibilityLabel={this.props.accessibilityLabel}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 hoverDimmingValue={1}
             >
                 {this.renderContent()}

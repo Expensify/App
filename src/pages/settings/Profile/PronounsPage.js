@@ -31,7 +31,7 @@ function PronounsPage({currentUserPersonalDetails}) {
             .find((_value) => _value === currentPronounsKey)
             .value();
 
-        return currentPronounsText || '';
+        return currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '';
     });
 
     const filteredPronounsList = useMemo(() => {
@@ -65,7 +65,10 @@ function PronounsPage({currentUserPersonalDetails}) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={PronounsPage.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('pronounsPage.pronouns')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
