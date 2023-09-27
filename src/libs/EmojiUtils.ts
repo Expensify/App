@@ -1,81 +1,75 @@
-import _ from 'underscore';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
 import * as Emojis from '../../assets/emojis';
+import * as OnyxTypes from '../types/onyx';
+import {Emoji, HeaderEmoji} from '../../assets/emojis/types';
+import {SvgProps} from 'react-native-svg';
 
-let frequentlyUsedEmojis = [];
+type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
+type EmojiSpacer = {code: string; spacer: boolean};
+
+let frequentlyUsedEmojis: Array<OnyxTypes.FrequentlyUsedEmoji> = [];
 Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
     callback: (val) => {
-        frequentlyUsedEmojis = _.map(val, (item) => {
-            const emoji = Emojis.emojiCodeTableWithSkinTones[item.code];
-            if (emoji) {
-                return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
-            }
-        });
+        if (!val) {
+            return;
+        }
+        frequentlyUsedEmojis =
+            val
+                ?.map((item) => {
+                    const emoji = Emojis.emojiCodeTableWithSkinTones?.[item.code];
+                    if (emoji) {
+                        return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
+                    }
+                })
+                .filter((emoji): emoji is OnyxTypes.FrequentlyUsedEmoji => !!emoji) ?? [];
     },
 });
 
-/**
- *
- * @param {String} name
- * @returns {Object}
- */
-const findEmojiByName = (name) => Emojis.emojiNameTable[name];
+const findEmojiByName = (name: string) => Emojis.emojiNameTable[name];
 
-/**
- *
- * @param {String} code
- * @returns {Object}
- */
-const findEmojiByCode = (code) => Emojis.emojiCodeTableWithSkinTones[code];
+const findEmojiByCode = (code: string) => Emojis.emojiCodeTableWithSkinTones[code];
 
-/**
- *
- * @param {Object} emoji
- * @param {String} lang
- * @returns {String}
- */
-const getEmojiName = (emoji, lang = CONST.LOCALES.DEFAULT) => {
+const getEmojiName = (emoji: Emoji, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT) => {
     if (lang === CONST.LOCALES.DEFAULT) {
         return emoji.name;
     }
 
-    return _.get(Emojis.localeEmojis, [lang, emoji.code, 'name'], '');
+    return Emojis.localeEmojis?.[lang]?.[emoji.code]?.name ?? '';
 };
 
 /**
  * Given an English emoji name, get its localized version
- *
- * @param {String} name
- * @param {String} lang
- * @returns {String}
  */
-const getLocalizedEmojiName = (name, lang) => {
+const getLocalizedEmojiName = (name: string, lang: 'en' | 'es') => {
     if (lang === CONST.LOCALES.DEFAULT) {
         return name;
     }
 
-    return _.get(Emojis.localeEmojis, [lang, _.get(Emojis.emojiNameTable, [name, 'code'], ''), 'name'], '');
+    const emojiCode = Emojis.emojiNameTable[name]?.code ?? '';
+    return Emojis.localeEmojis[lang]?.[emojiCode]?.name ?? '';
 };
 
 /**
  * Get the unicode code of an emoji in base 16.
- * @param {String} input
- * @returns {String}
  */
-const getEmojiUnicode = _.memoize((input) => {
+const getEmojiUnicode = _.memoize((input: string) => {
     if (input.length === 0) {
         return '';
     }
 
     if (input.length === 1) {
-        return _.map(input.charCodeAt(0).toString().split(' '), (val) => parseInt(val, 10).toString(16)).join(' ');
+        return input
+            .charCodeAt(0)
+            .toString()
+            .split(' ')
+            .map((val) => parseInt(val, 10).toString(16))
+            .join(' ');
     }
 
     const pairs = [];
@@ -98,25 +92,20 @@ const getEmojiUnicode = _.memoize((input) => {
             pairs.push(input.charCodeAt(i));
         }
     }
-    return _.map(pairs, (val) => parseInt(val, 10).toString(16)).join(' ');
+    return pairs.map((val) => parseInt(String(val), 10).toString(16)).join(' ');
 });
 
 /**
  * Function to remove Skin Tone and utf16 surrogates from Emoji
- * @param {String} emojiCode
- * @returns {String}
  */
-function trimEmojiUnicode(emojiCode) {
+function trimEmojiUnicode(emojiCode: string) {
     return emojiCode.replace(/(fe0f|1f3fb|1f3fc|1f3fd|1f3fe|1f3ff)$/, '').trim();
 }
 
 /**
  * Validates that this message contains only emojis
- *
- * @param {String} message
- * @returns {Boolean}
  */
-function containsOnlyEmojis(message) {
+function containsOnlyEmojis(message: string): boolean {
     const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
     const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
 
@@ -125,33 +114,35 @@ function containsOnlyEmojis(message) {
     }
 
     const codes = [];
-    _.map(match, (emoji) =>
-        _.map(getEmojiUnicode(emoji).split(' '), (code) => {
-            if (!CONST.INVISIBLE_CODEPOINTS.includes(code)) {
-                codes.push(code);
-            }
-            return code;
-        }),
+    match.map((emoji) =>
+        getEmojiUnicode(emoji)
+            .split(' ')
+            .map((code) => {
+                if (!(CONST.INVISIBLE_CODEPOINTS as readonly string[]).includes(code)) {
+                    //TODO - ask BK
+                    codes.push(code);
+                }
+                return code;
+            }),
     );
 
     // Emojis are stored as multiple characters, so we're using spread operator
     // to iterate over the actual emojis, not just characters that compose them
-    const messageCodes = _.filter(
-        _.map([...trimmedMessage], (char) => getEmojiUnicode(char)),
-        (string) => string.length > 0 && !CONST.INVISIBLE_CODEPOINTS.includes(string),
-    );
+    const messageCodes = [...trimmedMessage]
+        .map((char) => getEmojiUnicode(char))
+        .filter((string) => string.length > 0 && !(CONST.INVISIBLE_CODEPOINTS as readonly string[]).includes(string));
     return codes.length === messageCodes.length;
 }
 
 /**
  * Get the header emojis with their code, icon and index
- * @param {Object[]} emojis
- * @returns {Object[]}
  */
-function getHeaderEmojis(emojis) {
-    const headerIndices = [];
-    _.each(emojis, (emoji, index) => {
-        if (!emoji.header) {
+function getHeaderEmojis(emojis: Array<Emoji | HeaderEmoji>): HeaderIndice[] {
+    // TODO - move into separate type
+    const headerIndices: HeaderIndice[] = [];
+    emojis.forEach((emoji, index) => {
+        if (!('header' in emoji)) {
+            // TODO - ask BK why it doesn't work the other way
             return;
         }
         headerIndices.push({code: emoji.code, index, icon: emoji.icon});
@@ -161,11 +152,8 @@ function getHeaderEmojis(emojis) {
 
 /**
  * Get number of empty spaces to be filled to get equal emojis for every row
- * @param {Number} emojiCount
- * @param {Number} suffix
- * @returns {Object[]}
  */
-function getDynamicSpacing(emojiCount, suffix) {
+function getDynamicSpacing(emojiCount: number, suffix: number): EmojiSpacer[] {
     const spacerEmojis = [];
     let modLength = CONST.EMOJI_NUM_PER_ROW - (emojiCount % CONST.EMOJI_NUM_PER_ROW);
 
@@ -182,13 +170,11 @@ function getDynamicSpacing(emojiCount, suffix) {
 
 /**
  * Add dynamic spaces to emoji categories
- * @param {Object[]} emojis
- * @returns {Object[]}
  */
-function addSpacesToEmojiCategories(emojis) {
-    let updatedEmojis = [];
-    _.each(emojis, (emoji, index) => {
-        if (emoji.header) {
+function addSpacesToEmojiCategories(emojis: Array<Emoji | HeaderEmoji>) {
+    let updatedEmojis: Array<EmojiSpacer | Emoji | HeaderEmoji> = [];
+    emojis.forEach((emoji, index) => {
+        if ('header' in emoji) {
             updatedEmojis = updatedEmojis.concat(getDynamicSpacing(updatedEmojis.length, index), [emoji], getDynamicSpacing(1, index));
             return;
         }
@@ -202,12 +188,12 @@ function addSpacesToEmojiCategories(emojis) {
  * @param {Object[]} emojis
  * @returns {Object[]}
  */
-function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
+function mergeEmojisWithFrequentlyUsedEmojis(emojis: Array<Emoji | HeaderEmoji>) {
     if (frequentlyUsedEmojis.length === 0) {
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const mergedEmojis = [Emojis.categoryFrequentlyUsed].concat(frequentlyUsedEmojis, emojis);
+    const mergedEmojis = ([Emojis.categoryFrequentlyUsed] as Array<Emoji | HeaderEmoji>).concat(frequentlyUsedEmojis, emojis);
     return addSpacesToEmojiCategories(mergedEmojis);
 }
 
@@ -216,14 +202,14 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
  * @param {Object|Object[]} newEmoji
  * @return {Object[]}
  */
-function getFrequentlyUsedEmojis(newEmoji) {
+function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]) {
     let frequentEmojiList = [...frequentlyUsedEmojis];
 
     const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
     const currentTimestamp = moment().unix();
-    _.each([].concat(newEmoji), (emoji) => {
+    ([] as Emoji[]).concat(newEmoji).forEach((emoji) => {
         let currentEmojiCount = 1;
-        const emojiIndex = _.findIndex(frequentEmojiList, (e) => e.code === emoji.code);
+        const emojiIndex = frequentEmojiList.findIndex((e) => e.code === emoji.code);
         if (emojiIndex >= 0) {
             currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
             frequentEmojiList.splice(emojiIndex, 1);
@@ -245,12 +231,8 @@ function getFrequentlyUsedEmojis(newEmoji) {
 
 /**
  * Given an emoji item object, return an emoji code based on its type.
- *
- * @param {Object} item
- * @param {Number} preferredSkinToneIndex
- * @returns {String}
  */
-const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
+const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: number): string => {
     const {code, types} = item;
     if (types && types[preferredSkinToneIndex]) {
         return types[preferredSkinToneIndex];
@@ -262,10 +244,10 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
 /**
  * Extracts emojis from a given text.
  *
- * @param {String} text - The text to extract emojis from.
- * @returns {Object[]} An array of emoji codes.
+ * @param text - The text to extract emojis from.
+ * @returns An array of emoji codes.
  */
-function extractEmojis(text) {
+function extractEmojis(text: string) {
     if (!text) {
         return [];
     }
@@ -299,20 +281,15 @@ function extractEmojis(text) {
 /**
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
- *
- * @param {String} text
- * @param {Number} preferredSkinTone
- * @param {String} lang
- * @returns {Object}
  */
-function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
+function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT) {
     const trie = emojisTrie[lang];
     if (!trie) {
         return {text, emojis: []};
     }
 
     let newText = text;
-    const emojis = [];
+    const emojis: Emoji[] = [];
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
     if (!emojiData || emojiData.length === 0) {
         return {text: newText, emojis};
@@ -322,18 +299,18 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
         let checkEmoji = trie.search(name);
         // If the user has selected a language other than English, and the emoji doesn't exist in that language,
         // we will check if the emoji exists in English.
-        if (lang !== CONST.LOCALES.DEFAULT && (!checkEmoji || !checkEmoji.metaData.code)) {
+        if (lang !== CONST.LOCALES.DEFAULT && (!checkEmoji || !checkEmoji.metaData?.code)) {
             const englishTrie = emojisTrie[CONST.LOCALES.DEFAULT];
             if (englishTrie) {
                 const englishEmoji = englishTrie.search(name);
                 checkEmoji = englishEmoji;
             }
         }
-        if (checkEmoji && checkEmoji.metaData.code) {
+        if (checkEmoji && checkEmoji.metaData?.code) {
             let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
             emojis.push({
                 name,
-                code: checkEmoji.metaData.code,
+                code: checkEmoji.metaData?.code,
                 types: checkEmoji.metaData.types,
             });
 
@@ -352,12 +329,8 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
 
 /**
  * Find all emojis in a text and replace them with their code.
- * @param {String} text
- * @param {Number} preferredSkinTone
- * @param {String} lang
- * @returns {Object}
  */
-function replaceAndExtractEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
+function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
     const {text: convertedText = '', emojis = []} = replaceEmojis(text, preferredSkinTone, lang);
 
     return {
@@ -368,12 +341,9 @@ function replaceAndExtractEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_S
 
 /**
  * Suggest emojis when typing emojis prefix after colon
- * @param {String} text
- * @param {String} lang
- * @param {Number} [limit] - matching emojis limit
- * @returns {Array}
+ * @param [limit] - matching emojis limit
  */
-function suggestEmojis(text, lang, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS) {
+function suggestEmojis(text: string, lang: keyof typeof emojisTrie, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS) {
     const trie = emojisTrie[lang];
     if (!trie) {
         return [];
@@ -384,23 +354,26 @@ function suggestEmojis(text, lang, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMO
         return [];
     }
 
-    const matching = [];
+    const matching: Emoji[] = [];
     const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
     for (let j = 0; j < nodes.length; j++) {
-        if (nodes[j].metaData.code && !_.find(matching, (obj) => obj.name === nodes[j].name)) {
+        if (nodes[j].metaData.code && !matching.find((obj) => obj.name === nodes[j].name)) {
             if (matching.length === limit) {
                 return matching;
             }
-            matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types});
+            matching.push({code: nodes[j].metaData?.code ?? '', name: nodes[j].name, types: nodes[j].metaData.types});
         }
         const suggestions = nodes[j].metaData.suggestions;
+        if (!suggestions) {
+            return;
+        }
         for (let i = 0; i < suggestions.length; i++) {
             if (matching.length === limit) {
                 return matching;
             }
 
             const suggestion = suggestions[i];
-            if (!_.find(matching, (obj) => obj.name === suggestion.name)) {
+            if (!matching.find((obj) => obj.name === suggestion.name)) {
                 matching.push({...suggestion});
             }
         }
@@ -410,12 +383,9 @@ function suggestEmojis(text, lang, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMO
 
 /**
  * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
- *
- * @param {Number | String} val
- * @returns {Number}
  */
-const getPreferredSkinToneIndex = (val) => {
-    if (!_.isNull(val) && Number.isInteger(Number(val))) {
+const getPreferredSkinToneIndex = (val: string | number): number | string => {
+    if (Number.isInteger(Number(val))) {
         return val;
     }
 
@@ -425,11 +395,8 @@ const getPreferredSkinToneIndex = (val) => {
 /**
  * Given an emoji object it returns the correct emoji code
  * based on the users preferred skin tone.
- * @param {Object} emoji
- * @param {String | Number} preferredSkinTone
- * @returns {String}
  */
-const getPreferredEmojiCode = (emoji, preferredSkinTone) => {
+const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: number): string => {
     if (emoji.types) {
         const emojiCodeWithSkinTone = emoji.types[preferredSkinTone];
 
@@ -447,17 +414,11 @@ const getPreferredEmojiCode = (emoji, preferredSkinTone) => {
  * Given an emoji object and a list of senders it will return an
  * array of emoji codes, that represents all used variations of the
  * emoji.
- * @param {Object} emojiAsset
- * @param {String} emojiAsset.name
- * @param {String} emojiAsset.code
- * @param {String[]} [emojiAsset.types]
- * @param {Array} users
- * @return {string[]}
  * */
-const getUniqueEmojiCodes = (emojiAsset, users) => {
-    const uniqueEmojiCodes = [];
-    _.each(users, (userSkinTones) => {
-        _.each(lodashGet(userSkinTones, 'skinTones'), (createdAt, skinTone) => {
+const getUniqueEmojiCodes = (emojiAsset: Emoji, users: Array<{skinTones: Array<{skinTone: number; createdAt: string}>}>): string[] => {
+    const uniqueEmojiCodes: string[] = [];
+    users.forEach((userSkinTones) => {
+        userSkinTones.skinTones.forEach(({skinTone}) => {
             const emojiCode = getPreferredEmojiCode(emojiAsset, skinTone);
             if (emojiCode && !uniqueEmojiCodes.includes(emojiCode)) {
                 uniqueEmojiCodes.push(emojiCode);

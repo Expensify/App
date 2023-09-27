@@ -7,6 +7,7 @@ import Objects from '../images/emojiCategoryIcons/light-bulb.svg';
 import Symbols from '../images/emojiCategoryIcons/peace-sign.svg';
 import Flags from '../images/emojiCategoryIcons/flag.svg';
 import FrequentlyUsed from '../images/history.svg';
+import {Emoji, HeaderEmoji} from './types';
 
 const skinTones = [
     {
@@ -33,9 +34,9 @@ const skinTones = [
         code: '🖐🏿',
         skinTone: 0,
     },
-];
+] as const;
 
-const emojis = [
+const emojis: Array<Emoji | HeaderEmoji> = [
     {
         header: true,
         icon: Smiley,

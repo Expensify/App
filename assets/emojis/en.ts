@@ -1,4 +1,7 @@
-const enEmojis = {
+import {EmojisList} from './types';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+const enEmojis: EmojisList = {
     '😀': {
         keywords: ['smile', 'happy', 'face', 'grin'],
     },

@@ -28,6 +28,8 @@ type Suggestion = {
 
 type EmojiMetaData = {
     suggestions?: Suggestion[];
+    code?: string;
+    types?: string[];
 };
 
 Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
