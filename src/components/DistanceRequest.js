@@ -297,9 +297,9 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken, 
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={navigateToNextPage}
-                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute}
+                isDisabled={_.size(validatedWaypoints) < 2 || (!isOffline && (hasRouteError || isLoadingRoute))}
                 text={translate('common.next')}
-                isLoading={isLoadingRoute || shouldFetchRoute}
+                isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute)}
             />
         </ScrollView>
     );
