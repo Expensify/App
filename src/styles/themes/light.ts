@@ -1,6 +1,5 @@
 import SCREENS from '../../SCREENS';
 import colors from '../colors';
-import type {ThemeDefault} from './types';
 
 const lightTheme = {
     // Figma keys
@@ -82,6 +81,7 @@ const lightTheme = {
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
+    mapAttributionText: colors.black,
     PAGE_BACKGROUND_COLORS: {
         [SCREENS.HOME]: colors.lightHighlightBackground,
         [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
@@ -91,6 +91,6 @@ const lightTheme = {
         [SCREENS.SETTINGS.STATUS]: colors.green700,
         [SCREENS.SETTINGS.ROOT]: colors.lightHighlightBackground,
     },
-} satisfies ThemeDefault;
+};
 
 export default lightTheme;

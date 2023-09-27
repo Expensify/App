@@ -818,10 +818,15 @@ const styles = (theme: ThemeDefault) =>
                 marginRight: 20,
                 justifyContent: 'center',
                 alignItems: 'center',
-                padding: 40,
+                paddingVertical: 40,
                 gap: 4,
                 flex: 1,
             } satisfies ViewStyle),
+
+        receiptViewTextContainer: {
+            paddingHorizontal: 40,
+            ...sizing.w100,
+        },
 
         cameraView: {
             flex: 1,
@@ -3452,7 +3457,7 @@ const styles = (theme: ThemeDefault) =>
         },
 
         signInIconButton: {
-            padding: 2,
+            paddingVertical: 2,
         },
 
         googleButtonContainer: {
@@ -3730,6 +3735,28 @@ const styles = (theme: ThemeDefault) =>
         draggableTopBar: {
             height: 30,
             width: '100%',
+        },
+
+        walletCard: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            position: 'relative',
+            alignSelf: 'center',
+            overflow: 'hidden',
+        },
+
+        walletCardNumber: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
+        walletCardHolder: {
+            position: 'absolute',
+            left: 16,
+            bottom: 16,
+            width: variables.cardNameWidth,
+            color: theme.text,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightLarge,
         },
     } satisfies Styles);
 

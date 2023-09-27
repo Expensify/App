@@ -1,7 +1,5 @@
-/* eslint-disable no-unused-vars */
 import SCREENS from '../../SCREENS';
 import colors from '../colors';
-import type {ThemeBase} from './types';
 
 const darkTheme = {
     // Figma keys
@@ -83,6 +81,7 @@ const darkTheme = {
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
+    mapAttributionText: colors.black,
     PAGE_BACKGROUND_COLORS: {
         [SCREENS.HOME]: colors.darkHighlightBackground,
         [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
@@ -92,6 +91,6 @@ const darkTheme = {
         [SCREENS.SETTINGS.STATUS]: colors.green700,
         [SCREENS.SETTINGS.ROOT]: colors.darkHighlightBackground,
     },
-} satisfies ThemeBase;
+};
 
 export default darkTheme;
