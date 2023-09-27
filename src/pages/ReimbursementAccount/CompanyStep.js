@@ -187,6 +187,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     }}
                     shouldSaveDraft
                     streetTranslationKey="common.companyAddress"
+                    
                 />
                 <TextInput
                     inputID="companyPhone"
