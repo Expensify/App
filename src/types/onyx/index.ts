@@ -29,7 +29,6 @@ import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import ReimbursementAccount from './ReimbursementAccount';
 import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import WalletTransfer from './WalletTransfer';
-import ReceiptModal from './ReceiptModal';
 import MapboxAccessToken from './MapboxAccessToken';
 import {OnyxUpdatesFromServer, OnyxUpdateEvent} from './OnyxUpdatesFromServer';
 import Download from './Download';
@@ -42,7 +41,7 @@ import ReportActionReactions from './ReportActionReactions';
 import SecurityGroup from './SecurityGroup';
 import Transaction from './Transaction';
 import Form, {AddDebitCardForm} from './Form';
-import RecentWaypoints from './RecentWaypoints';
+import RecentWaypoint from './RecentWaypoint';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
 import RecentlyUsedTags from './RecentlyUsedTags';
 import PolicyTag from './PolicyTag';
@@ -79,7 +78,6 @@ export type {
     ReimbursementAccountDraft,
     FrequentlyUsedEmoji,
     WalletTransfer,
-    ReceiptModal,
     MapboxAccessToken,
     Download,
     PolicyMember,
@@ -93,8 +91,8 @@ export type {
     Form,
     AddDebitCardForm,
     OnyxUpdatesFromServer,
+    RecentWaypoint,
     OnyxUpdateEvent,
-    RecentWaypoints,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     PolicyTag,

@@ -23,8 +23,11 @@ function useThemePreference() {
         const theme = preferredThemeFromStorage || CONST.THEME.DEFAULT;
 
         // If the user chooses to use the device theme settings, we need to set the theme preference to the system theme
-        if (theme === CONST.THEME.SYSTEM) setThemePreference(systemTheme ?? CONST.THEME.DEFAULT);
-        else setThemePreference(theme);
+        if (theme === CONST.THEME.SYSTEM) {
+            setThemePreference(systemTheme ?? CONST.THEME.DEFAULT);
+        } else {
+            setThemePreference(theme);
+        }
     }, [preferredThemeFromStorage, systemTheme]);
 
     return themePreference;

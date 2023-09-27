@@ -106,7 +106,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
                 if (payload.containsKey(ONYX_DATA_KEY)) {
                     Objects.requireNonNull(payload.get(ONYX_DATA_KEY)).isNull();
                     Log.d(TAG, "payload contains onxyData");
-                    applyMessageStyle(context, builder, payload, arguments.getNotificationId());
+                    String alert = message.getExtra(PushMessage.EXTRA_ALERT);
+                    applyMessageStyle(context, builder, payload, arguments.getNotificationId(), alert);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Failed to parse conversation, falling back to default notification style. SendID=" + message.getSendId(), e);
@@ -163,7 +164,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
      * @param payload Notification payload, which contains all the data we need to build the notifications.
      * @param notificationID Current notification ID
      */
-    private void applyMessageStyle(@NonNull Context context, NotificationCompat.Builder builder, JsonMap payload, int notificationID) {
+    private void applyMessageStyle(@NonNull Context context, NotificationCompat.Builder builder, JsonMap payload, int notificationID, String alert) {
         long reportID = payload.get("reportID").getLong(-1);
         if (reportID == -1) {
             return;
@@ -181,7 +182,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String name = messageData.get("person").getList().get(0).getMap().get("text").getString();
             String avatar = messageData.get("avatar").getString();
             String accountID = Integer.toString(messageData.get("actorAccountID").getInt(-1));
-            String message = messageData.get("message").getList().get(0).getMap().get("text").getString();
+            
+            // Use the formatted alert message from the backend. Otherwise fallback on the message in the Onyx data.
+            String message = alert != null ? alert : messageData.get("message").getList().get(0).getMap().get("text").getString();
             String conversationName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
 
             // Retrieve or create the Person object who sent the latest report comment

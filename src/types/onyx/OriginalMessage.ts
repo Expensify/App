@@ -137,4 +137,4 @@ type OriginalMessage =
     | OriginalMessagePolicyTask;
 
 export default OriginalMessage;
-export type {Reaction};
+export type {Reaction, ChronosOOOEvent};

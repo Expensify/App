@@ -79,6 +79,8 @@ type ThemeColors = {
     skeletonLHNOut: Color;
     QRLogo: Color;
     starDefaultBG: Color;
+    loungeAccessOverlay: Color;
+    mapAttributionText: Color;
 
     PAGE_BACKGROUND_COLORS: Record<string, Color>;
 };
