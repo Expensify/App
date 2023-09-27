@@ -557,7 +557,6 @@ function ReportActionItem(props) {
                     />
                 </OfflineWithFeedback>
             );
-            
         }
 
         const isNormalCreatedAction =
