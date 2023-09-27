@@ -542,12 +542,10 @@ function ReportActionItem(props) {
             }
 
             content = (
-                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                    <TaskView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
-                </OfflineWithFeedback>
+                <TaskView
+                    report={props.report}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                />
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
