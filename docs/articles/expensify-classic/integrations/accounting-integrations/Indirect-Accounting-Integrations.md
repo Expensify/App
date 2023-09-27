@@ -1,3 +1,9 @@
+---
+title: Indirect Accounting Integrations
+description: Learn how to export your expenses and reports to a built-for-purpose flat file that works with your accounting platform. 
+---
+<!-- The lines above are required by Jekyll to process the .md file -->
+
 # Overview
 
 Along with the direct integrations Expensify supports, there's also an option to integrate with other accounting solutions via a flat-file import.
@@ -6,7 +12,7 @@ When you set up one of these accounting packages in Expensify, we will automatic
 
 # How to Set Up an Indirect Accounting Integration
 
-## Home Page::
+## Home Page:
 
 After selecting your Group Plan type for your first workspace, you'll be taken through a few workspace setup tasks on the home page. When you reach the **Accounting Software** task, select your accounting solution from the available options.
 
