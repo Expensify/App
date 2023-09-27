@@ -240,7 +240,6 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
                 inputRefs={inputRefs}
                 errors={errors}
                 enabledWhenOffline={enabledWhenOffline}
-                formState={formState}
             >
                 {children}
             </FormWrapper>
