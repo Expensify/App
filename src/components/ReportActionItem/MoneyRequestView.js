@@ -7,13 +7,15 @@ import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
+import Permissions from '../../libs/Permissions';
 import Navigation from '../../libs/Navigation/Navigation';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
-import Permissions from '../../libs/Permissions';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as IOU from '../../libs/actions/IOU';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -28,6 +30,8 @@ import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import transactionPropTypes from '../transactionPropTypes';
 import Image from '../Image';
+import Text from '../Text';
+import Switch from '../Switch';
 import ReportActionItemImage from './ReportActionItemImage';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
@@ -73,10 +77,9 @@ const defaultProps = {
     policyTags: {},
 };
 
-function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags}) {
+function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
-
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
     const {
@@ -85,6 +88,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
         currency: transactionCurrency,
         comment: transactionDescription,
         merchant: transactionMerchant,
+        billable: transactionBillable,
         category: transactionCategory,
         tag: transactionTag,
     } = ReportUtils.getTransactionDetails(transaction);
@@ -104,6 +108,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     // Flags for showing categories and tags
     const shouldShowCategory = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
     const shouldShowTag = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
+    const shouldShowBillable = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
@@ -162,8 +167,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     shouldShowRightIcon={canEdit}
                     onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                     brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    subtitle={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
-                    subtitleTextStyle={styles.textLabelError}
+                    error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.comment')}>
@@ -188,8 +192,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                     brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    subtitle={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
-                    subtitleTextStyle={styles.textLabelError}
+                    error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.merchant')}>
@@ -201,8 +204,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
                     brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    subtitle={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
-                    subtitleTextStyle={styles.textLabelError}
+                    error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                 />
             </OfflineWithFeedback>
             {shouldShowCategory && (
@@ -228,6 +230,16 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
                     />
                 </OfflineWithFeedback>
+            )}
+            {shouldShowBillable && (
+                <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <Text color={!transactionBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                    <Switch
+                        accessibilityLabel={translate('common.billable')}
+                        isOn={transactionBillable}
+                        onToggle={(value) => IOU.editMoneyRequest(transaction.transactionID, report.reportID, {billable: value})}
+                    />
+                </View>
             )}
             <SpacerView
                 shouldShow={shouldShowHorizontalRule}

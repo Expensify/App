@@ -329,13 +329,13 @@ function BaseSelectionList({
         isActive: Boolean(onConfirm) && isFocused,
     });
 
-    /**Refocus the text input when the modal is closed */
+    /** Refocus the text input when the modal is closed */
     useEffect(() => {
         if (modal.isVisible || !textInputRef || !textInputRef.current || !shouldShowTextInput) {
             return;
         }
         textInputRef.current.focus();
-    }, [modal.isVisible]);
+    }, [modal.isVisible, shouldShowTextInput]);
 
     return (
         <ArrowKeyFocusManager
