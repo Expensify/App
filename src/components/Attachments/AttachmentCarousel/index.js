@@ -25,6 +25,7 @@ const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
     // more than 95% visible. When that happens we update the page index in the state.
     itemVisiblePercentThreshold: 95,
+    minimumViewTime: 300,
 };
 
 function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
@@ -189,7 +190,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             bounces={false}
                             // Scroll only one image at a time no matter how fast the user swipes
                             disableIntervalMomentum
-                            pagingEnabled
+                            pagingEnabled={false}
                             snapToAlignment="start"
                             snapToInterval={containerWidth}
                             // Enable scrolling by swiping on mobile (touch) devices only
@@ -198,7 +199,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             scrollEnabled={canUseTouchScreen}
                             ref={scrollRef}
                             initialScrollIndex={page}
-                            initialNumToRender={3}
+                            initialNumToRender={1}
                             windowSize={5}
                             maxToRenderPerBatch={3}
                             data={attachments}
