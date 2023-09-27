@@ -1,11 +1,11 @@
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import {ChronosOOOEvent} from '../../types/onyx/OriginalMessage';
 
 const removeEvent = (reportID: string, reportActionID: string, eventID: string, events: ChronosOOOEvent[]) => {
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -20,7 +20,7 @@ const removeEvent = (reportID: string, reportActionID: string, eventID: string, 
         },
     ];
 
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -32,7 +32,7 @@ const removeEvent = (reportID: string, reportActionID: string, eventID: string, 
         },
     ];
 
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,

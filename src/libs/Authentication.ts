@@ -55,7 +55,7 @@ function reauthenticate(command = ''): Promise<void> {
     // Prevent any more requests from being processed while authentication happens
     NetworkStore.setIsAuthenticating(true);
 
-    const credentials: Credentials = NetworkStore.getCredentials() as any;
+    const credentials: Credentials = NetworkStore.getCredentials();
     return Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
@@ -75,7 +75,7 @@ function reauthenticate(command = ''): Promise<void> {
 
         // If authentication fails and we are online then log the user out
         if (response.jsonCode !== 200) {
-            const errorMessage = ErrorUtils.getAuthenticateErrorMessage(response as any);
+            const errorMessage = ErrorUtils.getAuthenticateErrorMessage(response);
             NetworkStore.setIsAuthenticating(false);
             Log.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
                 command,

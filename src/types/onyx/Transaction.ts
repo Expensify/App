@@ -7,6 +7,7 @@ type WaypointCollection = Record<string, RecentWaypoint | null>;
 type Comment = {
     comment?: string;
     waypoints?: WaypointCollection;
+    isLoading?: boolean;
 };
 
 type GeometryType = 'LineString';
