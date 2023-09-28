@@ -172,7 +172,7 @@ function ReportScreen({
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
+    const isFirstlyLoadingReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
 
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
 
@@ -371,7 +371,7 @@ function ReportScreen({
                 !isDefaultReport &&
                 !report.reportID &&
                 !isOptimisticDelete &&
-                !report.isLoadingInitialReportActions &&
+                !reportMetadata.isLoadingInitialReportActions &&
                 !isLoading &&
                 !userLeavingStatus) ||
             shouldHideReport,
@@ -426,7 +426,7 @@ function ReportScreen({
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
                             >
-                                {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
+                                {isReportReadyForDisplay && !isFirstlyLoadingReportActions && !isLoading && (
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
@@ -441,7 +441,7 @@ function ReportScreen({
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
                                     If we prevent rendering the report while they are loading then
                                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
+                                {(!isReportReadyForDisplay || isFirstlyLoadingReportActions || isLoading) && <ReportActionsSkeletonView />}
 
                                 {isReportReadyForDisplay ? (
                                     <ReportFooter

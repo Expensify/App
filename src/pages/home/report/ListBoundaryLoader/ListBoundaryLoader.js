@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import ReportActionsSkeletonView from '../../../../components/ReportActionsSkeletonView';
 import CONST from '../../../../CONST';
@@ -31,12 +31,6 @@ const defaultProps = {
 
 function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitialReportActions, lastReportActionName, isLoadingNewerReportActions}) {
     const {isOffline} = useNetwork();
-    const firstRenderRef = useRef(true);
-
-    if (firstRenderRef.current) {
-        firstRenderRef.current = false;
-        return null;
-    }
 
     // we use two different loading components for header and footer to reduce the jumping effect when you scrolling to the newer reports
     if (type === CONST.LIST_COMPONENTS.FOOTER) {

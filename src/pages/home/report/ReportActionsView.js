@@ -34,6 +34,9 @@ const propTypes = {
     /** The report actions are loading more data */
     isLoadingOlderReportActions: PropTypes.bool,
 
+    /** The report actions are loading newer data*/
+    isLoadingNewerReportActions: PropTypes.bool,
+
     /** Whether the composer is full size */
     /* eslint-disable-next-line react/no-unused-prop-types */
     isComposerFullSize: PropTypes.bool.isRequired,
@@ -59,6 +62,7 @@ const defaultProps = {
     policy: null,
     isLoadingInitialReportActions: false,
     isLoadingOlderReportActions: false,
+    isLoadingNewerReportActions: false,
 };
 
 function ReportActionsView(props) {
@@ -184,7 +188,7 @@ function ReportActionsView(props) {
         }
         const newestReportAction = _.first(props.reportActions);
         Report.getNewerActions(reportID, newestReportAction.reportActionID);
-    }, 300);
+    }, 700);
 
     /**
      * Runs when the FlatList finishes laying out
@@ -222,6 +226,7 @@ function ReportActionsView(props) {
                 loadNewerChats={loadNewerChats}
                 isLoadingInitialReportActions={props.isLoadingInitialReportActions}
                 isLoadingOlderReportActions={props.isLoadingOlderReportActions}
+                isLoadingNewerReportActions={props.isLoadingNewerReportActions}
                 policy={props.policy}
             />
             <PopoverReactionList ref={reactionListRef} />

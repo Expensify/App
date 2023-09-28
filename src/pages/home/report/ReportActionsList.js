@@ -63,7 +63,7 @@ const defaultProps = {
     personalDetails: {},
     onScroll: () => {},
     mostRecentIOUReportActionID: '',
-isLoadingInitialReportActions: false,
+    isLoadingInitialReportActions: false,
     isLoadingOlderReportActions: false,
     isLoadingNewerReportActions: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -123,8 +123,8 @@ function ReportActionsList({
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
-    const reportActionSize = useRef(sortedReportActions.length);
     const firstRenderRef = useRef(true);
+    const reportActionSize = useRef(sortedReportActions.length);
 
     // This state is used to force a re-render when the user manually marks a message as unread
     // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
@@ -257,13 +257,13 @@ function ReportActionsList({
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
      * the height of the smallest report action possible.
-     * @return {{availableContentHeight: Number, initialNumToRender: Number}}
+     * @return {Number}
      */
     const initialNumToRender = useMemo(() => {
-      const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
-      const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-      return Math.ceil(availableHeight / minimumReportActionHeight);
-  }, [windowHeight]);
+        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
+        const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
+        return Math.ceil(availableHeight / minimumReportActionHeight);
+    }, [windowHeight]);
 
     const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
     /**
@@ -327,20 +327,21 @@ function ReportActionsList({
         [isLoadingNewerReportActions],
     );
 
-    const listFooterComponent = useCallback(
-        () => (
+    const listFooterComponent = useCallback(() => {
+        if (firstRenderRef.current) {
+            firstRenderRef.current = false;
+            return null;
+        }
+
+        return (
             <ListBoundaryLoader
                 type={CONST.LIST_COMPONENTS.FOOTER}
                 isLoadingOlderReportActions={isLoadingOlderReportActions}
                 isLoadingInitialReportActions={isLoadingInitialReportActions}
                 lastReportActionName={lastReportAction.actionName}
             />
-        ),
-        [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName],
-    );
-
-
-
+        );
+    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName]);
 
     const onLayoutInner = useCallback(
         (event) => {
@@ -349,15 +350,18 @@ function ReportActionsList({
         [onLayout],
     );
 
-    const listHeaderComponent = useCallback(
-      () => (
-          <ListBoundaryLoader
-              type={CONST.LIST_COMPONENTS.HEADER}
-              isLoadingNewerReportActions={isLoadingNewerReportActions}
-          />
-      ),
-      [isLoadingNewerReportActions],
-  );
+    const listHeaderComponent = useCallback(() => {
+        if (firstRenderRef.current) {
+            firstRenderRef.current = false;
+            return null;
+        }
+        return (
+            <ListBoundaryLoader
+                type={CONST.LIST_COMPONENTS.HEADER}
+                isLoadingNewerReportActions={isLoadingNewerReportActions}
+            />
+        );
+    }, [isLoadingNewerReportActions]);
 
     return (
         <>
