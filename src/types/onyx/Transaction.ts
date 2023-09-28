@@ -39,6 +39,9 @@ type Transaction = {
     modifiedCreated?: string;
     modifiedCurrency?: string;
     pendingAction: OnyxCommon.PendingAction;
+    pendingFields: {
+        comment: string;
+    };
     receipt: {
         receiptID?: number;
         source?: string;
