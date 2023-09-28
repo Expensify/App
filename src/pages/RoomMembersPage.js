@@ -26,6 +26,7 @@ import * as PolicyUtils from '../libs/PolicyUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as UserUtils from '../libs/UserUtils';
 import * as Report from '../libs/actions/Report';
+import Permissions from '../libs/Permissions';
 import Log from '../libs/Log';
 
 const propTypes = {

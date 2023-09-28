@@ -22,6 +22,7 @@ import * as PolicyUtils from '../libs/PolicyUtils';
 import useLocalize from '../hooks/useLocalize';
 import SelectionList from '../components/SelectionList';
 import * as Report from '../libs/actions/Report';
+import Permissions from '../libs/Permissions';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */

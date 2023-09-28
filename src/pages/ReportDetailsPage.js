@@ -27,7 +27,7 @@ import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
-import * as Permissions from '../libs/Permissions';
+import Permissions from '../libs/Permissions';
 
 const propTypes = {
     ...withLocalizePropTypes,
