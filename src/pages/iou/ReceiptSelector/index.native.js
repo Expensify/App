@@ -192,7 +192,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                 />
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker>
+                <AttachmentPicker shouldHideCameraOption>
                     {({openPicker}) => (
                         <PressableWithFeedback
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
