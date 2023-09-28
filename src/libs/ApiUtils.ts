@@ -33,7 +33,7 @@ Environment.getEnvironment().then((envName) => {
  * Get the currently used API endpoint
  * (Non-production environments allow for dynamically switching the API)
  */
-function getApiRoot(request?: Request): string {
+function getApiRoot(request?: Pick<Request, 'shouldUseSecure'>): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
 
     if (shouldUseStagingServer) {
