@@ -16,6 +16,8 @@ import Icon from './Icon';
 import themeColors from '../styles/themes/default';
 import * as Expensicons from './Icon/Expensicons';
 import EReceiptBackground from '../../assets/images/eReceipt_background.svg';
+import useNetwork from '../hooks/useNetwork';
+import PendingMapView from './MapView/PendingMapView';
 
 const propTypes = {
     /** The transaction for the eReceipt */
@@ -28,9 +30,11 @@ const defaultProps = {
 
 function DistanceEReceipt({transaction}) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const {thumbnail} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction);
-    const formattedTransactionAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
+    const hasRoute = TransactionUtils.hasRoute(transaction);
+    const formattedTransactionAmount = hasRoute ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : translate('common.tbd');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     return (
@@ -42,12 +46,16 @@ function DistanceEReceipt({transaction}) {
                         pointerEvents="none"
                     />
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        <ThumbnailImage
-                            previewSourceURL={thumbnailSource}
-                            style={[styles.w100, styles.h100]}
-                            isAuthTokenRequired
-                            shouldDynamicallyResize={false}
-                        />
+                        {isOffline ? (
+                            <PendingMapView />
+                        ) : (
+                            <ThumbnailImage
+                                previewSourceURL={thumbnailSource}
+                                style={[styles.w100, styles.h100]}
+                                isAuthTokenRequired
+                                shouldDynamicallyResize={false}
+                            />
+                        )}
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
                         <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
