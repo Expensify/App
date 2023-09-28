@@ -9,20 +9,13 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import * as Localize from './Localize';
-import * as ReportUtils from './ReportUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
-const allReports = {};
+let allReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!key || !report) {
-            return;
-        }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReports[reportID] = report;
-    },
+    waitForCollectionCallback: true,
+    callback: (val) => (allReports = val),
 });
 
 const allReportActions = {};
@@ -444,10 +437,13 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
 
     // For Chat Report, let us return [Deleted message] when the last visible action
     // is a deleted parent which has visible child actions
-    if (isDeletedParentAction(lastVisibleAction) && ReportUtils.isChatReport(reportID)) {
-        return {
-            lastMessageText: Localize.translateLocal('parentReportAction.deletedMessage'),
-        };
+    if (isDeletedParentAction(lastVisibleAction)) {
+        const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        if (report && report.type === CONST.REPORT.TYPE.CHAT) {
+            return {
+                lastMessageText: Localize.translateLocal('parentReportAction.deletedMessage'),
+            };
+        }
     }
 
     const messageText = lodashGet(message, 'text', '');
