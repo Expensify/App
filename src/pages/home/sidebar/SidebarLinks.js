@@ -110,7 +110,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 unsubscribeOnyxModal();
             }
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const showSearchPage = useCallback(() => {
