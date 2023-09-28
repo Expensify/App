@@ -98,8 +98,8 @@ function OptionRowLHN(props) {
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
     const alternateTextStyle = StyleUtils.combineStyles(
         props.viewMode === CONST.OPTION_MODE.COMPACT
-            ? [textStyle, styles.optionAlternateText, styles.noWrap, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
-            : [textStyle, styles.optionAlternateText, styles.noWrap, styles.textLabelSupporting],
+            ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
+            : [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting],
         props.style,
     );
     const contentContainerStyles =

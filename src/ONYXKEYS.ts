@@ -242,6 +242,7 @@ const ONYXKEYS = {
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
+        REPORT_METADATA: 'reportMetadata_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
@@ -249,6 +250,7 @@ const ONYXKEYS = {
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
+        REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
 
@@ -328,7 +330,7 @@ type OnyxValues = {
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: Record<string, string>;
-    [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoints[];
+    [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
@@ -379,6 +381,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
+    [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportAction;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: string;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
@@ -386,6 +389,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES]: number;
     [ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: boolean;
+    [ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM]: boolean;
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;

@@ -212,6 +212,7 @@ class OptionRow extends Component {
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             hoverDimmingValue={1}
                             hoverStyle={this.props.hoverStyle}
+                            needsOffscreenAlphaCompositing={lodashGet(this.props.option, 'icons.length', 0) >= 2}
                         >
                             <View style={sidebarInnerRowStyle}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -220,18 +221,14 @@ class OptionRow extends Component {
                                             <SubscriptAvatar
                                                 mainAvatar={this.props.option.icons[0]}
                                                 secondaryAvatar={this.props.option.icons[1]}
-                                                backgroundColor={hovered && !this.props.optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                                backgroundColor={hovered ? hoveredBackgroundColor : subscriptColor}
                                                 size={defaultSubscriptSize}
                                             />
                                         ) : (
                                             <MultipleAvatars
                                                 icons={this.props.option.icons}
                                                 size={CONST.AVATAR_SIZE.DEFAULT}
-                                                secondAvatarStyle={[
-                                                    StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG),
-                                                    this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                                    hovered && !this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                                ]}
+                                                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered ? hoveredBackgroundColor : subscriptColor)]}
                                                 shouldShowTooltip={this.props.showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(this.props.option)}
                                             />
                                         ))}

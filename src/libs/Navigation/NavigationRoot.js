@@ -103,7 +103,8 @@ function NavigationRoot(props) {
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
-        if (prevStatusBarBackgroundColor.current === statusBarBackgroundColor.current) {
+
+        if (currentScreenBackgroundColor === themeColors.appBG && prevStatusBarBackgroundColor.current === themeColors.appBG) {
             return;
         }
 
@@ -121,7 +122,10 @@ function NavigationRoot(props) {
         if (!state) {
             return;
         }
-        updateCurrentReportID(state);
+        // Performance optimization to avoid context consumers to delay first render
+        setTimeout(() => {
+            updateCurrentReportID(state);
+        }, 0);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
     };
