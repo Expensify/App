@@ -71,7 +71,19 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
      * @returns {Object} - Object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     const validate = (values) => {
-        const requiredFields = CONST.BANK_ACCOUNT.FIELDS.CompanyStep;
+        const requiredFields = [
+            'companyName',
+            'addressStreet',
+            'addressZipCode',
+            'addressCity',
+            'addressState',
+            'companyPhone',
+            'website',
+            'companyTaxID',
+            'incorporationType',
+            'incorporationDate',
+            'incorporationState',
+        ];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
@@ -112,7 +124,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
             bankAccountID: lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0,
 
             // Fields from BankAccount step
-            ...getBankAccountFields(CONST.BANK_ACCOUNT.FIELDS.BankAccountStep),
+            ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
 
             // Fields from Company step
             ...values,
