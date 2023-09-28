@@ -5,292 +5,6 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 5998:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-const github = __nccwpck_require__(5438);
-const https = __nccwpck_require__(7211);
-const _ = __nccwpck_require__(250);
-const GithubUtils = __nccwpck_require__(7999);
-const CONST = __nccwpck_require__(4097);
-const newComponentCategory = __nccwpck_require__(8045);
-
-const pathToAuthorChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md';
-const checklistStartsWith = '### PR Author Checklist';
-const checklistEndsWith = "\r\n### Screenshots/Videos";
-
-const prNumber = github.context.payload.pull_request.number;
-
-const CHECKLIST_CATEGORIES = {
-    NEW_COMPONENT: newComponentCategory,
-};
-
-/**
- * Look at the contents of the pull request, and determine which checklist categories apply.
- *
- * @returns {Promise<Array<String>>}
- */
-async function getChecklistCategoriesForPullRequest() {
-    const categories = [];
-    const changedFiles = await GithubUtils.paginate(GithubUtils.octokit.pulls.listFiles, {
-        owner: CONST.GITHUB_OWNER,
-        repo: CONST.APP_REPO,
-        pull_number: prNumber,
-        per_page: 100,
-    });
-
-    for (const category of _.values(CHECKLIST_CATEGORIES)) {
-        const {detectFunction, items} = category;
-        const categoryDetected = await detectFunction(changedFiles);
-        if (categoryDetected) {
-            categories.push(items);
-        }
-    }
-    return categories;
-}
-
-/**
- * Takes string in markdown, and divides it's content by two contant markers.
- *
- * @param {String} body
- * @returns {[String, String, String]}
- */
-function partitionWithChecklist(body) {
-    const [contentBeforeChecklist, contentAfterStartOfChecklist] = body.split(checklistStartsWith);
-    const [checklistContent, contentAfterChecklist] = contentAfterStartOfChecklist.split(checklistEndsWith);
-    return [contentBeforeChecklist, checklistContent, contentAfterChecklist];
-}
-
-/**
- * @returns {Promise}
- */
-function getNumberOfItemsFromAuthorChecklist() {
-    return new Promise((resolve, reject) => {
-        https
-            .get(pathToAuthorChecklist, (res) => {
-                let fileContents = '';
-                res.on('data', (chunk) => {
-                    fileContents += chunk;
-                });
-                res.on('end', () => {
-                    // eslint-disable-next-line no-unused-vars
-                    const [_start, checklist] = partitionWithChecklist(fileContents);
-
-                    const numberOfChecklistItems = (checklist.match(/\[ \]/g) || []).length;
-                    resolve(numberOfChecklistItems);
-                });
-            })
-            .on('error', reject);
-    });
-}
-
-/**
- * @param {Number} numberOfChecklistItems
- * @param {String} pullRequestBody
- */
-function checkPRForCompletedChecklist(numberOfChecklistItems, pullRequestBody) {
-    // eslint-disable-next-line no-unused-vars
-    const [_start, checklist] = partitionWithChecklist(pullRequestBody);
-
-    const numberOfFinishedChecklistItems = (checklist.match(/- \[x\]/gi) || []).length;
-    const numberOfUnfinishedChecklistItems = (checklist.match(/- \[ \]/g) || []).length;
-
-    const minCompletedItems = numberOfChecklistItems - 2;
-
-    console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
-
-    if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfUnfinishedChecklistItems === 0) {
-        console.log('PR Author checklist is complete 🎉');
-        return;
-    }
-
-    console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
-    core.setFailed("PR Author Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
-}
-
-async function generateDynamicChecksAndCheckForCompletion() {
-    // Generate dynamic checks
-    const checks = new Set();
-    const categories = await getChecklistCategoriesForPullRequest();
-    for (const checksForCategory of categories) {
-        for (const check of checksForCategory) {
-            checks.add(check);
-        }
-    }
-
-    const body = github.context.payload.pull_request.body;
-
-    // eslint-disable-next-line prefer-const
-    let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
-
-    let isPassing = true;
-    let checklistChanged = false;
-    for (const check of checks) {
-        // Check if it's already in the PR body, capturing the whether or not it's already checked
-        const regex = new RegExp(`- \\[([ x])] ${_.escapeRegExp(check)}`);
-        const match = regex.exec(checklist);
-        if (!match) {
-            // Add it to the PR body
-            isPassing = false;
-            checklist += `- [ ] ${check}\r\n`;
-            checklistChanged = true;
-        } else {
-            const isChecked = match[1] === 'x';
-            if (!isChecked) {
-                isPassing = false;
-            }
-        }
-    }
-    const allChecks = _.flatten(_.map(_.values(CHECKLIST_CATEGORIES), 'items'));
-    for (const check of allChecks) {
-        if (!checks.has(check)) {
-            // Check if some dynamic check has been added with previous commit, but the check is not relevant anymore
-            const regex = new RegExp(`- \\[([ x])] ${_.escapeRegExp(check)}\r\n`);
-            const match = regex.exec(checklist);
-            if (match) {
-                // Remove it from the PR body
-                checklist = checklist.replace(match[0], '');
-                checklistChanged = true;
-            }
-        }
-    }
-
-    // Put the PR body back together, need to add the markers back in
-    const newBody = contentBeforeChecklist + checklistStartsWith + checklist + checklistEndsWith + contentAfterChecklist;
-
-    // Update the PR body
-    if (checklistChanged) {
-        await GithubUtils.octokit.pulls.update({
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            pull_number: prNumber,
-            body: newBody,
-        });
-        console.log('Updated PR checklist');
-    }
-
-    if (!isPassing) {
-        const err = new Error("New checks were added into checklist. Please check every box to verify you've thought about the item.");
-        console.error(err);
-        core.setFailed(err);
-    }
-
-    // check for completion
-    try {
-        const numberofItems = await getNumberOfItemsFromAuthorChecklist();
-        checkPRForCompletedChecklist(numberofItems, newBody);
-    } catch (err) {
-        console.error(err);
-        core.setFailed(err);
-    }
-}
-
-if (require.main === require.cache[eval('__filename')]) {
-    generateDynamicChecksAndCheckForCompletion();
-}
-
-module.exports = generateDynamicChecksAndCheckForCompletion;
-
-
-/***/ }),
-
-/***/ 8045:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const {parse} = __nccwpck_require__(639);
-const traverse = __nccwpck_require__(5008).default;
-const github = __nccwpck_require__(5438);
-const _ = __nccwpck_require__(250);
-const CONST = __nccwpck_require__(4097);
-const GithubUtils = __nccwpck_require__(7999);
-
-const items = [
-    "I verified that similar component doesn't exist in the codebase",
-    'I verified that all props are defined accurately and each prop has a `/** comment above it */`',
-    'I verified that each file is named correctly',
-    'I verified that each component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone',
-    'I verified that the only data being stored in component state is data necessary for rendering and nothing else',
-    "In component if we are not using the full Onyx data that we loaded, I've added the proper selector in order to ensure the component only re-renders when the data it is using changes",
-    'For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)',
-    'I verified that component internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)',
-    'I verified that all JSX used for rendering exists in the render method',
-    'I verified that each component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions',
-];
-
-function detectReactComponent(code, filename) {
-    if (!code) {
-        console.error('failed to get code from a filename', code, filename);
-        return;
-    }
-    const ast = parse(code, {
-        sourceType: 'module',
-        plugins: ['jsx'], // enable jsx plugin
-    });
-
-    let isReactComponent = false;
-
-    traverse(ast, {
-        FunctionDeclaration(path) {
-            if (isReactComponent) {
-                return;
-            }
-            if (path.node.id && _.some(path.node.body.body, (node) => node.type === 'ReturnStatement' && node.argument.type === 'JSXElement')) {
-                console.log('Detected react component in file', filename);
-                isReactComponent = true;
-            }
-        },
-    });
-
-    return isReactComponent;
-}
-
-function nodeBase64ToUtf8(data) {
-    return Buffer.from(data, 'base64').toString('utf-8');
-}
-
-async function detectReactComponentInFile(filename) {
-    const params = {
-        owner: CONST.GITHUB_OWNER,
-        repo: CONST.APP_REPO,
-        path: filename,
-        ref: github.context.payload.pull_request.head.ref,
-    };
-    try {
-        const {data} = await GithubUtils.octokit.repos.getContent(params);
-        const content = 'content' in data ? nodeBase64ToUtf8(data.content || '') : data;
-        return detectReactComponent(content, filename);
-    } catch (error) {
-        console.error(`An unknown error occurred with the GitHub API: ${error}, while fetching ${params}`);
-    }
-}
-
-function filterFiles({filename, status}) {
-    if (status !== 'added') {
-        return false;
-    }
-    return filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx');
-}
-
-async function detectFunction(changedFiles) {
-    const filteredFiles = _.filter(changedFiles, filterFiles);
-    for (const file of filteredFiles) {
-        const result = await detectReactComponentInFile(file.filename);
-        if (result) {
-            return true; // If the check is true, exit directly
-        }
-    }
-    return false;
-}
-
-module.exports = {
-    detectFunction,
-    items,
-};
-
-
-/***/ }),
-
 /***/ 4097:
 /***/ ((module) => {
 
@@ -82243,6 +81957,262 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 8426:
+/***/ ((module, exports, __nccwpck_require__) => {
+
+"use strict";
+/* module decorator */ module = __nccwpck_require__.nmd(module);
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core_1 = __nccwpck_require__(2186);
+const github_1 = __nccwpck_require__(5438);
+const https_1 = __nccwpck_require__(7211);
+const lodash_1 = __nccwpck_require__(250);
+const GithubUtils_1 = __nccwpck_require__(7999);
+const CONST_1 = __nccwpck_require__(4097);
+const newComponentCategory_1 = __nccwpck_require__(4749);
+const pathToAuthorChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md';
+const checklistStartsWith = '### PR Author Checklist';
+const checklistEndsWith = "\r\n### Screenshots/Videos";
+const prNumber = github_1.default.context.payload.pull_request?.number;
+const CHECKLIST_CATEGORIES = {
+    NEW_COMPONENT: newComponentCategory_1.default,
+};
+/**
+ * Look at the contents of the pull request, and determine which checklist categories apply.
+ */
+async function getChecklistCategoriesForPullRequest() {
+    const categories = [];
+    const changedFiles = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listFiles, {
+        owner: CONST_1.default.GITHUB_OWNER,
+        repo: CONST_1.default.APP_REPO,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        pull_number: prNumber,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        per_page: 100,
+    });
+    for (const category of Object.values(CHECKLIST_CATEGORIES)) {
+        const { detectFunction, items } = category;
+        const categoryDetected = await detectFunction(changedFiles);
+        if (categoryDetected) {
+            categories.push(items);
+        }
+    }
+    return categories;
+}
+/**
+ * Takes string in markdown, and divides it's content by two contant markers.
+ */
+function partitionWithChecklist(body) {
+    const [contentBeforeChecklist, contentAfterStartOfChecklist] = body.split(checklistStartsWith);
+    const [checklistContent, contentAfterChecklist] = contentAfterStartOfChecklist.split(checklistEndsWith);
+    return [contentBeforeChecklist, checklistContent, contentAfterChecklist];
+}
+/**
+ * @returns
+ */
+function getNumberOfItemsFromAuthorChecklist() {
+    return new Promise((resolve, reject) => {
+        https_1.default
+            .get(pathToAuthorChecklist, (res) => {
+            let fileContents = '';
+            res.on('data', (chunk) => {
+                fileContents += chunk;
+            });
+            res.on('end', () => {
+                const [, checklist] = partitionWithChecklist(fileContents);
+                const numberOfChecklistItems = (checklist.match(/\[ \]/g) || []).length;
+                resolve(numberOfChecklistItems);
+            });
+        })
+            .on('error', reject);
+    });
+}
+function checkPRForCompletedChecklist(numberOfChecklistItems, pullRequestBody) {
+    // eslint-disable-next-line no-unused-vars
+    const [, checklist] = partitionWithChecklist(pullRequestBody);
+    const numberOfFinishedChecklistItems = (checklist.match(/- \[x\]/gi) ?? []).length;
+    const numberOfUnfinishedChecklistItems = (checklist.match(/- \[ \]/g) ?? []).length;
+    const minCompletedItems = numberOfChecklistItems - 2;
+    console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
+    if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfUnfinishedChecklistItems === 0) {
+        console.log('PR Author checklist is complete 🎉');
+        return;
+    }
+    console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
+    core_1.default.setFailed("PR Author Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
+}
+async function generateDynamicChecksAndCheckForCompletion() {
+    // Generate dynamic checks
+    const checks = new Set();
+    const categories = await getChecklistCategoriesForPullRequest();
+    for (const checksForCategory of categories) {
+        for (const check of checksForCategory) {
+            checks.add(check);
+        }
+    }
+    const body = github_1.default.context.payload.pull_request?.body ?? '';
+    // eslint-disable-next-line prefer-const
+    let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
+    let isPassing = true;
+    let checklistChanged = false;
+    for (const check of checks) {
+        // Check if it's already in the PR body, capturing the whether or not it's already checked
+        const regex = new RegExp(`- \\[([ x])] ${lodash_1.default.escapeRegExp(check)}`);
+        const match = regex.exec(checklist);
+        if (!match) {
+            // Add it to the PR body
+            isPassing = false;
+            checklist += `- [ ] ${check}\r\n`;
+            checklistChanged = true;
+        }
+        else {
+            const isChecked = match[1] === 'x';
+            if (!isChecked) {
+                isPassing = false;
+            }
+        }
+    }
+    // eslint-disable-next-line you-dont-need-lodash-underscore/flatten, you-dont-need-lodash-underscore/map
+    const allChecks = lodash_1.default.flatten(lodash_1.default.map(Object.values(CHECKLIST_CATEGORIES), 'items'));
+    for (const check of allChecks) {
+        if (!checks.has(check)) {
+            // Check if some dynamic check has been added with previous commit, but the check is not relevant anymore
+            const regex = new RegExp(`- \\[([ x])] ${lodash_1.default.escapeRegExp(check)}\r\n`);
+            const match = regex.exec(checklist);
+            if (match) {
+                // Remove it from the PR body
+                checklist = checklist.replace(match[0], '');
+                checklistChanged = true;
+            }
+        }
+    }
+    // Put the PR body back together, need to add the markers back in
+    const newBody = contentBeforeChecklist + checklistStartsWith + checklist + checklistEndsWith + contentAfterChecklist;
+    // Update the PR body
+    if (checklistChanged) {
+        await GithubUtils_1.default.octokit.pulls.update({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            pull_number: prNumber,
+            body: newBody,
+        });
+        console.log('Updated PR checklist');
+    }
+    if (!isPassing) {
+        const err = new Error("New checks were added into checklist. Please check every box to verify you've thought about the item.");
+        console.error(err);
+        core_1.default.setFailed(err);
+    }
+    // check for completion
+    try {
+        const numberofItems = await getNumberOfItemsFromAuthorChecklist();
+        checkPRForCompletedChecklist(numberofItems, newBody);
+    }
+    catch (err) {
+        console.error(err);
+        core_1.default.setFailed(err);
+    }
+}
+if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
+    generateDynamicChecksAndCheckForCompletion();
+}
+exports.default = generateDynamicChecksAndCheckForCompletion;
+
+
+/***/ }),
+
+/***/ 4749:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const parser_1 = __nccwpck_require__(639);
+const traverse_1 = __nccwpck_require__(5008);
+const github_1 = __nccwpck_require__(5438);
+const CONST_1 = __nccwpck_require__(4097);
+const GithubUtils_1 = __nccwpck_require__(7999);
+const items = [
+    "I verified that similar component doesn't exist in the codebase",
+    'I verified that all props are defined accurately and each prop has a `/** comment above it */`',
+    'I verified that each file is named correctly',
+    'I verified that each component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone',
+    'I verified that the only data being stored in component state is data necessary for rendering and nothing else',
+    "In component if we are not using the full Onyx data that we loaded, I've added the proper selector in order to ensure the component only re-renders when the data it is using changes",
+    'For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)',
+    'I verified that component internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)',
+    'I verified that all JSX used for rendering exists in the render method',
+    'I verified that each component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions',
+];
+function detectReactComponent(code, filename) {
+    if (!code) {
+        console.error('failed to get code from a filename', code, filename);
+        return;
+    }
+    const ast = (0, parser_1.parse)(code, {
+        sourceType: 'module',
+        plugins: ['jsx'], // enable jsx plugin
+    });
+    let isReactComponent = false;
+    (0, traverse_1.default)(ast, {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        FunctionDeclaration(path) {
+            if (isReactComponent) {
+                return;
+            }
+            if (path.node.id && path.node.body.body.some((node) => node.type === 'ReturnStatement' && node.argument?.type === 'JSXElement')) {
+                console.log('Detected react component in file', filename);
+                isReactComponent = true;
+            }
+        },
+    });
+    return isReactComponent;
+}
+function nodeBase64ToUtf8(data) {
+    return Buffer.from(data, 'base64').toString('utf-8');
+}
+async function detectReactComponentInFile(filename) {
+    const params = {
+        owner: CONST_1.default.GITHUB_OWNER,
+        repo: CONST_1.default.APP_REPO,
+        path: filename,
+        ref: github_1.default.context.payload.pull_request?.head.ref,
+    };
+    try {
+        const { data } = await GithubUtils_1.default.octokit.repos.getContent(params);
+        const content = 'content' in data ? nodeBase64ToUtf8(data.content || '') : data;
+        return detectReactComponent(content, filename);
+    }
+    catch (error) {
+        console.error('An unknown error occurred with the GitHub API: ', error, params);
+    }
+}
+function filterFiles({ filename, status }) {
+    if (status !== 'added') {
+        return false;
+    }
+    return filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx');
+}
+async function detectFunction(changedFiles) {
+    const filteredFiles = changedFiles.filter(filterFiles);
+    for (const file of filteredFiles) {
+        const result = await detectReactComponentInFile(file.filename);
+        if (result) {
+            return true; // If the check is true, exit directly
+        }
+    }
+    return false;
+}
+exports.default = {
+    detectFunction,
+    items,
+};
+
+
+/***/ }),
+
 /***/ 8047:
 /***/ ((module) => {
 
@@ -82493,6 +82463,9 @@ module.exports = require("zlib");;
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
+/******/ 	// expose the module cache
+/******/ 	__nccwpck_require__.c = __webpack_module_cache__;
+/******/ 	
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	(() => {
@@ -82546,9 +82519,9 @@ module.exports = require("zlib");;
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	__nccwpck_require__.ab = __dirname + "/";/************************************************************************/
-/******/ 	// module exports must be returned from runtime so entry inlining is disabled
+/******/ 	// module cache are used so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(5998);
+/******/ 	return __nccwpck_require__(__nccwpck_require__.s = 8426);
 /******/ })()
 ;

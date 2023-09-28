@@ -197,6 +197,7 @@
     "@svgr/webpack": "^6.0.0",
     "@testing-library/jest-native": "5.4.1",
     "@testing-library/react-native": "11.5.1",
+    "@types/babel-traverse": "^6.25.8",
     "@types/concurrently": "^7.0.0",
     "@types/jest": "^29.5.2",
     "@types/jest-when": "^3.5.2",

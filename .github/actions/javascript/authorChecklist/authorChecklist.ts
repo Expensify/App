@@ -1,16 +1,16 @@
-const core = require('@actions/core');
-const github = require('@actions/github');
-const https = require('https');
-const _ = require('lodash');
-const GithubUtils = require('../../../libs/GithubUtils');
-const CONST = require('../../../libs/CONST');
-const newComponentCategory = require('./newComponentCategory');
+import core from '@actions/core';
+import github from '@actions/github';
+import https from 'https';
+import _ from 'lodash';
+import GithubUtils from '../../../libs/GithubUtils';
+import CONST from '../../../libs/CONST';
+import newComponentCategory from './newComponentCategory';
 
 const pathToAuthorChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md';
 const checklistStartsWith = '### PR Author Checklist';
 const checklistEndsWith = "\r\n### Screenshots/Videos";
 
-const prNumber = github.context.payload.pull_request.number;
+const prNumber = github.context.payload.pull_request?.number;
 
 const CHECKLIST_CATEGORIES = {
     NEW_COMPONENT: newComponentCategory,
@@ -18,19 +18,19 @@ const CHECKLIST_CATEGORIES = {
 
 /**
  * Look at the contents of the pull request, and determine which checklist categories apply.
- *
- * @returns {Promise<Array<String>>}
  */
 async function getChecklistCategoriesForPullRequest() {
     const categories = [];
     const changedFiles = await GithubUtils.paginate(GithubUtils.octokit.pulls.listFiles, {
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         pull_number: prNumber,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         per_page: 100,
     });
 
-    for (const category of _.values(CHECKLIST_CATEGORIES)) {
+    for (const category of Object.values(CHECKLIST_CATEGORIES)) {
         const {detectFunction, items} = category;
         const categoryDetected = await detectFunction(changedFiles);
         if (categoryDetected) {
@@ -42,18 +42,15 @@ async function getChecklistCategoriesForPullRequest() {
 
 /**
  * Takes string in markdown, and divides it's content by two contant markers.
- *
- * @param {String} body
- * @returns {[String, String, String]}
  */
-function partitionWithChecklist(body) {
+function partitionWithChecklist(body: string) {
     const [contentBeforeChecklist, contentAfterStartOfChecklist] = body.split(checklistStartsWith);
     const [checklistContent, contentAfterChecklist] = contentAfterStartOfChecklist.split(checklistEndsWith);
     return [contentBeforeChecklist, checklistContent, contentAfterChecklist];
 }
 
 /**
- * @returns {Promise}
+ * @returns
  */
 function getNumberOfItemsFromAuthorChecklist() {
     return new Promise((resolve, reject) => {
@@ -64,8 +61,7 @@ function getNumberOfItemsFromAuthorChecklist() {
                     fileContents += chunk;
                 });
                 res.on('end', () => {
-                    // eslint-disable-next-line no-unused-vars
-                    const [_start, checklist] = partitionWithChecklist(fileContents);
+                    const [, checklist] = partitionWithChecklist(fileContents);
 
                     const numberOfChecklistItems = (checklist.match(/\[ \]/g) || []).length;
                     resolve(numberOfChecklistItems);
@@ -75,16 +71,12 @@ function getNumberOfItemsFromAuthorChecklist() {
     });
 }
 
-/**
- * @param {Number} numberOfChecklistItems
- * @param {String} pullRequestBody
- */
-function checkPRForCompletedChecklist(numberOfChecklistItems, pullRequestBody) {
+function checkPRForCompletedChecklist(numberOfChecklistItems: number, pullRequestBody: string) {
     // eslint-disable-next-line no-unused-vars
-    const [_start, checklist] = partitionWithChecklist(pullRequestBody);
+    const [, checklist] = partitionWithChecklist(pullRequestBody);
 
-    const numberOfFinishedChecklistItems = (checklist.match(/- \[x\]/gi) || []).length;
-    const numberOfUnfinishedChecklistItems = (checklist.match(/- \[ \]/g) || []).length;
+    const numberOfFinishedChecklistItems = (checklist.match(/- \[x\]/gi) ?? []).length;
+    const numberOfUnfinishedChecklistItems = (checklist.match(/- \[ \]/g) ?? []).length;
 
     const minCompletedItems = numberOfChecklistItems - 2;
 
@@ -101,7 +93,7 @@ function checkPRForCompletedChecklist(numberOfChecklistItems, pullRequestBody) {
 
 async function generateDynamicChecksAndCheckForCompletion() {
     // Generate dynamic checks
-    const checks = new Set();
+    const checks = new Set<string>();
     const categories = await getChecklistCategoriesForPullRequest();
     for (const checksForCategory of categories) {
         for (const check of checksForCategory) {
@@ -109,7 +101,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
         }
     }
 
-    const body = github.context.payload.pull_request.body;
+    const body = github.context.payload.pull_request?.body ?? '';
 
     // eslint-disable-next-line prefer-const
     let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
@@ -132,7 +124,8 @@ async function generateDynamicChecksAndCheckForCompletion() {
             }
         }
     }
-    const allChecks = _.flatten(_.map(_.values(CHECKLIST_CATEGORIES), 'items'));
+    // eslint-disable-next-line you-dont-need-lodash-underscore/flatten, you-dont-need-lodash-underscore/map
+    const allChecks = _.flatten(_.map(Object.values(CHECKLIST_CATEGORIES), 'items'));
     for (const check of allChecks) {
         if (!checks.has(check)) {
             // Check if some dynamic check has been added with previous commit, but the check is not relevant anymore
@@ -154,6 +147,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
         await GithubUtils.octokit.pulls.update({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             pull_number: prNumber,
             body: newBody,
         });
@@ -168,11 +162,11 @@ async function generateDynamicChecksAndCheckForCompletion() {
 
     // check for completion
     try {
-        const numberofItems = await getNumberOfItemsFromAuthorChecklist();
+        const numberofItems = await getNumberOfItemsFromAuthorChecklist() as number;
         checkPRForCompletedChecklist(numberofItems, newBody);
     } catch (err) {
         console.error(err);
-        core.setFailed(err);
+        core.setFailed(err as Error);
     }
 }
 
@@ -180,4 +174,4 @@ if (require.main === module) {
     generateDynamicChecksAndCheckForCompletion();
 }
 
-module.exports = generateDynamicChecksAndCheckForCompletion;
+export default generateDynamicChecksAndCheckForCompletion;
