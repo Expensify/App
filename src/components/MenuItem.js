@@ -136,6 +136,8 @@ const MenuItem = React.forwardRef((props, ref) => {
         return '';
     }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
 
+    const hasPressableRightComponent = props.onIconRightPress || props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
+
     return (
         <Hoverable>
             {(isHovered) => (
@@ -300,7 +302,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     </View>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.menuItemTextContainer, !props.onIconRightPress && !props.rightComponent && styles.pointerEventsNone]}>
+                            <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
                                 {Boolean(props.badgeText) && (
                                     <Badge
                                         text={props.badgeText}
@@ -352,7 +354,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         />
                                     </PressableWithFeedback>
                                 )}
-                                {Boolean(props.shouldShowRightComponent) && props.rightComponent}
+                                {props.shouldShowRightComponent && props.rightComponent}
                                 {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                             </View>
                         </>

@@ -58,7 +58,6 @@ function SuggestionEmoji({
     setSelection,
     updateComment,
     isComposerFullSize,
-    shouldShowReportRecipientLocalTime,
     isAutoSuggestionPickerLarge,
     forwardedRef,
     resetKeyboardInput,
@@ -235,7 +234,6 @@ function SuggestionEmoji({
             isComposerFullSize={isComposerFullSize}
             preferredSkinToneIndex={preferredSkinTone}
             isEmojiPickerLarge={isAutoSuggestionPickerLarge}
-            shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
             measureParentContainer={measureParentContainer}
         />
     );

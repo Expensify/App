@@ -2,4 +2,4 @@
 title: Annual Subscription
 description: Annual Subscription
 ---
-## Resources Coming Soon!
+## Resource Coming Soon!

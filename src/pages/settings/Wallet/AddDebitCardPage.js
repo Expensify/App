@@ -202,6 +202,7 @@ function DebitCardPage(props) {
 
 DebitCardPage.propTypes = propTypes;
 DebitCardPage.defaultProps = defaultProps;
+DebitCardPage.displayName = 'DebitCardPage';
 
 export default withOnyx({
     formData: {

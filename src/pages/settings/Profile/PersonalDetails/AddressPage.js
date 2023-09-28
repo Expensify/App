@@ -234,6 +234,7 @@ function AddressPage({privatePersonalDetails}) {
 
 AddressPage.propTypes = propTypes;
 AddressPage.defaultProps = defaultProps;
+AddressPage.displayName = 'AddressPage';
 
 export default withOnyx({
     privatePersonalDetails: {

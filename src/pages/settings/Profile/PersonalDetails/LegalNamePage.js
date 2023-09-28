@@ -120,6 +120,7 @@ function LegalNamePage(props) {
 
 LegalNamePage.propTypes = propTypes;
 LegalNamePage.defaultProps = defaultProps;
+LegalNamePage.displayName = 'LegalNamePage';
 
 export default compose(
     withLocalize,

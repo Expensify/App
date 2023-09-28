@@ -18,7 +18,6 @@ import styles from '../../../styles/styles';
 import * as CardUtils from '../../../libs/CardUtils';
 import Button from '../../../components/Button';
 import CardDetails from './WalletPage/CardDetails';
-import TextLink from '../../../components/TextLink';
 
 const propTypes = {
     /* Onyx Props */
@@ -50,7 +49,7 @@ function ExpensifyCardPage({
 
     const [shouldShowCardDetails, setShouldShowCardDetails] = useState(false);
 
-    if (_.isEmpty(virtualCard) || _.isEmpty(physicalCard)) {
+    if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
         return <NotFoundPage />;
     }
 
@@ -61,7 +60,10 @@ function ExpensifyCardPage({
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ExpensifyCardPage.displayName}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
@@ -79,28 +81,32 @@ function ExpensifyCardPage({
                             interactive={false}
                             titleStyle={styles.newKansasLarge}
                         />
-                        {shouldShowCardDetails ? (
-                            <CardDetails
-                                pan="1234123412341234"
-                                expiration="11/02/2024"
-                                cvv="321"
-                                domain={domain}
-                            />
-                        ) : (
-                            <MenuItemWithTopDescription
-                                description={translate('cardPage.virtualCardNumber')}
-                                title={CardUtils.maskCard(virtualCard.lastFourPAN)}
-                                interactive={false}
-                                titleStyle={styles.walletCardNumber}
-                                shouldShowRightComponent
-                                rightComponent={
-                                    <Button
-                                        medium
-                                        text={translate('walletPage.cardDetails.revealDetails')}
-                                        onPress={handleRevealDetails}
+                        {!_.isEmpty(virtualCard) && (
+                            <>
+                                {shouldShowCardDetails ? (
+                                    <CardDetails
+                                        pan="1234123412341234"
+                                        expiration="11/02/2024"
+                                        cvv="321"
+                                        domain={domain}
                                     />
-                                }
-                            />
+                                ) : (
+                                    <MenuItemWithTopDescription
+                                        description={translate('cardPage.virtualCardNumber')}
+                                        title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                        interactive={false}
+                                        titleStyle={styles.walletCardNumber}
+                                        shouldShowRightComponent
+                                        rightComponent={
+                                            <Button
+                                                medium
+                                                text={translate('cardPage.cardDetails.revealDetails')}
+                                                onPress={handleRevealDetails}
+                                            />
+                                        }
+                                    />
+                                )}
+                            </>
                         )}
                         {!_.isEmpty(physicalCard) && (
                             <MenuItemWithTopDescription

@@ -489,6 +489,7 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        addReceipt: 'Add receipt',
     },
     iou: {
         amount: 'Amount',
@@ -822,6 +823,14 @@ export default {
         availableSpend: 'Remaining spending power',
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
+        cardDetails: {
+            cardNumber: 'Virtual card number',
+            expiration: 'Expiration',
+            cvv: 'CVV',
+            address: 'Address',
+            revealDetails: 'Reveal details',
+            copyCardNumber: 'Copy card number',
+        },
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -1376,7 +1385,6 @@ export default {
         reimburse: {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
-            kilometers: 'Kilometers',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
             trackDistance: 'Track distance',

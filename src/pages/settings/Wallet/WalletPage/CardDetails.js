@@ -7,6 +7,7 @@ import Clipboard from '../../../../libs/Clipboard';
 import useLocalize from '../../../../hooks/useLocalize';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
+import * as CartUtils from '../../../../libs/CardUtils';
 import TextLink from '../../../../components/TextLink';
 import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -34,7 +35,7 @@ const propTypes = {
         }),
     }),
 
-    /** Domain of the card */
+    /** Domain name */
     domain: PropTypes.string.isRequired,
 };
 
@@ -56,22 +57,7 @@ const defaultProps = {
 
 function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
     usePrivatePersonalDetails();
-    const privateDetails = privatePersonalDetails || {};
-    const address = privateDetails.address || {};
     const {translate} = useLocalize();
-
-    /**
-     * Formats an address object into an easily readable string
-     *
-     * @returns {String}
-     */
-    const getFormattedAddress = () => {
-        const [street1, street2] = (address.street || '').split('\n');
-        const formatted = [street1, street2, address.city, address.state, address.zip, address.country].join(', ');
-
-        // Remove the last comma of the address
-        return formatted.trim().replace(/,$/, '');
-    };
 
     const handleCopyToClipboard = () => {
         Clipboard.setString(pan);
@@ -80,32 +66,32 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
     return (
         <>
             <MenuItemWithTopDescription
-                description={translate('walletPage.cardDetails.cardNumber')}
+                description={translate('cardPage.cardDetails.cardNumber')}
                 title={pan}
                 iconRight={Expensicons.Copy}
                 shouldShowRightIcon
                 interactive={false}
                 onIconRightPress={handleCopyToClipboard}
-                iconRightAccessibilityLabel={translate('walletPage.cardDetails.copyCardNumber')}
+                iconRightAccessibilityLabel={translate('cardPage.cardDetails.copyCardNumber')}
             />
             <MenuItemWithTopDescription
-                description={translate('walletPage.cardDetails.expiration')}
+                description={translate('cardPage.cardDetails.expiration')}
                 title={expiration}
                 interactive={false}
             />
             <MenuItemWithTopDescription
-                description={translate('walletPage.cardDetails.cvv')}
+                description={translate('cardPage.cardDetails.cvv')}
                 title={cvv}
                 interactive={false}
             />
             <MenuItemWithTopDescription
-                description={translate('walletPage.cardDetails.address')}
-                title={getFormattedAddress()}
+                description={translate('cardPage.cardDetails.address')}
+                title={CartUtils.getFormattedAddress(privatePersonalDetails)}
                 interactive={false}
             />
             <TextLink
                 style={[styles.link, styles.mh5, styles.mb3]}
-                onPress={() => Navigation.navigate(ROUTES.getSettingsWalletCardsDigitalDetailsUpdateAddressRoute(domain))}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain))}
             >
                 {translate('walletPage.cardDetails.updateAddress')}
             </TextLink>
