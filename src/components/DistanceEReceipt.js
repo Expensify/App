@@ -20,7 +20,7 @@ import useNetwork from '../hooks/useNetwork';
 import PendingMapView from './MapView/PendingMapView';
 
 const propTypes = {
-    /** The transaction for the eReceipt */
+    /** The transaction for the distance request */
     transaction: transactionPropTypes,
 };
 
