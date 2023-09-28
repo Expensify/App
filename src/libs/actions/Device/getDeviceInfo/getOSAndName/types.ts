@@ -1,5 +1,7 @@
-export type GetOSAndName = () => OSAndName;
-export type OSAndName = {
-    device_name?: string;
-    os_version?: string;
+type GetOSAndName = () => OSAndName;
+type OSAndName = {
+    deviceName?: string;
+    osVersion?: string;
 }
+
+export type {GetOSAndName, OSAndName};

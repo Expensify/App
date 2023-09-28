@@ -1,10 +1,12 @@
 import {OSAndName} from "./getOSAndName/types";
 
-export type BaseInfo = {
-    app_version: string;
+type BaseInfo = {
+    appVersion: string;
     timestamp: string;
 };
 
-export type GetDeviceInfo = () => DeviceInfo;
-export type DeviceInfo = BaseInfo & OSAndName & {os?: string, device_name?: string, device_version?: string};
-export type GetBaseInfo = () => BaseInfo;
+type GetDeviceInfo = () => DeviceInfo;
+type DeviceInfo = BaseInfo & OSAndName & {os?: string, deviceName?: string, deviceVersion?: string};
+type GetBaseInfo = () => BaseInfo;
+
+export type {GetDeviceInfo, DeviceInfo, GetBaseInfo, BaseInfo};

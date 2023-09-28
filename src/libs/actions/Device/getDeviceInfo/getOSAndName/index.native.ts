@@ -6,8 +6,8 @@ const getOSAndName: GetOSAndName = () => {
     const deviceName = RNDeviceInfo.getDeviceNameSync();
     const prettyName = `${Str.UCFirst(RNDeviceInfo.getManufacturerSync() || '')} ${deviceName}`;
     return {
-        device_name: RNDeviceInfo.isEmulatorSync() ? `Emulator - ${prettyName}` : prettyName,
-        os_version: RNDeviceInfo.getSystemVersion(),
+        deviceName: RNDeviceInfo.isEmulatorSync() ? `Emulator - ${prettyName}` : prettyName,
+        osVersion: RNDeviceInfo.getSystemVersion(),
     };
 };
 

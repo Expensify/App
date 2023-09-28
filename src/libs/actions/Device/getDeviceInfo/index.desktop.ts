@@ -5,7 +5,7 @@ import {GetDeviceInfo} from './types';
 const getDeviceInfo: GetDeviceInfo = () => ({
         ...getBaseInfo(),
         ...getOSAndName(),
-        device_name: 'Desktop',
+        deviceName: 'Desktop',
     });
 
 export default getDeviceInfo;

@@ -1,1 +1,3 @@
-export type GenerateDeviceID = () => Promise<string>;
+type GenerateDeviceID = () => Promise<string>;
+
+export default GenerateDeviceID;
