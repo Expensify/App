@@ -93,7 +93,7 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
                 style={[styles.link, styles.mh5, styles.mb3]}
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain))}
             >
-                {translate('walletPage.cardDetails.updateAddress')}
+                {translate('cardPage.cardDetails.updateAddress')}
             </TextLink>
         </>
     );

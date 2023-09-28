@@ -810,7 +810,7 @@ export default {
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
         cardDetails: {
-            cardNumber: 'Número de tarjeta digital',
+            cardNumber: 'Número de tarjeta virtual',
             expiration: 'Expiración',
             cvv: 'CVV',
             address: 'Dirección',
