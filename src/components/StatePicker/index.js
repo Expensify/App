@@ -49,7 +49,9 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
     };
 
     const updateStateInput = (state) => {
-        onInputChange(state.value);
+        if (state.value !== value) {
+            onInputChange(state.value);
+        }
         hidePickerModal();
     };
 

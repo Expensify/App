@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import ReportActionsSkeletonView from '../../../../components/ReportActionsSkeletonView';
 import CONST from '../../../../CONST';
@@ -18,9 +18,6 @@ const propTypes = {
     /** Shows if we call fetching newer report action */
     isLoadingNewerReportActions: PropTypes.bool,
 
-    /** Height of the skeleton view */
-    skeletonViewHeight: PropTypes.number,
-
     /** Name of the last report action */
     lastReportActionName: PropTypes.string,
 };
@@ -29,29 +26,29 @@ const defaultProps = {
     isLoadingOlderReportActions: false,
     isLoadingInitialReportActions: false,
     isLoadingNewerReportActions: false,
-    skeletonViewHeight: 0,
     lastReportActionName: '',
 };
 
-function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitialReportActions, skeletonViewHeight, lastReportActionName, isLoadingNewerReportActions}) {
+function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitialReportActions, lastReportActionName, isLoadingNewerReportActions}) {
     const {isOffline} = useNetwork();
+    const firstRenderRef = useRef(true);
+
+    if (firstRenderRef.current) {
+        firstRenderRef.current = false;
+        return null;
+    }
+
     // we use two different loading components for header and footer to reduce the jumping effect when you scrolling to the newer reports
     if (type === CONST.LIST_COMPONENTS.FOOTER) {
         if (isLoadingOlderReportActions) {
-            return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
+            return <ReportActionsSkeletonView />;
         }
 
         // Make sure the oldest report action loaded is not the first. This is so we do not show the
         // skeleton view above the created action in a newly generated optimistic chat or one with not
         // that many comments.
-        // const lastReportAction = _.last(sortedReportActions) || {};
         if (isLoadingInitialReportActions && lastReportActionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return (
-                <ReportActionsSkeletonView
-                    containerHeight={skeletonViewHeight}
-                    shouldAnimate={!isOffline}
-                />
-            );
+            return <ReportActionsSkeletonView shouldAnimate={!isOffline} />;
         }
 
         return null;

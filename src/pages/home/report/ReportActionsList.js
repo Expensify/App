@@ -31,6 +31,9 @@ const propTypes = {
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID: PropTypes.string,
 
+    /** The report metadata loading states */
+    isLoadingInitialReportActions: PropTypes.bool,
+
     /** Are we loading more report actions? */
     isLoadingOlderReportActions: PropTypes.bool,
 
@@ -60,6 +63,7 @@ const defaultProps = {
     personalDetails: {},
     onScroll: () => {},
     mostRecentIOUReportActionID: '',
+isLoadingInitialReportActions: false,
     isLoadingOlderReportActions: false,
     isLoadingNewerReportActions: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -96,6 +100,9 @@ function isMessageUnread(message, lastReadTime) {
 
 function ReportActionsList({
     report,
+    isLoadingInitialReportActions,
+    isLoadingOlderReportActions,
+    isLoadingNewerReportActions,
     sortedReportActions,
     windowHeight,
     onScroll,
@@ -117,10 +124,11 @@ function ReportActionsList({
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
+    const firstRenderRef = useRef(true);
 
-    // Considering that renderItem is enclosed within a useCallback, marking it as "read" twice will retain the value as "true," preventing the useCallback from re-executing.
-    // However, if we create and listen to an object, it will lead to a new useCallback execution.
-    const [messageManuallyMarked, setMessageManuallyMarked] = useState({read: false});
+    // This state is used to force a re-render when the user manually marks a message as unread
+    // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
+    const [messageManuallyMarkedUnread, setMessageManuallyMarkedUnread] = useState(0);
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -166,14 +174,14 @@ function ReportActionsList({
 
     useEffect(() => {
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
-        if (!didManuallyMarkReportAsUnread) {
-            setMessageManuallyMarked({read: false});
+        if (didManuallyMarkReportAsUnread) {
+            // Clearing the current unread marker so that it can be recalculated
+            setCurrentUnreadMarker(null);
+            setMessageManuallyMarkedUnread(new Date().getTime());
             return;
         }
 
-        // Clearing the current unread marker so that it can be recalculated
-        setCurrentUnreadMarker(null);
-        setMessageManuallyMarked({read: true});
+        setMessageManuallyMarkedUnread(0);
 
         // We only care when a new lastReadTime is set in the report
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -251,16 +259,11 @@ function ReportActionsList({
      * the height of the smallest report action possible.
      * @return {{availableContentHeight: Number, initialNumToRender: Number}}
      */
-    const {availableContentHeight, initialNumToRender} = useMemo(() => {
-        const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
-        const initialRenderCount = Math.ceil(availableHeight / minimumReportActionHeight);
-
-        return {
-            availableContentHeight: availableHeight,
-            initialNumToRender: initialRenderCount,
-        };
-    }, [windowHeight]);
+    const initialNumToRender = useMemo(() => {
+      const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
+      const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
+      return Math.ceil(availableHeight / minimumReportActionHeight);
+  }, [windowHeight]);
 
     const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
     /**
@@ -286,7 +289,7 @@ function ReportActionsList({
                 const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
                 shouldDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
 
-                if (!messageManuallyMarked.read) {
+                if (!messageManuallyMarkedUnread) {
                     shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
                 const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
@@ -310,7 +313,7 @@ function ReportActionsList({
                 />
             );
         },
-        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarked, shouldHideThreadDividerLine, currentUnreadMarker],
+        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarkedUnread, shouldHideThreadDividerLine, currentUnreadMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
@@ -320,32 +323,41 @@ function ReportActionsList({
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
     const contentContainerStyle = useMemo(
-        () => [styles.chatContentScrollView, report.isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
-        [report.isLoadingNewerReportActions],
+        () => [styles.chatContentScrollView, isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
+        [isLoadingNewerReportActions],
     );
 
     const listFooterComponent = useCallback(
         () => (
             <ListBoundaryLoader
                 type={CONST.LIST_COMPONENTS.FOOTER}
-                isLoadingOlderReportActions={report.isLoadingOlderReportActions}
-                isLoadingInitialReportActions={report.isLoadingInitialReportActions}
-                skeletonViewHeight={availableContentHeight}
+                isLoadingOlderReportActions={isLoadingOlderReportActions}
+                isLoadingInitialReportActions={isLoadingInitialReportActions}
                 lastReportActionName={lastReportAction.actionName}
             />
         ),
-        [report.isLoadingInitialReportActions, report.isLoadingOlderReportActions, availableContentHeight, lastReportAction.actionName],
+        [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName],
+    );
+
+
+
+
+    const onLayoutInner = useCallback(
+        (event) => {
+            onLayout(event);
+        },
+        [onLayout],
     );
 
     const listHeaderComponent = useCallback(
-        () => (
-            <ListBoundaryLoader
-                type={CONST.LIST_COMPONENTS.HEADER}
-                isLoadingNewerReportActions={report.isLoadingNewerReportActions}
-            />
-        ),
-        [report.isLoadingNewerReportActions],
-    );
+      () => (
+          <ListBoundaryLoader
+              type={CONST.LIST_COMPONENTS.HEADER}
+              isLoadingNewerReportActions={isLoadingNewerReportActions}
+          />
+      ),
+      [isLoadingNewerReportActions],
+  );
 
     return (
         <>
@@ -371,7 +383,7 @@ function ReportActionsList({
                     ListFooterComponent={listFooterComponent}
                     ListHeaderComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={onLayout}
+                    onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     extraData={extraData}
                 />

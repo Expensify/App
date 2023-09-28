@@ -450,44 +450,65 @@ function reportActionsExist(reportID) {
  * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
 function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
-    const optimisticReportData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: reportActionsExist(reportID)
-            ? {}
-            : {
-                  isLoadingInitialReportActions: true,
-                  isLoadingOlderReportActions: false,
-                  isLoadingNewerReportActions: false,
-                  reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
-              },
-    };
-    const reportSuccessData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {
-            isLoadingInitialReportActions: false,
-            pendingFields: {
-                createChat: null,
-            },
-            errorFields: {
-                createChat: null,
-            },
-            isOptimisticReport: false,
+    const optimisticReportData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: reportActionsExist(reportID)
+                ? {}
+                : {
+                      reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
+                  },
         },
-    };
-    const reportFailureData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {
-            isLoadingInitialReportActions: false,
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                isLoadingInitialReportActions: true,
+                isLoadingOlderReportActions: false,
+                isLoadingNewerReportActions: false,
+            },
+
         },
-    };
+    ];
+
+    const reportSuccessData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    createChat: null,
+                },
+                errorFields: {
+                    createChat: null,
+                },
+                isOptimisticReport: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                isLoadingInitialReportActions: false,
+            },
+        },
+    ];
+
+    const reportFailureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                isLoadingInitialReportActions: false,
+            },
+        },
+    ];
 
     const onyxData = {
-        optimisticData: [optimisticReportData],
-        successData: [reportSuccessData],
-        failureData: [reportFailureData],
+        optimisticData: optimisticReportData,
+        successData: reportSuccessData,
+        failureData: reportFailureData,
     };
 
     const params = {
@@ -504,17 +525,17 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
     // If we open an exist report, but it is not present in Onyx yet, we should change the method to set for this report
     // and we need data to be available when we navigate to the chat page
     if (_.isEmpty(ReportUtils.getReport(reportID))) {
-        optimisticReportData.onyxMethod = Onyx.METHOD.SET;
+        onyxData.optimisticData[0].onyxMethod = Onyx.METHOD.SET;
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
-        optimisticReportData.onyxMethod = Onyx.METHOD.SET;
-        optimisticReportData.value = {
+        onyxData.optimisticData[0].onyxMethod = Onyx.METHOD.SET;
+        onyxData.optimisticData[0].value = {
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-            ...optimisticReportData.value,
+            ...onyxData.optimisticData[0].value,
             ...newReportObject,
             pendingFields: {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -698,17 +719,23 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
+                        reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
+                      },
+                    },
+                    {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                      value: {
                         isLoadingInitialReportActions: true,
                         isLoadingNewerReportActions: false,
                         isLoadingOlderReportActions: false,
-                        reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
                     },
                 },
             ],
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingInitialReportActions: false,
                     },
@@ -717,7 +744,7 @@ function reconnect(reportID) {
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingInitialReportActions: false,
                     },
@@ -750,6 +777,16 @@ function readOldestAction(reportID, reportActionID) {
                         isLoadingOlderReportActions: true,
                     },
                 },
+              //   {
+              //     onyxMethod: Onyx.METHOD.MERGE,
+              //     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+              //     value: {
+              //         isLoadingInitialReportActions: true,
+              //         isLoadingOlderReportActions: false,
+              //         isLoadingNewerReportActions: false,
+              //     },
+      
+              // },
             ],
             successData: [
                 {
@@ -1343,11 +1380,12 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  * Saves the draft for a comment report action. This will put the comment into "edit mode"
  *
  * @param {String} reportID
- * @param {Number} reportActionID
+ * @param {Object} reportAction
  * @param {String} draftMessage
  */
-function saveReportActionDraft(reportID, reportActionID, draftMessage) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
+function saveReportActionDraft(reportID, reportAction, draftMessage) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${reportAction.reportActionID}`, draftMessage);
 }
 
 /**
@@ -1721,9 +1759,9 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
         return false;
     }
 
-    // Don't show a notification if no comment exists
-    if (action && !_.some(action.message, (f) => f.type === 'COMMENT')) {
-        Log.info(`${tag} No notification because no comments exist for the current action`);
+    // Only show notifications for supported types of report actions
+    if (!ReportActionsUtils.isNotifiableReportAction(action)) {
+        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: action.actionName});
         return false;
     }
 
@@ -1732,23 +1770,28 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
 
 /**
  * @param {String} reportID
- * @param {Object} action
+ * @param {Object} reportAction
  */
-function showReportActionNotification(reportID, action) {
-    if (!shouldShowReportActionNotification(reportID, action)) {
+function showReportActionNotification(reportID, reportAction) {
+    if (!shouldShowReportActionNotification(reportID, reportAction)) {
         return;
     }
 
     Log.info('[LocalNotification] Creating notification');
-    LocalNotification.showCommentNotification({
-        report: allReports[reportID],
-        reportAction: action,
-        onClick: () => {
-            // Navigate to this report onClick
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-        },
-    });
-    notifyNewAction(reportID, action.actorAccountID, action.reportActionID);
+    const report = allReports[reportID];
+
+    const notificationParams = {
+        report,
+        reportAction,
+        onClick: () => Navigation.navigate(ROUTES.getReportRoute(reportID)),
+    };
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+        LocalNotification.showModifiedExpenseNotification(notificationParams);
+    } else {
+        LocalNotification.showCommentNotification(notificationParams);
+    }
+
+    notifyNewAction(reportID, reportAction.actorAccountID, reportAction.reportActionID);
 }
 
 /**

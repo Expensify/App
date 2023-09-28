@@ -19,7 +19,7 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportPropTypes from '../../reportPropTypes';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
-import ReportScreenContext from '../ReportScreenContext';
+import {ReactionListContext} from '../ReportScreenContext';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -27,6 +27,12 @@ const propTypes = {
 
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The report metadata loading states */
+    isLoadingInitialReportActions: PropTypes.bool,
+
+    /** The report actions are loading more data */
+    isLoadingOlderReportActions: PropTypes.bool,
 
     /** Whether the composer is full size */
     /* eslint-disable-next-line react/no-unused-prop-types */
@@ -51,13 +57,13 @@ const propTypes = {
 const defaultProps = {
     reportActions: [],
     policy: null,
+    isLoadingInitialReportActions: false,
+    isLoadingOlderReportActions: false,
 };
 
 function ReportActionsView(props) {
-    const context = useContext(ReportScreenContext);
-
     useCopySelectionHelper();
-
+    const reactionListRef = useContext(ReactionListContext);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const isFetchNewerWasCalled = useRef(false);
@@ -139,7 +145,7 @@ function ReportActionsView(props) {
      */
     const loadOlderChats = () => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.report.isLoadingOlderReportActions) {
+        if (props.isLoadingOlderReportActions) {
             return;
         }
 
@@ -159,7 +165,7 @@ function ReportActionsView(props) {
      */
     const loadNewerChats = _.throttle(({distanceFromStart}) => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.report.isLoadingNewerReportActions || props.report.isLoadingInitialReportActions) {
+        if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions) {
             return;
         }
 
@@ -214,9 +220,11 @@ function ReportActionsView(props) {
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
+                isLoadingInitialReportActions={props.isLoadingInitialReportActions}
+                isLoadingOlderReportActions={props.isLoadingOlderReportActions}
                 policy={props.policy}
             />
-            <PopoverReactionList ref={context.reactionListRef} />
+            <PopoverReactionList ref={reactionListRef} />
         </>
     );
 }
@@ -242,15 +250,11 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (oldProps.report.isLoadingOlderReportActions !== newProps.report.isLoadingOlderReportActions) {
+    if (oldProps.isLoadingOlderReportActions !== newProps.isLoadingOlderReportActions) {
         return false;
     }
 
-    if (oldProps.report.isLoadingNewerReportActions !== newProps.report.isLoadingNewerReportActions) {
-        return false;
-    }
-
-    if (oldProps.report.isLoadingInitialReportActions !== newProps.report.isLoadingInitialReportActions) {
+    if (oldProps.isLoadingInitialReportActions !== newProps.isLoadingInitialReportActions) {
         return false;
     }
 
