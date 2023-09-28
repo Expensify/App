@@ -145,7 +145,9 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
     isNewIOUReport,
+    optimisticCreatedActionReportID
 ) {
+    // TODO add optimisticCreatedActionReportID
     const optimisticData = [
         {
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
@@ -534,6 +536,9 @@ function getMoneyRequestInformation(
         receiptObject,
     );
 
+    const transactionThread = ReportUtils.buildTransactionThread(iouAction, iouReport.reportID);
+    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_ACCOUNT_ID_FAKE);
+
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
         reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
@@ -571,6 +576,7 @@ function getMoneyRequestInformation(
         optimisticPolicyRecentlyUsedTags,
         isNewChatReport,
         isNewIOUReport,
+        optimisticCreatedAction.reportID,
     );
 
     return {
@@ -588,6 +594,8 @@ function getMoneyRequestInformation(
             successData,
             failureData,
         },
+        transactionThreadReportID: transactionThread.reportID,
+        createdReportActionForThread: optimisticCreatedAction.reportActionID,
     };
 }
 
@@ -685,7 +693,7 @@ function requestMoney(
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
-    const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
+    const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData, transactionThreadReportID, createdReportActionForThread} =
         getMoneyRequestInformation(currentChatReport, participant, comment, amount, currency, created, merchant, payeeAccountID, payeeEmail, receipt, undefined, category, tag, billable);
 
     API.write(
@@ -710,6 +718,8 @@ function requestMoney(
             category,
             tag,
             billable,
+            transactionThreadReportID: Number(transactionThreadReportID),
+            createdReportActionForThread: Number(createdReportActionForThread),
         },
         onyxData,
     );
@@ -944,6 +954,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
             splitTransaction.transactionID,
         );
+
+        // TODO
+        // add logic to create transaction thread for each DM between split participants
 
         // STEP 4: Build optimistic reportActions. We need:
         // 1. CREATED action for the chatReport
