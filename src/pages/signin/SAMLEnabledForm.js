@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -12,12 +12,10 @@ import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import SAMLSignInPage from './SAMLSignInPage';
 import * as Session from '../../libs/actions/Session';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 import CONST from '../../CONST';
-import ValidateCodeForm from './ValidateCodeForm';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 
@@ -39,10 +37,12 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Function to change whether the user is using SAML or magic codes to log in */
+    setIsUsingSAMLLogin: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
-
 };
 
 const defaultProps = {
@@ -51,63 +51,51 @@ const defaultProps = {
 };
 
 function SAMLEnabledForm (props) {
-
-    const [showSAMLSignInPage, setShowSAMLSignInPage] = useState(false);
-    const [showValidateCodeForm, setShowValidateCodeForm] = useState(false);
-
     return (
         <>
-            {!showSAMLSignInPage && !showValidateCodeForm && (
-            <>
-                <View>
-                    <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
-                        {props.translate('samlSignIn.welcomeSAMLEnabled')}
-                    </Text>
-                    <Button
-                        isDisabled={props.network.isOffline}
-                        success
-                        style={[styles.mv3]}
-                        text={props.translate('samlSignIn.useSingleSignOn')}
-                        isLoading={props.account.isLoading}
-                        onPress={() => {
-                            Navigation.navigate(ROUTES.SAML_SIGN_IN);
-                        }}
-                    />
+            <View>
+                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
+                    {props.translate('samlSignIn.welcomeSAMLEnabled')}
+                </Text>
+                <Button
+                    isDisabled={props.network.isOffline}
+                    success
+                    style={[styles.mv3]}
+                    text={props.translate('samlSignIn.useSingleSignOn')}
+                    isLoading={props.account.isLoading}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.SAML_SIGN_IN);
+                    }}
+                />
 
-                    <View style={[styles.mt5]}>
-                        <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
-                            {props.translate('samlSignIn.orContinueWithMagicCode')}
-                        </Text>
-                    </View>
-
-                    <Button
-                        isDisabled={props.network.isOffline}
-                        style={[styles.mv3]}
-                        text={props.translate('samlSignIn.useMagicCode')}
-                        isLoading={
-                            props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
-                        }
-                        onPress={() => {
-                            setShowValidateCodeForm(true)
-                            Session.resendValidateCode(props.credentials.login);
-                        }}
-                    />
-                    <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
-                </View>
-                <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
-                    <Terms />
-                </View>
-            </>
-            )}
-            {showSAMLSignInPage &&  <SAMLSignInPage /> }
-            {showValidateCodeForm && (
-                <>
+                <View style={[styles.mt5]}>
                     <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
-                        {props.translate('welcomeText.welcomeEnterMagicCode', {login: props.credentials.login})}
+                        {props.translate('samlSignIn.orContinueWithMagicCode')}
                     </Text>
-                    <ValidateCodeForm />
-                </>
-            )}
+                </View>
+
+                <Button
+                    isDisabled={props.network.isOffline}
+                    style={[styles.mv3]}
+                    text={props.translate('samlSignIn.useMagicCode')}
+                    isLoading={
+                        props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
+                    }
+                    onPress={() => {
+                        Session.resendValidateCode(props.credentials.login);
+                        props.setIsUsingSAMLLogin(false);
+                    }}
+                />
+                <ChangeExpensifyLoginLink onPress={() => {
+                    // Redirect the user back to the login page and clear the state for whether they opted to use SAML
+                    // or magic codes to sign in
+                    Session.clearSignInData()
+                    props.setIsUsingSAMLLogin(true);
+                    }} />
+            </View>
+            <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
+                <Terms />
+            </View>
         </>
     );
 }

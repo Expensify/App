@@ -77,7 +77,7 @@ const defaultProps = {
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, isSAMLEnabled, isSAMLRequired, hasEmailDeliveryFailure}) {
+function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, isSAMLEnabled, isSAMLRequired, isUsingSAMLLogin, hasEmailDeliveryFailure}) {
     const shouldShowLoginForm = !hasLogin && !hasValidateCode;
     let shouldShowSAMLEnabledForm = false;
     let shouldInitiateSAMLLogin = false;
@@ -85,15 +85,16 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
 
     // SAML is temporarily restricted to users on the beta or to users signing in on web and mweb
     if (Permissions.canUseSAML() || platform === CONST.PLATFORM.WEB) {
-        shouldShowSAMLEnabledForm = hasLogin && isSAMLEnabled && !isSAMLRequired;
-        shouldInitiateSAMLLogin = hasLogin && isSAMLRequired;
+        shouldShowSAMLEnabledForm = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && isUsingSAMLLogin;
+        shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired;
     }
 
-    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !(shouldShowSAMLEnabledForm || shouldInitiateSAMLLogin);
+    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !isUsingSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
-    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowSAMLEnabledForm && !shouldInitiateSAMLLogin;
+    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !isUsingSAMLLogin;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowSAMLEnabledForm || isUnvalidatedSecondaryLogin;
     const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowSAMLEnabledForm;
+
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
@@ -115,6 +116,7 @@ function SignInPage({credentials, account, isInModal}) {
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
     const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
+    const [isUsingSAMLLogin, setIsUsingSAMLLogin] = useState(Boolean(account.isSAMLEnabled || account.isSAMLRequired));
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
@@ -130,6 +132,7 @@ function SignInPage({credentials, account, isInModal}) {
             isAccountValidated: Boolean(account.validated),
             isSAMLEnabled: Boolean(account.isSAMLEnabled),
             isSAMLRequired: Boolean(account.isSAMLRequired),
+            isUsingSAMLLogin,
             hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
         },
     );
@@ -205,7 +208,11 @@ function SignInPage({credentials, account, isInModal}) {
                     />
                 )}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                {shouldShowSAMLEnabledForm && <SAMLEnabledForm />}
+                {shouldShowSAMLEnabledForm && (
+                    <SAMLEnabledForm
+                        setIsUsingSAMLLogin={setIsUsingSAMLLogin}
+                    />
+                )}
                 {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
         </View>
