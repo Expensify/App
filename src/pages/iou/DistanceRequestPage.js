@@ -49,7 +49,7 @@ function DistanceRequestPage({iou, report, route}) {
         if (iou.transactionID) {
             return;
         }
-        IOU.createEmptyTransaction();
+        IOU.setUpDistanceTransaction();
     }, [iou.transactionID]);
 
     return (
