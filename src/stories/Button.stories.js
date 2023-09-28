@@ -43,9 +43,15 @@ function PressOnEnterWithBubbling(props) {
     return (
         <>
             <Text>Both buttons will trigger on press of Enter as the Enter event will bubble across all instances of button.</Text>
-            <View style={{flexDirection: 'row', padding:10}}>
-            <PressOnEnter {...props} text="Button A"/>
-            <PressOnEnter {...props} text="Button B" />
+            <View style={{flexDirection: 'row', padding: 10}}>
+                <PressOnEnter
+                    {...props}
+                    text="Button A"
+                />
+                <PressOnEnter
+                    {...props}
+                    text="Button B"
+                />
             </View>
         </>
     );
