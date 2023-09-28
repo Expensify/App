@@ -8,7 +8,7 @@ import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../withCurrentUserPersonalDetails';
 import Icon from '../Icon';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
@@ -57,6 +57,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    ...withCurrentUserPersonalDetailsDefaultProps,
     personalDetailsList: {},
     taskReport: {},
     isHovered: false,
