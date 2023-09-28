@@ -391,6 +391,7 @@ export default {
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
         subscribeToThread: 'NEED TO TRANSLATE',
+        unsubscribeFromThread: 'NEED TO TRANSLATE',
         flagAsOffensive: 'Marcar como ofensivo',
     },
     emojiReactions: {

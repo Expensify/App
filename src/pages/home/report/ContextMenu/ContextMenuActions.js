@@ -138,7 +138,7 @@ export default [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
+                    Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', ''), reportAction, reportID);
                 });
                 return;
             }
@@ -150,22 +150,57 @@ export default [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.subscribeToThread',
-        icon: Expensicons.Chair,
+        // textTranslateKey: lodashGet(reportAction, 'childReportNotificationPreference', '0'),
+        icon: Expensicons.Bell,
         successTextTranslateKey: '',
-        successIcon: null,
+        successIcon: null,g
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
+            const subscribed = lodashGet(reportAction, 'childReportNotificationPreference', '') !== "hidden";
             if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
             }
             const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
             const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
             const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
-            return isCommentAction || isReportPreviewAction || isIOUAction;
+            return !subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             Log.info("sparsisparsi start");
-            Log.info(JSON.stringify(reportAction));
+            Log.info(lodashGet(reportAction, 'childReportNotificationPreference', '0'));
             Log.info("sparsisparsi done");
+            debugger;
+            // if (closePopover) {
+            //     hideContextMenu(false, () => {
+            //         ReportActionComposeFocusManager.focus();
+            //         Report.subscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
+            //     });
+            //     return;
+            // }
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.unsubscribeFromThread',
+        // textTranslateKey: lodashGet(reportAction, 'childReportNotificationPreference', '0'),
+        icon: Expensicons.BellSlash,
+        successTextTranslateKey: '',
+        successIcon: null,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
+            const subscribed = lodashGet(reportAction, 'childReportNotificationPreference', '0') !== "hidden";
+            if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
+                return false;
+            }
+            const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+            const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
+            return subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
+        },
+        onPress: (closePopover, {reportAction, reportID}) => {
+            Log.info("sparsisparsi start");
+            Log.info(lodashGet(reportAction, 'childReportNotificationPreference', '0'));
+            Log.info("sparsisparsi done");
+            debugger;
             // if (closePopover) {
             //     hideContextMenu(false, () => {
             //         ReportActionComposeFocusManager.focus();

@@ -400,6 +400,7 @@ export default {
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
         subscribeToThread: 'Subscribe to thread',
+        unsubscribeFromThread: 'Unsubscribe from thread',
         flagAsOffensive: 'Flag as offensive',
     },
     emojiReactions: {

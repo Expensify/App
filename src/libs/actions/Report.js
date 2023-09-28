@@ -706,6 +706,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
  * @param {String} childReportID The reportID we are trying to open
  * @param {Object} parentReportAction the parent comment of a thread
  * @param {String} parentReportID The reportID of the parent
+ * @param {String} prevNotificationPreference The previous notification preference for the child report
  *
  */
 function toggleSubscribeToChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0', prevNotificationPreference) {
