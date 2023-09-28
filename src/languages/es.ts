@@ -803,6 +803,12 @@ export default {
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
+    },
+    cardPage: {
+        expensifyCard: 'Tarjeta Expensify',
+        availableSpend: 'Capacidad de gasto restante',
+        virtualCardNumber: 'Número de la tarjeta virtual',
+        physicalCardNumber: 'Número de la tarjeta física',
         cardDetails: {
             cardNumber: 'Número de tarjeta digital',
             expiration: 'Expiración',
@@ -812,12 +818,6 @@ export default {
             copyCardNumber: 'Copiar número de la tarjeta',
             updateAddress: 'Actualizar dirección',
         },
-    },
-    cardPage: {
-        expensifyCard: 'Tarjeta Expensify',
-        availableSpend: 'Capacidad de gasto restante',
-        virtualCardNumber: 'Número de la tarjeta virtual',
-        physicalCardNumber: 'Número de la tarjeta física',
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,

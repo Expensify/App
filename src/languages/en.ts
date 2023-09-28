@@ -808,8 +808,14 @@ export default {
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
         addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
+    },
+    cardPage: {
+        expensifyCard: 'Expensify Card',
+        availableSpend: 'Remaining spending power',
+        virtualCardNumber: 'Virtual card number',
+        physicalCardNumber: 'Physical card number',
         cardDetails: {
-            cardNumber: 'Digital card number',
+            cardNumber: 'Virtual card number',
             expiration: 'Expiration',
             cvv: 'CVV',
             address: 'Address',
@@ -817,12 +823,6 @@ export default {
             copyCardNumber: 'Copy card number',
             updateAddress: 'Update address',
         },
-    },
-    cardPage: {
-        expensifyCard: 'Expensify Card',
-        availableSpend: 'Remaining spending power',
-        virtualCardNumber: 'Virtual card number',
-        physicalCardNumber: 'Physical card number',
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
