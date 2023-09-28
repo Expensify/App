@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
+import compose from '../../../../libs/compose';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
@@ -14,6 +15,7 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as IOU from '../../../../libs/actions/IOU';
+import * as TransactionUtils from '../../../../libs/TransactionUtils';
 import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 import useLocalize from '../../../../hooks/useLocalize';
@@ -58,7 +60,9 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
-    const isEmptyWaypoint = _.isEmpty(lodashGet(transaction, 'comment.waypoints.waypoint0', {}));
+    const waypoints = lodashGet(transaction, 'comment.waypoints', {});
+    const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
+    const isInvalidWaypoint = _.size(validatedWaypoints) < 2;
     useEffect(() => {
         if (isDistanceRequest) {
             setHeaderTitle(translate('common.distance'));
@@ -90,7 +94,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
     };
 
     useEffect(() => {
-        const isInvalidDistanceRequest = !isDistanceRequest || isEmptyWaypoint;
+        const isInvalidDistanceRequest = !isDistanceRequest || isInvalidWaypoint;
 
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== iou.id) {
@@ -114,7 +118,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
         return () => {
             prevMoneyRequestId.current = iou.id;
         };
-    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, isEmptyWaypoint]);
+    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, isInvalidWaypoint]);
 
     return (
         <ScreenWrapper
@@ -150,14 +154,19 @@ MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    iou: {
-        key: ONYXKEYS.IOU,
-    },
-    selectedTab: {
-        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
-    },
-    transaction: {
-        key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${iou ? iou.transactionID : ''}`,
-    },
-})(MoneyRequestParticipantsPage);
+export default compose(
+    withOnyx({
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
+        selectedTab: {
+            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        transaction: {
+            key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${iou.transactionID}`,
+        },
+    }),
+)(MoneyRequestParticipantsPage);
