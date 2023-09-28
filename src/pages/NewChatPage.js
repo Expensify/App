@@ -179,6 +179,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             includeSafeAreaPaddingBottom={false}
             includePaddingTop={false}
             shouldEnableMaxHeight
+            testID={NewChatPage.displayName}
         >
             {({safeAreaPaddingBottomStyle, insets}) => (
                 <KeyboardAvoidingView
