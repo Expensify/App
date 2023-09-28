@@ -119,6 +119,8 @@ function AttachmentModal(props) {
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
+    const [transaction] = useState(props.transaction);
+    const [report] = useState(props.report);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
@@ -222,9 +224,9 @@ function AttachmentModal(props) {
      * Close the confirm modal.
      */
     const deleteAndCloseConfirmModal = useCallback(() => {
-        IOU.detachReceipt(props.transaction.transactionID, props.report.reportID);
+        IOU.detachReceipt(transaction.transactionID, report.reportID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, []);
+    }, [transaction, report]);
 
     /**
      * @param {Object} _file
