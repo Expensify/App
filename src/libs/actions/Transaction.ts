@@ -4,6 +4,7 @@ import lodashClone from 'lodash/clone';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
+import CONST from '../../CONST';
 import {RecentWaypoint, Transaction} from '../../types/onyx';
 import {WaypointCollection} from '../../types/onyx/Transaction';
 import * as TransactionUtils from '../TransactionUtils';
@@ -54,11 +55,11 @@ function addStop(transactionID: string) {
     });
 }
 
-/**
- * Saves the selected waypoint to the transaction
- */
-function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null) {
+function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isEditingWaypoint = false) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        pendingFields: {
+            comment: isEditingWaypoint ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        },
         comment: {
             waypoints: {
                 [`waypoint${index}`]: waypoint,
