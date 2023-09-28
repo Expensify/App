@@ -71,6 +71,8 @@ function AddressPage({privatePersonalDetails}) {
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
+    const [city, setCity] = useState(address.city);
+
     /**
      * @param {Function} translate - translate function
      * @param {Boolean} isUSAForm - selected country ISO code is US
@@ -117,15 +119,22 @@ function AddressPage({privatePersonalDetails}) {
     }, []);
 
     const handleAddressChange = (value, key) => {
-        if (key !== 'country' && key !== 'state') {
+        if (key !== 'country' && key !== 'state' && key !== 'city') {
             return;
         }
         if (key === 'country') {
             setCurrentCountry(value);
             setState('');
+            setCity('');
             return;
         }
-        setState(value);
+        if (key === 'state') {
+            setState(value);
+            return;
+        }
+        if (key === 'city') {
+            setCity(value);
+        }
     };
 
     return (
@@ -211,9 +220,10 @@ function AddressPage({privatePersonalDetails}) {
                         label={translate('common.city')}
                         accessibilityLabel={translate('common.city')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={address.city || ''}
+                        value={city || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
+                        onValueChange={handleAddressChange}
                     />
                     <View style={styles.formSpaceVertical} />
                     <TextInput
