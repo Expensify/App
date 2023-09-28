@@ -81,7 +81,6 @@ function AddressPage({privatePersonalDetails, route}) {
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
     const [currentCountry, setCurrentCountry] = useState(PersonalDetails.getCountryISO(address.country));
-
     
     /**
      * @param {Function} translate - translate function
