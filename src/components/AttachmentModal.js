@@ -478,6 +478,7 @@ export default compose(
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
         },
         session: {
             key: ONYXKEYS.SESSION,
