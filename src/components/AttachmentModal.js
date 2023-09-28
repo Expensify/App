@@ -5,6 +5,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './Attachments/AttachmentView';
@@ -32,7 +33,6 @@ import ROUTES from '../ROUTES';
 import useNativeDriver from '../libs/useNativeDriver';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import { withOnyx } from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Policy from '../libs/actions/Policy';
 import useNetwork from '../hooks/useNetwork';
@@ -335,11 +335,11 @@ function AttachmentModal(props) {
         if (!isAttachmentReceipt || !props.parentReport || !props.parentReportActions) {
             return [];
         }
-        let menuItems = [];
+        const menuItems = [];
         const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
         const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
         const isSettled = ReportUtils.isSettled(props.parentReport.reportID);
-      
+
         const isAdmin = Policy.isAdminOfFreePolicy([props.policy]) && ReportUtils.isExpenseReport(props.parentReport);
         const isRequestor = ReportUtils.isMoneyRequestReport(props.parentReport) && lodashGet(props.session, 'accountID', null) === parentReportAction.actorAccountID;
         const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
@@ -351,16 +351,16 @@ function AttachmentModal(props) {
                     onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
                     closeModal();
                 },
-            })
+            });
         }
-        console.log(isSettled, isDeleted, isAdmin, isRequestor);
         menuItems.push({
             icon: Expensicons.Download,
             text: props.translate('common.download'),
             onSelected: () => downloadAttachment(source),
-        })
+        });
         return menuItems;
-      }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy]);
 
     return (
         <>
@@ -467,7 +467,7 @@ AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
 AttachmentModal.displayName = 'AttachmentModal';
 export default compose(
-    withWindowDimensions, 
+    withWindowDimensions,
     withLocalize,
     withOnyx({
         parentReport: {
@@ -477,10 +477,10 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
         parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
         },
         session: {
-            key: ONYXKEYS.SESSION
-        }
-    })
+            key: ONYXKEYS.SESSION,
+        },
+    }),
 )(AttachmentModal);
