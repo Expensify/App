@@ -45,6 +45,7 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
         return {
             transform: [{rotate: `${animatedValue.value * 135}deg`}],
             backgroundColor,
+            borderRadius: styles.floatingActionButton.borderRadius,
         };
     });
 
