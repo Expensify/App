@@ -212,6 +212,7 @@ class OptionRow extends Component {
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             hoverDimmingValue={1}
                             hoverStyle={this.props.hoverStyle}
+                            needsOffscreenAlphaCompositing={this.props.option.icons.length >= 2}
                         >
                             <View style={sidebarInnerRowStyle}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
