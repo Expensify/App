@@ -12,7 +12,7 @@ When you set up one of these accounting packages in Expensify, we will automatic
 
 # How to Set Up an Indirect Accounting Integration
 
-## Home Page:
+## Home Page
 
 After selecting your Group Plan type for your first workspace, you'll be taken through a few workspace setup tasks on the home page. When you reach the **Accounting Software** task, select your accounting solution from the available options.
 
