@@ -92,7 +92,7 @@ export default {
                 route += `&backTo=${encodeURIComponent(backTo)}`;
             }
             return route;
-        }
+        },
     },
     SETTINGS_CONTACT_METHODS: 'settings/profile/contact-methods',
     SETTINGS_CONTACT_METHOD_DETAILS: {
