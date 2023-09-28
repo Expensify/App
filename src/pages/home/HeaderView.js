@@ -25,7 +25,6 @@ import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
-import reportActionPropTypes from './report/reportActionPropTypes';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import PinButton from '../../components/PinButton';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
@@ -45,21 +44,13 @@ const propTypes = {
     /** Onyx Props */
     parentReport: reportPropTypes,
 
-    /** The details about the account that the user is signing in with */
-    account: PropTypes.shape({
-        /** URL to the assigned guide's appointment booking calendar */
-        guideCalendarLink: PropTypes.string,
-    }),
+    /** URL to the assigned guide's appointment booking calendar */
+    guideCalendarLink: PropTypes.string,
 
     /** Current user session */
     session: PropTypes.shape({
         accountID: PropTypes.number,
     }),
-
-    /** The report actions from the parent report */
-    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
-    // eslint-disable-next-line react/no-unused-prop-types
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -67,11 +58,8 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
-    parentReportActions: {},
     report: null,
-    account: {
-        guideCalendarLink: null,
-    },
+    guideCalendarLink: null,
     parentReport: {},
     session: {
         accountID: 0,
@@ -93,21 +81,20 @@ function HeaderView(props) {
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
     const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
-    const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
-    const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
+    const shouldShowCallButton = (isConcierge && props.guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
     if (isTaskReport && !isCanceledTaskReport) {
         const canModifyTask = Task.canModifyTask(props.report, props.session.accountID);
         if (ReportUtils.isOpenTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                text: props.translate('task.markAsDone'),
-                onSelected: () => Task.completeTask(props.report, title),
+                text: props.translate('task.markAsComplete'),
+                onSelected: () => Task.completeTask(props.report),
             });
         }
 
@@ -116,7 +103,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('task.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report, title),
+                onSelected: () => Task.reopenTask(props.report),
             });
         }
 
@@ -222,7 +209,7 @@ function HeaderView(props) {
                             {shouldShowCallButton && (
                                 <VideoChatButtonAndMenu
                                     isConcierge={isConcierge}
-                                    guideCalendarLink={guideCalendarLink}
+                                    guideCalendarLink={props.guideCalendarLink}
                                 />
                             )}
                             <PinButton report={props.report} />
@@ -247,17 +234,10 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
-        account: {
+        guideCalendarLink: {
             key: ONYXKEYS.ACCOUNT,
-            selector: (account) =>
-                account && {
-                    guideCalendarLink: account.guideCalendarLink,
-                    primaryLogin: account.primaryLogin,
-                },
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            canEvict: false,
+            selector: (account) => (account && account.guideCalendarLink) || null,
+            initialValue: null,
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
