@@ -138,7 +138,7 @@ const propTypes = {
     /** Whether the money request is a distance request */
     isDistanceRequest: PropTypes.bool,
 
-    /** A flag for verifying that the current report is a workspace */
+    /** A flag for verifying that the current report is a sub-report of a workspace chat */
     isPolicyExpenseChat: PropTypes.bool,
 
     /* Onyx Props */
