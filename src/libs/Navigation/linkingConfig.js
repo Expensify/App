@@ -86,7 +86,7 @@ export default {
                                 exact: true,
                             },
                             Settings_Wallet_Cards_Digital_Details_Update_Address: {
-                                path: ROUTES.SETTINGS_WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
+                                path: ROUTES.SETTINGS_WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
                                 exact: true,
                             },
                             Settings_Add_Debit_Card: {
