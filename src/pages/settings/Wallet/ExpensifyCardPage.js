@@ -95,7 +95,7 @@ function ExpensifyCardPage({
                                     titleStyle={styles.walletCardMenuItem}
                                     icon={Expensicons.Flag}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute({domain}))}
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain))}
                                 />
                             </>
                         )}
