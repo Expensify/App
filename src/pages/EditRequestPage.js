@@ -79,7 +79,6 @@ const defaultProps = {
 function EditRequestPage({report, route, parentReport, policy, session, policyTags}) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
-    console.log(transaction);
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
