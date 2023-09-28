@@ -1,9 +1,9 @@
-import { View, Text, PixelRatio, ActivityIndicator } from 'react-native';
-import React, { useCallback, useContext, useRef, useState } from 'react';
+import {View, Text, PixelRatio, ActivityIndicator} from 'react-native';
+import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
 import CONST from '../../../CONST';
@@ -18,8 +18,8 @@ import ConfirmModal from '../../../components/ConfirmModal';
 import ONYXKEYS from '../../../ONYXKEYS';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
-import { DragAndDropContext } from '../../../components/DragAndDrop/Provider';
-import { iouPropTypes, iouDefaultProps } from '../propTypes';
+import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -66,10 +66,12 @@ function ReceiptSelector(props) {
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentValidReason] = useState('');
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
-    const { isSmallScreenWidth } = useWindowDimensions();
-    const { translate } = useLocalize();
-    const { isDraggingOver } = useContext(DragAndDropContext);
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const {translate} = useLocalize();
+    const {isDraggingOver} = useContext(DragAndDropContext);
     const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
+    const [isFlashLightOn, toggleFlashlight] = useReducer((s) => !s, false);
+    const [isTorchAvailable, setIsTorchAvailable] = useState(true);
     const cameraRef = useRef(null);
 
     const hideReciptModal = () => {
@@ -89,7 +91,7 @@ function ReceiptSelector(props) {
     };
 
     function validateReceipt(file) {
-        const { fileExtension } = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
         if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
             setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
@@ -155,7 +157,6 @@ function ReceiptSelector(props) {
             {!isDraggingOver && Browser.isMobile() && (
                 <>
                     <View style={[styles.cameraView]}>
-                        {/*
                         {(cameraPermissionState === 'prompt' || cameraPermissionState === 'unknown') && (
                             <View style={[styles.cameraView]}>
                                 <ActivityIndicator
@@ -167,47 +168,31 @@ function ReceiptSelector(props) {
                         )}
                         {cameraPermissionState === 'denied' && (
                             <View style={[styles.cameraView, styles.permissionView]}>
-                                <Hand
+                                <Icon
+                                    src={Hand}
                                     width={CONST.RECEIPT.HAND_ICON_WIDTH}
                                     height={CONST.RECEIPT.HAND_ICON_HEIGHT}
                                     style={[styles.pb5]}
                                 />
                                 <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
                                 <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
-                                <PressableWithFeedback
-                                    accessibilityLabel={translate('receipt.givePermission')}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                >
-                                    <Button
-                                        medium
-                                        success
-                                        text={translate('receipt.givePermission')}
-                                        style={[styles.p9, styles.pt5]}
-                                        onPress={() => alert('give me permissions')}
-                                    />
-                                </PressableWithFeedback>
                             </View>
                         )}
                         <NavigationAwareCamera
                             onUserMedia={() => setCameraPermissionState('granted')}
                             onUserMediaError={() => setCameraPermissionState('denied')}
-                            style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                            style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
                             ref={cameraRef}
                             screenshotFormat="image/png"
-                        />
-                        */}
-                        <NavigationAwareCamera
-                            onUserMedia={() => setCameraPermissionState('granted')}
-                            onUserMediaError={() => setCameraPermissionState('denied')}
-                            style={styles.videoContainer}
-                            ref={cameraRef}
-                            screenshotFormat="image/png"
+                            videoConstraints={{facingMode: {exact: 'environment'}}}
+                            torchOn={isFlashLightOn}
+                            onTorchAvailability={setIsTorchAvailable}
                         />
                     </View>
 
                     <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                         <AttachmentPicker>
-                            {({ openPicker }) => (
+                            {({openPicker}) => (
                                 <PressableWithFeedback
                                     accessibilityLabel={translate('receipt.chooseFile')}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
@@ -242,15 +227,15 @@ function ReceiptSelector(props) {
                         <PressableWithFeedback
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.flash')}
-                            style={[styles.alignItemsEnd]}
-                            onPress={() => alert('set flash')}
+                            style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
+                            onPress={toggleFlashlight}
+                            disabled={isTorchAvailable}
                         >
                             <Icon
                                 height={32}
                                 width={32}
                                 src={Expensicons.Bolt}
-                                // fill={flash ? themeColors.iconHovered : themeColors.textSupporting}
-                                fill={themeColors.iconHovered}
+                                fill={isFlashLightOn ? themeColors.iconHovered : themeColors.textSupporting}
                             />
                         </PressableWithFeedback>
                     </View>
@@ -259,7 +244,7 @@ function ReceiptSelector(props) {
             {!isDraggingOver && !Browser.isMobile() && (
                 <>
                     <View
-                        onLayout={({ nativeEvent }) => {
+                        onLayout={({nativeEvent}) => {
                             setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top));
                         }}
                     >
@@ -278,7 +263,7 @@ function ReceiptSelector(props) {
                         {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
                     </Text>
                     <AttachmentPicker>
-                        {({ openPicker }) => (
+                        {({openPicker}) => (
                             <PressableWithFeedback
                                 accessibilityLabel={translate('receipt.chooseFile')}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
@@ -392,8 +377,8 @@ ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
 export default withOnyx({
-    iou: { key: ONYXKEYS.IOU },
+    iou: {key: ONYXKEYS.IOU},
     report: {
-        key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
     },
 })(ReceiptSelector);

@@ -1,4 +1,4 @@
-import { defaultStyles as defaultPickerStyles } from 'react-native-picker-select/src/styles';
+import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
@@ -29,9 +29,9 @@ import textUnderline from './utilities/textUnderline';
 import objectFit from './utilities/objectFit';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
-const touchCalloutNone = Browser.isMobileSafari() ? { WebkitTouchCallout: 'none' } : {};
+const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
-const lineHeightBadge = Browser.isSafari() ? { lineHeight: variables.lineHeightXSmall } : { lineHeight: variables.lineHeightNormal };
+const lineHeightBadge = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme) => ({
     backgroundColor: theme.transparent,
@@ -791,9 +791,9 @@ const styles = (theme) => ({
         // Applying the Webkit styles only to browsers as it is not available in native.
         ...(Browser.getBrowser()
             ? {
-                WebkitTextFillColor: theme.textSupporting,
-                WebkitOpacity: 1,
-            }
+                  WebkitTextFillColor: theme.textSupporting,
+                  WebkitOpacity: 1,
+              }
             : {}),
         color: theme.textSupporting,
     },
@@ -979,7 +979,7 @@ const styles = (theme) => ({
     },
 
     textInputLabelTransformation: (translateY, translateX, scale) => ({
-        transform: [{ translateY }, { translateX }, { scale }],
+        transform: [{translateY}, {translateX}, {scale}],
     }),
 
     baseTextInput: {
@@ -2274,7 +2274,7 @@ const styles = (theme) => ({
         ...spacing.p1,
         ...spacing.mv1,
         ...spacing.mh1,
-        ...{ borderRadius: variables.buttonBorderRadius },
+        ...{borderRadius: variables.buttonBorderRadius},
     },
 
     reportActionSystemMessageContainer: {
@@ -2328,7 +2328,7 @@ const styles = (theme) => ({
         padding: 0,
     },
 
-    twoFactorAuthCodesBox: ({ isExtraSmallScreenWidth, isSmallScreenWidth }) => {
+    twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
         let paddingHorizontal = styles.ph9;
 
         if (isSmallScreenWidth) {
@@ -2446,8 +2446,8 @@ const styles = (theme) => ({
         borderRadius: 88,
     },
 
-    rootNavigatorContainerStyles: (isSmallScreenWidth) => ({ marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1 }),
-    RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth) => ({ marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1 }),
+    rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
+    RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
 
     avatarInnerTextChat: {
         color: theme.textLight,
@@ -2540,7 +2540,7 @@ const styles = (theme) => ({
     },
 
     flipUpsideDown: {
-        transform: [{ rotate: '180deg' }],
+        transform: [{rotate: '180deg'}],
     },
 
     navigationSceneContainer: {
@@ -2639,7 +2639,7 @@ const styles = (theme) => ({
     },
 
     switchThumbTransformation: (translateX) => ({
-        transform: [{ translateX }],
+        transform: [{translateX}],
     }),
 
     radioButtonContainer: {
@@ -2683,13 +2683,13 @@ const styles = (theme) => ({
         // These properties are available in browser only
         ...(Browser.getBrowser()
             ? {
-                caretColor: 'transparent',
-                WebkitTextFillColor: 'transparent',
-                // After setting the input text color to transparent, it acquires the background-color.
-                // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
-                // Therefore, the transition effect needs to be delayed.
-                transitionDelay: '99999s',
-            }
+                  caretColor: 'transparent',
+                  WebkitTextFillColor: 'transparent',
+                  // After setting the input text color to transparent, it acquires the background-color.
+                  // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
+                  // Therefore, the transition effect needs to be delayed.
+                  transitionDelay: '99999s',
+              }
             : {}),
     },
 
@@ -2855,7 +2855,7 @@ const styles = (theme) => ({
     },
 
     growlNotificationTranslateY: (y) => ({
-        transform: [{ translateY: y }],
+        transform: [{translateY: y}],
     }),
 
     makeSlideInTranslation: (translationType, fromValue) => ({
@@ -3159,7 +3159,7 @@ const styles = (theme) => ({
     },
 
     floatingMessageCounterTransformation: (translateY) => ({
-        transform: [{ translateY }],
+        transform: [{translateY}],
     }),
 
     confirmationAnimation: {
@@ -3202,7 +3202,7 @@ const styles = (theme) => ({
 
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
-        transform: [{ scaleX: -1 }, { scaleY: -1 }],
+        transform: [{scaleX: -1}, {scaleY: -1}],
     },
 
     keyboardShortcutModalContainer: {
@@ -3908,7 +3908,7 @@ const styles = (theme) => ({
     },
 
     rotate90: {
-        transform: [{ rotate: '90deg' }],
+        transform: [{rotate: '90deg'}],
     },
 
     emojiStatusLHN: {
@@ -3986,8 +3986,8 @@ const styles = (theme) => ({
     },
 
     mapDirectionLayer: {
-        layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': theme.success, 'line-width': 7 },
+        layout: {'line-join': 'round', 'line-cap': 'round'},
+        paint: {'line-color': theme.success, 'line-width': 7},
     },
 
     mapPendingView: {
@@ -4006,6 +4006,7 @@ const styles = (theme) => ({
     videoContainer: {
         ...flex.flex1,
         ...objectFit.oFCover,
+        borderRadius: variables.componentBorderRadiusCard,
     },
 });
 
@@ -4017,4 +4018,4 @@ const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
 export default defaultStyles;
-export { stylesGenerator };
+export {stylesGenerator};

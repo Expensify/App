@@ -1,5 +1,5 @@
-import { CSSProperties } from 'react';
-import { ViewStyle } from 'react-native';
+import {CSSProperties} from 'react';
+import {ViewStyle} from 'react-native';
 
 export default {
     oFCover: {
