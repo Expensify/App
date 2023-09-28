@@ -1,5 +1,5 @@
 ---
-title: Merge-Expenses
+title: Merge Expenses
 description: This article shows you all the ways that you can merge your expenses in Expensify!
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
