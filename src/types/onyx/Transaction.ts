@@ -49,16 +49,14 @@ type Transaction = {
     modifiedCreated?: string;
     modifiedCurrency?: string;
     modifiedMerchant?: string;
+    modifiedWaypoints?: WaypointCollection;
     pendingAction: OnyxCommon.PendingAction;
-    pendingFields: {
-        comment: string;
-    };
     receipt: Receipt;
     reportID: string;
     routes?: Routes;
     transactionID: string;
     tag: string;
-    pendingFields?: Partial<{[K in keyof Transaction]: 'update'}>;
+    pendingFields?: Partial<{[K in keyof Transaction]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
 };
 
 export default Transaction;

@@ -7,7 +7,7 @@ import * as NumberUtils from './NumberUtils';
 import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
 import {Receipt, Comment, WaypointCollection} from '../types/onyx/Transaction';
 
-type AdditionalTransactionChanges = {comment?: string};
+type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
 
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
@@ -126,6 +126,15 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         shouldStopSmartscan = true;
     }
 
+    if (Object.hasOwn(transactionChanges, 'waypoints')) {
+        updatedTransaction.modifiedWaypoints = transactionChanges.waypoints;
+        shouldStopSmartscan = true;
+    }
+
+    if (Object.hasOwn(transactionChanges, 'billable') && typeof transactionChanges.billable === 'boolean') {
+        updatedTransaction.billable = transactionChanges.billable;
+    }
+
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
     }
@@ -144,6 +153,8 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         ...(Object.hasOwn(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'merchant') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'waypoints') && {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'billable') && {billable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'category') && {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
@@ -213,10 +224,24 @@ function getMerchant(transaction: Transaction): string {
 }
 
 /**
+ * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
+ */
+function getWaypoints(transaction: Transaction): WaypointCollection | undefined {
+    return transaction?.modifiedWaypoints ?? transaction?.comment?.waypoints;
+}
+
+/**
  * Return the category from the transaction. This "category" field has no "modified" complement.
  */
 function getCategory(transaction: Transaction): string {
     return transaction?.category ?? '';
+}
+
+/**
+ * Return the billable field from the transaction. This "billable" field has no "modified" complement.
+ */
+function getBillable(transaction: Transaction): boolean {
+    return transaction?.billable ?? false;
 }
 
 /**
@@ -345,6 +370,7 @@ export {
     getMerchant,
     getCreated,
     getCategory,
+    getBillable,
     getTag,
     getLinkedTransaction,
     getAllReportTransactions,
@@ -353,6 +379,7 @@ export {
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
+    getWaypoints,
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
