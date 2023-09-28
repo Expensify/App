@@ -1368,6 +1368,7 @@ const CONST = {
         MERCHANT: 'merchant',
         CATEGORY: 'category',
         RECEIPT: 'receipt',
+        DISTANCE: 'distance',
         TAG: 'tag',
     },
     FOOTER: {
