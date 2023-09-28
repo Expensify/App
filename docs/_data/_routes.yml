@@ -73,6 +73,11 @@ platforms:
         title: Send Payments
         icon: /assets/images/money-wings.svg
         description: Uncover step-by-step guidance on sending direct reimbursements to employees, paying an invoice to a vendor, and utilizing third-party payment options.
+
+      - href: add-a-deposit-account-(AUD)
+        title: Add a Deposit Account (AUD)
+        icon: /assets/images/money-wings.svg
+        description: Expensify allows you to add a personal bank account to receive reimbursements for your expenses. This article covers deposit accounts for Australian banks. 
   
   - href: new-expensify
     title: New Expensify
