@@ -74,6 +74,11 @@ function LocaleContextProvider({children, currentUserPersonalDetails, preferredL
     );
 
     /**
+     * Updates date-fns internal locale to the user preferredLocale
+     */
+    const updateLocale = useMemo(() => DateUtils.setLocale(preferredLocale), [preferredLocale]);
+
+    /**
      * @param {String} phoneNumber
      * @returns {String}
      */
@@ -101,12 +106,13 @@ function LocaleContextProvider({children, currentUserPersonalDetails, preferredL
             numberFormat,
             datetimeToRelative,
             datetimeToCalendarTime,
+            updateLocale,
             formatPhoneNumber,
             toLocaleDigit,
             fromLocaleDigit,
             preferredLocale,
         }),
-        [translate, numberFormat, datetimeToRelative, datetimeToCalendarTime, formatPhoneNumber, toLocaleDigit, fromLocaleDigit, preferredLocale],
+        [translate, numberFormat, datetimeToRelative, datetimeToCalendarTime, updateLocale, formatPhoneNumber, toLocaleDigit, fromLocaleDigit, preferredLocale],
     );
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
