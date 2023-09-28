@@ -14,16 +14,9 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
     }
 
     if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        // Delete the optimistic action
-        // The following doesn't delete the iouAction because Onyx currently doesn't delete keys when they are set to null
-        // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
-        //     [reportAction.reportActionID]: null,
-        // });
-        // So we have to do this ugly work around for now
-        // It's also very important to spread the report actions, which creates a copy so that Onyx.set will detect a change and actually make an update
-        const allIOUActions = {...ReportActionUtils.getAllReportActions(originalReportID)};
-        delete allIOUActions[reportAction.reportActionID];
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, allIOUActions);
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
+            [reportAction.reportActionID]: null,
+        });
 
         // If there's a linked transaction, delete that too
         const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(originalReportID, reportAction.reportActionID);
