@@ -94,7 +94,6 @@ function AddressPage({privatePersonalDetails, route}) {
         setState(address.state)
         setCurrentCountry(address.country)
       }, [address]);
-
     const validate = useCallback((values) => {
         const errors = {};
         const requiredFields = ['addressLine1', 'city', 'country', 'state'];
