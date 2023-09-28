@@ -21,4 +21,5 @@ function LocationErrorMessage(props) {
 
 LocationErrorMessage.displayName = 'LocationErrorMessage';
 LocationErrorMessage.propTypes = locationErrorMessagePropTypes.propTypes;
+LocationErrorMessage.defaultProps = locationErrorMessagePropTypes.defaultProps;
 export default LocationErrorMessage;
