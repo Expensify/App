@@ -69,6 +69,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    FormattedMaxLengthParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
     EnglishTranslation,
@@ -233,6 +234,7 @@ export default {
         merchant: 'Comerciante',
         category: 'Categoría',
         billable: 'Facturable',
+        nonBillable: 'No facturable',
         tag: 'Etiqueta',
         receipt: 'Recibo',
         replace: 'Sustituir',
@@ -272,6 +274,7 @@ export default {
     composer: {
         noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
+        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `El comentario debe tener máximo ${formattedMaxLength} caracteres.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Actualizar app',
@@ -480,6 +483,7 @@ export default {
         flash: 'flash',
         shutter: 'obturador',
         gallery: 'galería',
+        addReceipt: 'Añadir recibo',
     },
     iou: {
         amount: 'Importe',
@@ -802,6 +806,12 @@ export default {
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
     },
+    cardPage: {
+        expensifyCard: 'Tarjeta Expensify',
+        availableSpend: 'Capacidad de gasto restante',
+        virtualCardNumber: 'Número de la tarjeta virtual',
+        physicalCardNumber: 'Número de la tarjeta física',
+    },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,
         instant: 'Instante',
@@ -1078,7 +1088,7 @@ export default {
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Por favor, introduce un número de identificación fiscal válido',
             website: 'Por favor, introduce un sitio web válido',
-            zipCode: 'Por favor, introduce un código postal válido',
+            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Por favor, introduce un teléfono válido',
             companyName: 'Por favor, introduce un nombre comercial legal válido',
             addressCity: 'Por favor, introduce una ciudad válida',
@@ -1380,7 +1390,6 @@ export default {
         reimburse: {
             captureReceipts: 'Captura recibos',
             fastReimbursementsHappyMembers: '¡Reembolsos rápidos = miembros felices!',
-            kilometers: 'Kilómetros',
             viewAllReceipts: 'Ver todos los recibos',
             reimburseReceipts: 'Reembolsar recibos',
             trackDistance: 'Medir distancia',
@@ -1548,12 +1557,12 @@ export default {
         assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
-            completed: 'tarea completada',
+            completed: 'marcada como completa',
             canceled: 'tarea eliminado',
-            reopened: 'tarea reabrir',
+            reopened: 'marcada como incompleta',
             error: 'No tiene permiso para realizar la acción solicitada.',
         },
-        markAsDone: 'Marcar como completada',
+        markAsComplete: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
         assigneeError: 'Hubo un error al asignar esta tarea, inténtalo con otro usuario.',
     },

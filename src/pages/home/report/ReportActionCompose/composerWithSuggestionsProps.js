@@ -74,9 +74,6 @@ const propTypes = {
     /** A method to call when the form is submitted */
     submitForm: PropTypes.func.isRequired,
 
-    /** Whether the recipient local time is shown or not */
-    shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
-
     /** Whether the compose input is shown or not */
     shouldShowComposeInput: PropTypes.bool.isRequired,
 

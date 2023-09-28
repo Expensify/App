@@ -5,6 +5,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import {useAnimatedRef} from 'react-native-reanimated';
+import {PortalHost} from '@gorhom/portal';
 import styles from '../../../../styles/styles';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as Report from '../../../../libs/actions/Report';
@@ -35,6 +36,7 @@ import useLocalize from '../../../../hooks/useLocalize';
 import getModalState from '../../../../libs/getModalState';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
+import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -103,7 +105,6 @@ function ReportActionCompose({
     reportID,
     reportActions,
     shouldShowComposeInput,
-    isCommentEmpty: isCommentEmptyProp,
 }) {
     const {translate} = useLocalize();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -123,7 +124,10 @@ function ReportActionCompose({
      * Updates the should clear state of the composer
      */
     const [textInputShouldClear, setTextInputShouldClear] = useState(false);
-    const [isCommentEmpty, setIsCommentEmpty] = useState(isCommentEmptyProp);
+    const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
+        const draftComment = getDraftComment(reportID);
+        return !draftComment || !!draftComment.match(/^(\s)*$/);
+    });
 
     /**
      * Updates the visibility state of the menu
@@ -315,6 +319,7 @@ function ReportActionCompose({
             ref={containerRef}
             style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}
         >
+            <PortalHost name="suggestions" />
             <OfflineWithFeedback
                 pendingAction={pendingAction}
                 style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
@@ -377,7 +382,6 @@ function ReportActionCompose({
                                     setIsFullComposerAvailable={setIsFullComposerAvailable}
                                     setIsCommentEmpty={setIsCommentEmpty}
                                     submitForm={submitForm}
-                                    shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
                                     shouldShowComposeInput={shouldShowComposeInput}
                                     onFocus={onFocus}
                                     onBlur={onBlur}
@@ -438,10 +442,6 @@ export default compose(
     withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
-        isCommentEmpty: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-            selector: (comment) => _.isEmpty(comment),
-        },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
