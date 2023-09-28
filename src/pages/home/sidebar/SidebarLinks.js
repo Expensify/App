@@ -20,15 +20,13 @@ import withWindowDimensions from '../../../components/withWindowDimensions';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import Header from '../../../components/Header';
-import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
-import variables from '../../../styles/variables';
-import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import * as Session from '../../../libs/actions/Session';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
+import Text from '../../../components/Text';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -150,17 +148,11 @@ class SidebarLinks extends React.PureComponent {
         return (
             <View style={[styles.flex1, styles.h100]}>
                 <View
-                    style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
+                    style={[styles.flexRow, styles.ph5, styles.pb4, styles.pt6, styles.justifyContentBetween, styles.alignItemsCenter]}
                     dataSet={{dragArea: true}}
                 >
                     <Header
-                        title={
-                            <LogoComponent
-                                fill={defaultTheme.text}
-                                width={variables.lhnLogoWidth}
-                                height={variables.lhnLogoHeight}
-                            />
-                        }
+                        title={<Text style={styles.textHeadline}>Chats</Text>}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         shouldShowEnvironmentBadge
                     />

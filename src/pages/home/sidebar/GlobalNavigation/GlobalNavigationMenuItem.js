@@ -6,17 +6,15 @@ import Text from '../../../../components/Text';
 import styles from '../../../../styles/styles';
 import * as StyleUtils from '../../../../styles/StyleUtils';
 import Icon from '../../../../components/Icon';
-import getButtonState from '../../../../libs/getButtonState';
 import CONST from '../../../../CONST';
 import PressableWithSecondaryInteraction from '../../../../components/PressableWithSecondaryInteraction';
 import Hoverable from '../../../../components/Hoverable';
 import variables from '../../../../styles/variables';
 import stylePropTypes from '../../../../styles/stylePropTypes';
+import defaultTheme from '../../../../styles/themes/default';
+import fontWeightBold from '../../../../styles/fontWeight/bold';
 
 const propTypes = {
-    /** Used to apply offline styles to child text components */
-    style: stylePropTypes,
-
     /** Function to fire when component is pressed */
     onPress: PropTypes.func,
 
@@ -41,18 +39,11 @@ const propTypes = {
     /** Whether item is focused or active */
     focused: PropTypes.bool,
 
-    /** Whether the menu item should be interactive at all */
-    interactive: PropTypes.bool,
-
-    /** Any adjustments to style when menu item is hovered or pressed */
-    hoverAndPressStyle: stylePropTypes,
-
     /** Prop to represent the size of the avatar images to be shown */
     avatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 };
 
 const defaultProps = {
-    style: styles.popoverMenuItem,
     icon: undefined,
     iconWidth: undefined,
     iconHeight: undefined,
@@ -60,8 +51,6 @@ const defaultProps = {
     iconFill: undefined,
     focused: false,
     onPress: () => {},
-    interactive: true,
-    hoverAndPressStyle: [],
     title: '',
     avatarSize: CONST.AVATAR_SIZE.DEFAULT,
 };
@@ -71,19 +60,15 @@ const GlobalNavigationMenuItem = React.forwardRef((props, ref) => (
         {(isHovered) => (
             <PressableWithSecondaryInteraction
                 onPress={props.focused ? () => {} : props.onPress}
-                style={({pressed}) => [
-                    props.style,
-                    !props.interactive && styles.cursorDefault,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || isHovered, pressed), true),
-                    (isHovered || pressed) && props.hoverAndPressStyle,
-                ]}
+                style={styles.globalNavigationItemContainer}
                 ref={ref}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
                 accessibilityLabel={props.title ? props.title.toString() : ''}
             >
                 {({pressed}) => (
-                    <>
-                        <View style={[styles.flexColumn, styles.flex1]}>
+                    <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
+                        <View style={[styles.globalNavigationSelectionIndicator, {backgroundColor: props.focused ? defaultTheme.iconMenu : defaultTheme.transparent}]} />
+                        <View style={[styles.flexColumn, styles.flex1, styles.alignItemsCenter, styles.mr1]}>
                             <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize)]}>
                                 <Icon
                                     hovered={isHovered}
@@ -91,14 +76,21 @@ const GlobalNavigationMenuItem = React.forwardRef((props, ref) => (
                                     src={props.icon}
                                     width={props.iconWidth}
                                     height={props.iconHeight}
-                                    fill={props.iconFill || StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed), true)}
+                                    fill={props.focused ? defaultTheme.iconMenu : props.iconFill}
                                 />
                             </View>
                             <View style={[styles.mt1, styles.alignItemsCenter]}>
-                                <Text style={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}>{props.title}</Text>
+                                <Text
+                                    style={[
+                                        StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall),
+                                        props.focused ? {color: defaultTheme.textLight, fontWeight: fontWeightBold} : {color: props.iconFill},
+                                    ]}
+                                >
+                                    {props.title}
+                                </Text>
                             </View>
                         </View>
-                    </>
+                    </View>
                 )}
             </PressableWithSecondaryInteraction>
         )}

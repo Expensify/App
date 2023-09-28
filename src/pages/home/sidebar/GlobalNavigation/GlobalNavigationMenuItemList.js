@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import GlobalNavigationMenuItem from './GlobalNavigationMenuItem';
 import {SidebarNavigationContext} from '../SidebarNavigationContext';
+import defaultTheme from '../../../../styles/themes/default';
 
 const propTypes = {
     /** Menu items to be rendered on the list */
@@ -40,6 +41,7 @@ function GlobalNavigationMenuItemList(props) {
             {_.map(props.menuItems, (item) => (
                 <GlobalNavigationMenuItem
                     key={item.text}
+                    iconFill={defaultTheme.icon}
                     icon={item.icon}
                     iconWidth={item.iconWidth}
                     iconHeight={item.iconHeight}

@@ -21,7 +21,7 @@ function BaseSidebarScreen(props) {
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
         >
-            <View style={[styles.flex1, styles.flexRow]}>
+            <View style={[styles.flex1, styles.flexRow, styles.globalAndSubNavigationContainer]}>
                 <GlobalNavigation
                     isSmallScreenWidth={props.isSmallScreenWidth}
                     isCreateMenuOpen={props.isCreateMenuOpen}

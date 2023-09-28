@@ -19,7 +19,7 @@ const defaultProps = {
     isCreateMenuOpen: false,
 };
 
-function GlobalNavigation({isCreateMenuOpen}) {
+function GlobalNavigation({isCreateMenuOpen, children}) {
     const items = useMemo(
         () => [
             {
@@ -41,6 +41,7 @@ function GlobalNavigation({isCreateMenuOpen}) {
                 menuItems={items}
                 style={styles.mt4}
             />
+            {children}
         </View>
     );
 }

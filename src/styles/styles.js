@@ -1227,6 +1227,7 @@ const styles = (theme) => ({
     // Sidebar Styles
     sidebar: {
         backgroundColor: theme.sidebar,
+        borderTopLeftRadius: variables.componentBorderRadiusRounded,
         height: '100%',
     },
 
@@ -1265,8 +1266,7 @@ const styles = (theme) => ({
 
     floatingActionButtonContainer: {
         position: 'absolute',
-        right: 20,
-
+        left: 16,
         // The bottom of the floating action button should align with the bottom of the compose box.
         // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
         bottom: 25,
@@ -1274,8 +1274,8 @@ const styles = (theme) => ({
 
     floatingActionButton: {
         backgroundColor: theme.success,
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
@@ -3675,9 +3675,26 @@ const styles = (theme) => ({
         height: 30,
         width: '100%',
     },
+
     globalNavigation: {
         width: variables.globalNavigationWidth,
         backgroundColor: theme.highlightBG,
+    },
+
+    globalAndSubNavigationContainer: {
+        backgroundColor: theme.highlightBG,
+    },
+
+    globalNavigationSelectionIndicator: {
+        width: 4,
+        height: 52,
+        borderTopRightRadius: variables.componentBorderRadiusRounded,
+        borderBottomRightRadius: variables.componentBorderRadiusRounded,
+    },
+
+    globalNavigationItemContainer: {
+        width: variables.globalNavigationWidth,
+        height: variables.globalNavigationWidth,
     },
 });
 
