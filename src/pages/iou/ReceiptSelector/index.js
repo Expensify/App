@@ -60,7 +60,6 @@ const defaultProps = {
 };
 
 function ReceiptSelector(props) {
-    const reportID = lodashGet(props.route, 'params.reportID', '');
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
@@ -126,7 +125,7 @@ function ReceiptSelector(props) {
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, reportID, report, props.route.path);
+        IOU.navigateToNextPage(iou, iouType, report, props.route.path);
     };
 
     const panResponder = useRef(
