@@ -393,7 +393,11 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction, true);
+        const lastIOUReportAction = _.find(
+            allSortedReportActions[iouReport.reportID],
+            (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUReportAction, true);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);

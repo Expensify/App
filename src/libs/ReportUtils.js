@@ -1513,16 +1513,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         return `approved ${formattedAmount}`;
     }
 
-    if (shouldConsiderReceiptBeingScanned && ReportActionsUtils.isReportPreviewAction(reportAction)) {
-        const lastTransactionID = reportAction.childLastReceiptTransactionIDs.split(',')[0];
-        const linkedTransaction = TransactionUtils.getTransaction(lastTransactionID);
-
-        if (!_.isEmpty(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
-            return Localize.translateLocal('iou.receiptScanning');
-        }
-    }
-
-    if (shouldConsiderReceiptBeingScanned && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+    if (shouldConsiderReceiptBeingScanned && (ReportActionsUtils.isReportPreviewAction(reportAction) || ReportActionsUtils.isMoneyRequestAction(reportAction))) {
         const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
 
         if (!_.isEmpty(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
