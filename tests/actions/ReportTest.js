@@ -503,7 +503,9 @@ describe('actions/Report', () => {
     it('should show a notification for report action updates with shouldNotify', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
-        const REPORT_ACTION = {};
+        const REPORT_ACTION = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+        };
 
         // Setup user and pusher listeners
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)

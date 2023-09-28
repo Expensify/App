@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
 import * as Report from '../../libs/actions/Report';
+import * as App from '../../libs/actions/App';
 import useLocalize from '../../hooks/useLocalize';
 import styles from '../../styles/styles';
 import RoomNameInput from '../../components/RoomNameInput';
@@ -144,7 +145,12 @@ function WorkspaceNewRoomPage(props) {
     );
 
     return (
-        <FullPageNotFoundView shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}>
+        <FullPageNotFoundView
+            shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}
+            shouldShowBackButton={false}
+            linkKey="workspace.emptyWorkspace.title"
+            onLinkPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, false)}
+        >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 includeSafeAreaPaddingBottom={false}

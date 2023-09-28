@@ -35,6 +35,7 @@ type Routes = Record<string, Route>;
 
 type Transaction = {
     amount: number;
+    billable: boolean;
     category: string;
     comment: Comment;
     created: string;
@@ -49,9 +50,11 @@ type Transaction = {
     modifiedCurrency?: string;
     modifiedMerchant?: string;
     pendingAction: OnyxCommon.PendingAction;
+    pendingFields: {
+        comment: string;
+    };
     receipt: Receipt;
     reportID: string;
-    billable?: boolean;
     routes?: Routes;
     transactionID: string;
     tag: string;

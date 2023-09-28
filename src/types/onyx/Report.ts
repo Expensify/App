@@ -12,12 +12,6 @@ type Report = {
     /** List of icons for report participants */
     icons?: OnyxCommon.Icon[];
 
-    /** Are we loading more report actions? */
-    isLoadingMoreReportActions?: boolean;
-
-    /** Flag to check if the report actions data are loading */
-    isLoadingReportActions?: boolean;
-
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat?: boolean;
 
