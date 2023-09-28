@@ -3,7 +3,6 @@ import {View, ActivityIndicator} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
-import {useRoute} from '@react-navigation/native';
 import styles from '../../../styles/styles';
 import Icon from '../../Icon';
 import * as Expensicons from '../../Icon/Expensicons';
@@ -18,10 +17,8 @@ import AttachmentViewPdf from './AttachmentViewPdf';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
-import * as ReportUtils from '../../../libs/ReportUtils';
 import * as TransactionUtils from '../../../libs/TransactionUtils';
 import DistanceEReceipt from '../../DistanceEReceipt';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import useNetwork from '../../../hooks/useNetwork';
 
 const propTypes = {
@@ -69,10 +66,9 @@ function AttachmentView({
     isFocused,
     isWorkspaceAvatar,
     fallbackSource,
+    transaction,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
-    const currentRoute = useRoute();
-
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
@@ -119,15 +115,7 @@ function AttachmentView({
         );
     }
 
-    const reportID = _.get(currentRoute, ['params', 'reportID']);
-    const report = ReportUtils.getReport(reportID);
-
-    // Get the money request transaction
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const transactionID = _.get(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
-    const transaction = TransactionUtils.getTransaction(transactionID);
-    const shouldShowEReceipt = TransactionUtils.isDistanceRequest(transaction);
-    if (shouldShowEReceipt) {
+    if (TransactionUtils.isDistanceRequest(transaction)) {
         return <DistanceEReceipt transaction={transaction} />;
     }
 
@@ -185,4 +173,20 @@ AttachmentView.propTypes = propTypes;
 AttachmentView.defaultProps = defaultProps;
 AttachmentView.displayName = 'AttachmentView';
 
-export default compose(memo, withLocalize)(AttachmentView);
+export default compose(
+    memo,
+    withLocalize,
+    withOnyx({
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        },
+        parentReportAction: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(report.parentReportID, report.parentReportActionID)}`,
+            selector: (reportActions, props) => props && props.parentReport && reportActions && reportActions[props.parentReport.parentReportActionID],
+            canEvict: false,
+        },
+        transaction: {
+            key: ({parentReportAction}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`,
+        },
+    }),
+)(AttachmentView);
