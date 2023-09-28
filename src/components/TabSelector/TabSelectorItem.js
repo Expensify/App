@@ -1,4 +1,4 @@
-import {Animated, View, StyleSheet} from 'react-native';
+import {Animated, StyleSheet} from 'react-native';
 import React from 'react';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -57,7 +57,7 @@ function TabSelectorItem({icon, title, onPress, backgroundColor, hoverBackground
             onPress={onPress}
         >
             {({hovered}) => (
-                <View
+                <Animated.View
                     style={[styles.tabSelectorButton, StyleSheet.absoluteFill, {backgroundColor: Boolean(hoverBackgroundColor) && hovered && !isFocused ? hoverBackgroundColor : undefined}]}
                 >
                     <TabIcon
@@ -70,7 +70,7 @@ function TabSelectorItem({icon, title, onPress, backgroundColor, hoverBackground
                         activeOpacity={hovered && !isFocused ? 1 : activeOpacity}
                         inactiveOpacity={hovered && !isFocused ? 0 : inactiveOpacity}
                     />
-                </View>
+                </Animated.View>
             )}
         </AnimatedPressableWithFeedback>
     );
