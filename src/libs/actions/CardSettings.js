@@ -2,10 +2,6 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 
-function getUpdatedCardsList(cardsList) {
-    return cardsList;
-}
-
 /**
  * Call the API to deactivate the card and request a new one
  * @param {String} cardId - id of the card that is going to be replaced
@@ -16,21 +12,27 @@ function requestReplacementExpensifyCard(cardId, reason) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
-            value: {},
+            value: {
+                isLoading: true,
+            },
         },
     ];
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
-            value: {},
+            value: {
+                isLoading: false,
+            },
         },
     ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
-            value: {},
+            value: {
+                isLoading: false,
+            },
         },
     ];
 
@@ -48,4 +50,7 @@ function requestReplacementExpensifyCard(cardId, reason) {
     );
 }
 
-export {requestReplacementExpensifyCard, getUpdatedCardsList};
+export {
+    // eslint-disable-next-line import/prefer-default-export
+    requestReplacementExpensifyCard,
+};
