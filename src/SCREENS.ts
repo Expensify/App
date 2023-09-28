@@ -12,9 +12,15 @@ export default {
     VALIDATE_LOGIN: 'ValidateLogin',
     CONCIERGE: 'Concierge',
     SETTINGS: {
+        ROOT: 'Settings_Root',
         PREFERENCES: 'Settings_Preferences',
         WORKSPACES: 'Settings_Workspaces',
         ABOUT: 'Settings_About',
+        SECURITY: 'Settings_Security',
+        STATUS: 'Settings_Status',
+    },
+    SAVE_THE_WORLD: {
+        ROOT: 'SaveTheWorld_Root',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',

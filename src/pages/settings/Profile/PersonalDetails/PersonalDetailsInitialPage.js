@@ -85,7 +85,7 @@ function PersonalDetailsInitialPage(props) {
     };
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={PersonalDetailsInitialPage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.personalDetails')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
