@@ -767,10 +767,15 @@ const styles = (theme) => ({
         marginRight: 20,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 40,
+        paddingVertical: 40,
         gap: 4,
         flex: 1,
     }),
+
+    receiptViewTextContainer: {
+        paddingHorizontal: 40,
+        ...sizing.w100,
+    },
 
     cameraView: {
         flex: 1,
@@ -3390,7 +3395,7 @@ const styles = (theme) => ({
     },
 
     signInIconButton: {
-        padding: 2,
+        paddingVertical: 2,
     },
 
     googleButtonContainer: {
@@ -3513,6 +3518,10 @@ const styles = (theme) => ({
     reportPreviewBoxHoverBorder: {
         borderColor: theme.border,
         backgroundColor: theme.border,
+    },
+
+    reportContainerBorderRadius: {
+        borderRadius: variables.componentBorderRadiusLarge,
     },
 
     reportPreviewBoxBody: {
@@ -3671,6 +3680,28 @@ const styles = (theme) => ({
     draggableTopBar: {
         height: 30,
         width: '100%',
+    },
+
+    walletCard: {
+        borderRadius: variables.componentBorderRadiusLarge,
+        position: 'relative',
+        alignSelf: 'center',
+        overflow: 'hidden',
+    },
+
+    walletCardNumber: {
+        color: theme.text,
+        fontSize: variables.fontSizeNormal,
+    },
+
+    walletCardHolder: {
+        position: 'absolute',
+        left: 16,
+        bottom: 16,
+        width: variables.cardNameWidth,
+        color: theme.text,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightLarge,
     },
 });
 

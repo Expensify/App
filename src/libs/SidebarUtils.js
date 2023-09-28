@@ -71,6 +71,16 @@ function isSidebarLoadedReady() {
     return sidebarIsReadyPromise;
 }
 
+function compareStringDates(stringA, stringB) {
+    if (stringA < stringB) {
+        return -1;
+    }
+    if (stringA > stringB) {
+        return 1;
+    }
+    return 0;
+}
+
 function setIsSidebarLoadedReady() {
     resolveSidebarIsReadyPromise();
 }
@@ -184,12 +194,13 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     pinnedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     outstandingIOUReports.sort((a, b) => b.iouReportAmount - a.iouReportAmount || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     draftReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
+
     if (isInDefaultMode) {
         nonArchivedReports.sort(
-            (a, b) => new Date(b.lastVisibleActionCreated) - new Date(a.lastVisibleActionCreated) || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()),
+            (a, b) => compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()),
         );
         // For archived reports ensure that most recent reports are at the top by reversing the order
-        archivedReports.sort((a, b) => new Date(a.lastVisibleActionCreated) - new Date(b.lastVisibleActionCreated));
+        archivedReports.sort((a, b) => compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated));
     } else {
         nonArchivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
         archivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
@@ -210,9 +221,10 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
  * @param {Object} personalDetails
  * @param {String} preferredLocale
  * @param {Object} [policy]
+ * @param {Object} parentReportAction
  * @returns {Object}
  */
-function getOptionData(report, reportActions, personalDetails, preferredLocale, policy) {
+function getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -266,8 +278,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
     if (result.isTaskReport) {
-        result.isCompletedTaskReport = ReportUtils.isCompletedTaskReport(report);
-        result.isTaskAssignee = ReportUtils.isReportManager(report);
+        result.isWaitingForTaskCompleteFromAssignee = ReportUtils.isWaitingForTaskCompleteFromAssignee(report, parentReportAction);
     }
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -320,9 +331,9 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
               }
             : null;
     }
-    let lastMessageText =
-        hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
-    lastMessageText += report ? lastMessageTextFromReport : '';
+    const lastActorDisplayName =
+        hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? lastActorDetails.displayName : '';
+    let lastMessageText = lastMessageTextFromReport;
 
     if (result.isArchivedRoom) {
         const archiveReason =
@@ -340,9 +351,11 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
             const newName = lodashGet(lastAction, 'originalMessage.newName', '');
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
         } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}: ${report.reportName}`;
+            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}`;
         } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}: ${report.reportName}`;
+            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}`;
+        } else if (lodashGet(lastAction, 'actionName', '') !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
+            result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
