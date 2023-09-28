@@ -368,7 +368,7 @@ export default {
         useSingleSignOn: 'Use Single Sign-On',
         useMagicCode: 'Use Magic Code',
         launching: 'Launching...',
-        oneMoment:'One moment while we redirect you to your company\'s Single Sign-On portal.',
+        oneMoment: 'One moment while we redirect you to your company\'s Single Sign-On portal.',
     },
     reportActionCompose: {
         addAction: 'Actions',

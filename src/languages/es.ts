@@ -359,7 +359,7 @@ export default {
         useSingleSignOn: 'Utilizar el inicio de sesión único',
         useMagicCode: 'Usar código mágico',
         launching: 'Cargando...',
-        oneMoment:'Un momento mientras te redirigimos al portal de inicio de sesión único de tu empresa.',
+        oneMoment: 'Un momento mientras te redirigimos al portal de inicio de sesión único de tu empresa.',
     },
     reportActionCompose: {
         addAction: 'Acción',

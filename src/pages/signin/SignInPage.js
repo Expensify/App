@@ -77,6 +77,9 @@ const defaultProps = {
  * @param {Boolean} hasAccount
  * @param {Boolean} isPrimaryLogin
  * @param {Boolean} isAccountValidated
+ * @param {Boolean} isSAMLEnabled
+ * @param {Boolean} isSAMLRequired
+ * @param {Boolean} isUsingSAMLLogin
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
