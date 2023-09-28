@@ -29,9 +29,6 @@ on:
       SLACK_WEBHOOK:
         description: Webhook used to comment in slack
         required: true
-      OS_BOTIFY_INSTALLATION_ID:
-        description: Installation ID for OS Botify App
-        required: true
       OS_BOTIFY_COMMIT_TOKEN:
         description: OSBotify personal access token, used to workaround committing to protected branch
         required: true
@@ -85,7 +82,6 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
-          OS_BOTIFY_INSTALLATION_ID: ${{ secrets.OS_BOTIFY_INSTALLATION_ID }}
 
       - name: Generate version
         id: bumpVersion

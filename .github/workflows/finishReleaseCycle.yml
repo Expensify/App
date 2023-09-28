@@ -18,7 +18,6 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
-          OS_BOTIFY_INSTALLATION_ID: ${{ secrets.OS_BOTIFY_INSTALLATION_ID }}
 
       - name: Validate actor is deployer
         id: isDeployer
@@ -84,7 +83,6 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
-          OS_BOTIFY_INSTALLATION_ID: ${{ secrets.OS_BOTIFY_INSTALLATION_ID }}
 
       - name: Update production branch
         run: |
@@ -126,7 +124,6 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
-          OS_BOTIFY_INSTALLATION_ID: ${{ secrets.OS_BOTIFY_INSTALLATION_ID }}
 
       - name: Update staging branch to trigger staging deploy
         run: |
