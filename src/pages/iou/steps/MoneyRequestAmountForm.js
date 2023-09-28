@@ -266,10 +266,11 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 ) : null}
                 <Button
                     success
+                    allowBubble
+                    pressOnEnter
                     medium={isExtraSmallScreenHeight}
                     style={[styles.w100, styles.mt5]}
                     onPress={submitAndNavigateToNextPage}
-                    pressOnEnter
                     text={buttonText}
                 />
             </View>
