@@ -6,6 +6,7 @@ import OnyxProvider from '../../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
 import SidebarLinksData from '../../src/pages/home/sidebar/SidebarLinksData';
 import {EnvironmentProvider} from '../../src/components/withEnvironment';
+import {CurrentReportIDContextProvider} from '../../src/components/withCurrentReportID';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 
@@ -192,7 +193,7 @@ function getDefaultRenderedSidebarLinks(currentReportID = '') {
  */
 function MockedSidebarLinks({currentReportID}) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <SidebarLinksData
                 onLinkClick={() => {}}
                 insets={{
