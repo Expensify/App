@@ -247,7 +247,7 @@ function startCurrentDateUpdater() {
     });
 }
 
-function getCurrentTimezone(): Timezone {
+function getCurrentTimezone(): Required<Timezone> {
     const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (timezone.automatic && timezone.selected !== currentTimezone) {
         return {...timezone, selected: currentTimezone};
