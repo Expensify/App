@@ -1066,6 +1066,16 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
         },
+        TYPE: {
+            SEND: 'send',
+            SPLIT: 'split',
+            REQUEST: 'request',
+        },
+        REQUEST_TYPE: {
+            DISTANCE: 'distance',
+            MANUAL: 'manual',
+            SCAN: 'scan',
+        },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',

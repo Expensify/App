@@ -5,6 +5,7 @@ import _ from 'underscore';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../../CONST';
 import IOURequestFieldWaypoint from './field/IOURequestFieldWaypoint';
+import IOURequestFieldParticipants from './field/IOURequestFieldParticipants';
 
 const propTypes = {
     /** Route from navigation */
@@ -39,7 +40,7 @@ function IOURequestFieldPage({
     }
 
     if (field === 'participants') {
-        return null;
+        return <IOURequestFieldParticipants route={route} />;
     }
 
     if (field === 'confirmation') {

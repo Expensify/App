@@ -329,6 +329,41 @@ function isDistanceRequest(transaction) {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
+/**
+ * @param {Object} transaction
+ * @param {Object} [transaction.receipt] attached to the transaction
+ * @param {String} [transaction.receipt.source] of the receipt being scanned
+ * @returns {Boolean}
+ */
+function isScanRequest(transaction) {
+    return Boolean(lodashGet(transaction, 'receipt.source'));
+}
+
+/**
+ * @param {Object} transaction
+ * @param {Object} [transaction.receipt] attached to the transaction
+ * @param {String} [transaction.receipt.source] of the receipt being scanned
+ * @returns {Boolean}
+ */
+function isSplitRequest(transaction) {
+    // @TODO Figure out what makes a transaction a split request
+    return false;
+}
+
+/**
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getRequestType(transaction) {
+    if (isDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE;
+    }
+    if (isScanRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.MANUAL;
+    }
+    return CONST.IOU.REQUEST_TYPE.SCAN;
+}
+
 function isReceiptBeingScanned(transaction) {
     return _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], transaction.receipt.state);
 }
@@ -437,25 +472,28 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
 
 export {
     buildOptimisticTransaction,
-    getUpdatedTransaction,
-    getTransaction,
-    getDescription,
-    getAmount,
-    getCurrency,
-    getMerchant,
-    getCreated,
-    getCategory,
-    getBillable,
-    getTag,
-    getLinkedTransaction,
     getAllReportTransactions,
-    hasReceipt,
-    hasRoute,
-    isReceiptBeingScanned,
+    getAmount,
+    getBillable,
+    getCategory,
+    getCreated,
+    getCurrency,
+    getDescription,
+    getLinkedTransaction,
+    getMerchant,
+    getRequestType,
+    getTag,
+    getTransaction,
+    getUpdatedTransaction,
     getValidWaypoints,
-    isDistanceRequest,
+    getWaypointIndex,
     getWaypoints,
     hasMissingSmartscanFields,
-    getWaypointIndex,
+    hasReceipt,
+    hasRoute,
+    isDistanceRequest,
+    isScanRequest,
+    isSplitRequest,
+    isReceiptBeingScanned,
     waypointHasValidAddress,
 };

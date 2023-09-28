@@ -248,16 +248,16 @@ export default {
     // @TODO remove "create" from the front of the route
     MONEE_REQUEST_CREATE: {
         route: 'create/:iouType/start/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}`,
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}`,
     },
     MONEE_REQUEST_FIELD: {
         route: 'create/:iouType/:field/:transactionID/:reportID/:waypointIndex?',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, field: MoneyRequestFields, transactionID: string, reportID: string, waypointIndex = '') =>
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, field: MoneyRequestFields, transactionID: string, reportID: string, waypointIndex = '') =>
             `create/${iouType}/${field}/${transactionID}/${reportID}/${waypointIndex}`,
     },
     MONEE_REQUEST_CREATE_TAB_DISTANCE: {
         route: 'create/:iouType/start/:transactionID/:reportID/distance',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/distance`,
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/distance`,
     },
     MONEE_REQUEST_CREATE_TAB_MANUAL: 'create/:iouType/start/:transactionID/:reportID/manual',
     MONEE_REQUEST_CREATE_TAB_SCAN: 'create/:iouType/start/:transactionID/:reportID/scan',
