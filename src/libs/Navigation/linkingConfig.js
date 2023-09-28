@@ -323,10 +323,6 @@ export default {
                                 path: ROUTES.MONEE_REQUEST_FIELD.route,
                                 exact: true,
                             },
-                            Monee_Request_Create_Tab_Distance_Waypoint: {
-                                path: ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE_WAYPOINT.route,
-                                exact: true,
-                            },
                             Money_Request: {
                                 path: ROUTES.MONEY_REQUEST.route,
                                 exact: true,

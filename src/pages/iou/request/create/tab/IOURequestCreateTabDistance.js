@@ -17,13 +17,14 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestCreateTabDistance({transaction}) {
+function IOURequestCreateTabDistance({transaction: {transactionID, reportID}}) {
     /**
-     * @param {Number} index of the waypoint being clicked on
+     * @param {Number} index of the waypoint that the user needs to be taken to
      */
     const navigateToWaypointPage = (index) => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, transaction.transactionID, transaction.reportID, 'waypoint', index));
+        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, transactionID, reportID, 'waypoint', index));
     };
+
     const goToNextStep = () => {
         // @TODO figure this out
         console.log('tbd what the next step is');
@@ -31,7 +32,7 @@ function IOURequestCreateTabDistance({transaction}) {
 
     return (
         <IOURequestFieldDistance
-            transactionID={transaction.transactionID}
+            transactionID={transactionID}
             onWaypointSelect={navigateToWaypointPage}
             onSubmit={goToNextStep}
         />

@@ -2168,9 +2168,8 @@ function startMoneyRequest(iouType, reportID = '') {
  * Initialize money request info and navigate to the MoneyRequest page
  * @param {String} iouType
  * @param {String} [reportID] to attach the transaction to
- * @param {Boolean} [reportExistsOnServer] whether or not the report exists on the server or not yet
  */
-function startMoneeRequest(iouType, reportID = '', reportExistsOnServer = false) {
+function startMoneeRequest(iouType, reportID = '') {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
 
@@ -2179,7 +2178,6 @@ function startMoneeRequest(iouType, reportID = '', reportExistsOnServer = false)
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {
         wasSaved: false,
         reportID,
-        reportExistsOnServer,
         transactionID: newTransactionID,
     });
 

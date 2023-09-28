@@ -80,7 +80,6 @@ function IOURequestPage({route, transaction}) {
                             {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <CreateIOUStartRequest
                                     selectedTab={selectedTab}
-                                    shouldDisplayDistanceTab={transaction.reportExistsOnServer}
                                     iouType={iouType}
                                 />
                             ) : (

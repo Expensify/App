@@ -144,7 +144,7 @@ function AttachmentPickerWithMenuItems({
             ...options[option],
             onSelected: () => {
                 // @TODO IOU.startMoneyRequest(option, report.reportID);
-                IOU.startMoneeRequest(option, report.reportID, true);
+                IOU.startMoneeRequest(option, report.reportID);
             },
         }));
     }, [betas, report, reportParticipantIDs, translate]);
