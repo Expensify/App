@@ -53,7 +53,7 @@ const propTypes = {
 
 function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen}) {
     const modal = useRef({});
-    const {translate} = useLocalize();
+    const {translate, updateLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {
@@ -69,7 +69,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
-                this.props.updateLocale();
+                updateLocale();
             });
         });
 
