@@ -21,7 +21,6 @@ const propTypes = {
     backgroundColor: PropTypes.any,
 
     /** Hovered background color value for the tab button */
-    // eslint-disable-next-line
     hoverBackgroundColor: PropTypes.string,
 
     /** Animated opacity value while the label is inactive state */
