@@ -363,7 +363,7 @@ function isUserCreatedPolicyRoom(report) {
 /**
  * Whether the provided report is a Policy Expense chat.
  * @param {Object} report
- * @param {String} report.chatType
+ * @param {String} [report.chatType]
  * @returns {Boolean}
  */
 function isPolicyExpenseChat(report) {

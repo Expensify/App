@@ -1,6 +1,4 @@
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import Navigation from '../Navigation/Navigation';
 import * as ReportUtils from '../ReportUtils';
 import ROUTES from '../../ROUTES';
@@ -8,15 +6,28 @@ import * as Policy from './Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
+import Report from '../../types/onyx/Report';
+import OnyxPolicy from "../../types/onyx/Policy";
 
-let resolveIsReadyPromise;
+let resolveIsReadyPromise: (value?: (PromiseLike<unknown>)) => void;
 let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-let isFirstTimeNewExpensifyUser;
+let isFirstTimeNewExpensifyUser: boolean | undefined;
 let isLoadingReportData = true;
-let currentUserAccountID;
+let currentUserAccountID: number | undefined;
+
+type Route = {
+    name: string;
+    params?: {path: string, exitTo?: string, openOnAdminRoom?: boolean};
+};
+
+type ShowParams = {
+    routes: Route[];
+    showCreateMenu?: () => void;
+    showPopoverMenu?: () => boolean;
+};
 
 /**
  * Check that a few requests have completed so that the welcome action can proceed:
@@ -26,11 +37,13 @@ let currentUserAccountID;
  * - Whether we have loaded all reports the server knows about
  */
 function checkOnReady() {
-    if (!_.isBoolean(isFirstTimeNewExpensifyUser) || isLoadingReportData) {
+    if (typeof isFirstTimeNewExpensifyUser !== "boolean" || isLoadingReportData) {
         return;
     }
 
-    resolveIsReadyPromise();
+    if(resolveIsReadyPromise) {
+        resolveIsReadyPromise();
+    }
 }
 
 Onyx.connect({
@@ -39,7 +52,7 @@ Onyx.connect({
     callback: (val) => {
         // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
         // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
-        if (!isFirstTimeNewExpensifyUser) {
+        if (val !== null) {
             isFirstTimeNewExpensifyUser = val;
         }
         checkOnReady();
@@ -50,12 +63,15 @@ Onyx.connect({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     initWithStoredValues: false,
     callback: (val) => {
-        isLoadingReportData = val;
+        if(val)
+        {
+            isLoadingReportData = val;
+        }
         checkOnReady();
     },
 });
 
-const allReports = {};
+const allReports: Record<string, Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     initWithStoredValues: false,
@@ -68,7 +84,7 @@ Onyx.connect({
     },
 });
 
-const allPolicies = {};
+const allPolicies: Record<string, OnyxPolicy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
@@ -98,13 +114,8 @@ Onyx.connect({
 
 /**
  * Shows a welcome action on first login
- *
- * @param {Object} params
- * @param {Object} params.routes
- * @param {Function} [params.showCreateMenu]
- * @param {Function} [params.showPopoverMenu]
  */
-function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
+function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}: ShowParams) {
     isReadyPromise.then(() => {
         if (!isFirstTimeNewExpensifyUser) {
             return;
@@ -112,20 +123,19 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
 
         // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
         // create menu right now. We should also stay on the workspace page if that is our destination.
-        const topRoute = _.last(routes);
-        const isWorkspaceRoute = topRoute.name === 'Settings' && topRoute.params.path.includes('workspace');
-        const transitionRoute = _.find(routes, (route) => route.name === SCREENS.TRANSITION_BETWEEN_APPS);
-        const exitingToWorkspaceRoute = lodashGet(transitionRoute, 'params.exitTo', '') === 'workspace/new';
-        const openOnAdminRoom = lodashGet(topRoute, 'params.openOnAdminRoom', false);
-        const isDisplayingWorkspaceRoute = isWorkspaceRoute || exitingToWorkspaceRoute;
+        const topRoute = routes[routes.length - 1]
+        const isWorkspaceRoute = topRoute.name === 'Settings' && topRoute.params?.path.includes('workspace');
+        const transitionRoute = routes.find((route) => route.name === SCREENS.TRANSITION_BETWEEN_APPS);
+        const exitingToWorkspaceRoute = transitionRoute?.params?.exitTo === 'workspace/new';
+        const openOnAdminRoom = topRoute.params?.openOnAdminRoom ?? false;
+        const isDisplayingWorkspaceRoute = isWorkspaceRoute ?? exitingToWorkspaceRoute;
 
         // If we already opened the workspace settings or want the admin room to stay open, do not
         // navigate away to the workspace chat report
         const shouldNavigateToWorkspaceChat = !isDisplayingWorkspaceRoute && !openOnAdminRoom;
 
-        const workspaceChatReport = _.find(
-            allReports,
-            (report) => ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS.CLOSED,
+        const workspaceChatReport = Object(allReports).values().find((report: Report) =>
+            ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS.CLOSED
         );
 
         if (workspaceChatReport || openOnAdminRoom) {
@@ -138,7 +148,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
 
             // If showPopoverMenu exists and returns true then it opened the Popover Menu successfully, and we can update isFirstTimeNewExpensifyUser
             // so the Welcome logic doesn't run again
-            if (showPopoverMenu()) {
+            if (showPopoverMenu && showPopoverMenu()) {
                 isFirstTimeNewExpensifyUser = false;
             }
 
