@@ -142,9 +142,7 @@ function AddressPage({privatePersonalDetails, route}) {
             setState(value);
             return;
         }
-        if (key === 'city') {
-            setCity(value);
-        }
+        setCity(value);
     }, []);
 
     useEffect(() => {
