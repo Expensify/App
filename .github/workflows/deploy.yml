@@ -23,11 +23,6 @@ jobs:
           ref: staging
           token: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
-      - name: Setup git for OSBotify
-        uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
-        with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
       - name: Tag version
         run: git tag "$(npm run print-version --silent)"
 
