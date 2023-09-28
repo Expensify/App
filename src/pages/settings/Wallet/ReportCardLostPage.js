@@ -1,4 +1,5 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState, useEffect} from 'react';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -14,6 +15,12 @@ import useLocalize from '../../../hooks/useLocalize';
 import Text from '../../../components/Text';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import usePrivatePersonalDetails from '../../../hooks/usePrivatePersonalDetails';
+import assignedCardPropTypes from './assignedCardPropTypes';
+import * as CardUtils from '../../../libs/CardUtils';
+import NotFoundPage from '../../ErrorPage/NotFoundPage';
+import usePrevious from '../../../hooks/usePrevious';
+import * as FormActions from '../../../libs/actions/FormActions';
+import * as CardActions from '../../../libs/actions/Card';
 
 /** Options for reason selector */
 const OPTIONS = [
@@ -28,6 +35,10 @@ const OPTIONS = [
 ];
 
 const propTypes = {
+    /** Onyx form data */
+    formData: PropTypes.shape({
+        isLoading: PropTypes.bool,
+    }),
     /** User's private personal details */
     privatePersonalDetails: PropTypes.shape({
         /** User's home address */
@@ -39,9 +50,19 @@ const propTypes = {
             country: PropTypes.string,
         }),
     }),
+    /** User's cards list */
+    cardList: PropTypes.objectOf(assignedCardPropTypes),
+    route: PropTypes.shape({
+        /** Each parameter passed via the URL */
+        params: PropTypes.shape({
+            /** Domain string */
+            domain: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
+    formData: {},
     privatePersonalDetails: {
         address: {
             street: '',
@@ -52,13 +73,21 @@ const defaultProps = {
             country: '',
         },
     },
+    cardList: {},
 };
 
-function ReportCardLostPage({privatePersonalDetails}) {
+function ReportCardLostPage({
+    privatePersonalDetails,
+    cardList,
+    route: {
+        params: {domain},
+    },
+    formData,
+}) {
     usePrivatePersonalDetails();
 
-    const privateDetails = privatePersonalDetails || {};
-    const address = privateDetails.address || {};
+    const domainCards = CardUtils.getDomainCards(cardList)[domain];
+    const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
 
     const {translate} = useLocalize();
 
@@ -66,53 +95,48 @@ function ReportCardLostPage({privatePersonalDetails}) {
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
 
-    /**
-     * Applies common formatting to each piece of an address
-     *
-     * @param {String} piece
-     * @returns {String}
-     */
-    const formatPiece = (piece) => (piece ? `${piece}, ` : '');
+    const prevIsLoading = usePrevious(formData.isLoading);
 
-    /**
-     * Formats an address object into an easily readable string
-     *
-     * @returns {String}
-     */
-    const formattedAddress = useMemo(() => {
-        const [street1, street2] = (address.street || '').split('\n');
-        const formatted = formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
+    const formattedAddress = CardUtils.getFormattedAddress(privatePersonalDetails);
 
-        // Remove the last comma of the address
-        return formatted.trim().replace(/,$/, '');
-    }, [address.city, address.country, address.state, address.street, address.zip]);
-
-    const validate = () => {
-        if (!isReasonConfirmed) {
-            setShouldShowAddressError(false);
-            return {};
+    useEffect(() => {
+        if (prevIsLoading && !formData.isLoading && _.isEmpty(physicalCard.errors)) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
         }
 
-        if (!formattedAddress) {
-            setShouldShowAddressError(true);
-            return {};
+        if (formData.isLoading && _.isEmpty(physicalCard.errors)) {
+            return;
         }
-    };
+
+        FormActions.setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD, physicalCard.errors);
+    }, [domain, formData.isLoading, prevIsLoading, physicalCard.errors]);
 
     const onSubmit = () => {
         if (!isReasonConfirmed) {
             setIsReasonConfirmed(true);
+
+            setShouldShowAddressError(false);
+
             return;
         }
 
         if (!formattedAddress) {
-            // TODO: submit
+            setShouldShowAddressError(true);
+            return;
+        }
+
+        if (formattedAddress) {
+            CardActions.requestReplacementExpensifyCard(physicalCard.cardID, reason);
         }
     };
 
     const handleOptionSelect = (option) => {
         setReason(option);
     };
+
+    if (_.isEmpty(physicalCard)) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper>
@@ -121,8 +145,7 @@ function ReportCardLostPage({privatePersonalDetails}) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
             <Form
-                formID={ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_LOST}
-                validate={validate}
+                formID={ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD}
                 onSubmit={onSubmit}
                 submitButtonText={isReasonConfirmed ? translate('reportCardLostOrDamaged.deactivateCardButton') : translate('reportCardLostOrDamaged.nextButtonLabel')}
                 style={styles.flexGrow1}
@@ -139,7 +162,7 @@ function ReportCardLostPage({privatePersonalDetails}) {
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
                             numberOfLinesTitle={2}
                         />
-                        {shouldShowAddressError && <Text style={styles.mh5}>Address missing</Text>}
+                        {shouldShowAddressError && <Text style={[styles.mh5, styles.formError]}>{translate('reportCardLostOrDamaged.addressError')}</Text>}
                         <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.currentCardInfo')}</Text>
                     </>
                 ) : (
@@ -164,5 +187,11 @@ ReportCardLostPage.displayName = 'ReportCardLostPage';
 export default withOnyx({
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+    cardList: {
+        key: ONYXKEYS.CARD_LIST,
+    },
+    formData: {
+        key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD,
     },
 })(ReportCardLostPage);
