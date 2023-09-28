@@ -1584,7 +1584,7 @@ export default {
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
-        offline: 'You appear to be offline; search results are limited.',
+        resultsAreLimited: 'Los resultados de búsqueda están limitados.',
     },
     genericErrorPage: {
         title: '¡Uh-oh, algo salió mal!',

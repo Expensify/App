@@ -204,7 +204,8 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
  */
 function openApp() {
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect(true));
+        const params = {enablePriorityModeFilter: true, ...policyParams};
+        API.read('OpenApp', params, getOnyxDataForOpenOrReconnect(true));
     });
 }
 
