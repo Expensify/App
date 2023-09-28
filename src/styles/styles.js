@@ -3572,6 +3572,10 @@ const styles = (theme) => ({
         backgroundColor: theme.border,
     },
 
+    reportContainerBorderRadius: {
+        borderRadius: variables.componentBorderRadiusLarge,
+    },
+
     reportPreviewBoxBody: {
         padding: 16,
     },

@@ -151,6 +151,10 @@ export default {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                                 exact: true,
                             },
+                            Settings_PersonalDetails_Address_Country: {
+                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.route,
+                                exact: true,
+                            },
                             Settings_TwoFactorAuth: {
                                 path: ROUTES.SETTINGS_2FA,
                                 exact: true,
@@ -329,8 +333,9 @@ export default {
                             Money_Request_Tag: ROUTES.MONEY_REQUEST_TAG.route,
                             Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT.route,
                             Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT.route,
+                            Money_Request_Edit_Waypoint: ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.route,
                             Money_Request_Receipt: ROUTES.MONEY_REQUEST_RECEIPT.route,
-                            Money_Request_Address: ROUTES.MONEY_REQUEST_ADDRESS.route,
+                            Money_Request_Distance: ROUTES.MONEY_REQUEST_DISTANCE.route,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                             IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,

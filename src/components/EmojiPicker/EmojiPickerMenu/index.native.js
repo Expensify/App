@@ -25,9 +25,6 @@ const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
     onEmojiSelected: PropTypes.func.isRequired,
 
-    /** The ref to the search input (may be null on small screen widths) */
-    forwardedRef: PropTypes.func,
-
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
@@ -40,12 +37,11 @@ const propTypes = {
 };
 
 const defaultProps = {
-    forwardedRef: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     frequentlyUsedEmojis: [],
 };
 
-function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, translate, frequentlyUsedEmojis, forwardedRef}) {
+function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, translate, frequentlyUsedEmojis}) {
     const emojiList = useAnimatedRef();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
@@ -172,7 +168,6 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                     accessibilityLabel={translate('common.search')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     onChangeText={filterEmojis}
-                    ref={forwardedRef}
                 />
             </View>
             {!isFiltered && (
