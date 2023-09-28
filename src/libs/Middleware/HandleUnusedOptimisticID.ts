@@ -28,7 +28,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request) =>
                 .forEach((persistedRequest, index) => {
                     const oldRequest = persistedRequest;
                     oldRequest.data = deepReplaceKeysAndValues(oldRequest.data, oldReportID as string, preexistingReportID);
-                    PersistedRequests.update(index, oldRequest);
+                    PersistedRequests.update(index + 1, oldRequest);
                 });
         });
         return response;

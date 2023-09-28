@@ -77,7 +77,15 @@ describe('Middleware', () => {
                 ok: true,
                 json: async () => ({
                     jsonCode: 200,
-                    preexistingReportID: '5555',
+                    onyxData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                            value: {
+                                preexistingReportID: '5555',
+                            },
+                        },
+                    ],
                 }),
             }));
 
