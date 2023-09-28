@@ -51,7 +51,7 @@ const userListItemPropTypes = {
         /** Element to show on the right side of the item */
         rightElement: PropTypes.element,
 
-        /** Avatar for the user */
+        /** Icons for the user (can be multiple if it's a Workspace) */
         icons: PropTypes.arrayOf(
             PropTypes.shape({
                 source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
