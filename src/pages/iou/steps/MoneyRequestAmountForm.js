@@ -148,11 +148,16 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         [decimals],
     );
 
+    // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
+        // If the changed currency supports decimals, we can return
         if (MoneyRequestUtils.validateAmount(currentAmount, decimals)) {
             return;
         }
+        
+        // If the changed currency doesn't support decimals, we can strip the decimals
         setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
+        
         // we want to check validation only when the currency changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currency]);
