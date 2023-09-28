@@ -7,9 +7,9 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request) =>
         if (response && typeof response === 'object' && 'preexistingReportID' in response) {
             const oldReportID = request.data?.reportID;
             PersistedRequests.getAll().forEach((persistedRequest, index) => {
-                // eslint-disable-next-line no-param-reassign
-                persistedRequest.data = deepReplaceKeysAndValues(persistedRequest.data, oldReportID as string, response.preexistingReportID as string);
-                PersistedRequests.update(index, persistedRequest);
+                const oldRequest = persistedRequest;
+                oldRequest.data = deepReplaceKeysAndValues(oldRequest.data, oldReportID as string, response.preexistingReportID as string);
+                PersistedRequests.update(index, oldRequest);
             });
         }
         return response;
