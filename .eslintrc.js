@@ -24,7 +24,7 @@ const restrictedImportPatterns = [
 ];
 
 module.exports = {
-    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'prettier', 'plugin:react-native-a11y/basic'],
+    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'plugin:react-native-a11y/basic', 'prettier'],
     plugins: ['react-hooks', 'react-native-a11y'],
     parser: 'babel-eslint',
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', 'node_modules/.cache/**', '.git/**'],
@@ -75,6 +75,7 @@ module.exports = {
                         patterns: restrictedImportPatterns,
                     },
                 ],
+                curly: 'error',
             },
         },
         {
@@ -161,6 +162,15 @@ module.exports = {
                         patterns: restrictedImportPatterns,
                     },
                 ],
+                curly: 'error',
+            },
+        },
+        {
+            files: ['workflow_tests/**/*.{js,jsx,ts,tsx}', 'tests/**/*.{js,jsx,ts,tsx}', '.github/**/*.{js,jsx,ts,tsx}'],
+            rules: {
+                '@lwc/lwc/no-async-await': 'off',
+                'no-await-in-loop': 'off',
+                'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
             },
         },
     ],

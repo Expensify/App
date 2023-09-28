@@ -35,6 +35,8 @@ import DeeplinkWrapper from './components/DeeplinkWrapper';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
 import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
+// eslint-disable-next-line no-unused-vars
+import subscribePushNotification from './libs/Notification/PushNotification/subscribePushNotification';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -97,7 +99,9 @@ function Expensify(props) {
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
 
     useEffect(() => {
-        if (props.isCheckingPublicRoom) return;
+        if (props.isCheckingPublicRoom) {
+            return;
+        }
         setAttemptedToOpenPublicRoom(true);
     }, [props.isCheckingPublicRoom]);
 
@@ -163,10 +167,14 @@ function Expensify(props) {
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-        Linking.getInitialURL().then((url) => Report.openReportFromDeepLink(url, isAuthenticated));
+        Linking.getInitialURL().then((url) => {
+            Report.openReportFromDeepLink(url, isAuthenticated);
+        });
 
         // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', (state) => Report.openReportFromDeepLink(state.url, isAuthenticated));
+        Linking.addEventListener('url', (state) => {
+            Report.openReportFromDeepLink(state.url, isAuthenticated);
+        });
 
         return () => {
             if (!appStateChangeListener.current) {

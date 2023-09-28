@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../../styles/styles';
@@ -38,11 +38,7 @@ const propTypes = {
 
 function SignInPageContent(props) {
     return (
-        <ScrollView
-            contentContainerStyle={[styles.flex1, styles.signInPageLeftContainer]}
-            keyboardShouldPersistTaps="handled"
-            style={[!props.isSmallScreenWidth && styles.signInPageLeftContainerWide, styles.flex1]}
-        >
+        <View style={[styles.flex1, styles.signInPageLeftContainer]}>
             <View style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
                 {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
                 <View style={[styles.flexGrow1, props.isSmallScreenWidth ? styles.signInPageContentTopSpacerSmallScreens : styles.signInPageContentTopSpacer]} />
@@ -82,7 +78,7 @@ function SignInPageContent(props) {
                     ) : null}
                 </View>
             </View>
-        </ScrollView>
+        </View>
     );
 }
 

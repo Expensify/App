@@ -1,13 +1,13 @@
 import React, {forwardRef, useState} from 'react';
 import _ from 'underscore';
 import propTypes from 'prop-types';
-import {InteractionManager} from 'react-native';
 import GenericPressable from './GenericPressable';
 import GenericPressablePropTypes from './GenericPressable/PropTypes';
 import OpacityView from '../OpacityView';
 import variables from '../../styles/variables';
+import useSingleExecution from '../../hooks/useSingleExecution';
 
-const omittedProps = ['wrapperStyle'];
+const omittedProps = ['wrapperStyle', 'needsOffscreenAlphaCompositing'];
 
 const PressableWithFeedbackPropTypes = {
     ...GenericPressablePropTypes.pressablePropTypes,
@@ -27,6 +27,9 @@ const PressableWithFeedbackPropTypes = {
      *  Used to locate this view from native classes.
      */
     nativeID: propTypes.string,
+
+    /** Whether the view needs to be rendered offscreen (for Android only) */
+    needsOffscreenAlphaCompositing: propTypes.bool,
 };
 
 const PressableWithFeedbackDefaultProps = {
@@ -35,11 +38,12 @@ const PressableWithFeedbackDefaultProps = {
     hoverDimmingValue: variables.hoverDimValue,
     nativeID: '',
     wrapperStyle: [],
+    needsOffscreenAlphaCompositing: false,
 };
 
 const PressableWithFeedback = forwardRef((props, ref) => {
-    const propsWithoutWrapperStyles = _.omit(props, omittedProps);
-    const [isExecuting, setIsExecuting] = useState(false);
+    const propsWithoutWrapperProps = _.omit(props, omittedProps);
+    const {isExecuting, singleExecution} = useSingleExecution();
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const isDisabled = props.disabled || isExecuting;
@@ -49,41 +53,40 @@ const PressableWithFeedback = forwardRef((props, ref) => {
             shouldDim={Boolean(!isDisabled && (isPressed || isHovered))}
             dimmingValue={isPressed ? props.pressDimmingValue : props.hoverDimmingValue}
             style={props.wrapperStyle}
+            needsOffscreenAlphaCompositing={props.needsOffscreenAlphaCompositing}
         >
             <GenericPressable
                 ref={ref}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...propsWithoutWrapperStyles}
+                {...propsWithoutWrapperProps}
                 disabled={isDisabled}
                 isExecuting={isExecuting}
                 onHoverIn={() => {
                     setIsHovered(true);
-                    if (props.onHoverIn) props.onHoverIn();
+                    if (props.onHoverIn) {
+                        props.onHoverIn();
+                    }
                 }}
                 onHoverOut={() => {
                     setIsHovered(false);
-                    if (props.onHoverOut) props.onHoverOut();
+                    if (props.onHoverOut) {
+                        props.onHoverOut();
+                    }
                 }}
                 onPressIn={() => {
                     setIsPressed(true);
-                    if (props.onPressIn) props.onPressIn();
+                    if (props.onPressIn) {
+                        props.onPressIn();
+                    }
                 }}
                 onPressOut={() => {
                     setIsPressed(false);
-                    if (props.onPressOut) props.onPressOut();
+                    if (props.onPressOut) {
+                        props.onPressOut();
+                    }
                 }}
                 onPress={(e) => {
-                    setIsExecuting(true);
-                    const onPress = props.onPress(e);
-                    InteractionManager.runAfterInteractions(() => {
-                        if (!(onPress instanceof Promise)) {
-                            setIsExecuting(false);
-                            return;
-                        }
-                        onPress.finally(() => {
-                            setIsExecuting(false);
-                        });
-                    });
+                    singleExecution(() => props.onPress(e))();
                 }}
             >
                 {(state) => (_.isFunction(props.children) ? props.children(state) : props.children)}

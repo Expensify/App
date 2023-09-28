@@ -2,7 +2,6 @@ import React, {createContext, forwardRef} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from '../libs/Localize';
@@ -28,6 +27,9 @@ const withLocalizePropTypes = {
 
     /** Formats a datetime to local date and time string */
     datetimeToCalendarTime: PropTypes.func.isRequired,
+
+    /** Updates date-fns internal locale */
+    updateLocale: PropTypes.func.isRequired,
 
     /** Returns a locally converted phone number for numbers from the same region
      * and an internationally converted phone number with the country code for numbers from other regions */
@@ -63,6 +65,13 @@ const localeProviderDefaultProps = {
 };
 
 class LocaleContextProvider extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        return (
+            nextProps.preferredLocale !== this.props.preferredLocale ||
+            lodashGet(nextProps, 'currentUserPersonalDetails.timezone.selected') !== lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected')
+        );
+    }
+
     /**
      * The context this component exposes to child components
      * @returns {object} translation util functions and locale
@@ -73,6 +82,7 @@ class LocaleContextProvider extends React.Component {
             numberFormat: this.numberFormat.bind(this),
             datetimeToRelative: this.datetimeToRelative.bind(this),
             datetimeToCalendarTime: this.datetimeToCalendarTime.bind(this),
+            updateLocale: this.updateLocale.bind(this),
             formatPhoneNumber: this.formatPhoneNumber.bind(this),
             fromLocaleDigit: this.fromLocaleDigit.bind(this),
             toLocaleDigit: this.toLocaleDigit.bind(this),
@@ -114,6 +124,13 @@ class LocaleContextProvider extends React.Component {
      */
     datetimeToCalendarTime(datetime, includeTimezone, isLowercase = false) {
         return DateUtils.datetimeToCalendarTime(this.props.preferredLocale, datetime, includeTimezone, lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'), isLowercase);
+    }
+
+    /**
+     * Updates date-fns internal locale to the user preferredLocale
+     */
+    updateLocale() {
+        DateUtils.setLocale(this.props.preferredLocale);
     }
 
     /**

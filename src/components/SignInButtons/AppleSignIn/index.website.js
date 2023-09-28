@@ -5,7 +5,6 @@ import get from 'lodash/get';
 import getUserLanguage from '../GetUserLanguage';
 import * as Session from '../../../libs/actions/Session';
 import Log from '../../../libs/Log';
-import * as Environment from '../../../libs/Environment/Environment';
 import CONFIG from '../../../CONFIG';
 import CONST from '../../../CONST';
 import withNavigationFocus from '../../withNavigationFocus';
@@ -51,12 +50,14 @@ const config = {
  */
 
 const successListener = (event) => {
-    const token = !Environment.isDevelopment() ? event.detail.id_token : lodashGet(Config, 'ASI_TOKEN_OVERRIDE', event.detail.id_token);
+    const token = event.detail.authorization.id_token;
     Session.beginAppleSignIn(token);
 };
 
 const failureListener = (event) => {
-    if (!event.detail || event.detail.error === 'popup_closed_by_user') return null;
+    if (!event.detail || event.detail.error === 'popup_closed_by_user') {
+        return null;
+    }
     Log.warn(`Apple sign-in failed: ${event.detail}`);
 };
 
@@ -127,7 +128,9 @@ const SingletonAppleSignInButtonWithFocus = withNavigationFocus(SingletonAppleSi
 function AppleSignIn({isDesktopFlow}) {
     const [scriptLoaded, setScriptLoaded] = useState(false);
     useEffect(() => {
-        if (window.appleAuthScriptLoaded) return;
+        if (window.appleAuthScriptLoaded) {
+            return;
+        }
 
         const localeCode = getUserLanguage();
         const script = document.createElement('script');

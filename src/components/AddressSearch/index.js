@@ -34,7 +34,7 @@ const propTypes = {
     onBlur: PropTypes.func,
 
     /** Error text to display */
-    errorText: PropTypes.string,
+    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** Hint text to display */
     hint: PropTypes.string,
@@ -61,6 +61,26 @@ const propTypes = {
     /** Should address search be limited to results in the USA */
     isLimitedToUSA: PropTypes.bool,
 
+    /** A list of predefined places that can be shown when the user isn't searching for something */
+    predefinedPlaces: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** A description of the location (usually the address) */
+            description: PropTypes.string,
+
+            /** Data required by the google auto complete plugin to know where to put the markers on the map */
+            geometry: PropTypes.shape({
+                /** Data about the location */
+                location: PropTypes.shape({
+                    /** Lattitude of the location */
+                    lat: PropTypes.number,
+
+                    /** Longitude of the location */
+                    lng: PropTypes.number,
+                }),
+            }),
+        }),
+    ),
+
     /** A map of inputID key names */
     renamedInputKeys: PropTypes.shape({
         street: PropTypes.string,
@@ -74,6 +94,9 @@ const propTypes = {
 
     /** Maximum number of characters allowed in search input */
     maxInputLength: PropTypes.number,
+
+    /** The result types to return from the Google Places Autocomplete request */
+    resultTypes: PropTypes.string,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -91,7 +114,7 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     containerStyles: [],
-    isLimitedToUSA: true,
+    isLimitedToUSA: false,
     renamedInputKeys: {
         street: 'addressStreet',
         street2: 'addressStreet2',
@@ -102,6 +125,8 @@ const defaultProps = {
         lng: 'addressLng',
     },
     maxInputLength: undefined,
+    predefinedPlaces: [],
+    resultTypes: 'address',
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -113,15 +138,25 @@ function AddressSearch(props) {
     const query = useMemo(
         () => ({
             language: props.preferredLocale,
-            types: 'address',
+            types: props.resultTypes,
             components: props.isLimitedToUSA ? 'country:us' : undefined,
         }),
-        [props.preferredLocale, props.isLimitedToUSA],
+        [props.preferredLocale, props.resultTypes, props.isLimitedToUSA],
     );
 
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
         if (!addressComponents) {
+            // When there are details, but no address_components, this indicates that some predefined options have been passed
+            // to this component which don't match the usual properties coming from auto-complete. In that case, only a limited
+            // amount of data massaging needs to happen for what the parent expects to get from this function.
+            if (_.size(details)) {
+                props.onPress({
+                    address: lodashGet(details, 'description', ''),
+                    lat: lodashGet(details, 'geometry.location.lat', 0),
+                    lng: lodashGet(details, 'geometry.location.lng', 0),
+                });
+            }
             return;
         }
 
@@ -250,6 +285,7 @@ function AddressSearch(props) {
                     fetchDetails
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
+                    predefinedPlaces={props.predefinedPlaces}
                     ListEmptyComponent={
                         props.network.isOffline ? null : (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
@@ -264,7 +300,7 @@ function AddressSearch(props) {
                     query={query}
                     requestUrl={{
                         useOnPlatform: 'all',
-                        url: ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
+                        url: props.network.isOffline ? null : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
                     }}
                     textInputProps={{
                         InputComp: TextInput,

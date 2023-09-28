@@ -13,7 +13,6 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
-import Permissions from '../Permissions';
 
 const allPolicies = {};
 Onyx.connect({
@@ -234,21 +233,15 @@ function removeMembers(accountIDs, policyID) {
  *
  * @param {String} policyID
  * @param {Object} invitedEmailsToAccountIDs
- * @param {Array} betas
  * @returns {Object} - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
-function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
+function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs) {
     const workspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
         onyxFailureData: [],
         reportCreationData: {},
     };
-
-    // If the user is not in the beta, we don't want to create any chats
-    if (!Permissions.canUsePolicyExpenseChat(betas)) {
-        return workspaceMembersChats;
-    }
 
     _.each(invitedEmailsToAccountIDs, (accountID, email) => {
         const cleanAccountID = Number(accountID);
@@ -317,7 +310,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
 
         workspaceMembersChats.onyxFailureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReport.reportID}`,
             value: {
                 isLoadingReportActions: false,
             },
@@ -332,16 +325,15 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
  * @param {Object} invitedEmailsToAccountIDs
  * @param {String} welcomeNote
  * @param {String} policyID
- * @param {Array<String>} betas
  */
-function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID, betas) {
+function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
     const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = _.values(invitedEmailsToAccountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
+    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
     const optimisticData = [
         {
@@ -429,6 +421,7 @@ function updateWorkspaceAvatar(policyID, file) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 avatar: file.uri,
+                originalFileName: file.name,
                 errorFields: {
                     avatar: null,
                 },
@@ -584,7 +577,15 @@ function updateGeneralSettings(policyID, name, currency) {
         },
     ];
 
-    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, currency}, {optimisticData, successData, failureData});
+    API.write(
+        'UpdateWorkspaceGeneralSettings',
+        {policyID, workspaceName: name, currency},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 /**
@@ -713,13 +714,15 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         },
     ];
 
+    const newCustomUnitParam = _.clone(newCustomUnit);
+    newCustomUnitParam.rates = _.omit(newCustomUnitParam.rates, ['pendingAction', 'errors']);
     API.write(
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
             lastModified,
-            customUnit: JSON.stringify(newCustomUnit),
-            customUnitRate: JSON.stringify(newCustomUnit.rates),
+            customUnit: JSON.stringify(newCustomUnitParam),
+            customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },
         {optimisticData, successData, failureData},
     );
