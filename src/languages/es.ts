@@ -2280,5 +2280,6 @@ export default {
         currentCardInfo: 'La tarjeta actual se desactivará permanentemente en cuanto se realice el pedido. La mayoría de las tarjetas llegan en unos pocos días laborables.',
         address: 'Dirección',
         deactivateCardButton: 'Desactivar tarjeta',
+        addressError: 'La dirección es obligatoria',
     },
 } satisfies EnglishTranslation;

@@ -1797,5 +1797,6 @@ export default {
         currentCardInfo: 'Your current card will be permanently deactivated as soon as your order is placed. Most cards arrive in a few business days.',
         address: 'Address',
         deactivateCardButton: 'Deactivate card',
+        addressError: 'Address is required',
     },
 } satisfies TranslationBase;
