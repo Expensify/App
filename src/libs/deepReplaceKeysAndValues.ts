@@ -24,10 +24,7 @@ function deepReplaceKeysAndValues<T extends ReplaceableValue>(obj: T, oldVal: st
 
     const newObj: Record<string, unknown> = {};
     Object.entries(obj).forEach(([key, val]) => {
-        let newKey = key === oldVal ? newVal : key;
-        if (typeof newKey === 'string') {
-            newKey = newKey.replace(oldVal, newVal);
-        }
+        const newKey = (key === oldVal ? newVal : key).replace(oldVal, newVal);
 
         if (typeof val === 'object') {
             newObj[newKey] = deepReplaceKeysAndValues(val as T, oldVal, newVal);
