@@ -91,7 +91,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
     const [optimisticWaypoints, setOptimisticWaypoints] = useState(null);
     const isEditing = lodashGet(route, 'path', '').includes('address');
     const reportID = lodashGet(report, 'reportID', '');
-    const waypoints = useMemo(() => optimisticWaypoints || lodashGet(transaction, 'comment.waypoints', {}), [optimisticWaypoints, transaction]);
+    const waypoints = useMemo(() => optimisticWaypoints || lodashGet(transaction, 'comment.waypoints', {waypoint0: {}, waypoint1: {}}), [optimisticWaypoints, transaction]);
     const waypointsList = _.keys(waypoints);
     const iouType = lodashGet(route, 'params.iouType', '');
     const previousWaypoints = usePrevious(waypoints);
@@ -150,12 +150,14 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
     }, []);
 
     useEffect(() => {
-        if (!transactionID || !_.isEmpty(waypoints)) {
+        const transactionWaypoints = lodashGet(transaction, 'comment.waypoints', {});
+        if (!transactionID || !_.isEmpty(transactionWaypoints)) {
             return;
         }
+
         // Create the initial start and stop waypoints
         Transaction.createInitialWaypoints(transactionID);
-    }, [transactionID, waypoints]);
+    }, [transaction, transactionID]);
 
     useEffect(() => {
         if (isOffline || !shouldFetchRoute) {
@@ -325,7 +327,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('common.distance')}
-                            onBackButonBackButtonPress={navigateBack}
+                            onBackButtonPress={navigateBack}
                         />
                         {content}
                     </View>
