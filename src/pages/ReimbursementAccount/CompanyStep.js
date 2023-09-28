@@ -140,7 +140,10 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
     const shouldDisableCompanyTaxID = Boolean(bankAccountID && getDefaultStateForField('companyTaxID'));
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={CompanyStep.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('companyStep.headerTitle')}
                 stepCounter={{step: 2, total: 5}}

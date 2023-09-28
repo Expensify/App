@@ -122,9 +122,7 @@ function ReportPreview(props) {
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
     const hasErrors = (hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID)) || !_.isEmpty(props.iouReport.errorFields) || !_.isEmpty(props.iouReport.errors);
     const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
-    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename, receiptFilename}) =>
-        ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || receiptFilename || ''),
-    );
+    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || ''));
 
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
     const previewSubtitle = hasOnlyOneReceiptRequest
@@ -178,31 +176,31 @@ function ReportPreview(props) {
             needsOffscreenAlphaCompositing={ReportActionUtils.isMoneyRequestAction(props.action)}
             shouldDisableStrikeThrough
         >
-            <View style={[styles.chatItemMessage, ...props.containerStyles]}>
-                <PressableWithoutFeedback
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
-                    }}
-                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                    onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
-                    accessibilityRole="button"
-                    accessibilityLabel={props.translate('iou.viewDetails')}
-                >
-                    <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
-                        {hasReceipts && (
-                            <ReportActionItemImages
-                                images={lastThreeReceipts}
-                                size={3}
-                                total={transactionsWithReceipts.length}
-                                isHovered={props.isHovered || isScanning}
-                            />
-                        )}
-                        <View style={styles.reportPreviewBoxBody}>
-                            <View style={styles.flexRow}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
+        <View style={[styles.chatItemMessage, ...props.containerStyles]}>
+            <PressableWithoutFeedback
+                onPress={() => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.iouReportID));
+                }}
+                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
+                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
+                style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
+                accessibilityRole="button"
+                accessibilityLabel={props.translate('iou.viewDetails')}
+            >
+                <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                    {hasReceipts && (
+                        <ReportActionItemImages
+                            images={lastThreeReceipts}
+                            size={3}
+                            total={transactionsWithReceipts.length}
+                            isHovered={props.isHovered || isScanning}
+                        />
+                    )}
+                    <View style={styles.reportPreviewBoxBody}>
+                        <View style={styles.flexRow}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
                                 </View>
                                 {hasErrors && _.isEmpty(lodashGet(props.iouReport, 'errorFields.createChat')) && (
                                     <Icon

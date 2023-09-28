@@ -81,7 +81,7 @@ function TaskPreview(props) {
     return (
         <View style={[styles.chatItemMessage]}>
             <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
+                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.taskReportID))}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={props.translate('task.task')}
@@ -121,9 +121,11 @@ export default compose(
     withOnyx({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            initialValue: {},
         },
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            initialValue: {},
         },
     }),
 )(TaskPreview);
