@@ -76,7 +76,7 @@ function LocaleContextProvider({children, currentUserPersonalDetails, preferredL
     /**
      * Updates date-fns internal locale to the user preferredLocale
      */
-    const updateLocale = useMemo(() => DateUtils.setLocale(preferredLocale), [preferredLocale]);
+    const updateLocale = useMemo(() => () => DateUtils.setLocale(preferredLocale), [preferredLocale]);
 
     /**
      * @param {String} phoneNumber
