@@ -173,9 +173,7 @@ function BaseSelectionList({
 
         listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
 
-        // If this function changes, it causes `useArrowKeyFocusManager` to fire `onFocusedIndexChange`,
-        // making the list scroll back to the focused index when the keyboard disappears. If we don't disable
-        // dependencies here, we would need to make sure that the `sections` is stable in every usage of this component.
+        // If we don't disable dependencies here, we would need to make sure that the `sections` prop is stable in every usage of this component.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
