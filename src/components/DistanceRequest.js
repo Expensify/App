@@ -35,7 +35,6 @@ import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from './HeaderWithBackButton';
 
 const MAX_WAYPOINTS = 25;
-const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
 const propTypes = {
     /** The transactionID of this request */
@@ -89,6 +88,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
+    const [userTriedSubmitting, setUserTriedSubmitting] = useState(false);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
@@ -148,7 +148,6 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
     const halfMenuItemHeight = Math.floor(variables.optionRowHeight / 2);
-    const scrollContainerMaxHeight = variables.optionRowHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
     useEffect(() => {
         MapboxToken.init();
@@ -197,104 +196,121 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
         Navigation.navigate(isEditingRequest ? ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.getRoute(report.reportID, transactionID, index) : ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index));
     };
 
-    const content = (
-        <ScrollView contentContainerStyle={styles.flexGrow1}>
-            <View
-                style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
-                onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
-            >
-                <ScrollView
-                    onContentSizeChange={(width, height) => setScrollContentHeight(height)}
-                    onScroll={updateGradientVisibility}
-                    scrollEventThrottle={variables.distanceScrollEventThrottle}
-                    ref={scrollViewRef}
-                >
-                    {_.map(waypoints, (waypoint, key) => {
-                        // key is of the form waypoint0, waypoint1, ...
-                        const index = TransactionUtils.getWaypointIndex(key);
-                        let descriptionKey = 'distance.waypointDescription.';
-                        let waypointIcon;
-                        if (index === 0) {
-                            descriptionKey += 'start';
-                            waypointIcon = Expensicons.DotIndicatorUnfilled;
-                        } else if (index === lastWaypointIndex) {
-                            descriptionKey += 'finish';
-                            waypointIcon = Expensicons.Location;
-                        } else {
-                            descriptionKey += 'stop';
-                            waypointIcon = Expensicons.DotIndicator;
-                        }
+    const getError = () => {
+        if (hasRouteError) {
+            return ErrorUtils.getLatestErrorField(transaction, 'route');
+        }
+        return {0: 'Minimum two points required'};
+    };
 
-                        return (
-                            <MenuItemWithTopDescription
-                                description={translate(descriptionKey)}
-                                title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
-                                iconFill={theme.icon}
-                                secondaryIcon={waypointIcon}
-                                secondaryIconFill={theme.icon}
-                                shouldShowRightIcon
-                                onPress={() => navigateToWaypointEditPage(index)}
-                                key={key}
-                            />
-                        );
-                    })}
-                </ScrollView>
-                {shouldShowGradient && (
-                    <LinearGradient
-                        style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, {height: halfMenuItemHeight}]}
-                        colors={[StyleUtils.getTransparentColor(theme.modalBackground), theme.modalBackground]}
+    const content = (
+        <View style={styles.flex1}>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <View
+                    style={styles.distanceRequestContainer()}
+                    onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
+                >
+                    <ScrollView
+                        onContentSizeChange={(width, height) => setScrollContentHeight(height)}
+                        onScroll={updateGradientVisibility}
+                        scrollEventThrottle={variables.distanceScrollEventThrottle}
+                        ref={scrollViewRef}
+                    >
+                        {_.map(waypoints, (waypoint, key) => {
+                            // key is of the form waypoint0, waypoint1, ...
+                            const index = TransactionUtils.getWaypointIndex(key);
+                            let descriptionKey = 'distance.waypointDescription.';
+                            let waypointIcon;
+                            if (index === 0) {
+                                descriptionKey += 'start';
+                                waypointIcon = Expensicons.DotIndicatorUnfilled;
+                            } else if (index === lastWaypointIndex) {
+                                descriptionKey += 'finish';
+                                waypointIcon = Expensicons.Location;
+                            } else {
+                                descriptionKey += 'stop';
+                                waypointIcon = Expensicons.DotIndicator;
+                            }
+
+                            return (
+                                <MenuItemWithTopDescription
+                                    description={translate(descriptionKey)}
+                                    title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
+                                    iconFill={theme.icon}
+                                    secondaryIcon={waypointIcon}
+                                    secondaryIconFill={theme.icon}
+                                    shouldShowRightIcon
+                                    onPress={() => navigateToWaypointEditPage(index)}
+                                    key={key}
+                                />
+                            );
+                        })}
+                    </ScrollView>
+                    {shouldShowGradient && (
+                        <LinearGradient
+                            style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, {height: halfMenuItemHeight}]}
+                            colors={[StyleUtils.getTransparentColor(theme.modalBackground), theme.modalBackground]}
+                        />
+                    )}
+                </View>
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
+                    <Button
+                        small
+                        icon={Expensicons.Plus}
+                        onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
+                        text={translate('distance.addStop')}
+                        isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
+                        innerStyles={[styles.ph10]}
                     />
-                )}
-                {hasRouteError && (
+                </View>
+                <View style={styles.mapViewContainer}>
+                    {!isOffline && Boolean(mapboxAccessToken.token) ? (
+                        <DistanceMapView
+                            accessToken={mapboxAccessToken.token}
+                            mapPadding={CONST.MAPBOX.PADDING}
+                            pitchEnabled={false}
+                            initialState={{
+                                zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                                location: CONST.MAPBOX.DEFAULT_COORDINATE,
+                            }}
+                            directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
+                            style={styles.mapView}
+                            waypoints={waypointMarkers}
+                            styleURL={CONST.MAPBOX.STYLE_URL}
+                            overlayStyle={styles.m4}
+                        />
+                    ) : (
+                        <PendingMapView
+                            title={translate('distance.mapPending.title')}
+                            subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                        />
+                    )}
+                </View>
+            </ScrollView>
+            <View style={[styles.pt2]}>
+                {((userTriedSubmitting && _.size(validatedWaypoints) < 2) || hasRouteError) && (
                     <DotIndicatorMessage
-                        style={[styles.mh5, styles.mv3]}
-                        messages={ErrorUtils.getLatestErrorField(transaction, 'route')}
                         type="error"
+                        style={[styles.mb2, styles.ml4]}
+                        messages={getError()}
                     />
                 )}
-            </View>
-            <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                 <Button
-                    small
-                    icon={Expensicons.Plus}
-                    onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
-                    text={translate('distance.addStop')}
-                    isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
-                    innerStyles={[styles.ph10]}
+                    success
+                    style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
+                    onPress={() => {
+                        if (_.size(validatedWaypoints) < 2 || hasRouteError) {
+                            setUserTriedSubmitting(true);
+                            return;
+                        }
+                        setUserTriedSubmitting(false);
+                        onSubmit(waypoints);
+                    }}
+                    text={translate(isEditingRequest ? 'common.save' : 'common.next')}
+                    isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                 />
             </View>
-            <View style={styles.mapViewContainer}>
-                {!isOffline && Boolean(mapboxAccessToken.token) ? (
-                    <DistanceMapView
-                        accessToken={mapboxAccessToken.token}
-                        mapPadding={CONST.MAPBOX.PADDING}
-                        pitchEnabled={false}
-                        initialState={{
-                            zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                            location: CONST.MAPBOX.DEFAULT_COORDINATE,
-                        }}
-                        directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
-                        style={styles.mapView}
-                        waypoints={waypointMarkers}
-                        styleURL={CONST.MAPBOX.STYLE_URL}
-                        overlayStyle={styles.m4}
-                    />
-                ) : (
-                    <PendingMapView
-                        title={translate('distance.mapPending.title')}
-                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                    />
-                )}
-            </View>
-            <Button
-                success
-                style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                onPress={() => onSubmit(waypoints)}
-                isDisabled={_.size(validatedWaypoints) < 2 || (!isOffline && (hasRouteError || isLoadingRoute || isLoading))}
-                text={translate(isEditingRequest ? 'common.save' : 'common.next')}
-                isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
-            />
-        </ScrollView>
+        </View>
     );
 
     if (!isEditing) {
