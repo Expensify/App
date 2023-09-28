@@ -40,7 +40,7 @@ import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import focusWithDelay from '../../../libs/focusWithDelay';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as Browser from '../../../libs/Browser';
-import useFrozenScroll from "../../../hooks/useFrozenScroll";
+import useFrozenScroll from '../../../hooks/useFrozenScroll';
 
 const propTypes = {
     /** All the data of the action */

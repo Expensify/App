@@ -39,7 +39,7 @@ import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
-import {ReportActionListFrozenScrollContextProvider} from "./report/ReportActionListFrozenScrollContext";
+import {ReportActionListFrozenScrollContextProvider} from './report/ReportActionListFrozenScrollContext';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -382,7 +382,7 @@ function ReportScreen({
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
                                         <View style={[styles.ph5, styles.pb3]}>
-                                            <TaskHeaderActionButton report={report}/>
+                                            <TaskHeaderActionButton report={report} />
                                         </View>
                                     </View>
                                 </View>
@@ -425,8 +425,7 @@ function ReportScreen({
 
                                 {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
                             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) &&
-                                    <ReportActionsSkeletonView containerHeight={skeletonViewContainerHeight}/>}
+                                {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView containerHeight={skeletonViewContainerHeight} />}
 
                                 {isReportReadyForDisplay && (
                                     <>

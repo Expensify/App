@@ -21,7 +21,7 @@ import reportPropTypes from '../../reportPropTypes';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import reportActionPropTypes from './reportActionPropTypes';
-import useFrozenScroll from "../../../hooks/useFrozenScroll";
+import useFrozenScroll from '../../../hooks/useFrozenScroll';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -93,7 +93,7 @@ function keyExtractor(item) {
 
 const maintainVisibleContentPositionOptions = {
     minIndexForVisible: 1,
-}
+};
 
 function isMessageUnread(message, lastReadTime) {
     return Boolean(message && lastReadTime && message.created && lastReadTime < message.created);

@@ -1,7 +1,6 @@
-import React, {createContext, forwardRef, useMemo, useState} from "react";
-import PropTypes from "prop-types";
-import getComponentDisplayName from "../../../libs/getComponentDisplayName";
-
+import React, {createContext, forwardRef, useMemo, useState} from 'react';
+import PropTypes from 'prop-types';
+import getComponentDisplayName from '../../../libs/getComponentDisplayName';
 
 const withScrollFrozenPropTypes = {
     /** flag determining if we should freeze the scroll */
@@ -12,7 +11,6 @@ const withScrollFrozenPropTypes = {
 };
 
 const ReportActionListFrozenScrollContext = createContext(null);
-
 
 function ReportActionListFrozenScrollContextProvider(props) {
     const [shouldFreezeScroll, setShouldFreezeScroll] = useState(false);
@@ -29,8 +27,7 @@ function ReportActionListFrozenScrollContextProvider(props) {
         [shouldFreezeScroll, setShouldFreezeScroll],
     );
 
-    return <ReportActionListFrozenScrollContext.Provider
-        value={contextValue}>{props.children}</ReportActionListFrozenScrollContext.Provider>;
+    return <ReportActionListFrozenScrollContext.Provider value={contextValue}>{props.children}</ReportActionListFrozenScrollContext.Provider>;
 }
 
 ReportActionListFrozenScrollContextProvider.displayName = 'ReportActionListFrozenScrollContextProvider';
@@ -42,15 +39,15 @@ ReportActionListFrozenScrollContextProvider.propTypes = {
 function withScrollFrozen(WrappedComponent) {
     const WithScrollFrozenState = forwardRef((props, ref) => (
         <ReportActionListFrozenScrollContext.Consumer>
-            {(scrollFrozenProps) =>
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...scrollFrozenProps}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                ref={ref}
-            />
-        }
+            {(scrollFrozenProps) => (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...scrollFrozenProps}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    ref={ref}
+                />
+            )}
         </ReportActionListFrozenScrollContext.Consumer>
     ));
 
@@ -58,10 +55,4 @@ function withScrollFrozen(WrappedComponent) {
     return WithScrollFrozenState;
 }
 
-
-export {
-    ReportActionListFrozenScrollContext,
-    ReportActionListFrozenScrollContextProvider,
-    withScrollFrozenPropTypes,
-    withScrollFrozen
-};
+export {ReportActionListFrozenScrollContext, ReportActionListFrozenScrollContextProvider, withScrollFrozenPropTypes, withScrollFrozen};
