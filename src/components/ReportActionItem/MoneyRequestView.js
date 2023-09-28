@@ -195,18 +195,32 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                 />
             </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.merchant')}>
-                <MenuItemWithTopDescription
-                    description={isDistanceRequest ? translate('common.distance') : translate('common.merchant')}
-                    title={transactionMerchant}
-                    interactive={canEdit}
-                    shouldShowRightIcon={canEdit}
-                    titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
-                    brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
-                />
-            </OfflineWithFeedback>
+            {isDistanceRequest ? (
+                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
+                    <MenuItemWithTopDescription
+                        description={translate('common.distance')}
+                        title={transactionMerchant}
+                        interactive={canEdit}
+                        shouldShowRightIcon={canEdit}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
+                    />
+                </OfflineWithFeedback>
+            ) : (
+                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
+                    <MenuItemWithTopDescription
+                        description={translate('common.merchant')}
+                        title={transactionMerchant}
+                        interactive={canEdit}
+                        shouldShowRightIcon={canEdit}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
+                        brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        subtitle={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                        subtitleTextStyle={styles.textLabelError}
+                    />
+                </OfflineWithFeedback>
+            )}
             {shouldShowCategory && (
                 <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
                     <MenuItemWithTopDescription

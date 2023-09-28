@@ -147,7 +147,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, reportID, report);
+        IOU.navigateToNextPage(iou, iouType, report);
     };
 
     const content = (
