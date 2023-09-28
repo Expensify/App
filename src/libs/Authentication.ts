@@ -85,16 +85,12 @@ function reauthenticate(command = ''): Promise<void> {
         }
 
         // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-        if (response.authToken && response.encryptedAuthToken) {
-            updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
-        }
+        updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
 
         // Note: It is important to manually set the authToken that is in the store here since any requests that are hooked into
         // reauthenticate .then() will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
         // enough to do the updateSessionAuthTokens() call above.
-        if (response.authToken) {
-            NetworkStore.setAuthToken(response.authToken);
-        }
+        NetworkStore.setAuthToken(response.authToken ?? null);
 
         // The authentication process is finished so the network can be unpaused to continue processing requests
         NetworkStore.setIsAuthenticating(false);
