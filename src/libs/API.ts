@@ -149,7 +149,7 @@ function makeRequestWithSideEffects(
  * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
-function read(command: string, apiCommandParameters: Record<string, unknown>, onyxData: OnyxData) {
+function read(command: string, apiCommandParameters: Record<string, unknown>, onyxData: OnyxData = {}) {
     // Ensure all write requests on the sequential queue have finished responding before running read requests.
     // Responses from read requests can overwrite the optimistic data inserted by
     // write requests that use the same Onyx keys and haven't responded yet.

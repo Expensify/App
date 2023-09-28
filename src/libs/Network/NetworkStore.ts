@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import Credentials from '../../types/onyx/Credentials';
 
-let credentials: Credentials | undefined;
+let credentials: Credentials | null;
 let authToken: string | null = null;
 let supportAuthToken: string | null = null;
 let currentUserEmail: string | null = null;
@@ -59,10 +59,6 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
-        if (!val) {
-            return;
-        }
-
         credentials = val;
         checkRequiredData();
     },
@@ -86,7 +82,7 @@ Onyx.connect({
     },
 });
 
-function getCredentials(): Credentials | undefined {
+function getCredentials(): Credentials | null {
     return credentials;
 }
 

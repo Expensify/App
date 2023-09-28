@@ -45,7 +45,7 @@ function post(command: string, data: Record<string, unknown> = {}, type = CONST.
         // This check is mainly used to prevent API commands from triggering calls to MainQueue.process() from inside the context of a previous
         // call to MainQueue.process() e.g. calling a Log command without this would cause the requests in mainQueue to double process
         // since we call Log inside MainQueue.process().
-        const shouldProcessImmediately = request?.data.shouldProcessImmediately ?? true;
+        const shouldProcessImmediately = request?.data?.shouldProcessImmediately ?? true;
         if (!shouldProcessImmediately) {
             return;
         }
