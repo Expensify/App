@@ -69,6 +69,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    FormattedMaxLengthParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
     TranslationBase,
@@ -243,6 +244,7 @@ export default {
         merchant: 'Merchant',
         category: 'Category',
         billable: 'Billable',
+        nonBillable: 'Non-billable',
         tag: 'Tag',
         receipt: 'Receipt',
         replace: 'Replace',
@@ -282,6 +284,7 @@ export default {
     composer: {
         noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
+        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum comment length is ${formattedMaxLength} characters.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',
@@ -487,6 +490,7 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        addReceipt: 'Add receipt',
     },
     iou: {
         amount: 'Amount',
@@ -541,6 +545,7 @@ export default {
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
         error: {
+            invalidAmount: 'Please enter a valid amount before continuing.',
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
@@ -729,6 +734,7 @@ export default {
         keepCodesSafe: 'Keep these recovery codes safe!',
         codesLoseAccess:
             'If you lose access to your authenticator app and don’t have these codes, you will lose access to your account. \n\nNote: Setting up two-factor authentication will log you out of all other active sessions.',
+        errorStepCodes: 'Please copy or download codes before continuing.',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',
@@ -803,6 +809,12 @@ export default {
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
         addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
+    },
+    cardPage: {
+        expensifyCard: 'Expensify Card',
+        availableSpend: 'Remaining spending power',
+        virtualCardNumber: 'Virtual card number',
+        physicalCardNumber: 'Physical card number',
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -1060,7 +1072,7 @@ export default {
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',
             website: 'Please enter a valid website',
-            zipCode: 'Please enter a valid zip code',
+            zipCode: `Incorrect zip code format. Acceptable format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Please enter a valid phone number',
             companyName: 'Please enter a valid legal business name',
             addressCity: 'Please enter a valid city',
@@ -1357,7 +1369,6 @@ export default {
         reimburse: {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
-            kilometers: 'Kilometers',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
             trackDistance: 'Track distance',
@@ -1523,12 +1534,12 @@ export default {
         assignee: 'Assignee',
         completed: 'Completed',
         messages: {
-            completed: 'completed task',
+            completed: 'marked as complete',
             canceled: 'deleted task',
-            reopened: 'reopened task',
+            reopened: 'marked as incomplete',
             error: 'You do not have the permission to do the requested action.',
         },
-        markAsDone: 'Mark as done',
+        markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
     },

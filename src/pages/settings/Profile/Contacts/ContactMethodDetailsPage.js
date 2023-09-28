@@ -216,7 +216,7 @@ class ContactMethodDetailsPage extends Component {
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
             return (
-                <ScreenWrapper>
+                <ScreenWrapper testID={ContactMethodDetailsPage.displayName}>
                     <FullPageNotFoundView
                         shouldShow
                         linkKey="contacts.goBackContactMethods"
@@ -232,7 +232,10 @@ class ContactMethodDetailsPage extends Component {
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
 
         return (
-            <ScreenWrapper onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}>
+            <ScreenWrapper
+                onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}
+                testID={ContactMethodDetailsPage.displayName}
+            >
                 <HeaderWithBackButton
                     title={formattedContactMethod}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}

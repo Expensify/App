@@ -147,6 +147,23 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         shouldStopSmartscan = true;
     }
 
+    if (_.has(transactionChanges, 'waypoints')) {
+        updatedTransaction.modifiedWaypoints = transactionChanges.waypoints;
+        shouldStopSmartscan = true;
+    }
+
+    if (_.has(transactionChanges, 'billable')) {
+        updatedTransaction.billable = transactionChanges.billable;
+    }
+
+    if (_.has(transactionChanges, 'category')) {
+        updatedTransaction.category = transactionChanges.category;
+    }
+
+    if (_.has(transactionChanges, 'tag')) {
+        updatedTransaction.tag = transactionChanges.tag;
+    }
+
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
@@ -157,6 +174,10 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'merchant') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'waypoints') && {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'billable') && {billable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'category') && {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;
@@ -239,6 +260,16 @@ function getMerchant(transaction) {
 }
 
 /**
+ * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
+ *
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getWaypoints(transaction) {
+    return lodashGet(transaction, 'modifiedWaypoints', null) || lodashGet(transaction, ['comment', 'waypoints']);
+}
+
+/**
  * Return the category from the transaction. This "category" field has no "modified" complement.
  *
  * @param {Object} transaction
@@ -246,6 +277,26 @@ function getMerchant(transaction) {
  */
 function getCategory(transaction) {
     return lodashGet(transaction, 'category', '');
+}
+
+/**
+ * Return the billable field from the transaction. This "billable" field has no "modified" complement.
+ *
+ * @param {Object} transaction
+ * @return {Boolean}
+ */
+function getBillable(transaction) {
+    return lodashGet(transaction, 'billable', false);
+}
+
+/**
+ * Return the tag from the transaction. This "tag" field has no "modified" complement.
+ *
+ * @param {Object} transaction
+ * @return {String}
+ */
+function getTag(transaction) {
+    return lodashGet(transaction, 'tag', '');
 }
 
 /**
@@ -394,6 +445,8 @@ export {
     getMerchant,
     getCreated,
     getCategory,
+    getBillable,
+    getTag,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
@@ -401,6 +454,7 @@ export {
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
+    getWaypoints,
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,

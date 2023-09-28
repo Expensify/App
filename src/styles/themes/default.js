@@ -36,7 +36,7 @@ const darkTheme = {
     signInPage: colors.green800,
 
     // Additional keys
-    overlay: colors.darkHighlightBackground,
+    overlay: colors.darkBorders,
     inverse: colors.darkPrimaryText,
     shadow: colors.black,
     componentBG: colors.darkAppBackground,
@@ -83,15 +83,17 @@ const darkTheme = {
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
+    mapAttributionText: colors.black,
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: darkTheme.sidebar,
+    [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
     [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
     [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
-    [ROUTES.SETTINGS_STATUS]: colors.green700,
-    [ROUTES.I_KNOW_A_TEACHER]: colors.tangerine800,
-    [ROUTES.SETTINGS_SECURITY]: colors.ice500,
+    [SCREENS.SETTINGS.SECURITY]: colors.ice500,
+    [SCREENS.SETTINGS.STATUS]: colors.green700,
+    [SCREENS.SETTINGS.ROOT]: darkTheme.sidebar,
 };
 
 export default darkTheme;
