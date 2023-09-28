@@ -42,7 +42,10 @@ function SAMLSignInPage(props) {
                         src={Illustrations.RocketBlue}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge]}>{props.translate('samlSignIn.launchingSSOPortal')}</Text>
+                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{props.translate('samlSignIn.launching')}</Text>
+                <View style={[styles.mt2, styles.mh2, styles.fontSizeNormal, styles.textAlignCenter]}>
+                    <Text style={[styles.textAlignCenter]}>{props.translate('samlSignIn.oneMoment')}</Text>
+                </View>
             </View>
             <View style={styles.deeplinkWrapperFooter}>
                 <Icon
