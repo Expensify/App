@@ -19,7 +19,7 @@ function stripSpacesFromAmount(amount: string): string {
  * Strip decimals from the amount
  */
 function stripDecimalsFromAmount(amount: string): string {
-    return amount.replace(/\.\d*/, '');
+    return amount.replace(/\.\d*$/, '');
 }
 
 /**
