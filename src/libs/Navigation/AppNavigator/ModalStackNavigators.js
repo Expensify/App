@@ -31,7 +31,6 @@ function createModalStackNavigator(screens) {
     );
 }
 
-// We use getComponent/require syntax so that file used by screens are not loaded until we need them.
 const MoneyRequestModalStackNavigator = createModalStackNavigator({
     Money_Request: () => require('../../../pages/iou/MoneyRequestSelectorPage').default,
     Money_Request_Amount: () => require('../../../pages/iou/steps/NewRequestAmountPage').default,
@@ -46,9 +45,10 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator({
     IOU_Send_Add_Bank_Account: () => require('../../../pages/AddPersonalBankAccountPage').default,
     IOU_Send_Add_Debit_Card: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default,
     IOU_Send_Enable_Payments: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,
-    Money_Request_Waypoint: () => require('../../../pages/iou/WaypointEditorPage').default,
+    Money_Request_Waypoint: () => require('../../../pages/iou/NewDistanceRequestWaypointEditorPage').default,
+    Money_Request_Edit_Waypoint: () => require('../../../pages/iou/MoneyRequestEditWaypointPage').default,
+    Money_Request_Distance: () => require('../../../pages/iou/NewDistanceRequestPage').default,
     Money_Request_Receipt: () => require('../../../pages/EditRequestReceiptPage').default,
-    Money_Request_Address: () => require('../../../pages/iou/DistanceRequestPage').default,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator({

@@ -814,6 +814,24 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
     const numberOfTags = _.size(enabledTags);
     let indexOffset = 0;
 
+    // If all tags are disabled but there's a previously selected tag, show only the selected tag
+    if (numberOfTags === 0 && selectedOptions.length > 0) {
+        const selectedTagOptions = _.map(selectedOptions, (option) => ({
+            name: option.name,
+            // Should be marked as enabled to be able to be de-selected
+            enabled: true,
+        }));
+        tagSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTagsOptions(selectedTagOptions),
+        });
+
+        return tagSections;
+    }
+
     if (!_.isEmpty(searchInputValue)) {
         const searchTags = _.filter(enabledTags, (tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
