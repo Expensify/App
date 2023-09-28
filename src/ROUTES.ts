@@ -84,6 +84,16 @@ export default {
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: 'settings/profile/personal-details/legal-name',
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: 'settings/profile/personal-details/date-of-birth',
     SETTINGS_PERSONAL_DETAILS_ADDRESS: 'settings/profile/personal-details/address',
+    SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY: {
+        route: 'settings/profile/personal-details/address/country',
+        getRoute: (country: string, backTo?: string) => {
+            let route = `settings/profile/personal-details/address/country?country=${country}`;
+            if (backTo) {
+                route += `&backTo=${encodeURIComponent(backTo)}`;
+            }
+            return route;
+        },
+    },
     SETTINGS_CONTACT_METHODS: 'settings/profile/contact-methods',
     SETTINGS_CONTACT_METHOD_DETAILS: {
         route: 'settings/profile/contact-methods/:contactMethod/details',
