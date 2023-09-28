@@ -113,6 +113,7 @@ function AttachmentModal(props) {
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+    const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
     const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
@@ -214,6 +215,15 @@ function AttachmentModal(props) {
      */
     const closeConfirmModal = useCallback(() => {
         setIsAttachmentInvalid(false);
+        setIsDeleteCommentConfirmModalVisible(false);
+    }, []);
+
+    /**
+     * Close the confirm modal.
+     */
+    const deleteAndCloseConfirmModal = useCallback(() => {
+        IOU.detachReceipt(props.transaction.transactionID, props.report.reportID);
+        setIsDeleteCommentConfirmModalVisible(false);
     }, []);
 
     /**
@@ -357,7 +367,7 @@ function AttachmentModal(props) {
             icon: Expensicons.Trashcan,
             text: props.translate('receipt.deleteReceipt'),
             onSelected: () => {
-                IOU.detachReceipt(props.transaction.transactionID, props.report.reportID);
+                setIsDeleteCommentConfirmModalVisible(true);
             },
         });
     }
@@ -452,6 +462,16 @@ function AttachmentModal(props) {
                 prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
+            />
+            <ConfirmModal
+                title={translate('receipt.deleteReceipt')}
+                isVisible={isDeleteCommentConfirmModalVisible}
+                onConfirm={deleteAndCloseConfirmModal}
+                onCancel={closeConfirmModal}
+                prompt={translate('receipt.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
             />
 
             {props.children &&
