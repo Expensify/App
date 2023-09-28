@@ -17,11 +17,11 @@ type PerformanceEntriesCallback = (entry: PerformanceEntry) => void;
 
 type Phase = 'mount' | 'update';
 
-type WithRenderTraceHOC = <P extends React.RefAttributes<unknown>>(
+type WithRenderTraceHOC = <P extends Record<string, unknown>>(
     WrappedComponent: React.ComponentType<P>,
 ) => React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<unknown>>;
 
-type BlankHOC = (Component: React.ComponentType) => React.ComponentType;
+type BlankHOC = <P extends Record<string, unknown>>(Component: React.ComponentType<P>) => React.ComponentType<P>;
 
 type SetupPerformanceObserver = () => void;
 type DiffObject = (object: Record<string, unknown>, base: Record<string, unknown>) => Record<string, unknown>;
@@ -80,8 +80,11 @@ const Performance: PerformanceModule = {
     measureFailSafe: () => {},
     measureTTI: () => {},
     traceRender: () => {},
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    withRenderTrace: () => (Component: React.ComponentType) => Component,
+    withRenderTrace:
+        () =>
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        <P extends Record<string, unknown>>(Component: React.ComponentType<P>): React.ComponentType<P> =>
+            Component,
     subscribeToMeasurements: () => {},
 };
 
@@ -238,7 +241,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
     Performance.withRenderTrace =
         ({id}: WrappedComponentConfig) =>
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        <P extends React.RefAttributes<unknown>>(WrappedComponent: React.ComponentType<P>): React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<unknown>> => {
+        <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<unknown>> => {
             const WithRenderTrace = forwardRef((props: P, ref) => (
                 <Profiler
                     id={id}
