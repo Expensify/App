@@ -73,6 +73,11 @@ platforms:
         title: Send Payments
         icon: /assets/images/money-wings.svg
         description: Uncover step-by-step guidance on sending direct reimbursements to employees, paying an invoice to a vendor, and utilizing third-party payment options.
+
+      - href: connect-ANZ
+        title: Connect ANZ Bank
+        icon: /assets/images/money-wings.svg
+        description: If you're an ANZ Visa customer, you can set up your cards to import transactions directly into Expensify and get a discount on your Expensify subscription.
   
   - href: new-expensify
     title: New Expensify
