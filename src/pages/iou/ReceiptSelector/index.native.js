@@ -294,7 +294,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                                     return;
                                 }
 
-                                IOU.navigateToNextPage(iou, iouType, reportID, report, route.path);
+                                IOU.navigateToNextPage(iou, iouType, report, route.path);
                             })
                             .catch(() => {
                                 Log.info('User did not select an image from gallery');

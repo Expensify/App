@@ -640,6 +640,7 @@ const DateUtils = {
     combineDateAndTime,
     getDateValidationErrorKey,
     getTimeValidationErrorKey,
+    setLocale,
     isToday,
     isTomorrow,
     isYesterday,

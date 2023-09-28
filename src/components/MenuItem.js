@@ -280,7 +280,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                 {props.description}
                                             </Text>
                                         )}
-                                        {props.error && (
+                                        {Boolean(props.error) && (
                                             <View style={[styles.mt1]}>
                                                 <Text style={[styles.textLabelError]}>{props.error}</Text>
                                             </View>
