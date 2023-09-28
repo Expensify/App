@@ -2333,6 +2333,17 @@ function navigateToNextPage(iou, iouType, report, path = '') {
     Navigation.navigate(ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType));
 }
 
+/**
+ *  When the money request or split bill creation flow is initialized via FAB, the reportID is not passed as a navigation
+ * parameter.
+ * Gets a report id from the first participant of the IOU object stored in Onyx.
+ * @param {Object} iou
+ * @returns {String}
+ */
+function getIOUReportID(iou) {
+    return lodashGet(iou, 'participants.0.reportID', '');
+}
+
 export {
     createDistanceRequest,
     editMoneyRequest,
@@ -2363,4 +2374,5 @@ export {
     navigateToNextPage,
     updateDistanceRequest,
     replaceReceipt,
+    getIOUReportID,
 };
