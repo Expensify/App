@@ -43,9 +43,6 @@ const propTypes = {
         expiration: PropTypes.string,
     }),
 
-    /** Are we editing an existing distance request, or creating a new one? */
-    isEditingRequest: PropTypes.bool,
-
     /** Called on submit of this page */
     onSubmit: PropTypes.func.isRequired,
 
@@ -59,14 +56,13 @@ const propTypes = {
 
 const defaultProps = {
     transactionID: '',
-    isEditingRequest: false,
     mapboxAccessToken: {
         token: '',
     },
     transaction: {},
 };
 
-function IOURequestFieldDistance({transactionID, transaction, mapboxAccessToken, isEditingRequest, onSubmit, onWaypointSelect}) {
+function IOURequestFieldDistance({transactionID, transaction, mapboxAccessToken, onSubmit, onWaypointSelect}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -256,7 +252,7 @@ function IOURequestFieldDistance({transactionID, transaction, mapboxAccessToken,
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => onSubmit(waypoints)}
                 isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute}
-                text={translate(isEditingRequest ? 'common.save' : 'common.next')}
+                text={translate('common.next')}
                 isLoading={isLoadingRoute || shouldFetchRoute}
             />
         </ScrollView>

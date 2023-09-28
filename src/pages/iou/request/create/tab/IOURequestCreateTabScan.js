@@ -15,7 +15,6 @@ const defaultProps = {};
 
 function IOURequestCreateTabScan() {
     const {params: iouType, transactionID, reportID} = useRoute();
-    console.log('[tim] scan', iouType);
     const {translate} = useLocalize();
     const isEditing = false;
 
