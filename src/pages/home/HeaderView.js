@@ -33,15 +33,6 @@ import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../reportPropTypes';
-import reportActionPropTypes from './report/reportActionPropTypes';
-import ONYXKEYS from '../../ONYXKEYS';
-import ThreeDotsMenu from '../../components/ThreeDotsMenu';
-import * as Task from '../../libs/actions/Task';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
-import PinButton from '../../components/PinButton';
-import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import ParentNavigationSubtitle from '../../components/ParentNavigationSubtitle';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
