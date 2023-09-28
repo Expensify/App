@@ -8,6 +8,8 @@ import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
+import * as Localize from './Localize';
+import * as ReportUtils from './ReportUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
 const allReports = {};
@@ -383,8 +385,11 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
     }
 
     // If a whisper action is the REPORTPREVIEW action, we are displaying it.
+    // If the action's message text is empty and it is not a deleted parent with visible child actions, hide it. Else, consider the action to be displayable.
     return (
-        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction)) && !isDeletedAction(reportAction)
+        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
+        !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction)) &&
+        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction))
     );
 }
 
@@ -434,6 +439,14 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     if (isCreatedAction(lastVisibleAction)) {
         return {
             lastMessageText: '',
+        };
+    }
+
+    // For Chat Report, let us return [Deleted message] when the last visible action
+    // is a deleted parent which has visible child actions
+    if (isDeletedParentAction(lastVisibleAction) && ReportUtils.isChatReport(reportID)) {
+        return {
+            lastMessageText: Localize.translateLocal('parentReportAction.deletedMessage'),
         };
     }
 

@@ -153,10 +153,11 @@ function getReportParticipantsTitle(accountIDs) {
 /**
  * Checks if a report is a chat report.
  *
- * @param {Object} report
+ * @param {Object|String} reportOrID
  * @returns {Boolean}
  */
-function isChatReport(report) {
+function isChatReport(reportOrID) {
+    const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
     return report && report.type === CONST.REPORT.TYPE.CHAT;
 }
 
