@@ -154,10 +154,10 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         if (MoneyRequestUtils.validateAmount(currentAmount, decimals)) {
             return;
         }
-        
+
         // If the changed currency doesn't support decimals, we can strip the decimals
         setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
-        
+
         // we want to check validation only when the currency changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currency]);
