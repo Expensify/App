@@ -22,7 +22,7 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
     const hasURLParams = url.indexOf('?') !== -1;
 
     const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
-    const emailParam = `email=${encodeURIComponent(currentUserEmail ?? '')}`;
+    const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
     const paramsArray = [authTokenParam, emailParam];
     const params = paramsArray.filter(Boolean).join('&');
 
