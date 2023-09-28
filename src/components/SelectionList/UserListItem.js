@@ -25,6 +25,7 @@ function UserListItem({item, isFocused = false, showTooltip, onSelectRow, onDism
             source={lodashGet(item, 'avatar.source', '')}
             name={lodashGet(item, 'avatar.name', item.text)}
             type={lodashGet(item, 'avatar.type', CONST.ICON_TYPE_AVATAR)}
+            fallbackIcon={lodashGet(item, 'avatar.fallbackIcon')}
         />
     );
 

@@ -2,4 +2,4 @@
 title: Direct Bank Connections
 description: Direct Bank Connections
 ---
-## Resources Coming Soon!
+## Resource Coming Soon!
