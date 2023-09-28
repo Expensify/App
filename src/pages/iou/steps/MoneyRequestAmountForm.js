@@ -145,7 +145,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 return strippedAmount;
             });
         },
-        [decimals, forwardDeletePressedRef],
+        [decimals],
     );
 
     useEffect(() => {
