@@ -22,10 +22,12 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
+import * as Session from '../../libs/actions/Session';
+import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 
 const propTypes = {
     /** All personal details asssociated with user */
-    personalDetailsList: personalDetailsPropType,
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
@@ -69,13 +71,18 @@ function TaskPreview(props) {
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
     const assigneeLogin = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], '');
     const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
-    const taskAssignee = assigneeLogin || assigneeDisplayName;
+    const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
+    const isDeletedParentAction = ReportUtils.isCanceledTaskReport(props.taskReport, props.action);
+
+    if (isDeletedParentAction) {
+        return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />;
+    }
 
     return (
         <View style={[styles.chatItemMessage]}>
             <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
+                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.taskReportID))}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={props.translate('task.task')}
@@ -86,13 +93,13 @@ function TaskPreview(props) {
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
                         disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
-                        onPress={() => {
+                        onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
-                                Task.reopenTask(props.taskReportID, taskTitle);
+                                Task.reopenTask(props.taskReport);
                             } else {
-                                Task.completeTask(props.taskReportID, taskTitle);
+                                Task.completeTask(props.taskReport);
                             }
-                        }}
+                        })}
                         accessibilityLabel={props.translate('task.task')}
                     />
                     <RenderHTML html={htmlForTaskPreview} />
@@ -115,9 +122,11 @@ export default compose(
     withOnyx({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            initialValue: {},
         },
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            initialValue: {},
         },
     }),
 )(TaskPreview);

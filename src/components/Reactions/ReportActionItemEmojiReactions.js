@@ -13,7 +13,7 @@ import EmojiReactionsPropTypes from './EmojiReactionsPropTypes';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 import * as EmojiUtils from '../../libs/EmojiUtils';
-import ReportScreenContext from '../../pages/home/ReportScreenContext';
+import {ReactionListContext} from '../../pages/home/ReportScreenContext';
 
 const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
@@ -28,17 +28,22 @@ const propTypes = {
      */
     toggleReaction: PropTypes.func.isRequired,
 
+    /** We disable reacting with emojis on report actions that have errors */
+    shouldBlockReactions: PropTypes.bool,
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
     emojiReactions: {},
+    shouldBlockReactions: false,
 };
 
 function ReportActionItemEmojiReactions(props) {
-    const {reactionListRef} = useContext(ReportScreenContext);
-    const popoverReactionListAnchor = useRef(null);
+    const reactionListRef = useContext(ReactionListContext);
+    const popoverReactionListAnchors = useRef({});
+
     let totalReactionCount = 0;
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
@@ -91,7 +96,7 @@ function ReportActionItemEmojiReactions(props) {
         };
 
         const onReactionListOpen = (event) => {
-            reactionListRef.current.showReactionList(event, popoverReactionListAnchor.current, reaction);
+            reactionListRef.current.showReactionList(event, popoverReactionListAnchors.current[reactionEmojiName], reactionEmojiName, props.reportActionID);
         };
 
         return {
@@ -108,10 +113,7 @@ function ReportActionItemEmojiReactions(props) {
 
     return (
         totalReactionCount > 0 && (
-            <View
-                ref={popoverReactionListAnchor}
-                style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
-            >
+            <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
                 {_.map(formattedReactions, (reaction) => {
                     if (reaction === null) {
                         return;
@@ -131,22 +133,25 @@ function ReportActionItemEmojiReactions(props) {
                         >
                             <View>
                                 <EmojiReactionBubble
-                                    ref={props.forwardedRef}
+                                    ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref)}
                                     count={reaction.reactionCount}
                                     emojiCodes={reaction.emojiCodes}
                                     onPress={reaction.onPress}
                                     reactionUsers={reaction.reactionUsers}
                                     hasUserReacted={reaction.hasUserReacted}
                                     onReactionListOpen={reaction.onReactionListOpen}
+                                    shouldBlockReactions={props.shouldBlockReactions}
                                 />
                             </View>
                         </Tooltip>
                     );
                 })}
-                <AddReactionBubble
-                    onSelectEmoji={props.toggleReaction}
-                    reportAction={{reportActionID: props.reportActionID}}
-                />
+                {!props.shouldBlockReactions && (
+                    <AddReactionBubble
+                        onSelectEmoji={props.toggleReaction}
+                        reportAction={{reportActionID: props.reportActionID}}
+                    />
+                )}
             </View>
         )
     );

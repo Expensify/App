@@ -4,6 +4,7 @@ import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 let personalDetails = [];
 let allPersonalDetails = {};
@@ -115,7 +116,7 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
-                displayName: login,
+                displayName: LocalePhoneNumber.formatPhoneNumber(login),
             };
 
             /**
@@ -123,7 +124,6 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
              * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
              */
             successData[accountID] = null;
-            failureData[accountID] = null;
         }
     });
 

@@ -1,4 +1,4 @@
-import {Alert, Linking} from 'react-native';
+import {Alert, Linking, Platform} from 'react-native';
 import CONST from '../../CONST';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
@@ -125,10 +125,49 @@ function cleanFileName(fileName) {
 function appendTimeToFileName(fileName) {
     const file = splitExtensionFromFileName(fileName);
     let newFileName = `${file.fileName}-${DateUtils.getDBTime()}`;
+    // Replace illegal characters before trying to download the attachment.
+    newFileName = newFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
     if (file.fileExtension) {
         newFileName += `.${file.fileExtension}`;
     }
     return newFileName;
 }
 
-export {showGeneralErrorAlert, showSuccessAlert, showPermissionErrorAlert, splitExtensionFromFileName, getAttachmentName, getFileType, cleanFileName, appendTimeToFileName};
+/**
+ * Reads a locally uploaded file
+ *
+ * @param {String} path - the blob url of the locally uplodaded file
+ * @param {String} fileName
+ * @returns {Promise}
+ */
+const readFileAsync = (path, fileName) =>
+    new Promise((resolve) => {
+        if (!path) {
+            resolve();
+        }
+
+        return fetch(path)
+            .then((res) => {
+                // For some reason, fetch is "Unable to read uploaded file"
+                // on Android even though the blob is returned, so we'll ignore
+                // in that case
+                if (!res.ok && Platform.OS !== 'android') {
+                    throw Error(res.statusText);
+                }
+                return res.blob();
+            })
+            .then((blob) => {
+                const file = new File([blob], cleanFileName(fileName));
+                file.source = path;
+                // For some reason, the File object on iOS does not have a uri property
+                // so images aren't uploaded correctly to the backend
+                file.uri = path;
+                resolve(file);
+            })
+            .catch((e) => {
+                console.debug('[FileUtils] Could not read uploaded file', e);
+                resolve();
+            });
+    });
+
+export {showGeneralErrorAlert, showSuccessAlert, showPermissionErrorAlert, splitExtensionFromFileName, getAttachmentName, getFileType, cleanFileName, appendTimeToFileName, readFileAsync};

@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import BankAccount from './models/BankAccount';
-import * as Expensicons from '../components/Icon/Expensicons';
 import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -9,31 +8,28 @@ import * as Localize from './Localize';
 /**
  * Check to see if user has either a debit card or personal bank account added
  *
- * @param {Array} [cardList]
+ * @param {Array} [fundList]
  * @param {Array} [bankAccountList]
  * @returns {Boolean}
  */
-function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
+function hasExpensifyPaymentMethod(fundList = [], bankAccountList = []) {
     const validBankAccount = _.some(bankAccountList, (bankAccountJSON) => {
         const bankAccount = new BankAccount(bankAccountJSON);
         return bankAccount.isDefaultCredit();
     });
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-    const validDebitCard = _.some(cardList, (card) => lodashGet(card, 'accountData.additionalData.isP2PDebitCard', false));
+    const validDebitCard = _.some(fundList, (card) => lodashGet(card, 'accountData.additionalData.isP2PDebitCard', false));
 
     return validBankAccount || validDebitCard;
 }
 
 /**
- * @param {String} [accountType] - one of {'bankAccount', 'debitCard', 'payPalMe'}
+ * @param {String} [accountType] - one of {'bankAccount', 'debitCard'}
  * @param {Object} account
  * @returns {String}
  */
 function getPaymentMethodDescription(accountType, account) {
-    if (accountType === CONST.PAYMENT_METHODS.PAYPAL) {
-        return account.username;
-    }
     if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
         return `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber.slice(-4)}`;
     }
@@ -46,11 +42,10 @@ function getPaymentMethodDescription(accountType, account) {
 /**
  * Get the PaymentMethods list
  * @param {Array} bankAccountList
- * @param {Array} cardList
- * @param {Object} [payPalMeData = null]
+ * @param {Array} fundList
  * @returns {Array<PaymentMethod>}
  */
-function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
+function formatPaymentMethods(bankAccountList, fundList) {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
@@ -70,7 +65,7 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
         });
     });
 
-    _.each(cardList, (card) => {
+    _.each(fundList, (card) => {
         const {icon, iconSize} = getBankIcon(lodashGet(card, 'accountData.bank', ''), true);
         combinedPaymentMethods.push({
             ...card,
@@ -81,14 +76,6 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
             pendingAction: card.pendingAction,
         });
     });
-
-    if (!_.isEmpty(payPalMeData)) {
-        combinedPaymentMethods.push({
-            ...payPalMeData,
-            description: getPaymentMethodDescription(payPalMeData.accountType, payPalMeData.accountData),
-            icon: Expensicons.PayPal,
-        });
-    }
 
     return combinedPaymentMethods;
 }

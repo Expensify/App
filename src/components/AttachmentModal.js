@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, Animated, Keyboard} from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -7,8 +7,9 @@ import lodashExtend from 'lodash/extend';
 import _ from 'underscore';
 import CONST from '../CONST';
 import Modal from './Modal';
-import AttachmentView from './AttachmentView';
-import AttachmentCarousel from './AttachmentCarousel';
+import AttachmentView from './Attachments/AttachmentView';
+import AttachmentCarousel from './Attachments/AttachmentCarousel';
+import useLocalize from '../hooks/useLocalize';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
@@ -24,6 +25,12 @@ import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import reportPropTypes from '../pages/reportPropTypes';
+import * as Expensicons from './Icon/Expensicons';
+import useWindowDimensions from '../hooks/useWindowDimensions';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
+import useNativeDriver from '../libs/useNativeDriver';
+import useNetwork from '../hooks/useNetwork';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -70,6 +77,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
+
+    /** Denotes whether it is a workspace avatar or not */
+    isWorkspaceAvatar: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -85,19 +95,25 @@ const defaultProps = {
     onModalShow: () => {},
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
+    isWorkspaceAvatar: false,
 };
 
 function AttachmentModal(props) {
+    const onModalHideCallbackRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
+    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
+    const [shouldShowDownloadButton, setShouldShowDownloadButton] = React.useState(true);
+    const {windowWidth} = useWindowDimensions();
+
     const [file, setFile] = useState(
         props.originalFileName
             ? {
@@ -105,17 +121,20 @@ function AttachmentModal(props) {
               }
             : undefined,
     );
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     const onCarouselAttachmentChange = props.onCarouselAttachmentChange;
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
-     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string } }} attachment
+     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string }, isReceipt: Boolean }} attachment
      */
     const onNavigate = useCallback(
         (attachment) => {
             setSource(attachment.source);
             setFile(attachment.file);
+            setIsAttachmentReceipt(attachment.isReceipt);
             setIsAuthTokenRequired(attachment.isAuthTokenRequired);
             onCarouselAttachmentChange(attachment);
         },
@@ -130,12 +149,22 @@ function AttachmentModal(props) {
      */
     const getModalType = useCallback(
         (sourceURL, _file) =>
-            sourceURL && (Str.isPDF(sourceURL) || (_file && Str.isPDF(_file.name || props.translate('attachmentView.unknownFilename'))))
+            sourceURL && (Str.isPDF(sourceURL) || (_file && Str.isPDF(_file.name || translate('attachmentView.unknownFilename'))))
                 ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                 : CONST.MODAL.MODAL_TYPE.CENTERED,
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.translate],
+        [translate],
     );
+
+    const setDownloadButtonVisibility = useCallback(
+        (shouldShowButton) => {
+            if (shouldShowDownloadButton === shouldShowButton) {
+                return;
+            }
+            setShouldShowDownloadButton(shouldShowButton);
+        },
+        [shouldShowDownloadButton],
+    );
+
     /**
      * Download the currently viewed attachment.
      */
@@ -176,60 +205,68 @@ function AttachmentModal(props) {
     const closeConfirmModal = useCallback(() => {
         setIsAttachmentInvalid(false);
     }, []);
+
     /**
      * @param {Object} _file
      * @returns {Boolean}
      */
-    const isValidFile = useCallback(
-        (_file) => {
-            const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(_file, 'name', ''));
-            if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-                const invalidReason = props.translate('attachmentPicker.notAllowedExtension');
+    const isValidFile = useCallback((_file) => {
+        if (lodashGet(_file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            setIsAttachmentInvalid(true);
+            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
+            setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
+            return false;
+        }
 
-                setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.wrongFileType'));
-                setAttachmentInvalidReason(invalidReason);
-                return false;
-            }
+        if (lodashGet(_file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            setIsAttachmentInvalid(true);
+            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
+            setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
+            return false;
+        }
 
-            if (lodashGet(_file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentTooLarge'));
-                setAttachmentInvalidReason(props.translate('attachmentPicker.sizeExceeded'));
-                return false;
-            }
-
-            if (lodashGet(_file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentTooSmall'));
-                setAttachmentInvalidReason(props.translate('attachmentPicker.sizeNotMet'));
-                return false;
-            }
-
-            return true;
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.translate],
-    );
+        return true;
+    }, []);
     /**
-     * @param {Object} _file
+     * @param {Object} _data
+     * @returns {Boolean}
+     */
+    const isDirectoryCheck = useCallback((_data) => {
+        if (typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
+            setIsAttachmentInvalid(true);
+            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
+            setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
+            return false;
+        }
+        return true;
+    }, []);
+
+    /**
+     * @param {Object} _data
      */
     const validateAndDisplayFileToUpload = useCallback(
-        (_file) => {
-            if (!_file) {
+        (_data) => {
+            if (!isDirectoryCheck(_data)) {
+                return;
+            }
+            let fileObject = _data;
+            if (typeof _data.getAsFile === 'function') {
+                fileObject = _data.getAsFile();
+            }
+            if (!fileObject) {
                 return;
             }
 
-            if (!isValidFile(_file)) {
+            if (!isValidFile(fileObject)) {
                 return;
             }
 
-            if (_file instanceof File) {
+            if (fileObject instanceof File) {
                 /**
                  * Cleaning file name, done here so that it covers all cases:
                  * upload, drag and drop, copy-paste
                  */
-                let updatedFile = _file;
+                let updatedFile = fileObject;
                 const cleanName = FileUtils.cleanFileName(updatedFile.name);
                 if (updatedFile.name !== cleanName) {
                     updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
@@ -241,14 +278,14 @@ function AttachmentModal(props) {
                 setFile(updatedFile);
                 setModalType(inputModalType);
             } else {
-                const inputModalType = getModalType(_file.uri, _file);
+                const inputModalType = getModalType(fileObject.uri, fileObject);
                 setIsModalOpen(true);
-                setSource(_file.uri);
-                setFile(_file);
+                setSource(fileObject.uri);
+                setFile(fileObject);
                 setModalType(inputModalType);
             }
         },
-        [isValidFile, getModalType],
+        [isValidFile, getModalType, isDirectoryCheck],
     );
 
     /**
@@ -267,7 +304,7 @@ function AttachmentModal(props) {
             Animated.timing(confirmButtonFadeAnimation, {
                 toValue,
                 duration: 100,
-                useNativeDriver: true,
+                useNativeDriver,
             }).start();
         },
         [confirmButtonFadeAnimation],
@@ -288,6 +325,7 @@ function AttachmentModal(props) {
     }, []);
 
     const sourceForAttachmentView = props.source || source;
+
     return (
         <>
             <Modal
@@ -302,20 +340,42 @@ function AttachmentModal(props) {
                 }}
                 onModalHide={(e) => {
                     props.onModalHide(e);
+                    if (onModalHideCallbackRef.current) {
+                        onModalHideCallbackRef.current();
+                    }
+
                     setShouldLoadAttachment(false);
                 }}
                 propagateSwipe
             >
                 {props.isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton
-                    title={props.headerTitle || props.translate('common.attachment')}
+                    title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
                     shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload}
+                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !isAttachmentReceipt && !isOffline}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={closeModal}
                     onCloseButtonPress={closeModal}
+                    shouldShowThreeDotsButton={isAttachmentReceipt}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
+                    threeDotsMenuItems={[
+                        {
+                            icon: Expensicons.Camera,
+                            text: props.translate('common.replace'),
+                            onSelected: () => {
+                                onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
+                                closeModal();
+                            },
+                        },
+                        {
+                            icon: Expensicons.Download,
+                            text: props.translate('common.download'),
+                            onSelected: () => downloadAttachment(source),
+                        },
+                    ]}
+                    shouldOverlay
                 />
                 <View style={styles.imageModalImageCenterContainer}>
                     {!_.isEmpty(props.report) ? (
@@ -323,7 +383,9 @@ function AttachmentModal(props) {
                             report={props.report}
                             onNavigate={onNavigate}
                             source={props.source}
+                            onClose={closeModal}
                             onToggleKeyboard={updateConfirmButtonVisibility}
+                            setDownloadButtonVisibility={setDownloadButtonVisibility}
                         />
                     ) : (
                         Boolean(sourceForAttachmentView) &&
@@ -334,6 +396,8 @@ function AttachmentModal(props) {
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 file={file}
                                 onToggleKeyboard={updateConfirmButtonVisibility}
+                                isWorkspaceAvatar={props.isWorkspaceAvatar}
+                                fallbackSource={props.fallbackSource}
                             />
                         )
                     )}
@@ -347,7 +411,7 @@ function AttachmentModal(props) {
                                     success
                                     style={[styles.buttonConfirm, props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
                                     textStyles={[styles.buttonConfirmText]}
-                                    text={props.translate('common.send')}
+                                    text={translate('common.send')}
                                     onPress={submitAndClose}
                                     disabled={isConfirmButtonDisabled}
                                     pressOnEnter
@@ -359,12 +423,12 @@ function AttachmentModal(props) {
             </Modal>
 
             <ConfirmModal
-                title={attachmentInvalidReasonTitle}
+                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                 onConfirm={closeConfirmModal}
                 onCancel={closeConfirmModal}
                 isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason}
-                confirmText={props.translate('common.close')}
+                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />
 

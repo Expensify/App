@@ -26,6 +26,10 @@ public class CustomNotificationListener implements NotificationListener {
 
     @Override
     public boolean onNotificationOpened(@NonNull @NotNull NotificationInfo notificationInfo) {
+        // The notification is also dismissed when it's tapped so handle that as well
+        PushMessage message = notificationInfo.getMessage();
+        provider.onDismissNotification(message);
+
         return parent.onNotificationOpened(notificationInfo);
     }
 

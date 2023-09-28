@@ -12,6 +12,7 @@ import Expensify from './Expensify';
 import {LocaleContextProvider} from './components/withLocalize';
 import OnyxProvider from './components/OnyxProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
+import PopoverContextProvider from './components/PopoverProvider';
 import ComposeProviders from './components/ComposeProviders';
 import SafeArea from './components/SafeArea';
 import * as Environment from './libs/Environment/Environment';
@@ -21,7 +22,10 @@ import ThemeProvider from './styles/themes/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
+import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import * as Session from './libs/actions/Session';
+import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -39,6 +43,8 @@ LogBox.ignoreLogs([
 const fill = {flex: 1};
 
 function App() {
+    useDefaultDragAndDrop();
+    OnyxUpdateManager();
     return (
         <GestureHandlerRootView style={fill}>
             <ComposeProviders
@@ -51,7 +57,9 @@ function App() {
                     HTMLEngineProvider,
                     WindowDimensionsProvider,
                     KeyboardStateProvider,
+                    PopoverContextProvider,
                     CurrentReportIDContextProvider,
+                    ReportAttachmentsProvider,
                     PickerStateProvider,
                     EnvironmentProvider,
                     ThemeProvider,

@@ -2,6 +2,7 @@ import React, {useEffect, useImperativeHandle, useRef, useState, forwardRef} fro
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {TapGestureHandler} from 'react-native-gesture-handler';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as ValidationUtils from '../libs/ValidationUtils';
@@ -13,6 +14,8 @@ import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import useNetwork from '../hooks/useNetwork';
 import * as Browser from '../libs/Browser';
+
+const TEXT_INPUT_EMPTY_STATE = '';
 
 const propTypes = {
     /** Information about the network */
@@ -26,9 +29,6 @@ const propTypes = {
 
     /** Should the input auto focus */
     autoFocus: PropTypes.bool,
-
-    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
-    shouldDelayFocus: PropTypes.bool,
 
     /** Error text to display */
     errorText: PropTypes.string,
@@ -55,10 +55,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    value: undefined,
+    value: '',
     name: '',
     autoFocus: true,
-    shouldDelayFocus: false,
     errorText: '',
     shouldSubmitOnComplete: true,
     innerRef: null,
@@ -96,22 +95,40 @@ const composeToString = (value) => _.map(value, (v) => (v === undefined || v ===
 const getInputPlaceholderSlots = (length) => Array.from(Array(length).keys());
 
 function MagicCodeInput(props) {
-    const inputRefs = useRef([]);
-    const [input, setInput] = useState('');
+    const inputRefs = useRef();
+    const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
+    const shouldFocusLast = useRef(false);
+    const inputWidth = useRef(0);
+    const lastFocusedIndex = useRef(0);
 
     const blurMagicCodeInput = () => {
-        inputRefs.current[editIndex].blur();
+        inputRefs.current.blur();
         setFocusedIndex(undefined);
+    };
+
+    const focusMagicCodeInput = () => {
+        setFocusedIndex(0);
+        lastFocusedIndex.current = 0;
+        setEditIndex(0);
+        inputRefs.current.focus();
     };
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
-            inputRefs.current[0].focus();
+            focusMagicCodeInput();
+        },
+        resetFocus() {
+            setInput(TEXT_INPUT_EMPTY_STATE);
+            focusMagicCodeInput();
         },
         clear() {
-            inputRefs.current[0].focus();
+            setInput(TEXT_INPUT_EMPTY_STATE);
+            setFocusedIndex(0);
+            lastFocusedIndex.current = 0;
+            setEditIndex(0);
+            inputRefs.current.focus();
             props.onChangeText('');
         },
         blur() {
@@ -141,40 +158,38 @@ function MagicCodeInput(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.value, props.shouldSubmitOnComplete]);
 
-    useEffect(() => {
-        if (!props.autoFocus) {
-            return;
-        }
-
-        let focusTimeout = null;
-        if (props.shouldDelayFocus) {
-            focusTimeout = setTimeout(() => inputRefs.current[0].focus(), CONST.ANIMATED_TRANSITION);
-        } else {
-            inputRefs.current[0].focus();
-        }
-
-        return () => {
-            if (!focusTimeout) {
-                return;
-            }
-            clearTimeout(focusTimeout);
-        };
-        // We only want this to run on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     /**
-     * Callback for the onFocus event, updates the indexes
-     * of the currently focused input.
+     * Focuses on the input when it is pressed.
      *
      * @param {Object} event
      * @param {Number} index
      */
-    const onFocus = (event, index) => {
+    const onFocus = (event) => {
+        if (shouldFocusLast.current) {
+            setInput(TEXT_INPUT_EMPTY_STATE);
+            setFocusedIndex(lastFocusedIndex.current);
+            setEditIndex(lastFocusedIndex.current);
+        }
         event.preventDefault();
-        setInput('');
+    };
+
+    /**
+     * Callback for the onPress event, updates the indexes
+     * of the currently focused input.
+     *
+     * @param {Number} index
+     */
+    const onPress = (index) => {
+        shouldFocusLast.current = false;
+        // TapGestureHandler works differently on mobile web and native app
+        // On web gesture handler doesn't block interactions with textInput below so there is no need to run `focus()` manually
+        if (!Browser.isMobileChrome() && !Browser.isMobileSafari()) {
+            inputRefs.current.focus();
+        }
+        setInput(TEXT_INPUT_EMPTY_STATE);
         setFocusedIndex(index);
         setEditIndex(index);
+        lastFocusedIndex.current = index;
     };
 
     /**
@@ -202,7 +217,9 @@ function MagicCodeInput(props) {
         let numbers = decomposeString(props.value, props.maxLength);
         numbers = [...numbers.slice(0, editIndex), ...numbersArr, ...numbers.slice(numbersArr.length + editIndex, props.maxLength)];
 
-        inputRefs.current[updatedFocusedIndex].focus();
+        setFocusedIndex(updatedFocusedIndex);
+        setEditIndex(updatedFocusedIndex);
+        setInput(TEXT_INPUT_EMPTY_STATE);
 
         const finalInput = composeToString(numbers);
         props.onChangeText(finalInput);
@@ -223,7 +240,7 @@ function MagicCodeInput(props) {
             // If the currently focused index already has a value, it will delete
             // that value but maintain the focus on the same input.
             if (numbers[focusedIndex] !== CONST.MAGIC_CODE_EMPTY_CHAR) {
-                setInput('');
+                setInput(TEXT_INPUT_EMPTY_STATE);
                 numbers = [...numbers.slice(0, focusedIndex), CONST.MAGIC_CODE_EMPTY_CHAR, ...numbers.slice(focusedIndex + 1, props.maxLength)];
                 setEditIndex(focusedIndex);
                 props.onChangeText(composeToString(numbers));
@@ -242,36 +259,86 @@ function MagicCodeInput(props) {
             }
 
             const newFocusedIndex = Math.max(0, focusedIndex - 1);
+
+            // Saves the input string so that it can compare to the change text
+            // event that will be triggered, this is a workaround for mobile that
+            // triggers the change text on the event after the key press.
+            setInput(TEXT_INPUT_EMPTY_STATE);
+            setFocusedIndex(newFocusedIndex);
+            setEditIndex(newFocusedIndex);
             props.onChangeText(composeToString(numbers));
 
             if (!_.isUndefined(newFocusedIndex)) {
-                inputRefs.current[newFocusedIndex].focus();
+                inputRefs.current.focus();
             }
         }
         if (keyValue === 'ArrowLeft' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.max(0, focusedIndex - 1);
-            inputRefs.current[newFocusedIndex].focus();
+            setInput(TEXT_INPUT_EMPTY_STATE);
+            setFocusedIndex(newFocusedIndex);
+            setEditIndex(newFocusedIndex);
+            inputRefs.current.focus();
         } else if (keyValue === 'ArrowRight' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.min(focusedIndex + 1, props.maxLength - 1);
-            inputRefs.current[newFocusedIndex].focus();
+            setInput(TEXT_INPUT_EMPTY_STATE);
+            setFocusedIndex(newFocusedIndex);
+            setEditIndex(newFocusedIndex);
+            inputRefs.current.focus();
         } else if (keyValue === 'Enter') {
             // We should prevent users from submitting when it's offline.
             if (props.network.isOffline) {
                 return;
             }
-            setInput('');
+            setInput(TEXT_INPUT_EMPTY_STATE);
             props.onFulfill(props.value);
         }
     };
 
-    // We need to check the browser because, in iOS Safari, an input in a container with its opacity set to
-    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown.
-    // Alternate styling will be applied based on this condition.
-    const isMobileSafari = Browser.isMobileSafari();
-
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
+                <TapGestureHandler
+                    onBegan={(e) => {
+                        onPress(Math.floor(e.nativeEvent.x / (inputWidth.current / props.maxLength)));
+                    }}
+                >
+                    {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
+                    <View
+                        style={[StyleSheet.absoluteFillObject, styles.w100, styles.h100, styles.invisibleOverlay]}
+                        collapsable={false}
+                    >
+                        <TextInput
+                            onLayout={(e) => {
+                                inputWidth.current = e.nativeEvent.layout.width;
+                            }}
+                            ref={(ref) => (inputRefs.current = ref)}
+                            autoFocus={props.autoFocus}
+                            inputMode="numeric"
+                            textContentType="oneTimeCode"
+                            name={props.name}
+                            maxLength={props.maxLength}
+                            value={input}
+                            hideFocusedState
+                            autoComplete={props.autoComplete}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            onChangeText={(value) => {
+                                onChangeText(value);
+                            }}
+                            onKeyPress={onKeyPress}
+                            onFocus={onFocus}
+                            onBlur={() => {
+                                shouldFocusLast.current = true;
+                                lastFocusedIndex.current = focusedIndex;
+                                setFocusedIndex(undefined);
+                            }}
+                            selectionColor="transparent"
+                            inputStyle={[styles.inputTransparent]}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            style={[styles.inputTransparent]}
+                            textInputContainerStyles={[styles.borderNone]}
+                        />
+                    </View>
+                </TapGestureHandler>
                 {_.map(getInputPlaceholderSlots(props.maxLength), (index) => (
                     <View
                         key={index}
@@ -286,35 +353,6 @@ function MagicCodeInput(props) {
                             ]}
                         >
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value, props.maxLength)[index] || ''}</Text>
-                        </View>
-                        <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
-                            <TextInput
-                                ref={(ref) => (inputRefs.current[index] = ref)}
-                                autoFocus={index === 0 && props.autoFocus && !props.shouldDelayFocus}
-                                inputMode="numeric"
-                                textContentType="oneTimeCode"
-                                name={props.name}
-                                maxLength={props.maxLength}
-                                value={input}
-                                hideFocusedState
-                                autoComplete={index === 0 ? props.autoComplete : 'off'}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                onChangeText={(value) => {
-                                    // Do not run when the event comes from an input that is
-                                    // not currently being responsible for the input, this is
-                                    // necessary to avoid calls when the input changes due to
-                                    // deleted characters. Only happens in mobile.
-                                    if (index !== editIndex || _.isUndefined(focusedIndex)) {
-                                        return;
-                                    }
-                                    onChangeText(value);
-                                }}
-                                onKeyPress={onKeyPress}
-                                onFocus={(event) => onFocus(event, index)}
-                                caretHidden={isMobileSafari}
-                                inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            />
                         </View>
                     </View>
                 ))}

@@ -1,9 +1,9 @@
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
+import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import IconWrapperStyles from './IconWrapperStyles';
 
@@ -26,6 +26,12 @@ const propTypes = {
     /** Is inline icon */
     inline: PropTypes.bool,
 
+    /** Is icon hovered */
+    hovered: PropTypes.bool,
+
+    /** Is icon pressed */
+    pressed: PropTypes.bool,
+
     // eslint-disable-next-line react/forbid-prop-types
     additionalStyles: PropTypes.arrayOf(PropTypes.object),
 };
@@ -37,6 +43,8 @@ const defaultProps = {
     small: false,
     inline: false,
     additionalStyles: [],
+    hovered: false,
+    pressed: false,
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -58,6 +66,8 @@ class Icon extends PureComponent {
                             width={width}
                             height={height}
                             fill={this.props.fill}
+                            hovered={this.props.hovered.toString()}
+                            pressed={this.props.pressed.toString()}
                         />
                     </View>
                 </View>
@@ -73,6 +83,8 @@ class Icon extends PureComponent {
                     width={width}
                     height={height}
                     fill={this.props.fill}
+                    hovered={this.props.hovered.toString()}
+                    pressed={this.props.pressed.toString()}
                 />
             </View>
         );

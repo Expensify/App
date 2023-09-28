@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -19,6 +19,7 @@ import * as User from '../../../libs/actions/User';
 import TextInput from '../../TextInput';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import useSingleExecution from '../../../hooks/useSingleExecution';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -27,22 +28,37 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
+    /** Stores user's frequently used emojis */
+    // eslint-disable-next-line react/forbid-prop-types
+    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.object),
+
     /** Props related to translation */
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    frequentlyUsedEmojis: [],
 };
 
-function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, translate}) {
+function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, translate, frequentlyUsedEmojis}) {
     const emojiList = useAnimatedRef();
-    const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
     const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis), [allEmojis]);
     const headerRowIndices = useMemo(() => _.map(headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW)), [headerEmojis]);
     const [filteredEmojis, setFilteredEmojis] = useState(allEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
     const {windowWidth} = useWindowDimensions();
+    const {singleExecution} = useSingleExecution();
+
+    useEffect(() => {
+        setFilteredEmojis(allEmojis);
+    }, [allEmojis]);
+
+    useEffect(() => {
+        setHeaderIndices(headerRowIndices);
+    }, [headerRowIndices]);
 
     const getItemLayout = (data, index) => ({length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index});
 
@@ -136,7 +152,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
 
         return (
             <EmojiPickerMenuItem
-                onPress={(emoji) => addToFrequentAndSelectEmoji(emoji, item)}
+                onPress={singleExecution((emoji) => addToFrequentAndSelectEmoji(emoji, item))}
                 emoji={emojiCode}
             />
         );
@@ -199,6 +215,9 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
 )(

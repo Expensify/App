@@ -67,14 +67,18 @@ function AddReactionBubble(props) {
                 refParam || ref.current,
                 anchorOrigin,
                 props.onWillShowPicker,
-                props.reportAction,
+                props.reportAction.reportActionID,
             );
         };
 
-        if (props.onPressOpenPicker) {
-            props.onPressOpenPicker(openPicker);
+        if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
+            if (props.onPressOpenPicker) {
+                props.onPressOpenPicker(openPicker);
+            } else {
+                openPicker();
+            }
         } else {
-            openPicker();
+            EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
         }
     };
 
@@ -90,6 +94,7 @@ function AddReactionBubble(props) {
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 // disable dimming
                 pressDimmingValue={1}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {({hovered, pressed}) => (
                     <>

@@ -6,6 +6,8 @@ import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLived
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
+import AppleSignInDesktopPage from '../../../pages/signin/AppleSignInDesktopPage';
+import GoogleSignInDesktopPage from '../../../pages/signin/GoogleSignInDesktopPage';
 
 const RootStack = createStackNavigator();
 
@@ -31,6 +33,16 @@ function PublicScreens() {
                 name="UnlinkLogin"
                 options={defaultScreenOptions}
                 component={UnlinkLoginPage}
+            />
+            <RootStack.Screen
+                name="AppleSignInDesktop"
+                options={defaultScreenOptions}
+                component={AppleSignInDesktopPage}
+            />
+            <RootStack.Screen
+                name="GoogleSignInDesktop"
+                options={defaultScreenOptions}
+                component={GoogleSignInDesktopPage}
             />
         </RootStack.Navigator>
     );
