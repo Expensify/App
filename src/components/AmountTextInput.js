@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import * as StyleUtils from '../styles/StyleUtils';
 import TextInput from './TextInput';
 import styles from '../styles/styles';
 import CONST from '../CONST';
@@ -52,7 +53,7 @@ function AmountTextInput(props) {
             disableKeyboard
             autoGrow
             hideFocusedState
-            inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, props.style]}
+            inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, ...StyleUtils.parseStyleAsArray(props.style)]}
             textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
             onChangeText={props.onChangeAmount}
             ref={props.forwardedRef}
@@ -64,7 +65,7 @@ function AmountTextInput(props) {
             onSelectionChange={props.onSelectionChange}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
             onKeyPress={props.onKeyPress}
-            containerStyles={props.containerStyles}
+            containerStyles={[...StyleUtils.parseStyleAsArray(props.containerStyles)]}
         />
     );
 }

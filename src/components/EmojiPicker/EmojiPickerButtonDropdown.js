@@ -1,6 +1,7 @@
 import React, {useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import _ from 'lodash';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -29,7 +30,7 @@ function EmojiPickerButtonDropdown(props) {
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
     const onPress = () =>
-        EmojiPickerAction.showEmojiPicker(props.onModalHide, (emoji) => props.onInputChange(emoji), emojiPopoverAnchor.current, {
+        EmojiPickerAction.showEmojiPicker(props.onModalHide, (emoji) => props.onInputChange(_.isArray(emoji) ? emoji[0] : emoji), emojiPopoverAnchor.current, {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             shiftVertical: 4,

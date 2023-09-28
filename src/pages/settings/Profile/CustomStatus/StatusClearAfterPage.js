@@ -159,15 +159,13 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
 
     const timePeriodOptions = useCallback(
         () =>
-            statusType.map((item, index) => {
-                return (
-                    <RadioListItem
-                        item={item}
-                        key={index}
-                        onSelectRow={() => updateMode(item)}
-                    />
-                );
-            }),
+            _.map(statusType, (item, index) => (
+                <RadioListItem
+                    item={item}
+                    key={`${index}+${item.value}`}
+                    onSelectRow={() => updateMode(item)}
+                />
+            )),
         [statusType, updateMode],
     );
 
@@ -186,7 +184,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM}
                 submitButtonText="Save"
                 onSubmit={onSubmit}
-                style={styles.flexGrow1}
+                style={[styles.flexGrow1, styles.mb4]}
                 scrollContextEnabled={false}
                 isSubmitButtonVisible={false}
                 enabledWhenOffline

@@ -3,26 +3,26 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
+import EmojiPickerButtonDropdown from '../../../../components/EmojiPicker/EmojiPickerButtonDropdown';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize from '../../../../components/withLocalize';
-import Text from '../../../../components/Text';
+import TextInput from '../../../../components/TextInput';
 import MenuItem from '../../../../components/MenuItem';
+import Form from '../../../../components/Form';
+import Text from '../../../../components/Text';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as User from '../../../../libs/actions/User';
-import themeColors from '../../../../styles/themes/default';
 import useLocalize from '../../../../hooks/useLocalize';
-import styles from '../../../../styles/styles';
 import DateUtils from '../../../../libs/DateUtils';
 import compose from '../../../../libs/compose';
+import themeColors from '../../../../styles/themes/default';
+import styles from '../../../../styles/styles';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import CONST from '../../../../CONST';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Form from '../../../../components/Form';
-import TextInput from '../../../../components/TextInput';
-import EmojiPickerButtonDropdown from '../../../../components/EmojiPicker/EmojiPickerButtonDropdown';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 
 const INPUT_IDS = {
     EMOJI_CODE: 'emojiCode',
@@ -64,7 +64,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         return !DateUtils.hasDateExpired(clearAfterTime);
     }, [draftClearAfter, currentUserClearAfter]);
 
-    const navigateBackToSettingsPage = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
+    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}) => {
             const clearAfterTime = draftClearAfter || currentUserClearAfter;
@@ -80,9 +80,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             });
 
             User.clearDraftCustomStatus();
-            Navigation.goBack(ROUTES.SETTINGS_PROFILE);
+            navigateBackToPreviousScreen();
         },
-        [currentUserClearAfter, draftClearAfter, isValidClearAfterDate],
+        [currentUserClearAfter, draftClearAfter, isValidClearAfterDate, navigateBackToPreviousScreen],
     );
 
     const clearStatus = () => {
@@ -139,7 +139,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         >
             <HeaderWithBackButton
                 title={localize.translate('statusPage.status')}
-                onBackButtonPress={navigateBackToSettingsPage}
+                onBackButtonPress={navigateBackToPreviousScreen}
             />
             <Form
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}

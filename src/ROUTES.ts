@@ -93,9 +93,9 @@ export default {
     SETTINGS_2FA: 'settings/security/two-factor-auth',
     SETTINGS_STATUS: 'settings/profile/status',
     SETTINGS_STATUS_SET: 'settings/profile/status/set',
-    SETTINGS_STATUS_CLEAR_AFTER:                'settings/profile/status/clear-after',
-    SETTINGS_STATUS_CLEAR_AFTER_CUSTOM:         'settings/profile/status/clear-after/custom',
-    SETTINGS_STATUS_CLEAR_AFTER_TIME:           'settings/profile/status/clear-after/time',
+    SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
+    SETTINGS_STATUS_CLEAR_AFTER_CUSTOM: 'settings/profile/status/clear-after/custom',
+    SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',

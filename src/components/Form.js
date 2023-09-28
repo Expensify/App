@@ -4,6 +4,7 @@ import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import * as StyleUtils from '../styles/StyleUtils';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as FormActions from '../libs/actions/FormActions';
@@ -486,7 +487,7 @@ const Form = forwardRef((props, forwardedRef) => {
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...props.submitButtonContainerStyles]}
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
-                        buttonStyles={[props.submitButtonStyle]}
+                        buttonStyles={[...StyleUtils.parseStyleAsArray(props.submitButtonStyle)]}
                         useSmallerSubmitButtonSize={props.useSmallerSubmitButtonSize}
                         disablePressOnEnter
                         errorMessageStyle={props.errorMessageStyle}
