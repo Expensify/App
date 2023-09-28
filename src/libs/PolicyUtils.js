@@ -261,6 +261,20 @@ function isPendingDeletePolicy(policy) {
     return policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ * Creates a new array based on a previous instance of "policyRecentlyUsedCategories",
+ * where a new category is a first one.
+ *
+ * @param {Array<String>} recentlyUsedPolicyCategories
+ * @param {String} category
+ * @returns {Array}
+ */
+function addCategoryToRecentlyUsed(recentlyUsedPolicyCategories, category) {
+    const uniquePolicyRecentlyUsedCategories = _.filter(recentlyUsedPolicyCategories, (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory !== category);
+
+    return [category, ...uniquePolicyRecentlyUsedCategories];
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -280,4 +294,5 @@ export {
     getTagListName,
     getTagList,
     isPendingDeletePolicy,
+    addCategoryToRecentlyUsed,
 };
