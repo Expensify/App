@@ -86,12 +86,7 @@ function SAMLEnabledForm (props) {
                         props.setIsUsingSAMLLogin(false);
                     }}
                 />
-                <ChangeExpensifyLoginLink onPress={() => {
-                    // Redirect the user back to the login page and clear the state for whether they opted to use SAML
-                    // or magic codes to sign in
-                    Session.clearSignInData()
-                    props.setIsUsingSAMLLogin(true);
-                    }} />
+                <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
             </View>
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
                 <Terms />

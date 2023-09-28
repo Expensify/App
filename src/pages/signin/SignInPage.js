@@ -205,6 +205,7 @@ function SignInPage({credentials, account, isInModal}) {
                     <ValidateCodeForm
                         isUsingRecoveryCode={isUsingRecoveryCode}
                         setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                        setIsUsingSAMLLogin={setIsUsingSAMLLogin}
                     />
                 )}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
