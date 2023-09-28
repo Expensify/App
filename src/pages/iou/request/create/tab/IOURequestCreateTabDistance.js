@@ -22,7 +22,7 @@ function IOURequestCreateTabDistance({transaction: {transactionID, reportID}}) {
      * @param {Number} index of the waypoint that the user needs to be taken to
      */
     const navigateToWaypointPage = (index) => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, transactionID, reportID, 'waypoint', index));
+        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, 'waypoint', transactionID, reportID, index));
     };
 
     const goToNextStep = () => {

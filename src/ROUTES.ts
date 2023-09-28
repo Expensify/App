@@ -1,4 +1,5 @@
 import {ValueOf} from 'type-fest';
+
 import CONST from './CONST';
 
 /**
@@ -251,10 +252,13 @@ export default {
     },
     MONEE_REQUEST_FIELD: {
         route: 'create/:iouType/:field/:transactionID/:reportID/:waypointIndex?',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, field: MoneyRequestFields, reportID: string, waypointIndex: '') =>
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, field: MoneyRequestFields, transactionID: string, reportID: string, waypointIndex = '') =>
             `create/${iouType}/${field}/${transactionID}/${reportID}/${waypointIndex}`,
     },
-    MONEE_REQUEST_CREATE_TAB_DISTANCE: 'create/:iouType/start/:transactionID/:reportID/distance',
+    MONEE_REQUEST_CREATE_TAB_DISTANCE: {
+        route: 'create/:iouType/start/:transactionID/:reportID/distance',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/distance`,
+    },
     MONEE_REQUEST_CREATE_TAB_MANUAL: 'create/:iouType/start/:transactionID/:reportID/manual',
     MONEE_REQUEST_CREATE_TAB_SCAN: 'create/:iouType/start/:transactionID/:reportID/scan',
 

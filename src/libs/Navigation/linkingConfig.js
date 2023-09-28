@@ -306,7 +306,7 @@ export default {
                                 exact: true,
                                 screens: {
                                     distance: {
-                                        path: ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE,
+                                        path: ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.route,
                                         exact: true,
                                     },
                                     manual: {

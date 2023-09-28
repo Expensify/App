@@ -1,28 +1,10 @@
-import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
+import React from 'react';
 import _ from 'underscore';
-import compose from '../../../libs/compose';
-import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ONYXKEYS from '../../../ONYXKEYS';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as TransactionUtils from '../../../libs/TransactionUtils';
-import * as Policy from '../../../libs/actions/Policy';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
-import EditRequestDescriptionPage from '../../EditRequestDescriptionPage';
-import EditRequestMerchantPage from '../../EditRequestMerchantPage';
-import EditRequestCreatedPage from '../../EditRequestCreatedPage';
-import EditRequestAmountPage from '../../EditRequestAmountPage';
-import EditRequestReceiptPage from '../../EditRequestReceiptPage';
-import reportPropTypes from '../../reportPropTypes';
-import * as IOU from '../../../libs/actions/IOU';
-import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import EditRequestDistancePage from '../../EditRequestDistancePage';
+
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import EditRequestCategoryPage from '../../EditRequestCategoryPage';
+import CONST from '../../../CONST';
+import IOURequestFieldWaypoint from './field/IOURequestFieldWaypoint';
 
 const propTypes = {
     /** Route from navigation */
@@ -47,6 +29,7 @@ const propTypes = {
 const defaultProps = {};
 
 function IOURequestFieldPage({
+    route,
     route: {
         params: {field},
     },
@@ -88,7 +71,7 @@ function IOURequestFieldPage({
     }
 
     if (field === 'waypoint') {
-        return null;
+        return <IOURequestFieldWaypoint route={route} />;
     }
 
     if (field === 'address') {
