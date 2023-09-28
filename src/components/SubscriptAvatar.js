@@ -52,61 +52,49 @@ function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, no
         marginStyle = {};
     }
 
-    const mainAvatarElement = (
-        <Avatar
-            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
-            source={mainAvatar.source}
-            size={size || CONST.AVATAR_SIZE.DEFAULT}
-            name={mainAvatar.name}
-            type={mainAvatar.type}
-            fallbackIcon={mainAvatar.fallbackIcon}
-        />
-    );
-
-    const secondaryAvatarElement = (
-        <View
-            style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle]}
-            // Hover on overflowed part of icon will not work on Electron if dragArea is true
-            // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
-            dataSet={{dragArea: false}}
-        >
-            <Avatar
-                iconAdditionalStyles={[
-                    StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
-                    StyleUtils.getBorderColorStyle(backgroundColor),
-                ]}
-                source={secondaryAvatar.source}
-                size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
-                fill={themeColors.iconSuccessFill}
-                name={secondaryAvatar.name}
-                type={secondaryAvatar.type}
-                fallbackIcon={secondaryAvatar.fallbackIcon}
-            />
-        </View>
-    );
-
     return (
         <View style={[containerStyle, marginStyle]}>
-            {showTooltip ? (
-                <UserDetailsTooltip
-                    accountID={lodashGet(mainAvatar, 'id', -1)}
-                    icon={mainAvatar}
+            <UserDetailsTooltip
+                shouldRender={showTooltip}
+                accountID={lodashGet(mainAvatar, 'id', -1)}
+                icon={mainAvatar}
+            >
+                <View>
+                    <Avatar
+                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
+                        source={mainAvatar.source}
+                        size={size || CONST.AVATAR_SIZE.DEFAULT}
+                        name={mainAvatar.name}
+                        type={mainAvatar.type}
+                        fallbackIcon={mainAvatar.fallbackIcon}
+                    />
+                </View>
+            </UserDetailsTooltip>
+            <UserDetailsTooltip
+                shouldRender={showTooltip}
+                accountID={lodashGet(secondaryAvatar, 'id', -1)}
+                icon={secondaryAvatar}
+            >
+                <View
+                    style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle]}
+                    // Hover on overflowed part of icon will not work on Electron if dragArea is true
+                    // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
+                    dataSet={{dragArea: false}}
                 >
-                    <View>{mainAvatarElement}</View>
-                </UserDetailsTooltip>
-            ) : (
-                mainAvatarElement
-            )}
-            {showTooltip ? (
-                <UserDetailsTooltip
-                    accountID={lodashGet(secondaryAvatar, 'id', -1)}
-                    icon={secondaryAvatar}
-                >
-                    {secondaryAvatarElement}
-                </UserDetailsTooltip>
-            ) : (
-                secondaryAvatarElement
-            )}
+                    <Avatar
+                        iconAdditionalStyles={[
+                            StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
+                            StyleUtils.getBorderColorStyle(backgroundColor),
+                        ]}
+                        source={secondaryAvatar.source}
+                        size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
+                        fill={themeColors.iconSuccessFill}
+                        name={secondaryAvatar.name}
+                        type={secondaryAvatar.type}
+                        fallbackIcon={secondaryAvatar.fallbackIcon}
+                    />
+                </View>
+            </UserDetailsTooltip>
         </View>
     );
 }
