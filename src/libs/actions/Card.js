@@ -18,7 +18,7 @@ function requestReplacementExpensifyCard(cardId, reason) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_LOST_FORM,
+                    key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD,
                     value: {
                         isLoading: true,
                     },
@@ -36,7 +36,7 @@ function requestReplacementExpensifyCard(cardId, reason) {
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_LOST_FORM,
+                    key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD,
                     value: {
                         isLoading: false,
                     },
