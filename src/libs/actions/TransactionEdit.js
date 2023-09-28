@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 
 /**
@@ -9,7 +8,7 @@ import ONYXKEYS from '../../ONYXKEYS';
  */
 function createBackupTransaction(transaction) {
     const newTransaction = {
-        ..._.omit(transaction, ['errorFields', 'isLoading']),
+        ...transaction,
     };
     // Use set so that it will always fully overwrite any backup transaction that could have existed before
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}-backup`, newTransaction);

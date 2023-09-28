@@ -50,7 +50,8 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator({
     IOU_Send_Enable_Payments: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,
     Money_Request_Waypoint: () => require('../../../pages/iou/NewDistanceRequestWaypointEditorPage').default,
     Money_Request_Edit_Waypoint: () => require('../../../pages/iou/MoneyRequestEditWaypointPage').default,
-    Money_Request_Address: () => require('../../../pages/iou/NewDistanceRequestPage').default,
+    Money_Request_Receipt: () => require('../../../pages/EditRequestReceiptPage').default,
+    Money_Request_Distance: () => require('../../../pages/iou/NewDistanceRequestPage').default,
     Money_Request_Receipt: () => require('../../../pages/EditRequestReceiptPage').default,*/
 });
 
