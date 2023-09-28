@@ -29,7 +29,7 @@ function SAMLSignInPage(props) {
     useEffect(() => {
         window.open(`${CONFIG.EXPENSIFY.SAML_URL}?email=${props.credentials.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`, '_self')
 
-    }, []);
+    }, [props.credentials.login]);
 
     return (
         <View style={styles.deeplinkWrapperContainer}>
