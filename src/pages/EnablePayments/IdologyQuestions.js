@@ -87,6 +87,9 @@ function IdologyQuestions({questions, walletAdditionalDetails, idNumber}) {
         setUserAnswers(tempAnswers);
         setError('');
     };
+    /**
+     * Show next question or send all answers for Idology verifications when we've answered enough
+     */
     const submitAnswers = () => {
         if (!userAnswers[currentQuestionIndex]) {
             setError(translate('additionalDetailsStep.selectAnswer'));
@@ -149,7 +152,7 @@ function IdologyQuestions({questions, walletAdditionalDetails, idNumber}) {
                     message={errorMessage}
                     isLoading={walletAdditionalDetails.isLoading}
                     buttonText={translate('common.saveAndContinue')}
-                    containerStyles={[styles.mh0, styles.mb0]}
+                    containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
                 />
                 <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
             </FixedFooter>
