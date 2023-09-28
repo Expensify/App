@@ -468,7 +468,6 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
                 isLoadingOlderReportActions: false,
                 isLoadingNewerReportActions: false,
             },
-
         },
     ];
 
@@ -720,12 +719,12 @@ function reconnect(reportID) {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
-                      },
                     },
-                    {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                      value: {
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
                         isLoadingInitialReportActions: true,
                         isLoadingNewerReportActions: false,
                         isLoadingOlderReportActions: false,
@@ -777,21 +776,25 @@ function readOldestAction(reportID, reportActionID) {
                         isLoadingOlderReportActions: true,
                     },
                 },
-              //   {
-              //     onyxMethod: Onyx.METHOD.MERGE,
-              //     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-              //     value: {
-              //         isLoadingInitialReportActions: true,
-              //         isLoadingOlderReportActions: false,
-              //         isLoadingNewerReportActions: false,
-              //     },
-      
-              // },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
+                        isLoadingOlderReportActions: true,
+                    },
+                },
             ],
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingOlderReportActions: false,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingOlderReportActions: false,
                     },
@@ -803,6 +806,13 @@ function readOldestAction(reportID, reportActionID) {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         isLoadingOlderReportActions: false,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
+                        isLoadingOlderReportActions: true,
                     },
                 },
             ],
@@ -833,6 +843,13 @@ function getOlderActions(reportID, reportActionID) {
                         isLoadingOlderReportActions: true,
                     },
                 },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
+                        isLoadingOlderReportActions: true,
+                    },
+                },
             ],
             successData: [
                 {
@@ -842,11 +859,25 @@ function getOlderActions(reportID, reportActionID) {
                         isLoadingOlderReportActions: false,
                     },
                 },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
+                        isLoadingOlderReportActions: false,
+                    },
+                },
             ],
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingOlderReportActions: false,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingOlderReportActions: false,
                     },
@@ -879,6 +910,13 @@ function getNewerActions(reportID, reportActionID) {
                         isLoadingNewerReportActions: true,
                     },
                 },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
+                        isLoadingNewerReportActions: true,
+                    },
+                },
             ],
             successData: [
                 {
@@ -888,11 +926,25 @@ function getNewerActions(reportID, reportActionID) {
                         isLoadingNewerReportActions: false,
                     },
                 },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
+                        isLoadingNewerReportActions: false,
+                    },
+                },
             ],
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingNewerReportActions: false,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingNewerReportActions: false,
                     },
