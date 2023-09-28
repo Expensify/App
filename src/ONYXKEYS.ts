@@ -1,5 +1,4 @@
 import {ValueOf} from 'type-fest';
-import {OnyxUpdate} from 'react-native-onyx';
 import DeepValueOf from './types/utils/DeepValueOf';
 import * as OnyxTypes from './types/onyx';
 import CONST from './CONST';
