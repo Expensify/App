@@ -1341,7 +1341,8 @@ function getMoneyRequestReportName(report, policy = undefined) {
 }
 
 /**
- * Gets transaction created, amount, currency and comment
+ * Gets transaction created, amount, currency, comment, and waypoints (for distance request)
+ * into a flat object. Used for displaying transactions and sending them in API commands
  *
  * @param {Object} transaction
  * @returns {Object}
@@ -1354,6 +1355,7 @@ function getTransactionDetails(transaction) {
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
+        waypoints: TransactionUtils.getWaypoints(transaction),
         category: TransactionUtils.getCategory(transaction),
         billable: TransactionUtils.getBillable(transaction),
         tag: TransactionUtils.getTag(transaction),
