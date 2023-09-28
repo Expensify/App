@@ -247,14 +247,16 @@ function MagicCodeInput(props) {
 
             // If keyboard is disabled and no input is focused we need to remove
             // the last entered digit and focus on the correct input
-            if (props.isDisableKeyboard && focusedIndex === undefined) {
+            if (props.isDisableKeyboard && lastFocusedIndex.current === undefined) {
                 const indexBeforeLastEditIndex = editIndex === 0 ? editIndex : editIndex - 1;
 
                 if (numbers[editIndex] === CONST.MAGIC_CODE_EMPTY_CHAR) {
-                    inputRefs.current[indexBeforeLastEditIndex].focus();
+                    setEditIndex(indexBeforeLastEditIndex);
+                    setFocusedIndex(indexBeforeLastEditIndex);
                     props.onChangeText(props.value.substring(0, indexBeforeLastEditIndex));
                 } else {
-                    inputRefs.current[editIndex].focus();
+                    setEditIndex(editIndex);
+                    setFocusedIndex(editIndex);
                     props.onChangeText(props.value.substring(0, editIndex));
                 }
 
@@ -358,7 +360,7 @@ function MagicCodeInput(props) {
                             }}
                             ref={(ref) => (inputRefs.current = ref)}
                             disableKeyboard={props.isDisableKeyboard}
-                                autoFocus={props.autoFocus}
+                            autoFocus={props.autoFocus}
                             inputMode={props.isDisableKeyboard ? 'none' : 'numeric'}
                             textContentType="oneTimeCode"
                             name={props.name}
