@@ -75,6 +75,15 @@ function OptionRowLHN(props) {
     const optionItem = props.optionItem;
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
+    useFocusEffect(
+        useCallback(() => {
+            isFocusedRef.current = true;
+            return () => {
+                isFocusedRef.current = false;
+            };
+        }, []),
+    );
+
     if (!optionItem) {
         return null;
     }
@@ -108,14 +117,6 @@ function OptionRowLHN(props) {
     const shouldShowGreenDotIndicator =
         !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
 
-    useFocusEffect(
-        useCallback(() => {
-            isFocusedRef.current = true;
-            return () => {
-                isFocusedRef.current = false;
-            };
-        }, []),
-    );
     /**
      * Show the ReportActionContextMenu modal popover.
      *
