@@ -154,6 +154,7 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 ...chatReport,
                 lastReadTime: DateUtils.getDBTime(),
+                lastMessageTranslationKey: '',
                 hasOutstandingIOU: iouReport.total !== 0,
                 iouReportID: iouReport.reportID,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
