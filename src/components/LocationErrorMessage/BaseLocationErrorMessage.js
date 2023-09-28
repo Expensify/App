@@ -1,23 +1,23 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import CONST from '../../CONST';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import Text from '../Text';
 import TextLink from '../TextLink';
-import withLocalize from '../withLocalize';
 import Tooltip from '../Tooltip';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as locationErrorMessagePropTypes from './locationErrorMessagePropTypes';
-import {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** A callback that runs when 'allow location permission' link is pressed */
     onAllowLocationLinkPress: PropTypes.func.isRequired,
 
+    // eslint-disable-next-line react/forbid-foreign-prop-types
     ...locationErrorMessagePropTypes.propTypes,
 
     /* Onyx Props */

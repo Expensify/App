@@ -12,6 +12,7 @@ const navigateToExpensifyHelpSite = () => {
 function LocationErrorMessage(props) {
     return (
         <BaseLocationErrorMessage
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onAllowLocationLinkPress={navigateToExpensifyHelpSite}
         />
