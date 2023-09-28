@@ -369,6 +369,7 @@ describe('Unread Indicators', () => {
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
             })
+            .then(waitForBatchedUpdates)
             .then(() => {
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
