@@ -48,16 +48,12 @@ const defaultProps = {
 };
 
 function ReportActionItemCreated(props) {
-    // const [visible,setVisible] = React.useState(false)
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }
 
     const icons = ReportUtils.getIcons(props.report, props.personalDetails);
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
-
-    // If window width is greater than the max background width, repeat the background image
-    // const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
 
     return (
         <OfflineWithFeedback
