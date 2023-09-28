@@ -1,3 +1,5 @@
+import * as OnyxCommon from './OnyxCommon';
+
 type Session = {
     /** The user's email for the current session */
     email?: string;
@@ -12,6 +14,8 @@ type Session = {
     accountID?: number;
 
     autoAuthState?: string;
+    /** Server side errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
 };
 
 export default Session;
