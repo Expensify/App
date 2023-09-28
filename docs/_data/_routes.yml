@@ -73,6 +73,11 @@ platforms:
         title: Send Payments
         icon: /assets/images/money-wings.svg
         description: Uncover step-by-step guidance on sending direct reimbursements to employees, paying an invoice to a vendor, and utilizing third-party payment options.
+
+      - href: Add-a-Business-Bank-Account-(AUD)
+        title: Add a Business Bank Account (AUD)
+        icon: /assets/images/money-wings.svg
+        description: This article provides insight on setting up and using an Australian Business Bank account in Expensify. 
   
   - href: new-expensify
     title: New Expensify
