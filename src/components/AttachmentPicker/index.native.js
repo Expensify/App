@@ -29,7 +29,7 @@ const propTypes = {
 const defaultProps = {
     ...baseDefaultProps,
     shouldHideCameraOption: false,
-}
+};
 
 /**
  * See https://github.com/react-native-image-picker/react-native-image-picker/#options
@@ -205,7 +205,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 icon: Expensicons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
-            }
+            },
         ]);
 
         return data;
