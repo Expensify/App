@@ -12,9 +12,10 @@ There are two types of tax in Expensify: Simple Tax (i.e. one tax rate) and Comp
 
 # How-to Apply Tax
 
-When Tax Tracking is enabled on a Policy, the default tax rate is selected under **Settings > Policies > _Policy Name_ > Tax**, with the default tax rate applied to all expenses automatically. 
+When Tax Tracking is enabled on a Workspace, the default tax rate is selected under **Settings > Workspace > _Workspace Name_ > Tax**, with the default tax rate applied to all expenses automatically. 
 
-There may be multiple tax rates set up within your Policy, so if the tax on your receipt is different to the default tax that has been applied, you can select the appropriate rate from the tax drop-down on the web expense editor or the mobile app. 
+There may be multiple tax rates set up within your Workspace, so if the tax on your receipt is different to the default tax that has been applied, you can select the appropriate rate from the tax drop-down on the web expense editor or the mobile app. 
+
 If the tax amount on your receipt is different to the calculated amount or the tax rate doesn’t show up, you can always manually type in the correct tax amount.
 
 
