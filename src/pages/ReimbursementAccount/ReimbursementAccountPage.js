@@ -421,6 +421,7 @@ class ReimbursementAccountPage extends React.Component {
                     plaidLinkOAuthToken={this.props.plaidLinkToken}
                     getDefaultStateForField={this.getDefaultStateForField}
                     policyName={policyName}
+                    policyID={policyID}
                 />
             );
         }
