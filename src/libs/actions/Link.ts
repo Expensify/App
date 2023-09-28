@@ -17,9 +17,9 @@ Onyx.connect({
     callback: (value) => (currentUserEmail = value?.email ?? ''),
 });
 
-function buildOldDotURL(url?: string, shortLivedAuthToken?: string): Promise<string> {
-    const hasHashParams = url?.indexOf('#') !== -1;
-    const hasURLParams = url?.indexOf('?') !== -1;
+function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
+    const hasHashParams = url.indexOf('#') !== -1;
+    const hasURLParams = url.indexOf('?') !== -1;
 
     const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
     const emailParam = `email=${encodeURIComponent(currentUserEmail ?? '')}`;
