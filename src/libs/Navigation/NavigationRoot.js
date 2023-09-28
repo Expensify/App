@@ -122,7 +122,10 @@ function NavigationRoot(props) {
         if (!state) {
             return;
         }
-        updateCurrentReportID(state);
+        // Performance optimization to avoid context consumers to delay first render
+        setTimeout(() => {
+            updateCurrentReportID(state);
+        }, 0);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
     };

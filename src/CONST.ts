@@ -1232,6 +1232,7 @@ const CONST = {
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
+        LINE_BREAK: /\n/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
@@ -1369,6 +1370,7 @@ const CONST = {
         MERCHANT: 'merchant',
         CATEGORY: 'category',
         RECEIPT: 'receipt',
+        DISTANCE: 'distance',
         TAG: 'tag',
     },
     FOOTER: {
