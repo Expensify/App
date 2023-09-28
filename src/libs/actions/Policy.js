@@ -310,7 +310,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs) {
 
         workspaceMembersChats.onyxFailureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReport.reportID}`,
             value: {
                 isLoadingReportActions: false,
             },
@@ -421,6 +421,7 @@ function updateWorkspaceAvatar(policyID, file) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 avatar: file.uri,
+                originalFileName: file.name,
                 errorFields: {
                     avatar: null,
                 },
@@ -713,13 +714,15 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         },
     ];
 
+    const newCustomUnitParam = _.clone(newCustomUnit);
+    newCustomUnitParam.rates = _.omit(newCustomUnitParam.rates, ['pendingAction', 'errors']);
     API.write(
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
             lastModified,
-            customUnit: JSON.stringify(newCustomUnit),
-            customUnitRate: JSON.stringify(newCustomUnit.rates),
+            customUnit: JSON.stringify(newCustomUnitParam),
+            customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },
         {optimisticData, successData, failureData},
     );

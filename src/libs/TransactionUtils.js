@@ -34,6 +34,8 @@ Onyx.connect({
  * @param {String} [filename]
  * @param {String} [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
  * @param {String} [category]
+ * @param {String} [tag]
+ * @param {Boolean} [billable]
  * @returns {Object}
  */
 function buildOptimisticTransaction(
@@ -49,6 +51,8 @@ function buildOptimisticTransaction(
     filename = '',
     existingTransactionID = null,
     category = '',
+    tag = '',
+    billable = false,
 ) {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -77,6 +81,8 @@ function buildOptimisticTransaction(
         receipt,
         filename,
         category,
+        tag,
+        billable,
     };
 }
 
@@ -141,6 +147,23 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         shouldStopSmartscan = true;
     }
 
+    if (_.has(transactionChanges, 'waypoints')) {
+        updatedTransaction.modifiedWaypoints = transactionChanges.waypoints;
+        shouldStopSmartscan = true;
+    }
+
+    if (_.has(transactionChanges, 'billable')) {
+        updatedTransaction.billable = transactionChanges.billable;
+    }
+
+    if (_.has(transactionChanges, 'category')) {
+        updatedTransaction.category = transactionChanges.category;
+    }
+
+    if (_.has(transactionChanges, 'tag')) {
+        updatedTransaction.tag = transactionChanges.tag;
+    }
+
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
@@ -151,6 +174,10 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'merchant') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'waypoints') && {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'billable') && {billable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'category') && {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;
@@ -161,6 +188,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
  *
  * @param {String} transactionID
  * @returns {Object}
+ * @deprecated Use withOnyx() or Onyx.connect() instead
  */
 function getTransaction(transactionID) {
     return lodashGet(allTransactions, `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
@@ -232,6 +260,16 @@ function getMerchant(transaction) {
 }
 
 /**
+ * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
+ *
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getWaypoints(transaction) {
+    return lodashGet(transaction, 'modifiedWaypoints', null) || lodashGet(transaction, ['comment', 'waypoints']);
+}
+
+/**
  * Return the category from the transaction. This "category" field has no "modified" complement.
  *
  * @param {Object} transaction
@@ -239,6 +277,26 @@ function getMerchant(transaction) {
  */
 function getCategory(transaction) {
     return lodashGet(transaction, 'category', '');
+}
+
+/**
+ * Return the billable field from the transaction. This "billable" field has no "modified" complement.
+ *
+ * @param {Object} transaction
+ * @return {Boolean}
+ */
+function getBillable(transaction) {
+    return lodashGet(transaction, 'billable', false);
+}
+
+/**
+ * Return the tag from the transaction. This "tag" field has no "modified" complement.
+ *
+ * @param {Object} transaction
+ * @return {String}
+ */
+function getTag(transaction) {
+    return lodashGet(transaction, 'tag', '');
 }
 
 /**
@@ -286,11 +344,22 @@ function hasMissingSmartscanFields(transaction) {
 }
 
 /**
+ * Check if the transaction has a defined route
+ *
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
+function hasRoute(transaction) {
+    return !!lodashGet(transaction, 'routes.route0.geometry.coordinates');
+}
+
+/**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
  * @param {Object} reportAction
  * @returns {Object}
+ * @deprecated Use Onyx.connect() or withOnyx() instead
  */
 function getLinkedTransaction(reportAction = {}) {
     const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
@@ -376,12 +445,17 @@ export {
     getMerchant,
     getCreated,
     getCategory,
+    getBillable,
+    getTag,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
+    hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
+    getWaypoints,
     hasMissingSmartscanFields,
     getWaypointIndex,
+    waypointHasValidAddress,
 };

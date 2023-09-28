@@ -5,7 +5,7 @@ import CONST from '../../src/CONST';
 import * as Session from '../../src/libs/actions/Session';
 import HttpUtils from '../../src/libs/HttpUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForPromisesToResolve from './waitForPromisesToResolve';
+import waitForBatchedUpdates from './waitForBatchedUpdates';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 
 /**
@@ -25,7 +25,6 @@ function buildPersonalDetails(login, accountID, firstName = 'Test') {
         lastName: 'User',
         pronouns: '',
         timezone: CONST.DEFAULT_TIME_ZONE,
-        payPalMeAddress: '',
         phoneNumber: '',
     };
 }
@@ -73,7 +72,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 
     // Simulate user entering their login and populating the credentials.login
     Session.beginSignIn(login);
-    return waitForPromisesToResolve()
+    return waitForBatchedUpdates()
         .then(() => {
             // Response is the same for calls to Authenticate and BeginSignIn
             HttpUtils.xhr.mockResolvedValue({
@@ -117,7 +116,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 jsonCode: 200,
             });
             Session.signIn(password);
-            return waitForPromisesToResolve();
+            return waitForBatchedUpdates();
         })
         .then(() => {
             HttpUtils.xhr = originalXhr;
@@ -129,7 +128,7 @@ function signOutTestUser() {
     HttpUtils.xhr = jest.fn();
     HttpUtils.xhr.mockResolvedValue({jsonCode: 200});
     Session.signOutAndRedirectToSignIn();
-    return waitForPromisesToResolve().then(() => (HttpUtils.xhr = originalXhr));
+    return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
 /**
@@ -175,7 +174,7 @@ function getGlobalFetchMock() {
     mockFetch.resume = () => {
         isPaused = false;
         _.each(queue, (resolve) => resolve(getResponse()));
-        return waitForPromisesToResolve();
+        return waitForBatchedUpdates();
     };
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
@@ -192,7 +191,7 @@ function setPersonalDetails(login, accountID) {
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         [accountID]: buildPersonalDetails(login, accountID),
     });
-    return waitForPromisesToResolve();
+    return waitForBatchedUpdates();
 }
 
 /**

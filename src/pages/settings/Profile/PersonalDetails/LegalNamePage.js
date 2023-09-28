@@ -71,6 +71,7 @@ function LegalNamePage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={LegalNamePage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.legalName')}
@@ -119,6 +120,7 @@ function LegalNamePage(props) {
 
 LegalNamePage.propTypes = propTypes;
 LegalNamePage.defaultProps = defaultProps;
+LegalNamePage.displayName = 'LegalNamePage';
 
 export default compose(
     withLocalize,
