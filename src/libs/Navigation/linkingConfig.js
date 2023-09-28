@@ -86,7 +86,7 @@ export default {
                                 exact: true,
                             },
                             Settings_ReportCardLostOrDamaged: {
-                                path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED,
+                                path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
                                 exact: true,
                             },
                             Settings_Add_Debit_Card: {

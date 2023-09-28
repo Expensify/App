@@ -15,6 +15,7 @@ import useLocalize from '../../../hooks/useLocalize';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as CardUtils from '../../../libs/CardUtils';
 
 const propTypes = {
@@ -82,12 +83,21 @@ function ExpensifyCardPage({
                             />
                         )}
                         {!_.isEmpty(physicalCard) && (
-                            <MenuItemWithTopDescription
-                                description={translate('cardPage.physicalCardNumber')}
-                                title={CardUtils.maskCard(physicalCard.lastFourPAN)}
-                                interactive={false}
-                                titleStyle={styles.walletCardNumber}
-                            />
+                            <>
+                                <MenuItemWithTopDescription
+                                    description={translate('cardPage.physicalCardNumber')}
+                                    title={CardUtils.maskCard(physicalCard.lastFourPAN)}
+                                    interactive={false}
+                                    titleStyle={styles.walletCardNumber}
+                                />
+                                <MenuItemWithTopDescription
+                                    title={translate('cardPage.reportCardLostOrDamaged')}
+                                    titleStyle={styles.walletCardMenuItem}
+                                    icon={Expensicons.Flag}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute({domain}))}
+                                />
+                            </>
                         )}
                     </ScrollView>
                 </>
