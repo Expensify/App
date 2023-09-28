@@ -88,6 +88,9 @@ function HeaderView(props) {
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
     const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
+    const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
+    const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy));
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -124,19 +127,19 @@ function HeaderView(props) {
         }
     }
 
-    if (isChatThread && !isEmptyChat) {
+    if ((isChatThread && !isEmptyChat) || isUserCreatedPolicyRoom || canLeaveRoom) {
         if (props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
                 iconFill: themeColors.icon,
-                text: props.translate('common.joinThread'),
+                text: props.translate('common.join'),
                 onSelected: () => Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
             });
-        } else if (props.report.notificationPreference.length) {
+        } else if ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
                 iconFill: themeColors.icon,
-                text: props.translate('common.leaveThread'),
+                text: props.translate('common.leave'),
                 onSelected: () => Report.leaveRoom(props.report.reportID),
             });
         }
@@ -307,6 +310,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(HeaderView);

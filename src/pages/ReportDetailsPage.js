@@ -124,16 +124,6 @@ function ReportDetailsPage(props) {
             });
         }
 
-        if (isUserCreatedPolicyRoom || canLeaveRoom) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
-                icon: Expensicons.Exit,
-                isAnonymousAction: false,
-                action: () => Report.leaveRoom(props.report.reportID),
-            });
-        }
-
         return items;
     }, [props.report, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
 
