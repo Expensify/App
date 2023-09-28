@@ -72,7 +72,7 @@ const validate = (values) => {
     return errors;
 };
 
-function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}) {
+const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}, ref) => {
     const {translate} = useLocalize();
 
     const defaultValues = useMemo(
@@ -110,6 +110,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
     if (shouldShowOnfido) {
         return (
             <RequestorOnfidoStep
+                ref={ref}
                 reimbursementAccount={reimbursementAccount}
                 reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={onBackButtonPress}
@@ -120,6 +121,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
 
     return (
         <ScreenWrapper
+            ref={ref}
             includeSafeAreaPaddingBottom={false}
             testID={RequestorStep.displayName}
         >
@@ -194,9 +196,9 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
             </Form>
         </ScreenWrapper>
     );
-}
+});
 
 RequestorStep.propTypes = propTypes;
 RequestorStep.displayName = 'RequestorStep';
 
-export default React.forwardRef(RequestorStep);
+export default RequestorStep;
