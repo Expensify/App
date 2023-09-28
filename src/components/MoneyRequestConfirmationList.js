@@ -394,8 +394,8 @@ function MoneyRequestConfirmationList(props) {
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
                 onSendMoney(paymentMethod);
             } else {
-                // validate the amount
-                if (!isDistanceRequestWithoutRoute && !MoneyRequestUtils.validateAmount(formattedAmount)) {
+                // validate the amount for distance requests
+                if (props.isDistanceRequest && !isDistanceRequestWithoutRoute && !MoneyRequestUtils.validateAmount(String(props.iouAmount))) {
                     setFormError('common.error.invalidAmount');
                     return;
                 }
@@ -404,7 +404,7 @@ function MoneyRequestConfirmationList(props) {
                 onConfirm(selectedParticipants);
             }
         },
-        [selectedParticipants, onSendMoney, onConfirm, props.iouType, isDistanceRequestWithoutRoute, formattedAmount],
+        [selectedParticipants, onSendMoney, onConfirm, props.iouType, props.isDistanceRequest, isDistanceRequestWithoutRoute, props.iouAmount],
     );
 
     const footerContent = useMemo(() => {
