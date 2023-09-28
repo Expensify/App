@@ -5,13 +5,13 @@ import * as API from '../API';
 import * as Environment from '../Environment/Environment';
 import * as Url from '../Url';
 
-let isNetworkOffline: boolean | undefined = false;
+let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (value) => (isNetworkOffline = value?.isOffline ?? false),
 });
 
-let currentUserEmail: string | undefined;
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => (currentUserEmail = value?.email ?? ''),
