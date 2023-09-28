@@ -29,14 +29,17 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
-    /** The transactionID of the IOU */
-    transactionID: PropTypes.string.isRequired,
-
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
             /** IOU type */
             iouType: PropTypes.string,
+
+            /** Thread reportID */
+            threadReportID: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
+            /** ID of the transaction being edited */
+            transactionID: PropTypes.string,
 
             /** Index of the waypoint being edited */
             waypointIndex: PropTypes.string,
@@ -62,21 +65,18 @@ const propTypes = {
         }),
     ),
 
+    /* Onyx props */
     /** The optimistic transaction for this request */
     transaction: transactionPropTypes,
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            waypointIndex: '',
-        },
-    },
+    route: {},
     recentWaypoints: [],
     transaction: {},
 };
 
-function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, transaction, recentWaypoints}) {
+function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const [isFetchingLocation, setIsFetchingLocation] = useState(false);
@@ -102,6 +102,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     }, [parsedWaypointIndex, waypointCount]);
 
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
+    const isEditingWaypoint = Boolean(threadReportID);
     const totalWaypoints = _.size(lodashGet(transaction, 'comment.waypoints', {}));
     // Hide the menu when there is only start and finish waypoint
     const shouldShowThreeDotsButton = totalWaypoints > 2;
@@ -132,7 +133,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         }
     };
 
-    const onSubmit = (values) => {
+    const submit = (values) => {
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
 
         // Allows letting you set a waypoint to an empty value
@@ -168,7 +169,12 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             address: values.address,
         };
         User.clearLocationError();
-        saveWaypoint(waypoint);
+        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
+
+        if (isEditingWaypoint) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(threadReportID));
+            return;
+        }
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
 
@@ -198,8 +204,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             address: CONST.YOUR_LOCATION_TEXT,
         };
 
-        // We want to select current location waypoint without saving it as a recent waypoint
-        selectWaypoint(waypoint, false);
+        selectWaypoint(waypoint);
     };
 
     return (
@@ -243,7 +248,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
-                    onSubmit={onSubmit}
+                    onSubmit={submit}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
@@ -295,7 +300,7 @@ WaypointEditor.propTypes = propTypes;
 WaypointEditor.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
         selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
     },
     recentWaypoints: {
