@@ -38,6 +38,12 @@ const propTypes = {
 
         /** Whether or not a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
+
+        /** Whether or not the user has SAML enabled on their account */
+        isSAMLEnabled: PropTypes.bool,
+
+        /** Whether or not SAML is required on the account */
+        isSAMLRequired: PropTypes.bool,
     }),
 
     /** The credentials of the person signing in */

@@ -46,6 +46,12 @@ const propTypes = {
 
         /** Whether the account is in a loading state */
         isLoading: PropTypes.bool,
+
+        /** Whether or not the user has SAML enabled on their account */
+        isSAMLEnabled: PropTypes.bool,
+
+        /** Whether or not SAML is required on the account */
+        isSAMLRequired: PropTypes.bool,
     }),
 
     /** The credentials of the person signing in */
@@ -57,9 +63,6 @@ const propTypes = {
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -227,5 +230,4 @@ SignInPage.displayName = 'SignInPage';
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
-    betas: {key: ONYXKEYS.BETAS,},
 })(SignInPage);

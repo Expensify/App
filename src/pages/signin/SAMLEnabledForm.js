@@ -1,5 +1,4 @@
 import React from 'react';
-import _ from 'underscore';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';

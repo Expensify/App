@@ -2,7 +2,6 @@ import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
