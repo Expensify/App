@@ -375,7 +375,7 @@ function ReportScreen({
                 !isLoading &&
                 !userLeavingStatus) ||
             shouldHideReport,
-        [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete, userLeavingStatus],
+        [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete, userLeavingStatus, reportMetadata.isLoadingInitialReportActions],
     );
 
     return (

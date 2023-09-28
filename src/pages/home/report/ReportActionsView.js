@@ -34,7 +34,7 @@ const propTypes = {
     /** The report actions are loading more data */
     isLoadingOlderReportActions: PropTypes.bool,
 
-    /** The report actions are loading newer data*/
+    /** The report actions are loading newer data */
     isLoadingNewerReportActions: PropTypes.bool,
 
     /** Whether the composer is full size */
