@@ -5,6 +5,12 @@ inputs:
   GPG_PASSPHRASE:
     description: "Passphrase used to decrypt GPG key"
     required: true
+  OS_BOTIFY_APP_ID:
+    description: "Application ID for OS Botify"
+    required: true
+  OS_BOTIFY_PRIVATE_KEY:
+    description: "OS Botify's private key"
+    required: true
 
 outputs:
   # Do not try to use this for committing code. Use `secrets.OS_BOTIFY_COMMIT_TOKEN` instead
@@ -42,4 +48,3 @@ runs:
       with:
         app_id: ${{ inputs.OS_BOTIFY_APP_ID }}
         private_key: ${{ inputs.OS_BOTIFY_PRIVATE_KEY }}
-        installation_id: ${{ inputs.OS_BOTIFY_INSTALLATION_ID }}
