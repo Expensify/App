@@ -118,10 +118,10 @@ const init = () => {
         let network: Network | null;
         connectionIDForNetwork = Onyx.connect({
             key: ONYXKEYS.NETWORK,
-            callback: (val) => {
+            callback: (value) => {
                 // When the network reconnects, check if the token has expired. If it has, then clearing the token will
                 // trigger the fetch of a new one
-                if (network && network.isOffline && val && !val.isOffline) {
+                if (network && network.isOffline && value && !value.isOffline) {
                     if (Object.keys(currentToken ?? {}).length === 0) {
                         fetchToken();
                     } else if (!isCurrentlyFetchingToken && hasTokenExpired()) {
@@ -129,7 +129,7 @@ const init = () => {
                         clearToken();
                     }
                 }
-                network = val;
+                network = value;
             },
         });
     }
