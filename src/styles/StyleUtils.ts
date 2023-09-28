@@ -678,10 +678,10 @@ function extractValuesFromRGB(color: string): number[] | null {
  * @returns The theme color as an RGB value.
  */
 function getThemeBackgroundColor(bgColor: string = themeColors.appBG): string {
-    const backdropOpacity = variables.modalFullscreenBackdropOpacity;
+    const backdropOpacity = variables.overlayOpacity;
 
     const [backgroundRed, backgroundGreen, backgroundBlue] = extractValuesFromRGB(bgColor) ?? hexadecimalToRGBArray(bgColor) ?? [];
-    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop) ?? [];
+    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.overlay) ?? [];
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
     const [red, green, blue] = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
