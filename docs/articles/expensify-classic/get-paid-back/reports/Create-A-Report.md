@@ -85,7 +85,7 @@ There are three ways you can change the report layout under the Details section 
 
 # How to retract your report (Undo Submit)
 
-As long as the report is still in a Processing state, you can retract this submission to put the report back to Open status to make corrections and re-submit. 
+As long as the report is still in a Processing state, you can retract this submission to put the report back to Draft status to make corrections and re-submit. 
 
 To retract a **Processing** report on the web app, click the Undo Submit button at the upper left-hand corner of the report. 
 
@@ -117,13 +117,13 @@ Click Details in the top-right of the report on the web app, then click the Tras
 
 _Deleting a report on the mobile app:_
 
-To delete an Open report on an Android, press and hold the report name and tap **Delete**. 
+To delete a Draft report on an Android, press and hold the report name and tap **Delete**. 
 
-To delete an Open report on an iOS device, go to the **Reports** screen, swipe the report to the left, and tap **Delete**. 
+To delete a Draft report on an iOS device, go to the **Reports** screen, swipe the report to the left, and tap **Delete**. 
 
 _Deleting a report in the Processing, Approved, Reimbursed or Closed state:_
 
-If you want to delete a Processing or Closed report, please follow the How to undo your report submission instructions in this article to move the report back into an Open status, then follow the steps above. 
+If you want to delete a Processing or Closed report, please follow the How to undo your report submission instructions in this article to move the report back into an Draft status, then follow the steps above. 
 
 If you want to delete an Approved or Reimbursed report, please speak to your Company Admin as this may not be possible.
 
