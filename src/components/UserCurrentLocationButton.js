@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Text} from 'react-native';
 import getCurrentPosition from '../libs/getCurrentPosition';
-import * as User from '../libs/actions/User';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -36,6 +35,7 @@ const defaultProps = {
 function UserCurrentLocationButton({onLocationFetched, onLocationError, onClick, isDisabled, translate}) {
     const isFetchingLocation = useRef(false);
     const shouldTriggerCallbacks = useRef(true);
+    const [locationErrorCode, setLocationErrorCode] = useState(null);
 
     /** Gets the user's current location and registers success/error callbacks */
     const getUserLocation = () => {
@@ -54,7 +54,7 @@ function UserCurrentLocationButton({onLocationFetched, onLocationError, onClick,
                     return;
                 }
 
-                User.clearLocationError();
+                setLocationErrorCode(null);
                 onLocationFetched(successData);
             },
             (errorData) => {
@@ -63,7 +63,7 @@ function UserCurrentLocationButton({onLocationFetched, onLocationError, onClick,
                     return;
                 }
 
-                User.setLocationError(errorData.code);
+                setLocationErrorCode(errorData.code);
                 onLocationError(errorData);
             },
             {
@@ -74,9 +74,6 @@ function UserCurrentLocationButton({onLocationFetched, onLocationError, onClick,
     };
 
     useEffect(() => {
-        // Clear location errors on mount
-        User.clearLocationError();
-
         return () => {
             // If the component unmounts we don't want any of the callback for geolocation to run.
             shouldTriggerCallbacks.current = false;
@@ -97,7 +94,10 @@ function UserCurrentLocationButton({onLocationFetched, onLocationError, onClick,
                 />
                 <Text style={[styles.textLabel, styles.mh2, isDisabled && styles.userSelectNone]}>{translate('location.useCurrent')}</Text>
             </PressableWithFeedback>
-            <LocationErrorMessage />
+            <LocationErrorMessage
+                onClose={() => setLocationErrorCode(null)}
+                locationErrorCode={locationErrorCode}
+            />
         </>
     );
 }

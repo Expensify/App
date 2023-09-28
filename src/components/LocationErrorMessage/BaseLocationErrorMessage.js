@@ -1,43 +1,30 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import compose from '../../libs/compose';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import TextLink from '../TextLink';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withLocalize from '../withLocalize';
 import Tooltip from '../Tooltip';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import * as User from '../../libs/actions/User';
 import CONST from '../../CONST';
+import * as locationErrorMessagePropTypes from './locationErrorMessagePropTypes';
+import {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** A callback that runs when 'allow location permission' link is pressed */
     onAllowLocationLinkPress: PropTypes.func.isRequired,
 
-    /* Onyx Props */
-    /**
-     * The location error code from onyx
-     * - code -1 = location not supported (web only)
-     * - code 1 = location permission is not enabled
-     * - code 2 = location is unavailable or there is some connection issue
-     * - code 3 = location fetch timeout
-     */
-    locationErrorCode: PropTypes.oneOf([-1, 1, 2, 3]),
+    ...locationErrorMessagePropTypes.propTypes,
 
+    /* Onyx Props */
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    locationErrorCode: null,
-};
-
-function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, translate}) {
+function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationErrorCode, translate}) {
     if (!locationErrorCode) {
         return null;
     }
@@ -71,7 +58,7 @@ function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, 
             <View>
                 <Tooltip text={translate('common.close')}>
                     <PressableWithoutFeedback
-                        onPress={() => User.clearLocationError()}
+                        onPress={onClose}
                         style={[styles.touchableButtonImage]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
@@ -86,13 +73,5 @@ function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, 
 
 BaseLocationErrorMessage.displayName = 'BaseLocationErrorMessage';
 BaseLocationErrorMessage.propTypes = propTypes;
-BaseLocationErrorMessage.defaultProps = defaultProps;
-export default compose(
-    withOnyx({
-        locationErrorCode: {
-            key: ONYXKEYS.LOCATION_ERROR_CODE,
-            initWithStoredValues: false,
-        },
-    }),
-    withLocalize,
-)(BaseLocationErrorMessage);
+BaseLocationErrorMessage.defaultProps = locationErrorMessagePropTypes.defaultProps;
+export default withLocalize(BaseLocationErrorMessage);

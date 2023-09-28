@@ -23,7 +23,6 @@ import * as Transaction from '../../libs/actions/Transaction';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
 import transactionPropTypes from '../../components/transactionPropTypes';
-import * as User from '../../libs/actions/User';
 import UserCurrentLocationButton from '../../components/UserCurrentLocationButton';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as ErrorUtils from '../../libs/ErrorUtils';
@@ -168,7 +167,6 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             lng: values.lng,
             address: values.address,
         };
-        User.clearLocationError();
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
 
         if (isEditingWaypoint) {
