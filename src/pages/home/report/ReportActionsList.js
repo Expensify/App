@@ -185,6 +185,7 @@ function ReportActionsList({
         }
         lastReadRef.current = report.lastReadTime;
         setMessageManuallyMarked(0);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastReadTime, report.reportID]);
 
     useEffect(() => {
