@@ -106,4 +106,7 @@ function UserCurrentLocationButton({onLocationFetched, onLocationError, onClick,
 UserCurrentLocationButton.displayName = 'UserCurrentLocationButton';
 UserCurrentLocationButton.propTypes = propTypes;
 UserCurrentLocationButton.defaultProps = defaultProps;
+
+// This components gets used inside <Form/>, we are using an HOC (withLocalize) as function components with
+// hooks give hook errors when nested inside <Form/>.
 export default withLocalize(UserCurrentLocationButton);
