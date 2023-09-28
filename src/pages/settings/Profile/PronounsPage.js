@@ -1,6 +1,8 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useRef, useEffect} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -12,27 +14,43 @@ import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
 import SelectionList from '../../../components/SelectionList';
 import useLocalize from '../../../hooks/useLocalize';
+import ONYXKEYS from '../../../ONYXKEYS';
+import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
+
+    /** Indicates whether the app is loading initial data */
+    isLoadingReportData: PropTypes.bool,
 };
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
+    isLoadingReportData: true,
 };
 
-function PronounsPage({currentUserPersonalDetails}) {
+function PronounsPage({currentUserPersonalDetails, isLoadingReportData}) {
     const {translate} = useLocalize();
     const currentPronouns = lodashGet(currentUserPersonalDetails, 'pronouns', '');
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
+    const loadingCompleteRef = useRef(false);
+    const [searchValue, setSearchValue] = useState('');
 
-    const [searchValue, setSearchValue] = useState(() => {
+    useEffect(() => {
+        if ((isLoadingReportData && _.isEmpty(currentUserPersonalDetails.login)) || loadingCompleteRef.current) {
+            return;
+        }
+        loadingCompleteRef.current = true;
         const currentPronounsText = _.chain(CONST.PRONOUNS_LIST)
             .find((_value) => _value === currentPronounsKey)
             .value();
 
-        return currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '';
-    });
+        setSearchValue(currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '');
+
+        // Only need to add login to dependency because after the data is loaded, other fields are also exist
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUserPersonalDetails.login, isLoadingReportData]);
 
     const filteredPronounsList = useMemo(() => {
         const pronouns = _.chain(CONST.PRONOUNS_LIST)
@@ -69,21 +87,27 @@ function PronounsPage({currentUserPersonalDetails}) {
             includeSafeAreaPaddingBottom={false}
             testID={PronounsPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('pronounsPage.pronouns')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
-            />
-            <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
-            <SelectionList
-                headerMessage={headerMessage}
-                textInputLabel={translate('pronounsPage.pronouns')}
-                textInputPlaceholder={translate('pronounsPage.placeholderText')}
-                textInputValue={searchValue}
-                sections={[{data: filteredPronounsList, indexOffset: 0}]}
-                onSelectRow={updatePronouns}
-                onChangeText={setSearchValue}
-                initiallyFocusedOptionKey={currentPronounsKey}
-            />
+            {isLoadingReportData && _.isEmpty(currentUserPersonalDetails.login) ? (
+                <FullScreenLoadingIndicator />
+            ) : (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('pronounsPage.pronouns')}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+                    />
+                    <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
+                    <SelectionList
+                        headerMessage={headerMessage}
+                        textInputLabel={translate('pronounsPage.pronouns')}
+                        textInputPlaceholder={translate('pronounsPage.placeholderText')}
+                        textInputValue={searchValue}
+                        sections={[{data: filteredPronounsList, indexOffset: 0}]}
+                        onSelectRow={updatePronouns}
+                        onChangeText={setSearchValue}
+                        initiallyFocusedOptionKey={currentPronounsKey}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }
@@ -92,4 +116,11 @@ PronounsPage.propTypes = propTypes;
 PronounsPage.defaultProps = defaultProps;
 PronounsPage.displayName = 'PronounsPage';
 
-export default withCurrentUserPersonalDetails(PronounsPage);
+export default compose(
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+    }),
+)(PronounsPage);
