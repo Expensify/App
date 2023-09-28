@@ -1513,7 +1513,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         return `approved ${formattedAmount}`;
     }
 
-    if (shouldConsiderReceiptBeingScanned && (ReportActionsUtils.isReportPreviewAction(reportAction) || ReportActionsUtils.isMoneyRequestAction(reportAction))) {
+    if (shouldConsiderReceiptBeingScanned && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
 
         if (!_.isEmpty(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
