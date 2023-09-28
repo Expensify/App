@@ -211,7 +211,7 @@ function ComposerWithSuggestions({
                     suggestionsRef.current.resetSuggestions();
                 }
 
-                const remainder = ComposerUtils.getCommonSuffixLength(commentRef.current, newComment);
+                const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
                 setSelection({
                     start: newComment.length - remainder,
                     end: newComment.length - remainder,
