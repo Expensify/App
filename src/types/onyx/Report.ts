@@ -55,7 +55,7 @@ type Report = {
     reportName?: string;
 
     /** ID of the report */
-    reportID?: string;
+    reportID: string;
 
     /** The state that the report is currently in */
     stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
@@ -83,6 +83,7 @@ type Report = {
     participantAccountIDs?: number[];
     total?: number;
     currency?: string;
+    preexistingReportID?: string;
 };
 
 export default Report;
