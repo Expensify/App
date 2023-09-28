@@ -101,7 +101,7 @@ const defaultProps = {
     allowDownload: false,
     headerTitle: null,
     report: {},
-    transaction: {},
+    transaction: undefined,
     onModalShow: () => {},
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
@@ -352,12 +352,12 @@ function AttachmentModal(props) {
         },
     ];
 
-    if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
+    if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction)) {
         threeDotMenuItems.push({
             icon: Expensicons.Trashcan,
             text: props.translate('receipt.deleteReceipt'),
             onSelected: () => {
-                IOU.detachReceipt(transaction.transactionID);
+                IOU.detachReceipt(props.transaction.transactionID, props.report.reportID);
             },
         });
     }
@@ -472,6 +472,9 @@ export default compose(
     withOnyx({
         transaction: {
             key: ({report}) => {
+                if (!report) {
+                    return undefined;
+                }
                 const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
                 const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;

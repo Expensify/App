@@ -1969,17 +1969,15 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     Navigation.dismissModal(chatReport.reportID);
 }
 
-function detachReceipt(transactionID) {
-    const transaction = lodashGet(allTransactions, 'transactionID', {});
-    const oldReceipt = lodashGet(transaction, 'receipt', {});
+function detachReceipt(transactionID, reportID) {
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    let newTransaction = {...transaction, filename: '', receipt: {}};
+
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                receipt: null,
-                filename: null,
-            },
+            value: newTransaction,
         },
     ];
 
@@ -1987,14 +1985,12 @@ function detachReceipt(transactionID) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                receipt: oldReceipt,
-                filename: transaction.filename,
-            },
+            value: transaction,
         },
     ];
 
     API.write('DetachReceipt', {transactionID}, {optimisticData, failureData});
+    Navigation.dismissModal(reportID);
 }
 
 /**
