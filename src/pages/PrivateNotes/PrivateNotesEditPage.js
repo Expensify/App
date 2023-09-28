@@ -26,6 +26,7 @@ import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
 import ROUTES from '../../ROUTES';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -100,7 +101,13 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
             testID={PrivateNotesEditPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || !isCurrentUserNote}
+                shouldShow={
+                    _.isEmpty(report) ||
+                    _.isEmpty(report.privateNotes) ||
+                    !_.has(report, ['privateNotes', route.params.accountID, 'note']) ||
+                    !isCurrentUserNote ||
+                    ReportUtils.isArchivedRoom(report)
+                }
                 subtitleKey="privateNotes.notesUnavailable"
             >
                 <HeaderWithBackButton
