@@ -1,22 +1,23 @@
 import {subYears, addYears, startOfDay, endOfMonth, parse, isAfter, isBefore, isValid, isWithinInterval, isSameDay, format} from 'date-fns';
-import _ from 'underscore';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import isDate from 'lodash/isDate';
+import isEmpty from 'lodash/isEmpty';
+import isObject from 'lodash/isObject';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
+import {Report} from '../types/onyx';
+import * as OnyxCommon from '../types/onyx/OnyxCommon';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
  * numbers.
- *
- * @param {String} val
- * @returns {Boolean}
  */
-function validateCardNumber(val) {
+function validateCardNumber(value: string): boolean {
     let sum = 0;
-    for (let i = 0; i < val.length; i++) {
-        let intVal = parseInt(val.substr(i, 1), 10);
+    for (let i = 0; i < value.length; i++) {
+        let intVal = parseInt(value.substr(i, 1), 10);
         if (i % 2 === 0) {
             intVal *= 2;
             if (intVal > 9) {
@@ -30,11 +31,8 @@ function validateCardNumber(val) {
 
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
- *
- * @param {String} value
- * @returns {Boolean}
  */
-function isValidAddress(value) {
+function isValidAddress(value: string): boolean {
     if (!CONST.REGEX.ANY_VALUE.test(value)) {
         return false;
     }
@@ -44,11 +42,8 @@ function isValidAddress(value) {
 
 /**
  * Validate date fields
- *
- * @param {String|Date} date
- * @returns {Boolean} true if valid
  */
-function isValidDate(date) {
+function isValidDate(date: string | Date): boolean {
     if (!date) {
         return false;
     }
@@ -61,11 +56,8 @@ function isValidDate(date) {
 
 /**
  * Validate that date entered isn't a future date.
- *
- * @param {String|Date} date
- * @returns {Boolean} true if valid
  */
-function isValidPastDate(date) {
+function isValidPastDate(date: string | Date): boolean {
     if (!date) {
         return false;
     }
@@ -78,33 +70,27 @@ function isValidPastDate(date) {
 
 /**
  * Used to validate a value that is "required".
- *
- * @param {*} value
- * @returns {Boolean}
  */
-function isRequiredFulfilled(value) {
-    if (_.isString(value)) {
-        return !_.isEmpty(value.trim());
+function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
+    if (typeof value === 'string') {
+        return value.trim().length > 0;
     }
-    if (_.isDate(value)) {
+
+    if (isDate(value)) {
         return isValidDate(value);
     }
-    if (_.isArray(value) || _.isObject(value)) {
-        return !_.isEmpty(value);
+    if (Array.isArray(value) || isObject(value)) {
+        return !isEmpty(value);
     }
     return Boolean(value);
 }
 
 /**
  * Used to add requiredField error to the fields passed.
- *
- * @param {Object} values
- * @param {Array} requiredFields
- * @returns {Object}
  */
-function getFieldRequiredErrors(values, requiredFields) {
-    const errors = {};
-    _.each(requiredFields, (fieldKey) => {
+function getFieldRequiredErrors(values: OnyxCommon.Errors, requiredFields: string[]) {
+    const errors: OnyxCommon.Errors = {};
+    requiredFields.forEach((fieldKey) => {
         if (isRequiredFulfilled(values[fieldKey])) {
             return;
         }
@@ -119,11 +105,8 @@ function getFieldRequiredErrors(values, requiredFields) {
  * 2. MM/YYYY
  * 3. MMYY
  * 4. MMYYYY
- *
- * @param {String} string
- * @returns {Boolean}
  */
-function isValidExpirationDate(string) {
+function isValidExpirationDate(string: string): boolean {
     if (!CONST.REGEX.CARD_EXPIRATION_DATE.test(string)) {
         return false;
     }
@@ -136,21 +119,15 @@ function isValidExpirationDate(string) {
 /**
  * Validates that this is a valid security code
  * in the XXX or XXXX format.
- *
- * @param {String} string
- * @returns {Boolean}
  */
-function isValidSecurityCode(string) {
+function isValidSecurityCode(string: string): boolean {
     return CONST.REGEX.CARD_SECURITY_CODE.test(string);
 }
 
 /**
  * Validates a debit card number (15 or 16 digits).
- *
- * @param {String} string
- * @returns {Boolean}
  */
-function isValidDebitCard(string) {
+function isValidDebitCard(string: string): boolean {
     if (!CONST.REGEX.CARD_NUMBER.test(string)) {
         return false;
     }
@@ -158,45 +135,26 @@ function isValidDebitCard(string) {
     return validateCardNumber(string);
 }
 
-/**
- * @param {String} code
- * @returns {Boolean}
- */
-function isValidIndustryCode(code) {
+function isValidIndustryCode(code: string): boolean {
     return CONST.REGEX.INDUSTRY_CODE.test(code);
 }
 
-/**
- * @param {String} zipCode
- * @returns {Boolean}
- */
-function isValidZipCode(zipCode) {
+function isValidZipCode(zipCode: string): boolean {
     return CONST.REGEX.ZIP_CODE.test(zipCode);
 }
 
-/**
- * @param {String} ssnLast4
- * @returns {Boolean}
- */
-function isValidSSNLastFour(ssnLast4) {
+function isValidSSNLastFour(ssnLast4: string): boolean {
     return CONST.REGEX.SSN_LAST_FOUR.test(ssnLast4);
 }
 
-/**
- * @param {String} ssnFull9
- * @returns {Boolean}
- */
-function isValidSSNFullNine(ssnFull9) {
+function isValidSSNFullNine(ssnFull9: string): boolean {
     return CONST.REGEX.SSN_FULL_NINE.test(ssnFull9);
 }
 
 /**
  * Validate that a date meets the minimum age requirement.
- *
- * @param {String} date
- * @returns {Boolean}
  */
-function meetsMinimumAgeRequirement(date) {
+function meetsMinimumAgeRequirement(date: string): boolean {
     const testDate = new Date(date);
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     return isValid(testDate) && (isSameDay(testDate, minDate) || isBefore(testDate, minDate));
@@ -204,11 +162,8 @@ function meetsMinimumAgeRequirement(date) {
 
 /**
  * Validate that a date meets the maximum age requirement.
- *
- * @param {String} date
- * @returns {Boolean}
  */
-function meetsMaximumAgeRequirement(date) {
+function meetsMaximumAgeRequirement(date: string): boolean {
     const testDate = new Date(date);
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
     return isValid(testDate) && (isSameDay(testDate, maxDate) || isAfter(testDate, maxDate));
@@ -216,13 +171,8 @@ function meetsMaximumAgeRequirement(date) {
 
 /**
  * Validate that given date is in a specified range of years before now.
- *
- * @param {String} date
- * @param {Number} minimumAge
- * @param {Number} maximumAge
- * @returns {String|Array}
  */
-function getAgeRequirementError(date, minimumAge, maximumAge) {
+function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): string | Array<string | Record<string, string>> {
     const currentDate = startOfDay(new Date());
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
@@ -247,24 +197,17 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
 /**
  * Similar to backend, checks whether a website has a valid URL or not.
  * http/https/ftp URL scheme required.
- *
- * @param {String} url
- * @returns {Boolean}
  */
-function isValidWebsite(url) {
+function isValidWebsite(url: string): boolean {
     return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
 }
 
-/**
- * @param {Object} identity
- * @returns {Object}
- */
-function validateIdentity(identity) {
+function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
     const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
-    const errors = {};
+    const errors: Record<string, boolean> = {};
 
     // Check that all required fields are filled
-    _.each(requiredFields, (fieldName) => {
+    requiredFields.forEach((fieldName) => {
         if (isRequiredFulfilled(identity[fieldName])) {
             return;
         }
@@ -293,58 +236,41 @@ function validateIdentity(identity) {
     return errors;
 }
 
-/**
- * @param {String} phoneNumber
- * @param {Boolean} [isCountryCodeOptional]
- * @returns {Boolean}
- */
-function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
+function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
     const phone = phoneNumber || '';
-    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : null;
+    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
 
     const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
     return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
 }
 
-/**
- * @param {string} validateCode
- * @returns {Boolean}
- */
-function isValidValidateCode(validateCode) {
-    return validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING);
+function isValidValidateCode(validateCode: string): boolean {
+    return Boolean(validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING));
 }
 
-function isValidRecoveryCode(recoveryCode) {
-    return recoveryCode.match(CONST.RECOVERY_CODE_REGEX_STRING);
+function isValidRecoveryCode(recoveryCode: string): boolean {
+    return Boolean(recoveryCode.match(CONST.RECOVERY_CODE_REGEX_STRING));
 }
 
-/**
- * @param {String} code
- * @returns {Boolean}
- */
-function isValidTwoFactorCode(code) {
+function isValidTwoFactorCode(code: string): boolean {
     return Boolean(code.match(CONST.REGEX.CODE_2FA));
 }
 
 /**
  * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
- * @param {String} input
- * @returns {Boolean}
  */
-function isNumericWithSpecialChars(input) {
+function isNumericWithSpecialChars(input: string): boolean {
     return /^\+?[\d\\+]*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**
  * Checks the given number is a valid US Routing Number
  * using ABA routingNumber checksum algorithm: http://www.brainjar.com/js/validation/
- * @param {String} number
- * @returns {Boolean}
  */
-function isValidRoutingNumber(number) {
+function isValidRoutingNumber(routingNumber: string): boolean {
     let n = 0;
-    for (let i = 0; i < number.length; i += 3) {
-        n += parseInt(number.charAt(i), 10) * 3 + parseInt(number.charAt(i + 1), 10) * 7 + parseInt(number.charAt(i + 2), 10);
+    for (let i = 0; i < routingNumber.length; i += 3) {
+        n += parseInt(routingNumber.charAt(i), 10) * 3 + parseInt(routingNumber.charAt(i + 1), 10) * 7 + parseInt(routingNumber.charAt(i + 2), 10);
     }
 
     // If the resulting sum is an even multiple of ten (but not zero),
@@ -357,57 +283,39 @@ function isValidRoutingNumber(number) {
 
 /**
  * Checks that the provided name doesn't contain any commas or semicolons
- *
- * @param {String} name
- * @returns {Boolean}
  */
-function isValidDisplayName(name) {
+function isValidDisplayName(name: string): boolean {
     return !name.includes(',') && !name.includes(';');
 }
 
 /**
  * Checks that the provided legal name doesn't contain special characters
- *
- * @param {String} name
- * @returns {Boolean}
  */
-function isValidLegalName(name) {
+function isValidLegalName(name: string): boolean {
     return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
 }
 
 /**
  * Checks if the provided string includes any of the provided reserved words
- *
- * @param {String} value
- * @param {String[]} reservedWords
- * @returns {Boolean}
  */
-function doesContainReservedWord(value, reservedWords) {
+function doesContainReservedWord(value: string, reservedWords: string[]): boolean {
     const valueToCheck = value.trim().toLowerCase();
-    return _.some(reservedWords, (reservedWord) => valueToCheck.includes(reservedWord.toLowerCase()));
+    return reservedWords.some((reservedWord) => valueToCheck.includes(reservedWord.toLowerCase()));
 }
 
 /**
  * Checks if is one of the certain names which are reserved for default rooms
  * and should not be used for policy rooms.
- *
- * @param {String} roomName
- * @returns {Boolean}
  */
-function isReservedRoomName(roomName) {
-    return _.contains(CONST.REPORT.RESERVED_ROOM_NAMES, roomName);
+function isReservedRoomName(roomName: string): boolean {
+    return (CONST.REPORT.RESERVED_ROOM_NAMES as readonly string[]).includes(roomName);
 }
 
 /**
  * Checks if the room name already exists.
- *
- * @param {String} roomName
- * @param {Object} reports
- * @param {String} policyID
- * @returns {Boolean}
  */
-function isExistingRoomName(roomName, reports, policyID) {
-    return _.some(reports, (report) => report && report.policyID === policyID && report.reportName === roomName);
+function isExistingRoomName(roomName: string, reports: Report[], policyID: string): boolean {
+    return reports.some((report) => report && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**
@@ -415,31 +323,22 @@ function isExistingRoomName(roomName, reports, policyID) {
  * - It starts with a hash '#'
  * - After the first character, it contains only lowercase letters, numbers, and dashes
  * - It's between 1 and MAX_ROOM_NAME_LENGTH characters long
- *
- * @param {String} roomName
- * @returns {Boolean}
  */
-function isValidRoomName(roomName) {
+function isValidRoomName(roomName: string): boolean {
     return CONST.REGEX.ROOM_NAME.test(roomName);
 }
 
 /**
  * Checks if tax ID consists of 9 digits
- *
- * @param {String} taxID
- * @returns {Boolean}
  */
-function isValidTaxID(taxID) {
-    return taxID && CONST.REGEX.TAX_ID.test(taxID);
+function isValidTaxID(taxID: string): boolean {
+    return CONST.REGEX.TAX_ID.test(taxID);
 }
 
 /**
  * Checks if a string value is a number.
- *
- * @param {String} value
- * @returns {Boolean}
  */
-function isNumeric(value) {
+function isNumeric(value: string): boolean {
     if (typeof value !== 'string') {
         return false;
     }
@@ -448,12 +347,9 @@ function isNumeric(value) {
 
 /**
  * Checks that the provided accountID is a number and bigger than 0.
- *
- * @param {Number} accountID
- * @returns {Boolean}
  */
-function isValidAccountRoute(accountID) {
-    return CONST.REGEX.NUMBER.test(accountID) && accountID > 0;
+function isValidAccountRoute(accountID: number): boolean {
+    return CONST.REGEX.NUMBER.test(String(accountID)) && accountID > 0;
 }
 
 export {

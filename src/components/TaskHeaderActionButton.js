@@ -36,10 +36,8 @@ function TaskHeaderActionButton(props) {
                 success
                 isDisabled={ReportUtils.isCanceledTaskReport(props.report) || !Task.canModifyTask(props.report, props.session.accountID)}
                 medium
-                text={props.translate(ReportUtils.isCompletedTaskReport(props.report) ? 'task.markAsIncomplete' : 'task.markAsDone')}
-                onPress={() =>
-                    ReportUtils.isCompletedTaskReport(props.report) ? Task.reopenTask(props.report, props.report.reportName) : Task.completeTask(props.report, props.report.reportName)
-                }
+                text={props.translate(ReportUtils.isCompletedTaskReport(props.report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
+                onPress={() => (ReportUtils.isCompletedTaskReport(props.report) ? Task.reopenTask(props.report) : Task.completeTask(props.report))}
                 style={[styles.flex1]}
             />
         </View>
