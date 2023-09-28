@@ -72,7 +72,6 @@ function AddressPage({privatePersonalDetails, route}) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
     const countryFromUrl = lodashGet(route, 'params.country');
-    const [currentCountry, setCurrentCountry] = useState(countryFromUrl || PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')));
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
@@ -81,12 +80,23 @@ function AddressPage({privatePersonalDetails, route}) {
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
+    const [currentCountry, setCurrentCountry] = useState(PersonalDetails.getCountryISO(address.country));
+
+    
     /**
      * @param {Function} translate - translate function
      * @param {Boolean} isUSAForm - selected country ISO code is US
      * @param {Object} values - form input values
      * @returns {Object} - An object containing the errors for each inputID
      */
+
+    useEffect(() => {
+        if(!address) return
+        setState(address.state)
+        setCurrentCountry(address.country)
+      }, [address]);
+
+
     const validate = useCallback((values) => {
         const errors = {};
         const requiredFields = ['addressLine1', 'city', 'country', 'state'];
