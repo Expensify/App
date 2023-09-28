@@ -1,3 +1,9 @@
+---
+title: Create a Report
+description: Learn how to create and edit reports in Expensify
+---
+<!-- The lines above are required by Jekyll to process the .md file -->
+
 # Overview
 
 This article covers all the basics of creating, editing, deleting and managing your reports.
