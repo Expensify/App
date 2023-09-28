@@ -32,6 +32,9 @@ const propTypes = {
     /** All personal details asssociated with user */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
@@ -68,6 +71,7 @@ const defaultProps = {
     },
     report: {},
     policies: {},
+    betas: [],
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -85,7 +89,7 @@ function RoomMembersPage(props) {
 
     useEffect(() => {
         // Kick the user out if they tried to navigate to this via the URL
-        if (!PolicyUtils.isPolicyMember(props.report.policyID, props.policies)) {
+        if (!PolicyUtils.isPolicyMember(props.report.policyID, props.policies) || !Permissions.canUsePolicyRooms(props.betas)) {
             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
             return;
         }
@@ -319,6 +323,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
     withCurrentUserPersonalDetails,

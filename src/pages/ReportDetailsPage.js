@@ -27,12 +27,16 @@ import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
+import * as Permissions from '../libs/Permissions';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -55,6 +59,7 @@ const propTypes = {
 const defaultProps = {
     policies: {},
     personalDetails: {},
+    betas: [],
 };
 
 function ReportDetailsPage(props) {
@@ -96,7 +101,7 @@ function ReportDetailsPage(props) {
                 subtitle: participants.length,
                 isAnonymousAction: false,
                 action: () => {
-                    if (isUserCreatedPolicyRoom) {
+                    if (isUserCreatedPolicyRoom && Permissions.canUsePolicyRooms(props.betas)) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(props.report.reportID));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(props.report.reportID));
@@ -237,6 +242,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(ReportDetailsPage);

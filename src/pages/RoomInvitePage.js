@@ -76,6 +76,17 @@ function RoomInvitePage(props) {
     const [userToInvite, setUserToInvite] = useState(null);
 
     const excludedUsers = useMemo(() => lodashGet(props.report, 'participants', []), [props.report]);
+
+    useEffect(() => {
+        // Kick the user out if they tried to navigate to this via the URL
+        if (Permissions.canUsePolicyRooms(props.betas)) {
+            return;
+        }
+        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
 
