@@ -6,8 +6,8 @@ import deepReplaceKeysAndValues from '../deepReplaceKeysAndValues';
 
 const handleUnusedOptimisticID: Middleware = (requestResponse, request) =>
     requestResponse.then((response) => {
-        const responseOnyxData = response?.onyxData;
-        responseOnyxData.forEach((onyxData: {key: string; value: Record<string, unknown>}) => {
+        const responseOnyxData = response?.onyxData ?? [];
+        responseOnyxData.forEach((onyxData) => {
             const key = onyxData.key;
             if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
                 return;
@@ -18,10 +18,10 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request) =>
             }
 
             const report: Report = onyxData.value as Report;
-            if (!report.preexistingReportID) {
+            const preexistingReportID = report.preexistingReportID;
+            if (!preexistingReportID) {
                 return;
             }
-            const preexistingReportID = report.preexistingReportID;
             const oldReportID = request.data?.reportID;
             PersistedRequests.getAll()
                 .slice(1)
