@@ -26,14 +26,11 @@ const propTypes = {
     /** Callback to request parent modal to go to next step, which should be split */
     onFinish: PropTypes.func.isRequired,
 
-    /** Callback to request parent modal to go to next step, which should be split */
-    navigateToSplit: PropTypes.func.isRequired,
-
     /** A ref to forward to options selector's text input */
     forwardedRef: refPropTypes,
 
     /** Callback to add participants in MoneyRequestModal */
-    onAddParticipants: PropTypes.func.isRequired,
+    onParticipantsAdded: PropTypes.func.isRequired,
 
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
@@ -81,8 +78,7 @@ function MoneeRequestParticipantsSelector({
     reports,
     translate,
     onFinish,
-    navigateToSplit,
-    onAddParticipants,
+    onParticipantsAdded,
     safeAreaPaddingBottomStyle,
     iouType,
     iouRequestType,
@@ -154,10 +150,10 @@ function MoneeRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = (option) => {
-        onAddParticipants([
+        onParticipantsAdded([
             {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText},
         ]);
-        onFinish(option);
+        onFinish();
     };
 
     /**
@@ -196,7 +192,7 @@ function MoneeRequestParticipantsSelector({
                 ];
             }
 
-            onAddParticipants(newSelectedOptions);
+            onParticipantsAdded(newSelectedOptions);
 
             const chatOptions = OptionsListUtils.getFilteredOptions(
                 reports,
@@ -220,7 +216,7 @@ function MoneeRequestParticipantsSelector({
                 userToInvite: chatOptions.userToInvite,
             });
         },
-        [participants, onAddParticipants, reports, personalDetails, betas, searchTerm, iouType, iouRequestType],
+        [participants, onParticipantsAdded, reports, personalDetails, betas, searchTerm, iouType, iouRequestType],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -279,7 +275,7 @@ function MoneeRequestParticipantsSelector({
                 boldStyle
                 shouldShowConfirmButton={shouldShowConfirmButton && isAllowedToSplit}
                 confirmButtonText={translate('iou.addToSplit')}
-                onConfirmSelection={navigateToSplit}
+                onConfirmSelection={onFinish}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}

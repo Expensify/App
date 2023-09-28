@@ -41,7 +41,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestFieldParticipants({route, transaction, transaction: {transactionID, reportID, participants}}) {
+function IOURequestFieldParticipants({transaction, transaction: {transactionID, reportID, participants}}) {
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(transactionID);
     const isNewReportIDSelectedLocally = useRef(false);
@@ -57,21 +57,8 @@ function IOURequestFieldParticipants({route, transaction, transaction: {transact
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = headerTitles[iouRequestType];
 
-    const navigateToRequestStep = (moneyRequestType, option) => {
-        if (option.reportID) {
-            isNewReportIDSelectedLocally.current = true;
-            IOU.setMoneyRequestId(`${moneyRequestType}${option.reportID}`);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, option.reportID));
-            return;
-        }
-
-        IOU.setMoneyRequestId(moneyRequestType);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID.current));
-    };
-
-    const navigateToSplitStep = (moneyRequestType) => {
-        IOU.setMoneyRequestId(moneyRequestType);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID.current));
+    const goToNextStep = () => {
+        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(iouRequestType, 'confirmation', transactionID, reportID));
     };
 
     const navigateBack = (forceFallback = false) => {
@@ -79,25 +66,26 @@ function IOURequestFieldParticipants({route, transaction, transaction: {transact
         Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), forceFallback);
     };
 
-    useEffect(() => {
-        // @TODO this whole thing needs cleaned up to work
-        // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (prevMoneyRequestId.current !== iou.id) {
-            // The ID is cleared on completing a request. In that case, we will do nothing
-            if (iou.id && !isDistanceRequest && !isSplitRequest && !isNewReportIDSelectedLocally.current) {
-                navigateBack(true);
-            }
-            return;
-        }
+    // useEffect(() => {
+    //     // @TODO this whole thing needs cleaned up to work
+    //     // @TODO maybe put this in parent component somewhere
+    //     // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
+    //     if (prevMoneyRequestId.current !== iou.id) {
+    //         // The ID is cleared on completing a request. In that case, we will do nothing
+    //         if (iou.id && !isDistanceRequest && !isSplitRequest && !isNewReportIDSelectedLocally.current) {
+    //             navigateBack(true);
+    //         }
+    //         return;
+    //     }
 
-        if (!isDistanceRequest && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
-            navigateBack(true);
-        }
+    //     if (!isDistanceRequest && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
+    //         navigateBack(true);
+    //     }
 
-        return () => {
-            prevMoneyRequestId.current = iou.id;
-        };
-    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest]);
+    //     return () => {
+    //         prevMoneyRequestId.current = iou.id;
+    //     };
+    // }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest]);
 
     return (
         <ScreenWrapper
@@ -115,9 +103,8 @@ function IOURequestFieldParticipants({route, transaction, transaction: {transact
                     <MoneyRequestParticipantsSelector
                         ref={(el) => (optionsSelectorRef.current = el)}
                         participants={participants}
-                        onAddParticipants={(val) => IOU.setMoneeRequestParticipants(transactionID, val)}
-                        navigateToRequest={(option) => navigateToRequestStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, option)}
-                        navigateToSplit={() => navigateToSplitStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
+                        onParticipantsAdded={(val) => IOU.setMoneeRequestParticipants(transactionID, val)}
+                        onFinish={goToNextStep}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         iouType={CONST.IOU.TYPE.REQUEST}
                         iouRequestType={iouRequestType}
