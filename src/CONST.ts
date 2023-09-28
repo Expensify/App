@@ -906,6 +906,7 @@ const CONST = {
         RECEIPTS: 'receipts@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
+        EXPENSIFY_EMAIL_DOMAIN: '@expensify',
     },
 
     ACCOUNT_ID: {
@@ -2677,6 +2678,7 @@ const CONST = {
         HIDDEN_MARGIN_VERTICAL: 0,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
+    MISSING_TRANSLATION: 'MISSING TRANSLATION',
 } as const;
 
 export default CONST;

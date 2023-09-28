@@ -2,12 +2,26 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import * as RNLocalize from 'react-native-localize';
+import Onyx from 'react-native-onyx';
 import Log from '../Log';
 import Config from '../../CONFIG';
 import translations from '../../languages/translations';
 import CONST from '../../CONST';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
+import ONYXKEYS from '../../ONYXKEYS';
+
+let userEmail;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        userEmail = val.email;
+    },
+});
 
 // Listener when an update in Onyx happens so we use the updated locale when translating/localizing items.
 LocaleListener.connect();
@@ -72,9 +86,12 @@ function translate(desiredLanguage = CONST.LOCALES.DEFAULT, phraseKey, phrasePar
 
     // Phrase is not found in default language, on production log an alert to server
     // on development throw an error
-    if (Config.IS_IN_PRODUCTION) {
+    if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
         const phraseString = _.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
         Log.alert(`${phraseString} was not found in the en locale`);
+        if (_.contains(userEmail, CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
+            return CONST.MISSING_TRANSLATION;
+        }
         return phraseString;
     }
     throw new Error(`${phraseKey} was not found in the default language`);
