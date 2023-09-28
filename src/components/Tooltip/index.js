@@ -1,15 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import * as tooltipPropTypes from './tooltipPropTypes';
+import {propTypes as tooltipPropTypes, defaultProps as tooltipDefaultProps} from './tooltipPropTypes';
 import BaseTooltip from './BaseTooltip';
 
 const propTypes = {
-    ...tooltipPropTypes.propTypes,
+    ...tooltipPropTypes,
     shouldRender: PropTypes.bool,
 };
 
 const defaultProps = {
-    ...tooltipPropTypes.defaultProps,
+    ...tooltipDefaultProps,
     shouldRender: true,
 };
 
