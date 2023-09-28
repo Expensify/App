@@ -90,7 +90,7 @@ Click the **Undelete** button and you're all set. You’ll find the expense on y
 
 There are a number of different expense statuses in Expensify:
 1. **Personal**: Personal expenses are not yet part of a report (and therefore unsubmitted) and are not viewable by anyone but the expense creator/owner.
-2. **Draft**: Draft expenses are seen as still in progress, and are unsubmitted. Your Policy Admin will be able to view them, making it a collaborative step toward reimbursement.
+2. **Draft**: Draft expenses are seen as still in progress, and are unsubmitted. Your Policy Admin will be able to view them, making this a collaborative step toward reimbursement.
 3. **Processing**: Processing expenses are submitted, but waiting for approval.
 4. **Approved**: If it's a non-reimbursable expense, the workflow is complete at this point. If it's a reimbursable expense, you're one step closer to getting paid.
 5. **Reimbursed**: Reimbursed expenses are fully settled. You can check the Report Comments to see when you'll get paid.
@@ -103,8 +103,8 @@ Violations represent errors or discrepancies that Expensify has picked up and ne
 To enable or configure violations according to your policy, go to **Settings > Policies > _Policy Name_ > Expenses > Expense Violations**. Keep in mind that Expensify includes certain system mandatory violations that can't be disabled, even if your policy has violations turned off.
 
 You can spot violations by the exclamation marks (!) attached to expenses. Hovering over the symbol will provide a brief description and you can find more detailed information below the list of expenses. The two types of violations are:
-**Red**: These indicate violations directly tied to your report's Policy settings. They are clear rule violations that must be addressed before submission.
-**Yellow**: Concierge will highlight items that require attention but may not necessarily need corrective action. For example, if a receipt was SmartScanned and then the amount was modified, we’ll bring it to your attention so that it can be manually reviewed.
+1. **Red**: These indicate violations directly tied to your report's Policy settings. They are clear rule violations that must be addressed before submission.
+2. **Yellow**: Concierge will highlight items that require attention but may not necessarily need corrective action. For example, if a receipt was SmartScanned and then the amount was modified, we’ll bring it to your attention so that it can be manually reviewed.
 
 ## How to Track Attendees
 
