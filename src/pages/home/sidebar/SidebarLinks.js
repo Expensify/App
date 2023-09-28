@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import React, {useEffect, useRef, useCallback} from 'react';
-import {View} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
@@ -67,6 +67,12 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         App.setSidebarLoaded();
         SidebarUtils.setIsSidebarLoadedReady();
 
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                this.props.updateLocale();
+            });
+        });
+
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
@@ -127,7 +133,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             // or when clicking the active LHN row on large screens
             // or when continuously clicking different LHNs, only apply to small screen
             // since getTopmostReportId always returns on other devices
-            if (isCreateMenuOpen || (!isSmallScreenWidth && isActiveReport(option.reportID)) || (isSmallScreenWidth && Navigation.getTopmostReportId())) {
+            if (isCreateMenuOpen || option.reportID === Navigation.getTopmostReportId() || (isSmallScreenWidth && isActiveReport(option.reportID))) {
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));

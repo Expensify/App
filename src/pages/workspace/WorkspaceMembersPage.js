@@ -136,7 +136,7 @@ function WorkspaceMembersPage(props) {
      */
     const inviteUser = () => {
         setSearchValue('');
-        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID));
     };
 
     /**
