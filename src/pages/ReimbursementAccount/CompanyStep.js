@@ -84,6 +84,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
             'incorporationDate',
             'incorporationState',
         ];
+        
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
