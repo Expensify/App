@@ -84,7 +84,7 @@ function translate(desiredLanguage = CONST.LOCALES.DEFAULT, phraseKey, phrasePar
         return Str.result(translatedPhrase, phraseParameters);
     }
 
-    // Phrase is not found in default language, on production log an alert to server
+    // Phrase is not found in default language, on production and staging log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
         const phraseString = _.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
