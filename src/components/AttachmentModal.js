@@ -5,6 +5,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './Attachments/AttachmentView';
@@ -33,10 +34,9 @@ import useNativeDriver from '../libs/useNativeDriver';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import useNetwork from '../hooks/useNetwork';
 import * as IOU from '../libs/actions/IOU';
-import ONYXKEYS from "../ONYXKEYS";
-import {withOnyx} from "react-native-onyx";
-import transactionPropTypes from "./transactionPropTypes";
-import * as TransactionUtils from "../libs/TransactionUtils";
+import ONYXKEYS from '../ONYXKEYS';
+import transactionPropTypes from './transactionPropTypes';
+import * as TransactionUtils from '../libs/TransactionUtils';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -336,7 +336,7 @@ function AttachmentModal(props) {
 
     const sourceForAttachmentView = props.source || source;
 
-    let threeDotMenuItems = [
+    const threeDotMenuItems = [
         {
             icon: Expensicons.Camera,
             text: props.translate('common.replace'),

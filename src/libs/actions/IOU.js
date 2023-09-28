@@ -1971,7 +1971,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 
 function detachReceipt(transactionID, reportID) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    let newTransaction = {...transaction, filename: '', receipt: {}};
+    const newTransaction = {...transaction, filename: '', receipt: {}};
 
     const optimisticData = [
         {
