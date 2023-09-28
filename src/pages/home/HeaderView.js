@@ -93,8 +93,8 @@ function HeaderView(props) {
         if (ReportUtils.isOpenTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                text: props.translate('task.markAsDone'),
-                onSelected: () => Task.completeTask(props.report, title),
+                text: props.translate('task.markAsComplete'),
+                onSelected: () => Task.completeTask(props.report),
             });
         }
 
@@ -103,7 +103,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('task.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report, title),
+                onSelected: () => Task.reopenTask(props.report),
             });
         }
 
