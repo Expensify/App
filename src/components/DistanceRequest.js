@@ -290,7 +290,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => onSubmit(waypoints)}
-                isDisabled={!isOffline && (_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute || isLoading)}
+                isDisabled={_.size(validatedWaypoints) < 2 || (!isOffline && (hasRouteError || isLoadingRoute || isLoading))}
                 text={translate(isEditingRequest ? 'common.save' : 'common.next')}
                 isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
             />
