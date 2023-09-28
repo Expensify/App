@@ -167,8 +167,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     shouldShowRightIcon={canEdit}
                     onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                     brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    subtitle={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
-                    subtitleTextStyle={styles.textLabelError}
+                    error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.comment')}>
@@ -193,8 +192,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                     brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    subtitle={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
-                    subtitleTextStyle={styles.textLabelError}
+                    error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                 />
             </OfflineWithFeedback>
             {isDistanceRequest ? (
