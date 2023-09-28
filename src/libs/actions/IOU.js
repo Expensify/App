@@ -2257,10 +2257,19 @@ function setMoneyRequestBillable(billable) {
 }
 
 /**
+ * @TODO remove this in favor of setMoneeRequestParticipants()
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
     Onyx.merge(ONYXKEYS.IOU, {participants});
+}
+
+/**
+ * @param {String} transaction
+ * @param {Object[]} participants
+ */
+function setMoneeRequestParticipants(transactionID, participants) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {participants});
 }
 
 /**
@@ -2347,6 +2356,7 @@ export {
     resetMoneyRequestCategory,
     setMoneyRequestTag,
     resetMoneyRequestTag,
+    setMoneeRequestParticipants,
     setMoneyRequestBillable,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
