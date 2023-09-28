@@ -75,6 +75,15 @@ function OptionRowLHN(props) {
     const optionItem = props.optionItem;
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
+    useFocusEffect(
+        useCallback(() => {
+            isFocusedRef.current = true;
+            return () => {
+                isFocusedRef.current = false;
+            };
+        }, []),
+    );
+
     if (!optionItem) {
         return null;
     }
@@ -106,19 +115,8 @@ function OptionRowLHN(props) {
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const shouldShowGreenDotIndicator =
-        !hasBrickError &&
-        (optionItem.isUnreadWithMention ||
-            ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem) ||
-            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isCompletedTaskReport && !optionItem.isArchivedRoom));
+        !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
 
-    useFocusEffect(
-        useCallback(() => {
-            isFocusedRef.current = true;
-            return () => {
-                isFocusedRef.current = false;
-            };
-        }, []),
-    );
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -195,6 +193,7 @@ function OptionRowLHN(props) {
                         ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
+                        needsOffscreenAlphaCompositing={props.optionItem.icons.length >= 2}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
