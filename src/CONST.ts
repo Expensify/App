@@ -992,6 +992,11 @@ const CONST = {
             STATEMENT: 'STATEMENT_NAVIGATE',
             CONCIERGE: 'CONCIERGE_NAVIGATE',
         },
+        MTL_WALLET_PROGRAM_ID: '760',
+        PROGRAM_ISSUERS: {
+            EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
+            BANCORP_BANK: 'The Bancorp Bank',
+        },
     },
 
     PLAID: {
@@ -1232,6 +1237,7 @@ const CONST = {
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
+        LINE_BREAK: /\n/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
@@ -1262,6 +1268,8 @@ const CONST = {
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         ATTACHMENT_ROUTE: /\/r\/(\d*)\/attachment/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
+
+        ENCODE_PERCENT_CHARACTER: /%(25)+/g,
     },
 
     PRONOUNS: {
@@ -1369,6 +1377,7 @@ const CONST = {
         MERCHANT: 'merchant',
         CATEGORY: 'category',
         RECEIPT: 'receipt',
+        DISTANCE: 'distance',
         TAG: 'tag',
     },
     FOOTER: {
