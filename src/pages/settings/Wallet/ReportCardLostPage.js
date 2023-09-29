@@ -111,6 +111,10 @@ function ReportCardLostPage({
         FormActions.setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, physicalCard.errors);
     }, [domain, formData.isLoading, prevIsLoading, physicalCard.errors]);
 
+    if (_.isEmpty(physicalCard)) {
+        return <NotFoundPage />;
+    }
+
     const onSubmit = () => {
         if (!isReasonConfirmed) {
             setIsReasonConfirmed(true);
@@ -133,10 +137,6 @@ function ReportCardLostPage({
     const handleOptionSelect = (option) => {
         setReason(option);
     };
-
-    if (_.isEmpty(physicalCard)) {
-        return <NotFoundPage />;
-    }
 
     return (
         <ScreenWrapper
