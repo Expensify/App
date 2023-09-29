@@ -4,7 +4,6 @@ import {render, screen, fireEvent} from '@testing-library/react-native';
 import {Linking} from 'react-native';
 import App from '../../src/App';
 import CONST from '../../src/CONST';
-import ROUTES from '../../src/ROUTES';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -114,7 +113,7 @@ describe('Navigation', () => {
         // Add a report in Onyx
         let now = DateUtils.getDBTime();
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${1}`, {
-            reportID: 1,
+            reportID: '1',
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             lastReadTime: now,
             lastVisibleActionCreated: now,
@@ -157,19 +156,17 @@ describe('Navigation', () => {
         screen.getByText(`Hi from ${ALICE.NAME}`);
 
         await navigateToSidebarOption(0);
-        await navigateToSidebarOption(0);
         const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
-        const createdAction = screen.queryByLabelText(welcomeMessageHintText);
-        expect(createdAction).toBeTruthy();
+        screen.getByLabelText(welcomeMessageHintText);
         const reportCommentsHintText = Localize.translateLocal('accessibilityHints.chatMessage');
-        const reportComments = screen.queryAllByLabelText(reportCommentsHintText);
+        let reportComments = screen.getAllByLabelText(reportCommentsHintText);
         expect(reportComments).toHaveLength(1);
         screen.getByText(`Comment 1 from ${ALICE.NAME}`);
 
         // Add another report to Onyx
         now = DateUtils.getDBTime();
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${2}`, {
-            reportID: 2,
+            reportID: '2',
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             lastReadTime: now,
             lastVisibleActionCreated: now,
@@ -204,7 +201,16 @@ describe('Navigation', () => {
         await waitForBatchedUpdates();
 
         // Message from alice should still be visible
-        messageFromAlice = screen.getByText(`1 from ${ALICE.NAME}`);
-        expect(messageFromAlice).not.toBeNull();
+        screen.getByText(`Comment 1 from ${ALICE.NAME}`);
+
+        reportComments = screen.queryByText(`Comment 2 from ${BOB.NAME}`);
+        expect(reportComments).toBeNull();
+
+        // Replace report 1 with report 2 in the stack
+        Navigation.replaceReportIDInNavigationStack('1', '2');
+        await waitForBatchedUpdates();
+
+        // Report 2 should now be visible, and report 1 should not
+        screen.getByText(`Comment 2 from ${BOB.NAME}`);
     });
 });
