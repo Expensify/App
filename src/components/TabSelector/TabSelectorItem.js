@@ -1,4 +1,4 @@
-import {Animated, StyleSheet, View} from 'react-native';
+import {Animated, View} from 'react-native';
 import React from 'react';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
