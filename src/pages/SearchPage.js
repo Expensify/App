@@ -76,7 +76,7 @@ class SearchPage extends Component {
 
     onChangeText(searchValue = '') {
         if (searchValue.length > 0) {
-            Report.throttledSearchInServer(searchValue);
+            Report.debouncedSearchInServer(searchValue);
         }
 
         // When the user searches we will

@@ -171,7 +171,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
 
     // When search term updates we will fetch any reports
     useEffect(() => {
-        Report.throttledSearchInServer(searchTerm);
+        Report.debouncedSearchInServer(searchTerm);
     }, [searchTerm]);
     return (
         <ScreenWrapper

@@ -1,6 +1,7 @@
 import {InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import lodashDebounce from 'lodash/debounce';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -2210,10 +2211,10 @@ function searchInServer(searchInput) {
  * @private
  * @param {string} searchInput
  */
-const throttledSearchInServer = _.throttle(searchInServer, 1000, {leading: false});
+const debouncedSearchInServer = lodashDebounce(searchInServer, 300, {leading: false});
 
 export {
-    throttledSearchInServer,
+    debouncedSearchInServer,
     addComment,
     addAttachment,
     reconnect,
