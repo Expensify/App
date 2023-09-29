@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -88,8 +88,16 @@ function WorkspaceNewRoomPage(props) {
      */
     const submit = (values) => {
         const policyMembers = _.map(_.keys(props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
-        Report.addPolicyReport(values.policyID, values.roomName, values.visibility, policyMembers, values.writeCapability, values.welcomeMessage);
+        Report.addPolicyReport(policyID, values.roomName, visibility, policyMembers, writeCapability, values.welcomeMessage);
     };
+
+    useEffect(() => {
+        if (isPolicyAdmin) {
+            return;
+        }
+
+        setWriteCapability(CONST.REPORT.WRITE_CAPABILITIES.ALL);
+    }, [policyID, isPolicyAdmin]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -212,7 +220,7 @@ function WorkspaceNewRoomPage(props) {
                                         inputID="writeCapability"
                                         label={translate('writeCapabilityPage.label')}
                                         items={writeCapabilityOptions}
-                                        defaultValue={writeCapability}
+                                        value={writeCapability}
                                         onValueChange={setWriteCapability}
                                     />
                                 </View>
@@ -223,7 +231,7 @@ function WorkspaceNewRoomPage(props) {
                                     label={translate('newRoomPage.visibility')}
                                     items={visibilityOptions}
                                     onValueChange={setVisibility}
-                                    defaultValue={visibility}
+                                    value={visibility}
                                 />
                             </View>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>

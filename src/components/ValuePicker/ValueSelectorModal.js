@@ -61,6 +61,7 @@ function ValueSelectorModal({currentValue, items, selectedItem, label, isVisible
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
+                testID="ValueSelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}
