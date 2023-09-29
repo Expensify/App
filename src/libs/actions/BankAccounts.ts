@@ -103,7 +103,16 @@ function getVBBADataForOnyx(): OnyxData {
 function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount) {
     const commandName = 'ConnectBankAccountWithPlaid';
 
-    const parameters = {
+    type ConnectBankAccountWithPlaidParams = {
+        bankAccountID: number;
+        routingNumber: string;
+        accountNumber: string;
+        bank?: string;
+        plaidAccountID: string;
+        plaidAccessToken: string;
+    };
+
+    const parameters: ConnectBankAccountWithPlaidParams = {
         bankAccountID,
         routingNumber: selectedPlaidBankAccount.routingNumber,
         accountNumber: selectedPlaidBankAccount.accountNumber,
@@ -123,7 +132,18 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
 function addPersonalBankAccount(account: PlaidBankAccount) {
     const commandName = 'AddPersonalBankAccount';
 
-    const parameters = {
+    type AddPersonalBankAccountParams = {
+        addressName: string;
+        routingNumber: string;
+        accountNumber: string;
+        isSavings: boolean;
+        setupType: string;
+        bank?: string;
+        plaidAccountID: string;
+        plaidAccessToken: string;
+    };
+
+    const parameters: AddPersonalBankAccountParams = {
         addressName: account.addressName,
         routingNumber: account.routingNumber,
         accountNumber: account.accountNumber,
@@ -173,31 +193,29 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
 }
 
 function deletePaymentBankAccount(bankAccountID: number) {
-    API.write(
-        'DeletePaymentBankAccount',
-        {
-            bankAccountID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
-                    value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
-                },
-            ],
+    type DeletePaymentBankAccountParams = {bankAccountID: number};
 
-            // Sometimes pusher updates aren't received when we close the App while still offline,
-            // so we are setting the bankAccount to null here to ensure that it gets cleared out once we come back online.
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
-                    value: {[bankAccountID]: null},
-                },
-            ],
-        },
-    );
+    const parameters: DeletePaymentBankAccountParams = {bankAccountID};
+
+    API.write('DeletePaymentBankAccount', parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            },
+        ],
+
+        // Sometimes pusher updates aren't received when we close the App while still offline,
+        // so we are setting the bankAccount to null here to ensure that it gets cleared out once we come back online.
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: null},
+            },
+        ],
+    });
 }
 
 /**
@@ -210,43 +228,46 @@ function updatePersonalInformationForBankAccount(params: RequestorStepProps) {
 }
 
 function validateBankAccount(bankAccountID: number, validateCode: string) {
-    API.write(
-        'ValidateBankAccountWithTransactions',
-        {
-            bankAccountID,
-            validateCode,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {
-                        isLoading: true,
-                        errors: null,
-                    },
+    type ValidateBankAccountWithTransactionsParams = {
+        bankAccountID: number;
+        validateCode: string;
+    };
+
+    const parameters: ValidateBankAccountWithTransactionsParams = {
+        bankAccountID,
+        validateCode,
+    };
+
+    API.write('ValidateBankAccountWithTransactions', parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
                 },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {
-                        isLoading: false,
-                    },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
                 },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {
-                        isLoading: false,
-                    },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
                 },
-            ],
-        },
-    );
+            },
+        ],
+    });
 }
 
 function openReimbursementAccountPage(stepToOpen: string, subStep: string, localCurrentStep: string) {
@@ -280,58 +301,77 @@ function openReimbursementAccountPage(stepToOpen: string, subStep: string, local
         ],
     };
 
-    const param = {
+    type OpenReimbursementAccountPageParams = {
+        stepToOpen: string;
+        subStep: string;
+        localCurrentStep: string;
+    };
+
+    const parameters: OpenReimbursementAccountPageParams = {
         stepToOpen,
         subStep,
         localCurrentStep,
     };
 
-    return API.read('OpenReimbursementAccountPage', param, onyxData);
+    return API.read('OpenReimbursementAccountPage', parameters, onyxData);
 }
 
 /**
  * Updates the bank account in the database with the company step data
  */
 function updateCompanyInformationForBankAccount(bankAccount: BankAccountCompanyInformation, policyID: string) {
-    API.write('UpdateCompanyInformationForBankAccount', {...bankAccount, policyID}, getVBBADataForOnyx());
+    type UpdateCompanyInformationParams = {policyID: string};
+    type UpdateCompanyInformationForBankAccountParams = BankAccountCompanyInformation & UpdateCompanyInformationParams;
+
+    const parameters: UpdateCompanyInformationForBankAccountParams = {...bankAccount, policyID};
+
+    API.write('UpdateCompanyInformationForBankAccount', parameters, getVBBADataForOnyx());
 }
 
 /**
  * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
  */
 function updateBeneficialOwnersForBankAccount(params: ACHContractStepProps) {
-    API.write('UpdateBeneficialOwnersForBankAccount', {...params}, getVBBADataForOnyx());
+    API.write('UpdateBeneficialOwnersForBankAccount', params, getVBBADataForOnyx());
 }
 
 /**
  * Create the bank account with manually entered data.
  *
  */
-function connectBankAccountManually(bankAccountID: number, accountNumber: string, routingNumber: string, plaidMask: string) {
-    API.write(
-        'ConnectBankAccountManually',
-        {
-            bankAccountID,
-            accountNumber,
-            routingNumber,
-            plaidMask,
-        },
-        getVBBADataForOnyx(),
-    );
+function connectBankAccountManually(bankAccountID: number, accountNumber?: string, routingNumber?: string, plaidMask?: string) {
+    type ConnectBankAccountManuallyParams = {
+        bankAccountID: number;
+        accountNumber?: string;
+        routingNumber?: string;
+        plaidMask?: string;
+    };
+
+    const parameters: ConnectBankAccountManuallyParams = {
+        bankAccountID,
+        accountNumber,
+        routingNumber,
+        plaidMask,
+    };
+
+    API.write('ConnectBankAccountManually', parameters, getVBBADataForOnyx());
 }
 
 /**
  * Verify the user's identity via Onfido
  */
 function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoData) {
-    API.write(
-        'VerifyIdentityForBankAccount',
-        {
-            bankAccountID,
-            onfidoData: JSON.stringify(onfidoData),
-        },
-        getVBBADataForOnyx(),
-    );
+    type VerifyIdentityForBankAccountParams = {
+        bankAccountID: number;
+        onfidoData: string;
+    };
+
+    const parameters: VerifyIdentityForBankAccountParams = {
+        bankAccountID,
+        onfidoData: JSON.stringify(onfidoData),
+    };
+
+    API.write('VerifyIdentityForBankAccount', parameters, getVBBADataForOnyx());
 }
 
 function openWorkspaceView() {
@@ -339,13 +379,23 @@ function openWorkspaceView() {
 }
 
 function handlePlaidError(bankAccountID: number, error: string, errorDescription: string, plaidRequestID: string) {
-    API.write('BankAccount_HandlePlaidError', {
+    type BankAccountHandlePlaidErrorParams = {
+        bankAccountID: number;
+        error: string;
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        error_description: string;
+        plaidRequestID: string;
+    };
+
+    const parameters: BankAccountHandlePlaidErrorParams = {
         bankAccountID,
         error,
         // eslint-disable-next-line @typescript-eslint/naming-convention
         error_description: errorDescription,
         plaidRequestID,
-    });
+    };
+
+    API.write('BankAccount_HandlePlaidError', parameters);
 }
 
 /**
