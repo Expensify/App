@@ -33,6 +33,8 @@ function ArchivedReportFooterSkeletonView(props) {
                     y="0"
                     width="100%"
                     height="48"
+                    rx="8"
+                    rx="8"
                 />
             </SkeletonViewContentLoader>
         </View>
