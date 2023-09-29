@@ -376,7 +376,6 @@ function WorkspaceMembersPage(props) {
                             if (!textInputRef.current) {
                                 return;
                             }
-                            
                             textInputRef.current.focus();
                         })
                     }
