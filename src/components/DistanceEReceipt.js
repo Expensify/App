@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -36,6 +36,17 @@ function DistanceEReceipt({transaction}) {
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : translate('common.tbd');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
+    const sortedWaypoints = useMemo(() => {
+        // The waypoint keys are sometimes out of order
+        return _.chain(waypoints)
+            .keys()
+            .sort((keyA, keyB) => {
+                return TransactionUtils.getWaypointIndex(keyA) - TransactionUtils.getWaypointIndex(keyB);
+            })
+            .map((key) => ({[key]: waypoints[key]}))
+            .reduce((result, obj) => Object.assign(result, obj), {})
+            .value();
+    }, [waypoints]);
     return (
         <View style={[styles.ph5, styles.pv5, styles.flex1, styles.alignItemsCenter]}>
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}>
@@ -61,7 +72,7 @@ function DistanceEReceipt({transaction}) {
                         <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2]}>
-                        {_.map(waypoints, (waypoint, key) => {
+                        {_.map(sortedWaypoints, (waypoint, key) => {
                             const index = TransactionUtils.getWaypointIndex(key);
                             let descriptionKey = 'distance.waypointDescription.';
                             if (index === 0) {
