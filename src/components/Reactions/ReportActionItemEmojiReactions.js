@@ -134,9 +134,7 @@ function ReportActionItemEmojiReactions(props) {
                             key={reaction.reactionEmojiName}
                         >
                             <View>
-                                <OfflineWithFeedback
-                                    pendingAction={reaction.hasPendingAction}
-                                >
+                                <OfflineWithFeedback pendingAction={reaction.hasPendingAction}>
                                     <EmojiReactionBubble
                                         ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref)}
                                         count={reaction.reactionCount}

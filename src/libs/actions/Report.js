@@ -1777,7 +1777,7 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
                 },
             },
         },
-    ]
+    ];
 
     const parameters = {
         reportID,
