@@ -241,17 +241,6 @@ function buildOnyxDataForMoneyRequest(
                   },
               ]
             : []),
-        ...(isNewIOUReport
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                      value: {
-                          [chatReport.participantAccountIDs[0]]: null,
-                      },
-                  },
-              ]
-            : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -320,17 +309,6 @@ function buildOnyxDataForMoneyRequest(
                           errorFields: {
                               createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                           },
-                      },
-                  },
-              ]
-            : []),
-        ...(isNewIOUReport
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                      value: {
-                          [chatReport.participantAccountIDs[0]]: null,
                       },
                   },
               ]
@@ -575,6 +553,7 @@ function getMoneyRequestInformation(
                   avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
                   displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || payerEmail),
                   login: participant.login,
+                  isOptimisticPersonalDetail: true,
               },
           }
         : undefined;
@@ -1142,6 +1121,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
                       avatar: UserUtils.getDefaultAvatarURL(accountID),
                       displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
                       login: participant.login,
+                      isOptimisticPersonalDetail: true,
                   },
               }
             : undefined;
