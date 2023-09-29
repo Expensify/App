@@ -5,19 +5,18 @@ import CONST from './CONST';
  * This is a file containing constants for all of the routes we want to be able to go to
  */
 
-// prettier-ignore
 export default {
     HOME: '',
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {
         route: 'flag/:reportID/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`
+        getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
     SEARCH: 'search',
     DETAILS: {
         route: 'details',
-        getRoute: (login: string) => `details?login=${encodeURIComponent(login)}`
+        getRoute: (login: string) => `details?login=${encodeURIComponent(login)}`,
     },
     PROFILE: {
         route: 'a/:accountID',
@@ -31,7 +30,7 @@ export default {
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: {
         route: 'get-assistance/:taskID',
-        getRoute: (taskID: string) => `get-assistance/${taskID}`
+        getRoute: (taskID: string) => `get-assistance/${taskID}`,
     },
     UNLINK_LOGIN: 'u/:accountID/:validateCode',
     APPLE_SIGN_IN: 'sign-in-with-apple',
@@ -85,6 +84,16 @@ export default {
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: 'settings/profile/personal-details/legal-name',
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: 'settings/profile/personal-details/date-of-birth',
     SETTINGS_PERSONAL_DETAILS_ADDRESS: 'settings/profile/personal-details/address',
+    SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY: {
+        route: 'settings/profile/personal-details/address/country',
+        getRoute: (country: string, backTo?: string) => {
+            let route = `settings/profile/personal-details/address/country?country=${country}`;
+            if (backTo) {
+                route += `&backTo=${encodeURIComponent(backTo)}`;
+            }
+            return route;
+        },
+    },
     SETTINGS_CONTACT_METHODS: 'settings/profile/contact-methods',
     SETTINGS_CONTACT_METHOD_DETAILS: {
         route: 'settings/profile/contact-methods/:contactMethod/details',
@@ -102,11 +111,11 @@ export default {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string) => `r/${reportID}`
+        getRoute: (reportID: string) => `r/${reportID}`,
     },
     EDIT_REQUEST: {
         route: 'r/:threadReportID/edit/:field',
-        getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${threadReportID}/edit/${field}`
+        getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${threadReportID}/edit/${field}`,
     },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
@@ -114,89 +123,89 @@ export default {
     },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
-        getRoute: (reportID: string) => `r/${reportID}/details/shareCode`
+        getRoute: (reportID: string) => `r/${reportID}/details/shareCode`,
     },
     REPORT_ATTACHMENTS: {
         route: 'r/:reportID/attachment',
-        getRoute: (reportID: string, source: string) => `r/${reportID}/attachment?source=${encodeURI(source)}`
+        getRoute: (reportID: string, source: string) => `r/${reportID}/attachment?source=${encodeURI(source)}`,
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
-        getRoute: (reportID: string) => `r/${reportID}/participants`
+        getRoute: (reportID: string) => `r/${reportID}/participants`,
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
-        getRoute: (reportID: string) => `r/${reportID}/details`
+        getRoute: (reportID: string) => `r/${reportID}/details`,
     },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
-        getRoute: (reportID: string) => `r/${reportID}/settings`
+        getRoute: (reportID: string) => `r/${reportID}/settings`,
     },
     REPORT_SETTINGS_ROOM_NAME: {
         route: 'r/:reportID/settings/room-name',
-        getRoute: (reportID: string) => `r/${reportID}/settings/room-name`
+        getRoute: (reportID: string) => `r/${reportID}/settings/room-name`,
     },
     REPORT_SETTINGS_NOTIFICATION_PREFERENCES: {
         route: 'r/:reportID/settings/notification-preferences',
-        getRoute: (reportID: string) => `r/${reportID}/settings/notification-preferences`
+        getRoute: (reportID: string) => `r/${reportID}/settings/notification-preferences`,
     },
     REPORT_SETTINGS_WRITE_CAPABILITY: {
         route: 'r/:reportID/settings/who-can-post',
-        getRoute: (reportID: string) => `r/${reportID}/settings/who-can-post`
+        getRoute: (reportID: string) => `r/${reportID}/settings/who-can-post`,
     },
     REPORT_WELCOME_MESSAGE: {
         route: 'r/:reportID/welcomeMessage',
-        getRoute: (reportID: string) => `r/${reportID}/welcomeMessage`
+        getRoute: (reportID: string) => `r/${reportID}/welcomeMessage`,
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}`
+        getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}`,
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
-        getRoute: (reportID: string) => `r/${reportID}/title`
+        getRoute: (reportID: string) => `r/${reportID}/title`,
     },
     TASK_DESCRIPTION: {
         route: 'r/:reportID/description',
-        getRoute: (reportID: string) => `r/${reportID}/description`
+        getRoute: (reportID: string) => `r/${reportID}/description`,
     },
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
-        getRoute: (reportID: string) => `r/${reportID}/assignee`
+        getRoute: (reportID: string) => `r/${reportID}/assignee`,
     },
     PRIVATE_NOTES_VIEW: {
         route: 'r/:reportID/notes/:accountID',
-        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}`
+        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}`,
     },
     PRIVATE_NOTES_LIST: {
         route: 'r/:reportID/notes',
-        getRoute: (reportID: string) => `r/${reportID}/notes`
+        getRoute: (reportID: string) => `r/${reportID}/notes`,
     },
     PRIVATE_NOTES_EDIT: {
         route: 'r/:reportID/notes/:accountID/edit',
-        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`
+        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`,
     },
 
     // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
     MONEY_REQUEST: {
         route: ':iouType/new/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}`
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}`,
     },
     MONEY_REQUEST_AMOUNT: {
         route: ':iouType/new/amount/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/amount/${reportID}`
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/amount/${reportID}`,
     },
     MONEY_REQUEST_PARTICIPANTS: {
         route: ':iouType/new/participants/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/participants/${reportID}`
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/participants/${reportID}`,
     },
     MONEY_REQUEST_CONFIRMATION: {
         route: ':iouType/new/confirmation/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/confirmation/${reportID}`
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/confirmation/${reportID}`,
     },
     MONEY_REQUEST_DATE: {
         route: ':iouType/new/date/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/date/${reportID}`
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/date/${reportID}`,
     },
     MONEY_REQUEST_CURRENCY: {
         route: ':iouType/new/currency/:reportID?',
@@ -204,35 +213,39 @@ export default {
     },
     MONEY_REQUEST_DESCRIPTION: {
         route: ':iouType/new/description/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/description/${reportID}`
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/description/${reportID}`,
     },
     MONEY_REQUEST_CATEGORY: {
         route: ':iouType/new/category/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/category/${reportID}`
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/category/${reportID}`,
     },
     MONEY_REQUEST_TAG: {
         route: ':iouType/new/tag/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}`
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}`,
     },
     MONEY_REQUEST_MERCHANT: {
         route: ':iouType/new/merchant/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}`
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}`,
     },
     MONEY_REQUEST_WAYPOINT: {
         route: ':iouType/new/waypoint/:waypointIndex',
-        getRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}`
+        getRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}`,
     },
     MONEY_REQUEST_RECEIPT: {
         route: ':iouType/new/receipt/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/receipt/${reportID}`
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/receipt/${reportID}`,
     },
-    MONEY_REQUEST_ADDRESS: {
+    MONEY_REQUEST_DISTANCE: {
         route: ':iouType/new/address/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}`
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}`,
+    },
+    MONEY_REQUEST_EDIT_WAYPOINT: {
+        route: 'r/:threadReportID/edit/distance/:transactionID/waypoint/:waypointIndex',
+        getRoute: (threadReportID: number, transactionID: string, waypointIndex: number) => `r/${threadReportID}/edit/distance/${transactionID}/waypoint/${waypointIndex}`,
     },
     MONEY_REQUEST_DISTANCE_TAB: {
         route: ':iouType/new/:reportID?/distance',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance`
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance`,
     },
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
@@ -259,47 +272,47 @@ export default {
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
         route: 'workspace/:policyID',
-        getRoute: (policyID: string) => `workspace/${policyID}`
+        getRoute: (policyID: string) => `workspace/${policyID}`,
     },
     WORKSPACE_INVITE: {
         route: 'workspace/:policyID/invite',
-        getRoute: (policyID: string) => `workspace/${policyID}/invite`
+        getRoute: (policyID: string) => `workspace/${policyID}/invite`,
     },
     WORKSPACE_INVITE_MESSAGE: {
         route: 'workspace/:policyID/invite-message',
-        getRoute: (policyID: string) => `workspace/${policyID}/invite-message`
+        getRoute: (policyID: string) => `workspace/${policyID}/invite-message`,
     },
     WORKSPACE_SETTINGS: {
         route: 'workspace/:policyID/settings',
-        getRoute: (policyID: string) => `workspace/${policyID}/settings`
+        getRoute: (policyID: string) => `workspace/${policyID}/settings`,
     },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
-        getRoute: (policyID: string) => `workspace/${policyID}/card`
+        getRoute: (policyID: string) => `workspace/${policyID}/card`,
     },
     WORKSPACE_REIMBURSE: {
         route: 'workspace/:policyID/reimburse',
-        getRoute: (policyID: string) => `workspace/${policyID}/reimburse`
+        getRoute: (policyID: string) => `workspace/${policyID}/reimburse`,
     },
     WORKSPACE_RATE_AND_UNIT: {
         route: 'workspace/:policyID/rateandunit',
-        getRoute: (policyID: string) => `workspace/${policyID}/rateandunit`
+        getRoute: (policyID: string) => `workspace/${policyID}/rateandunit`,
     },
     WORKSPACE_BILLS: {
         route: 'workspace/:policyID/bills',
-        getRoute: (policyID: string) => `workspace/${policyID}/bills`
+        getRoute: (policyID: string) => `workspace/${policyID}/bills`,
     },
     WORKSPACE_INVOICES: {
         route: 'workspace/:policyID/invoices',
-        getRoute: (policyID: string) => `workspace/${policyID}/invoices`
+        getRoute: (policyID: string) => `workspace/${policyID}/invoices`,
     },
     WORKSPACE_TRAVEL: {
         route: 'workspace/:policyID/travel',
-        getRoute: (policyID: string) => `workspace/${policyID}/travel`
+        getRoute: (policyID: string) => `workspace/${policyID}/travel`,
     },
     WORKSPACE_MEMBERS: {
         route: 'workspace/:policyID/members',
-        getRoute: (policyID: string) => `workspace/${policyID}/members`
+        getRoute: (policyID: string) => `workspace/${policyID}/members`,
     },
 
     // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
