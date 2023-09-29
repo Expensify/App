@@ -17,7 +17,7 @@ function makeXHR(request: Request): Promise<Response> {
             return new Promise<void>((resolve) => resolve());
         }
         return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
-    });
+    }) as Promise<Response>;
 }
 
 function processWithMiddleware(request: Request, isFromSequentialQueue = false): Promise<Response> {
