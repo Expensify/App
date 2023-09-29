@@ -1171,7 +1171,7 @@ export default {
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
         shortTermsForm: {
-            expensifyPaymentsAccount: ({ walletProgram }: WalletProgramParams) => `The Expensify Wallet is issued by ${walletProgram}.`,
+            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `The Expensify Wallet is issued by ${walletProgram}.`,
             perPurchase: 'Per purchase',
             atmWithdrawal: 'ATM withdrawal',
             cashReload: 'Cash reload',

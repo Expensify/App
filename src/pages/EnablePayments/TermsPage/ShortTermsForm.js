@@ -19,7 +19,11 @@ const defaultProps = {
 function ShortTermsForm(props) {
     return (
         <>
-            <Text style={styles.mb5}>{Localize.translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount', { walletProgram: props.userWallet.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID ? 'Expensify Payments' : 'The Bancorp Bank'})}</Text>
+            <Text style={styles.mb5}>
+                {Localize.translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount', {
+                    walletProgram: props.userWallet.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID ? 'Expensify Payments' : 'The Bancorp Bank',
+                })}
+            </Text>
 
             <View style={[styles.shortTermsBorder, styles.p2, styles.mb6]}>
                 <View style={[styles.shortTermsRow, styles.mb4]}>

@@ -992,7 +992,7 @@ const CONST = {
             STATEMENT: 'STATEMENT_NAVIGATE',
             CONCIERGE: 'CONCIERGE_NAVIGATE',
         },
-        MTL_WALLET_PROGRAM_ID : '760',
+        MTL_WALLET_PROGRAM_ID: '760',
     },
 
     PLAID: {

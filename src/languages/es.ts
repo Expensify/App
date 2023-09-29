@@ -1188,7 +1188,7 @@ export default {
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
         shortTermsForm: {
-            expensifyPaymentsAccount: ({ walletProgram }: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
+            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
             perPurchase: 'Por compra',
             atmWithdrawal: 'Retiro de cajero automático',
             cashReload: 'Recarga de efectivo',
