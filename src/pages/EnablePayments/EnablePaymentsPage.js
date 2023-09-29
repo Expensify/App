@@ -86,10 +86,37 @@ class EnablePaymentsPage extends React.Component {
                             {currentStep === CONST.WALLET.STEP.ACTIVATE && <ActivateStep userWallet={this.props.userWallet} />}
                         </>
                     );
+<<<<<<< HEAD
                 }}
             </ScreenWrapper>
         );
     }
+=======
+                }
+
+                if (userWallet.shouldShowWalletActivationSuccess) {
+                    return <ActivateStep userWallet={userWallet} />;
+                }
+
+                const currentStep = userWallet.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
+
+                switch (currentStep) {
+                    case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
+                    case CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA:
+                        return <AdditionalDetailsStep />;
+                    case CONST.WALLET.STEP.ONFIDO:
+                        return <OnfidoStep />;
+                    case CONST.WALLET.STEP.TERMS:
+                        return <TermsStep userWallet={userWallet} />;
+                    case CONST.WALLET.STEP.ACTIVATE:
+                        return <ActivateStep userWallet={userWallet} />;
+                    default:
+                        return null;
+                }
+            }}
+        </ScreenWrapper>
+    );
+>>>>>>> bcc8a63 (Merge pull request #28433 from Expensify/cole_wallet_terms)
 }
 
 EnablePaymentsPage.propTypes = propTypes;
