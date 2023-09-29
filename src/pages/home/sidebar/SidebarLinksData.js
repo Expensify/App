@@ -52,6 +52,10 @@ const propTypes = {
     /** The policies which the user has access to */
     // eslint-disable-next-line react/forbid-prop-types
     policies: PropTypes.object,
+
+    /** Holds the reportIDs which are in draft */
+    // eslint-disable-next-line react/forbid-prop-types
+    draftReportIDs: PropTypes.object,
 };
 
 const defaultProps = {
@@ -61,15 +65,29 @@ const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
     policies: [],
+    draftReportIDs: {},
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
+function SidebarLinksData({
+    isFocused,
+    allReportActions,
+    draftReportIDs,
+    betas,
+    chatReports,
+    currentReportID,
+    insets,
+    isLoadingReportData,
+    isSmallScreenWidth,
+    onLinkClick,
+    policies,
+    priorityMode,
+}) {
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef(null);
     const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions);
+        const reportIDs = SidebarUtils.getOrderedReportIDs(null, draftReportIDs, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
@@ -79,7 +97,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [allReportActions, betas, chatReports, policies, priorityMode, isLoading]);
+    }, [allReportActions, betas, chatReports, draftReportIDs, policies, priorityMode, isLoading]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -88,10 +106,10 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     // case we re-generate the list a 2nd time with the current report included.
     const optionListItemsWithCurrentReport = useMemo(() => {
         if (currentReportID && !_.contains(optionListItems, currentReportID)) {
-            return SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
+            return SidebarUtils.getOrderedReportIDs(currentReportID, draftReportIDs, chatReports, betas, policies, priorityMode, allReportActions);
         }
         return optionListItems;
-    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions]);
+    }, [currentReportID, optionListItems, chatReports, betas, draftReportIDs, policies, priorityMode, allReportActions]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -133,7 +151,6 @@ const chatReportSelector = (report) =>
         reportID: report.reportID,
         participants: report.participants,
         participantAccountIDs: report.participantAccountIDs,
-        hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
         errorFields: {
@@ -201,6 +218,9 @@ export default compose(
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        draftReportIDs: {
+            key: ONYXKEYS.DRAFT_REPORT_IDS,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
