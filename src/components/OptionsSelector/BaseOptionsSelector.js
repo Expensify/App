@@ -368,7 +368,7 @@ class BaseOptionsSelector extends Component {
                     blurOnSubmit={Boolean(this.state.allOptions.length)}
                     spellCheck={false}
                 />
-                {this.props.textInputAlert && (
+                {Boolean(this.props.textInputAlert) && (
                     <FormHelpMessage
                         message={this.props.textInputAlert}
                         style={[styles.mb3]}

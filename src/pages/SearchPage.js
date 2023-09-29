@@ -20,6 +20,7 @@ import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import Performance from '../libs/Performance';
+import networkPropTypes from '../components/networkPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -37,6 +38,8 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+
+    ...networkPropTypes,
 };
 
 const defaultProps = {
@@ -75,7 +78,7 @@ class SearchPage extends Component {
     }
 
     onChangeText(searchValue = '') {
-        if (searchValue.length > 0) {
+        if (searchValue.length) {
             Report.debouncedSearchInServer(searchValue);
         }
 
@@ -192,7 +195,7 @@ class SearchPage extends Component {
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                textInputAlert={this.props.network.isOffline ? this.props.translate('search.offline') : ''}
+                                textInputAlert={this.props.network.isOffline ? `${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('search.resultsAreLimited')}` : ''}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                 autoFocus
