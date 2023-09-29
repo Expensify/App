@@ -1,9 +1,20 @@
 import {Asset} from 'react-native-image-picker';
 
 type FileDownload = (url: string, fileName: string) => Promise<void>;
-type GetImageResolution = (url: File | Asset) => Promise<{width: number; height: number}>;
 
-type SplitExtensionFromFileName = (fileName: string) => {fileName: string; fileExtension: string};
+type ImageResolution = {width: number; height: number};
+type GetImageResolution = (url: File | Asset) => Promise<ImageResolution>;
+
+type ExtensionAndFileName = {fileName: string; fileExtension: string};
+type SplitExtensionFromFileName = (fileName: string) => ExtensionAndFileName;
+
 type ReadFileAsync = (path: string, fileName: string) => Promise<File | void>;
 
-export type {SplitExtensionFromFileName, ReadFileAsync, FileDownload, GetImageResolution};
+type AttachmentDetails = {
+    previewSourceURL: null | string;
+    sourceURL: null | string;
+    originalFileName: null | string;
+};
+type GetAttachmentDetails = (html: string) => AttachmentDetails;
+
+export type {SplitExtensionFromFileName, GetAttachmentDetails, ReadFileAsync, FileDownload, GetImageResolution};

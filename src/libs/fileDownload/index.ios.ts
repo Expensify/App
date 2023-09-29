@@ -2,7 +2,7 @@ import RNFetchBlob from 'react-native-blob-util';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import * as FileUtils from './FileUtils';
 import CONST from '../../CONST';
-import {FileDownload} from './types';
+import type {FileDownload} from './types';
 
 /**
  * Downloads the file to Documents section in iOS

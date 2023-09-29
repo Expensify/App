@@ -2,7 +2,7 @@ import {Alert, Linking, Platform} from 'react-native';
 import CONST from '../../CONST';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
-import {ReadFileAsync, SplitExtensionFromFileName} from './types';
+import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
 /**
  * Show alert on successful attachment download
@@ -95,7 +95,7 @@ function getFileType(fileUrl: string): string | undefined {
 /**
  * Returns the filename split into fileName and fileExtension
  */
-const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName: string) => {
+const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) => {
     const fileName = fullFileName.trim();
     const splitFileName = fileName.split('.');
     const fileExtension = splitFileName.length > 1 ? splitFileName.pop() : '';
@@ -139,10 +139,6 @@ const readFileAsync: ReadFileAsync = (path, fileName) =>
                 res.blob()
                     .then((blob) => {
                         const file = new File([blob], cleanFileName(fileName));
-                        file.source = path;
-                        // For some reason, the File object on iOS does not have a uri property
-                        // so images aren't uploaded correctly to the backend
-                        file.uri = path;
                         resolve(file);
                     })
                     .catch((e) => {

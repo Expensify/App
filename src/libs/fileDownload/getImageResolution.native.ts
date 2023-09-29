@@ -1,5 +1,5 @@
 import {Asset} from 'react-native-image-picker';
-import {GetImageResolution} from './types';
+import type {GetImageResolution} from './types';
 
 /**
  * Get image resolution
@@ -8,6 +8,6 @@ import {GetImageResolution} from './types';
  * Opposite to web where we need to create a new Image object and get dimensions from it
  *
  */
-const getImageResolution: GetImageResolution = (file: Asset | File) => Promise.resolve({width: (file as Asset).width ?? 0, height: (file as Asset).height ?? 0});
+const getImageResolution: GetImageResolution = (file: Asset) => Promise.resolve({width: file.width ?? 0, height: file.height ?? 0});
 
 export default getImageResolution;

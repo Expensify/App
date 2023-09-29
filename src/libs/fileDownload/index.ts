@@ -1,6 +1,6 @@
 import * as FileUtils from './FileUtils';
 import * as Link from '../actions/Link';
-import {FileDownload} from './types';
+import type {FileDownload} from './types';
 
 /**
  * Downloading attachment in web, desktop

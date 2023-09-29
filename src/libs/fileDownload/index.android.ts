@@ -1,7 +1,7 @@
 import {PermissionsAndroid, Platform} from 'react-native';
-import RNFetchBlob, {FetchBlobResponse, StatefulPromise} from 'react-native-blob-util';
+import RNFetchBlob, {FetchBlobResponse} from 'react-native-blob-util';
 import * as FileUtils from './FileUtils';
-import {FileDownload} from './types';
+import type {FileDownload} from './types';
 
 /**
  * Android permission check to store images
@@ -43,7 +43,7 @@ function handleDownload(url: string, fileName: string): Promise<void> {
         const isLocalFile = url.startsWith('file://');
 
         let attachmentPath = isLocalFile ? url : undefined;
-        let fetchedAttachment: Promise<void> | StatefulPromise<FetchBlobResponse> = Promise.resolve();
+        let fetchedAttachment: Promise<void | FetchBlobResponse> = Promise.resolve();
 
         if (!isLocalFile) {
             // Fetching the attachment
