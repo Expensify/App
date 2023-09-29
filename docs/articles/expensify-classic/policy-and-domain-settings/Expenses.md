@@ -75,7 +75,7 @@ Note: _If a rate is toggled off it is immediately disabled. This means that user
 
 Using Expensify you can track time-based expenses to bill your clients at an hourly rate or allow employees to claim an hourly stipend. 
 
-Click the toggle under the _Time_ section to enable the feature and set a default hourly rate. After that, you and your users will be able to create time-based expenses from the [**Expenses**](https://staging.expensify.com/expenses) page of the account.
+Click the toggle under the _Time_ section to enable the feature and set a default hourly rate. After that, you and your users will be able to create time-based expenses from the [**Expenses**](https://expensify.com/expenses) page of the account.
 
 # Deep dives
 
