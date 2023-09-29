@@ -52,6 +52,7 @@ function BaseSelectionList({
     showLoadingPlaceholder = false,
     showConfirmButton = false,
     isKeyboardShown = false,
+    inputRef = null,
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -341,7 +342,13 @@ function BaseSelectionList({
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
-                                    ref={textInputRef}
+                                    ref={(el) => {
+                                        if (inputRef) {
+                                            // eslint-disable-next-line no-param-reassign
+                                            inputRef.current = el;
+                                        }
+                                        textInputRef.current = el;
+                                    }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}

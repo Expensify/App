@@ -156,6 +156,9 @@ const propTypes = {
 
     /** Whether to show the default confirm button */
     showConfirmButton: PropTypes.bool,
+
+    /** A ref to forward to the TextInput */
+    inputRef: PropTypes.oneOfType([PropTypes.object]),
 };
 
 export {propTypes, radioListItemPropTypes, userListItemPropTypes};

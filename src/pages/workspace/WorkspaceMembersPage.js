@@ -1,7 +1,7 @@
-import React, {useCallback, useEffect, useState, useMemo} from 'react';
+import React, {useCallback, useEffect, useState, useMemo, useRef} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
@@ -77,6 +77,7 @@ function WorkspaceMembersPage(props) {
     const prevIsOffline = usePrevious(props.network.isOffline);
     const accountIDs = useMemo(() => _.keys(props.policyMembers), [props.policyMembers]);
     const prevAccountIDs = usePrevious(accountIDs);
+    const textInputRef = useRef(null);
 
     /**
      * Get members for the current workspace
@@ -370,6 +371,14 @@ function WorkspaceMembersPage(props) {
                     prompt={props.translate('workspace.people.removeMembersPrompt')}
                     confirmText={props.translate('common.remove')}
                     cancelText={props.translate('common.cancel')}
+                    onModalHide={() =>
+                        InteractionManager.runAfterInteractions(() => {
+                            if (!textInputRef.current) {
+                                return;
+                            }
+                            textInputRef.current.focus();
+                        })
+                    }
                 />
                 <View style={[styles.w100, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow, styles.pt3, styles.ph5]}>
@@ -401,6 +410,7 @@ function WorkspaceMembersPage(props) {
                             onDismissError={dismissError}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
                             showScrollIndicator
+                            inputRef={textInputRef}
                         />
                     </View>
                 </View>
