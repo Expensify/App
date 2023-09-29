@@ -23,6 +23,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
+import DraftReportUtils from './DraftReportUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -52,12 +53,15 @@ Onyx.connect({
     },
 });
 
-let allReports;
+let allReports = {};
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (val) => (allReports = val),
 });
+
+const draftReportUtils = DraftReportUtils.getInstance();
 
 let doesDomainHaveApprovedAccountant;
 Onyx.connect({
@@ -1201,8 +1205,11 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
  * @returns {Object}
  */
 function getReport(reportID) {
-    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
+    /**
+     * using typical string concatenation here due to performance issues
+     * with template literals.
+    */
+    return allReports[ONYXKEYS.COLLECTION.REPORT + reportID] || {};
 }
 
 /**
@@ -1295,14 +1302,23 @@ function getMoneyRequestTotal(report, allReportsDict = null) {
  * @returns {String}
  */
 function getPolicyExpenseChatName(report, policy = undefined) {
-    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || lodashGet(allPersonalDetails, [report.ownerAccountID, 'login']) || report.reportName;
+    const ownerAccountID = report.ownerAccountID;
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || allPersonalDetails[ownerAccountID].login || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
         return getPolicyName(report, false, policy);
     }
 
-    const policyExpenseChatRole = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']) || 'user';
+    let policyExpenseChatRole = 'user';
+    /**
+     * using typical string concatenation here due to performance issues
+     * with template literals.
+    */
+    const policyItem = allPolicies[ONYXKEYS.COLLECTION.POLICY + report.policyID];
+    if (policyItem) {
+        policyExpenseChatRole = policyItem.role || 'user';
+    }
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
@@ -2971,7 +2987,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     }
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft, having an outstanding IOU, or being assigned to an open task.
-    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
+    if (draftReportUtils.getDraftReportIDs()[report.reportID] || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);

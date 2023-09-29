@@ -34,6 +34,7 @@ import withKeyboardState from '../../../../components/withKeyboardState';
 import {propTypes, defaultProps} from './composerWithSuggestionsProps';
 import focusWithDelay from '../../../../libs/focusWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
+import setDraftStatusForReportID from '../../../../libs/actions/DraftReports';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -203,7 +204,13 @@ function ComposerWithSuggestions({
                 debouncedUpdateFrequentlyUsedEmojis();
             }
 
-            setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
+            const isNewCommentEmpty = !!newComment.match(/^(\s)*$/);
+            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
+
+            /** Only update isCommentEmpty state if it's different from previous one */
+            if (isNewCommentEmpty !== isPrevCommentEmpty) {
+                setIsCommentEmpty(isNewCommentEmpty);
+            }
             setValue(newComment);
             if (commentValue !== newComment) {
                 // Ensure emoji suggestions are hidden even when the selection is not changed (so calculateEmojiSuggestion would not be called).
@@ -220,12 +227,11 @@ function ComposerWithSuggestions({
 
             // Indicate that draft has been created.
             if (commentRef.current.length === 0 && newComment.length !== 0) {
-                Report.setReportWithDraft(reportID, true);
+                setDraftStatusForReportID(reportID, true);
             }
-
             // The draft has been deleted.
-            if (newComment.length === 0) {
-                Report.setReportWithDraft(reportID, false);
+            else if (newComment.length === 0) {
+                setDraftStatusForReportID(reportID, false);
             }
 
             commentRef.current = newComment;
@@ -469,8 +475,7 @@ function ComposerWithSuggestions({
         if (value.length === 0) {
             return;
         }
-        Report.setReportWithDraft(reportID, true);
-
+        setDraftStatusForReportID(reportID, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

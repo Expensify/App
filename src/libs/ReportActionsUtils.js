@@ -13,6 +13,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 const allReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: (report, key) => {
         if (!key || !report) {
             return;
@@ -47,7 +48,7 @@ Onyx.connect({
  * @returns {Boolean}
  */
 function isCreatedAction(reportAction) {
-    return lodashGet(reportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
 
 /**
@@ -421,7 +422,10 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
  */
 function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
-    const message = lodashGet(lastVisibleAction, ['message', 0], {});
+    let message = {};
+    if (lastVisibleAction.message) {
+        message = lastVisibleAction.message[0];
+    }
 
     if (isReportMessageAttachment(message)) {
         return {
@@ -437,9 +441,14 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
         };
     }
 
-    const messageText = lodashGet(message, 'text', '');
+    let messageText = message.text || '';
+
+    if (messageText) {
+        messageText = String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    }
+
     return {
-        lastMessageText: String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim(),
+        lastMessageText: messageText,
     };
 }
 
@@ -638,7 +647,7 @@ function isTaskAction(reportAction) {
  * @returns {[Object]}
  */
 function getAllReportActions(reportID) {
-    return lodashGet(allReportActions, reportID, []);
+    return allReportActions[reportID] || [];
 }
 
 /**

@@ -13,6 +13,9 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
+import DraftReportUtils from '../DraftReportUtils';
+
+const draftReportUtils = DraftReportUtils.getInstance();
 
 const allPolicies = {};
 Onyx.connect({
@@ -29,12 +32,14 @@ Onyx.connect({
             const policyReports = ReportUtils.getAllPolicyReports(policyID);
             const cleanUpMergeQueries = {};
             const cleanUpSetQueries = {};
+            const draftReportIDs = {...draftReportUtils.getDraftReportIDs()};
             _.each(policyReports, ({reportID}) => {
-                cleanUpMergeQueries[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {hasDraft: false};
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+                delete draftReportIDs[reportID];
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
             Onyx.multiSet(cleanUpSetQueries);
+            Onyx.set(ONYXKEYS.DRAFT_REPORT_IDS, draftReportIDs);
             delete allPolicies[key];
             return;
         }
@@ -96,7 +101,6 @@ function deleteWorkspace(policyID, reports, policyName) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
-                hasDraft: false,
                 oldPolicyName: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].name,
             },
         })),
@@ -121,13 +125,12 @@ function deleteWorkspace(policyID, reports, policyName) {
 
     // Restore the old report stateNum and statusNum
     const failureData = [
-        ..._.map(reports, ({reportID, stateNum, statusNum, hasDraft, oldPolicyName}) => ({
+        ..._.map(reports, ({reportID, stateNum, statusNum, oldPolicyName}) => ({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 stateNum,
                 statusNum,
-                hasDraft,
                 oldPolicyName,
             },
         })),

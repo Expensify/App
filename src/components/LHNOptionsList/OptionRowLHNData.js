@@ -10,7 +10,6 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../withCurrentReportID';
 import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
-import * as Report from '../../libs/actions/Report';
 import * as UserUtils from '../../libs/UserUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
@@ -18,6 +17,7 @@ import * as TransactionUtils from '../../libs/TransactionUtils';
 import participantPropTypes from '../participantPropTypes';
 import CONST from '../../CONST';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import setDraftStatusForReportID from '../../libs/actions/DraftReports';
 
 const propTypes = {
     /** If true will disable ever setting the OptionRowLHN to focused */
@@ -121,7 +121,7 @@ function OptionRowLHNData({
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
             return;
         }
-        Report.setReportWithDraft(reportID, true);
+        setDraftStatusForReportID(reportID, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
