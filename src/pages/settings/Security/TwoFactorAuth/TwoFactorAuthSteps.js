@@ -24,14 +24,13 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
             setCurrentStep(account.twoFactorAuthStep);
             return;
         }
+
         if (account.requiresTwoFactorAuth) {
             setCurrentStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED);
         } else {
             setCurrentStep(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
         }
-        // we don't want to trigger the hook every time the step changes, only when the requiresTwoFactorAuth changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [account.requiresTwoFactorAuth]);
+    }, [account.requiresTwoFactorAuth, account.twoFactorAuthStep]);
 
     const handleSetStep = useCallback(
         (step, animationDirection = CONST.ANIMATION_DIRECTION.IN) => {

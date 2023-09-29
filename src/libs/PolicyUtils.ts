@@ -7,12 +7,14 @@ type PolicyMemberList = Record<string, OnyxTypes.PolicyMember>;
 type PolicyMembersCollection = Record<string, PolicyMemberList>;
 type MemberEmailsToAccountIDs = Record<string, string>;
 type PersonalDetailsList = Record<string, OnyxTypes.PersonalDetails>;
+type UnitRate = {rate: number};
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
+ * These are policies that we can use to create reports with in NewDot.
  */
 function getActivePolicies(policies: OnyxTypes.Policy[]): OnyxTypes.Policy[] {
-    return policies.filter((policy) => policy?.isPolicyExpenseChatEnabled && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return policies.filter((policy) => policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
@@ -41,16 +43,34 @@ function hasPolicyError(policy: OnyxTypes.Policy): boolean {
  * Checks if we have any errors stored within the policy custom units.
  */
 function hasCustomUnitsError(policy: OnyxTypes.Policy): boolean {
-    return Object.keys(policy?.customUnits?.error ?? {}).length > 0;
+    return Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
+}
+
+function getNumericValue(value: number, toLocaleDigit: (arg: string) => string): number | string {
+    const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
+    if (Number.isNaN(numValue)) {
+        return NaN;
+    }
+    return numValue.toFixed(CONST.CUSTOM_UNITS.RATE_DECIMALS);
+}
+
+function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string): string {
+    const numValue = getNumericValue(value, toLocaleDigit);
+    if (Number.isNaN(numValue)) {
+        return '';
+    }
+    return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
+}
+
+function getUnitRateValue(customUnitRate: UnitRate, toLocaleDigit: (arg: string) => string) {
+    return getRateDisplayValue((customUnitRate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit);
 }
 
 /**
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxTypes.Policy, policyMembersCollection: PolicyMembersCollection): string {
-    if (!(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy?.id}` in policyMembersCollection)) return '';
-
-    const policyMembers = policyMembersCollection[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy?.id}`];
+    const policyMembers = policyMembersCollection?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`] ?? {};
     if (hasPolicyMemberError(policyMembers) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
@@ -67,9 +87,9 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxTypes.Policy, policyMembe
 function shouldShowPolicy(policy: OnyxTypes.Policy, isOffline: boolean): boolean {
     return (
         policy &&
-        policy?.isPolicyExpenseChatEnabled &&
-        policy?.role === CONST.POLICY.ROLE.ADMIN &&
-        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy?.errors).length > 0)
+        policy.isPolicyExpenseChatEnabled &&
+        policy.role === CONST.POLICY.ROLE.ADMIN &&
+        (isOffline || policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors).length > 0)
     );
 }
 
@@ -94,17 +114,17 @@ const isPolicyAdmin = (policy: OnyxTypes.Policy): boolean => policy?.role === CO
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
 function getMemberAccountIDsForWorkspace(policyMembers: PolicyMemberList, personalDetails: PersonalDetailsList): MemberEmailsToAccountIDs {
-    const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
+    const memberEmailsToAccountIDs: Record<string, string> = {};
     Object.keys(policyMembers).forEach((accountID) => {
         const member = policyMembers?.[accountID];
         if (Object.keys(member?.errors ?? {}).length > 0) {
             return;
         }
-        const personalDetail = personalDetails?.[accountID];
+        const personalDetail = personalDetails[accountID];
         if (!personalDetail?.login) {
             return;
         }
-        memberEmailsToAccountIDs[personalDetail?.login] = accountID;
+        memberEmailsToAccountIDs[personalDetail.login] = accountID;
     });
     return memberEmailsToAccountIDs;
 }
@@ -117,7 +137,7 @@ function getIneligibleInvitees(policyMembers: PolicyMemberList, personalDetails:
     Object.keys(policyMembers).forEach((accountID) => {
         const policyMember = policyMembers?.[accountID];
         // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
-        if (policyMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyMember?.errors ?? {}).length > 0) {
+        if (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyMember?.errors ?? {}).length > 0) {
             return;
         }
         const memberEmail = personalDetails?.[accountID]?.login;
@@ -130,12 +150,57 @@ function getIneligibleInvitees(policyMembers: PolicyMemberList, personalDetails:
     return memberEmailsToExclude;
 }
 
+/**
+ * Gets the tag from policy tags, defaults to the first if no key is provided.
+ */
+function getTag(policyTags: Record<string, OnyxTypes.PolicyTag>, tagKey?: keyof typeof policyTags) {
+    if (Object.keys(policyTags).length === 0) {
+        return {};
+    }
+
+    const policyTagKey = tagKey ?? Object.keys(policyTags)[0];
+
+    return policyTags?.[policyTagKey] ?? {};
+}
+
+/**
+ * Gets the first tag name from policy tags.
+ */
+function getTagListName(policyTags: Record<string, OnyxTypes.PolicyTag>) {
+    if (Object.keys(policyTags).length === 0) {
+        return '';
+    }
+
+    const policyTagKeys = Object.keys(policyTags)[0] ?? [];
+
+    return policyTags?.[policyTagKeys]?.name ?? '';
+}
+
+/**
+ * Gets the tags of a policy for a specific key. Defaults to the first tag if no key is provided.
+ */
+function getTagList(policyTags: Record<string, Record<string, OnyxTypes.PolicyTag>>, tagKey: string) {
+    if (Object.keys(policyTags).length === 0) {
+        return {};
+    }
+
+    const policyTagKey = tagKey ?? Object.keys(policyTags)[0];
+
+    return policyTags?.[policyTagKey]?.tags ?? {};
+}
+
+function isPendingDeletePolicy(policy: OnyxTypes.Policy): boolean {
+    return policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
     hasPolicyError,
     hasPolicyErrorFields,
     hasCustomUnitsError,
+    getNumericValue,
+    getUnitRateValue,
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
     isExpensifyTeam,
@@ -143,4 +208,8 @@ export {
     isPolicyAdmin,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
+    getTag,
+    getTagListName,
+    getTagList,
+    isPendingDeletePolicy,
 };

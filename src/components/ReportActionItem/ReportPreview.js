@@ -30,7 +30,6 @@ import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import * as ReportActionUtils from '../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import ReportActionItemImages from './ReportActionItemImages';
-import colors from '../../styles/colors';
 
 const propTypes = {
     /** All the data of the action */
@@ -121,9 +120,7 @@ function ReportPreview(props) {
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
     const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID);
     const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
-    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename, receiptFilename}) =>
-        ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || receiptFilename || ''),
-    );
+    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || ''));
 
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
     const previewSubtitle = hasOnlyOneReceiptRequest
@@ -173,12 +170,12 @@ function ReportPreview(props) {
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
                 onPress={() => {
-                    Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.iouReportID));
                 }}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
-                style={[styles.flexRow, styles.justifyContentBetween]}
+                style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                 accessibilityRole="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
@@ -199,7 +196,7 @@ function ReportPreview(props) {
                             {hasErrors && (
                                 <Icon
                                     src={Expensicons.DotIndicator}
-                                    fill={colors.red}
+                                    fill={themeColors.danger}
                                 />
                             )}
                         </View>
@@ -230,7 +227,7 @@ function ReportPreview(props) {
                                 chatReportID={props.chatReportID}
                                 iouReport={props.iouReport}
                                 onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
-                                enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
                                 style={[styles.requestPreviewBox]}
                             />

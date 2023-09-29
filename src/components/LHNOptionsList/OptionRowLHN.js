@@ -12,7 +12,6 @@ import * as Expensicons from '../Icon/Expensicons';
 import MultipleAvatars from '../MultipleAvatars';
 import Hoverable from '../Hoverable';
 import DisplayNames from '../DisplayNames';
-import colors from '../../styles/colors';
 import Text from '../Text';
 import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
@@ -103,10 +102,7 @@ function OptionRowLHN(props) {
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const shouldShowGreenDotIndicator =
-        !hasBrickError &&
-        (optionItem.isUnreadWithMention ||
-            ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem) ||
-            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isCompletedTaskReport && !optionItem.isArchivedRoom));
+        !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -181,6 +177,7 @@ function OptionRowLHN(props) {
                         ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
+                        needsOffscreenAlphaCompositing={props.optionItem.icons.length >= 2}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -246,7 +243,7 @@ function OptionRowLHN(props) {
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
-                                            fill={colors.red}
+                                            fill={themeColors.danger}
                                         />
                                     </View>
                                 )}

@@ -67,6 +67,7 @@ import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import usePrevious from '../../../hooks/usePrevious';
 import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
+import RenderHTML from '../../../components/RenderHTML';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
 
 const propTypes = {
@@ -137,6 +138,12 @@ function ReportActionItem(props) {
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
+
+    // When active action changes, we need to update the `isContextMenuActive` state
+    const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID);
+    useEffect(() => {
+        setIsContextMenuActive(isActiveReportActionForMenu);
+    }, [isActiveReportActionForMenu]);
 
     const updateHiddenState = useCallback(
         (isHiddenValue) => {
@@ -504,23 +511,35 @@ function ReportActionItem(props) {
                         checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
                     }}
                 >
-                    <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                        <MoneyRequestView
-                            report={props.report}
-                            shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                        />
-                    </OfflineWithFeedback>
+                    <MoneyRequestView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
                 </ShowContextMenuContext.Provider>
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
+            if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
+                return (
+                    <>
+                        <ReportActionItemSingle
+                            action={parentReportAction}
+                            showHeader={!props.draftMessage}
+                            wrapperStyles={[styles.chatItem]}
+                            report={props.report}
+                        >
+                            <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                        </ReportActionItemSingle>
+                        <View style={styles.reportHorizontalRule} />
+                    </>
+                );
+            }
+
             return (
-                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                    <TaskView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
-                </OfflineWithFeedback>
+                <TaskView
+                    report={props.report}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                />
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
@@ -570,7 +589,10 @@ function ReportActionItem(props) {
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={props.translate('accessibilityHints.chatMessage')}
         >
-            <Hoverable disabled={Boolean(props.draftMessage)}>
+            <Hoverable
+                shouldHandleScroll
+                disabled={Boolean(props.draftMessage)}
+            >
                 {(hovered) => (
                     <View>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
@@ -597,9 +619,10 @@ function ReportActionItem(props) {
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
+                                shouldDisableStrikeThrough
                             >
                                 {isWhisper && (
-                                    <View style={[styles.flexRow, styles.pl5, styles.pt2]}>
+                                    <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
                                         <View style={[styles.pl6, styles.mr3]}>
                                             <Icon
                                                 src={Expensicons.Eye}
@@ -615,7 +638,7 @@ function ReportActionItem(props) {
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
-                                            textStyles={[styles.chatItemMessageHeaderTimestamp]}
+                                            textStyles={[styles.chatItemMessageHeaderTimestamp, styles.flex1]}
                                             shouldUseFullTitle={isWhisperOnlyVisibleByUser}
                                         />
                                     </View>
@@ -645,7 +668,8 @@ export default compose(
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
+            const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
         },
     }),
@@ -654,7 +678,11 @@ export default compose(
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
         iouReport: {
-            key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT}${ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}`,
+            key: ({action}) => {
+                const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
+                return iouReportID ? `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}` : undefined;
+            },
+            initialValue: {},
         },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../CONST';
 
-const checkboxListItemPropTypes = {
+const userListItemPropTypes = {
     /** The section list item */
     item: PropTypes.shape({
         /** Text to display */
@@ -45,6 +45,9 @@ const checkboxListItemPropTypes = {
 
     /** Whether this item is focused (for arrow key controls) */
     isFocused: PropTypes.bool,
+
+    /** Whether this item should show Tooltip */
+    showTooltip: PropTypes.bool.isRequired,
 
     /** Callback to fire when the item is pressed */
     onSelectRow: PropTypes.func.isRequired,
@@ -90,7 +93,7 @@ const propTypes = {
             indexOffset: PropTypes.number,
 
             /** Array of options */
-            data: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.shape(checkboxListItemPropTypes.item), PropTypes.shape(radioListItemPropTypes.item)])),
+            data: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.shape(userListItemPropTypes.item), PropTypes.shape(radioListItemPropTypes.item)])),
 
             /** Whether this section items disabled for selection */
             isDisabled: PropTypes.bool,
@@ -155,4 +158,4 @@ const propTypes = {
     showConfirmButton: PropTypes.bool,
 };
 
-export {propTypes, radioListItemPropTypes, checkboxListItemPropTypes};
+export {propTypes, radioListItemPropTypes, userListItemPropTypes};
