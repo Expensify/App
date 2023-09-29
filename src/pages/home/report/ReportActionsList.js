@@ -185,9 +185,7 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID.current) {
             return;
         }
-        console.log('ReportActionsList.js useEffect(): ', lastReadRef.current, ' < report.lastRead: ', report.lastReadTime);
         if (!messageManuallyMarkedUnread && lastReadRef.current && lastReadRef.current < report.lastReadTime) {
-            console.log('ReportActionsList.js useEffect(): delete reportID from cache');
             cacheUnreadMarkers.delete(report.reportID);
         }
         lastReadRef.current = report.lastReadTime;
