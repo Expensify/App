@@ -1,4 +1,4 @@
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Navigation from '../Navigation/Navigation';
 import * as ReportUtils from '../ReportUtils';
 import ROUTES from '../../ROUTES';
@@ -9,7 +9,7 @@ import CONST from '../../CONST';
 import Report from '../../types/onyx/Report';
 import OnyxPolicy from "../../types/onyx/Policy";
 
-let resolveIsReadyPromise: (value?: (PromiseLike<unknown>)) => void;
+let resolveIsReadyPromise: (value?: (PromiseLike<void>)) => void | undefined;
 let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
 });
@@ -37,23 +37,21 @@ type ShowParams = {
  * - Whether we have loaded all reports the server knows about
  */
 function checkOnReady() {
-    if (typeof isFirstTimeNewExpensifyUser !== "boolean" || isLoadingReportData) {
+    if (isFirstTimeNewExpensifyUser === undefined || isLoadingReportData) {
         return;
     }
 
-    if(resolveIsReadyPromise) {
-        resolveIsReadyPromise();
-    }
+    resolveIsReadyPromise?.();
 }
 
 Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     initWithStoredValues: false,
-    callback: (val) => {
+    callback: (val: OnyxEntry<boolean>) => {
         // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
         // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
-        if (val !== null) {
-            isFirstTimeNewExpensifyUser = val;
+        if (!isFirstTimeNewExpensifyUser) {
+            isFirstTimeNewExpensifyUser = val ?? undefined;
         }
         checkOnReady();
     },
@@ -71,7 +69,7 @@ Onyx.connect({
     },
 });
 
-const allReports: Record<string, Report> = {};
+const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     initWithStoredValues: false,
@@ -84,7 +82,7 @@ Onyx.connect({
     },
 });
 
-const allPolicies: Record<string, OnyxPolicy> = {};
+const allPolicies: OnyxCollection<OnyxPolicy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
@@ -134,21 +132,26 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}
         // navigate away to the workspace chat report
         const shouldNavigateToWorkspaceChat = !isDisplayingWorkspaceRoute && !openOnAdminRoom;
 
-        const workspaceChatReport = Object(allReports).values().find((report: Report) =>
-            ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS.CLOSED
-        );
+        const workspaceChatReport = Object.values(allReports ?? {}).find((report) => {
+            if (report) {
+                return ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS.CLOSED
+            }
+            return false;
+        });
 
-        if (workspaceChatReport || openOnAdminRoom) {
+        if (workspaceChatReport ?? openOnAdminRoom) {
             // This key is only updated when we call ReconnectApp, setting it to false now allows the user to navigate normally instead of always redirecting to the workspace chat
             Onyx.set(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, false);
         }
 
         if (shouldNavigateToWorkspaceChat && workspaceChatReport) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReport.reportID));
+            if (workspaceChatReport.reportID != null) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReport.reportID));
+            }
 
             // If showPopoverMenu exists and returns true then it opened the Popover Menu successfully, and we can update isFirstTimeNewExpensifyUser
             // so the Welcome logic doesn't run again
-            if (showPopoverMenu && showPopoverMenu()) {
+            if (showPopoverMenu?.()) {
                 isFirstTimeNewExpensifyUser = false;
             }
 
@@ -157,7 +160,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}
 
         // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
         // we will show the create menu.
-        if (!Policy.isAdminOfFreePolicy(allPolicies) && !isDisplayingWorkspaceRoute) {
+        if (allPolicies && !Policy.isAdminOfFreePolicy(allPolicies) && !isDisplayingWorkspaceRoute) {
             showCreateMenu();
         }
 
