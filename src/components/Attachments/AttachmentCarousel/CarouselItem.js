@@ -97,6 +97,7 @@ function CarouselItem({item, isFocused, onPress}) {
                     isFocused={isFocused}
                     onPress={onPress}
                     isUsedInCarousel
+                    transactionID={item.transactionID}
                 />
             </View>
 

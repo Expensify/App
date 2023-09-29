@@ -20,6 +20,8 @@ import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
 import * as TransactionUtils from '../../../libs/TransactionUtils';
 import DistanceEReceipt from '../../DistanceEReceipt';
 import useNetwork from '../../../hooks/useNetwork';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -40,6 +42,8 @@ const propTypes = {
 
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
+
+    transactionID: PropTypes.number,
 };
 
 const defaultProps = {
@@ -49,6 +53,7 @@ const defaultProps = {
     onToggleKeyboard: () => {},
     containerStyles: [],
     isWorkspaceAvatar: false,
+    transactionID: 0,
 };
 
 function AttachmentView({
@@ -177,16 +182,8 @@ export default compose(
     memo,
     withLocalize,
     withOnyx({
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
-        },
-        parentReportAction: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(report.parentReportID, report.parentReportActionID)}`,
-            selector: (reportActions, props) => props && props.parentReport && reportActions && reportActions[props.parentReport.parentReportActionID],
-            canEvict: false,
-        },
         transaction: {
-            key: ({parentReportAction}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`,
+            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         },
     }),
 )(AttachmentView);
