@@ -15,7 +15,7 @@ Expensify Invoicing lets you create and send invoices, receive payments, and tra
 **If you have an Individual Workspace:**
 
 1. Log into your Expensify account from the web (not the mobile app) 
-2. Head to **Settings** > **Workspaces** > **Individual** > [_Workspace Name_]> [**Invoices**](https://staging.expensify.com/policy?param={%22policyID%22:%22BD5FB746D3B220D6%22}#invoices).
+2. Head to **Settings** > **Workspaces** > **Individual** > [_Workspace Name_]> [**Invoices**](https://expensify.com/policy?param={"policyID":"BD5FB746D3B220D6"}#invoices).
 
 Here, you’ll be able to create a markup or add a payment account. Don’t forget you need a verified bank account to send or accept invoice payments via ACH.
 
