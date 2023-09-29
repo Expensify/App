@@ -58,6 +58,7 @@ Onyx.connect({
 const allReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     initWithStoredValues: false,
     callback: (val, key) => {
         if (!val || !key) {

@@ -64,6 +64,7 @@ Onyx.connect({
 const currentReportData = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: (data, key) => {
         if (!key || !data) {
             return;
@@ -920,17 +921,6 @@ function saveReportCommentNumberOfLines(reportID, numberOfLines) {
 }
 
 /**
- * Immediate indication whether the report has a draft comment.
- *
- * @param {String} reportID
- * @param {Boolean} hasDraft
- * @returns {Promise}
- */
-function setReportWithDraft(reportID, hasDraft) {
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
-}
-
-/**
  * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
  *
  * @param {String} reportID
@@ -994,6 +984,7 @@ function handleReportChanged(report) {
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: handleReportChanged,
 });
 
@@ -2189,7 +2180,6 @@ export {
     saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
-    setReportWithDraft,
     addPolicyReport,
     deleteReport,
     navigateToConciergeChatAndDeleteReport,

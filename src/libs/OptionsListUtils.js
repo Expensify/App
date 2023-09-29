@@ -83,6 +83,7 @@ Onyx.connect({
 const policyExpenseReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: (report, key) => {
         if (!ReportUtils.isPolicyExpenseChat(report)) {
             return;
@@ -486,7 +487,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
-        result.hasDraftComment = report.hasDraft;
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
