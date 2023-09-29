@@ -7,9 +7,9 @@ import ONYXKEYS from '../../ONYXKEYS';
 import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
 import Report from '../../types/onyx/Report';
-import OnyxPolicy from "../../types/onyx/Policy";
+import OnyxPolicy from '../../types/onyx/Policy';
 
-let resolveIsReadyPromise: (value?: (PromiseLike<void>)) => void | undefined;
+let resolveIsReadyPromise: (value?: PromiseLike<void>) => void | undefined;
 let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
 });
@@ -20,7 +20,7 @@ let currentUserAccountID: number | undefined;
 
 type Route = {
     name: string;
-    params?: {path: string, exitTo?: string, openOnAdminRoom?: boolean};
+    params?: {path: string; exitTo?: string; openOnAdminRoom?: boolean};
 };
 
 type ShowParams = {
@@ -61,8 +61,7 @@ Onyx.connect({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     initWithStoredValues: false,
     callback: (val) => {
-        if(val)
-        {
+        if (val) {
             isLoadingReportData = val;
         }
         checkOnReady();
@@ -121,7 +120,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}
 
         // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
         // create menu right now. We should also stay on the workspace page if that is our destination.
-        const topRoute = routes[routes.length - 1]
+        const topRoute = routes[routes.length - 1];
         const isWorkspaceRoute = topRoute.name === 'Settings' && topRoute.params?.path.includes('workspace');
         const transitionRoute = routes.find((route) => route.name === SCREENS.TRANSITION_BETWEEN_APPS);
         const exitingToWorkspaceRoute = transitionRoute?.params?.exitTo === 'workspace/new';
@@ -134,7 +133,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}
 
         const workspaceChatReport = Object.values(allReports ?? {}).find((report) => {
             if (report) {
-                return ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS.CLOSED
+                return ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS.CLOSED;
             }
             return false;
         });
