@@ -72,13 +72,10 @@ function ActivatePhysicalCardPage({
      * If state of the card is CONST.CARD_STATE.OPEN, navigate to card details screen.
      */
     useEffect(() => {
-        if (cardList[cardID].isLoading) {
+        if (cardList[cardID].isLoading || lodashGet(cardList, `${cardID}.state`, 0) !== CONST.CARD_STATE.OPEN) {
             return;
         }
-
-        if (!cardList[cardID].isLoading && lodashGet(cardList, `${cardID}.state`, 0) === CONST.CARD_STATE.OPEN) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
-        }
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
     }, [cardID, cardList, domain]);
 
     /**
