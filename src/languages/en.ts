@@ -73,8 +73,10 @@ import type {
     RequestedAmountMessageParams,
     TagSelectionParams,
     TranslationBase,
+    WalletProgramParams,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
 
 type StateValue = {
     stateISO: string;
@@ -1170,7 +1172,7 @@ export default {
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'The Expensify Wallet is issued by The Bancorp Bank.',
+            expensifyPaymentsAccount: ({ walletProgram }: WalletProgramParams) => `The Expensify Wallet is issued by ${walletProgram}.`,
             perPurchase: 'Per purchase',
             atmWithdrawal: 'ATM withdrawal',
             cashReload: 'Cash reload',
