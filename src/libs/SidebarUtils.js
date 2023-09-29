@@ -177,7 +177,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     const nonArchivedReports = [];
     const archivedReports = [];
     reportsToDisplay.forEach((report) => {
-        if (report.isPinned || report.violations) {
+        if (report.isPinned) {
             pinnedReports.push(report);
         } else if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
             outstandingIOUReports.push(report);
@@ -287,7 +287,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
-    result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) || report.violations === true ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;

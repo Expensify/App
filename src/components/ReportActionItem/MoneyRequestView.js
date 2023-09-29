@@ -94,13 +94,13 @@ const notes = [
 ];
 
 function getViolationForField(transaction, field) {
-    const {translate} = useLocalize();
-    const fieldViolation = _.find(transaction.violations, (violation) => violations[violation] === field);
-    return fieldViolation ? translate(fieldViolation) : '';
+    // const {translate} = useLocalize();
+    // const fieldViolation = _.find(transaction.violations, (violation) => violations[violation] === field);
+    // return fieldViolation ? translate(fieldViolation) : '';
 }
 
 function getNotesCount(transaction) {
-    return _.intersection(transaction.violations, notes).length;
+    // return _.intersection(transaction.violations, notes).length;
 }
 
 function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
