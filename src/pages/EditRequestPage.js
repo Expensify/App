@@ -21,9 +21,10 @@ import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
+import reportPropTypes from './reportPropTypes';
+import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestTagPage from './EditRequestTagPage';
-import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -116,7 +117,11 @@ function EditRequestPage({report, route, parentReport, policy, session, policyTa
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
-        IOU.editMoneyRequest(transaction.transactionID, report.reportID, transactionChanges);
+        if (TransactionUtils.isDistanceRequest(transaction)) {
+            IOU.updateDistanceRequest(transaction.transactionID, report.reportID, transactionChanges);
+        } else {
+            IOU.editMoneyRequest(transaction.transactionID, report.reportID, transactionChanges);
+        }
         Navigation.dismissModal(report.reportID);
     }
 
@@ -232,6 +237,16 @@ function EditRequestPage({report, route, parentReport, policy, session, policyTa
             <EditRequestReceiptPage
                 route={route}
                 transactionID={transaction.transactionID}
+            />
+        );
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE) {
+        return (
+            <EditRequestDistancePage
+                report={report}
+                transactionID={transaction.transactionID}
+                route={route}
             />
         );
     }
