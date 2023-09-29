@@ -2,7 +2,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../../ONYXKEYS';
 import transactionPropTypes from '../../../../../components/transactionPropTypes';
-import IOURequestFieldDistance from '../../step/IOURequestStepDistance';
+import IOURequestStepDistance from '../../step/IOURequestStepDistance';
 import Navigation from '../../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../../ROUTES';
 import CONST from '../../../../../CONST';
@@ -44,7 +44,7 @@ function IOURequestCreateTabDistance({transaction: {transactionID, reportID}, re
     };
 
     return (
-        <IOURequestFieldDistance
+        <IOURequestStepDistance
             transactionID={transactionID}
             onWaypointSelect={navigateToWaypointPage}
             onSubmit={goToNextStep}

@@ -4,8 +4,8 @@ import _ from 'underscore';
 
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../../CONST';
-import IOURequestFieldWaypoint from './step/IOURequestStepWaypoint';
-import IOURequestFieldParticipants from './step/IOURequestStepParticipants';
+import IOURequestStepWaypoint from './step/IOURequestStepWaypoint';
+import IOURequestStepParticipants from './step/IOURequestStepParticipants';
 
 const propTypes = {
     /** Route from navigation */
@@ -18,8 +18,8 @@ const propTypes = {
             /** The optimistic ID of a new transaction that is being created */
             transactionID: PropTypes.string.isRequired,
 
-            /** Which field the user is modifying */
-            field: PropTypes.oneOf(['amount', 'participants', 'confirmation', 'date', 'currency', 'description', 'category', 'tag', 'merchant', 'waypoint', 'address']),
+            /** Which step the user is modifying */
+            step: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_STEPS)),
 
             /** reportID if a transaction is attached to a specific report */
             reportID: PropTypes.string,
@@ -32,50 +32,50 @@ const defaultProps = {};
 function IOURequestStepPage({
     route,
     route: {
-        params: {field},
+        params: {step},
     },
 }) {
-    if (field === 'amount') {
+    if (step === CONST.IOU.REQUEST_STEPS.AMOUNT) {
         return null;
     }
 
-    if (field === 'participants') {
-        return <IOURequestFieldParticipants route={route} />;
+    if (step === 'participants') {
+        return <IOURequestStepParticipants route={route} />;
     }
 
-    if (field === 'confirmation') {
+    if (step === 'confirmation') {
         return null;
     }
 
-    if (field === 'date') {
+    if (step === 'date') {
         return null;
     }
 
-    if (field === 'currency') {
+    if (step === 'currency') {
         return null;
     }
 
-    if (field === 'description') {
+    if (step === 'description') {
         return null;
     }
 
-    if (field === 'category') {
+    if (step === 'category') {
         return null;
     }
 
-    if (field === 'tag') {
+    if (step === 'tag') {
         return null;
     }
 
-    if (field === 'merchant') {
+    if (step === 'merchant') {
         return null;
     }
 
-    if (field === 'waypoint') {
-        return <IOURequestFieldWaypoint route={route} />;
+    if (step === 'waypoint') {
+        return <IOURequestStepWaypoint route={route} />;
     }
 
-    if (field === 'address') {
+    if (step === 'address') {
         return null;
     }
 
