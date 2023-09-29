@@ -38,7 +38,6 @@ const defaultProps = {
     icon: () => {},
     title: '',
     backgroundColor: '',
-    : '',
     inactiveOpacity: 1,
     activeOpacity: 0,
     isFocused: false,
