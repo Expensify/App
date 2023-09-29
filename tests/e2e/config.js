@@ -21,7 +21,7 @@ const TEST_NAMES = {
  * ```
  */
 module.exports = {
-    APP_PACKAGE: 'com.expensify.chat',
+    APP_PACKAGE: 'com.expensify.chat.adhoc',
 
     APP_PATHS: {
         baseline: './app-e2eRelease-baseline.apk',
