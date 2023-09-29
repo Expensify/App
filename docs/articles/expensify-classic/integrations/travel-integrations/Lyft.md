@@ -16,7 +16,6 @@ If you use Lyft for work, you can connect your business profile to Expensify to 
 You're all set! Switch into business profile mode each time you take a ride for work, and your receipts will automatically populate in Expensify. 
 
 # How to set up Lyft for Business
-<!--
 If you have a Lyft for Business account for your company, setting up the Expensify and Lyft integration for your whole team is very straightforward:
 1. Open your Lyft for Business portal from a web browser.
 2. Navigate to People > Business Profile (+) and input each team member's work email.
