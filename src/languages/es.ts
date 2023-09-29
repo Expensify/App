@@ -73,6 +73,7 @@ import type {
     RequestedAmountMessageParams,
     TagSelectionParams,
     EnglishTranslation,
+    WalletProgramParams,
 } from './types';
 
 /* eslint-disable max-len */
@@ -905,7 +906,7 @@ export default {
         phrase2: 'Términos de Servicio',
         phrase3: 'y',
         phrase4: 'Privacidad',
-        phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
+        phrase5: `El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus`,
         phrase6: 'licencias',
     },
     validateCodeForm: {
@@ -1187,7 +1188,7 @@ export default {
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'La billetera Expensify es emitida por The Bancorp Bank.',
+            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
             perPurchase: 'Por compra',
             atmWithdrawal: 'Retiro de cajero automático',
             cashReload: 'Recarga de efectivo',
@@ -1230,10 +1231,10 @@ export default {
                 'transferencia (con una tarifa mínima de $ 0.25). ',
             fdicInsuranceBancorp:
                 'Sus fondos son elegibles para el seguro de la FDIC. Sus fondos se mantendrán en o ' +
-                'transferido a The Bancorp Bank, una institución asegurada por la FDIC. Una vez allí, sus fondos ' +
-                'están asegurados a $ 250,000 por la FDIC en caso de que The Bancorp Bank quiebre. Ver',
+                `transferido a ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, una institución asegurada por la FDIC. Una vez allí, sus fondos ` +
+                `están asegurados a $ 250,000 por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} quiebre. Ver`,
             fdicInsuranceBancorp2: 'para detalles.',
-            contactExpensifyPayments: 'Comuníquese con Expensify Payments llamando al + 1833-400-0904, por correoelectrónico a',
+            contactExpensifyPayments: `Comuníquese con ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} llamando al + 1833-400-0904, por correoelectrónico a`,
             contactExpensifyPayments2: 'o inicie sesión en',
             generalInformation: 'Para obtener información general sobre cuentas prepagas, visite',
             generalInformation2: 'Si tiene una queja sobre una cuenta prepaga, llame al Consumer Financial Oficina de Protección al 1-855-411-2372 o visite',
