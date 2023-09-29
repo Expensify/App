@@ -190,7 +190,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             bounces={false}
                             // Scroll only one image at a time no matter how fast the user swipes
                             disableIntervalMomentum
-                            pagingEnabled={false}
                             snapToAlignment="start"
                             snapToInterval={containerWidth}
                             // Enable scrolling by swiping on mobile (touch) devices only
