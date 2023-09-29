@@ -25,6 +25,9 @@ const propTypes = {
             /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string,
 
+            /** The ID of the transaction being configured */
+            transactionID: PropTypes.string,
+
             /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
@@ -42,13 +45,8 @@ const defaultProps = {
 function IOURequestStepParticipants({transaction, transaction: {transactionID, reportID, participants}}) {
     const {translate} = useLocalize();
     const optionsSelectorRef = useRef();
-    const headerTitles = {
-        [CONST.IOU.REQUEST_TYPE.DISTANCE]: translate('tabSelector.distance'),
-        [CONST.IOU.REQUEST_TYPE.MANUAL]: translate('tabSelector.manual'),
-        [CONST.IOU.REQUEST_TYPE.SCAN]: translate('tabSelector.scan'),
-    };
     const iouRequestType = TransactionUtils.getRequestType(transaction);
-    const headerTitle = headerTitles[iouRequestType];
+    const headerTitle = TransactionUtils.getHeaderTitle(translate, transaction);
 
     const goToNextStep = () => {
         Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));

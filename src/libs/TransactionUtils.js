@@ -367,9 +367,32 @@ function getRequestType(transaction) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
     if (isScanRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.MANUAL;
+        return CONST.IOU.REQUEST_TYPE.SCAN;
     }
-    return CONST.IOU.REQUEST_TYPE.SCAN;
+    return CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+/**
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
+function isManualRequest(transaction) {
+    return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+/**
+ * @param {Function} translate
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getHeaderTitle(translate, transaction) {
+    const headerTitles = {
+        [CONST.IOU.REQUEST_TYPE.DISTANCE]: translate('tabSelector.distance'),
+        [CONST.IOU.REQUEST_TYPE.MANUAL]: translate('tabSelector.manual'),
+        [CONST.IOU.REQUEST_TYPE.SCAN]: translate('tabSelector.scan'),
+    };
+    const iouRequestType = getRequestType(transaction);
+    return headerTitles[iouRequestType];
 }
 
 function isReceiptBeingScanned(transaction) {
@@ -487,6 +510,7 @@ export {
     getCreated,
     getCurrency,
     getDescription,
+    getHeaderTitle,
     getLinkedTransaction,
     getMerchant,
     getRequestType,
@@ -500,6 +524,7 @@ export {
     hasReceipt,
     hasRoute,
     isDistanceRequest,
+    isManualRequest
     isScanRequest,
     isSplitRequest,
     isReceiptBeingScanned,
