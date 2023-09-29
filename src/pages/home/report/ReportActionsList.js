@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
-import { useRoute } from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import CONST from '../../../CONST';
 import InvertedFlatList from '../../../components/InvertedFlatList';

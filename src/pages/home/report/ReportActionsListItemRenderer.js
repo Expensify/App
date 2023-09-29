@@ -33,7 +33,7 @@ const propTypes = {
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: PropTypes.bool.isRequired,
-  
+
     /** Linked report action ID */
     linkedReportActionID: PropTypes.string,
 };
