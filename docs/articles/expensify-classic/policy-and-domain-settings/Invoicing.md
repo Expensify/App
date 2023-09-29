@@ -10,7 +10,7 @@ Expensify Invoicing lets you create and send invoices, receive payments, and tra
 **If you have a Group Workspace:**
 
 1. Log into your Expensify account from the web (not the mobile app) 
-2. Head to **Settings** > **Workspaces** > **Group** > [_Workspace Name_] > [**Invoices**](https://staging.expensify.com/policy?param={%22policyID%22:%2220AB6A03EB9CE54D%22}#invoices).
+3. Head to **Settings** > **Workspaces** > **Group** > [_Workspace Name_] > [**Invoices**](https://expensify.com/policy?param={"policyID":"20AB6A03EB9CE54D"}#invoices).
 
 **If you have an Individual Workspace:**
 
