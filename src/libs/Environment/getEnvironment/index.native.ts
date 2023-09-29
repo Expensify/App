@@ -1,28 +1,25 @@
-import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
 import betaChecker from '../betaChecker';
 import CONST from '../../../CONST';
 
-let environment = null;
+let environment: string | null = null;
 
 /**
  * Returns a promise that resolves with the current environment string value
- *
- * @returns {Promise}
  */
-function getEnvironment() {
+function getEnvironment(): Promise<string> {
     return new Promise((resolve) => {
         // If we've already set the environment, use the current value
         if (environment) {
             return resolve(environment);
         }
 
-        if (lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
+        if ((Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
             environment = CONST.ENVIRONMENT.DEV;
             return resolve(environment);
         }
 
-        if (lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.ADHOC) {
+        if ((Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.ADHOC) {
             environment = CONST.ENVIRONMENT.ADHOC;
             return resolve(environment);
         }

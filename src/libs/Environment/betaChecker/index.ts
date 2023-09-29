@@ -1,9 +1,7 @@
 /**
  * There's no beta build in non native
- *
- * @returns {Promise}
  */
-function isBetaBuild() {
+function isBetaBuild(): Promise<boolean> {
     return Promise.resolve(false);
 }
 
