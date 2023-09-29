@@ -491,7 +491,6 @@ const Form = forwardRef((props, forwardedRef) => {
                         useSmallerSubmitButtonSize={props.useSmallerSubmitButtonSize}
                         disablePressOnEnter
                         errorMessageStyle={props.errorMessageStyle}
-                        isDisabled={props.isDisabled}
                     />
                 )}
             </FormSubmit>
@@ -517,7 +516,6 @@ const Form = forwardRef((props, forwardedRef) => {
             props.submitButtonStyle,
             props.useSmallerSubmitButtonSize,
             props.errorMessageStyle,
-            props.isDisabled,
         ],
     );
 

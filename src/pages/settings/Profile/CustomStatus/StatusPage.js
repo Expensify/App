@@ -38,7 +38,6 @@ const initialEmoji = '💬';
 function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const localize = useLocalize();
     const [brickRoadIndicator, setBrickRoadIndicator] = useState('');
-    const [isFormDirty, setFormDirty] = useState(false);
     const formRef = useRef(null);
     const currentUserEmojiCode = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
     const currentUserStatusText = lodashGet(currentUserPersonalDetails, 'status.text', '');
@@ -108,29 +107,12 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const checkIfFormIsDirty = useCallback(
-        ({emojiCode, statusText}) => {
-            const isDirty = currentUserEmojiCode !== emojiCode || currentUserStatusText !== statusText || currentUserClearAfter !== draftClearAfter || initialEmoji === emojiCode;
-            setFormDirty(isDirty);
-        },
-        [currentUserEmojiCode, currentUserStatusText, currentUserClearAfter, draftClearAfter],
-    );
-
-    useEffect(() => {
-        setFormDirty(!!brickRoadIndicator || currentUserClearAfter !== draftClearAfter);
-    }, [currentUserClearAfter, draftClearAfter, brickRoadIndicator]);
-
-    const validateForm = useCallback(
-        (v) => {
-            checkIfFormIsDirty(v);
-
-            if (brickRoadIndicator) {
-                return {clearAfter: ''};
-            }
-            return {};
-        },
-        [brickRoadIndicator, checkIfFormIsDirty],
-    );
+    const validateForm = useCallback(() => {
+        if (brickRoadIndicator) {
+            return {clearAfter: ''};
+        }
+        return {};
+    }, [brickRoadIndicator]);
     return (
         <ScreenWrapper
             testID={StatusPage.displayName}
@@ -150,7 +132,6 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 onSubmit={updateStatus}
                 validate={validateForm}
                 enabledWhenOffline
-                isDisabled={!isFormDirty}
             >
                 <View style={styles.mh5}>
                     <Text style={[styles.textHeadline]}>{localize.translate('statusPage.setStatusTitle')}</Text>
