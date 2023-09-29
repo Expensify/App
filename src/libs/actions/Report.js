@@ -942,12 +942,7 @@ function handleReportChanged(report) {
     // We should clear out the optimistically created report and re-route the user to the preexisting report.
     if (report && report.reportID && report.preexistingReportID) {
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
-
-        // Only re-route them if they are still looking at the optimistically created report
-        if (Navigation.getActiveRoute().includes(`/r/${report.reportID}`)) {
-            // Pass 'FORCED_UP' type to replace new report on second login with proper one in the Navigation
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
-        }
+        Navigation.replaceReportIDInNavigationStack(report.reportID, report.preexistingReportID);
         return;
     }
 
