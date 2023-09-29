@@ -7,7 +7,6 @@ import HeaderWithBackButton from '../HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
-import ROUTES from '../../ROUTES';
 import useLocalize from '../../hooks/useLocalize';
 import ROUTES from '../../ROUTES';
 

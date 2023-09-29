@@ -75,7 +75,10 @@ function ReportWelcomeMessagePage(props) {
     );
 
     return (
-        <ScreenWrapper testID={ReportWelcomeMessagePage.displayName} onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}>
+        <ScreenWrapper
+            testID={ReportWelcomeMessagePage.displayName}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
+        >
             <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
                 <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
                 <Form
