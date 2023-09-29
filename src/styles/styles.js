@@ -3687,6 +3687,7 @@ const styles = (theme) => ({
         ...flex.flex1,
         ...objectFit.oFCover,
         borderRadius: variables.componentBorderRadiusCard,
+    },
 
     walletCard: {
         borderRadius: variables.componentBorderRadiusLarge,

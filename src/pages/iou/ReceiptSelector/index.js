@@ -1,4 +1,4 @@
-import {View, Text, PixelRatio, ActivityIndicator} from 'react-native';
+import {View, Text, PixelRatio, ActivityIndicator, PanResponder} from 'react-native';
 import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -28,6 +28,7 @@ import Shutter from '../../../../assets/images/shutter.svg';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import * as Browser from '../../../libs/Browser';
 import Hand from '../../../../assets/images/hand.svg';
+import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** The report on which the request is initiated on */
@@ -155,8 +156,15 @@ function ReceiptSelector(props) {
             return;
         }
 
-        IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
-    }, [cameraRef, props.iou, props.report, reportID, iouType, props.transactionID]);
+        IOU.navigateToNextPage(props.iou, iouType, props.report, props.route.path);
+    }, [cameraRef, props.iou, props.report, iouType, props.transactionID, props.route.path]);
+
+    const panResponder = useRef(
+        PanResponder.create({
+            onMoveShouldSetPanResponder: () => true,
+            onPanResponderTerminationRequest: () => false,
+        }),
+    ).current;
 
     return (
         <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
@@ -235,7 +243,7 @@ function ReceiptSelector(props) {
                             accessibilityLabel={translate('receipt.flash')}
                             style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
                             onPress={toggleFlashlight}
-                            disabled={isTorchAvailable}
+                            disabled={!isTorchAvailable}
                         >
                             <Icon
                                 height={32}

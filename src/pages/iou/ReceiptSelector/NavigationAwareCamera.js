@@ -56,7 +56,7 @@ function NavigationAwareCamera({torchOn, onTorchAvailability, ...props}, ref) {
     return (
         <Webcam
             audio={false}
-            screenshotFormat="image/jpeg"
+            screenshotFormat="image/png"
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
