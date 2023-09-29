@@ -3674,6 +3674,7 @@ const styles = (theme) => ({
         borderRadius: variables.componentBorderRadiusLarge,
     },
     userReportStatusEmoji: {
+        flexShrink: 0,
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
     },
