@@ -2,7 +2,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../../ONYXKEYS';
 import transactionPropTypes from '../../../../../components/transactionPropTypes';
-import IOURequestFieldDistance from '../../field/IOURequestFieldDistance';
+import IOURequestFieldDistance from '../../step/IOURequestStepDistance';
 import Navigation from '../../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../../ROUTES';
 import CONST from '../../../../../CONST';
@@ -27,20 +27,20 @@ function IOURequestCreateTabDistance({transaction: {transactionID, reportID}, re
      * @param {Number} index of the waypoint that the user needs to be taken to
      */
     const navigateToWaypointPage = (index) => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, 'waypoint', transactionID, reportID, index));
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.WAYPOINT, transactionID, reportID, index));
     };
 
     const goToNextStep = () => {
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-        // inside a report. If that's the case, we know the participants already and can skip the participants step and go straight
+        // inside a report. In this case, we know the participants already and can skip the participants step and go straight
         // to the confirm step.
         if (report.reportID) {
-            Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, 'confirm', transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
         }
 
         // If there was no reportID, then that means the user started this flow from the global + menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
-        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, 'participants', transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
     };
 
     return (

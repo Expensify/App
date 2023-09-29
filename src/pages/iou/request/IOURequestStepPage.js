@@ -4,8 +4,8 @@ import _ from 'underscore';
 
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../../CONST';
-import IOURequestFieldWaypoint from './field/IOURequestFieldWaypoint';
-import IOURequestFieldParticipants from './field/IOURequestFieldParticipants';
+import IOURequestFieldWaypoint from './step/IOURequestStepWaypoint';
+import IOURequestFieldParticipants from './step/IOURequestStepParticipants';
 
 const propTypes = {
     /** Route from navigation */
@@ -29,7 +29,7 @@ const propTypes = {
 
 const defaultProps = {};
 
-function IOURequestFieldPage({
+function IOURequestStepPage({
     route,
     route: {
         params: {field},
@@ -82,7 +82,7 @@ function IOURequestFieldPage({
     return <FullPageNotFoundView shouldShow />;
 }
 
-IOURequestFieldPage.displayName = 'IOURequestFieldPage';
-IOURequestFieldPage.propTypes = propTypes;
-IOURequestFieldPage.defaultProps = defaultProps;
-export default IOURequestFieldPage;
+IOURequestStepPage.displayName = 'IOURequestStepPage';
+IOURequestStepPage.propTypes = propTypes;
+IOURequestStepPage.defaultProps = defaultProps;
+export default IOURequestStepPage;

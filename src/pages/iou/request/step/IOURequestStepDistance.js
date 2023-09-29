@@ -62,7 +62,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestFieldDistance({transactionID, transaction, mapboxAccessToken, onSubmit, onWaypointSelect}) {
+function IOURequestStepDistance({transactionID, transaction, mapboxAccessToken, onSubmit, onWaypointSelect}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -259,9 +259,9 @@ function IOURequestFieldDistance({transactionID, transaction, mapboxAccessToken,
     );
 }
 
-IOURequestFieldDistance.displayName = 'IOURequestFieldDistance';
-IOURequestFieldDistance.propTypes = propTypes;
-IOURequestFieldDistance.defaultProps = defaultProps;
+IOURequestStepDistance.displayName = 'IOURequestStepDistance';
+IOURequestStepDistance.propTypes = propTypes;
+IOURequestStepDistance.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -269,4 +269,4 @@ export default withOnyx({
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
     },
-})(IOURequestFieldDistance);
+})(IOURequestStepDistance);

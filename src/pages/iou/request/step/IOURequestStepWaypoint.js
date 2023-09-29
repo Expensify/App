@@ -75,7 +75,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestFieldWaypoint({route: {params: {iouType = '', transactionID = '', waypointIndex = '', reportID = ''}} = {}, transaction, recentWaypoints}) {
+function IOURequestStepWaypoint({route: {params: {iouType = '', transactionID = '', waypointIndex = '', reportID = ''}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
@@ -189,7 +189,7 @@ function IOURequestFieldWaypoint({route: {params: {iouType = '', transactionID =
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             shouldEnableMaxHeight
-            testID={IOURequestFieldWaypoint.displayName}
+            testID={IOURequestStepWaypoint.displayName}
         >
             <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount) && isFocused}>
                 <HeaderWithBackButton
@@ -261,9 +261,9 @@ function IOURequestFieldWaypoint({route: {params: {iouType = '', transactionID =
     );
 }
 
-IOURequestFieldWaypoint.displayName = 'IOURequestFieldWaypoint';
-IOURequestFieldWaypoint.propTypes = propTypes;
-IOURequestFieldWaypoint.defaultProps = defaultProps;
+IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
+IOURequestStepWaypoint.propTypes = propTypes;
+IOURequestStepWaypoint.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
@@ -284,4 +284,4 @@ export default withOnyx({
                 },
             })),
     },
-})(IOURequestFieldWaypoint);
+})(IOURequestStepWaypoint);

@@ -2,12 +2,6 @@ import {ValueOf} from 'type-fest';
 
 import CONST from './CONST';
 
-/**
- * This is a file containing constants for all of the routes we want to be able to go to
- */
-
-type MoneyRequestFields = 'amount' | 'participants' | 'confirmation' | 'date' | 'currency' | 'description' | 'category' | 'tag' | 'merchant' | 'waypoint' | 'address';
-
 export default {
     HOME: '',
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
@@ -260,10 +254,10 @@ export default {
         route: 'create/:iouType/start/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}`,
     },
-    MONEE_REQUEST_FIELD: {
-        route: 'create/:iouType/:field/:transactionID/:reportID/:waypointIndex?',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, field: MoneyRequestFields, transactionID: string, reportID: string, waypointIndex = '') =>
-            `create/${iouType}/${field}/${transactionID}/${reportID}/${waypointIndex}`,
+    MONEE_REQUEST_STEP: {
+        route: 'create/:iouType/:step/:transactionID/:reportID/:waypointIndex?',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, step: ValueOf<typeof CONST.IOU.REQUEST_STEPS>, transactionID: string, reportID: string, waypointIndex = '') =>
+            `create/${iouType}/${step}/${transactionID}/${reportID}/${waypointIndex}`,
     },
     MONEE_REQUEST_CREATE_TAB_DISTANCE: {
         route: 'create/:iouType/start/:transactionID/:reportID/distance',

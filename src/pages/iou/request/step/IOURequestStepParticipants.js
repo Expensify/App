@@ -40,7 +40,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestFieldParticipants({transaction, transaction: {transactionID, reportID, participants}}) {
+function IOURequestStepParticipants({transaction, transaction: {transactionID, reportID, participants}}) {
     const {translate} = useLocalize();
     const optionsSelectorRef = useRef();
     const headerTitles = {
@@ -52,7 +52,7 @@ function IOURequestFieldParticipants({transaction, transaction: {transactionID, 
     const headerTitle = headerTitles[iouRequestType];
 
     const goToNextStep = () => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(CONST.IOU.TYPE.REQUEST, 'confirmation', transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
     };
 
     const navigateBack = (forceFallback = false) => {
@@ -64,7 +64,7 @@ function IOURequestFieldParticipants({transaction, transaction: {transactionID, 
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
-            testID={IOURequestFieldParticipants.displayName}
+            testID={IOURequestStepParticipants.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
@@ -87,12 +87,12 @@ function IOURequestFieldParticipants({transaction, transaction: {transactionID, 
     );
 }
 
-IOURequestFieldParticipants.displayName = 'IOURequestFieldParticipants';
-IOURequestFieldParticipants.propTypes = propTypes;
-IOURequestFieldParticipants.defaultProps = defaultProps;
+IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
+IOURequestStepParticipants.propTypes = propTypes;
+IOURequestStepParticipants.defaultProps = defaultProps;
 
 export default withOnyx({
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
     },
-})(IOURequestFieldParticipants);
+})(IOURequestStepParticipants);
