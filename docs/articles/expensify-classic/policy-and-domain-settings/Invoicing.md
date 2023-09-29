@@ -1,5 +1,5 @@
 ---
-title: Expensify-Invoicing.md
+title: Expensify Invoicing
 description: Expensify Invoicing
 ---
 # Overview
