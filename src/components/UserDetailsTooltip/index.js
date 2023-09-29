@@ -5,6 +5,8 @@ import BaseUserDetailsTooltip from './BaseUserDetailsTooltip';
 
 const propTypes = {
     ...userDetailsTooltipPropTypes,
+
+    /** Whether the actual UserDetailsTooltip should be rendered. If false, it's just going to return the children */
     shouldRender: PropTypes.bool,
 };
 
