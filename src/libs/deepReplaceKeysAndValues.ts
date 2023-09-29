@@ -1,7 +1,7 @@
 type ReplaceableValue = Record<string, unknown> | unknown[] | string | number | boolean | undefined | null;
 
 /**
- * @param  obj the object to transform
+ * @param obj the object to transform
  * @param oldVal the value to search for
  * @param newVal the replacement value
  */
