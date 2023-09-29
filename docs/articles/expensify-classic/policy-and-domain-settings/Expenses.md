@@ -1,5 +1,5 @@
 ---
-title: Expensify-Workspace-Expense-Settings.md
+title: Expensify Workspace Expense Settings
 description: Expense Settings
 ---
 # Overview
