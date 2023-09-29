@@ -1031,7 +1031,6 @@ function deleteReportComment(reportID, reportAction) {
     let optimisticReport = {
         lastMessageTranslationKey: '',
         lastMessageText: '',
-        lastVisibleActionCreated: '',
     };
     if (reportAction.childVisibleActionCount === 0) {
         optimisticReport = {
