@@ -114,7 +114,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
         // Check initial camera permission status
         refreshCameraPermissionStatus();
 
-        // Refresh permission stasus when app gain focus
+        // Refresh permission status when app gain focus
         const subscription = AppState.addEventListener('change', (appState) => {
             if (appState !== 'active') {
                 return;
