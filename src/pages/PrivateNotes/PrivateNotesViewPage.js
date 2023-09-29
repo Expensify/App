@@ -55,6 +55,16 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
     const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
     const privateNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
 
+    const getFallbackRoute = () => {
+        const privateNotes = lodashGet(report, 'privateNotes', {});
+
+        if (_.keys(privateNotes).length === 1) {
+            return ROUTES.HOME;
+        }
+
+        return ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -66,7 +76,7 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(getFallbackRoute())}
                     subtitle={isCurrentUserNote ? translate('privateNotes.myNote') : `${lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')} note`}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
