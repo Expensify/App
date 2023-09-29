@@ -291,7 +291,7 @@ const ONYXKEYS = {
         PRIVATE_NOTES_FORM: 'privateNotesForm',
         I_KNOW_A_TEACHER_FORM: 'iKnowTeacherForm',
         INTRO_SCHOOL_PRINCIPAL_FORM: 'introSchoolPrincipalForm',
-        REPORT_PHYSICAL_CARD: 'reportPhysicalCardLostForm',
+        REPORT_PHYSICAL_CARD_FORM: 'reportPhysicalCardLostForm',
     },
 } as const;
 
@@ -422,7 +422,7 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_AFTER_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
 };
 
 export default ONYXKEYS;

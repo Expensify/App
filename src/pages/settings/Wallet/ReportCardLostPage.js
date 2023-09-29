@@ -108,7 +108,7 @@ function ReportCardLostPage({
             return;
         }
 
-        FormActions.setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD, physicalCard.errors);
+        FormActions.setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, physicalCard.errors);
     }, [domain, formData.isLoading, prevIsLoading, physicalCard.errors]);
 
     const onSubmit = () => {
@@ -139,21 +139,23 @@ function ReportCardLostPage({
     }
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ReportCardLostPage.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('reportCardLostOrDamaged.screenTitle')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
             <Form
-                formID={ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD}
+                formID={ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM}
                 onSubmit={onSubmit}
                 submitButtonText={isReasonConfirmed ? translate('reportCardLostOrDamaged.deactivateCardButton') : translate('reportCardLostOrDamaged.nextButtonLabel')}
-                style={styles.flexGrow1}
-                buttonStyles={[styles.ph5]}
+                style={[styles.flexGrow1, styles.ph5]}
             >
                 {isReasonConfirmed ? (
                     <>
-                        <Text style={[styles.textHeadline, styles.mb3, styles.mh5]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
+                        <Text style={[styles.textHeadline, styles.mb3]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
                         <MenuItemWithTopDescription
                             inputID="address"
                             title={formattedAddress}
@@ -161,12 +163,13 @@ function ReportCardLostPage({
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
                             numberOfLinesTitle={2}
+                            wrapperStyle={styles.ph0}
                         />
-                        {shouldShowAddressError && <Text style={[styles.mh5, styles.formError]}>{translate('reportCardLostOrDamaged.addressError')}</Text>}
-                        <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.currentCardInfo')}</Text>
+                        {shouldShowAddressError && <Text style={styles.formError}>{translate('reportCardLostOrDamaged.addressError')}</Text>}
+                        <Text style={styles.mt3}>{translate('reportCardLostOrDamaged.currentCardInfo')}</Text>
                     </>
                 ) : (
-                    <View style={styles.mh5}>
+                    <View>
                         <Text style={[styles.textHeadline, styles.pre]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
                         <SingleOptionSelector
                             options={OPTIONS}
@@ -192,6 +195,6 @@ export default withOnyx({
         key: ONYXKEYS.CARD_LIST,
     },
     formData: {
-        key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD,
+        key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
     },
 })(ReportCardLostPage);
