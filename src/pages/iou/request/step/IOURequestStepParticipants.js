@@ -52,7 +52,7 @@ function IOURequestStepParticipants({transaction, transaction: {transactionID, r
     const headerTitle = headerTitles[iouRequestType];
 
     const goToNextStep = () => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
     };
 
     const navigateBack = (forceFallback = false) => {
