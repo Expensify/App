@@ -197,16 +197,17 @@ function setPersonalDetails(login, accountID) {
 /**
  * @param {String} created
  * @param {Number} actorAccountID
- * @param {String} actionID
+ * @param {String} [actionID]
+ * @param {String} [actorName]
  * @returns {Object}
  */
-function buildTestReportComment(created, actorAccountID, actionID = null) {
+function buildTestReportComment(created, actorAccountID, actionID = null, actorName = '') {
     const reportActionID = actionID || NumberUtils.rand64();
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
         person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
         created,
-        message: [{type: 'COMMENT', html: `Comment ${actionID}`, text: `Comment ${actionID}`}],
+        message: [{type: 'COMMENT', html: `Comment ${actionID}${actorName ? ` from ${actorName}` : ''}`, text: `Comment ${actionID}${actorName ? ` from ${actorName}` : ''}`}],
         reportActionID,
         actorAccountID,
     };
