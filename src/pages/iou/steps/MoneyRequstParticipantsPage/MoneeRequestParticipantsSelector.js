@@ -56,7 +56,7 @@ const propTypes = {
     iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
     /** The request type, ie. manual, scan, distance */
-    iouRequestType: PropTypes.onfOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
+    iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
 
     ...withLocalizePropTypes,
 };

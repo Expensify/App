@@ -473,6 +473,7 @@ export default {
     tabSelector: {
         chat: 'Chat',
         room: 'Room',
+        distance: 'Distance',
         manual: 'Manual',
         scan: 'Scan',
     },

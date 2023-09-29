@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import {format, parseISO, isValid} from 'date-fns';
 import lodashGet from 'lodash/get';
+import lodashHas from 'lodash/has';
 import _ from 'underscore';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
@@ -319,11 +320,18 @@ function getCreated(transaction) {
  * @param {Object} transaction
  * @param {Object} transaction.comment
  * @param {String} transaction.comment.type
+ * @param {Object} [transaction.comment.waypoints]
  * @param {Object} [transaction.comment.customUnit]
  * @param {String} [transaction.comment.customUnit.name]
  * @returns {Boolean}
  */
 function isDistanceRequest(transaction) {
+    // This is the case for temporary transaction objects that haven't been saved yet
+    if (lodashHas(transaction, 'comment.waypoints') && _.size(transaction.comment.waypoints) > 1) {
+        return true;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
     const type = lodashGet(transaction, 'comment.type');
     const customUnitName = lodashGet(transaction, 'comment.customUnit.name');
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
@@ -336,7 +344,7 @@ function isDistanceRequest(transaction) {
  * @returns {Boolean}
  */
 function isScanRequest(transaction) {
-    return Boolean(lodashGet(transaction, 'receipt.source'));
+    return lodashHas(transaction, 'receipt.source');
 }
 
 /**

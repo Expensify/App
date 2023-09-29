@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -14,7 +14,6 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as IOU from '../../../../libs/actions/IOU';
-import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import useLocalize from '../../../../hooks/useLocalize';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
 import * as TransactionUtils from '../../../../libs/TransactionUtils';
@@ -43,49 +42,22 @@ const defaultProps = {
 
 function IOURequestFieldParticipants({transaction, transaction: {transactionID, reportID, participants}}) {
     const {translate} = useLocalize();
-    const prevMoneyRequestId = useRef(transactionID);
-    const isNewReportIDSelectedLocally = useRef(false);
     const optionsSelectorRef = useRef();
     const headerTitles = {
-        [CONST.IOU.REQUEST_TYPE.DISTANCE]: translate('common.distance'),
-        [CONST.IOU.REQUEST_TYPE.MANUAL]: translate('common.manual'),
-        // @TODO - figure out if this step is used for scan, and find the correct tanslation for it
-        // @TODO - figure out how this component was used in the split flow.
-        // @TODO - I can't even find "common.split" in our language file
-        [CONST.IOU.REQUEST_TYPE.SCAN]: translate('common.split'),
+        [CONST.IOU.REQUEST_TYPE.DISTANCE]: translate('tabSelector.distance'),
+        [CONST.IOU.REQUEST_TYPE.MANUAL]: translate('tabSelector.manual'),
+        [CONST.IOU.REQUEST_TYPE.SCAN]: translate('tabSelector.scan'),
     };
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = headerTitles[iouRequestType];
 
     const goToNextStep = () => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(iouRequestType, 'confirmation', transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEE_REQUEST_FIELD.getRoute(CONST.IOU.TYPE.REQUEST, 'confirmation', transactionID, reportID));
     };
 
     const navigateBack = (forceFallback = false) => {
-        // @TODO figure out this route and where to take them
-        Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), forceFallback);
+        Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID), forceFallback);
     };
-
-    // useEffect(() => {
-    //     // @TODO this whole thing needs cleaned up to work
-    //     // @TODO maybe put this in parent component somewhere
-    //     // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-    //     if (prevMoneyRequestId.current !== iou.id) {
-    //         // The ID is cleared on completing a request. In that case, we will do nothing
-    //         if (iou.id && !isDistanceRequest && !isSplitRequest && !isNewReportIDSelectedLocally.current) {
-    //             navigateBack(true);
-    //         }
-    //         return;
-    //     }
-
-    //     if (!isDistanceRequest && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
-    //         navigateBack(true);
-    //     }
-
-    //     return () => {
-    //         prevMoneyRequestId.current = iou.id;
-    //     };
-    // }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest]);
 
     return (
         <ScreenWrapper
