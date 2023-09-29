@@ -40,7 +40,6 @@ function Popover(props) {
             Modal.onModalDidClose();
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
-        
         if (prevIsVisible === props.isVisible) {
             return;
         }
