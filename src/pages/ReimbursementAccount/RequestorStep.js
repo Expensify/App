@@ -72,6 +72,10 @@ const validate = (values) => {
     return errors;
 };
 
+/**
+ * Workaround for forwardRef + propTypes issue.
+ * See https://stackoverflow.com/questions/59716140/using-forwardref-with-proptypes-and-eslint
+ */
 const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}, ref) => {
     const {translate} = useLocalize();
 
