@@ -13,7 +13,7 @@ runs:
 
     - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
       with:
-        ruby-version: '2.7'
+        ruby-version: "2.7"
         bundler-cache: true
 
     - uses: gradle/gradle-build-action@3fbe033aaae657f011f88f29be9e65ed26bd29ef
@@ -26,4 +26,4 @@ runs:
       uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
       with:
         name: ${{ inputs.ARTIFACT_NAME }}
-        path: android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk
+        path: android/app/build/outputs/apk/e2e/release/app-e2e-release.apk

@@ -27,11 +27,11 @@ export default function subscribeToReportCommentPushNotifications() {
             try {
                 // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
                 if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
-                    Navigation.goBack();
+                    Navigation.goBack(ROUTES.HOME);
                 }
 
                 Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                Navigation.navigate(ROUTES.getReportRoute(reportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             } catch (error) {
                 Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: error.message});
             }
