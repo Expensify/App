@@ -90,7 +90,7 @@ const showWorkspaceDetails = (reportID) => {
 function ReportActionItemSingle(props) {
     const actorAccountID = props.action.actorAccountID;
     let {displayName} = props.personalDetailsList[actorAccountID] || {};
-    const {avatar, login, pendingFields, status} = props.personalDetailsList[actorAccountID] || {};
+    const {avatar, login, pendingFields, status, fallbackIcon} = props.personalDetailsList[actorAccountID] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && (!actorAccountID || displayAllActors);
@@ -200,6 +200,7 @@ function ReportActionItemSingle(props) {
                         source={icon.source}
                         type={icon.type}
                         name={icon.name}
+                        fallbackIcon={fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
