@@ -20,11 +20,11 @@ const defaultTypes = {
 
 function ArchivedReportFooterSkeletonView(props) {
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.p5, styles.archivedReportFooter, styles.hoveredComponentBG]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.archivedReportFooter, styles.hoveredComponentBG]}>
             <SkeletonViewContentLoader
                 animate={props.shouldAnimate}
                 width={styles.w100.width}
-                height={8}
+                height={48}
                 backgroundColor={themeColors.borderLighter}
                 foregroundColor={themeColors.border}
             >
@@ -32,7 +32,7 @@ function ArchivedReportFooterSkeletonView(props) {
                     x="0"
                     y="0"
                     width="100%"
-                    height="8"
+                    height="48"
                 />
             </SkeletonViewContentLoader>
         </View>
