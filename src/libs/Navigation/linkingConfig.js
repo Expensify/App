@@ -79,6 +79,22 @@ export default {
                             },
                             Settings_Wallet_ReportVirtualCardFraud: {
                                 path: ROUTES.SETTINGS_REPORT_FRAUD.route,
+								exact: true,
+                            },
+                            [SCREENS.SETTINGS.WALLET.CARDS.GET_PHYSICAL.NAME]: {
+                                path: ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_NAME.route,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.WALLET.CARDS.GET_PHYSICAL.PHONE]: {
+                                path: ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_PHONE.route,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.WALLET.CARDS.GET_PHYSICAL.ADDRESS]: {
+                                path: ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_ADDRESS.route,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.WALLET.CARDS.GET_PHYSICAL.CONFIRM]: {
+                                path: ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_CONFIRM.route,
                                 exact: true,
                             },
                             Settings_Wallet_EnablePayments: {

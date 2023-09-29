@@ -867,6 +867,8 @@ export default {
         availableSpend: 'Límite restante',
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
+        // TODO: add translation
+        getPhysicalCard: '',
         reportFraud: 'Reportar fraude con la tarjeta virtual',
         reviewTransaction: 'Revisar transacción',
         suspiciousBannerTitle: 'Transacción sospechosa',
@@ -897,6 +899,28 @@ export default {
         error: {
             thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
         },
+    },
+    // TODO: add translation
+    getPhysicalCard: {
+        header: '',
+        nameMessage: '',
+        legalName: '',
+        firstName: '',
+        lastName: '',
+        phoneMessage: '',
+        phoneNumber: '',
+        address: '',
+        addressMessage: '',
+        streetAddress: '',
+        city: '',
+        state: '',
+        zipPostcode: '',
+        country: '',
+        confirmMessage: '',
+        estimatedDeliveryMessage: '',
+        next: '',
+        getPhysicalCard: '',
+        shipCard: '',
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,

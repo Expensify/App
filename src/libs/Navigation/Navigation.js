@@ -305,6 +305,31 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+/**
+ * @param {{address: String, firstName: String, lastName: String, phoneNumber: String}} formData
+ * @param {Array<String>} loginList
+ */
+function goToNextPhysicalCardRoute(formData, loginList) {
+    const {address, firstName, lastName, phoneNumber} = formData;
+    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const {domain} = (currentRoute && currentRoute.params) || {domain: ''};
+
+    if (!firstName && !lastName) {
+        navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_NAME.getRoute(domain));
+        return;
+    }
+    if (!phoneNumber && !getSecondaryPhoneLogin(loginList)) {
+        navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_PHONE.getRoute(domain));
+        return;
+    }
+    if (!address) {
+        navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_ADDRESS.getRoute(domain));
+        return;
+    }
+
+    navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_CONFIRM.getRoute(domain));
+}
+
 export default {
     setShouldPopAllStateOnUP,
     canNavigate,
@@ -320,6 +345,7 @@ export default {
     getTopmostReportId,
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
+    goToNextPhysicalCardRoute,
 };
 
 export {navigationRef};

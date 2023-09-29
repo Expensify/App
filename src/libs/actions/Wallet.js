@@ -330,6 +330,31 @@ function answerQuestionsForWallet(answers, idNumber) {
     );
 }
 
+function requestPhysicalExpensifyCard(cardID, updatedPersonalDetails) {
+    // TODO: confirm required parameters
+    const parameters = {};
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [cardID]: {
+                        state: 4, // NOT_ACTIVATED
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: updatedPersonalDetails,
+            },
+        ],
+    };
+
+    API.write('RequestPhysicalExpensifyCard', parameters, onyxData);
+}
+
 export {
     openOnfidoFlow,
     openInitialSettingsPage,
@@ -343,4 +368,5 @@ export {
     verifyIdentity,
     acceptWalletTerms,
     setKYCWallSource,
+    requestPhysicalExpensifyCard,
 };

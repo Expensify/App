@@ -209,6 +209,15 @@ function ExpensifyCardPage({
                             text={translate('activateCardPage.activatePhysicalCard')}
                         />
                     )}
+                        {_.isEmpty(physicalCard) && (
+                            <Button
+                                success
+                                text={translate('cardPage.getPhysicalCard')}
+                                pressOnEnter
+                                onPress={() => Navigation.goToNextPhysicalCardRoute(domain)}
+                                style={[styles.mh5, styles.mb5]}
+                            />
+                        )}
                 </>
             )}
         </ScreenWrapper>

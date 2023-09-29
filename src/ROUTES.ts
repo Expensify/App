@@ -82,6 +82,21 @@ export default {
     SETTINGS_REPORT_FRAUD: {
         route: '/settings/wallet/card/:domain/report-virtual-fraud',
         getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-virtual-fraud`,
+    SETTINGS_WALLET_CARDS_GET_PHYSICAL_NAME: {
+        route: '/settings/wallet/cards/:domain/get-physical/name',
+        getRoute: (domain: string) => `/settings/wallet/cards/${domain}/get-physical/name`,
+    },
+    SETTINGS_WALLET_CARDS_GET_PHYSICAL_PHONE: {
+        route: '/settings/wallet/cards/:domain/get-physical/phone',
+        getRoute: (domain: string) => `/settings/wallet/cards/${domain}/get-physical/phone`,
+    },
+    SETTINGS_WALLET_CARDS_GET_PHYSICAL_ADDRESS: {
+        route: '/settings/wallet/cards/:domain/get-physical/address',
+        getRoute: (domain: string) => `/settings/wallet/cards/${domain}/get-physical/address`,
+    },
+    SETTINGS_WALLET_CARDS_GET_PHYSICAL_CONFIRM: {
+        route: '/settings/wallet/cards/:domain/get-physical/confirm',
+        getRoute: (domain: string) => `/settings/wallet/cards/${domain}/get-physical/confirm`,
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
