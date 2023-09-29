@@ -4,7 +4,7 @@ import {Middleware} from '../Request';
 import * as PersistedRequests from '../actions/PersistedRequests';
 import deepReplaceKeysAndValues from '../deepReplaceKeysAndValues';
 
-const handleUnusedOptimisticID: Middleware = (requestResponse, request) =>
+const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSequentialQueue) =>
     requestResponse.then((response) => {
         const responseOnyxData = response?.onyxData ?? [];
         responseOnyxData.forEach((onyxData) => {
@@ -24,7 +24,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request) =>
             }
             const oldReportID = request.data?.reportID;
             PersistedRequests.getAll()
-                .slice(1)
+                .slice(isFromSequentialQueue ? 1 : 0)
                 .forEach((persistedRequest, index) => {
                     // eslint-disable-next-line no-param-reassign
                     persistedRequest.data = deepReplaceKeysAndValues(persistedRequest.data, oldReportID as string, preexistingReportID);
