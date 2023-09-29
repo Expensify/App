@@ -97,7 +97,7 @@ export default function (WrappedComponent) {
             if (!props.isSmallScreenWidth || (!_.isEmpty(props.report) && !_.isEmpty(reportAction))) {
                 return;
             }
-            Report.openReport(props.route.params.reportID);
+            Report.openReport({reportID: props.route.params.reportID});
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [props.isSmallScreenWidth, props.route.params.reportID]);
 
