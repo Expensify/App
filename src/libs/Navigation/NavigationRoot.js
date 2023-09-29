@@ -1,7 +1,7 @@
 import React, {useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
-import {useFlipper} from '@react-navigation/devtools';
+import useFlipper from '../../hooks/useFlipper';
 import {useSharedValue, useAnimatedReaction, interpolateColor, withTiming, withDelay, Easing, runOnJS} from 'react-native-reanimated';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
