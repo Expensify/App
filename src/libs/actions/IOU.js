@@ -481,13 +481,16 @@ function getMoneyRequestInformation(
         billable,
     );
 
-    const uniquePolicyRecentlyUsedCategories = allRecentlyUsedCategories
-        ? _.filter(
-              allRecentlyUsedCategories[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`],
-              (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory !== category,
-          )
-        : [];
-    const optimisticPolicyRecentlyUsedCategories = [category, ...uniquePolicyRecentlyUsedCategories];
+    let optimisticPolicyRecentlyUsedCategories;
+    if (category) {
+        const uniquePolicyRecentlyUsedCategories = allRecentlyUsedCategories
+            ? _.filter(
+                  allRecentlyUsedCategories[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`],
+                  (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory !== category,
+              )
+            : [];
+        optimisticPolicyRecentlyUsedCategories = [category, ...uniquePolicyRecentlyUsedCategories];
+    }
 
     const optimisticPolicyRecentlyUsedTags = {};
     const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
