@@ -129,19 +129,26 @@ function SignInPage({credentials, account, isInModal}) {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
 
-    const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowSAMLEnabledForm, shouldInitiateSAMLLogin, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions(
-        {
-            hasLogin: Boolean(credentials.login),
-            hasValidateCode: Boolean(credentials.validateCode),
-            hasAccount: !_.isEmpty(account),
-            isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
-            isAccountValidated: Boolean(account.validated),
-            isSAMLEnabled: Boolean(account.isSAMLEnabled),
-            isSAMLRequired: Boolean(account.isSAMLRequired),
-            isUsingSAMLLogin,
-            hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
-        },
-    );
+    const {
+        shouldShowLoginForm,
+        shouldShowEmailDeliveryFailurePage,
+        shouldShowUnlinkLoginForm,
+        shouldShowValidateCodeForm,
+        shouldShowSAMLEnabledForm,
+        shouldInitiateSAMLLogin,
+        shouldShowWelcomeHeader,
+        shouldShowWelcomeText,
+    } = getRenderOptions({
+        hasLogin: Boolean(credentials.login),
+        hasValidateCode: Boolean(credentials.validateCode),
+        hasAccount: !_.isEmpty(account),
+        isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
+        isAccountValidated: Boolean(account.validated),
+        isSAMLEnabled: Boolean(account.isSAMLEnabled),
+        isSAMLRequired: Boolean(account.isSAMLRequired),
+        isUsingSAMLLogin,
+        hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
+    });
 
     // If the user has SAML required and we're not already loading their account
     // bypass the rest of the sign in logic and open up their SSO provider login page
@@ -215,11 +222,7 @@ function SignInPage({credentials, account, isInModal}) {
                     />
                 )}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                {shouldShowSAMLEnabledForm && (
-                    <SAMLEnabledForm
-                        setIsUsingSAMLLogin={setIsUsingSAMLLogin}
-                    />
-                )}
+                {shouldShowSAMLEnabledForm && <SAMLEnabledForm setIsUsingSAMLLogin={setIsUsingSAMLLogin} />}
                 {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
         </View>

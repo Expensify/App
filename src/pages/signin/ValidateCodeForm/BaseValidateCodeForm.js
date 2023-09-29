@@ -206,7 +206,7 @@ function BaseValidateCodeForm(props) {
      */
     const clearSignInData = () => {
         // Reset the user's preference for signing in with SAML
-        props.setIsUsingSAMLLogin(props.account.isSAMLEnabled || props.account.isSAMLRequired)
+        props.setIsUsingSAMLLogin(props.account.isSAMLEnabled || props.account.isSAMLRequired);
         clearLocalSignInData();
         Session.clearSignInData();
     };

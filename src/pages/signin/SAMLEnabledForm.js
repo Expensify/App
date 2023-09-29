@@ -49,7 +49,7 @@ const defaultProps = {
     account: {},
 };
 
-function SAMLEnabledForm (props) {
+function SAMLEnabledForm(props) {
     return (
         <>
             <View>

@@ -20,15 +20,14 @@ const propTypes = {
         login: PropTypes.string,
     }),
     ...withLocalizePropTypes,
-}
+};
 const defaultProps = {
     credentials: {},
 };
 
 function SAMLSignInPage(props) {
     useEffect(() => {
-        window.open(`${CONFIG.EXPENSIFY.SAML_URL}?email=${props.credentials.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`, '_self')
-
+        window.open(`${CONFIG.EXPENSIFY.SAML_URL}?email=${props.credentials.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`, '_self');
     }, [props.credentials.login]);
 
     return (
@@ -61,7 +60,7 @@ function SAMLSignInPage(props) {
 SAMLSignInPage.propTypes = propTypes;
 SAMLSignInPage.defaultProps = defaultProps;
 
-export default compose (
+export default compose(
     withLocalize,
     withOnyx({
         credentials: {key: ONYXKEYS.CREDENTIALS},
