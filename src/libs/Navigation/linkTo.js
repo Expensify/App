@@ -70,7 +70,6 @@ export default function linkTo(navigation, path, type) {
         } else if (
             action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR &&
             (getTopmostReportId(root.getState()) !== getTopmostReportId(state) || getTopMostCentralPaneRouteName(root.getState()) !== getTopMostCentralPaneRouteName(state))
-            // getTopmostReportId(root.getState()) !== getTopmostReportId(state)
         ) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
 

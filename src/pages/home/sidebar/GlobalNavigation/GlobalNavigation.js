@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import PressableAvatarWithIndicator from '../PressableAvatarWithIndicator';
 import styles from '../../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import GlobalNavigationMenuItemList from './GlobalNavigationMenuItemList';
 import CONST from '../../../../CONST';
@@ -12,14 +11,13 @@ import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     isCreateMenuOpen: PropTypes.bool,
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isCreateMenuOpen: false,
 };
 
-function GlobalNavigation({isCreateMenuOpen, children}) {
+function GlobalNavigation({isCreateMenuOpen}) {
     const items = useMemo(
         () => [
             {
@@ -41,7 +39,6 @@ function GlobalNavigation({isCreateMenuOpen, children}) {
                 menuItems={items}
                 style={styles.mt4}
             />
-            {children}
         </View>
     );
 }
@@ -50,4 +47,4 @@ GlobalNavigation.propTypes = propTypes;
 GlobalNavigation.defaultProps = defaultProps;
 GlobalNavigation.displayName = 'GlobalNavigation';
 
-export default withLocalize(GlobalNavigation);
+export default GlobalNavigation;

@@ -32,10 +32,6 @@ const defaultProps = {
 function GlobalNavigationMenuItemList(props) {
     const sidebarNavigation = useContext(SidebarNavigationContext);
 
-    const selectItem = (value, onSelected) => {
-        onSelected(value);
-    };
-
     return (
         <View style={props.style}>
             {_.map(props.menuItems, (item) => (
@@ -43,11 +39,8 @@ function GlobalNavigationMenuItemList(props) {
                     key={item.text}
                     iconFill={defaultTheme.icon}
                     icon={item.icon}
-                    iconWidth={item.iconWidth}
-                    iconHeight={item.iconHeight}
                     title={item.text}
-                    description={item.description}
-                    onPress={() => selectItem(item.value, item.onSelected)}
+                    onPress={() => item.onSelected(item.value)}
                     focused={sidebarNavigation.selectedGlobalNavigationOption === item.value}
                 />
             ))}
