@@ -47,11 +47,11 @@ function checkOnReady() {
 Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     initWithStoredValues: false,
-    callback: (val) => {
+    callback: (value) => {
         // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
         // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
         if (!isFirstTimeNewExpensifyUser) {
-            isFirstTimeNewExpensifyUser = val ?? undefined;
+            isFirstTimeNewExpensifyUser = value ?? undefined;
         }
         checkOnReady();
     },
@@ -60,9 +60,9 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     initWithStoredValues: false,
-    callback: (val) => {
-        if (val) {
-            isLoadingReportData = val;
+    callback: (value) => {
+        if (value) {
+            isLoadingReportData = value;
         }
         checkOnReady();
     },
