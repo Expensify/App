@@ -4,17 +4,17 @@ description: Help doc for Accelo integration
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 
-## Overview
+# Overview
 Accelo is a cloud-based business management software platform tailored for professional service companies, offering streamlined operations. It enables seamless integration with Expensify, allowing users to effortlessly import expense details from Expensify into Accelo, associating them with the corresponding project, ticket, or retainer within the system. 
 
-## How to Connect Accelo with Expensify
+# How to Connect Expensify to Accelo
 To connect Expensify to Accelo, follow these clear steps:
 
-### Prerequisites
+## Prerequisites
 Ensure you have administrator access to Accelo.
-Have a Policy Admin role in Expensify.
+Have a Workspace Admin role in Expensify.
 
-### Connecting Expensify to Accelo
+## Connecting Expensify to Accelo
 1. Access the Expensify Integration Server:
 - Open the Expensify Integration Server.
 2. Retrieve Your Partner User ID and Partner User Secret:
@@ -35,10 +35,11 @@ Have a Policy Admin role in Expensify.
 With this connection in place, all Expensify users can effortlessly synchronize their expenses with Accelo, streamlining their workflow and improving efficiency.
 
 ## How to upload your Accelo Project Codes as Tags in Expensify
-Once you have connected Accelo to Expensify, the next step is to upload your Accelo Project Codes as Tags in Expensify. Simply go to Go to *Settings* > *Policies* > *Group* > _[Policy Name]_ > *Tags* and upload your CSV.
-If you directly integrate with Xero or QuickBooks Online, you must upload your Project Codes by appending your tags. Go to *Settings* > *Policies* > *Group* > _[Policy Name]_ > *Tags* and click on “Append a custom tag list from a CSV” to upload your Project Codes via a CSV.
+Once you have connected Accelo to Expensify, the next step is to upload your Accelo Project Codes as Tags in Expensify. Simply go to Go to *Settings* > *Workspaces* > *Group* > _[Workspace Name]_ > *Tags* and upload your CSV.
+If you directly integrate with Xero or QuickBooks Online, you must upload your Project Codes by appending your tags. Go to *Settings* > *Workspaces* > *Group* > _[Workspace Name]_ > *Tags* and click on “Append a custom tag list from a CSV” to upload your Project Codes via a CSV.
 
-## Deep Dive on how information syncs between Expensify and Accelo
+# Deep Dive
+## Information sync between Expensify and Accelo
 The Accelo integration does a one-way sync, which means it brings expenses from Expensify into Accelo. When this happens, it transfers specific information from Expensify expenses to Accelo:
 
 *Expensify*		- 	*Accelo*
@@ -55,7 +56,7 @@ Receipt		    -	  Attachment
 Tax Rate		  -	  Tax Code
 Attendees		  -	  Submitted By
 
-### Expense Status
+## Expense Status
 The status of your expense report in Expensify is also synced in Accelo.
 *Expensify Report Status*	-	*Accelo Expense Status*
 Open 				  -	  Submitted                                                                                                                                
@@ -66,5 +67,5 @@ Rejected			-	  Declined
 Archived			-	  Approved
 Closed 		  	- 	Approved
 
-### Importing expenses from Expensify to Accelo
+## Importing expenses from Expensify to Accelo
 Accelo regularly checks Expensify for new expenses once every hour. It automatically brings in expenses that have been created or changed since the last sync.
