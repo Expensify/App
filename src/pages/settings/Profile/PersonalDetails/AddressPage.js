@@ -71,12 +71,12 @@ function updateAddress(values) {
 function AddressPage({privatePersonalDetails, route}) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
-    const [currentCountry, setCurrentCountry] = useState(PersonalDetails.getCountryISO(address.country));
     const countryFromUrl = lodashGet(route, 'params.country');
-    const isUSAForm = currentCountry === CONST.COUNTRY.US;
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
     const address = lodashGet(privatePersonalDetails, 'address') || {};
+    const [currentCountry, setCurrentCountry] = useState(address.country);
+    const isUSAForm = currentCountry === CONST.COUNTRY.US;
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
