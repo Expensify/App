@@ -158,7 +158,6 @@ function ReceiptSelector(props) {
         IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
     }, [cameraRef, props.iou, props.report, reportID, iouType, props.transactionID]);
 
-
     return (
         <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
             {!isDraggingOver && Browser.isMobile() && (
