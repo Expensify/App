@@ -51,6 +51,7 @@ function BaseSelectionList({
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
     showConfirmButton = false,
+    shouldFocusOnSelectRow = false,
     isKeyboardShown = false,
     inputRef = null,
 }) {
@@ -204,14 +205,14 @@ function BaseSelectionList({
 
         onSelectRow(item);
 
-        if (shouldShowTextInput && textInputRef.current) {
+        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };
 
     const selectAllRow = () => {
         onSelectAll();
-        if (shouldShowTextInput && textInputRef.current) {
+        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };

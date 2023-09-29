@@ -31,6 +31,7 @@ import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import SelectionList from '../../components/SelectionList';
 import Text from '../../components/Text';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -410,6 +411,7 @@ function WorkspaceMembersPage(props) {
                             onDismissError={dismissError}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
                             showScrollIndicator
+                            shouldFocusOnSelectRow={!Browser.isMobile()}
                             inputRef={textInputRef}
                         />
                     </View>

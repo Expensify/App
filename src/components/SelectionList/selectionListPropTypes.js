@@ -157,6 +157,9 @@ const propTypes = {
     /** Whether to show the default confirm button */
     showConfirmButton: PropTypes.bool,
 
+    /** Whether to focus the textinput after an option is selected */
+    shouldFocusOnSelectRow: PropTypes.bool,
+
     /** A ref to forward to the TextInput */
     inputRef: PropTypes.oneOfType([PropTypes.object]),
 };
