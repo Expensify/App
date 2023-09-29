@@ -65,7 +65,9 @@ function getFormattedAddress(privatePersonalDetails: OnyxTypes.PrivatePersonalDe
     const {address} = privatePersonalDetails;
     const [street1, street2] = (address?.street ?? '').split('\n');
     const addressItems = [street1, street2, address?.city, address?.state, address?.zip, address?.country];
-    const areAllAddressItemsEmpty = addressItems.every((item) => !item);
+    // Filter empty values ('' or undefined) from the array
+    const filteredAddressItems = addressItems.filter((item) => item);
+    const areAllAddressItemsEmpty = !filteredAddressItems.length;
 
     if (areAllAddressItemsEmpty) {
         return null;
