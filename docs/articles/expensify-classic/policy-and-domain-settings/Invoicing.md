@@ -33,7 +33,7 @@ From your Expensify account on the web (not the mobile app), go to **Settings** 
 
 ## Set the Workspace Currency
 
-To set your currency, head to **Settings** > **Workspaces** > **Individual** or **Group** > **Reports**. This will add default report-level fields to your invoices.  You can see these at the bottom of your [**Reports**](https://staging.expensify.com/reports) page. 
+To set your currency, head to **Settings** > **Workspaces** > **Individual** or **Group** > **Reports**. This will add default report-level fields to your invoices.  You can see these at the bottom of your [**Reports**](https://expensify.com/reports) page. 
 
 Here are the default report-level fields based on common currencies:
 
