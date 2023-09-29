@@ -21,8 +21,8 @@ const getImageResolution: GetImageResolution = (file: File | Asset) => {
         const objectUrl = URL.createObjectURL(file);
         image.onload = function () {
             resolve({
-                width: image.naturalWidth,
-                height: image.naturalHeight,
+                width: (this as HTMLImageElement).naturalWidth,
+                height: (this as HTMLImageElement).naturalHeight,
             });
             URL.revokeObjectURL(objectUrl);
         };

@@ -122,6 +122,7 @@ function appendTimeToFileName(fileName: string): string {
 
 /**
  * Reads a locally uploaded file
+ * @param path - the blob url of the locally uploaded file
  */
 const readFileAsync: ReadFileAsync = (path, fileName) =>
     new Promise((resolve) => {
