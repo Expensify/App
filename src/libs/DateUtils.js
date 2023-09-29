@@ -386,6 +386,7 @@ const DateUtils = {
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
     getStatusUntilDate,
+    setLocale,
     isToday,
     isTomorrow,
     isYesterday,

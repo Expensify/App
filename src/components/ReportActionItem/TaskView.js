@@ -91,9 +91,9 @@ function TaskView(props) {
                                         <Checkbox
                                             onPress={Session.checkIfActionIsAllowed(() => {
                                                 if (isCompleted) {
-                                                    Task.reopenTask(props.report, taskTitle);
+                                                    Task.reopenTask(props.report);
                                                 } else {
-                                                    Task.completeTask(props.report, taskTitle);
+                                                    Task.completeTask(props.report);
                                                 }
                                             })}
                                             isChecked={isCompleted}
