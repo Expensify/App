@@ -4,7 +4,6 @@ import React, {useState, useRef, useEffect, memo, useCallback, useContext, useMe
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {useRoute} from '@react-navigation/native';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -129,7 +128,6 @@ const defaultProps = {
 };
 
 function ReportActionItem(props) {
-    const route = useRoute();
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -141,8 +139,7 @@ function ReportActionItem(props) {
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
-    const reportActionID = lodashGet(route, 'params.reportActionID');
-    const isReportActionLinked = reportActionID === props.action.reportActionID;
+    const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
 
     const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}), [isReportActionLinked]);
 
@@ -723,6 +720,7 @@ export default compose(
             prevProps.report.managerID === nextProps.report.managerID &&
             prevProps.report.managerEmail === nextProps.report.managerEmail &&
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
-            lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0),
+            lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0) &&
+            prevProps.linkedReportActionID === nextProps.linkedReportActionID,
     ),
 );
