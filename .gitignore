@@ -111,3 +111,8 @@ tsconfig.tsbuildinfo
 # Yalc
 .yalc
 yalc.lock
+
+# Expo
+.expo
+dist/
+web-build/
