@@ -44,7 +44,10 @@ module.exports = (env = {}) =>
                 ...proxySettings,
                 historyApiFallback: true,
                 port,
-                https: true,
+                https: {
+                    key: path.join(__dirname, 'key.pem'),
+                    cert: path.join(__dirname, 'certificate.pem')
+                }
             },
             plugins: [
                 new DefinePlugin({
