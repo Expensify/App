@@ -1,3 +1,4 @@
+require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
 # Set the type of Mapbox SDK to use
 # This value is used by $RNMapboxMaps
 $RNMapboxMapsImpl = 'mapbox'
@@ -63,6 +64,16 @@ pre_install do |installer|
 end
 
 target 'NewExpensify' do
+  use_expo_modules!
+  post_integrate do |installer|
+    begin
+      expo_patch_react_imports!(installer)
+    rescue => e
+      Pod::UI.warn e
+    end
+  end
+  permissions_path = '../node_modules/react-native-permissions/ios'
+
   project 'NewExpensify',
     'DebugDevelopment' => :debug,
     'DebugAdHoc' => :debug,

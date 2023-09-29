@@ -114,3 +114,8 @@ yalc.lock
 
 # Local https certificate/key
 config/webpack/*.pem
+
+# Expo
+.expo
+dist/
+web-build/

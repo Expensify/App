@@ -289,6 +289,17 @@
   "overrides": {
     "react-native": "$react-native"
   },
+  "expo": {
+    "autolinking": {
+      "exclude": [
+        "expo-constants",
+        "expo-file-system",
+        "expo-font",
+        "@react-native-google-signin/google-signin",
+        "expo-keep-awake"
+      ]
+    }
+  },
   "electronmon": {
     "patterns": [
       "!node_modules",

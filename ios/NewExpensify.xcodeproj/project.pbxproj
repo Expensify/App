@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -27,8 +27,10 @@
 		7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
 		7041848626A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
+		7F5E81F06BCCF61AD02CEA06 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD444BEDDB0AF1745B39049 /* ExpoModulesProvider.swift */; };
 		BDB853621F354EBB84E619C2 /* ExpensifyNewKansas-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */; };
 		DD79042B2792E76D004484B4 /* RCTBootSplash.m in Sources */ = {isa = PBXBuildFile; fileRef = DD79042A2792E76D004484B4 /* RCTBootSplash.m */; };
+		DDCB2E57F334C143AC462B43 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D20D83B0E39BA6D21761E72 /* ExpoModulesProvider.swift */; };
 		E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 		ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */; };
@@ -74,6 +76,7 @@
 		432FF5842B766535509FC547 /* Pods-NewExpensify-NewExpensifyTests.debug adhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debug adhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debug adhoc.xcconfig"; sourceTree = "<group>"; };
 		44BF435285B94E5B95F90994 /* ExpensifyNewKansas-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNewKansas-Medium.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-Medium.otf"; sourceTree = "<group>"; };
 		47D5DF3C6779D41BE70CD031 /* Pods-NewExpensify.releaseproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releaseproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releaseproduction.xcconfig"; sourceTree = "<group>"; };
+		4D20D83B0E39BA6D21761E72 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-NewExpensify/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		4E8BF7B08BA3181991BFCF4B /* Pods-NewExpensify-NewExpensifyTests.releasedevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.releasedevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.releasedevelopment.xcconfig"; sourceTree = "<group>"; };
 		52796131E6554494B2DDB056 /* ExpensifyNeue-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Bold.otf"; path = "../assets/fonts/native/ExpensifyNeue-Bold.otf"; sourceTree = "<group>"; };
 		57DBBEDB9692E096D4BA0141 /* Pods-NewExpensify-NewExpensifyTests.releaseproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.releaseproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.releaseproduction.xcconfig"; sourceTree = "<group>"; };
@@ -90,6 +93,7 @@
 		8D3B36BF88E773E3C1A383FA /* Pods-NewExpensify.debug staging.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug staging.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug staging.xcconfig"; sourceTree = "<group>"; };
 		96552D489D9F09B6A5ABD81B /* Pods-NewExpensify-NewExpensifyTests.release production.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.release production.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.release production.xcconfig"; sourceTree = "<group>"; };
 		AEFE6CD54912D427D19133C7 /* libPods-NewExpensify.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BCD444BEDDB0AF1745B39049 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-NewExpensify-NewExpensifyTests/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		BD6E1BA27D6ABE0AC9D70586 /* Pods-NewExpensify-NewExpensifyTests.release development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.release development.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.release development.xcconfig"; sourceTree = "<group>"; };
 		BD8828A882E2D6B51362AAC3 /* Pods-NewExpensify.releaseadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releaseadhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releaseadhoc.xcconfig"; sourceTree = "<group>"; };
 		BF6A4C5167244B9FB8E4D4E3 /* ExpensifyNeue-Italic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Italic.otf"; path = "../assets/fonts/native/ExpensifyNeue-Italic.otf"; sourceTree = "<group>"; };
@@ -177,6 +181,23 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		3E1305958E607AC9E2CFA934 /* NewExpensify */ = {
+			isa = PBXGroup;
+			children = (
+				4D20D83B0E39BA6D21761E72 /* ExpoModulesProvider.swift */,
+			);
+			name = NewExpensify;
+			sourceTree = "<group>";
+		};
+		4FE6CFCE5D64D3182AE71756 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				3E1305958E607AC9E2CFA934 /* NewExpensify */,
+				9E03879A06387ACCA90A6C6A /* NewExpensifyTests */,
+			);
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
@@ -202,6 +223,7 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				EC29677F0A49C2946A495A33 /* Pods */,
 				A9EA265D209D4558995C9BD4 /* Resources */,
+				4FE6CFCE5D64D3182AE71756 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -215,6 +237,14 @@
 				00E356EE1AD99517003FC87E /* NewExpensifyTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		9E03879A06387ACCA90A6C6A /* NewExpensifyTests */ = {
+			isa = PBXGroup;
+			children = (
+				BCD444BEDDB0AF1745B39049 /* ExpoModulesProvider.swift */,
+			);
+			name = NewExpensifyTests;
 			sourceTree = "<group>";
 		};
 		A9EA265D209D4558995C9BD4 /* Resources */ = {
@@ -275,6 +305,7 @@
 			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "NewExpensifyTests" */;
 			buildPhases = (
 				EA9511689FED50580B0F3DE7 /* [CP] Check Pods Manifest.lock */,
+				04B99F6AA578E2A877802F05 /* [Expo] Configure project */,
 				00E356EA1AD99517003FC87E /* Sources */,
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
@@ -297,6 +328,7 @@
 			buildPhases = (
 				7E666D03089C35260C905B4A /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
+				5CF45ABA52C0BB0D7B9D139A /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
@@ -399,7 +431,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export NODE_BINARY=node\nexport EXTRA_PACKAGER_ARGS=\"--sourcemap-output $(pwd)/../main.jsbundle.map\"\n\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
+			shellScript = "if [[ -f \"$PODS_ROOT/../.xcode.env\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env\"\nfi\nif [[ -f \"$PODS_ROOT/../.xcode.env.local\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.local\"\nfi\n\n# The project root by default is one level up from the ios directory\nexport PROJECT_ROOT=\"$PROJECT_DIR\"/..\n\nif [[ \"$CONFIGURATION\" = *Debug* ]]; then\n  export SKIP_BUNDLING=1\nfi\nif [[ -z \"$ENTRY_FILE\" ]]; then\n  # Set the entry JS file using the bundler's entry resolution.\n  export ENTRY_FILE=\"$(\"$NODE_BINARY\" -e \"require('expo/scripts/resolveAppEntry')\" \"$PROJECT_ROOT\" ios relative | tail -n 1)\"\nfi\n\nif [[ -z \"$CLI_PATH\" ]]; then\n  # Use Expo CLI\n  export CLI_PATH=\"$(\"$NODE_BINARY\" --print \"require.resolve('@expo/cli')\")\"\nfi\nif [[ -z \"$BUNDLE_COMMAND\" ]]; then\n  # Default Expo CLI command for bundling\n  export BUNDLE_COMMAND=\"export:embed\"\nfi\n\n`\"$NODE_BINARY\" --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'\"`\n";
+		};
+		04B99F6AA578E2A877802F05 /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-NewExpensify-NewExpensifyTests/expo-configure-project.sh\"\n";
 		};
 		3792B4E76B24FC8F78B7FEB6 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -468,6 +519,25 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NewExpensify/Pods-NewExpensify-resources.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		5CF45ABA52C0BB0D7B9D139A /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-NewExpensify/expo-configure-project.sh\"\n";
 		};
 		5E34288ECB69FCFA24851234 /* [CP-User] [RNFB] Core Configuration */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -624,7 +694,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export RCT_METRO_PORT=\"${RCT_METRO_PORT:=8081}\"\necho \"export RCT_METRO_PORT=${RCT_METRO_PORT}\" > \"${SRCROOT}/../node_modules/react-native/scripts/.packager.env\"\nif [ -z \"${RCT_NO_LAUNCH_PACKAGER+xxx}\" ] ; then\n  if nc -w 5 -z localhost ${RCT_METRO_PORT} ; then\n    if ! curl -s \"http://localhost:${RCT_METRO_PORT}/status\" | grep -q \"packager-status:running\" ; then\n      echo \"Port ${RCT_METRO_PORT} already in use, packager is either not running or not running correctly\"\n      exit 2\n    fi\n  else\n    open \"$SRCROOT/../node_modules/react-native/scripts/launchPackager.command\" || echo \"Can't start packager automatically\"\n  fi\nfi\n";
+			shellScript = "if [[ -f \"$PODS_ROOT/../.xcode.env\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env\"\nfi\nif [[ -f \"$PODS_ROOT/../.xcode.env.local\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.local\"\nfi\n\nexport RCT_METRO_PORT=\"${RCT_METRO_PORT:=8081}\"\necho \"export RCT_METRO_PORT=${RCT_METRO_PORT}\" > `$NODE_BINARY --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/.packager.env'\"`\nif [ -z \"${RCT_NO_LAUNCH_PACKAGER+xxx}\" ] ; then\n  if nc -w 5 -z localhost ${RCT_METRO_PORT} ; then\n    if ! curl -s \"http://localhost:${RCT_METRO_PORT}/status\" | grep -q \"packager-status:running\" ; then\n      echo \"Port ${RCT_METRO_PORT} already in use, packager is either not running or not running correctly\"\n      exit 2\n    fi\n  else\n    open `$NODE_BINARY --print \"require('path').dirname(require.resolve('expo/package.json')) + '/scripts/launchPackager.command'\"` || echo \"Can't start packager automatically\"\n  fi\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -637,6 +707,7 @@
 				0F5E5351263B73FD004CA14F /* EnvironmentChecker.m in Sources */,
 				0CDA8E35287DD650004ECBEC /* AppDelegate.mm in Sources */,
 				7041848626A8E47D00E09F4D /* RCTStartupTimer.m in Sources */,
+				7F5E81F06BCCF61AD02CEA06 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -651,6 +722,7 @@
 				DD79042B2792E76D004484B4 /* RCTBootSplash.m in Sources */,
 				0CDA8E34287DD650004ECBEC /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				DDCB2E57F334C143AC462B43 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -678,12 +750,17 @@
 				);
 				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-lc++",
 					"$(inherited)",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
@@ -701,12 +778,17 @@
 				DEVELOPMENT_TEAM = 368M544MTT;
 				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-lc++",
 					"$(inherited)",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
@@ -728,13 +810,17 @@
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/NewExpensify/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev;
 				PRODUCT_NAME = "New Expensify Dev";
 				PROVISIONING_PROFILE_SPECIFIER = expensify_chat_dev;
@@ -759,13 +845,17 @@
 				DEVELOPMENT_TEAM = 368M544MTT;
 				INFOPLIST_FILE = NewExpensify/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev;
 				PRODUCT_NAME = "New Expensify Dev";
 				PROVISIONING_PROFILE_SPECIFIER = expensify_chat_dev;
@@ -824,7 +914,10 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
-				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					/usr/lib/swift,
+					"$(inherited)",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/usr/lib/swift",
 					"\"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)\"",
@@ -882,7 +975,10 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
-				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					/usr/lib/swift,
+					"$(inherited)",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/usr/lib/swift",
 					"\"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)\"",
@@ -948,7 +1044,10 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
-				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					/usr/lib/swift,
+					"$(inherited)",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/usr/lib/swift",
 					"\"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)\"",
@@ -979,13 +1078,17 @@
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/NewExpensify/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
 				PRODUCT_NAME = "New Expensify";
 				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
@@ -1009,12 +1112,17 @@
 				);
 				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-lc++",
 					"$(inherited)",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
@@ -1070,7 +1178,10 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
-				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					/usr/lib/swift,
+					"$(inherited)",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/usr/lib/swift",
 					"\"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)\"",
@@ -1101,13 +1212,17 @@
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/NewExpensify/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.adhoc;
 				PRODUCT_NAME = "New Expensify AdHoc";
 				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
@@ -1131,12 +1246,17 @@
 				);
 				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-lc++",
 					"$(inherited)",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
@@ -1185,7 +1305,10 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
-				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					/usr/lib/swift,
+					"$(inherited)",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/usr/lib/swift",
 					"\"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)\"",
@@ -1216,13 +1339,17 @@
 				DEVELOPMENT_TEAM = 368M544MTT;
 				INFOPLIST_FILE = NewExpensify/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
 				PRODUCT_NAME = "New Expensify";
 				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
@@ -1243,12 +1370,17 @@
 				DEVELOPMENT_TEAM = 368M544MTT;
 				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-lc++",
 					"$(inherited)",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
@@ -1297,7 +1429,10 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
-				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					/usr/lib/swift,
+					"$(inherited)",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/usr/lib/swift",
 					"\"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)\"",
@@ -1328,13 +1463,17 @@
 				DEVELOPMENT_TEAM = 368M544MTT;
 				INFOPLIST_FILE = NewExpensify/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.adhoc;
 				PRODUCT_NAME = "New Expensify AdHoc";
 				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
@@ -1355,12 +1494,17 @@
 				DEVELOPMENT_TEAM = 368M544MTT;
 				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-lc++",
 					"$(inherited)",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
