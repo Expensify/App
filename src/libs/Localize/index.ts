@@ -134,10 +134,8 @@ function arrayToString(anArray) {
 
 /**
  * Returns the user device's preferred language.
- *
- * @return {String}
  */
-function getDevicePreferredLocale() {
+function getDevicePreferredLocale(): string {
     return lodashGet(RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT);
 }
 
