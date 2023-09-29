@@ -59,7 +59,6 @@ class SearchPage extends Component {
 
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
 
-        
         this.state = {
             searchValue: '',
             recentReports,
@@ -159,8 +158,6 @@ class SearchPage extends Component {
             Report.navigateToAndOpenReport([option.login]);
         }
     }
-
-    
 
     render() {
         const sections = this.getSections();

@@ -459,7 +459,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         isPolicyExpenseChat: false,
         isExpenseReport: false,
         policyID: null,
-        isOptimisticPersonalDetail: false
+        isOptimisticPersonalDetail: false,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
