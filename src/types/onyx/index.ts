@@ -36,12 +36,13 @@ import PolicyMember from './PolicyMember';
 import Policy from './Policy';
 import PolicyCategory from './PolicyCategory';
 import Report from './Report';
+import ReportMetadata from './ReportMetadata';
 import ReportAction from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
 import SecurityGroup from './SecurityGroup';
 import Transaction from './Transaction';
 import Form, {AddDebitCardForm} from './Form';
-import RecentWaypoints from './RecentWaypoints';
+import RecentWaypoint from './RecentWaypoint';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
 import RecentlyUsedTags from './RecentlyUsedTags';
 import PolicyTag from './PolicyTag';
@@ -84,6 +85,7 @@ export type {
     Policy,
     PolicyCategory,
     Report,
+    ReportMetadata,
     ReportAction,
     ReportActionReactions,
     SecurityGroup,
@@ -91,8 +93,8 @@ export type {
     Form,
     AddDebitCardForm,
     OnyxUpdatesFromServer,
+    RecentWaypoint,
     OnyxUpdateEvent,
-    RecentWaypoints,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     PolicyTag,

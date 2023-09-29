@@ -5,6 +5,7 @@
 export default {
     REPORT_COMMENT: 'reportComment',
     ONYX_API_UPDATE: 'onyxApiUpdate',
+    USER_IS_LEAVING_ROOM: 'client-userIsLeavingRoom',
     USER_IS_TYPING: 'client-userIsTyping',
     MULTIPLE_EVENTS: 'multipleEvents',
     MULTIPLE_EVENT_TYPE: {

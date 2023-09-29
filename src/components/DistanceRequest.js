@@ -103,6 +103,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
+    const isLoading = lodashGet(transaction, 'isLoading', false);
     const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
@@ -185,7 +186,15 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : ROUTES.HOME);
+        Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
+    };
+
+    /**
+     * Takes the user to the page for editing a specific waypoint
+     * @param {Number} index of the waypoint to edit
+     */
+    const navigateToWaypointEditPage = (index) => {
+        Navigation.navigate(isEditingRequest ? ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.getRoute(report.reportID, transactionID, index) : ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index));
     };
 
     const content = (
@@ -224,13 +233,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
                                 shouldShowRightIcon
-                                onPress={() =>
-                                    Navigation.navigate(
-                                        isEditingRequest
-                                            ? ROUTES.getMoneyRequestEditWaypointRoute(report.reportID, transactionID, index)
-                                            : ROUTES.getMoneyRequestWaypointRoute('request', index),
-                                    )
-                                }
+                                onPress={() => navigateToWaypointEditPage(index)}
                                 key={key}
                             />
                         );
@@ -254,7 +257,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => Transaction.addStop(transactionID)}
+                    onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
@@ -284,12 +287,12 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
                 )}
             </View>
             <Button
-                isLoading={transaction.isLoading}
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => onSubmit(waypoints)}
-                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline}
+                isDisabled={_.size(validatedWaypoints) < 2 || (!isOffline && (hasRouteError || isLoadingRoute || isLoading))}
                 text={translate(isEditingRequest ? 'common.save' : 'common.next')}
+                isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
             />
         </ScrollView>
     );
@@ -302,6 +305,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
+            testID={DistanceRequest.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>

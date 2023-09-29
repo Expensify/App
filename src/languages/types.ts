@@ -194,6 +194,8 @@ type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; ol
 
 type UpdatedTheDistanceParams = {newDistanceToDisplay: string, oldDistanceToDisplay: string, newAmountToDisplay: string, oldAmountToDisplay: string};
 
+type FormattedMaxLengthParams = {formattedMaxLength: string};
+
 type TagSelectionParams = {tagName: string};
 
 /* Translation Object types */
@@ -307,6 +309,7 @@ export type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    FormattedMaxLengthParams,
     TagSelectionParams,
     SetTheDistanceParams,
     UpdatedTheDistanceParams,

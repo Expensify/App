@@ -1,10 +1,10 @@
 import React, {useMemo, useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {useIsFocused} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import AddressSearch from '../../components/AddressSearch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -23,6 +23,7 @@ import * as Transaction from '../../libs/actions/Transaction';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
 import transactionPropTypes from '../../components/transactionPropTypes';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Route params */
@@ -75,7 +76,8 @@ const defaultProps = {
 function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
-    const isFocused = useIsFocused();
+    const navigation = useNavigation();
+    const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const textInput = useRef(null);
@@ -105,16 +107,26 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
         const errors = {};
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
-            errors[`waypoint${waypointIndex}`] = 'bankAccount.error.address';
+            ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'bankAccount.error.address');
         }
 
         // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
-            errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
+            ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'distance.errors.selectSuggestedAddress');
         }
 
         return errors;
+    };
+
+    const saveWaypoint = (waypoint) => {
+        if (parsedWaypointIndex < _.size(allWaypoints)) {
+            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+        } else {
+            const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
+            Transaction.saveWaypoint(transactionID, waypointIndex, finishWaypoint);
+            Transaction.saveWaypoint(transactionID, waypointIndex - 1, waypoint);
+        }
     };
 
     const submit = (values) => {
@@ -133,18 +145,17 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                 lng: null,
                 address: waypointValue,
             };
-
-            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+            saveWaypoint(waypoint);
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
-        Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
 
     const deleteStopAndHideModal = () => {
         Transaction.removeWaypoint(transactionID, waypointIndex);
         setIsDeleteStopModalOpen(false);
-        Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
 
     const selectWaypoint = (values) => {
@@ -153,14 +164,22 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             lng: values.lng,
             address: values.address,
         };
-
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
 
         if (isEditingWaypoint) {
-            Navigation.goBack(ROUTES.getReportRoute(threadReportID));
+            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(threadReportID));
             return;
         }
-        Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
+    };
+
+    const focusAddressInput = () => {
+        InteractionManager.runAfterInteractions(() => {
+            if (!textInput.current) {
+                return;
+            }
+            textInput.current.focus();
+        });
     };
 
     return (
@@ -168,13 +187,14 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             shouldEnableMaxHeight
+            testID={WaypointEditor.displayName}
         >
             <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount) && isFocused}>
                 <HeaderWithBackButton
                     title={translate(wayPointDescriptionKey)}
                     shouldShowBackButton
                     onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+                        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
                     }}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
@@ -185,12 +205,14 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                             onSelected: () => setIsDeleteStopModalOpen(true),
                         },
                     ]}
+                    onModalHide={focusAddressInput}
                 />
                 <ConfirmModal
                     title={translate('distance.deleteWaypoint')}
                     isVisible={isDeleteStopModalOpen}
                     onConfirm={deleteStopAndHideModal}
                     onCancel={() => setIsDeleteStopModalOpen(false)}
+                    onModalHide={focusAddressInput}
                     prompt={translate('distance.deleteWaypointConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
@@ -210,7 +232,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                         <AddressSearch
                             inputID={`waypoint${waypointIndex}`}
                             ref={(e) => (textInput.current = e)}
-                            hint={!isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
+                            hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}
