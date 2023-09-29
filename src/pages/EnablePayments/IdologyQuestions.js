@@ -87,6 +87,7 @@ function IdologyQuestions({questions, walletAdditionalDetails, idNumber}) {
         setUserAnswers(tempAnswers);
         setError('');
     };
+
     /**
      * Show next question or send all answers for Idology verifications when we've answered enough
      */
