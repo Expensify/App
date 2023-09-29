@@ -64,7 +64,7 @@ function TermsStep(props) {
                 style={styles.flex1}
                 contentContainerStyle={styles.ph5}
             >
-                <ShortTermsForm userWallet={userWallet} />
+                <ShortTermsForm userWallet={props.userWallet} />
                 <LongTermsForm />
                 <CheckboxWithLabel
                     accessibilityLabel={props.translate('termsStep.haveReadAndAgree')}

@@ -73,6 +73,7 @@ import type {
     RequestedAmountMessageParams,
     TagSelectionParams,
     EnglishTranslation,
+    WalletProgramParams,
 } from './types';
 
 /* eslint-disable max-len */
@@ -1187,7 +1188,7 @@ export default {
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'La billetera Expensify es emitida por The Bancorp Bank.',
+            expensifyPaymentsAccount: ({ walletProgram }: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
             perPurchase: 'Por compra',
             atmWithdrawal: 'Retiro de cajero automático',
             cashReload: 'Recarga de efectivo',

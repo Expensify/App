@@ -76,7 +76,6 @@ import type {
     WalletProgramParams,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
 
 type StateValue = {
     stateISO: string;
