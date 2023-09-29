@@ -18,6 +18,17 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
             [reportAction.reportActionID]: null,
         });
 
+        // If the reportAction is linked to a different report, delete it from that report too
+        if (reportAction?.reportID !== originalReportID) {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.reportID}`, {
+                [reportAction.reportActionID]: null,
+            });
+        }
+
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {
+            errorFields: null,
+        });
+
         // If there's a linked transaction, delete that too
         const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(originalReportID, reportAction.reportActionID);
         if (linkedTransactionID) {

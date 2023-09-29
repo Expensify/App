@@ -77,6 +77,7 @@ type Report = {
     participantAccountIDs?: number[];
     total?: number;
     currency?: string;
+    errorFields?: string[];
 };
 
 export default Report;
