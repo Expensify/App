@@ -11,7 +11,7 @@ Per Diems themselves are created to alleviate much of the heavy lifting that Exp
 
 # How to set up Per Diems in Expensify
 
-Per Diem rates are set up in your company Group workspace from **Settings** > **Workspaces** > **Group** > [_Workspace Name_] > [**Per Diem**](https://staging.expensify.com/policy?param={%22policyID%22:%2220AB6A03EB9CE54D%22}#js_policyEditor_perDiem). From there, click the toggle to enable the Per Diem feature.
+Per Diem rates are set up in your company Group workspace from **Settings** > **Workspaces** > **Group** > [_Workspace Name_] > [**Per Diem**](https://expensify.com/policy?param={"policyID":"20AB6A03EB9CE54D"}#js_policyEditor_perDiem). From there, click the toggle to enable the Per Diem feature.
 
 Next, you'll notice four headings:
 
