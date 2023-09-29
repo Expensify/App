@@ -1,6 +1,6 @@
 ---
 title: Expensify Invoicing
-description: Expensify Invoicing
+description: Expensify Invoicing supports your business with unlimited invoice sending and receiving, payments, and status tracking in one single location.
 ---
 # Overview
 Expensify Invoicing lets you create and send invoices, receive payments, and track the status of your invoices with Expensify, regardless of whether your customer has an Expensify account. Invoicing is included with all Expensify subscriptions, no matter the plan — just pay the processing fee (2.9%) per transaction.
