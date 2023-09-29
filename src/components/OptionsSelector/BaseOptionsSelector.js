@@ -364,7 +364,7 @@ class BaseOptionsSelector extends Component {
                 selectTextOnFocus
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
                 spellCheck={false}
-                shouldInterceptSwipe
+                shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
             />
         );
         const optionsList = (
