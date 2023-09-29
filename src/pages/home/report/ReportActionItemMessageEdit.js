@@ -109,7 +109,6 @@ function ReportActionItemMessageEdit(props) {
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
 
     const textInputRef = useRef(null);
-    const isFocusedRef = useRef(false);
     const insertedEmojis = useRef([]);
 
     useEffect(() => {
@@ -119,15 +118,10 @@ function ReportActionItemMessageEdit(props) {
         setDraft(Str.htmlDecode(props.draftMessage));
     }, [props.draftMessage, props.action]);
 
-    useEffect(() => {
-        // required for keeping last state of isFocused variable
-        isFocusedRef.current = isFocused;
-    }, [isFocused]);
-
     // We consider the report action active if it's focused, its emoji picker is open or its context menu is open
     const isActive = useCallback(
-        () => isFocusedRef.current || EmojiPickerAction.isActive(props.action.reportActionID) || ReportActionContextMenu.isActiveReportAction(props.action.reportActionID),
-        [props.action.reportActionID],
+        () => isFocused || EmojiPickerAction.isActive(props.action.reportActionID) || ReportActionContextMenu.isActiveReportAction(props.action.reportActionID),
+        [props.action.reportActionID, isFocused],
     );
 
     useEffect(() => {
