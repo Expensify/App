@@ -995,8 +995,8 @@ const CONST = {
         MTL_WALLET_PROGRAM_ID: '760',
         PROGRAM_ISSUERS: {
             EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
-            BANCORP_BANK: 'The Bancorp Bank'
-        }
+            BANCORP_BANK: 'The Bancorp Bank',
+        },
     },
 
     PLAID: {
