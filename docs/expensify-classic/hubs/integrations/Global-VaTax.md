@@ -2,11 +2,8 @@
 title: Global VaTax Integration
 description: The Expensify-Global VaTax integration turns your company’s international expenses into an easy VAT refund.
 ---
-<!-- The lines above are required by Jekyll to process the .md file -->
-
 # About
 The Expensify-Global VaTax integration turns your company’s international expenses into an easy VAT refund.
-
 If your company is based in the U.S. but doing business abroad, track your [expenses](https://use.expensify.com/expense-management) in Expensify and then sync to [Global VaTax](https://globalvatax.com/) to receive a VAT refund.
 ## VAT
 [Value Added Tax (VAT)](https://www.investopedia.com/terms/v/valueaddedtax.asp#:~:text=Value%2Dadded%20tax%20(VAT)%20is%20a%20flat%20tax%20levied,different%20parties%20to%20a%20transaction.) is a consumption tax applied to goods and services in many countries. It is typically applied automatically upon purchase, however, international business travelers can reclaim some VAT. 
