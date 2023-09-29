@@ -1,3 +1,4 @@
+import {SvgProps} from 'react-native-svg';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
@@ -7,12 +8,11 @@ import emojisTrie from './EmojiTrie';
 import * as Emojis from '../../assets/emojis';
 import * as OnyxTypes from '../types/onyx';
 import {Emoji, HeaderEmoji} from '../../assets/emojis/types';
-import {SvgProps} from 'react-native-svg';
 
 type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
 type EmojiSpacer = {code: string; spacer: boolean};
 
-let frequentlyUsedEmojis: Array<OnyxTypes.FrequentlyUsedEmoji> = [];
+let frequentlyUsedEmojis: OnyxTypes.FrequentlyUsedEmoji[] = [];
 Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
     callback: (val) => {
@@ -22,10 +22,8 @@ Onyx.connect({
         frequentlyUsedEmojis =
             val
                 ?.map((item) => {
-                    const emoji = Emojis.emojiCodeTableWithSkinTones?.[item.code];
-                    if (emoji) {
-                        return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
-                    }
+                    const emoji = Emojis.emojiCodeTableWithSkinTones[item.code];
+                    return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
                 })
                 .filter((emoji): emoji is OnyxTypes.FrequentlyUsedEmoji => !!emoji) ?? [];
     },
@@ -119,7 +117,6 @@ function containsOnlyEmojis(message: string): boolean {
             .split(' ')
             .map((code) => {
                 if (!(CONST.INVISIBLE_CODEPOINTS as readonly string[]).includes(code)) {
-                    //TODO - ask BK
                     codes.push(code);
                 }
                 return code;
@@ -185,8 +182,6 @@ function addSpacesToEmojiCategories(emojis: Array<Emoji | HeaderEmoji>) {
 
 /**
  * Get a merged array with frequently used emojis
- * @param {Object[]} emojis
- * @returns {Object[]}
  */
 function mergeEmojisWithFrequentlyUsedEmojis(emojis: Array<Emoji | HeaderEmoji>) {
     if (frequentlyUsedEmojis.length === 0) {
@@ -199,8 +194,6 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: Array<Emoji | HeaderEmoji>)
 
 /**
  * Get the updated frequently used emojis list by usage
- * @param {Object|Object[]} newEmoji
- * @return {Object[]}
  */
 function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]) {
     let frequentEmojiList = [...frequentlyUsedEmojis];
@@ -234,7 +227,7 @@ function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]) {
  */
 const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: number): string => {
     const {code, types} = item;
-    if (types && types[preferredSkinToneIndex]) {
+    if (types?.[preferredSkinToneIndex]) {
         return types[preferredSkinToneIndex];
     }
 
@@ -264,8 +257,7 @@ function extractEmojis(text: string) {
     // Text can contain similar emojis as well as their skin tone variants. Create a Set to remove duplicate emojis from the search.
     const foundEmojiCodes = new Set();
 
-    for (let i = 0; i < parsedEmojis.length; i++) {
-        const character = parsedEmojis[i];
+    for (const character of parsedEmojis) {
         const emoji = Emojis.emojiCodeTableWithSkinTones[character];
 
         // Add the parsed emoji to the final emojis if not already present.
@@ -299,15 +291,15 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
         let checkEmoji = trie.search(name);
         // If the user has selected a language other than English, and the emoji doesn't exist in that language,
         // we will check if the emoji exists in English.
-        if (lang !== CONST.LOCALES.DEFAULT && (!checkEmoji || !checkEmoji.metaData?.code)) {
+        if (lang !== CONST.LOCALES.DEFAULT && !checkEmoji?.metaData?.code) {
             const englishTrie = emojisTrie[CONST.LOCALES.DEFAULT];
             if (englishTrie) {
                 const englishEmoji = englishTrie.search(name);
                 checkEmoji = englishEmoji;
             }
         }
-        if (checkEmoji && checkEmoji.metaData?.code) {
-            let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
+        if (checkEmoji?.metaData?.code && checkEmoji?.metaData?.name) {
+            let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
             emojis.push({
                 name,
                 code: checkEmoji.metaData?.code,
@@ -356,23 +348,22 @@ function suggestEmojis(text: string, lang: keyof typeof emojisTrie, limit = CONS
 
     const matching: Emoji[] = [];
     const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
-    for (let j = 0; j < nodes.length; j++) {
-        if (nodes[j].metaData.code && !matching.find((obj) => obj.name === nodes[j].name)) {
+    for (const node of nodes) {
+        if (node.metaData.code && !matching.find((obj) => obj.name === node.name)) {
             if (matching.length === limit) {
                 return matching;
             }
-            matching.push({code: nodes[j].metaData?.code ?? '', name: nodes[j].name, types: nodes[j].metaData.types});
+            matching.push({code: node.metaData?.code ?? '', name: node.name, types: node.metaData.types});
         }
-        const suggestions = nodes[j].metaData.suggestions;
+        const suggestions = node.metaData.suggestions;
         if (!suggestions) {
             return;
         }
-        for (let i = 0; i < suggestions.length; i++) {
+        for (const suggestion of suggestions) {
             if (matching.length === limit) {
                 return matching;
             }
 
-            const suggestion = suggestions[i];
             if (!matching.find((obj) => obj.name === suggestion.name)) {
                 matching.push({...suggestion});
             }
