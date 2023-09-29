@@ -1122,6 +1122,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
                       displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
                       login: participant.login,
                       isOptimisticPersonalDetail: true,
+                      
                   },
               }
             : undefined;
