@@ -24,6 +24,7 @@ import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -122,7 +123,13 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
             includeSafeAreaPaddingBottom={false}
             testID={PrivateNotesListPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {})))}>
+            <FullPageNotFoundView
+                shouldShow={
+                    _.isEmpty(report.reportID) ||
+                    (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {}))) ||
+                    ReportUtils.isArchivedRoom(report)
+                }
+            >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     shouldShowBackButton

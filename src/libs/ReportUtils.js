@@ -2978,11 +2978,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     const isEmptyChat = !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
     const canHideReport = shouldHideReport(report, currentReportId);
 
-    // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (isChatThread(report) && canHideReport && isEmptyChat) {
-        return false;
-    }
-
     // Include reports if they are pinned
     if (report.isPinned) {
         return true;
