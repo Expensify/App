@@ -19,7 +19,7 @@ const propTypes = {
     /** Callback to execute when the main button is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** Call the onPress function when Enter key is pressed */
+    /** Call the onPress function on main button when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
 
     /** Whether we should show a loading state for the main button */
