@@ -1,6 +1,6 @@
 ---
 title: Invite Members
-description: Invite Members
+description: Learn how add your employees to submit expenses in Expensify
 ---
 # Overview
 
