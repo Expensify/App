@@ -33,8 +33,7 @@ function DistanceEReceipt({transaction}) {
     const {isOffline} = useNetwork();
     const {thumbnail} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction);
-    const hasRoute = TransactionUtils.hasRoute(transaction);
-    const formattedTransactionAmount = hasRoute ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : translate('common.tbd');
+    const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : translate('common.tbd');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     return (
