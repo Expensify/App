@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
@@ -70,12 +70,12 @@ function updateAddress(values) {
 
 function AddressPage({privatePersonalDetails, route}) {
     usePrivatePersonalDetails();
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
+    const address = useMemo(() => lodashGet(privatePersonalDetails, 'address') || {}, [privatePersonalDetails]);
     const countryFromUrl = lodashGet(route, 'params.country');
+    const [currentCountry, setCurrentCountry] = useState(address.country);
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
-    const address = lodashGet(privatePersonalDetails, 'address') || {};
-    const [currentCountry, setCurrentCountry] = useState(address.country);
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
@@ -87,9 +87,9 @@ function AddressPage({privatePersonalDetails, route}) {
      * @returns {Object} - An object containing the errors for each inputID
      */
     useEffect(() => {
-        if(!address) return
-        setState(address.state)
-        setCurrentCountry(address.country)
+        if(!address) return;
+        setState(address.state);
+        setCurrentCountry(address.country);
       }, [address]);
       
     const validate = useCallback((values) => {
