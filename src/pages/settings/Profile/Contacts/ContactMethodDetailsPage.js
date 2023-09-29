@@ -230,6 +230,7 @@ class ContactMethodDetailsPage extends Component {
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
+        const isFailedRemovedContactMethod = Boolean(lodashGet(loginData, 'errorFields.deletedLogin'));
 
         return (
             <ScreenWrapper
@@ -248,7 +249,7 @@ class ContactMethodDetailsPage extends Component {
                         prompt={this.props.translate('contacts.removeAreYouSure')}
                         confirmText={this.props.translate('common.yesContinue')}
                         cancelText={this.props.translate('common.cancel')}
-                        isVisible={this.state.isDeleteModalOpen}
+                        isVisible={this.state.isDeleteModalOpen && !isDefaultContactMethod}
                         danger
                     />
                     {isFailedAddContactMethod && (
@@ -289,9 +290,9 @@ class ContactMethodDetailsPage extends Component {
                     {isDefaultContactMethod ? (
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
-                            errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
+                            errors={ErrorUtils.getLatestErrorField(loginData, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
                             errorRowStyles={[styles.ml8, styles.mr5]}
-                            onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
+                            onClose={() => User.clearContactMethodErrors(contactMethod, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
                         >
                             <Text style={[styles.ph5, styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
                         </OfflineWithFeedback>
