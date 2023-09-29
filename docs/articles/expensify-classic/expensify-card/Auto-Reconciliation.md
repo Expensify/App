@@ -13,7 +13,6 @@ The integrations that auto-reconciliation are available on are:
 - Xero
 - NetSuite
 - Sage Intacct
--->
 
 # How-to Set Up Expensify Card Auto-Reconciliation
 
@@ -48,7 +47,6 @@ Once Auto-Reconciliation is enabled, there are a few things that happen. Let’s
 ### Submitting, Approving, and Exporting Expenses
 **What happens**: Users submit their expenses on a report, which might occur after some time has passed since the initial purchase. Once the report is approved, it's then exported to your accounting software.
 **Accounting treatment**: When the report is exported, we create a journal entry in your accounting system. This entry credits the Clearing Account and debits the Liability Account for the purchase amount. The Liability Account functions as a bank account in your ledger, specifically for Expensify Card expenses:
--->
 
 # Deep Dive
 ## QuickBooks Online
@@ -158,7 +156,6 @@ If Auto-Reconciliation is disabled for your company's Expensify Cards, a Domain 
 1. After the initial export of a card transaction, Expensify establishes a Liability Account in Intacct (without a clearing account).
 2. Each time a monthly settlement occurs, Expensify calculates the total purchase amount since the last settlement and creates a Journal Entry. This entry credits the settlement bank account (GL Account) and debits the Expensify Liability Account in Intacct.
 3. As expenses are approved and exported to Intacct, Expensify credits the Liability Account and debits the appropriate expense categories.
--->
 
 # FAQ
 
