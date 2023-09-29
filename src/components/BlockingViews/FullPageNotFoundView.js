@@ -9,6 +9,7 @@ import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 import ROUTES from '../../ROUTES';
 import useLocalize from '../../hooks/useLocalize';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Child elements */

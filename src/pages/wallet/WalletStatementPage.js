@@ -94,6 +94,7 @@ function WalletStatementPage(props) {
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom={false}
+            testID={WalletStatementPage.displayName}
         >
             <HeaderWithBackButton
                 title={Str.recapitalize(title)}

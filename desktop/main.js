@@ -12,7 +12,7 @@ const CONST = require('../src/CONST').default;
 const Localize = require('../src/libs/Localize');
 
 const port = process.env.PORT || 8082;
-const {DESKTOP_SHORTCUT_ACCELERATOR} = CONST;
+const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 
 app.setName('New Expensify');
 
@@ -36,25 +36,40 @@ function pasteAsPlainText(browserWindow) {
     browserWindow.webContents.insertText(text);
 }
 
-// Initialize the right click menu
-// See https://github.com/sindresorhus/electron-context-menu
-// Add the Paste and Match Style command to the context menu
-contextMenu({
-    append: (defaultActions, parameters, browserWindow) => [
-        new MenuItem({
-            // Only enable the menu item for Editable context which supports paste
-            visible: parameters.isEditable && parameters.editFlags.canPaste,
-            role: 'pasteAndMatchStyle',
-            accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
-        }),
-        new MenuItem({
-            label: Localize.translate(CONST.LOCALES.DEFAULT, 'desktopApplicationMenu.pasteAsPlainText'),
-            visible: parameters.isEditable && parameters.editFlags.canPaste && clipboard.readText().length > 0,
-            accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
-            click: () => pasteAsPlainText(browserWindow),
-        }),
-    ],
-});
+/**
+ * Initialize the right-click menu
+ * See https://github.com/sindresorhus/electron-context-menu
+ *
+ * @param {String} preferredLocale - The current user language to be used for translating menu labels.
+ * @returns {Function} A dispose function to clean up the created context menu.
+ */
+
+function createContextMenu(preferredLocale = LOCALES.DEFAULT) {
+    return contextMenu({
+        labels: {
+            cut: Localize.translate(preferredLocale, 'desktopApplicationMenu.cut'),
+            paste: Localize.translate(preferredLocale, 'desktopApplicationMenu.paste'),
+            copy: Localize.translate(preferredLocale, 'desktopApplicationMenu.copy'),
+        },
+        append: (defaultActions, parameters, browserWindow) => [
+            new MenuItem({
+                // Only enable the menu item for Editable context which supports paste
+                visible: parameters.isEditable && parameters.editFlags.canPaste,
+                role: 'pasteAndMatchStyle',
+                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
+                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAndMatchStyle'),
+            }),
+            new MenuItem({
+                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAsPlainText'),
+                visible: parameters.isEditable && parameters.editFlags.canPaste && clipboard.readText().length > 0,
+                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
+                click: () => pasteAsPlainText(browserWindow),
+            }),
+        ],
+    });
+}
+
+let disposeContextMenu = createContextMenu();
 
 // Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
@@ -522,6 +537,8 @@ const mainWindow = () => {
 
                 ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
                     Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
+                    disposeContextMenu();
+                    disposeContextMenu = createContextMenu(updatedLocale);
                 });
 
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {

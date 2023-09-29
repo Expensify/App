@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -59,13 +59,23 @@ function MoneyRequestMerchantPage({iou, route}) {
         }
 
         if (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
         }
     }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID]);
 
     function navigateBack() {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     }
+
+    const validate = useCallback((value) => {
+        const errors = {};
+
+        if (_.isEmpty(value.moneyRequestMerchant)) {
+            errors.moneyRequestMerchant = 'common.error.fieldRequired';
+        }
+
+        return errors;
+    }, []);
 
     /**
      * Sets the money request comment by saving it to Onyx.
@@ -83,6 +93,7 @@ function MoneyRequestMerchantPage({iou, route}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            testID={MoneyRequestMerchantPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.merchant')}
@@ -92,6 +103,7 @@ function MoneyRequestMerchantPage({iou, route}) {
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={(value) => updateMerchant(value)}
+                validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
@@ -114,6 +126,7 @@ function MoneyRequestMerchantPage({iou, route}) {
 
 MoneyRequestMerchantPage.propTypes = propTypes;
 MoneyRequestMerchantPage.defaultProps = defaultProps;
+MoneyRequestMerchantPage.displayName = 'MoneyRequestMerchantPage';
 
 export default withOnyx({
     iou: {

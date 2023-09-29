@@ -18,6 +18,7 @@ import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 import TeachersUnite from '../../libs/actions/TeachersUnite';
 import useLocalize from '../../hooks/useLocalize';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 
 const propTypes = {
     /** Login list for the user that is signed in */
@@ -33,6 +34,7 @@ const defaultProps = {
 
 function IntroSchoolPrincipalPage(props) {
     const {translate} = useLocalize();
+
     /**
      * @param {Object} values
      * @param {String} values.firstName
@@ -53,10 +55,14 @@ function IntroSchoolPrincipalPage(props) {
         (values) => {
             const errors = {};
 
-            if (_.isEmpty(values.firstName)) {
+            if (!ValidationUtils.isValidLegalName(values.firstName)) {
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
+            } else if (_.isEmpty(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
             }
-            if (_.isEmpty(values.lastName)) {
+            if (!ValidationUtils.isValidLegalName(values.lastName)) {
+                ErrorUtils.addErrorMessage(errors, 'lastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
+            } else if (_.isEmpty(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
             }
             if (_.isEmpty(values.partnerUserID)) {
@@ -75,10 +81,13 @@ function IntroSchoolPrincipalPage(props) {
     );
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={IntroSchoolPrincipalPage.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SAVE_THE_WORLD)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
             />
             <Form
                 enabledWhenOffline

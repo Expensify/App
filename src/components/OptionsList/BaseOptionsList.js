@@ -21,6 +21,9 @@ const propTypes = {
     /** Callback executed on scroll. Only used for web/desktop component */
     onScroll: PropTypes.func,
 
+    /** List styles for SectionList */
+    listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...optionsListPropTypes,
 };
 
@@ -28,6 +31,7 @@ const defaultProps = {
     keyboardDismissMode: 'none',
     onScrollBeginDrag: () => {},
     onScroll: () => {},
+    listStyles: [],
     ...optionsListDefaultProps,
 };
 
@@ -35,6 +39,7 @@ function BaseOptionsList({
     keyboardDismissMode,
     onScrollBeginDrag,
     onScroll,
+    listStyles,
     focusedIndex,
     selectedOptions,
     headerMessage,
@@ -51,10 +56,15 @@ function BaseOptionsList({
     shouldDisableRowInnerPadding,
     disableFocusOptions,
     canSelectMultipleOptions,
+    shouldShowMultipleOptionSelectorAsButton,
+    multipleOptionSelectorButtonText,
+    onAddToSelection,
+    highlightSelectedOptions,
     onSelectRow,
     boldStyle,
     isDisabled,
     innerRef,
+    isRowMultilineSupported,
 }) {
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
@@ -163,6 +173,22 @@ function BaseOptionsList({
      */
     const renderItem = ({item, index, section}) => {
         const isItemDisabled = isDisabled || section.isDisabled || !!item.isDisabled;
+        const isSelected = _.some(selectedOptions, (option) => {
+            if (option.accountID && option.accountID === item.accountID) {
+                return true;
+            }
+
+            if (option.reportID && option.reportID === item.reportID) {
+                return true;
+            }
+
+            if (_.isEmpty(option.name)) {
+                return false;
+            }
+
+            return option.name === item.searchText;
+        });
+
         return (
             <OptionRow
                 option={item}
@@ -170,12 +196,17 @@ function BaseOptionsList({
                 hoverStyle={optionHoveredStyle}
                 optionIsFocused={!disableFocusOptions && !isItemDisabled && focusedIndex === index + section.indexOffset}
                 onSelectRow={onSelectRow}
-                isSelected={Boolean(_.find(selectedOptions, (option) => option.accountID === item.accountID))}
+                isSelected={isSelected}
                 showSelectedState={canSelectMultipleOptions}
+                shouldShowSelectedStateAsButton={shouldShowMultipleOptionSelectorAsButton}
+                selectedStateButtonText={multipleOptionSelectorButtonText}
+                onSelectedStatePressed={onAddToSelection}
+                highlightSelected={highlightSelectedOptions}
                 boldStyle={boldStyle}
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
+                isMultilineSupported={isRowMultilineSupported}
             />
         );
     };
@@ -209,7 +240,7 @@ function BaseOptionsList({
     return (
         <View style={listContainerStyles}>
             {isLoading ? (
-                <OptionsListSkeletonView />
+                <OptionsListSkeletonView shouldAnimate />
             ) : (
                 <>
                     {headerMessage ? (
@@ -219,6 +250,8 @@ function BaseOptionsList({
                     ) : null}
                     <SectionList
                         ref={innerRef}
+                        nestedScrollEnabled
+                        style={listStyles}
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
                         keyboardDismissMode={keyboardDismissMode}

@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, Animated, Keyboard} from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -25,7 +25,12 @@ import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import reportPropTypes from '../pages/reportPropTypes';
-import tryResolveUrlFromApiRoot from '../libs/tryResolveUrlFromApiRoot';
+import * as Expensicons from './Icon/Expensicons';
+import useWindowDimensions from '../hooks/useWindowDimensions';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
+import useNativeDriver from '../libs/useNativeDriver';
+import useNetwork from '../hooks/useNetwork';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -94,6 +99,7 @@ const defaultProps = {
 };
 
 function AttachmentModal(props) {
+    const onModalHideCallbackRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -106,6 +112,8 @@ function AttachmentModal(props) {
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
     const [shouldShowDownloadButton, setShouldShowDownloadButton] = React.useState(true);
+    const {windowWidth} = useWindowDimensions();
+
     const [file, setFile] = useState(
         props.originalFileName
             ? {
@@ -114,6 +122,7 @@ function AttachmentModal(props) {
             : undefined,
     );
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     const onCarouselAttachmentChange = props.onCarouselAttachmentChange;
 
@@ -295,7 +304,7 @@ function AttachmentModal(props) {
             Animated.timing(confirmButtonFadeAnimation, {
                 toValue,
                 duration: 100,
-                useNativeDriver: true,
+                useNativeDriver,
             }).start();
         },
         [confirmButtonFadeAnimation],
@@ -331,6 +340,10 @@ function AttachmentModal(props) {
                 }}
                 onModalHide={(e) => {
                     props.onModalHide(e);
+                    if (onModalHideCallbackRef.current) {
+                        onModalHideCallbackRef.current();
+                    }
+
                     setShouldLoadAttachment(false);
                 }}
                 propagateSwipe
@@ -339,19 +352,37 @@ function AttachmentModal(props) {
                 <HeaderWithBackButton
                     title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
                     shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton}
+                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !isAttachmentReceipt && !isOffline}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={closeModal}
                     onCloseButtonPress={closeModal}
+                    shouldShowThreeDotsButton={isAttachmentReceipt}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
+                    threeDotsMenuItems={[
+                        {
+                            icon: Expensicons.Camera,
+                            text: props.translate('common.replace'),
+                            onSelected: () => {
+                                onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
+                                closeModal();
+                            },
+                        },
+                        {
+                            icon: Expensicons.Download,
+                            text: props.translate('common.download'),
+                            onSelected: () => downloadAttachment(source),
+                        },
+                    ]}
+                    shouldOverlay
                 />
                 <View style={styles.imageModalImageCenterContainer}>
                     {!_.isEmpty(props.report) ? (
                         <AttachmentCarousel
                             report={props.report}
                             onNavigate={onNavigate}
-                            source={tryResolveUrlFromApiRoot(props.source)}
+                            source={props.source}
                             onClose={closeModal}
                             onToggleKeyboard={updateConfirmButtonVisibility}
                             setDownloadButtonVisibility={setDownloadButtonVisibility}
@@ -366,6 +397,7 @@ function AttachmentModal(props) {
                                 file={file}
                                 onToggleKeyboard={updateConfirmButtonVisibility}
                                 isWorkspaceAvatar={props.isWorkspaceAvatar}
+                                fallbackSource={props.fallbackSource}
                             />
                         )
                     )}

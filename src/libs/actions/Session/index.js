@@ -20,19 +20,35 @@ import * as Device from '../Device';
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
-import * as Report from '../Report';
 import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 
-let authTokenType = '';
+let sessionAuthTokenType = '';
+let sessionAuthToken = null;
+let authPromiseResolver = null;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (session) => (authTokenType = lodashGet(session, 'authTokenType')),
+    callback: (session) => {
+        sessionAuthTokenType = lodashGet(session, 'authTokenType');
+        sessionAuthToken = lodashGet(session, 'authToken');
+
+        if (sessionAuthToken && authPromiseResolver) {
+            authPromiseResolver(true);
+            authPromiseResolver = null;
+        }
+    },
 });
 
 let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => (credentials = val || {}),
+});
+
+let preferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (val) => (preferredLocale = val),
 });
 
 /**
@@ -61,7 +77,7 @@ function signOut() {
  * @return {boolean}
  */
 function isAnonymousUser() {
-    return authTokenType === 'anonymousAccount';
+    return sessionAuthTokenType === 'anonymousAccount';
 }
 
 function signOutAndRedirectToSignIn() {
@@ -75,7 +91,7 @@ function signOutAndRedirectToSignIn() {
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
-                Report.setLastOpenedPublicRoom(reportID);
+                Onyx.merge(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
             }
         });
     }
@@ -244,7 +260,7 @@ function beginSignIn(login) {
  */
 function beginAppleSignIn(idToken) {
     const {optimisticData, successData, failureData} = signInAttemptState();
-    API.write('SignInWithApple', {idToken}, {optimisticData, successData, failureData});
+    API.write('SignInWithApple', {idToken, preferredLocale}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -255,7 +271,7 @@ function beginAppleSignIn(idToken) {
  */
 function beginGoogleSignIn(token) {
     const {optimisticData, successData, failureData} = signInAttemptState();
-    API.write('SignInWithGoogle', {token}, {optimisticData, successData, failureData});
+    API.write('SignInWithGoogle', {token, preferredLocale}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -311,9 +327,8 @@ function signInWithShortLivedAuthToken(email, authToken) {
  *
  * @param {String} validateCode 6 digit code required for login
  * @param {String} [twoFactorAuthCode]
- * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
  */
-function signIn(validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
+function signIn(validateCode, twoFactorAuthCode) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -370,7 +385,7 @@ function signIn(validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES
     });
 }
 
-function signInWithValidateCode(accountID, code, preferredLocale = CONST.LOCALES.DEFAULT, twoFactorAuthCode = '') {
+function signInWithValidateCode(accountID, code, twoFactorAuthCode = '') {
     // If this is called from the 2fa step, get the validateCode directly from onyx
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
@@ -446,8 +461,8 @@ function signInWithValidateCode(accountID, code, preferredLocale = CONST.LOCALES
     });
 }
 
-function signInWithValidateCodeAndNavigate(accountID, validateCode, preferredLocale = CONST.LOCALES.DEFAULT, twoFactorAuthCode = '') {
-    signInWithValidateCode(accountID, validateCode, preferredLocale, twoFactorAuthCode);
+function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode = '') {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
     Navigation.navigate(ROUTES.HOME);
 }
 
@@ -749,6 +764,29 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
     API.write('TwoFactorAuth_Validate', {twoFactorAuthCode}, {optimisticData, successData, failureData});
 }
 
+/**
+ * Waits for a user to sign in.
+ *
+ * If the user is already signed in (`authToken` is truthy), the promise resolves immediately.
+ * Otherwise, the promise will resolve when the `authToken` in `ONYXKEYS.SESSION` becomes truthy via the Onyx callback.
+ * The promise will not reject on failed login attempt.
+ *
+ * @returns {Promise<boolean>} A promise that resolves to `true` once the user is signed in.
+ * @example
+ * waitForUserSignIn().then(() => {
+ *   console.log('User is signed in!');
+ * });
+ */
+function waitForUserSignIn() {
+    return new Promise((resolve) => {
+        if (sessionAuthToken) {
+            resolve(true);
+        } else {
+            authPromiseResolver = resolve;
+        }
+    });
+}
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -776,4 +814,5 @@ export {
     isAnonymousUser,
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
+    waitForUserSignIn,
 };
