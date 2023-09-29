@@ -69,7 +69,14 @@ let allPolicyTags = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
-    callback: (value) => (allPolicyTags = value),
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
 });
 
 let userAccountID = '';
