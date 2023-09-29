@@ -103,6 +103,7 @@ let hasInitialReportActions = false;
 
 /**
  * @param {String} currentReportId
+ * @param {Object} draftReportIDs
  * @param {Object} allReportsDict
  * @param {Object} betas
  * @param {String[]} policies
@@ -110,11 +111,12 @@ let hasInitialReportActions = false;
  * @param {Object} allReportActions
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
-function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions) {
+function getOrderedReportIDs(currentReportId, draftReportIDs, allReportsDict, betas, policies, priorityMode, allReportActions) {
+    const allReportsDictKeys = Object.keys(allReportsDict);
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
         // eslint-disable-next-line es/no-optional-chaining
-        [currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
+        [currentReportId, allReportsDictKeys, betas, draftReportIDs, policies, priorityMode, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
         (key, value) => {
             /**
              *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,
@@ -149,18 +151,6 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
         }
     }
 
-    // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    reportsToDisplay.forEach((report) => {
-        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
-        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
-        // the reportDisplayName property to the report object directly.
-        // eslint-disable-next-line no-param-reassign
-        report.displayName = ReportUtils.getReportName(report);
-
-        // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReportsDict);
-    });
-
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned - Always sorted by reportDisplayName
     // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
@@ -171,17 +161,29 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     // 5. Archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
+
     const pinnedReports = [];
     const outstandingIOUReports = [];
     const draftReports = [];
     const nonArchivedReports = [];
     const archivedReports = [];
+
+    // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
+        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
+        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
+        // the reportDisplayName property to the report object directly.
+        // eslint-disable-next-line no-param-reassign
+        report.displayName = ReportUtils.getReportName(report);
+
+        // eslint-disable-next-line no-param-reassign
+        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReportsDict);
+
         if (report.isPinned) {
             pinnedReports.push(report);
         } else if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
             outstandingIOUReports.push(report);
-        } else if (report.hasDraft) {
+        } else if (draftReportIDs[report.reportID]) {
             draftReports.push(report);
         } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(report);
@@ -296,7 +298,6 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.statusNum = report.statusNum;
     result.isUnread = ReportUtils.isUnread(report);
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
-    result.hasDraftComment = report.hasDraft;
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
