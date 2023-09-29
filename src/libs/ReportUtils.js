@@ -3248,14 +3248,19 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     if (isChatThread(report) || isTaskReport(report)) {
         return [];
     }
-
+    // debugger;
     const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
+
+    let isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat
+    if (isExpenseReport(report) && getParentReport(report)) {
+        isOwnPolicyExpenseChat = getParentReport(report).isOwnPolicyExpenseChat;
+    }
 
     const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     const hasSingleParticipantInReport = participants.length === 1;
     const hasMultipleParticipants = participants.length > 1;
 
-    if (hasExcludedIOUAccountIDs || (participants.length === 0 && !report.isOwnPolicyExpenseChat)) {
+    if (hasExcludedIOUAccountIDs || (participants.length === 0 && !isOwnPolicyExpenseChat)) {
         return [];
     }
 
@@ -3267,8 +3272,8 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
-    // There is no Split Bill option for Workspace chats
-    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report)) || isControlPolicyExpenseChat(report)) {
+    // There is no Split Bill option for Workspace chats, IOU or Expense reports which are threads
+    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report) && !isExpenseReport(report)) || isControlPolicyExpenseChat(report)) {
         return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
