@@ -23,6 +23,7 @@ import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
 import * as Session from '../../libs/actions/Session';
+import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -70,7 +71,7 @@ function TaskPreview(props) {
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
     const assigneeLogin = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], '');
     const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
-    const taskAssignee = assigneeLogin || assigneeDisplayName;
+    const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(props.taskReport, props.action);
 
