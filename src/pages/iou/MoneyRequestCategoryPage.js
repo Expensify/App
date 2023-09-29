@@ -94,10 +94,8 @@ export default compose(
     withOnyx({
         report: {
             key: ({route, iou}) => {
-                let reportID = lodashGet(route, 'params.reportID', '');
-                if (!reportID) {
-                    reportID = IOU.getIOUReportID(iou);
-                }
+                const reportID = IOU.getIOUReportID(iou, route);
+
                 return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
             },
         },

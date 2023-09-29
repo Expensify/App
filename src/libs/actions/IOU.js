@@ -2325,15 +2325,36 @@ function navigateToNextPage(iou, iouType, report, path = '') {
     Navigation.navigate(ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType));
 }
 
+// route: PropTypes.shape({
+//     /** Route specific parameters used on this screen via route :iouType/new/category/:reportID? */
+//     params: PropTypes.shape({
+//         /** The type of IOU report, i.e. bill, request, send */
+//         iouType: PropTypes.string,
+
+//         /** The report ID of the IOU */
+//         reportID: PropTypes.string,
+//     }),
+// }).isRequired,
+
 /**
  *  When the money request or split bill creation flow is initialized via FAB, the reportID is not passed as a navigation
  * parameter.
  * Gets a report id from the first participant of the IOU object stored in Onyx.
  * @param {Object} iou
+ * @param {Array} iou.participants
+ * @param {Object} route
+ * @param {Object} route.params
+ * @param {String} [route.params.reportID]
  * @returns {String}
  */
-function getIOUReportID(iou) {
-    return lodashGet(iou, 'participants.0.reportID', '');
+function getIOUReportID(iou, route) {
+    let reportID = lodashGet(route, 'params.reportID', '');
+
+    if (!reportID) {
+        reportID = lodashGet(iou, 'participants.0.reportID', '');
+    }
+
+    return reportID;
 }
 
 export {
