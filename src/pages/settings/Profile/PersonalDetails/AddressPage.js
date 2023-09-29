@@ -82,9 +82,9 @@ function AddressPage({privatePersonalDetails, route}) {
     const [state, setState] = useState(address.state);
     
     useEffect(() => {
-    if(!address) {
-        return 
-    }
+        if (!address) {
+            return 
+        }
         setState(address.state);
         setCurrentCountry(address.country);
     }, [address]);
