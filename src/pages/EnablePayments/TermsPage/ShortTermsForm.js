@@ -21,7 +21,7 @@ function ShortTermsForm(props) {
         <>
             <Text style={styles.mb5}>
                 {Localize.translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount', {
-                    walletProgram: props.userWallet.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID ? 'Expensify Payments' : 'The Bancorp Bank',
+                    walletProgram: props.userWallet.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID ? CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS : CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK,
                 })}
             </Text>
 
