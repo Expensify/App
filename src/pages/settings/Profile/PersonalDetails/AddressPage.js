@@ -80,17 +80,19 @@ function AddressPage({privatePersonalDetails, route}) {
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
+    
+    useEffect(() => {
+        if(!address) return;
+        setState(address.state);
+        setCurrentCountry(address.country);
+    }, [address]);
+    
     /**
      * @param {Function} translate - translate function
      * @param {Boolean} isUSAForm - selected country ISO code is US
      * @param {Object} values - form input values
      * @returns {Object} - An object containing the errors for each inputID
      */
-    useEffect(() => {
-        if(!address) return;
-        setState(address.state);
-        setCurrentCountry(address.country);
-      }, [address]);
     const validate = useCallback((values) => {
         const errors = {};
         const requiredFields = ['addressLine1', 'city', 'country', 'state'];
