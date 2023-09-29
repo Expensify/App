@@ -92,7 +92,6 @@ function ExpensifyCardPage({
                                 titleStyle={styles.walletCardNumber}
                             />
                         )}
-                        {}
                     </ScrollView>
                     {physicalCard.state === CONST.CARD_STATE.NOT_ACTIVATED && (
                         <Button

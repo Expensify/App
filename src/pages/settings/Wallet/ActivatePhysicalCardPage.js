@@ -25,6 +25,7 @@ import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
 import assignedCardPropTypes from './assignedCardPropTypes';
 import * as CardUtils from '../../../libs/CardUtils';
+import useNetwork from '../../../hooks/useNetwork';
 
 const propTypes = {
     /* Onyx Props */
@@ -47,7 +48,7 @@ const defaultProps = {
 
 const LAST_FOUR_DIGITS_LENGTH = 4;
 
-function ActivateCardPage({
+function ActivatePhysicalCardPage({
     cardList,
     route: {
         params: {domain},
@@ -55,6 +56,7 @@ function ActivateCardPage({
 }) {
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     const [formError, setFormError] = useState('');
     const [lastFourDigits, setLastFourDigits] = useState('');
@@ -90,6 +92,12 @@ function ActivateCardPage({
         }
     }, [cardList, cardID]);
 
+    useEffect(() => {
+        return () => {
+            CardSettings.clearCardListErrors(cardID);
+        };
+    }, [cardID]);
+
     /**
      * Update lastPressedDigit with value that was pressed on BigNumberPad.
      *
@@ -98,16 +106,7 @@ function ActivateCardPage({
      *
      * @param {String} key
      */
-    const updateLastPressedDigit = useCallback(
-        (key) => {
-            if (lastPressedDigit === key) {
-                setLastPressedDigit(lastPressedDigit + key);
-            } else {
-                setLastPressedDigit(key);
-            }
-        },
-        [lastPressedDigit],
-    );
+    const updateLastPressedDigit = useCallback((key) => setLastPressedDigit(lastPressedDigit === key ? lastPressedDigit + key : key), [lastPressedDigit]);
 
     /**
      * Handle card activation code input
@@ -120,18 +119,19 @@ function ActivateCardPage({
     };
 
     const submitAndNavigateToNextPage = useCallback(() => {
+        if (lastFourDigits.replace(CONST.MAGIC_CODE_EMPTY_CHAR, '').length !== LAST_FOUR_DIGITS_LENGTH) {
+            setFormError(translate('activateCardPage.error.notEnoughDigits'));
+            return;
+        }
+
         activateCardCodeInputRef.current.blur();
-        CardSettings.clearCardListErrors(cardID);
         CardSettings.activatePhysicalExpensifyCard(Number(lastFourDigits), cardID);
     }, [lastFourDigits, cardID]);
 
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={() => {
-                CardSettings.clearCardListErrors(cardID);
-                Navigation.goBack(ROUTES.SETTINGS);
-            }}
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain))}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.Magician}
         >
@@ -154,6 +154,7 @@ function ActivateCardPage({
                 {DeviceCapabilities.canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}
                 <Button
                     success
+                    isDisabled={isOffline}
                     isLoading={cardList[cardID].isLoading}
                     medium={isExtraSmallScreenHeight}
                     style={[styles.w100, styles.mt5]}
@@ -166,12 +167,12 @@ function ActivateCardPage({
     );
 }
 
-ActivateCardPage.propTypes = propTypes;
-ActivateCardPage.defaultProps = defaultProps;
-ActivateCardPage.displayName = 'ActivateCardPage';
+ActivatePhysicalCardPage.propTypes = propTypes;
+ActivatePhysicalCardPage.defaultProps = defaultProps;
+ActivatePhysicalCardPage.displayName = 'ActivatePhysicalCardPage';
 
 export default withOnyx({
     cardList: {
         key: ONYXKEYS.CARD_LIST,
     },
-})(ActivateCardPage);
+})(ActivatePhysicalCardPage);

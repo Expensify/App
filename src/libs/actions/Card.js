@@ -19,6 +19,7 @@ function activatePhysicalExpensifyCard(lastFourDigits, cardID) {
                     key: ONYXKEYS.CARD_LIST,
                     value: {
                         [cardID]: {
+                            errors: null,
                             isLoading: true,
                         },
                     },

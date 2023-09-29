@@ -821,6 +821,9 @@ export default {
         activateCard: 'Activate card',
         pleaseEnterLastFour: 'Please enter the last four digits of your card.',
         activatePhysicalCard: 'Activate physical card',
+        error: {
+            notEnoughDigits: 'Not enough digits.',
+        },
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
