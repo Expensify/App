@@ -126,7 +126,8 @@ function LoungeAccessPage(props) {
                 </Text>
                 {props.user.loungeCheckInDetails.isCheckedIn ? (
                     <Button
-                        style={[styles.buttonSuccessHovered, styles.w100]}
+                        shouldUseDefaultHover={false}
+                        style={[styles.buttonSuccess, styles.w100]}
                         innerStyles={[styles.appBG, styles.alignItemsCenter]}
                         text={translate('loungeAccessPage.youAreCheckedIn')}
                         icon={Expensicons.Checkmark}
