@@ -903,9 +903,13 @@ function canShowReportRecipientLocalTime(personalDetails, report, accountID) {
 /**
  * Shorten last message text to fixed length and trim spaces.
  * @param {String} lastMessageText
+ * @param {Boolean} isModifiedExpenseMessage
  * @returns {String}
  */
-function formatReportLastMessageText(lastMessageText) {
+function formatReportLastMessageText(lastMessageText, isModifiedExpenseMessage = false) {
+    if (isModifiedExpenseMessage) {
+        return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, '').trim();
+    }
     return String(lastMessageText).trim().replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
@@ -949,7 +953,7 @@ function getIconsForParticipants(participants, personalDetails) {
         const accountID = participantsList[i];
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
         const displayNameLogin = lodashGet(personalDetails, [accountID, 'displayName']) || lodashGet(personalDetails, [accountID, 'login'], '');
-        participantDetails.push([accountID, displayNameLogin, avatarSource]);
+        participantDetails.push([accountID, displayNameLogin, avatarSource, lodashGet(personalDetails, [accountID, 'fallBackIcon'])]);
     }
 
     const sortedParticipantDetails = _.chain(participantDetails)
@@ -975,6 +979,7 @@ function getIconsForParticipants(participants, personalDetails) {
             source: sortedParticipantDetails[i][2],
             type: CONST.ICON_TYPE_AVATAR,
             name: sortedParticipantDetails[i][1],
+            fallBackIcon: sortedParticipantDetails[i][3],
         };
         avatars.push(userIcon);
     }
@@ -1031,6 +1036,7 @@ function getIcons(report, personalDetails, defaultIcon = null, defaultName = '',
             id: parentReportAction.actorAccountID,
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [parentReportAction.actorAccountID, 'displayName'], ''),
+            fallbackIcon: lodashGet(personalDetails, [parentReportAction.actorAccountID, 'fallbackIcon']),
         };
 
         return [memberIcon, workspaceIcon];
@@ -1045,6 +1051,7 @@ function getIcons(report, personalDetails, defaultIcon = null, defaultName = '',
             source: UserUtils.getAvatar(lodashGet(personalDetails, [actorAccountID, 'avatar']), actorAccountID),
             name: actorDisplayName,
             type: CONST.ICON_TYPE_AVATAR,
+            fallbackIcon: lodashGet(personalDetails, [parentReportAction.actorAccountID, 'fallbackIcon']),
         };
 
         if (isWorkspaceThread(report)) {
@@ -1059,6 +1066,7 @@ function getIcons(report, personalDetails, defaultIcon = null, defaultName = '',
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [report.ownerAccountID, 'displayName'], ''),
+            fallbackIcon: lodashGet(personalDetails, [report.ownerAccountID, 'fallbackIcon']),
         };
 
         if (isWorkspaceTaskReport(report)) {
@@ -1091,6 +1099,7 @@ function getIcons(report, personalDetails, defaultIcon = null, defaultName = '',
             id: report.ownerAccountID,
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [report.ownerAccountID, 'displayName'], ''),
+            fallbackIcon: lodashGet(personalDetails, [report.ownerAccountID, 'fallbackIcon']),
         };
         return isExpenseReport(report) ? [memberIcon, workspaceIcon] : [workspaceIcon, memberIcon];
     }
@@ -1100,12 +1109,14 @@ function getIcons(report, personalDetails, defaultIcon = null, defaultName = '',
             id: report.managerID,
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [report.managerID, 'displayName'], ''),
+            fallbackIcon: lodashGet(personalDetails, [report.managerID, 'fallbackIcon']),
         };
         const ownerIcon = {
             id: report.ownerAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [report.ownerAccountID, 'displayName'], ''),
+            fallbackIcon: lodashGet(personalDetails, [report.ownerAccountID, 'fallbackIcon']),
         };
         const isPayer = currentUserAccountID === report.managerID;
 
@@ -1347,7 +1358,8 @@ function getMoneyRequestReportName(report, policy = undefined) {
 }
 
 /**
- * Gets transaction created, amount, currency and comment
+ * Gets transaction created, amount, currency, comment, and waypoints (for distance request)
+ * into a flat object. Used for displaying transactions and sending them in API commands
  *
  * @param {Object} transaction
  * @returns {Object}
@@ -1360,7 +1372,9 @@ function getTransactionDetails(transaction) {
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
+        waypoints: TransactionUtils.getWaypoints(transaction),
         category: TransactionUtils.getCategory(transaction),
+        billable: TransactionUtils.getBillable(transaction),
         tag: TransactionUtils.getTag(transaction),
     };
 }
@@ -1567,6 +1581,9 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
 /**
  * Get the report action message when expense has been modified.
  *
+ * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
+ * If we change this function be sure to update the backend as well.
+ *
  * @param {Object} reportAction
  * @returns {String}
  */
@@ -1618,6 +1635,11 @@ function getModifiedExpenseMessage(reportAction) {
     if (hasModifiedTag) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.tag, reportActionOriginalMessage.oldTag, Localize.translateLocal('common.tag'), true);
     }
+
+    const hasModifiedBillable = _.has(reportActionOriginalMessage, 'oldBillable') && _.has(reportActionOriginalMessage, 'billable');
+    if (hasModifiedBillable) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.billable, reportActionOriginalMessage.oldBillable, Localize.translateLocal('iou.request'), true);
+    }
 }
 
 /**
@@ -1666,6 +1688,12 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     if (_.has(transactionChanges, 'tag')) {
         originalMessage.oldTag = TransactionUtils.getTag(oldTransaction);
         originalMessage.tag = transactionChanges.tag;
+    }
+
+    if (_.has(transactionChanges, 'billable')) {
+        const oldBillable = TransactionUtils.getBillable(oldTransaction);
+        originalMessage.oldBillable = oldBillable ? Localize.translateLocal('common.billable').toLowerCase() : Localize.translateLocal('common.nonBillable').toLowerCase();
+        originalMessage.billable = transactionChanges.billable ? Localize.translateLocal('common.billable').toLowerCase() : Localize.translateLocal('common.nonBillable').toLowerCase();
     }
 
     return originalMessage;
@@ -2536,7 +2564,7 @@ function buildOptimisticCreatedReportAction(emailCreatingAction) {
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: emailCreatingAction === currentUserEmail ? 'You' : emailCreatingAction,
+                text: emailCreatingAction,
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -2575,7 +2603,7 @@ function buildOptimisticEditedTaskReportAction(emailEditingTask) {
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: emailEditingTask === currentUserEmail ? 'You' : emailEditingTask,
+                text: emailEditingTask,
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -2616,7 +2644,7 @@ function buildOptimisticClosedReportAction(emailClosingReport, policyName, reaso
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: emailClosingReport === currentUserEmail ? 'You' : emailClosingReport,
+                text: emailClosingReport,
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -2962,11 +2990,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
     const isEmptyChat = !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
     const canHideReport = shouldHideReport(report, currentReportId);
-
-    // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (isChatThread(report) && canHideReport && isEmptyChat) {
-        return false;
-    }
 
     // Include reports if they are pinned
     if (report.isPinned) {
@@ -3569,8 +3592,8 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
 
     // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
     if (assigneeChatReportID !== parentReportID) {
-        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `Assigned a task to you: ${title}`, parentReportID);
-
+        const displayname = lodashGet(allPersonalDetails, [assigneeAccountID, 'displayName']) || lodashGet(allPersonalDetails, [assigneeAccountID, 'login'], '');
+        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `assigned to ${displayname}`, parentReportID);
         const lastAssigneeCommentText = formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
@@ -3626,6 +3649,46 @@ function getReportPreviewDisplayTransactions(reportPreviewAction) {
         },
         [],
     );
+}
+
+/**
+ * Return iou report action display message
+ *
+ * @param {Object} reportAction report action
+ * @returns {String}
+ */
+function getIOUReportActionDisplayMessage(reportAction) {
+    const originalMessage = _.get(reportAction, 'originalMessage', {});
+    let displayMessage;
+    if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        const {amount, currency, IOUReportID} = originalMessage;
+        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+        const iouReport = getReport(IOUReportID);
+        const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport.managerID);
+        let translationKey;
+        switch (originalMessage.paymentType) {
+            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+                translationKey = 'iou.paidElsewhereWithAmount';
+                break;
+            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            case CONST.IOU.PAYMENT_TYPE.VBBA:
+                translationKey = 'iou.paidUsingExpensifyWithAmount';
+                break;
+            default:
+                translationKey = '';
+                break;
+        }
+        displayMessage = Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
+    } else {
+        const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
+        const {amount, currency, comment} = getTransactionDetails(transaction);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+        displayMessage = Localize.translateLocal('iou.requestedAmount', {
+            formattedAmount,
+            comment,
+        });
+    }
+    return displayMessage;
 }
 
 export {
@@ -3768,5 +3831,6 @@ export {
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
     hasMissingSmartscanFields,
+    getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
 };
