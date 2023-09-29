@@ -1,14 +1,12 @@
 import * as FileUtils from './FileUtils';
 import * as Link from '../actions/Link';
+import {FileDownload} from './types';
 
 /**
  * Downloading attachment in web, desktop
- * @param {String} url
- * @param {String} fileName
- * @returns {Promise}
  */
-export default function fileDownload(url, fileName) {
-    return new Promise((resolve) => {
+const fileDownload: FileDownload = (url: string, fileName: string) =>
+    new Promise((resolve) => {
         fetch(url)
             .then((response) => response.blob())
             .then((blob) => {
@@ -34,7 +32,7 @@ export default function fileDownload(url, fileName) {
 
                 // Clean up and remove the link
                 URL.revokeObjectURL(link.href);
-                link.parentNode.removeChild(link);
+                link.parentNode?.removeChild(link);
                 return resolve();
             })
             .catch(() => {
@@ -43,4 +41,5 @@ export default function fileDownload(url, fileName) {
                 return resolve();
             });
     });
-}
+
+export default fileDownload;

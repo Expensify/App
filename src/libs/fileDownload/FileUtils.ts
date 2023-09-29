@@ -2,6 +2,7 @@ import {Alert, Linking, Platform} from 'react-native';
 import CONST from '../../CONST';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
+import {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
 /**
  * Show alert on successful attachment download
@@ -43,49 +44,45 @@ function showPermissionErrorAlert() {
         },
         {
             text: Localize.translateLocal('common.settings'),
-            onPress: () => Linking.openSettings(),
+            onPress: () => {
+                Linking.openSettings();
+            },
         },
     ]);
 }
 
 /**
  * Generate a random file name with timestamp and file extension
- * @param {String} url
- * @returns {String}
  */
-function getAttachmentName(url) {
+function getAttachmentName(url: string): string {
     if (!url) {
         return '';
     }
-    return `${DateUtils.getDBTime()}.${url.split(/[#?]/)[0].split('.').pop().trim()}`;
+    return `${DateUtils.getDBTime()}.${url.split(/[#?]/)[0].split('.').pop()?.trim()}`;
 }
 
-/**
- * @param {String} fileName
- * @returns {Boolean}
- */
-function isImage(fileName) {
+function isImage(fileName: string): boolean {
     return CONST.FILE_TYPE_REGEX.IMAGE.test(fileName);
 }
 
-/**
- * @param {String} fileName
- * @returns {Boolean}
- */
-function isVideo(fileName) {
+function isVideo(fileName: string): boolean {
     return CONST.FILE_TYPE_REGEX.VIDEO.test(fileName);
 }
 
 /**
  * Returns file type based on the uri
- * @param {String} fileUrl
- * @returns {String}
  */
-function getFileType(fileUrl) {
+function getFileType(fileUrl: string): string | undefined {
     if (!fileUrl) {
         return;
     }
-    const fileName = fileUrl.split('/').pop().split('?')[0].split('#')[0];
+
+    const fileName = fileUrl.split('/').pop()?.split('?')[0].split('#')[0];
+
+    if (!fileName) {
+        return;
+    }
+
     if (isImage(fileName)) {
         return CONST.ATTACHMENT_FILE_TYPE.IMAGE;
     }
@@ -97,32 +94,22 @@ function getFileType(fileUrl) {
 
 /**
  * Returns the filename split into fileName and fileExtension
- *
- * @param {String} fullFileName
- * @returns {Object}
  */
-function splitExtensionFromFileName(fullFileName) {
+const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName: string) => {
     const fileName = fullFileName.trim();
     const splitFileName = fileName.split('.');
     const fileExtension = splitFileName.length > 1 ? splitFileName.pop() : '';
-    return {fileName: splitFileName.join('.'), fileExtension};
-}
+    return {fileName: splitFileName.join('.'), fileExtension: fileExtension ?? ''};
+};
 
 /**
  * Returns the filename replacing special characters with underscore
- *
- * @param {String} fileName
- * @returns {String}
  */
-function cleanFileName(fileName) {
+function cleanFileName(fileName: string): string {
     return fileName.replace(/[^a-zA-Z0-9\-._]/g, '_');
 }
 
-/**
- * @param {String} fileName
- * @returns {String}
- */
-function appendTimeToFileName(fileName) {
+function appendTimeToFileName(fileName: string): string {
     const file = splitExtensionFromFileName(fileName);
     let newFileName = `${file.fileName}-${DateUtils.getDBTime()}`;
     // Replace illegal characters before trying to download the attachment.
@@ -135,18 +122,13 @@ function appendTimeToFileName(fileName) {
 
 /**
  * Reads a locally uploaded file
- *
- * @param {String} path - the blob url of the locally uplodaded file
- * @param {String} fileName
- * @returns {Promise}
  */
-const readFileAsync = (path, fileName) =>
+const readFileAsync: ReadFileAsync = (path, fileName) =>
     new Promise((resolve) => {
         if (!path) {
             resolve();
         }
-
-        return fetch(path)
+        fetch(path)
             .then((res) => {
                 // For some reason, fetch is "Unable to read uploaded file"
                 // on Android even though the blob is returned, so we'll ignore
@@ -154,15 +136,19 @@ const readFileAsync = (path, fileName) =>
                 if (!res.ok && Platform.OS !== 'android') {
                     throw Error(res.statusText);
                 }
-                return res.blob();
-            })
-            .then((blob) => {
-                const file = new File([blob], cleanFileName(fileName));
-                file.source = path;
-                // For some reason, the File object on iOS does not have a uri property
-                // so images aren't uploaded correctly to the backend
-                file.uri = path;
-                resolve(file);
+                res.blob()
+                    .then((blob) => {
+                        const file = new File([blob], cleanFileName(fileName));
+                        file.source = path;
+                        // For some reason, the File object on iOS does not have a uri property
+                        // so images aren't uploaded correctly to the backend
+                        file.uri = path;
+                        resolve(file);
+                    })
+                    .catch((e) => {
+                        console.debug('[FileUtils] Could not read uploaded file', e);
+                        resolve();
+                    });
             })
             .catch((e) => {
                 console.debug('[FileUtils] Could not read uploaded file', e);
