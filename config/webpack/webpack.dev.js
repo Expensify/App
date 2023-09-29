@@ -1,8 +1,8 @@
 const path = require('path');
 const portfinder = require('portfinder');
-const { DefinePlugin } = require('webpack');
-const { merge } = require('webpack-merge');
-const { TimeAnalyticsPlugin } = require('time-analytics-webpack-plugin');
+const {DefinePlugin} = require('webpack');
+const {merge} = require('webpack-merge');
+const {TimeAnalyticsPlugin} = require('time-analytics-webpack-plugin');
 const getCommonConfig = require('./webpack.common');
 
 const BASE_PORT = 8082;
@@ -13,20 +13,20 @@ const BASE_PORT = 8082;
  * @returns {Configuration}
  */
 module.exports = (env = {}) =>
-    portfinder.getPortPromise({ port: BASE_PORT }).then((port) => {
+    portfinder.getPortPromise({port: BASE_PORT}).then((port) => {
         // Check if the USE_WEB_PROXY variable has been provided
         // and rewrite any requests to the local proxy server
         const proxySettings =
             process.env.USE_WEB_PROXY === 'false'
                 ? {}
                 : {
-                    proxy: {
-                        '/api': 'http://[::1]:9000',
-                        '/staging': 'http://[::1]:9000',
-                        '/chat-attachments': 'http://[::1]:9000',
-                        '/receipts': 'http://[::1]:9000',
-                    },
-                };
+                      proxy: {
+                          '/api': 'http://[::1]:9000',
+                          '/staging': 'http://[::1]:9000',
+                          '/chat-attachments': 'http://[::1]:9000',
+                          '/receipts': 'http://[::1]:9000',
+                      },
+                  };
 
         const baseConfig = getCommonConfig(env);
 
@@ -46,8 +46,8 @@ module.exports = (env = {}) =>
                 port,
                 https: {
                     key: path.join(__dirname, 'key.pem'),
-                    cert: path.join(__dirname, 'certificate.pem')
-                }
+                    cert: path.join(__dirname, 'certificate.pem'),
+                },
             },
             plugins: [
                 new DefinePlugin({
