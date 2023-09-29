@@ -95,10 +95,10 @@ export default [
         icon: Expensicons.Download,
         successTextTranslateKey: 'common.download',
         successIcon: Expensicons.Download,
-        shouldShow: (type, reportAction) => {
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline) => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             const messageHtml = lodashGet(reportAction, ['message', 0, 'html']);
-            return isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction);
+            return isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !isOffline;
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
@@ -199,6 +199,9 @@ export default [
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
+                } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
+                    Clipboard.setString(displayMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
@@ -285,14 +288,14 @@ export default [
                     const thread = ReportUtils.buildTransactionThread(reportAction, reportID);
                     const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
                     Report.openReport(thread.reportID, userLogins, thread, reportAction.reportActionID);
-                    Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
                     return;
                 }
                 Report.openReport(childReportID);
-                Navigation.navigate(ROUTES.getReportRoute(childReportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
             }
-            const editAction = () => Report.saveReportActionDraft(reportID, reportAction.reportActionID, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
+            const editAction = () => Report.saveReportActionDraft(reportID, reportAction, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
 
             if (closePopover) {
                 // Hide popover, then call editAction
@@ -369,10 +372,10 @@ export default [
             reportAction.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
-                hideContextMenu(false, () => Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID)));
+                hideContextMenu(false, () => Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction.reportActionID)));
             }
 
-            Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID));
+            Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction.reportActionID));
         },
         getDescription: () => {},
     },

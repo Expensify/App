@@ -19,7 +19,7 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportPropTypes from '../../reportPropTypes';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
-import ReportScreenContext from '../ReportScreenContext';
+import {ReactionListContext} from '../ReportScreenContext';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -27,6 +27,12 @@ const propTypes = {
 
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The report metadata loading states */
+    isLoadingReportActions: PropTypes.bool,
+
+    /** The report actions are loading more data */
+    isLoadingMoreReportActions: PropTypes.bool,
 
     /** Whether the composer is full size */
     /* eslint-disable-next-line react/no-unused-prop-types */
@@ -51,13 +57,13 @@ const propTypes = {
 const defaultProps = {
     reportActions: [],
     policy: null,
+    isLoadingReportActions: false,
+    isLoadingMoreReportActions: false,
 };
 
 function ReportActionsView(props) {
-    const context = useContext(ReportScreenContext);
-
     useCopySelectionHelper();
-
+    const reactionListRef = useContext(ReactionListContext);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const hasCachedActions = useRef(_.size(props.reportActions) > 0);
@@ -132,20 +138,13 @@ function ReportActionsView(props) {
         }
     }, [props.report, didSubscribeToReportTypingEvents, reportID]);
 
-    useEffect(() => {
-        if (isFocused || !context.reactionListRef || !context.reactionListRef.current) {
-            return;
-        }
-        context.reactionListRef.current.hideReactionList();
-    }, [isFocused, context.reactionListRef]);
-
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
     const loadMoreChats = () => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.report.isLoadingMoreReportActions) {
+        if (props.isLoadingMoreReportActions) {
             return;
         }
 
@@ -192,11 +191,12 @@ function ReportActionsView(props) {
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}
-                isLoadingMoreReportActions={props.report.isLoadingMoreReportActions}
+                isLoadingReportActions={props.isLoadingReportActions}
+                isLoadingMoreReportActions={props.isLoadingMoreReportActions}
                 loadMoreChats={loadMoreChats}
                 policy={props.policy}
             />
-            <PopoverReactionList ref={context.reactionListRef} />
+            <PopoverReactionList ref={reactionListRef} />
         </>
     );
 }
@@ -222,11 +222,11 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (oldProps.report.isLoadingMoreReportActions !== newProps.report.isLoadingMoreReportActions) {
+    if (oldProps.isLoadingMoreReportActions !== newProps.isLoadingMoreReportActions) {
         return false;
     }
 
-    if (oldProps.report.isLoadingReportActions !== newProps.report.isLoadingReportActions) {
+    if (oldProps.isLoadingReportActions !== newProps.isLoadingReportActions) {
         return false;
     }
 
