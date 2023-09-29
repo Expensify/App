@@ -83,7 +83,7 @@ function AddressPage({privatePersonalDetails, route}) {
     
     useEffect(() => {
         if (!address) {
-            return 
+            return;
         }
         setState(address.state);
         setCurrentCountry(address.country);
