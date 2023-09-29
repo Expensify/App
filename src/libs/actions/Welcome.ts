@@ -1,4 +1,4 @@
-import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx, {OnyxCollection} from 'react-native-onyx';
 import Navigation from '../Navigation/Navigation';
 import * as ReportUtils from '../ReportUtils';
 import ROUTES from '../../ROUTES';
@@ -9,8 +9,8 @@ import CONST from '../../CONST';
 import Report from '../../types/onyx/Report';
 import OnyxPolicy from '../../types/onyx/Policy';
 
-let resolveIsReadyPromise: (value?: PromiseLike<void>) => void | undefined;
-let isReadyPromise = new Promise((resolve) => {
+let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
+let isReadyPromise = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
@@ -47,7 +47,7 @@ function checkOnReady() {
 Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     initWithStoredValues: false,
-    callback: (val: OnyxEntry<boolean>) => {
+    callback: (val) => {
         // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
         // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
         if (!isFirstTimeNewExpensifyUser) {
@@ -176,7 +176,7 @@ function resetReadyCheck() {
     isLoadingReportData = true;
 }
 
-function serverDataIsReadyPromise() {
+function serverDataIsReadyPromise(): Promise<void> {
     return isReadyPromise;
 }
 
