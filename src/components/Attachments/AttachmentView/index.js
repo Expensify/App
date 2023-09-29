@@ -43,7 +43,7 @@ const propTypes = {
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
 
-    transactionID: PropTypes.number,
+    transactionID: PropTypes.string,
 };
 
 const defaultProps = {
