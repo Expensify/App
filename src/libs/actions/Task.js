@@ -70,7 +70,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
 
     // Parent ReportAction indicating that a task has been created
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `Created a task: ${title}`, parentReportID);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `task for ${title}`, parentReportID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTime();
@@ -219,11 +219,10 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
 /**
  * Complete a task
  * @param {Object} taskReport task report
- * @param {String} taskTitle Title of the task
  */
-function completeTask(taskReport, taskTitle) {
+function completeTask(taskReport) {
     const taskReportID = taskReport.reportID;
-    const message = `completed task: ${taskTitle}`;
+    const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
 
     const optimisticData = [
@@ -303,11 +302,10 @@ function completeTask(taskReport, taskTitle) {
 /**
  * Reopen a closed task
  * @param {Object} taskReport task report
- * @param {String} taskTitle Title of the task
  */
-function reopenTask(taskReport, taskTitle) {
+function reopenTask(taskReport) {
     const taskReportID = taskReport.reportID;
-    const message = `reopened task: ${taskTitle}`;
+    const message = `marked as incomplete`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
     const optimisticData = [
@@ -924,7 +922,7 @@ function clearEditTaskErrors(reportID) {
 function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
     const report = ReportUtils.getReport(reportID);
     if (isCreateTaskAction) {
-        return `Created a task: ${report.reportName}`;
+        return `task for ${report.reportName}`;
     }
     let taskStatusText = '';
     switch (actionName) {
@@ -941,7 +939,7 @@ function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
             taskStatusText = Localize.translateLocal('task.task');
     }
 
-    return `${taskStatusText} ${report.reportName}`;
+    return `${taskStatusText}`;
 }
 
 export {
