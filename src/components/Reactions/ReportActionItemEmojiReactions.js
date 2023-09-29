@@ -14,6 +14,7 @@ import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 import * as EmojiUtils from '../../libs/EmojiUtils';
 import {ReactionListContext} from '../../pages/home/ReportScreenContext';
+import OfflineWithFeedback from '../OfflineWithFeedback';
 
 const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
@@ -108,6 +109,7 @@ function ReportActionItemEmojiReactions(props) {
             reactionCount,
             hasUserReacted,
             onReactionListOpen,
+            hasPendingAction: reaction.pendingAction,
         };
     });
 
@@ -132,16 +134,20 @@ function ReportActionItemEmojiReactions(props) {
                             key={reaction.reactionEmojiName}
                         >
                             <View>
-                                <EmojiReactionBubble
-                                    ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref)}
-                                    count={reaction.reactionCount}
-                                    emojiCodes={reaction.emojiCodes}
-                                    onPress={reaction.onPress}
-                                    reactionUsers={reaction.reactionUsers}
-                                    hasUserReacted={reaction.hasUserReacted}
-                                    onReactionListOpen={reaction.onReactionListOpen}
-                                    shouldBlockReactions={props.shouldBlockReactions}
-                                />
+                                <OfflineWithFeedback
+                                    pendingAction={reaction.hasPendingAction}
+                                >
+                                    <EmojiReactionBubble
+                                        ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref)}
+                                        count={reaction.reactionCount}
+                                        emojiCodes={reaction.emojiCodes}
+                                        onPress={reaction.onPress}
+                                        reactionUsers={reaction.reactionUsers}
+                                        hasUserReacted={reaction.hasUserReacted}
+                                        onReactionListOpen={reaction.onReactionListOpen}
+                                        shouldBlockReactions={props.shouldBlockReactions}
+                                    />
+                                </OfflineWithFeedback>
                             </View>
                         </Tooltip>
                     );
