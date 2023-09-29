@@ -482,13 +482,10 @@ function getMoneyRequestInformation(
         billable,
     );
 
-    let optimisticPolicyRecentlyUsedCategories;
-    if (category) {
-        optimisticPolicyRecentlyUsedCategories = PolicyUtils.addCategoryToRecentlyUsed(
-            allRecentlyUsedCategories[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`] || [],
-            category,
-        );
-    }
+    const optimisticPolicyRecentlyUsedCategories = PolicyUtils.addCategoryToRecentlyUsed(
+        allRecentlyUsedCategories[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`] || [],
+        category,
+    );
 
     const optimisticPolicyRecentlyUsedTags = {};
     const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
