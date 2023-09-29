@@ -1,9 +1,9 @@
 ---
 title: Individual Users
-description: Individual Users
+description: Learn how Expensify can help you track and submit your personal or self-employed business expenses. 
 ---
 #  Overview
-If you're an individual using Expensify, the Track and Submit plans are designed to assist  self-employed users in effectively managing both their personal and business finances.
+If you're an individual using Expensify, the Track and Submit plans are designed to assist self-employed users in effectively managing both their personal and business finances.
 
 # How to use the Track plan
 
