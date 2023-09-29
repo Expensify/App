@@ -26,7 +26,7 @@ function mapSubNavigationOptionToGlobalNavigationOption(SubNavigationOption) {
 }
 
 function SidebarNavigationContextProvider({children}) {
-    const [selectedGlobalNavigationOption, setSelectedGlobalNavigationOption] = useState(CONST.GLOBAL_NAVIGATION_OPTION.SPEND);
+    const [selectedGlobalNavigationOption, setSelectedGlobalNavigationOption] = useState(CONST.GLOBAL_NAVIGATION_OPTION.CHATS);
     const [selectedSubNavigationOption, setSelectedSubNavigationOption] = useState(ROUTES.EXPENSES_OD);
 
     const updateFromNavigationState = useCallback(
