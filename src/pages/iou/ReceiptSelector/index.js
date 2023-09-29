@@ -1,7 +1,6 @@
 import {View, Text, PanResponder, PixelRatio} from 'react-native';
 import React, {useContext, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import * as IOU from '../../../libs/actions/IOU';
@@ -19,8 +18,8 @@ import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
-import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
+import useReceiptValidation from '../../../hooks/useReceiptValidation';
 
 const propTypes = {
     /** The report on which the request is initiated on */
@@ -61,49 +60,11 @@ const defaultProps = {
 
 function ReceiptSelector(props) {
     const iouType = lodashGet(props.route, 'params.iouType', '');
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
-    const [attachmentInvalidReason, setAttachmentValidReason] = useState('');
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
-
-    const hideReciptModal = () => {
-        setIsAttachmentInvalid(false);
-    };
-
-    /**
-     * Sets the upload receipt error modal content when an invalid receipt is uploaded
-     * @param {*} isInvalid
-     * @param {*} title
-     * @param {*} reason
-     */
-    const setUploadReceiptError = (isInvalid, title, reason) => {
-        setIsAttachmentInvalid(isInvalid);
-        setAttachmentInvalidReasonTitle(title);
-        setAttachmentValidReason(reason);
-    };
-
-    function validateReceipt(file) {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-            return false;
-        }
-
-        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
-            return false;
-        }
-
-        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-            return false;
-        }
-
-        return true;
-    }
+    const {resetValidation, validateReceipt, receiptValidation} = useReceiptValidation();
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
@@ -192,11 +153,11 @@ function ReceiptSelector(props) {
                 receiptImageTopPosition={receiptImageTopPosition}
             />
             <ConfirmModal
-                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                onConfirm={hideReciptModal}
-                onCancel={hideReciptModal}
-                isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                title={receiptValidation.title ? translate(receiptValidation.title) : ''}
+                onConfirm={resetValidation}
+                onCancel={resetValidation}
+                isVisible={receiptValidation.isReceiptInvalid}
+                prompt={receiptValidation.reason ? translate(receiptValidation.reason) : ''}
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />

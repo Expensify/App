@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {withOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
@@ -28,6 +27,7 @@ import NavigationAwareCamera from './NavigationAwareCamera';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import TabNavigationAwareCamera from './TabNavigationAwareCamera';
+import useReceiptValidation from '../../../hooks/useReceiptValidation';
 
 const propTypes = {
     /** React Navigation route */
@@ -99,68 +99,11 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
     const [permissions, setPermissions] = useState('granted');
     const isAndroidBlockedPermissionRef = useRef(false);
     const appState = useRef(AppState.currentState);
-    const [attachment, setAttachment] = useState({
-        isInvalid: false,
-        title: '',
-        reason: '',
-    });
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
     const pageIndex = lodashGet(route, 'params.pageIndex', 1);
-
     const {translate} = useLocalize();
-
-    const hideInvalidAttachementModal = useCallback(() => {
-        setAttachment({
-            isInvalid: false,
-            title: '',
-            reason: '',
-        });
-    }, []);
-
-    const showImageCorruptionAlert = useCallback(() => {
-        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
-    }, [translate]);
-
-    /**
-     * Sets the upload receipt error modal content when an invalid receipt is uploaded
-     * @param {*} isInvalid
-     * @param {*} title
-     * @param {*} reason
-     */
-    const setUploadReceiptError = useCallback((isInvalid, title, reason) => {
-        setAttachment({
-            isInvalid,
-            title,
-            reason,
-        });
-    }, []);
-
-    function validateReceipt(file) {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'fileName', ''));
-        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-            return false;
-        }
-
-        if (file.width <= 0 || file.height <= 0) {
-            showImageCorruptionAlert();
-            return false;
-        }
-
-        const fileSize = lodashGet(file, 'fileSize', 0);
-        if (fileSize > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
-            return false;
-        }
-
-        if (fileSize < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-            return false;
-        }
-
-        return true;
-    }
+    const {resetValidation, validateReceipt, receiptValidation} = useReceiptValidation();
 
     const CameraComponent = isInTabNavigator ? TabNavigationAwareCamera : NavigationAwareCamera;
 
@@ -396,11 +339,11 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                 </PressableWithFeedback>
             </View>
             <ConfirmModal
-                title={attachment.title ? translate(attachment.title) : ''}
-                onConfirm={hideInvalidAttachementModal}
-                onCancel={hideInvalidAttachementModal}
-                isVisible={attachment.isInvalid}
-                prompt={attachment.reason ? translate(attachment.reason) : ''}
+                title={receiptValidation.title ? translate(receiptValidation.title) : ''}
+                onConfirm={resetValidation}
+                onCancel={resetValidation}
+                isVisible={receiptValidation.isReceiptInvalid}
+                prompt={receiptValidation.reason ? translate(receiptValidation.reason) : ''}
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />
