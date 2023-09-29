@@ -1,7 +1,6 @@
 import React, {useMemo, useCallback, useState} from 'react';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
-import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
 import GLOBAL_NAVIGATION_MAPPING from '../../../GLOBAL_NAVIGATION_MAPPING';
 
@@ -27,7 +26,7 @@ function mapSubNavigationOptionToGlobalNavigationOption(SubNavigationOption) {
 
 function SidebarNavigationContextProvider({children}) {
     const [selectedGlobalNavigationOption, setSelectedGlobalNavigationOption] = useState(CONST.GLOBAL_NAVIGATION_OPTION.CHATS);
-    const [selectedSubNavigationOption, setSelectedSubNavigationOption] = useState(ROUTES.EXPENSES_OD);
+    const [selectedSubNavigationOption, setSelectedSubNavigationOption] = useState();
 
     const updateFromNavigationState = useCallback(
         (navigationState) => {

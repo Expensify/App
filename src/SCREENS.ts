@@ -26,15 +26,15 @@ export default {
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
 
     // Iframe screens from olddot
-    HOME_OD: 'Home_OD',
+    HOME_OLDDOT: 'Home_OLDDOT',
 
     // Spend tab
-    EXPENSES_OD: 'Expenses_OD',
-    REPORTS_OD: 'Reports_OD',
-    INSIGHTS_OD: 'INSIGHTS_OD',
+    EXPENSES_OLDDOT: 'Expenses_OLDDOT',
+    REPORTS_OLDDOT: 'Reports_OLDDOT',
+    INSIGHTS_OLDDOT: 'Insights_OLDDOT',
 
     // Workspaces tab
-    INDIVIDUALS_OD: 'Individuals_OD',
-    GROUPS_OD: 'Groups_OD',
-    CARDS_AND_DOMAINS_OD: 'CardsAndDomains_OD',
+    INDIVIDUALS_OLDDOT: 'Individuals_OLDDOT',
+    GROUPS_OLDDOT: 'Groups_OLDDOT',
+    CARDS_AND_DOMAINS_OLDDOT: 'CardsAndDomains_OLDDOT',
 } as const;

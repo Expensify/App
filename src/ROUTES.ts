@@ -320,15 +320,15 @@ export default {
     SBE: 'sbe',
 
     // Iframe screens from olddot
-    HOME_OD: 'home',
+    HOME_OLDDOT: 'home',
 
     // Spend tab
-    EXPENSES_OD: 'expenses',
-    REPORTS_OD: 'reports',
-    INSIGHTS_OD: 'insights',
+    EXPENSES_OLDDOT: 'expenses',
+    REPORTS_OLDDOT: 'reports',
+    INSIGHTS_OLDDOT: 'insights',
 
     // Workspaces tab
-    INDIVIDUALS_OD: 'individuals',
-    GROUPS_OD: 'groups',
-    CARDS_AND_DOMAINS_OD: 'cards-and-domains',
+    INDIVIDUALS_OLDDOT: 'individuals',
+    GROUPS_OLDDOT: 'groups',
+    CARDS_AND_DOMAINS_OLDDOT: 'cards-and-domains',
 } as const;
