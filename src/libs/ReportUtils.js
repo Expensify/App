@@ -1579,7 +1579,12 @@ function getProperSchemaForModifiedDistanceMessage(newDistance, oldDistance, new
     if (!oldDistance) {
         return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
     }
-    return Localize.translateLocal('iou.updatedTheDistance', {newDistanceToDisplay: newDistance, oldDistanceToDisplay: oldDistance, newAmountToDisplay: newAmount, oldAmountToDisplay: oldAmount});
+    return Localize.translateLocal('iou.updatedTheDistance', {
+        newDistanceToDisplay: newDistance,
+        oldDistanceToDisplay: oldDistance,
+        newAmountToDisplay: newAmount,
+        oldAmountToDisplay: oldAmount,
+    });
 }
 
 /**
