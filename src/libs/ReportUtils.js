@@ -1206,6 +1206,27 @@ function getReport(reportID) {
 }
 
 /**
+ * @param {String} reportID
+ * @param {Object} [actionsToMerge]
+ * @return {Object}
+ */
+function getLastVisibleMessage(reportID, actionsToMerge = {}) {
+    const report = getReport(reportID);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, actionsToMerge);
+
+    // For Chat Report, let us return [Deleted message] when the last visible action
+    // is a deleted parent which has visible child actions
+    if (ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && isChatReport(report)) {
+        return {
+            lastMessageText: Localize.translateLocal('parentReportAction.deletedMessage'),
+        };
+    }
+
+    // Fetch the last visible message for report represented by reportID and based on actions to merge.
+    return ReportActionsUtils.getLastVisibleMessage(reportID, actionsToMerge);
+}
+
+/**
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
@@ -3725,6 +3746,7 @@ export {
     getReport,
     getReportIDFromLink,
     getRouteFromLink,
+    getLastVisibleMessage,
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
