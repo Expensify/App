@@ -107,11 +107,11 @@ function MoneyRequestAction({
         if (!childReportID) {
             const thread = ReportUtils.buildTransactionThread(action, requestReportID);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
-            Report.openReport(thread.reportID, userLogins, thread, action.reportActionID);
+            Report.openReport({reportID: thread.reportID}, userLogins, thread, action.reportActionID);
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
             return;
         }
-        Report.openReport(childReportID);
+        Report.openReport({reportID: childReportID});
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };
 

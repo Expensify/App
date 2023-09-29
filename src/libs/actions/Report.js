@@ -443,13 +443,14 @@ function reportActionsExist(reportID) {
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
  * @param {String} reportID
+ * @param {String} reportActionID
  * @param {Array} participantLoginList The list of users that are included in a new chat, not including the user creating it
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
  * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
-function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
+function openReport({reportID, reportActionID = ''}, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
     const optimisticReportData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -512,6 +513,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 
     const params = {
         reportID,
+        reportActionID,
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
