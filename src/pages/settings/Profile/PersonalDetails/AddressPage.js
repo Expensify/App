@@ -76,7 +76,6 @@ function AddressPage({privatePersonalDetails, route}) {
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
-    
     const address = lodashGet(privatePersonalDetails, 'address') || {};
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
@@ -87,7 +86,6 @@ function AddressPage({privatePersonalDetails, route}) {
      * @param {Object} values - form input values
      * @returns {Object} - An object containing the errors for each inputID
      */
-
     useEffect(() => {
         if(!address) return
         setState(address.state)
