@@ -96,11 +96,11 @@ const isPolicyAdmin = (policy: OnyxTypes.Policy): boolean => policy?.role === CO
 function getMemberAccountIDsForWorkspace(policyMembers: PolicyMemberList, personalDetails: PersonalDetailsList): MemberEmailsToAccountIDs {
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
     Object.keys(policyMembers).forEach((accountID) => {
-        const member = policyMembers[accountID];
+        const member = policyMembers?.[accountID];
         if (Object.keys(member?.errors ?? {}).length > 0) {
             return;
         }
-        const personalDetail = personalDetails[accountID];
+        const personalDetail = personalDetails?.[accountID];
         if (!personalDetail?.login) {
             return;
         }
@@ -115,12 +115,12 @@ function getMemberAccountIDsForWorkspace(policyMembers: PolicyMemberList, person
 function getIneligibleInvitees(policyMembers: PolicyMemberList, personalDetails: PersonalDetailsList): string[] {
     const memberEmailsToExclude: string[] = [...CONST.EXPENSIFY_EMAILS];
     Object.keys(policyMembers).forEach((accountID) => {
-        const policyMember = policyMembers[accountID];
+        const policyMember = policyMembers?.[accountID];
         // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
         if (policyMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyMember?.errors ?? {}).length > 0) {
             return;
         }
-        const memberEmail = personalDetails[accountID]?.login;
+        const memberEmail = personalDetails?.[accountID]?.login;
         if (!memberEmail) {
             return;
         }
