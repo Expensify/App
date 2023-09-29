@@ -21,9 +21,6 @@ const propTypes = {
     // eslint-disable-next-line
     backgroundColor: PropTypes.any,
 
-    /** Hovered background color value for the tab button */
-    hoverBackgroundColor: PropTypes.string,
-
     /** Animated opacity value while the label is inactive state */
     // eslint-disable-next-line
     inactiveOpacity: PropTypes.any,
@@ -41,7 +38,7 @@ const defaultProps = {
     icon: () => {},
     title: '',
     backgroundColor: '',
-    hoverBackgroundColor: '',
+    : '',
     inactiveOpacity: 1,
     activeOpacity: 0,
     isFocused: false,
@@ -49,14 +46,14 @@ const defaultProps = {
 
 const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 
-function TabSelectorItem({icon, title, onPress, backgroundColor, hoverBackgroundColor, activeOpacity, inactiveOpacity, isFocused}) {
+function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, inactiveOpacity, isFocused}) {
     return (
         <View style={[styles.flex1]}>
             <Hoverable>
                 {(hovered) => (
                     <AnimatedPressableWithFeedback
                         accessibilityLabel={title}
-                        style={[styles.tabSelectorButton, {backgroundColor: Boolean(hoverBackgroundColor) && hovered && !isFocused ? hoverBackgroundColor : backgroundColor}]}
+                        style={[styles.tabSelectorButton, styles.tabBackground(hovered, isFocused, backgroundColor)]}
                         onPress={onPress}
                     >
                         <TabIcon

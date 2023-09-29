@@ -3440,6 +3440,10 @@ const styles = (theme) => ({
         color: isSelected ? theme.textLight : theme.textSupporting,
     }),
 
+    tabBackground: (hovered, isFocused, backgroundColor) => ({
+        backgroundColor: hovered && !isFocused ? theme.highlightBG : backgroundColor,
+    }),
+
     /**
      * @param {String} backgroundColor
      * @param {Number} height

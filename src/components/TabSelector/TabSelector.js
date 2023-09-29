@@ -119,7 +119,6 @@ function TabSelector({state, navigation, onTabPress, position}) {
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}
-                        hoverBackgroundColor={themeColors.highlightBG}
                         isFocused={isFocused}
                     />
                 );
