@@ -57,10 +57,10 @@ function clearOnfidoToken() {
 
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
- *
+ * @param {String} currentStep
  * @returns {Object}
  */
-function getVBBADataForOnyx() {
+function getVBBADataForOnyx(currentStep) {
     return {
         optimisticData: [
             {
@@ -80,6 +80,7 @@ function getVBBADataForOnyx() {
                     isLoading: false,
                     errors: null,
                     shouldUpdateDataToDraft: true,
+                    stepToUpdate: currentStep,
                 },
             },
         ],
@@ -223,7 +224,7 @@ function deletePaymentBankAccount(bankAccountID) {
  * @param {Boolean} [params.isOnfidoSetupComplete]
  */
 function updatePersonalInformationForBankAccount(params) {
-    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx());
+    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR));
 }
 
 /**
@@ -340,7 +341,7 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
  * @param {String} policyID
  */
 function updateCompanyInformationForBankAccount(bankAccount, policyID) {
-    API.write('UpdateCompanyInformationForBankAccount', {...bankAccount, policyID}, getVBBADataForOnyx());
+    API.write('UpdateCompanyInformationForBankAccount', {...bankAccount, policyID}, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY));
 }
 
 /**
@@ -377,7 +378,7 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
             routingNumber,
             plaidMask,
         },
-        getVBBADataForOnyx(),
+        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT),
     );
 }
 

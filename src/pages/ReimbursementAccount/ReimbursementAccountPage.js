@@ -157,11 +157,13 @@ class ReimbursementAccountPage extends React.Component {
             return;
         }
 
-        const currentStepRouteParam = this.getStepToOpenFromRouteParams();
         // Update the data that is returned from back-end to draft value
         if (this.props.reimbursementAccount.shouldUpdateDataToDraft) {
-            BankAccounts.updateReimbursementAccountDraft(this.getBankAccountFields(this.getFieldsOfCurrentStep(currentStepRouteParam)));
+            const stepToUpdate = this.props.reimbursementAccount.stepToUpdate;
+            BankAccounts.updateReimbursementAccountDraft(this.getBankAccountFields(this.getFieldsOfCurrentStep(stepToUpdate)));
         }
+
+        const currentStepRouteParam = this.getStepToOpenFromRouteParams();
         if (currentStepRouteParam === currentStep) {
             // The route is showing the correct step, no need to update the route param or clear errors.
             return;
