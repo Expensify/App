@@ -45,7 +45,7 @@ function DistanceEReceipt({transaction}) {
                         pointerEvents="none"
                     />
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {isOffline ? (
+                        {isOffline || !Boolean(thumbnailSource) ? (
                             <PendingMapView />
                         ) : (
                             <ThumbnailImage
