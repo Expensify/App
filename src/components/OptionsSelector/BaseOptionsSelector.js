@@ -53,6 +53,7 @@ class BaseOptionsSelector extends Component {
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
+        this.addToSelection = this.addToSelection.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
@@ -337,6 +338,16 @@ class BaseOptionsSelector extends Component {
         });
     }
 
+    addToSelection(option) {
+        if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
+            this.textInput.focus();
+            if (this.textInput.isFocused()) {
+                setSelection(this.textInput, 0, this.props.value.length);
+            }
+        }
+        this.props.onAddToSelection(option);
+    }
+
     render() {
         const shouldShowFooter =
             !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
@@ -377,7 +388,7 @@ class BaseOptionsSelector extends Component {
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                 shouldShowMultipleOptionSelectorAsButton={this.props.shouldShowMultipleOptionSelectorAsButton}
                 multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
-                onAddToSelection={this.props.onAddToSelection}
+                onAddToSelection={this.addToSelection}
                 hideSectionHeaders={this.props.hideSectionHeaders}
                 headerMessage={this.props.headerMessage}
                 boldStyle={this.props.boldStyle}
