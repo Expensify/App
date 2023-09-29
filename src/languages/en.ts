@@ -363,12 +363,12 @@ export default {
         privacy: 'Privacy',
     },
     samlSignIn: {
-        welcomeSAMLEnabled: 'Continue logging in with your company\'s Single Sign-On:',
+        welcomeSAMLEnabled: 'Continue logging in with single sign-on:',
         orContinueWithMagicCode: 'Or optionally, your company allows signing in with a magic code',
-        useSingleSignOn: 'Use Single Sign-On',
-        useMagicCode: 'Use Magic Code',
+        useSingleSignOn: 'Use single sign-on',
+        useMagicCode: 'Use magic code',
         launching: 'Launching...',
-        oneMoment: 'One moment while we redirect you to your company\'s Single Sign-On portal.',
+        oneMoment: 'One moment while we redirect you to your company\'s single sign-on portal.',
     },
     reportActionCompose: {
         addAction: 'Actions',
