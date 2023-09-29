@@ -39,18 +39,8 @@ function remove(requestToRemove: Request) {
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
-function update(oldRequest: number | Request, newRequest: Request) {
-    let index = -1;
-    if (typeof oldRequest === 'number') {
-        index = oldRequest;
-        persistedRequests.splice(oldRequest, 1, newRequest);
-    } else {
-        index = persistedRequests.findIndex((persistedRequest) => isEqual(persistedRequest, oldRequest));
-        if (index === -1) {
-            return;
-        }
-    }
-    persistedRequests.splice(index, 1, newRequest);
+function update(oldRequestIndex: number, newRequest: Request) {
+    persistedRequests.splice(oldRequestIndex, 1, newRequest);
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
