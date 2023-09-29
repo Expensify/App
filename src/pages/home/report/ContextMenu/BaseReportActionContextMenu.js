@@ -18,6 +18,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
 import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '../../../../hooks/useKeyboardShortcut';
+import useNetwork from '../../../../hooks/useNetwork';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
@@ -51,6 +52,7 @@ function BaseReportActionContextMenu(props) {
     const menuItemRefs = useRef({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth);
+    const {isOffline} = useNetwork();
 
     const reportAction = useMemo(() => {
         if (_.isEmpty(props.reportActions) || props.reportActionID === '0') {
@@ -60,7 +62,18 @@ function BaseReportActionContextMenu(props) {
     }, [props.reportActions, props.reportActionID]);
 
     const shouldShowFilter = (contextAction) =>
-        contextAction.shouldShow(props.type, reportAction, props.isArchivedRoom, props.betas, props.anchor, props.isChronosReport, props.reportID, props.isPinnedChat, props.isUnreadChat);
+        contextAction.shouldShow(
+            props.type,
+            reportAction,
+            props.isArchivedRoom,
+            props.betas,
+            props.anchor,
+            props.isChronosReport,
+            props.reportID,
+            props.isPinnedChat,
+            props.isUnreadChat,
+            isOffline,
+        );
 
     const shouldEnableArrowNavigation = !props.isMini && (props.isVisible || shouldKeepOpen);
     const filteredContextMenuActions = _.filter(ContextMenuActions, shouldShowFilter);

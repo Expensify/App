@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
@@ -15,13 +15,13 @@ import styles from '../../../../styles/styles';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import AddressSearch from '../../../../components/AddressSearch';
-import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import useLocalize from '../../../../hooks/useLocalize';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import CountrySelector from '../../../../components/CountrySelector';
 
 const propTypes = {
     /* Onyx Props */
@@ -37,6 +37,15 @@ const propTypes = {
             country: PropTypes.string,
         }),
     }),
+
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Currently selected country */
+            country: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -59,10 +68,11 @@ function updateAddress(values) {
     PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim().toUpperCase(), values.country);
 }
 
-function AddressPage({privatePersonalDetails}) {
+function AddressPage({privatePersonalDetails, route}) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
-    const [currentCountry, setCurrentCountry] = useState(PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')));
+    const countryFromUrl = lodashGet(route, 'params.country');
+    const [currentCountry, setCurrentCountry] = useState(countryFromUrl || PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')));
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
@@ -116,7 +126,7 @@ function AddressPage({privatePersonalDetails}) {
         return errors;
     }, []);
 
-    const handleAddressChange = (value, key) => {
+    const handleAddressChange = useCallback((value, key) => {
         if (key !== 'country' && key !== 'state') {
             return;
         }
@@ -126,7 +136,14 @@ function AddressPage({privatePersonalDetails}) {
             return;
         }
         setState(value);
-    };
+    }, []);
+
+    useEffect(() => {
+        if (!countryFromUrl || countryFromUrl === currentCountry) {
+            return;
+        }
+        handleAddressChange(countryFromUrl, 'country');
+    }, [countryFromUrl, handleAddressChange, currentCountry]);
 
     return (
         <ScreenWrapper
@@ -178,10 +195,9 @@ function AddressPage({privatePersonalDetails}) {
                     />
                     <View style={styles.formSpaceVertical} />
                     <View style={styles.mhn5}>
-                        <CountryPicker
+                        <CountrySelector
                             inputID="country"
-                            defaultValue={currentCountry}
-                            onValueChange={handleAddressChange}
+                            value={currentCountry}
                         />
                     </View>
                     <View style={styles.formSpaceVertical} />

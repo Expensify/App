@@ -59,7 +59,6 @@ const defaultProps = {
     disabled: false,
     isSelected: false,
     subtitle: undefined,
-    subtitleTextStyle: {},
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
     onSecondaryInteraction: undefined,
@@ -79,6 +78,7 @@ const defaultProps = {
     title: '',
     numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
+    error: '',
     shouldRenderAsHTML: false,
     rightComponent: undefined,
     shouldShowRightComponent: false,
@@ -283,6 +283,11 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                 {props.description}
                                             </Text>
                                         )}
+                                        {Boolean(props.error) && (
+                                            <View style={[styles.mt1]}>
+                                                <Text style={[styles.textLabelError]}>{props.error}</Text>
+                                            </View>
+                                        )}
                                         {Boolean(props.furtherDetails) && (
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                 <Icon
@@ -316,7 +321,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                                 {(props.subtitle || props.subtitle === 0) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                        <Text style={[props.subtitleTextStyle || styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
+                                        <Text style={[styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
                                     </View>
                                 )}
                                 {!_.isEmpty(props.floatRightAvatars) && (
