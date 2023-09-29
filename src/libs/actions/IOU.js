@@ -241,6 +241,17 @@ function buildOnyxDataForMoneyRequest(
                   },
               ]
             : []),
+        ...(isNewIOUReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                      value: {
+                          [chatReport.participantAccountIDs[0]]: null,
+                      },
+                  },
+              ]
+            : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -309,6 +320,17 @@ function buildOnyxDataForMoneyRequest(
                           errorFields: {
                               createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                           },
+                      },
+                  },
+              ]
+            : []),
+        ...(isNewIOUReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                      value: {
+                          [chatReport.participantAccountIDs[0]]: null,
                       },
                   },
               ]
