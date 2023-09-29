@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {ScrollView} from 'react-native';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
@@ -23,6 +24,7 @@ import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -121,17 +123,25 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
             includeSafeAreaPaddingBottom={false}
             testID={PrivateNotesListPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {})))}>
+            <FullPageNotFoundView
+                shouldShow={
+                    _.isEmpty(report.reportID) ||
+                    (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {}))) ||
+                    ReportUtils.isArchivedRoom(report)
+                }
+            >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
-                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-                ) : (
-                    _.map(privateNotes, (item, index) => getMenuItem(item, index))
-                )}
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
+                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    ) : (
+                        _.map(privateNotes, (item, index) => getMenuItem(item, index))
+                    )}
+                </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
