@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useMemo} from 'react';
 import {ScrollView} from 'react-native';
 
 const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
@@ -27,6 +27,11 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, innerRe
         setContentOffsetY(event.nativeEvent.contentOffset.y);
     };
 
+    const contextValue = useMemo(() => ({
+        scrollViewRef,
+        contentOffsetY,
+    }), [scrollViewRef, contentOffsetY]);
+
     return (
         <ScrollView
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -36,10 +41,7 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, innerRe
             scrollEventThrottle={scrollEventThrottle || MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
         >
             <ScrollContext.Provider
-                value={{
-                    scrollViewRef,
-                    contentOffsetY,
-                }}
+                value={contextValue}
             >
                 {children}
             </ScrollContext.Provider>

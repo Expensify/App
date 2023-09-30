@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useRef, useEffect, memo, useCallback, useContext} from 'react';
+import React, {useState, useRef, useEffect, memo, useCallback, useContext, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -263,6 +263,13 @@ function ReportActionItem(props) {
         [props.report, props.action, props.emojiReactions],
     );
 
+    const contextValue = useMemo(() => ({
+        anchor: popoverAnchorRef,
+        report: props.report,
+        action: props.action,
+        checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+    }), [props.report, props.action, toggleContextMenuFromActiveReportAction]);
+
     /**
      * Get the content of ReportActionItem
      * @param {Boolean} hovered whether the ReportActionItem is hovered
@@ -356,12 +363,7 @@ function ReportActionItem(props) {
             const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
             children = (
                 <ShowContextMenuContext.Provider
-                    value={{
-                        anchor: popoverAnchorRef,
-                        report: props.report,
-                        action: props.action,
-                        checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
-                    }}
+                    value={contextValue}
                 >
                     {!props.draftMessage ? (
                         <View style={props.displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
@@ -504,12 +506,7 @@ function ReportActionItem(props) {
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return (
                 <ShowContextMenuContext.Provider
-                    value={{
-                        anchor: popoverAnchorRef,
-                        report: props.report,
-                        action: props.action,
-                        checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
-                    }}
+                    value={contextValue}
                 >
                     <MoneyRequestView
                         report={props.report}

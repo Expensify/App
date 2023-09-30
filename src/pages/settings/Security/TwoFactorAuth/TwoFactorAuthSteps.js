@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import CodesStep from './Steps/CodesStep';
 import DisabledStep from './Steps/DisabledStep';
@@ -40,6 +40,7 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
         },
         [setAnimationDirection],
     );
+    const contextValue = useMemo(() => ({setStep: handleSetStep}), [handleSetStep]);
 
     const renderStep = () => {
         switch (currentStep) {
@@ -60,9 +61,7 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
 
     return (
         <TwoFactorAuthContext.Provider
-            value={{
-                setStep: handleSetStep,
-            }}
+            value={contextValue}
         >
             {renderStep()}
         </TwoFactorAuthContext.Provider>
