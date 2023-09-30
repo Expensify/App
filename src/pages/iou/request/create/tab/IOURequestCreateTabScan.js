@@ -18,7 +18,7 @@ function IOURequestCreateTabScan() {
     const {translate} = useLocalize();
     const isEditing = false;
 
-    // @TODO const content = (
+    // TODO: const content = (
     //     <MoneyRequestAmountForm
     //         isEditing={isEditing}
     //         currency={currency}
@@ -40,7 +40,7 @@ function IOURequestCreateTabScan() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            // @TODO onEntryTransitionEnd={focusTextInput}
+            // TODO: onEntryTransitionEnd={focusTextInput}
             onEntryTransitionEnd={() => {}}
             testID={IOURequestCreateTabScan.displayName}
         >
@@ -49,7 +49,7 @@ function IOURequestCreateTabScan() {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('iou.amount')}
-                            // @TODO onBackButtonPress={navigateBack}
+                            // TODO: onBackButtonPress={navigateBack}
                             onBackButtonPress={() => {}}
                         />
                         {content}

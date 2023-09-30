@@ -1,4 +1,4 @@
-// @TODO cleanup - file was made from MoneyRequestSelectorPage
+// TODO: cleanup - file was made from MoneyRequestSelectorPage
 import React from 'react';
 import _ from 'underscore';
 import CONST from '../../../../CONST';

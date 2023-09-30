@@ -1,4 +1,4 @@
-// @TODO cleanup - file was made from MoneyRequestSelectorPage
+// TODO: cleanup - file was made from MoneyRequestSelectorPage
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -83,7 +83,7 @@ function IOURequestPage({route, transaction}) {
                                     iouType={iouType}
                                 />
                             ) : (
-                                // @TODO see if this is necessary and if there are any routes using it
+                                // TODO: see if this is necessary and if there are any routes using it
                                 <CreateIOUStartTabManual />
                             )}
                         </View>

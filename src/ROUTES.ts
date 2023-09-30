@@ -249,7 +249,7 @@ export default {
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
     // -->
 
-    // @TODO remove "create" from the front of the route
+    // TODO: remove "create" from the front of the route
     MONEE_REQUEST_CREATE: {
         route: 'create/:iouType/start/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}`,

@@ -18,7 +18,7 @@ function IOURequestCreateTabManual() {
     const {translate} = useLocalize();
     const isEditing = false;
 
-    // @TODO const content = (
+    // TODO: const content = (
     //     <MoneyRequestAmountForm
     //         isEditing={isEditing}
     //         currency={currency}
@@ -40,7 +40,7 @@ function IOURequestCreateTabManual() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            // @TODO onEntryTransitionEnd={focusTextInput}
+            // TODO: onEntryTransitionEnd={focusTextInput}
             onEntryTransitionEnd={() => {}}
             testID={IOURequestCreateTabManual.displayName}
         >
@@ -49,7 +49,7 @@ function IOURequestCreateTabManual() {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('iou.amount')}
-                            // @TODO onBackButtonPress={navigateBack}
+                            // TODO: onBackButtonPress={navigateBack}
                             onBackButtonPress={() => {}}
                         />
                         {content}

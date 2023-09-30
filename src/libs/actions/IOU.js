@@ -2257,7 +2257,7 @@ function setMoneyRequestBillable(billable) {
 }
 
 /**
- * @TODO remove this in favor of setMoneeRequestParticipants()
+ * TODO remove this in favor of setMoneeRequestParticipants()
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {

@@ -354,7 +354,7 @@ function isScanRequest(transaction) {
  * @returns {Boolean}
  */
 function isSplitRequest(transaction) {
-    // @TODO Figure out what makes a transaction a split request
+    // TODO: Figure out what makes a transaction a split request
     return false;
 }
 
@@ -524,7 +524,7 @@ export {
     hasReceipt,
     hasRoute,
     isDistanceRequest,
-    isManualRequest
+    isManualRequest,
     isScanRequest,
     isSplitRequest,
     isReceiptBeingScanned,

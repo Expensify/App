@@ -193,7 +193,7 @@ function FloatingActionButtonAndPopover(props) {
                                   text: props.translate('iou.sendMoney'),
                                   onSelected: () =>
                                       interceptAnonymousUser(() => {
-                                          // @TODO IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)
+                                          // TODO: IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)
                                           IOU.startMoneeRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND, NumberUtils.rand64());
                                       }),
                               },
@@ -204,7 +204,7 @@ function FloatingActionButtonAndPopover(props) {
                         text: props.translate('iou.requestMoney'),
                         onSelected: () =>
                             interceptAnonymousUser(() => {
-                                // @TODO IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)
+                                // TODO: IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)
                                 IOU.startMoneeRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, NumberUtils.rand64());
                             }),
                     },

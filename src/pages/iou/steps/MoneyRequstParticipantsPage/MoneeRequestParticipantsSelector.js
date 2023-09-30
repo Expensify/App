@@ -1,4 +1,4 @@
-// @TODO this file came from MoneyRequestParticipantsSelector.js. It should probably be moved to a different place.
+// TODO: this file came from MoneyRequestParticipantsSelector.js. It should probably be moved to a different place.
 // The old component needs to be removed
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';

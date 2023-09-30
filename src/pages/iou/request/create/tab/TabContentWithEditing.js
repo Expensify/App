@@ -37,7 +37,7 @@ function TabContentWithEditing({children, onBackButtonPress, shouldShowNotFound,
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            // @TODO figure out how to add this back onEntryTransitionEnd={focusTextInput}
+            // TODO: figure out how to add this back onEntryTransitionEnd={focusTextInput}
             onEntryTransitionEnd={() => {}}
             testID={testID}
         >
