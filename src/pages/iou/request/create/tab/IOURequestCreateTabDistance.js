@@ -8,6 +8,7 @@ import ROUTES from '../../../../../ROUTES';
 import CONST from '../../../../../CONST';
 import compose from '../../../../../libs/compose';
 import reportPropTypes from '../../../../reportPropTypes';
+import * as IOU from '../../../../../libs/actions/IOU';
 
 const propTypes = {
     /* Onyx Props */
@@ -35,7 +36,9 @@ function IOURequestCreateTabDistance({transaction: {transactionID, reportID}, re
         // inside a report. In this case, we know the participants already and can skip the participants step and go straight
         // to the confirm step.
         if (report.reportID) {
-            Navigation.navigate(ROUTES.MONEE_REQUEST_CONFIRMATION_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+            IOU.autoAssignParticipants(transactionID, report);
+            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+            return;
         }
 
         // If there was no reportID, then that means the user started this flow from the global + menu

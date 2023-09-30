@@ -55,11 +55,11 @@ function IOURequestStepParticipants({
     const headerTitle = TransactionUtils.getHeaderTitle(translate, transaction);
 
     const goToNextStep = () => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_CONFIRMATION_STEP.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
     };
 
-    const navigateBack = (forceFallback = false) => {
-        Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID), forceFallback);
+    const goBack = () => {
+        Navigation.goBack();
     };
 
     return (
@@ -73,7 +73,7 @@ function IOURequestStepParticipants({
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
-                        onBackButtonPress={navigateBack}
+                        onBackButtonPress={goBack}
                     />
                     <MoneyRequestParticipantsSelector
                         ref={(el) => (optionsSelectorRef.current = el)}
