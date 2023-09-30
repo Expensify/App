@@ -3233,9 +3233,10 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport) {
  * - in DM chat
  *
  * @param {Object} report
+ * @param {Array<Number>} participants
  * @returns {Boolean}
  */
-function canRequestMoney(report) {
+function canRequestMoney(report, participants) {
     // User cannot request money in chat thread or in task report
     if (isChatThread(report) || isTaskReport(report)) {
         return false;
@@ -3250,6 +3251,11 @@ function canRequestMoney(report) {
     let isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat || false;
     if (isExpenseReport(report) && getParentReport(report)) {
         isOwnPolicyExpenseChat = getParentReport(report).isOwnPolicyExpenseChat;
+    }
+
+    // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't request money from such report
+    if (participants.length === 0 && !isOwnPolicyExpenseChat) {
+        return false;
     }
 
     // User can request money in any IOU report, unless paid, but user can only request money in an expense report
@@ -3293,18 +3299,12 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
 
     const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
 
-    // In case of expense report, we need to check it's parent policy expense chat to define if it's user's own policy expense chat
-    let isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat || false;
-    if (isExpenseReport(report) && getParentReport(report)) {
-        isOwnPolicyExpenseChat = getParentReport(report).isOwnPolicyExpenseChat;
-    }
-
     // Verify if there is any of the expensify accounts amongst the participants in which case user cannot take IOU actions on such report
     const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     const hasSingleParticipantInReport = participants.length === 1;
     const hasMultipleParticipants = participants.length > 1;
 
-    if (hasExcludedIOUAccountIDs || (participants.length === 0 && !isOwnPolicyExpenseChat)) {
+    if (hasExcludedIOUAccountIDs) {
         return [];
     }
 
@@ -3320,7 +3320,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // IOU and open or processing expense reports should show the Request option.
     // Workspace chats should only see the Request money option or Split option in case of Control policies
     return [
-        ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
+        ...(canRequestMoney(report, participants) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
 
         // Send money option should be visible only in DMs
         ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
