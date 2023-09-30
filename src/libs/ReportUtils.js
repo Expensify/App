@@ -3225,17 +3225,41 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport) {
 }
 
 /**
- * Users can request money in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
+ * Users can request money:
+ * - in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
+ * - in an open or submitted expense report tied to a policy expense chat the user owns
+ *     - employee can request money in submitted expense report only if the policy has Instant Submit settings turned on
+ * - in an IOU report, which is not settled yet
+ * - in DM chat
  *
  * @param {Object} report
  * @returns {Boolean}
  */
 function canRequestMoney(report) {
-    // Prevent requesting money if pending iou waiting for their bank account already exists.
+    // User cannot request money in chat thread or in task report
+    if (isChatThread(report) || isTaskReport(report)) {
+        return false;
+    }
+
+    // Prevent requesting money if pending IOU report waiting for their bank account already exists
     if (hasIOUWaitingOnCurrentUserBankAccount(report)) {
         return false;
     }
-    return !isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat;
+
+    // In case of expense reports, we have to look at the parent workspace chat to get the isOwnPolicyExpenseChat property
+    let isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat || false;
+    if (isExpenseReport(report) && getParentReport(report)) {
+        isOwnPolicyExpenseChat = getParentReport(report).isOwnPolicyExpenseChat;
+    }
+
+    // User can request money in any IOU report, unless paid, but user can only request money in an expense report
+    // which is tied to their workspace chat.
+    if (isMoneyRequestReport(report)) {
+        return ((isExpenseReport(report) && isOwnPolicyExpenseChat) || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report.reportID);
+    }
+
+    // In case of policy expense chat, users can only request money from their own policy expense chat
+    return !isPolicyExpenseChat(report) || isOwnPolicyExpenseChat;
 }
 
 /**
@@ -3281,11 +3305,6 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     const hasMultipleParticipants = participants.length > 1;
 
     if (hasExcludedIOUAccountIDs || (participants.length === 0 && !isOwnPolicyExpenseChat)) {
-        return [];
-    }
-
-    // User can only take IOU actions in open or processing money request reports
-    if (isMoneyRequestReport(report) && (isReportApproved(report) || isSettled(report.reportID))) {
         return [];
     }
 
