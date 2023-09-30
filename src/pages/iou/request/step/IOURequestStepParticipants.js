@@ -31,6 +31,9 @@ const propTypes = {
             /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
+
+        /** The current route path */
+        path: PropTypes.string,
     }).isRequired,
 
     /* Onyx Props */
@@ -42,14 +45,14 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestStepParticipants({transaction, transaction: {transactionID, reportID, participants}}) {
+function IOURequestStepParticipants({route: {path}, transaction, transaction: {transactionID, reportID, participants}}) {
     const {translate} = useLocalize();
     const optionsSelectorRef = useRef();
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = TransactionUtils.getHeaderTitle(translate, transaction);
 
     const goToNextStep = () => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEE_REQUEST_CONFIRMATION_STEP.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, path));
     };
 
     const navigateBack = (forceFallback = false) => {

@@ -36,6 +36,9 @@ const propTypes = {
     route: PropTypes.shape({
         /** Params from the route */
         params: PropTypes.shape({
+            /** The URL to go to when the user presses the back button */
+            backTo: PropTypes.string,
+
             /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string.isRequired,
 
@@ -76,7 +79,7 @@ function IOURequestStepConfirmation({
     policy,
     report,
     route: {
-        params: {iouType, reportID, transactionID},
+        params: {backTo, iouType, reportID, transactionID},
     },
     transaction,
 }) {
@@ -97,10 +100,12 @@ function IOURequestStepConfirmation({
     );
 
     const navigateBack = (forceFallback = false) => {
-        // Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID), forceFallback);
+        // TODO: get this route working
+        Navigation.goBack(backTo);
     };
 
     const navigateToAddReceipt = () => {
+        // TODO: Get this route working
         // Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType, reportID);
     };
 
