@@ -1091,7 +1091,6 @@ const CONST = {
             DESCRIPTION: 'description',
             MERCHANT: 'merchant',
             PARTICIPANTS: 'participants',
-            START: 'start',
             TAG: 'tag',
             WAYPOINT: 'waypoint',
         },

@@ -80,7 +80,6 @@ function IOURequestStepConfirmation({
     },
     transaction,
 }) {
-    console.log('[tim0');
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
@@ -266,8 +265,6 @@ function IOURequestStepConfirmation({
         [transaction.amount, transaction.comment, participants, transaction.currency, currentUserPersonalDetails.accountID, report],
     );
 
-    console.log('[tim1');
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -304,7 +301,7 @@ function IOURequestStepConfirmation({
                                 hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                                 selectedParticipants={participants}
                                 iouAmount={transaction.amount}
-                                iouComment={transaction.comment}
+                                iouComment={lodashGet(transaction, 'comment.comment', '')}
                                 iouCurrencyCode={transaction.currency}
                                 iouIsBillable={transaction.billable}
                                 onToggleBillable={IOU.setMoneyRequestBillable}
@@ -319,7 +316,7 @@ function IOURequestStepConfirmation({
                                         }
                                         return participant;
                                     });
-                                    IOU.setMoneyRequestParticipants(newParticipants);
+                                    IOU.setMoneeRequestParticipants(transactionID, newParticipants);
                                 }}
                                 receiptPath={transaction.receiptPath}
                                 receiptSource={transaction.receiptSource}
@@ -330,7 +327,7 @@ function IOURequestStepConfirmation({
                                 // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
                                 // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
                                 // the floating-action-button (since it is something that exists outside the context of a report).
-                                canModifyParticipants={!_.isEmpty(reportID)}
+                                canModifyParticipants={!report.reportID}
                                 policyID={report.policyID}
                                 bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                                 iouMerchant={transaction.merchant}

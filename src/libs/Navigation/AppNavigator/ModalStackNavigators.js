@@ -32,8 +32,8 @@ function createModalStackNavigator(screens) {
 }
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator({
-    Monee_Request_Create: () => require('../../../pages/iou/request/IOURequestPage').default,
     Monee_Request_Step: () => require('../../../pages/iou/request/IOURequestStepPage').default,
+    Monee_Request_Create: () => require('../../../pages/iou/request/IOURequestPage').default,
     /* TODO remove Money_Request: () => require('../../../pages/iou/MoneyRequestSelectorPage').default,
     Money_Request_Amount: () => require('../../../pages/iou/steps/NewRequestAmountPage').default,
     Money_Request_Participants: () => require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default,

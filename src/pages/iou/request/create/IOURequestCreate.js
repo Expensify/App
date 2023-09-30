@@ -11,7 +11,7 @@ import IOURequestCreateTabScan from './tab/IOURequestCreateTabScan';
 function IOURequestCreate() {
     return (
         <OnyxTabNavigator
-            id={CONST.TAB.RECEIPT_TAB_ID}
+            id={CONST.TAB.IOU_REQUEST_TYPE}
             tabBar={({state, navigation, position}) => (
                 <TabSelector
                     state={state}
