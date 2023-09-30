@@ -1,0 +1,5 @@
+[build]
+  ignore = "git diff --quiet $COMMIT_REF $CACHED_COMMIT_REF -- docs/"
+  base = "docs/"
+  publish = "docs/_site/"
+  environment = { NODE_VERSION = "16.15.1" }
