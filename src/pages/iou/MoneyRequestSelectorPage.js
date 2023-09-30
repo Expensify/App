@@ -15,7 +15,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
-import DistanceRequestPage from './DistanceRequestPage';
+import NewDistanceRequestPage from './NewDistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
@@ -133,7 +133,7 @@ function MoneyRequestSelectorPage(props) {
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}
-                                            component={DistanceRequestPage}
+                                            component={NewDistanceRequestPage}
                                             initialParams={{reportID, iouType}}
                                         />
                                     )}

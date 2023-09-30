@@ -147,6 +147,11 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         shouldStopSmartscan = true;
     }
 
+    if (_.has(transactionChanges, 'waypoints')) {
+        updatedTransaction.modifiedWaypoints = transactionChanges.waypoints;
+        shouldStopSmartscan = true;
+    }
+
     if (_.has(transactionChanges, 'billable')) {
         updatedTransaction.billable = transactionChanges.billable;
     }
@@ -169,6 +174,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'merchant') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'waypoints') && {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'billable') && {billable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'category') && {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -251,6 +257,16 @@ function getCurrency(transaction) {
  */
 function getMerchant(transaction) {
     return lodashGet(transaction, 'modifiedMerchant', null) || lodashGet(transaction, 'merchant', '');
+}
+
+/**
+ * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
+ *
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getWaypoints(transaction) {
+    return lodashGet(transaction, 'modifiedWaypoints', null) || lodashGet(transaction, ['comment', 'waypoints']);
 }
 
 /**
@@ -438,6 +454,7 @@ export {
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
+    getWaypoints,
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
