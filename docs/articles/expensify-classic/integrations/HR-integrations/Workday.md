@@ -4,7 +4,7 @@ description: Automatically sync employees between Workday and Expensify
 ---
 
 # Overview
-By leveraging Expensify's [Employee Updater API]([url](https://integrations.expensify.com/Integration-Server/doc/employeeUpdater/)), you can set up a fully customizable integration between Workday and Expensify. This integration can:
+By leveraging Expensify's [Employee Updater API](https://integrations.expensify.com/Integration-Server/doc/employeeUpdater/), you can set up a fully customizable integration between Workday and Expensify. This integration can:
 
 - **Provision new employees in Expensify:** Employees are automatically invited to the correct Expensify workspace on their start date based on data in Workday.
 - **Update employees and approval workflows:** Any changes to employee email and manager are automatically updated in Expensify.
