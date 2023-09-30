@@ -2082,6 +2082,7 @@ function buildOptimisticIOUReport(payeeAccountID, payerAccountID, total, chatRep
         currency,
         managerID: payerAccountID,
         ownerAccountID: payeeAccountID,
+        participantAccountIDs: [payeeAccountID, payerAccountID],
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.PROCESSING,
@@ -3238,6 +3239,23 @@ function canRequestMoney(report) {
 }
 
 /**
+ * Helper method to define what money request options we want to show for particular method.
+ * There are 3 money request options: Request, Split and Send:
+ * - Request option should show for:
+ *     - DMs
+ *     - own policy expense chats
+ *     - open and processing expense reports tied to own policy expense chat
+ *     - unsettled IOU reports
+ * - Send option should show for:
+ *     - DMs
+ * - Split options should show for:
+ *     - chat/ policy rooms with more than 1 participants
+ *     - groups chats with 3 and more participants
+ *     - corporate workspace chats
+ *
+ * None of the options should show in chat threads or if there is some special Expensify account
+ * as a participant of the report.
+ *
  * @param {Object} report
  * @param {Array<Number>} reportParticipants
  * @param {Array} betas
@@ -3248,14 +3266,16 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     if (isChatThread(report) || isTaskReport(report)) {
         return [];
     }
-    // debugger;
+
     const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
 
-    let isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat
+    // In case of expense report, we need to check it's parent policy expense chat to define if it's user's own policy expense chat
+    let isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat || false;
     if (isExpenseReport(report) && getParentReport(report)) {
         isOwnPolicyExpenseChat = getParentReport(report).isOwnPolicyExpenseChat;
     }
 
+    // Verify if there is any of the expensify accounts amongst the participants in which case user cannot take IOU actions on such report
     const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     const hasSingleParticipantInReport = participants.length === 1;
     const hasMultipleParticipants = participants.length > 1;
@@ -3264,7 +3284,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         return [];
     }
 
-    // Additional requests should be blocked for money request reports if it is approved or reimbursed
+    // User can only take IOU actions in open or processing money request reports
     if (isMoneyRequestReport(report) && (isReportApproved(report) || isSettled(report.reportID))) {
         return [];
     }
@@ -3273,12 +3293,13 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
     // There is no Split Bill option for Workspace chats, IOU or Expense reports which are threads
-    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report) && !isExpenseReport(report)) || isControlPolicyExpenseChat(report)) {
+    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report) && !isMoneyRequestReport(report)) || isControlPolicyExpenseChat(report)) {
         return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
     // DM chats that only have 2 people will see the Send / Request money options.
-    // Workspace chats should only see the Request money option, as "easy overages" is not available.
+    // IOU and open or processing expense reports should show the Request option.
+    // Workspace chats should only see the Request money option or Split option in case of Control policies
     return [
         ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
 
