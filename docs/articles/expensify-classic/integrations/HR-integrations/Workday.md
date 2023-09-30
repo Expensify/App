@@ -82,7 +82,7 @@ Switch to the **Share** tab, and share the report with your **Integration System
 
 ## Activate the Workday Integration
 
-If you would like to enable and run the API job that performs a recurring sync, you can do so by following Expensify’s API reference documentation [here]([url](https://integrations.expensify.com/Integration-Server/doc/employeeUpdater/#api-principles)). 
+If you would like to enable and run the API job that performs a recurring sync, you can do so by following Expensify’s API reference documentation [here](https://integrations.expensify.com/Integration-Server/doc/employeeUpdater/#api-principles). 
 
 If you would like Expensify to perform the sync on your behalf, please follow the steps below.
 
