@@ -1,5 +1,5 @@
 ---
-title: Using-The-App.md
+title: Using the app
 ---
 # Overview
 The Expensify mobile app is the ultimate expense management solution that makes it effortless to track and submit your receipts and expenses. Use the app to snap a picture of your receipts, categorize and submit expenses, and even review and approve expense reports.
