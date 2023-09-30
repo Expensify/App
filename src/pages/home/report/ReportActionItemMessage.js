@@ -54,14 +54,12 @@ function ReportActionItemMessage(props) {
                     <ReportActionItemFragment
                         key={`actionFragment-${props.action.reportActionID}-${index}`}
                         fragment={fragment}
-                        isAttachment={props.action.isAttachment}
                         iouMessage={iouMessage}
                         isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
                         attachmentInfo={props.action.attachmentInfo}
                         pendingAction={props.action.pendingAction}
                         source={lodashGet(props.action, 'originalMessage.source')}
                         accountID={props.action.actorAccountID}
-                        loading={props.action.isLoading}
                         style={props.style}
                     />
                 ))
