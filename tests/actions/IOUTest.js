@@ -1638,7 +1638,7 @@ describe('actions/IOU', () => {
 
             expect(resultAction.message).toEqual(REPORT_ACTION.message);
             expect(resultAction.person).toEqual(REPORT_ACTION.person);
-            expect(resultAction.pendingAction).toBeNull();
+            expect(resultAction.pendingAction).toBeUndefined();
 
             await waitForBatchedUpdates();
 
@@ -1647,7 +1647,7 @@ describe('actions/IOU', () => {
 
             // Then check the loading state of our action
             const resultActionAfterUpdate = reportActions[reportActionID];
-            expect(resultActionAfterUpdate.pendingAction).toBeNull();
+            expect(resultActionAfterUpdate.pendingAction).toBeUndefined();
 
             // When we attempt to delete a money request from the IOU report
             fetch.pause();
@@ -1818,7 +1818,7 @@ describe('actions/IOU', () => {
             // Then the report should have 2 actions
             expect(_.size(reportActions)).toBe(2);
             const resultActionAfter = reportActions[reportActionID];
-            expect(resultActionAfter.pendingAction).toBeNull();
+            expect(resultActionAfter.pendingAction).toBeUndefined();
 
             fetch.pause();
             // When deleting money request
@@ -1903,7 +1903,7 @@ describe('actions/IOU', () => {
 
             expect(resultAction.message).toEqual(REPORT_ACTION.message);
             expect(resultAction.person).toEqual(REPORT_ACTION.person);
-            expect(resultAction.pendingAction).toBeNull();
+            expect(resultAction.pendingAction).toBeUndefined();
 
             await waitForBatchedUpdates();
 
@@ -1913,7 +1913,7 @@ describe('actions/IOU', () => {
             let resultActionAfterUpdate = reportActions[reportActionID];
 
             // Verify that our action is no longer in the loading state
-            expect(resultActionAfterUpdate.pendingAction).toBeNull();
+            expect(resultActionAfterUpdate.pendingAction).toBeUndefined();
 
             await waitForBatchedUpdates();
 
@@ -1935,7 +1935,7 @@ describe('actions/IOU', () => {
 
             expect(resultAction.message).toEqual(REPORT_ACTION.message);
             expect(resultAction.person).toEqual(REPORT_ACTION.person);
-            expect(resultAction.pendingAction).toBeNull();
+            expect(resultAction.pendingAction).toBeUndefined();
 
             await waitForBatchedUpdates();
 
@@ -1945,7 +1945,7 @@ describe('actions/IOU', () => {
             resultActionAfterUpdate = reportActions[reportActionID];
 
             // Verify that our action is no longer in the loading state
-            expect(resultActionAfterUpdate.pendingAction).toBeNull();
+            expect(resultActionAfterUpdate.pendingAction).toBeUndefined();
 
             fetch.pause();
             // When we delete the money request
