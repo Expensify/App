@@ -36,9 +36,6 @@ const propTypes = {
     route: PropTypes.shape({
         /** Params from the route */
         params: PropTypes.shape({
-            /** The URL to go to when the user presses the back button */
-            backTo: PropTypes.string,
-
             /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string.isRequired,
 
@@ -79,7 +76,7 @@ function IOURequestStepConfirmation({
     policy,
     report,
     route: {
-        params: {backTo, iouType, reportID, transactionID},
+        params: {iouType, reportID, transactionID},
     },
     transaction,
 }) {
@@ -99,9 +96,8 @@ function IOURequestStepConfirmation({
         [transaction.participants, personalDetails],
     );
 
-    const navigateBack = (forceFallback = false) => {
-        // TODO: get this route working
-        Navigation.goBack(backTo);
+    const navigateBack = () => {
+        Navigation.goBack();
     };
 
     const navigateToAddReceipt = () => {
@@ -268,6 +264,8 @@ function IOURequestStepConfirmation({
         },
         [transaction.amount, transaction.comment, participants, transaction.currency, currentUserPersonalDetails.accountID, report],
     );
+
+    console.log('[tim');
 
     return (
         <ScreenWrapper
