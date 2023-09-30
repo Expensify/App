@@ -69,7 +69,7 @@ function EnableStep(props) {
                 subtitle={props.policyName}
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(props.policyID))}
+                onBackButtonPress={() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policyID))}
             />
             <ScrollView style={[styles.flex1]}>
                 <Section

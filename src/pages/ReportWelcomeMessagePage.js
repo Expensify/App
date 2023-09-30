@@ -75,12 +75,12 @@ function ReportWelcomeMessagePage(props) {
     );
 
     return (
-        <ScreenWrapper
-            testID={ReportWelcomeMessagePage.displayName}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
-        >
+        <ScreenWrapper testID={ReportWelcomeMessagePage.displayName}>
             <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
-                <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
+                <HeaderWithBackButton
+                    title={props.translate('welcomeMessagePage.welcomeMessage')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
+                />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
