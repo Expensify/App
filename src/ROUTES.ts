@@ -257,9 +257,8 @@ export default {
             `create/${iouType}/${step}/${transactionID}/${reportID}/${waypointIndex}`,
     },
     MONEE_REQUEST_CONFIRMATION_STEP: {
-        route: 'create/:iouType/confirmation/:transactionID/:reportID/',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, step: ValueOf<typeof CONST.IOU.REQUEST_STEPS>, transactionID: string, reportID: string, backTo = '') =>
-            `create/${iouType}/${step}/${transactionID}/${reportID}${getBackToParam(backTo)}`,
+        route: 'create/:iouType/confirmation/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/confirmation/${transactionID}/${reportID}`,
     },
     MONEE_REQUEST_CREATE_TAB_DISTANCE: {
         route: 'create/:iouType/start/:transactionID/:reportID/distance',

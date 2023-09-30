@@ -323,10 +323,6 @@ export default {
                                     },
                                 },
                             },
-                            Monee_Request_Confirmation_Step: {
-                                path: ROUTES.MONEE_REQUEST_CONFIRMATION_STEP.route,
-                                exact: true,
-                            },
                             Monee_Request_Step: {
                                 path: ROUTES.MONEE_REQUEST_STEP.route,
                                 exact: true,

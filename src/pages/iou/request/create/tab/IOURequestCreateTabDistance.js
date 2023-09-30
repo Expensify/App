@@ -35,10 +35,7 @@ function IOURequestCreateTabDistance({transaction: {transactionID, reportID}, re
         // inside a report. In this case, we know the participants already and can skip the participants step and go straight
         // to the confirm step.
         if (report.reportID) {
-            const currentPath = ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.REQUEST_TYPE.REQUEST, transactionID, reportID);
-            Navigation.navigate(
-                ROUTES.MONEE_REQUEST_CONFIRMATION_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID, currentPath),
-            );
+            Navigation.navigate(ROUTES.MONEE_REQUEST_CONFIRMATION_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
         }
 
         // If there was no reportID, then that means the user started this flow from the global + menu

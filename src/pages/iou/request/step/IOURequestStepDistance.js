@@ -77,6 +77,7 @@ function IOURequestStepDistance({transactionID, transaction, mapboxAccessToken, 
 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
+    const isLoading = lodashGet(transaction, 'isLoading', false);
     const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
@@ -251,9 +252,9 @@ function IOURequestStepDistance({transactionID, transaction, mapboxAccessToken, 
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => onSubmit(waypoints)}
-                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute}
+                isDisabled={_.size(validatedWaypoints) < 2 || (!isOffline && (hasRouteError || isLoadingRoute || isLoading))}
                 text={translate('common.next')}
-                isLoading={isLoadingRoute || shouldFetchRoute}
+                isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
             />
         </ScrollView>
     );
