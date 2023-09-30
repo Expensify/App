@@ -58,6 +58,7 @@ const defaultProps = {
     account: {},
     credentials: {},
     isInModal: false,
+    activeClients: []
 };
 
 /**
@@ -85,7 +86,7 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     };
 }
 
-function SignInPage({credentials, account, isInModal}) {
+function SignInPage({credentials, account, isInModal, activeClients}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
@@ -97,7 +98,7 @@ function SignInPage({credentials, account, isInModal}) {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
     
-    const isClientTheLeader = ActiveClientManager.isClientTheLeader();
+    const isClientTheLeader = activeClients && ActiveClientManager.isClientTheLeader();
     
     const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions(
         {
