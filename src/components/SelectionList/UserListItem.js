@@ -65,10 +65,10 @@ function UserListItem({item, isFocused = false, showTooltip, onSelectRow, onDism
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
-                <View style={styles.checkboxPressable}>
+                <View style={StyleUtils.getCheckboxPressableStyle()}>
                     <View
                         style={[
-                            StyleUtils.getCheckboxContainerStyle(20, 4),
+                            StyleUtils.getCheckboxContainerStyle(20),
                             item.isSelected && styles.checkedContainer,
                             item.isSelected && styles.borderColorFocus,
                             item.isDisabled && styles.cursorDisabled,
