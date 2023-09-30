@@ -1082,17 +1082,18 @@ const CONST = {
             SCAN: 'scan',
         },
         REQUEST_STEPS: {
-            AMOUNT: 'amount',
-            PARTICIPANTS: 'participants',
-            CONFIRMATION: 'confirmation',
-            DATE: 'date',
-            CURRENCY: 'currency',
-            DESCRIPTION: 'description',
-            CATEGORY: 'category',
-            TAG: 'tag',
-            MERCHANT: 'merchant',
-            WAYPOINT: 'waypoint',
             ADDRESS: 'address',
+            AMOUNT: 'amount',
+            CATEGORY: 'category',
+            CONFIRMATION: 'confirmation',
+            CURRENCY: 'currency',
+            DATE: 'date',
+            DESCRIPTION: 'description',
+            MERCHANT: 'merchant',
+            PARTICIPANTS: 'participants',
+            START: 'start',
+            TAG: 'tag',
+            WAYPOINT: 'waypoint',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
@@ -2656,6 +2657,7 @@ const CONST = {
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
+        IOU_REQUEST_TYPE: 'iouRequestType',
         MANUAL: 'manual', // TODO: remove
         SCAN: 'scan', // TODO: remove
         DISTANCE: 'distance', // TODO: remove

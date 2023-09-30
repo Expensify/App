@@ -6,6 +6,7 @@ import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotF
 import CONST from '../../../CONST';
 import IOURequestStepWaypoint from './step/IOURequestStepWaypoint';
 import IOURequestStepParticipants from './step/IOURequestStepParticipants';
+import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
 
 const propTypes = {
     /** Route from navigation */
@@ -44,7 +45,7 @@ function IOURequestStepPage({
     }
 
     if (step === 'confirmation') {
-        return null;
+        return <IOURequestStepConfirmation route={route} />;
     }
 
     if (step === 'date') {

@@ -80,6 +80,7 @@ function IOURequestStepConfirmation({
     },
     transaction,
 }) {
+    console.log('[tim0');
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
@@ -265,7 +266,7 @@ function IOURequestStepConfirmation({
         [transaction.amount, transaction.comment, participants, transaction.currency, currentUserPersonalDetails.accountID, report],
     );
 
-    console.log('[tim');
+    console.log('[tim1');
 
     return (
         <ScreenWrapper
@@ -275,10 +276,6 @@ function IOURequestStepConfirmation({
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                    <HeaderWithBackButton
-                        title={headerTitle}
-                        onBackButtonPress={navigateBack}
-                    />
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
