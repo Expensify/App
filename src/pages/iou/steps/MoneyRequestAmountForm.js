@@ -109,7 +109,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         if (!currency || !_.isNumber(amount)) {
             return;
         }
-        const amountAsStringForState = CurrencyUtils.convertToFrontendAmount(amount).toString();
+        const amountAsStringForState = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
         setCurrentAmount(amountAsStringForState);
         setSelection({
             start: amountAsStringForState.length,
