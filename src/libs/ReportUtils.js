@@ -3382,7 +3382,16 @@ function shouldReportShowSubscript(report) {
  * @returns {Boolean}
  */
 function isReportDataReady() {
-    return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key].reportID);
+    return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key] && allReports[key].reportID);
+}
+
+/**
+ * Return true if reportID is valid
+ * @param {String} reportID
+ * @returns {Boolean}
+ */
+function isValidReportID(reportID) {
+    return typeof reportID === 'string' && !_.isEmpty(reportID) && reportID !== 'null' && reportID !== '0';
 }
 
 /**
@@ -3788,6 +3797,7 @@ export {
     isChildReport,
     shouldReportShowSubscript,
     isReportDataReady,
+    isValidReportID,
     isSettled,
     isAllowedToComment,
     getBankAccountRoute,
