@@ -178,9 +178,10 @@ function MoneyRequestConfirmPage(props) {
                 props.iou.amount,
                 props.iou.currency,
                 props.iou.merchant,
+                props.iou.billable,
             );
         },
-        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.tag, props.iou.amount, props.iou.currency, props.iou.merchant],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.tag, props.iou.amount, props.iou.currency, props.iou.merchant, props.iou.billable],
     );
 
     const createTransaction = useCallback(
@@ -393,7 +394,7 @@ export default compose(
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
     }),
 )(MoneyRequestConfirmPage);
