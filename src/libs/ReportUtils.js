@@ -657,7 +657,7 @@ function isDM(report) {
  * @returns {Boolean}
  */
 function hasSingleParticipant(report) {
-    return report.participantAccountIDs && report.participantAccountIDs.length === 1;
+    return report && report.participantAccountIDs && report.participantAccountIDs.length === 1;
 }
 
 /**
