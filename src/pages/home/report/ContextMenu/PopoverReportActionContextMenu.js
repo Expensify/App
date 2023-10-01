@@ -278,6 +278,7 @@ function PopoverReportActionContextMenu(_props, ref) {
         instanceID,
         runAndResetOnPopoverHide,
         clearActiveReportAction,
+        contentRef,
     }));
 
     const reportAction = reportActionRef.current;
