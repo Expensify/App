@@ -1,16 +1,16 @@
-/* eslint-disable rulesdir/prefer-underscore-method */
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import {max, parseISO, isEqual} from 'date-fns';
+import {isEqual, max, parseISO} from 'date-fns';
 import lodashFindLast from 'lodash/findLast';
-import Onyx from 'react-native-onyx';
-import * as CollectionUtils from './CollectionUtils';
+import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import * as OnyxTypes from '../types/onyx';
+import {ActionName} from '../types/onyx/OriginalMessage';
+import * as CollectionUtils from './CollectionUtils';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
-const allReports = {};
+const allReports: OnyxCollection<OnyxTypes.Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
@@ -23,7 +23,7 @@ Onyx.connect({
     },
 });
 
-const allReportActions = {};
+const allReportActions: OnyxCollection<OnyxTypes.ReportActions> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -39,137 +39,86 @@ Onyx.connect({
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
+    callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
 });
 
-/**
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function isCreatedAction(reportAction) {
-    return lodashGet(reportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
+function isCreatedAction(reportAction: OnyxTypes.ReportAction | null): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
 
-/**
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function isDeletedAction(reportAction) {
+function isDeletedAction(reportAction: OnyxTypes.ReportAction | null): boolean {
     // A deleted comment has either an empty array or an object with html field with empty string as value
-    const message = lodashGet(reportAction, 'message', []);
-    return message.length === 0 || lodashGet(message, [0, 'html']) === '';
+    const message = reportAction?.message ?? [];
+    return message.length === 0 || message[0]?.html === '';
 }
 
-/**
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function isDeletedParentAction(reportAction) {
-    return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false) && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
+function isDeletedParentAction(reportAction: OnyxTypes.ReportAction | null): boolean {
+    return (reportAction?.message?.[0]?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
-/**
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function isPendingRemove(reportAction) {
-    return lodashGet(reportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
+function isPendingRemove(reportAction: OnyxTypes.ReportAction | null): boolean {
+    return reportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
-/**
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function isMoneyRequestAction(reportAction) {
-    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
+function isMoneyRequestAction(reportAction: OnyxTypes.ReportAction | null): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
 
-/**
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function isReportPreviewAction(reportAction) {
-    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+function isReportPreviewAction(reportAction: OnyxTypes.ReportAction | null): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
-/**
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function isModifiedExpenseAction(reportAction) {
-    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+function isModifiedExpenseAction(reportAction: OnyxTypes.ReportAction | null): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
-function isWhisperAction(action) {
-    return (action.whisperedToAccountIDs || []).length > 0;
+function isWhisperAction(reportAction: OnyxTypes.ReportAction | null): boolean {
+    return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
 
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
- *
- * @param {Object} reportAction
- * @param {String} reportID
- * @returns {Boolean}
  */
-function isThreadParentMessage(reportAction = {}, reportID) {
-    const {childType, childVisibleActionCount = 0, childReportID} = reportAction;
+function isThreadParentMessage(reportAction: OnyxTypes.ReportAction | null, reportID: string): boolean {
+    const {childType, childVisibleActionCount = 0, childReportID} = reportAction ?? {};
     return childType === CONST.REPORT.TYPE.CHAT && (childVisibleActionCount > 0 || String(childReportID) === reportID);
 }
 
 /**
  * Returns the parentReportAction if the given report is a thread/task.
  *
- * @param {Object} report
- * @param {Object} [allReportActionsParam]
- * @returns {Object}
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report, allReportActionsParam = undefined) {
-    if (!report || !report.parentReportID || !report.parentReportActionID) {
+function getParentReportAction(report: OnyxTypes.Report | null, allReportActionsParam?: OnyxCollection<OnyxTypes.ReportActions>): OnyxTypes.ReportAction | Record<string, never> {
+    if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
-    return lodashGet(allReportActionsParam || allReportActions, [report.parentReportID, report.parentReportActionID], {});
+    return (allReportActionsParam ?? allReportActions)?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
 }
 
 /**
  * Find the reportAction having the given childReportID in parent report actions
- *
- * @param {String} childReportID
- * @param {String} parentReportID
- * @returns {Object}
  */
-function getParentReportActionInReport(childReportID, parentReportID) {
-    return _.find(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
+function getParentReportActionInReport(childReportID: string, parentReportID: string): OnyxTypes.ReportAction | null {
+    return Object.values(allReportActions?.[parentReportID] ?? {}).find((reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`) ?? null;
 }
 
 /**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
- *
- * @param {Object} reportAction
- * @returns {Boolean}
  */
-function isSentMoneyReportAction(reportAction) {
-    return (
-        reportAction &&
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-        lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
-        _.has(reportAction.originalMessage, 'IOUDetails')
-    );
+function isSentMoneyReportAction(reportAction: OnyxTypes.ReportAction | null): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!reportAction.originalMessage.IOUDetails;
 }
 
 /**
  * Returns whether the thread is a transaction thread, which is any thread with IOU parent
  * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
- *
- * @param {Object} parentReportAction
- * @returns {Boolean}
  */
-function isTransactionThread(parentReportAction) {
-    const originalMessage = lodashGet(parentReportAction, 'originalMessage', {});
+function isTransactionThread(parentReportAction: OnyxTypes.ReportAction | null): boolean {
     return (
-        parentReportAction &&
-        parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-        (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails')))
+        parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+        (parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+            (parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!parentReportAction.originalMessage.IOUDetails))
     );
 }
 
@@ -177,67 +126,56 @@ function isTransactionThread(parentReportAction) {
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
- * @param {Array} reportActions
- * @param {Boolean} shouldSortInDescendingOrder
- * @returns {Array}
  */
-function getSortedReportActions(reportActions, shouldSortInDescendingOrder = false) {
-    if (!_.isArray(reportActions)) {
+function getSortedReportActions(reportActions: OnyxTypes.ReportAction[] | null, shouldSortInDescendingOrder = false): OnyxTypes.ReportAction[] {
+    if (!Array.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
 
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
-    return _.chain(reportActions)
-        .compact()
-        .sort((first, second) => {
-            // First sort by timestamp
-            if (first.created !== second.created) {
-                return (first.created < second.created ? -1 : 1) * invertedMultiplier;
-            }
 
-            // Then by action type, ensuring that `CREATED` actions always come first if they have the same timestamp as another action type
-            if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
-                return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
-            }
-            // Ensure that `REPORTPREVIEW` actions always come after if they have the same timestamp as another action type
-            if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) && first.actionName !== second.actionName) {
-                return (first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? 1 : -1) * invertedMultiplier;
-            }
+    return reportActions.filter(Boolean).sort((first, second) => {
+        // First sort by timestamp
+        if (first.created !== second.created) {
+            return (first.created < second.created ? -1 : 1) * invertedMultiplier;
+        }
 
-            // Then fallback on reportActionID as the final sorting criteria. It is a random number,
-            // but using this will ensure that the order of reportActions with the same created time and action type
-            // will be consistent across all users and devices
-            return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
-        })
-        .value();
+        // Then by action type, ensuring that `CREATED` actions always come first if they have the same timestamp as another action type
+        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
+            return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
+        }
+        // Ensure that `REPORTPREVIEW` actions always come after if they have the same timestamp as another action type
+        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) && first.actionName !== second.actionName) {
+            return (first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? 1 : -1) * invertedMultiplier;
+        }
+
+        // Then fallback on reportActionID as the final sorting criteria. It is a random number,
+        // but using this will ensure that the order of reportActions with the same created time and action type
+        // will be consistent across all users and devices
+        return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
+    });
 }
 
 /**
  * Finds most recent IOU request action ID.
- *
- * @param {Array} reportActions
- * @returns {String}
  */
-function getMostRecentIOURequestActionID(reportActions) {
-    const iouRequestTypes = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
-    const iouRequestActions = _.filter(reportActions, (action) => iouRequestTypes.includes(lodashGet(action, 'originalMessage.type')));
+function getMostRecentIOURequestActionID(reportActions: OnyxTypes.ReportAction[] | null): string | null {
+    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
+    const iouRequestActions = reportActions?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && iouRequestTypes.includes(action.originalMessage.type)) ?? [];
 
-    if (_.isEmpty(iouRequestActions)) {
+    if (iouRequestActions.length === 0) {
         return null;
     }
 
     const sortedReportActions = getSortedReportActions(iouRequestActions);
-    return _.last(sortedReportActions).reportActionID;
+    return sortedReportActions.at(-1)?.reportActionID ?? null;
 }
 
 /**
  * Returns array of links inside a given report action
- *
- * @param {Object} reportAction
- * @returns {Array}
  */
-function extractLinksFromMessageHtml(reportAction) {
-    const htmlContent = lodashGet(reportAction, ['message', 0, 'html']);
+function extractLinksFromMessageHtml(reportAction: OnyxTypes.ReportAction | null): string[] {
+    const htmlContent = reportAction?.message?.[0]?.html;
 
     // Regex to get link in href prop inside of <a/> component
     const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
@@ -246,16 +184,19 @@ function extractLinksFromMessageHtml(reportAction) {
         return [];
     }
 
-    return _.map([...htmlContent.matchAll(regex)], (match) => match[1]);
+    return [...htmlContent.matchAll(regex)].map((match) => match[1]);
 }
 
 /**
  * Returns the report action immediately before the specified index.
- * @param {Array} reportActions - all actions
- * @param {Number} actionIndex - index of the action
- * @returns {Object|null}
+ * @param reportActions - all actions
+ * @param actionIndex - index of the action
  */
-function findPreviousAction(reportActions, actionIndex) {
+function findPreviousAction(reportActions: OnyxTypes.ReportAction[] | null, actionIndex: number): OnyxTypes.ReportAction | null {
+    if (!reportActions) {
+        return null;
+    }
+
     for (let i = actionIndex + 1; i < reportActions.length; i++) {
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
@@ -263,6 +204,7 @@ function findPreviousAction(reportActions, actionIndex) {
             return reportActions[i];
         }
     }
+
     return null;
 }
 
@@ -270,13 +212,11 @@ function findPreviousAction(reportActions, actionIndex) {
  * Returns true when the report action immediately before the specified index is a comment made by the same actor who who is leaving a comment in the action at the specified index.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
- * @param {Array} reportActions
- * @param {Number} actionIndex - index of the comment item in state to check
- * @returns {Boolean}
+ * @param actionIndex - index of the comment item in state to check
  */
-function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
+function isConsecutiveActionMadeByPreviousActor(reportActions: OnyxTypes.ReportAction[] | null, actionIndex: number): boolean {
     const previousAction = findPreviousAction(reportActions, actionIndex);
-    const currentAction = reportActions[actionIndex];
+    const currentAction = reportActions?.[actionIndex];
 
     // It's OK for there to be no previous action, and in that case, false will be returned
     // so that the comment isn't grouped
@@ -309,12 +249,8 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 
 /**
  * Checks if a reportAction is deprecated.
- *
- * @param {Object} reportAction
- * @param {String} key
- * @returns {Boolean}
  */
-function isReportActionDeprecated(reportAction, key) {
+function isReportActionDeprecated(reportAction: OnyxTypes.ReportAction | null, key: string): boolean {
     if (!reportAction) {
         return true;
     }
@@ -332,12 +268,12 @@ function isReportActionDeprecated(reportAction, key) {
 /**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
- *
- * @param {Object} reportAction
- * @param {String} key
- * @returns {Boolean}
  */
-function shouldReportActionBeVisible(reportAction, key) {
+function shouldReportActionBeVisible(reportAction: OnyxTypes.ReportAction | null, key: string): boolean {
+    if (!reportAction) {
+        return false;
+    }
+
     if (isReportActionDeprecated(reportAction, key)) {
         return false;
     }
@@ -346,8 +282,11 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
+    const {POLICYCHANGELOG: policyChangelogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
+    const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes)];
+
     // Filter out any unsupported reportAction types
-    if (!Object.values(CONST.REPORT.ACTIONS.TYPE).includes(reportAction.actionName) && !Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG).includes(reportAction.actionName)) {
+    if (!supportedActionTypes.includes(reportAction.actionName)) {
         return false;
     }
 
@@ -369,16 +308,13 @@ function shouldReportActionBeVisible(reportAction, key) {
 /**
  * Checks if a reportAction is fit for display as report last action, meaning that
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
- *
- * @param {Object} reportAction
- * @returns {Boolean}
  */
-function shouldReportActionBeVisibleAsLastAction(reportAction) {
+function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxTypes.ReportAction | null): boolean {
     if (!reportAction) {
         return false;
     }
 
-    if (!_.isEmpty(reportAction.errors)) {
+    if (Object.keys(reportAction.errors ?? {}).length > 0) {
         return false;
     }
 
@@ -388,42 +324,32 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
     );
 }
 
-/**
- * @param {String} reportID
- * @param {Object} [actionsToMerge]
- * @return {Object}
- */
-function getLastVisibleAction(reportID, actionsToMerge = {}) {
-    const updatedActionsToMerge = {};
+function getLastVisibleAction(reportID: string, actionsToMerge: OnyxTypes.ReportActions = {}): OnyxTypes.ReportAction | null {
+    const updatedActionsToMerge: OnyxTypes.ReportActions = {};
     if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
         Object.keys(actionsToMerge).forEach(
-            (actionToMergeID) => (updatedActionsToMerge[actionToMergeID] = {...allReportActions[reportID][actionToMergeID], ...actionsToMerge[actionToMergeID]}),
+            (actionToMergeID) => (updatedActionsToMerge[actionToMergeID] = {...allReportActions?.[reportID]?.[actionToMergeID], ...actionsToMerge[actionToMergeID]}),
         );
     }
     const actions = Object.values({
-        ...allReportActions[reportID],
+        ...allReportActions?.[reportID],
         ...updatedActionsToMerge,
     });
     const visibleActions = actions.filter((action) => shouldReportActionBeVisibleAsLastAction(action));
 
     if (visibleActions.length === 0) {
-        return {};
+        return null;
     }
     const maxDate = max(visibleActions.map((action) => parseISO(action.created)));
     const maxAction = visibleActions.find((action) => isEqual(parseISO(action.created), maxDate));
-    return maxAction;
+    return maxAction ?? null;
 }
 
-/**
- * @param {String} reportID
- * @param {Object} [actionsToMerge]
- * @return {Object}
- */
-function getLastVisibleMessage(reportID, actionsToMerge = {}) {
+function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxTypes.ReportActions = {}): OnyxTypes.Report | null {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
-    const message = lodashGet(lastVisibleAction, ['message', 0], {});
+    const message = lastVisibleAction?.message?.[0];
 
-    if (isReportMessageAttachment(message)) {
+    if (message && isReportMessageAttachment(message)) {
         return {
             lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
             lastMessageText: CONST.ATTACHMENT_MESSAGE_TEXT,
@@ -437,7 +363,7 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
         };
     }
 
-    const messageText = lodashGet(message, 'text', '');
+    const messageText = message?.text ?? '';
     return {
         lastMessageText: String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim(),
     };
@@ -445,12 +371,11 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
 
 /**
  * A helper method to filter out report actions keyed by sequenceNumbers.
- *
- * @param {Object} reportActions
- * @returns {Array}
  */
-function filterOutDeprecatedReportActions(reportActions) {
-    return _.filter(reportActions, (reportAction, key) => !isReportActionDeprecated(reportAction, key));
+function filterOutDeprecatedReportActions(reportActions: OnyxTypes.ReportActions | null): OnyxTypes.ReportAction[] {
+    return Object.entries(reportActions ?? {})
+        .filter(([key, reportAction]) => !isReportActionDeprecated(reportAction, key))
+        .map((entry) => entry[1]);
 }
 
 /**
@@ -458,12 +383,11 @@ function filterOutDeprecatedReportActions(reportActions) {
  * The report actions need to be sorted by created timestamp first, and reportActionID second
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
- *
- * @param {Object} reportActions
- * @returns {Array}
  */
-function getSortedReportActionsForDisplay(reportActions) {
-    const filteredReportActions = _.filter(reportActions, (reportAction, key) => shouldReportActionBeVisible(reportAction, key));
+function getSortedReportActionsForDisplay(reportActions: OnyxTypes.ReportActions | null): OnyxTypes.ReportAction[] {
+    const filteredReportActions = Object.entries(reportActions ?? {})
+        .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
+        .map((entry) => entry[1]);
     return getSortedReportActions(filteredReportActions, true);
 }
 
@@ -472,78 +396,66 @@ function getSortedReportActionsForDisplay(reportActions) {
  * This method returns the last closed report action so we can always show the correct archived report reason.
  * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
  *
- * @param {Object} reportActions
- * @returns {Object|null}
  */
-function getLastClosedReportAction(reportActions) {
+function getLastClosedReportAction(reportActions: OnyxTypes.ReportActions | null): OnyxTypes.ReportAction | null {
     // If closed report action is not present, return early
-    if (!_.some(reportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
+    if (!Object.values(reportActions ?? {}).some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
         return null;
     }
+
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions);
-    return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+    return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) ?? null;
 }
 
 /**
- * @param {Array} onyxData
- * @returns {Object} The latest report action in the `onyxData` or `null` if one couldn't be found
+ * @returns The latest report action in the `onyxData` or `null` if one couldn't be found
  */
-function getLatestReportActionFromOnyxData(onyxData) {
-    const reportActionUpdate = _.find(onyxData, (onyxUpdate) => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
+function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): OnyxTypes.ReportAction | null {
+    const reportActionUpdate = onyxData?.find((onyxUpdate) => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
 
     if (!reportActionUpdate) {
         return null;
     }
 
-    const reportActions = _.values(reportActionUpdate.value);
+    const reportActions = Object.values((reportActionUpdate.value as OnyxTypes.ReportActions) ?? {});
     const sortedReportActions = getSortedReportActions(reportActions);
-    return _.last(sortedReportActions);
+    return sortedReportActions.at(-1) ?? null;
 }
 
 /**
  * Find the transaction associated with this reportAction, if one exists.
- *
- * @param {String} reportID
- * @param {String} reportActionID
- * @returns {String|null}
  */
-function getLinkedTransactionID(reportID, reportActionID) {
-    const reportAction = lodashGet(allReportActions, [reportID, reportActionID]);
+function getLinkedTransactionID(reportID: string, reportActionID: string): string | null {
+    const reportAction = allReportActions?.[reportID]?.[reportActionID];
     if (!reportAction || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return null;
     }
-    return reportAction.originalMessage.IOUTransactionID;
+    return reportAction.originalMessage.IOUTransactionID ?? null;
 }
 
-/**
- *
- * @param {String} reportID
- * @param {String} reportActionID
- * @returns {Object}
- */
-function getReportAction(reportID, reportActionID) {
-    return lodashGet(allReportActions, [reportID, reportActionID], {});
+function getReportAction(reportID: string, reportActionID: string): OnyxTypes.ReportAction | null {
+    return allReportActions?.[reportID]?.[reportActionID] ?? null;
 }
 
-/**
- * @returns {string}
- */
-function getMostRecentReportActionLastModified() {
+function getMostRecentReportActionLastModified(): string {
     // Start with the oldest date possible
     let mostRecentReportActionLastModified = new Date(0).toISOString();
 
     // Flatten all the actions
     // Loop over them all to find the one that is the most recent
-    const flatReportActions = _.flatten(_.map(allReportActions, (actions) => _.values(actions)));
-    _.each(flatReportActions, (action) => {
+    const flatReportActions = Object.values(allReportActions ?? {})
+        .flatMap((actions) => (actions ? Object.values(actions) : []))
+        .filter(Boolean);
+    flatReportActions.forEach((action) => {
         // Pending actions should not be counted here as a user could create a comment or some other action while offline and the server might know about
         // messages they have not seen yet.
-        if (!_.isEmpty(action.pendingAction)) {
+        if (action.pendingAction) {
             return;
         }
 
-        const lastModified = action.lastModified || action.created;
+        const lastModified = action.lastModified ?? action.created;
+
         if (lastModified < mostRecentReportActionLastModified) {
             return;
         }
@@ -553,8 +465,8 @@ function getMostRecentReportActionLastModified() {
 
     // We might not have actions so we also look at the report objects to see if any have a lastVisibleActionLastModified that is more recent. We don't need to get
     // any reports that have been updated before either a recently updated report or reportAction as we should be up to date on these
-    _.each(allReports, (report) => {
-        const reportLastVisibleActionLastModified = report.lastVisibleActionLastModified || report.lastVisibleActionCreated;
+    Object.values(allReports ?? {}).forEach((report) => {
+        const reportLastVisibleActionLastModified = report?.lastVisibleActionLastModified ?? report?.lastVisibleActionCreated;
         if (!reportLastVisibleActionLastModified || reportLastVisibleActionLastModified < mostRecentReportActionLastModified) {
             return;
         }
@@ -566,66 +478,47 @@ function getMostRecentReportActionLastModified() {
 }
 
 /**
- * @param {*} chatReportID
- * @param {*} iouReportID
- * @returns {Object} The report preview action or `null` if one couldn't be found
+ * @returns The report preview action or `null` if one couldn't be found
  */
-function getReportPreviewAction(chatReportID, iouReportID) {
-    return _.find(
-        allReportActions[chatReportID],
-        (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lodashGet(reportAction, 'originalMessage.linkedReportID') === iouReportID,
+function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxTypes.ReportAction | null {
+    return (
+        Object.values(allReportActions?.[chatReportID] ?? {}).find(
+            (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
+        ) ?? null
     );
 }
 
 /**
  * Get the iouReportID for a given report action.
- *
- * @param {Object} reportAction
- * @returns {String}
  */
-function getIOUReportIDFromReportActionPreview(reportAction) {
-    return lodashGet(reportAction, 'originalMessage.linkedReportID', '');
+function getIOUReportIDFromReportActionPreview(reportAction: OnyxTypes.ReportAction | null): string {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? reportAction.originalMessage.linkedReportID : '';
 }
 
-function isCreatedTaskReportAction(reportAction) {
-    return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
+function isCreatedTaskReportAction(reportAction: OnyxTypes.ReportAction | null): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && Boolean(reportAction.originalMessage?.taskReportID);
 }
 
 /**
  * A helper method to identify if the message is deleted or not.
- *
- * @param {Object} reportAction
- * @returns {Boolean}
  */
-function isMessageDeleted(reportAction) {
-    return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
+function isMessageDeleted(reportAction: OnyxTypes.ReportAction | null): boolean {
+    return reportAction?.message?.[0]?.isDeletedParentAction ?? false;
 }
 
 /**
  * Returns the number of money requests associated with a report preview
- *
- * @param {Object|null} reportPreviewAction
- * @returns {Number}
  */
-function getNumberOfMoneyRequests(reportPreviewAction) {
-    return lodashGet(reportPreviewAction, 'childMoneyRequestCount', 0);
+function getNumberOfMoneyRequests(reportPreviewAction: OnyxTypes.ReportAction | null): number {
+    return reportPreviewAction?.childMoneyRequestCount ?? 0;
 }
 
-/**
- * @param {*} reportAction
- * @returns {Boolean}
- */
-function isSplitBillAction(reportAction) {
-    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+function isSplitBillAction(reportAction: OnyxTypes.ReportAction | null): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 }
 
-/**
- *
- * @param {*} reportAction
- * @returns {Boolean}
- */
-function isTaskAction(reportAction) {
-    const reportActionName = lodashGet(reportAction, 'actionName', '');
+function isTaskAction(reportAction: OnyxTypes.ReportAction | null): boolean {
+    const reportActionName = reportAction?.actionName;
     return (
         reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
         reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
@@ -633,67 +526,79 @@ function isTaskAction(reportAction) {
     );
 }
 
-/**
- * @param {*} reportID
- * @returns {[Object]}
- */
-function getAllReportActions(reportID) {
-    return lodashGet(allReportActions, reportID, []);
+function getAllReportActions(reportID: string): OnyxTypes.ReportActions {
+    return allReportActions?.[reportID] ?? {};
 }
 
 /**
  * Check whether a report action is an attachment (a file, such as an image or a zip).
  *
- * @param {Object} reportAction report action
- * @returns {Boolean}
+ * @param reportAction report action
  */
-function isReportActionAttachment(reportAction) {
-    const message = _.first(lodashGet(reportAction, 'message', [{}]));
-    return _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : isReportMessageAttachment(message);
+function isReportActionAttachment(reportAction: OnyxTypes.ReportAction | null): boolean {
+    const message = reportAction?.message?.[0];
+
+    if (reportAction && Object.hasOwn(reportAction, 'isAttachment')) {
+        // The condition asserts "isAttachment" exists.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return reportAction.isAttachment!;
+    }
+
+    if (message) {
+        return isReportMessageAttachment(message) ?? false;
+    }
+
+    return false;
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function isNotifiableReportAction(reportAction) {
-    return reportAction && _.contains([CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE], reportAction.actionName);
+function isNotifiableReportAction(reportAction: OnyxTypes.ReportAction | null): boolean {
+    if (!reportAction) {
+        return false;
+    }
+
+    const actions: ActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE];
+
+    return actions.includes(reportAction.actionName);
 }
 
 export {
-    getSortedReportActions,
+    extractLinksFromMessageHtml,
+    getAllReportActions,
+    getIOUReportIDFromReportActionPreview,
+    getLastClosedReportAction,
     getLastVisibleAction,
     getLastVisibleMessage,
-    getMostRecentIOURequestActionID,
-    extractLinksFromMessageHtml,
-    isCreatedAction,
-    isDeletedAction,
-    shouldReportActionBeVisible,
-    shouldReportActionBeVisibleAsLastAction,
-    isReportActionDeprecated,
-    isConsecutiveActionMadeByPreviousActor,
-    getSortedReportActionsForDisplay,
-    getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
-    isMoneyRequestAction,
-    isThreadParentMessage,
     getLinkedTransactionID,
+    getMostRecentIOURequestActionID,
     getMostRecentReportActionLastModified,
-    getReportPreviewAction,
-    isCreatedTaskReportAction,
+    getNumberOfMoneyRequests,
     getParentReportAction,
     getParentReportActionInReport,
-    isTransactionThread,
-    isSentMoneyReportAction,
-    isDeletedParentAction,
-    isReportPreviewAction,
-    isModifiedExpenseAction,
-    getIOUReportIDFromReportActionPreview,
-    isMessageDeleted,
-    isWhisperAction,
-    isPendingRemove,
     getReportAction,
-    getNumberOfMoneyRequests,
+    getReportPreviewAction,
+    getSortedReportActions,
+    getSortedReportActionsForDisplay,
+    isConsecutiveActionMadeByPreviousActor,
+    isCreatedAction,
+    isCreatedTaskReportAction,
+    isDeletedAction,
+    isDeletedParentAction,
+    isMessageDeleted,
+    isModifiedExpenseAction,
+    isMoneyRequestAction,
+    isNotifiableReportAction,
+    isPendingRemove,
+    isReportActionAttachment,
+    isReportActionDeprecated,
+    isReportPreviewAction,
+    isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,
-    getAllReportActions,
-    isReportActionAttachment,
-    isNotifiableReportAction,
+    isThreadParentMessage,
+    isTransactionThread,
+    isWhisperAction,
+    shouldReportActionBeVisible,
+    shouldReportActionBeVisibleAsLastAction,
 };

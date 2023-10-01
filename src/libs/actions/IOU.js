@@ -1512,7 +1512,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         }
 
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
-        updatedIOUReport.lastVisibleActionCreated = lastVisibleAction.created;
+        updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
 
         updatedReportPreviewAction = {...reportPreviewAction};
         const messageText = Localize.translateLocal('iou.payerOwesAmount', {
@@ -1573,7 +1573,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                           hasOutstandingIOU: false,
                           iouReportID: null,
                           lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).lastMessageText,
-                          lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).created,
+                          lastVisibleActionCreated: lodashGet(ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}), 'created'),
                       },
                   },
               ]
