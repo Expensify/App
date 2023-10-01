@@ -1,5 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import ONYXKEYS from '../../../../../ONYXKEYS';
 import transactionPropTypes from '../../../../../components/transactionPropTypes';
 import IOURequestStepDistance from '../../step/IOURequestStepDistance';
@@ -23,7 +24,7 @@ const defaultProps = {
     report: {},
 };
 
-function IOURequestCreateTabDistance({transaction: {transactionID, reportID}, report}) {
+function IOURequestCreateTabDistance({transaction: {transactionID, reportID, participants}, report}) {
     /**
      * @param {Number} index of the waypoint that the user needs to be taken to
      */
@@ -32,6 +33,12 @@ function IOURequestCreateTabDistance({transaction: {transactionID, reportID}, re
     };
 
     const goToNextStep = () => {
+        // If the transaction has participants already, the user came from the confirmation step so take them back to that step.
+        if (!_.isEmpty(participants)) {
+            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+            return;
+        }
+
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
         // inside a report. In this case, we know the participants already and can skip the participants step and go straight
         // to the confirm step.

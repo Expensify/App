@@ -55,7 +55,7 @@ function IOURequestStepParticipants({
     const headerTitle = TransactionUtils.getHeaderTitle(translate, transaction);
 
     const goToNextStep = () => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID), true);
     };
 
     const goBack = () => {

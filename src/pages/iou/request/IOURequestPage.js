@@ -47,11 +47,13 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestPage({route, transaction}) {
+function IOURequestPage({
+    route: {
+        params: {iouType},
+    },
+}) {
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const iouType = lodashGet(route, 'params.iouType');
-    const selectedTab = lodashGet(route, 'params.selectedTab');
     const tabTitles = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
@@ -68,7 +70,7 @@ function IOURequestPage({route, transaction}) {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <DragAndDropProvider
-                        isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}
+                        isDisabled={iouType !== CONST.TAB_REQUEST.SCAN}
                         setIsDraggingOver={setIsDraggingOver}
                     >
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -78,10 +80,7 @@ function IOURequestPage({route, transaction}) {
                             />
 
                             {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
-                                <CreateIOUStartRequest
-                                    selectedTab={selectedTab}
-                                    iouType={iouType}
-                                />
+                                <CreateIOUStartRequest />
                             ) : (
                                 // TODO: see if this is necessary and if there are any routes using it
                                 <CreateIOUStartTabManual />

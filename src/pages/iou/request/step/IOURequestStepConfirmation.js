@@ -97,6 +97,18 @@ function IOURequestStepConfirmation({
     );
 
     const navigateBack = () => {
+        // The previous step for distance requests was the participants page
+        if (isDistanceRequest) {
+            // If there is a report attached to the IOU with a reportID, then the participants have been automatically assigned
+            // so the previous step was actually the distance tab.
+            if (report.reportID) {
+                Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID), true);
+                return;
+            }
+
+            Navigation.goBack(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID), true);
+            return;
+        }
         Navigation.goBack();
     };
 
