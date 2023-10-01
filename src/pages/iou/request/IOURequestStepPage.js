@@ -9,6 +9,7 @@ import IOURequestStepParticipants from './step/IOURequestStepParticipants';
 import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
 import IOURequestStepDescription from './step/IOURequestStepDescription';
 import IOURequestStepDate from './step/IOURequestStepDate';
+import IOURequestStepCategory from './step/IOURequestStepCategory';
 
 const propTypes = {
     /** Route from navigation */
@@ -63,7 +64,7 @@ function IOURequestStepPage({
     }
 
     if (step === 'category') {
-        return null;
+        return <IOURequestStepCategory route={route} />;
     }
 
     if (step === 'tag') {

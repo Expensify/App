@@ -2272,6 +2272,14 @@ function setMoneeRequestMerchant(transactionID, merchant) {
 }
 
 /**
+ * @param {String} transactionID
+ * @param {String} category
+ */
+function setMoneeRequestCategory(transactionID, category) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {category});
+}
+
+/**
  * @param {String} category
  */
 function setMoneyRequestCategory(category) {
@@ -2401,6 +2409,7 @@ export {
     setMoneyRequestMerchant,
     setMoneeRequestMerchant,
     setMoneyRequestCategory,
+    setMoneeRequestCategory,
     resetMoneyRequestCategory,
     setMoneyRequestTag,
     resetMoneyRequestTag,
