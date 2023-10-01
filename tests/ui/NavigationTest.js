@@ -147,9 +147,6 @@ describe('Navigation', () => {
         });
         await waitForBatchedUpdates();
 
-        // Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute('1'));
-        // await new Promise((resolve) => setTimeout(resolve, CONST.ANIMATED_TRANSITION));
-
         // Verify there is now one option in the sidebar
         optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
         expect(optionRows).toHaveLength(1);
