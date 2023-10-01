@@ -83,6 +83,9 @@ _.each(CONST.KEYBOARD_SHORTCUTS, (shortcut) => {
  */
 function unsubscribe(displayName, callbackID) {
     eventHandlers[displayName] = _.reject(eventHandlers[displayName], (callback) => callback.id === callbackID);
+    if (_.has(documentedShortcuts, displayName) && _.size(eventHandlers[displayName]) === 0) {
+        delete documentedShortcuts[displayName];
+    }
 }
 
 /**
