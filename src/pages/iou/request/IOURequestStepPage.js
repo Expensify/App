@@ -8,6 +8,7 @@ import IOURequestStepWaypoint from './step/IOURequestStepWaypoint';
 import IOURequestStepParticipants from './step/IOURequestStepParticipants';
 import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
 import IOURequestStepDescription from './step/IOURequestStepDescription';
+import IOURequestStepDate from './step/IOURequestStepDate';
 
 const propTypes = {
     /** Route from navigation */
@@ -50,7 +51,7 @@ function IOURequestStepPage({
     }
 
     if (step === 'date') {
-        return null;
+        return <IOURequestStepDate route={route} />;
     }
 
     if (step === 'currency') {

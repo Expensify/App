@@ -2190,10 +2190,12 @@ function startMoneyRequest(iouType, reportID = '') {
 function startMoneeRequest(iouType, reportID = '') {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const created = currentDate || moment().format('YYYY-MM-DD');
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {
+        created,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         reportID,
         transactionID: newTransactionID,
@@ -2222,6 +2224,14 @@ function setMoneyRequestAmount(amount) {
  */
 function setMoneyRequestCreated(created) {
     Onyx.merge(ONYXKEYS.IOU, {created});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} created
+ */
+function setMoneeRequestCreated(transactionID, created) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
 }
 
 /**
@@ -2384,6 +2394,7 @@ export {
     setMoneyRequestId,
     setMoneyRequestAmount,
     setMoneyRequestCreated,
+    setMoneeRequestCreated,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneeRequestDescription,

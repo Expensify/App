@@ -498,7 +498,7 @@ function MoneyRequestConfirmationList(props) {
                         description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
                         titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.DATE, props.transactionID, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
                     {props.isDistanceRequest ? (
