@@ -3,7 +3,7 @@ import lodashFindLast from 'lodash/findLast';
 // This function is in a separate file than Navigation.js to avoid cyclic dependency.
 
 /**
- * Find the last visited report screen in the navigation state and get the id of it.
+ * Find the route object from the topmost CentralPaneNavigator
  *
  * @param {Object} state - The react-navigation state
  * @returns {String | undefined}
