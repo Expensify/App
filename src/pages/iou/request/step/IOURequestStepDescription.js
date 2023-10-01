@@ -1,11 +1,10 @@
-import React, {useEffect, useRef, useCallback} from 'react';
+// TODO: This file came from MoneyRequestDescriptionPage - verify it's still the same when ready to merge and clean up the old file
+import React, {useRef, useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 import TextInput from '../../../../components/TextInput';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
@@ -15,12 +14,10 @@ import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import * as IOU from '../../../../libs/actions/IOU';
-import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import CONST from '../../../../CONST';
 import useLocalize from '../../../../hooks/useLocalize';
 import updateMultilineInputRange from '../../../../libs/UpdateMultilineInputRange';
 import * as Browser from '../../../../libs/Browser';
-import * as TransactionUtils from '../../../../libs/TransactionUtils';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
 
 const propTypes = {
@@ -75,8 +72,6 @@ function IOURequestStepDescription({
     );
 
     const goBack = () => {
-        // Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
-        // TODO: See if this can be empty
         Navigation.goBack(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
     };
 
