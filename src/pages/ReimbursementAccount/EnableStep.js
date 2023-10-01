@@ -24,8 +24,6 @@ import * as Link from '../../libs/actions/Link';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as BankAccounts from '../../libs/actions/ReimbursementAccount';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -37,8 +35,8 @@ const propTypes = {
     /* The workspace name */
     policyName: PropTypes.string,
 
-    /* The workspace policyID */
-    policyID: PropTypes.string,
+    /** Method to trigger when pressing back button of the header */
+    onBackButtonPress: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -46,7 +44,6 @@ const propTypes = {
 const defaultProps = {
     user: {},
     policyName: '',
-    policyID: '',
 };
 
 function EnableStep(props) {
@@ -69,7 +66,7 @@ function EnableStep(props) {
                 subtitle={props.policyName}
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policyID))}
+                onBackButtonPress={props.onBackButtonPress}
             />
             <ScrollView style={[styles.flex1]}>
                 <Section
