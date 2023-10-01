@@ -265,6 +265,16 @@ function IOURequestStepConfirmation({
         [transaction.amount, transaction.comment, participants, transaction.currency, currentUserPersonalDetails.accountID, report],
     );
 
+    const addNewParticipant = (option) => {
+        const newParticipants = _.map(transaction.participants, (participant) => {
+            if (participant.accountID === option.accountID) {
+                return {...participant, selected: !participant.selected};
+            }
+            return participant;
+        });
+        IOU.setMoneeRequestParticipants(transactionID, newParticipants);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -309,15 +319,7 @@ function IOURequestStepConfirmation({
                                 iouTag={transaction.tag}
                                 onConfirm={createTransaction}
                                 onSendMoney={sendMoney}
-                                onSelectParticipant={(option) => {
-                                    const newParticipants = _.map(transaction.participants, (participant) => {
-                                        if (participant.accountID === option.accountID) {
-                                            return {...participant, selected: !participant.selected};
-                                        }
-                                        return participant;
-                                    });
-                                    IOU.setMoneeRequestParticipants(transactionID, newParticipants);
-                                }}
+                                onSelectParticipant={addNewParticipant}
                                 receiptPath={transaction.receiptPath}
                                 receiptSource={transaction.receiptSource}
                                 iouType={iouType}

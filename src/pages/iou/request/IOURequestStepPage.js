@@ -7,6 +7,7 @@ import CONST from '../../../CONST';
 import IOURequestStepWaypoint from './step/IOURequestStepWaypoint';
 import IOURequestStepParticipants from './step/IOURequestStepParticipants';
 import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
+import IOURequestStepDescription from './step/IOURequestStepDescription';
 
 const propTypes = {
     /** Route from navigation */
@@ -57,7 +58,7 @@ function IOURequestStepPage({
     }
 
     if (step === 'description') {
-        return null;
+        return <IOURequestStepDescription route={route} />;
     }
 
     if (step === 'category') {

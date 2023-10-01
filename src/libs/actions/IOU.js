@@ -2194,7 +2194,7 @@ function startMoneeRequest(iouType, reportID = '') {
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {
-        wasSaved: false,
+        currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         reportID,
         transactionID: newTransactionID,
     });
@@ -2236,6 +2236,14 @@ function setMoneyRequestCurrency(currency) {
  */
 function setMoneyRequestDescription(comment) {
     Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} comment
+ */
+function setMoneeRequestDescription(transactionID, comment) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
 }
 
 /**
@@ -2378,6 +2386,7 @@ export {
     setMoneyRequestCreated,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
+    setMoneeRequestDescription,
     setMoneyRequestMerchant,
     setMoneeRequestMerchant,
     setMoneyRequestCategory,
