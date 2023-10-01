@@ -32,6 +32,12 @@ const propTypes = {
     route: PropTypes.shape({
         /** Params from the route */
         params: PropTypes.shape({
+            /** The type of iou (eg. scan/manual/distance) */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU's report */
+            reportID: PropTypes.string,
+
             /** The transaction ID of the IOU */
             transactionID: PropTypes.string,
         }),
@@ -45,7 +51,7 @@ const defaultProps = {
 function IOURequestStepDescription({
     transaction,
     route: {
-        params: {transactionID},
+        params: {iouType, reportID, transactionID},
     },
 }) {
     const {translate} = useLocalize();
@@ -71,7 +77,7 @@ function IOURequestStepDescription({
     const goBack = () => {
         // Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
         // TODO: See if this can be empty
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
     };
 
     /**
