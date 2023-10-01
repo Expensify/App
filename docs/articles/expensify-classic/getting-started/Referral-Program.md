@@ -7,7 +7,6 @@ redirect_from: articles/other/Referral-Program/
 
 # About
 
-test
 Expensify has grown thanks to our users who love Expensify so much that they tell their friends, colleagues, managers, and fellow business founders to use it, too. 
 
 As a thank you, every time you bring a new user into the platform who directly or indirectly leads to the adoption of a paid annual plan on Expensify, you will earn $250. 
