@@ -3391,7 +3391,7 @@ function isReportDataReady() {
  * @returns {Boolean}
  */
 function isValidReportID(reportID) {
-    return typeof reportID === 'string' && !_.isEmpty(reportID) && reportID !== 'null' && reportID !== '0';
+    return typeof reportID === 'string' && !['', 'null', '0'].includes(reportID);
 }
 
 /**
