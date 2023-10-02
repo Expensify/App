@@ -14,12 +14,12 @@ export default function useReceiptValidation() {
         reason: '',
     });
 
-    const resetValidation = () => {
+    const resetValidation = useCallback(() => {
         setReceiptValidation({
             ...receiptValidation,
             isReceiptInvalid: false,
         });
-    };
+    }, [receiptValidation]);
 
     const showImageCorruptionAlert = useCallback(() => {
         Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
@@ -35,35 +35,38 @@ export default function useReceiptValidation() {
         });
     }, []);
 
-    const validateReceipt = (file) => {
-        const fileName = lodashGet(file, 'fileName', '') || lodashGet(file, 'name', '');
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(fileName);
+    const validateReceipt = useCallback(
+        (file) => {
+            const fileName = lodashGet(file, 'fileName', '') || lodashGet(file, 'name', '');
+            const {fileExtension} = FileUtils.splitExtensionFromFileName(fileName);
 
-        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-            return false;
-        }
+            if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+                setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+                return false;
+            }
 
-        const isFileCorrupted = (file.width !== undefined && file.width <= 0) || (file.height !== undefined && file.height <= 0);
+            const isFileCorrupted = (file.width !== undefined && file.width <= 0) || (file.height !== undefined && file.height <= 0);
 
-        if (isFileCorrupted) {
-            showImageCorruptionAlert();
-            return false;
-        }
+            if (isFileCorrupted) {
+                showImageCorruptionAlert();
+                return false;
+            }
 
-        const fileSize = lodashGet(file, 'fileSize', 0) || lodashGet(file, 'size', 0);
-        if (fileSize > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
-            return false;
-        }
+            const fileSize = lodashGet(file, 'fileSize', 0) || lodashGet(file, 'size', 0);
+            if (fileSize > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
+                return false;
+            }
 
-        if (fileSize < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-            return false;
-        }
+            if (fileSize < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+                return false;
+            }
 
-        return true;
-    };
+            return true;
+        },
+        [setUploadReceiptError, showImageCorruptionAlert],
+    );
 
     return {resetValidation, validateReceipt, receiptValidation};
 }
