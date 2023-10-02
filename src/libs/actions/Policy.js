@@ -12,7 +12,6 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import * as PolicyUtils from '../PolicyUtils';
 import Log from '../Log';
 
 const allPolicies = {};
@@ -1187,11 +1186,12 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
     }
 
     const policyRecentlyUsedCategories = lodashGet(allRecentlyUsedCategories, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, []);
+    const uniquePolicyRecentlyUsedCategories = _.filter(policyRecentlyUsedCategories, (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory !== category);
 
     return {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
-        value: PolicyUtils.addCategoryToRecentlyUsed(policyRecentlyUsedCategories, category),
+        value: [category, ...uniquePolicyRecentlyUsedCategories],
     };
 }
 
