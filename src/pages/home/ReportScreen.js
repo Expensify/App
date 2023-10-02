@@ -119,15 +119,6 @@ const defaultProps = {
 };
 
 /**
- *
- * Function to check weather the report available in props is default
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-const checkDefaultReport = (report) => report === defaultProps.report;
-
-/**
  * Get the currently viewed report ID as number
  *
  * @param {Object} route
@@ -187,8 +178,6 @@ function ReportScreen({
 
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
-
-    const isDefaultReport = checkDefaultReport(report);
 
     let headerView = (
         <HeaderView
@@ -365,16 +354,9 @@ function ReportScreen({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
         () =>
-            (!firstRenderRef.current &&
-                !_.isEmpty(report) &&
-                !isDefaultReport &&
-                !report.reportID &&
-                !isOptimisticDelete &&
-                !report.isLoadingReportActions &&
-                !isLoading &&
-                !userLeavingStatus) ||
+            (!firstRenderRef.current && !_.isEmpty(report) && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingReportActions && !isLoading && !userLeavingStatus) ||
             shouldHideReport,
-        [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete, userLeavingStatus],
+        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
 
     return (
