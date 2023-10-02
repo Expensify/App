@@ -73,6 +73,7 @@ import type {
     RequestedAmountMessageParams,
     TagSelectionParams,
     EnglishTranslation,
+    WalletProgramParams,
 } from './types';
 
 /* eslint-disable max-len */
@@ -165,6 +166,7 @@ export default {
         notifications: 'Notificaciones',
         na: 'N/A',
         noResultsFound: 'No se han encontrado resultados',
+        recentDestinations: 'Destinos recientes',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
         todayAt: 'Hoy a las',
@@ -198,6 +200,7 @@ export default {
         debitCard: 'Tarjeta de débito',
         bankAccount: 'Cuenta bancaria',
         join: 'Unirse',
+        joinThread: 'Unirse al hilo',
         decline: 'Rechazar',
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
@@ -234,6 +237,7 @@ export default {
         merchant: 'Comerciante',
         category: 'Categoría',
         billable: 'Facturable',
+        nonBillable: 'No facturable',
         tag: 'Etiqueta',
         receipt: 'Recibo',
         replace: 'Sustituir',
@@ -805,6 +809,12 @@ export default {
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
     },
+    cardPage: {
+        expensifyCard: 'Tarjeta Expensify',
+        availableSpend: 'Capacidad de gasto restante',
+        virtualCardNumber: 'Número de la tarjeta virtual',
+        physicalCardNumber: 'Número de la tarjeta física',
+    },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,
         instant: 'Instante',
@@ -898,7 +908,7 @@ export default {
         phrase2: 'Términos de Servicio',
         phrase3: 'y',
         phrase4: 'Privacidad',
-        phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
+        phrase5: `El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus`,
         phrase6: 'licencias',
     },
     validateCodeForm: {
@@ -1081,7 +1091,7 @@ export default {
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Por favor, introduce un número de identificación fiscal válido',
             website: 'Por favor, introduce un sitio web válido',
-            zipCode: 'Por favor, introduce un código postal válido',
+            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Por favor, introduce un teléfono válido',
             companyName: 'Por favor, introduce un nombre comercial legal válido',
             addressCity: 'Por favor, introduce una ciudad válida',
@@ -1180,7 +1190,7 @@ export default {
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'La billetera Expensify es emitida por The Bancorp Bank.',
+            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
             perPurchase: 'Por compra',
             atmWithdrawal: 'Retiro de cajero automático',
             cashReload: 'Recarga de efectivo',
@@ -1223,10 +1233,10 @@ export default {
                 'transferencia (con una tarifa mínima de $ 0.25). ',
             fdicInsuranceBancorp:
                 'Sus fondos son elegibles para el seguro de la FDIC. Sus fondos se mantendrán en o ' +
-                'transferido a The Bancorp Bank, una institución asegurada por la FDIC. Una vez allí, sus fondos ' +
-                'están asegurados a $ 250,000 por la FDIC en caso de que The Bancorp Bank quiebre. Ver',
+                `transferido a ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, una institución asegurada por la FDIC. Una vez allí, sus fondos ` +
+                `están asegurados a $ 250,000 por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} quiebre. Ver`,
             fdicInsuranceBancorp2: 'para detalles.',
-            contactExpensifyPayments: 'Comuníquese con Expensify Payments llamando al + 1833-400-0904, por correoelectrónico a',
+            contactExpensifyPayments: `Comuníquese con ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} llamando al + 1833-400-0904, por correoelectrónico a`,
             contactExpensifyPayments2: 'o inicie sesión en',
             generalInformation: 'Para obtener información general sobre cuentas prepagas, visite',
             generalInformation2: 'Si tiene una queja sobre una cuenta prepaga, llame al Consumer Financial Oficina de Protección al 1-855-411-2372 o visite',
@@ -1550,12 +1560,12 @@ export default {
         assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
-            completed: 'tarea completada',
+            completed: 'marcada como completa',
             canceled: 'tarea eliminado',
-            reopened: 'tarea reabrir',
+            reopened: 'marcada como incompleta',
             error: 'No tiene permiso para realizar la acción solicitada.',
         },
-        markAsDone: 'Marcar como completada',
+        markAsComplete: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
         assigneeError: 'Hubo un error al asignar esta tarea, inténtalo con otro usuario.',
     },
