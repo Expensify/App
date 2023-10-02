@@ -3390,7 +3390,7 @@ function isReportDataReady() {
  * @param {String} reportIDFromPath
  * @returns {Boolean}
  */
-function isValidReportID(reportID) {
+function isValidReportIDFromPath(reportID) {
     return typeof reportIDFromPath === 'string' && !['', 'null', '0'].includes(reportIDFromPath);
 }
 
