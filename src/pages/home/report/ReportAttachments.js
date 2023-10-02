@@ -51,7 +51,9 @@ function ReportAttachments(props) {
     /** This effects handles 2x cases when report attachments are opened with deep link */
     useEffect(() => {
         // return early if report actions are already loaded
-        if (reportActionsLoadedRef.current) return;
+        if (reportActionsLoadedRef.current) {
+            return;
+        }
 
         // Case 1 - if we are logged out, then use deep link for attachments, then login, then
         // the report will not have reportID as well as actions data loaded yet

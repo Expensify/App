@@ -45,7 +45,9 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
         // Even an empty chat will have the 'created' report action, if its not there
         // then we are coming from a deep link and actions are not yet loaded. We should
         // wait until actions load.
-        if (_.isEmpty(reportActions)) return;
+        if (_.isEmpty(reportActions)) {
+            return;
+        }
 
         const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
 
