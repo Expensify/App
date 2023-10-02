@@ -3697,6 +3697,10 @@ const styles = (theme) => ({
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightLarge,
     },
+
+    receiptDropHeaderGap: {
+        backgroundColor: theme.receiptDropUIBG,
+    },
 });
 
 // For now we need to export the styles function that takes the theme as an argument
