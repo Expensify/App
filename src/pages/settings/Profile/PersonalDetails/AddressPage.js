@@ -70,7 +70,7 @@ function updateAddress(values) {
 
 function AddressPage({privatePersonalDetails, route}) {
     usePrivatePersonalDetails();
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const address = useMemo(() => lodashGet(privatePersonalDetails, 'address') || {}, [privatePersonalDetails]);
     const countryFromUrl = lodashGet(route, 'params.country');
     const [currentCountry, setCurrentCountry] = useState(address.country);
@@ -80,7 +80,7 @@ function AddressPage({privatePersonalDetails, route}) {
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
-    
+
     useEffect(() => {
         if (!address) {
             return;
@@ -88,7 +88,7 @@ function AddressPage({privatePersonalDetails, route}) {
         setState(address.state);
         setCurrentCountry(address.country);
     }, [address]);
-    
+
     /**
      * @param {Function} translate - translate function
      * @param {Boolean} isUSAForm - selected country ISO code is US
