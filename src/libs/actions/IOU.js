@@ -1336,8 +1336,6 @@ function updateSplitBillTransaction(reportID, reportActionID, transactionID, tra
 }
 
 function completeSplitBillRequest(updatedTransaction) {
-    console.log('updated', updatedTransaction);
-    return;
     const transactionID = updatedTransaction.transactionID;
     const optimisticData = [
         {
