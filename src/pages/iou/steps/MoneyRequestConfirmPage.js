@@ -23,9 +23,11 @@ import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import * as Policy from '../../../libs/actions/Policy';
+import useNetwork from '../../../hooks/useNetwork';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 
 const propTypes = {
     /** React Navigation route */
@@ -59,33 +61,39 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmPage(props) {
-    const {windowHeight} = useWindowDimensions();
+    const {isOffline} = useNetwork();
+    const {windowHeight, windowWidth} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>
-            lodashGet(props.iou.participants, [0, 'isPolicyExpenseChat'], false)
-                ? OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0])
-                : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
+            _.map(props.iou.participants, (participant) => {
+                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
+            }),
         [props.iou.participants, props.personalDetails],
     );
+    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        // Verification to reset billable with a default value, when value in IOU was changed
+        if (typeof props.iou.billable !== 'boolean') {
+            IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
+        }
+    }, [isOffline, participants, props.iou.billable, props.policy]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (!isDistanceRequest && prevMoneyRequestId.current !== props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
             if (props.iou.id) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), true);
             }
             return;
         }
@@ -98,7 +106,7 @@ function MoneyRequestConfirmPage(props) {
         }
 
         if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath && !isDistanceRequest) || shouldReset) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), true);
         }
 
         return () => {
@@ -109,9 +117,9 @@ function MoneyRequestConfirmPage(props) {
     const navigateBack = () => {
         let fallback;
         if (reportID.current) {
-            fallback = ROUTES.getMoneyRequestRoute(iouType.current, reportID.current);
+            fallback = ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current);
         } else {
-            fallback = ROUTES.getMoneyRequestParticipantsRoute(iouType.current);
+            fallback = ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType.current);
         }
         Navigation.goBack(fallback);
     };
@@ -134,9 +142,23 @@ function MoneyRequestConfirmPage(props) {
                 selectedParticipants[0],
                 trimmedComment,
                 receipt,
+                props.iou.category,
+                props.iou.tag,
+                props.iou.billable,
             );
         },
-        [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+        [
+            props.report,
+            props.iou.amount,
+            props.iou.currency,
+            props.iou.created,
+            props.iou.merchant,
+            props.currentUserPersonalDetails.login,
+            props.currentUserPersonalDetails.accountID,
+            props.iou.category,
+            props.iou.tag,
+            props.iou.billable,
+        ],
     );
 
     /**
@@ -151,12 +173,15 @@ function MoneyRequestConfirmPage(props) {
                 trimmedComment,
                 props.iou.created,
                 props.iou.transactionID,
+                props.iou.category,
+                props.iou.tag,
                 props.iou.amount,
                 props.iou.currency,
                 props.iou.merchant,
+                props.iou.billable,
             );
         },
-        [props.report, props.iou.created, props.iou.transactionID, props.iou.amount, props.iou.currency, props.iou.merchant],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.tag, props.iou.amount, props.iou.currency, props.iou.merchant, props.iou.billable],
     );
 
     const createTransaction = useCallback(
@@ -192,7 +217,9 @@ function MoneyRequestConfirmPage(props) {
             }
 
             if (props.iou.receiptPath && props.iou.receiptSource) {
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
+                    const receipt = file;
+                    receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
                     requestMoney(selectedParticipants, trimmedComment, receipt);
                 });
                 return;
@@ -216,6 +243,7 @@ function MoneyRequestConfirmPage(props) {
             isDistanceRequest,
             requestMoney,
             createDistanceRequest,
+            isManualRequestDM,
         ],
     );
 
@@ -235,11 +263,6 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                IOU.sendMoneyViaPaypal(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
-                return;
-            }
-
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 IOU.sendMoneyWithWallet(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
             }
@@ -247,13 +270,37 @@ function MoneyRequestConfirmPage(props) {
         [props.iou.amount, props.iou.comment, participants, props.iou.currency, props.currentUserPersonalDetails.accountID, props.report],
     );
 
+    const headerTitle = () => {
+        if (isDistanceRequest) {
+            return props.translate('common.distance');
+        }
+
+        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
+            return props.translate('iou.split');
+        }
+
+        return props.translate('tabSelector.manual');
+    };
+
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={MoneyRequestConfirmPage.displayName}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
+                        title={headerTitle()}
                         onBackButtonPress={navigateBack}
+                        shouldShowThreeDotsButton={isManualRequestDM}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                        threeDotsMenuItems={[
+                            {
+                                icon: Expensicons.Receipt,
+                                text: props.translate('receipt.addReceipt'),
+                                onSelected: () => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType.current, reportID.current)),
+                            },
+                        ]}
                     />
                     {/*
                      * The MoneyRequestConfirmationList component uses a SectionList which uses a VirtualizedList internally.
@@ -272,6 +319,10 @@ function MoneyRequestConfirmPage(props) {
                                 iouAmount={props.iou.amount}
                                 iouComment={props.iou.comment}
                                 iouCurrencyCode={props.iou.currency}
+                                iouIsBillable={props.iou.billable}
+                                onToggleBillable={IOU.setMoneyRequestBillable}
+                                iouCategory={props.iou.category}
+                                iouTag={props.iou.tag}
                                 onConfirm={createTransaction}
                                 onSendMoney={sendMoney}
                                 onSelectParticipant={(option) => {
@@ -320,6 +371,7 @@ export default compose(
             key: ONYXKEYS.IOU,
         },
     }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         report: {
             key: ({route, iou}) => {
@@ -336,7 +388,13 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         selectedTab: {
-            key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
     }),
 )(MoneyRequestConfirmPage);

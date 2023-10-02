@@ -122,6 +122,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
         <ScreenWrapper
             style={[styles.flex1, styles.justifyContentBetween]}
             includeSafeAreaPaddingBottom={false}
+            testID={ValidationStep.displayName}
         >
             <HeaderWithBackButton
                 title={isVerifying ? translate('validationStep.headerTitle') : translate('workspace.common.testTransactions')}

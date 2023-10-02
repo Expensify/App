@@ -1,6 +1,6 @@
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -15,13 +15,14 @@ import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
-import DistanceRequestPage from './DistanceRequestPage';
+import NewDistanceRequestPage from './NewDistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import themeColors from '../../styles/themes/default';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** React Navigation route */
@@ -69,6 +70,18 @@ function MoneyRequestSelectorPage(props) {
         IOU.resetMoneyRequestInfo(moneyRequestID);
     };
 
+    const prevSelectedTab = usePrevious(props.selectedTab);
+
+    useEffect(() => {
+        if (prevSelectedTab === props.selectedTab) {
+            return;
+        }
+
+        resetMoneyRequestInfo();
+        // resetMoneyRequestInfo function is not added as dependencies since they don't change between renders
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.selectedTab, prevSelectedTab]);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -82,6 +95,7 @@ function MoneyRequestSelectorPage(props) {
                       ]
                     : []
             }
+            testID={MoneyRequestSelectorPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
@@ -102,7 +116,6 @@ function MoneyRequestSelectorPage(props) {
                                         <TabSelector
                                             state={state}
                                             navigation={navigation}
-                                            onTabPress={resetMoneyRequestInfo}
                                             position={position}
                                         />
                                     )}
@@ -120,7 +133,7 @@ function MoneyRequestSelectorPage(props) {
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}
-                                            component={DistanceRequestPage}
+                                            component={NewDistanceRequestPage}
                                             initialParams={{reportID, iouType}}
                                         />
                                     )}
@@ -145,6 +158,6 @@ export default withOnyx({
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
     },
     selectedTab: {
-        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(MoneyRequestSelectorPage);

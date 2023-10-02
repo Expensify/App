@@ -25,7 +25,7 @@ const propTypes = {
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.func,
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
@@ -134,6 +134,7 @@ function MultipleAvatars(props) {
                         fill={themeColors.iconSuccessFill}
                         name={props.icons[0].name}
                         type={props.icons[0].type}
+                        fallbackIcon={props.icons[0].fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -184,6 +185,7 @@ function MultipleAvatars(props) {
                                         size={props.size}
                                         name={icon.name}
                                         type={icon.type}
+                                        fallbackIcon={icon.fallbackIcon}
                                     />
                                 </View>
                             </UserDetailsTooltip>
@@ -221,6 +223,7 @@ function MultipleAvatars(props) {
                                         <Text
                                             selectable={false}
                                             style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}
+                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
                                     </View>
                                 </View>
@@ -248,6 +251,7 @@ function MultipleAvatars(props) {
                                     imageStyles={[singleAvatarStyle]}
                                     name={props.icons[0].name}
                                     type={props.icons[0].type}
+                                    fallbackIcon={props.icons[0].fallbackIcon}
                                 />
                             </View>
                         </UserDetailsTooltip>
@@ -269,6 +273,7 @@ function MultipleAvatars(props) {
                                             imageStyles={[singleAvatarStyle]}
                                             name={props.icons[1].name}
                                             type={props.icons[1].type}
+                                            fallbackIcon={props.icons[1].fallbackIcon}
                                         />
                                     </View>
                                 </UserDetailsTooltip>
@@ -278,6 +283,7 @@ function MultipleAvatars(props) {
                                         <Text
                                             selectable={false}
                                             style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}
+                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         >
                                             {`+${props.icons.length - 1}`}
                                         </Text>
