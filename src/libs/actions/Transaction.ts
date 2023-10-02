@@ -87,6 +87,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     if (!lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng')) {
         return;
     }
+
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
     // text from showing up in the address search suggestions
     if (isEqual(waypoint?.address, CONST.YOUR_LOCATION_TEXT)) {
