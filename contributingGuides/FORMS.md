@@ -13,7 +13,7 @@ Labels are required for each input and should clearly mark the field. Optional t
 Labels and hints are enabled by passing the appropriate props to each input:
 
 ```jsx
-<TextInput
+<InputWrapper
     label="Value"
     hint="Hint text goes here"
 />
@@ -24,7 +24,8 @@ Labels and hints are enabled by passing the appropriate props to each input:
 If a field has a character limit we should give that field a max limit. This is done by passing the maxLength prop to TextInput.
 
 ```jsx
-<TextInput
+<InputWrapper
+    InputComponent={TextInput}
     maxLength={20}
 />
 ```
@@ -42,7 +43,7 @@ We should always set people up for success on native platforms by enabling the b
 We have a couple of keyboard types [defined](https://github.com/Expensify/App/blob/572caa9e7cf32a2d64fe0e93d171bb05a1dfb217/src/CONST.js#L357-L360) and should be used like so:
 
 ```jsx
-<TextInput
+<InputWrapper
     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
 />
 ```
@@ -56,7 +57,7 @@ As a best practice we should avoid asking for information we can get via other m
 Browsers use the name prop to autofill information into the input. Here's a [reference](https://developers.google.com/web/fundamentals/design-and-ux/input/forms#recommended_input_name_and_autocomplete_attribute_values) for available values for the name prop.
 
 ```jsx
-<TextInput
+<InputWrapper
     name="fname"
 />
 ```
@@ -91,7 +92,7 @@ To give a slightly more detailed example of how this would work with phone numbe
 Form inputs will NOT store draft values by default. This is to avoid accidentally storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the shouldSaveDraft prop to the input. Saving draft values is highly desirable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values [will be cleared when a user logs out](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/libs/actions/SignInRedirect.js#L52) (like most data). Additionally, we should clear draft data once the form is successfully submitted by calling `Onyx.set(ONYXKEY.FORM_ID, null)` in the onSubmit callback passed to Form.
 
 ```jsx
-<TextInput
+<InputWrapper
     shouldSaveDraft
 />
 ```
@@ -201,7 +202,7 @@ function onSubmit(values) {
     }, 1000);
 }
 
-<Form
+<FormProvider
     formID="testForm"
     submitButtonText="Submit"
     validate={this.validate}
@@ -209,19 +210,21 @@ function onSubmit(values) {
 >
     // Wrapping TextInput in a View to show that Form inputs can be nested in other components
     <View>
-        <TextInput
+        <InputWrapper
+            InputComponent={TextInput}
             label="Routing number"
             inputID="routingNumber"
             maxLength={8}
             shouldSaveDraft
         />
     </View>
-    <TextInput
+    <InputWrapper
+        InputComponent={TextInput}
         label="Account number"
         inputID="accountNumber"
         containerStyles={[styles.mt4]}
     />
-</Form>
+</FormProvider>
 ```
 
 `Form.js` also works with inputs nested in a custom component, e.g. [AddressForm](https://github.com/Expensify/App/blob/86579225ff30b21dea507347735259637a2df461/src/pages/ReimbursementAccount/AddressForm.js). The only exception is that the nested component shouldn't be wrapped around any HoC.
@@ -230,14 +233,16 @@ function onSubmit(values) {
 const BankAccountForm = () => (
     <>
         <View>
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 label="Routing number"
                 inputID="routingNumber"
                 maxLength={8}
                 shouldSaveDraft
             />
         </View>
-        <TextInput
+        <InputWrapper
+            InputComponent={TextInput}
             label="Account number"
             inputID="accountNumber"
             containerStyles={[styles.mt4]}
@@ -246,14 +251,14 @@ const BankAccountForm = () => (
 );
 
 // ...
-<Form
+<FormProvider
     formID="testForm"
     submitButtonText="Submit"
     validate={this.validate}
     onSubmit={this.onSubmit}
 >
     <BankAccountForm />
-</Form>
+</FormProvider>
 ```
 
 ### Props provided to Form inputs
@@ -266,7 +271,7 @@ The following prop is available to form inputs:
 - value: The value to show for the input.
 - onValueChange: A callback that is called when the input's value changes.
 
-Form.js will automatically provide the following props to any input with the inputID prop.
+InputWrapper component will automatically provide the following props to any input with the inputID prop.
 
 - ref: A React ref that must be attached to the input.
 - value: The input value.
@@ -287,13 +292,13 @@ An example of this can be seen in the [ACHContractStep](https://github.com/Expen
 
 ### Safe Area Padding
 
-Any `Form.js` that has a button will also add safe area padding by default. If the `<Form/>` is inside a `<ScreenWrapper>` we will want to disable the default safe area padding applied there e.g.
+Any `FormWrapper.js` that has a button will also add safe area padding by default. If the `<FormWrapper/>` is inside a `<ScreenWrapper>` we will want to disable the default safe area padding applied there e.g.
 
 ```js
 <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-    <Form>
+    <FormWrapper>
         {...}
-    </Form>
+    </FormWrapper>
 </ScreenWrapper>
 ```
 
