@@ -24,12 +24,13 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
                 return;
             }
             const oldReportID = request.data?.reportID;
+            const offset = isFromSequentialQueue ? 1 : 0;
             PersistedRequests.getAll()
-                .slice(isFromSequentialQueue ? 1 : 0)
+                .slice(offset)
                 .forEach((persistedRequest, index) => {
                     const persistedRequestClone = _.clone(persistedRequest);
                     persistedRequestClone.data = deepReplaceKeysAndValues(persistedRequest.data, oldReportID as string, preexistingReportID);
-                    PersistedRequests.update(index + 1, persistedRequestClone);
+                    PersistedRequests.update(index + offset, persistedRequestClone);
                 });
         });
         return response;
