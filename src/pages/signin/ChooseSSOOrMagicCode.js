@@ -1,13 +1,11 @@
 import React from 'react';
-import {View, useWindowDimensions} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import compose from '../../libs/compose';
 import Text from '../../components/Text';
 import Button from '../../components/Button';
-import networkPropTypes from '../../components/networkPropTypes';
 import * as Session from '../../libs/actions/Session';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
@@ -16,6 +14,7 @@ import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 import useLocalize from '../../hooks/useLocalize';
 import useNetwork from '../../hooks/useNetwork';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     /* Onyx Props */
@@ -29,11 +28,14 @@ const propTypes = {
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** Whether or not a sign on form is loading (being submitted) */
-        loading: PropTypes.bool,
-    }),
+        isLoading: PropTypes.bool,
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
+        /** Form that is being loaded */
+        loadingForm: PropTypes.bool,
+
+        /** Whether this account has 2FA enabled or not */
+        requiresTwoFactorAuth: PropTypes.bool,
+    }),
 
     /** Function to change whether the user is using SAML or magic codes to log in */
     setIsUsingSAMLLogin: PropTypes.func.isRequired,
