@@ -266,7 +266,6 @@ function MagicCodeInput(props) {
                                     }
                                 }}
                                 autoFocus={index === 0 && props.autoFocus}
-                                inputMode="numeric"
                                 textContentType="oneTimeCode"
                                 name={props.name}
                                 maxLength={props.maxLength}
