@@ -37,11 +37,11 @@ function EditRequestReceiptPage({route, transactionID}) {
             shouldEnableMaxHeight
             testID={EditRequestReceiptPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('common.receipt')}
-                onBackButtonPress={Navigation.goBack}
-            />
             <DragAndDropProvider>
+                <HeaderWithBackButton
+                    title={translate('common.receipt')}
+                    onBackButtonPress={Navigation.goBack}
+                />
                 <ReceiptSelector
                     route={route}
                     transactionID={transactionID}

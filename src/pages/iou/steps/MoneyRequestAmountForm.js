@@ -70,6 +70,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
 
     const textInput = useRef(null);
 
+    const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
@@ -109,7 +110,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         if (!currency || !_.isNumber(amount)) {
             return;
         }
-        const amountAsStringForState = CurrencyUtils.convertToFrontendAmount(amount).toString();
+        const amountAsStringForState = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
         setCurrentAmount(amountAsStringForState);
         setSelection({
             start: amountAsStringForState.length,
@@ -123,26 +124,43 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Sets the selection and the amount accordingly to the value passed to the input
      * @param {String} newAmount - Changed amount from user input
      */
-    const setNewAmount = (newAmount) => {
-        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
-        // More info: https://github.com/Expensify/App/issues/16974
-        const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
-        // Use a shallow copy of selection to trigger setSelection
-        // More info: https://github.com/Expensify/App/issues/16385
-        if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces)) {
-            setSelection((prevSelection) => ({...prevSelection}));
+    const setNewAmount = useCallback(
+        (newAmount) => {
+            // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+            // More info: https://github.com/Expensify/App/issues/16974
+            const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
+            // Use a shallow copy of selection to trigger setSelection
+            // More info: https://github.com/Expensify/App/issues/16385
+            if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces, decimals)) {
+                setSelection((prevSelection) => ({...prevSelection}));
+                return;
+            }
+            const checkInvalidAmount = isAmountValid(newAmountWithoutSpaces);
+            setIsInvalidAmount(checkInvalidAmount);
+            setFormError(checkInvalidAmount ? 'iou.error.invalidAmount' : '');
+            setCurrentAmount((prevAmount) => {
+                const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+                const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+                setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
+                return strippedAmount;
+            });
+        },
+        [decimals],
+    );
+
+    // Modifies the amount to match the decimals for changed currency.
+    useEffect(() => {
+        // If the changed currency supports decimals, we can return
+        if (MoneyRequestUtils.validateAmount(currentAmount, decimals)) {
             return;
         }
-        const checkInvalidAmount = isAmountValid(newAmountWithoutSpaces);
-        setIsInvalidAmount(checkInvalidAmount);
-        setFormError(checkInvalidAmount ? 'iou.error.invalidAmount' : '');
-        setCurrentAmount((prevAmount) => {
-            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
-            const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
-            return strippedAmount;
-        });
-    };
+
+        // If the changed currency doesn't support decimals, we can strip the decimals
+        setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
+
+        // we want to update only when decimals change (setNewAmount also changes when decimals change).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [setNewAmount]);
 
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
@@ -167,7 +185,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             const newAmount = MoneyRequestUtils.addLeadingZero(`${currentAmount.substring(0, selection.start)}${key}${currentAmount.substring(selection.end)}`);
             setNewAmount(newAmount);
         },
-        [currentAmount, selection, shouldUpdateSelection],
+        [currentAmount, selection, shouldUpdateSelection, setNewAmount],
     );
 
     /**
@@ -266,10 +284,11 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 ) : null}
                 <Button
                     success
+                    allowBubble
+                    pressOnEnter
                     medium={isExtraSmallScreenHeight}
                     style={[styles.w100, styles.mt5]}
                     onPress={submitAndNavigateToNextPage}
-                    pressOnEnter
                     text={buttonText}
                 />
             </View>
