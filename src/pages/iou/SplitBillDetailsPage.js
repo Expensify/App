@@ -54,7 +54,9 @@ const defaultProps = {
 
 function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
+    console.log('getting transaction');
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+    console.log(transaction);
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
 
     // In case this is workspace split bill, we manually add the workspace as the second participant of the split bill
@@ -72,7 +74,9 @@ function SplitBillDetailsPage(props) {
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
     const {amount: splitAmount, currency: splitCurrency, comment: splitComment, merchant: splitMerchant} = ReportUtils.getTransactionDetails(transaction);
     const isPartialSplitBill = transaction && transaction.receipt && (TransactionUtils.hasMissingSmartscanFields(transaction) || TransactionUtils.isReceiptBeingScanned(transaction));
-    const isReadOnly = _.isEmpty(transaction.receipt) || (!_.isEmpty(transaction.receipt) && TransactionUtils.isReceiptBeingScanned(transaction));
+
+    const isEditable = true;
+    console.log(transaction);
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
@@ -99,7 +103,7 @@ function SplitBillDetailsPage(props) {
                             receiptSource={transaction.filename}
                             transaction={transaction}
                             isPartialSplitBill={isPartialSplitBill}
-                            isReadOnly={isReadOnly}
+                            isReadOnly={!isEditable}
                             onConfirm={() => IOU.completeSplitBillRequest(transaction)}
                             isEditingSplitBill
                         />

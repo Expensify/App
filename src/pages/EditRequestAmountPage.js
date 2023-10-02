@@ -26,7 +26,6 @@ const propTypes = {
 function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, reportID, reportActionID, isSplitRequest}) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
-    console.log(isSplitRequest);
 
     const focusTextInput = () => {
         // Component may not be initialized due to navigation transitions
@@ -45,10 +44,10 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, report
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
         if (isSplitRequest) {
-            Navigation.navigate(ROUTES.getEditSplitRequestCurrencyRoute(reportID, reportActionID, defaultCurrency, activeRoute));
+            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL_CURRENCY.getRoute(reportID, reportActionID, defaultCurrency, activeRoute));
             return;
         }
-        Navigation.navigate(ROUTES.getEditRequestCurrencyRoute(reportID, defaultCurrency, activeRoute));
+        Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(reportID, defaultCurrency, activeRoute));
     };
 
     useFocusEffect(

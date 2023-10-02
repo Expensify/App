@@ -71,7 +71,6 @@ function EditSplitBillRequestPage({report, reportActions, route}) {
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
     const reportAction = reportActions[route.params.reportActionID];
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
-    console.log('ediit split');
 
     const {
         amount: transactionAmount,
@@ -84,9 +83,9 @@ function EditSplitBillRequestPage({report, reportActions, route}) {
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
 
     function updateSplitBillTransaction(transactionChanges) {
-        IOU.updateSplitBillTransaction(transaction.transactionID, transactionChanges);
-        const route = ROUTES.getSplitBillDetailsRoute(report.reportID, reportAction.reportActionID);
-        Navigation.navigate(route);
+        IOU.updateSplitBillTransaction(report.reportID, reportAction.reportActionID, transaction.transactionID, transactionChanges);
+        const route = ROUTES.SPLIT_BILL_DETAILS.getRoute(report.reportID, reportAction.reportActionID);
+        Navigation.goBack(route);
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
@@ -140,7 +139,6 @@ function EditSplitBillRequestPage({report, reportActions, route}) {
             <EditRequestMerchantPage
                 defaultMerchant={transactionMerchant}
                 onSubmit={(transactionChanges) => {
-                    console.log(transactionChanges);
                     if (transactionMerchant === transactionChanges.merchant) {
                         Navigation.goBack();
                         return;

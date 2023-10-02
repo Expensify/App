@@ -22,7 +22,6 @@ const propTypes = {
 function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
     const {translate} = useLocalize();
     const merchantInputRef = useRef(null);
-    console.log('d', defaultMerchant);
 
     const validate = useCallback((value) => {
         const errors = {};
