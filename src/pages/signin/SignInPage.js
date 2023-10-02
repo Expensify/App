@@ -19,7 +19,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
-import SAMLEnabledForm from './SAMLEnabledForm';
+import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import getPlatform from '../../libs/getPlatform';
 import Permissions from '../../libs/Permissions';
 import CONST from '../../CONST';
@@ -85,28 +85,28 @@ const defaultProps = {
  */
 function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, isSAMLEnabled, isSAMLRequired, isUsingSAMLLogin, hasEmailDeliveryFailure}) {
     const shouldShowLoginForm = !hasLogin && !hasValidateCode;
-    let shouldShowSAMLEnabledForm = false;
+    let shouldShowChooseSSOOrMagicCode = false;
     let shouldInitiateSAMLLogin = false;
     const platform = getPlatform();
 
     // SAML is temporarily restricted to users on the beta or to users signing in on web and mweb
     if (Permissions.canUseSAML() || platform === CONST.PLATFORM.WEB) {
-        shouldShowSAMLEnabledForm = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && isUsingSAMLLogin;
+        shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && isUsingSAMLLogin;
         shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired;
     }
 
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !isUsingSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !isUsingSAMLLogin;
-    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowSAMLEnabledForm || isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowSAMLEnabledForm;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode;
 
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
         shouldShowUnlinkLoginForm: isUnvalidatedSecondaryLogin,
         shouldShowValidateCodeForm,
-        shouldShowSAMLEnabledForm,
+        shouldShowChooseSSOOrMagicCode,
         shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
@@ -134,7 +134,7 @@ function SignInPage({credentials, account, isInModal}) {
         shouldShowEmailDeliveryFailurePage,
         shouldShowUnlinkLoginForm,
         shouldShowValidateCodeForm,
-        shouldShowSAMLEnabledForm,
+        shouldShowChooseSSOOrMagicCode,
         shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
@@ -184,11 +184,11 @@ function SignInPage({credentials, account, isInModal}) {
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
         }
-    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowSAMLEnabledForm) {
+    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
         welcomeHeader = shouldShowSmallScreen ? headerText : translate('welcomeText.welcomeBack');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
-        if (shouldShowEmailDeliveryFailurePage || shouldShowSAMLEnabledForm) {
+        if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
             welcomeText = '';
         }
     } else {
@@ -222,7 +222,7 @@ function SignInPage({credentials, account, isInModal}) {
                     />
                 )}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                {shouldShowSAMLEnabledForm && <SAMLEnabledForm setIsUsingSAMLLogin={setIsUsingSAMLLogin} />}
+                {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingSAMLLogin={setIsUsingSAMLLogin} />}
                 {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
         </View>
