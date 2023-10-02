@@ -148,6 +148,15 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         shouldStopSmartscan = true;
     }
 
+    if (_.has(transactionChanges, 'waypoints')) {
+        updatedTransaction.modifiedWaypoints = transactionChanges.waypoints;
+        shouldStopSmartscan = true;
+    }
+
+    if (_.has(transactionChanges, 'billable')) {
+        updatedTransaction.billable = transactionChanges.billable;
+    }
+
     if (_.has(transactionChanges, 'category')) {
         updatedTransaction.category = transactionChanges.category;
     }
@@ -166,6 +175,8 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'merchant') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'waypoints') && {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'billable') && {billable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'category') && {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
@@ -253,6 +264,16 @@ function getMerchant(transaction) {
 }
 
 /**
+ * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
+ *
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getWaypoints(transaction) {
+    return lodashGet(transaction, 'modifiedWaypoints', null) || lodashGet(transaction, ['comment', 'waypoints']);
+}
+
+/**
  * Return the category from the transaction. This "category" field has no "modified" complement.
  *
  * @param {Object} transaction
@@ -260,6 +281,16 @@ function getMerchant(transaction) {
  */
 function getCategory(transaction) {
     return lodashGet(transaction, 'category', '');
+}
+
+/**
+ * Return the billable field from the transaction. This "billable" field has no "modified" complement.
+ *
+ * @param {Object} transaction
+ * @return {Boolean}
+ */
+function getBillable(transaction) {
+    return lodashGet(transaction, 'billable', false);
 }
 
 /**
@@ -439,6 +470,7 @@ export {
     getMerchant,
     getCreated,
     getCategory,
+    getBillable,
     getTag,
     getLinkedTransaction,
     getAllReportTransactions,
@@ -448,6 +480,7 @@ export {
     getValidWaypoints,
     isDistanceRequest,
     areRequiredFieldsEmpty,
+    getWaypoints,
     hasMissingSmartscanFields,
     getMissingSmartScanFields,
     getWaypointIndex,
