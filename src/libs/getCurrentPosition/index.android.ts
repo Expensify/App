@@ -15,11 +15,8 @@ const getCurrentPosition: GetCurrentPosition = (success, error, config) => {
     // If the user selects yes, then this module would enable the native system location
     // Otherwise if user selects no, or we have an issue displaying the prompt, it will return an error
     RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
-        interval: 2000, // 2 seconds. This represents the time interval after which our app expects an
-        // updated location. We don't depend on this here, but adding it here as its a required prop.
-        fastInterval: 1, // 1 millisecond. This represents the shortest amount of time our app is willing
-        // to wait for location update from the library. Passing 0 here won't work, as the library internally
-        // uses a ternary that would short if we pass 0, and it will then use its default value.
+        interval: 2000, // This updates location after every 2 seconds (required prop). We don't depend on this as we only use the location once.
+        fastInterval: 1, // The shortest time (1 ms) our app is willing to wait for location update. Passing 0 ms short's the internal ternary condition of library to default value.
     })
         .then((permissionState) => {
             if (permissionState === 'enabled') {
