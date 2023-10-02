@@ -41,7 +41,7 @@ No - Gusto will add all employees to one Expensify workspace, so if you have mor
 
 ## Can I change the Approval Workflow mode after connecting?
 
-Yes! You can change the Approval Workflow mode two ways:
+Yes! You can change the Approval Workflow mode in two ways:
 
 1. Go to **Settings > Workspaces >  _[Workspace Name]_ > Members**, then scroll down to Approval Mode below the list of workspace members
 2. Go to **Settings > Workspaces >  _[Workspace Name]_ > Connections**, click Configure under Gusto, then select the desired Approval Mode and **Save**
