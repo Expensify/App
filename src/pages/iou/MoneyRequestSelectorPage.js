@@ -77,7 +77,7 @@ function MoneyRequestSelectorPage(props) {
         IOU.resetMoneyRequestInfo(moneyRequestID);
     };
 
-    const isAllowedToCreateRequest = _.isEmpty(props.report) || ReportUtils.canCreateRequest(props.report, props.betas, iouType);
+    const isAllowedToCreateRequest = _.isEmpty(props.report.reportID) || ReportUtils.canCreateRequest(props.report, props.betas, iouType);
     const prevSelectedTab = usePrevious(props.selectedTab);
 
     useEffect(() => {
