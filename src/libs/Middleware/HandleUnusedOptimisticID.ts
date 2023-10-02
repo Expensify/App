@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import ONYXKEYS from '../../ONYXKEYS';
 import Report from '../../types/onyx/Report';
 import {Middleware} from '../Request';
@@ -26,9 +27,9 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
             PersistedRequests.getAll()
                 .slice(isFromSequentialQueue ? 1 : 0)
                 .forEach((persistedRequest, index) => {
-                    // eslint-disable-next-line no-param-reassign
-                    persistedRequest.data = deepReplaceKeysAndValues(persistedRequest.data, oldReportID as string, preexistingReportID);
-                    PersistedRequests.update(index + 1, persistedRequest);
+                    const persistedRequestClone = _.clone(persistedRequest);
+                    persistedRequestClone.data = deepReplaceKeysAndValues(persistedRequest.data, oldReportID as string, preexistingReportID);
+                    PersistedRequests.update(index + 1, persistedRequestClone);
                 });
         });
         return response;
