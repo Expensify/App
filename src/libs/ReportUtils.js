@@ -3390,7 +3390,7 @@ function isReportDataReady() {
  * @param {String} reportIDFromPath
  * @returns {Boolean}
  */
-function isValidReportIDFromPath(reportID) {
+function isValidReportIDFromPath(reportIDFromPath) {
     return typeof reportIDFromPath === 'string' && !['', 'null', '0'].includes(reportIDFromPath);
 }
 
@@ -3773,7 +3773,7 @@ export {
     isChildReport,
     shouldReportShowSubscript,
     isReportDataReady,
-    isValidReportID,
+    isValidReportIDFromPath,
     isSettled,
     isAllowedToComment,
     getBankAccountRoute,
