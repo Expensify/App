@@ -143,7 +143,10 @@ function MoneyRequestParticipantsSelector({
         if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
             newSections.push({
                 undefined,
-                data: [newChatOptions.userToInvite],
+                data: _.map([newChatOptions.userToInvite], (participant) => {
+                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+                }),
                 shouldShow: true,
                 indexOffset,
             });
@@ -201,30 +204,8 @@ function MoneyRequestParticipantsSelector({
             }
 
             onAddParticipants(newSelectedOptions);
-
-            const chatOptions = OptionsListUtils.getFilteredOptions(
-                reports,
-                personalDetails,
-                betas,
-                isOptionInList ? searchTerm : '',
-                newSelectedOptions,
-                CONST.EXPENSIFY_EMAILS,
-
-                // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-                // sees the option to request money from their admin on their own Workspace Chat.
-                iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
-
-                // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-                !isDistanceRequest,
-            );
-
-            setNewChatOptions({
-                recentReports: chatOptions.recentReports,
-                personalDetails: chatOptions.personalDetails,
-                userToInvite: chatOptions.userToInvite,
-            });
         },
-        [participants, onAddParticipants, reports, personalDetails, betas, searchTerm, iouType, isDistanceRequest],
+        [participants, onAddParticipants],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(

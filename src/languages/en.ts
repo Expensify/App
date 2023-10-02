@@ -73,6 +73,7 @@ import type {
     RequestedAmountMessageParams,
     TagSelectionParams,
     TranslationBase,
+    WalletProgramParams,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
@@ -175,6 +176,7 @@ export default {
         notifications: 'Notifications',
         na: 'N/A',
         noResultsFound: 'No results found',
+        recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
         todayAt: 'Today at',
@@ -208,6 +210,7 @@ export default {
         debitCard: 'Debit card',
         bankAccount: 'Bank account',
         join: 'Join',
+        joinThread: 'Join thread',
         decline: 'Decline',
         transferBalance: 'Transfer balance',
         cantFindAddress: "Can't find your address? ",
@@ -908,7 +911,7 @@ export default {
         phrase2: 'Terms of Service',
         phrase3: 'and',
         phrase4: 'Privacy',
-        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
+        phrase5: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its`,
         phrase6: 'licenses',
     },
     validateCodeForm: {
@@ -1169,7 +1172,7 @@ export default {
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'The Expensify Wallet is issued by The Bancorp Bank.',
+            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `The Expensify Wallet is issued by ${walletProgram}.`,
             perPurchase: 'Per purchase',
             atmWithdrawal: 'ATM withdrawal',
             cashReload: 'Cash reload',
@@ -1211,10 +1214,10 @@ export default {
                 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
             fdicInsuranceBancorp:
                 'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
-                'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up ' +
-                'to $250,000 by the FDIC in the event The Bancorp Bank fails. See',
+                `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
+                `to $250,000 by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails. See`,
             fdicInsuranceBancorp2: 'for details.',
-            contactExpensifyPayments: 'Contact Expensify Payments by calling +1 833-400-0904, by email at',
+            contactExpensifyPayments: `Contact ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} by calling +1 833-400-0904, by email at`,
             contactExpensifyPayments2: 'or sign in at',
             generalInformation: 'For general information about prepaid accounts, visit',
             generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial Protection Bureau at 1-855-411-2372 or visit',
@@ -1534,12 +1537,12 @@ export default {
         assignee: 'Assignee',
         completed: 'Completed',
         messages: {
-            completed: 'completed task',
+            completed: 'marked as complete',
             canceled: 'deleted task',
-            reopened: 'reopened task',
+            reopened: 'marked as incomplete',
             error: 'You do not have the permission to do the requested action.',
         },
-        markAsDone: 'Mark as done',
+        markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
     },
