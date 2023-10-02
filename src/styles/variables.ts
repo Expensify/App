@@ -78,7 +78,6 @@ export default {
     extraSmallMobileResponsiveWidthBreakpoint: 320,
     extraSmallMobileResponsiveHeightBreakpoint: 667,
     mobileResponsiveWidthBreakpoint: 800,
-    modalFullscreenBackdropOpacity: 0.5,
     tabletResponsiveWidthBreakpoint: 1024,
     safeInsertPercentage: 0.7,
     sideBarWidth: 375,
