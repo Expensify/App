@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -51,12 +51,23 @@ function IOURequestStepParticipants({
 }) {
     const {translate} = useLocalize();
     const optionsSelectorRef = useRef();
+    const selectedReportID = useRef();
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = translate(TransactionUtils.getHeaderTitle(transaction));
 
-    const goToNextStep = () => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID), true);
-    };
+    const addParticipant = useCallback(
+        (val) => {
+            IOU.setMoneeRequestParticipants(transactionID, val);
+
+            // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
+            selectedReportID.current = val[0].reportID;
+        },
+        [transactionID],
+    );
+
+    const goToNextStep = useCallback(() => {
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current), true);
+    }, [selectedReportID.current]);
 
     const goBack = () => {
         Navigation.goBack();
@@ -78,7 +89,7 @@ function IOURequestStepParticipants({
                     <MoneyRequestParticipantsSelector
                         ref={(el) => (optionsSelectorRef.current = el)}
                         participants={participants}
-                        onParticipantsAdded={(val) => IOU.setMoneeRequestParticipants(transactionID, val)}
+                        onParticipantsAdded={addParticipant}
                         onFinish={goToNextStep}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         iouType={CONST.IOU.TYPE.REQUEST}
