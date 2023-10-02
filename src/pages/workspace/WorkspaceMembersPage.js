@@ -136,7 +136,7 @@ function WorkspaceMembersPage(props) {
      */
     const inviteUser = () => {
         setSearchValue('');
-        Navigation.navigate(ROUTES.getWorkspaceInviteRoute(props.route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID));
     };
 
     /**
@@ -322,11 +322,13 @@ function WorkspaceMembersPage(props) {
                         <Text style={styles.peopleBadgeText}>{props.translate('common.admin')}</Text>
                     </View>
                 ) : null,
-                avatar: {
-                    source: UserUtils.getAvatar(details.avatar, accountID),
-                    name: details.login,
-                    type: CONST.ICON_TYPE_AVATAR,
-                },
+                icons: [
+                    {
+                        source: UserUtils.getAvatar(details.avatar, accountID),
+                        name: details.login,
+                        type: CONST.ICON_TYPE_AVATAR,
+                    },
+                ],
                 errors: policyMember.errors,
                 pendingAction: policyMember.pendingAction,
             });
@@ -356,7 +358,7 @@ function WorkspaceMembersPage(props) {
                     subtitle={policyName}
                     onBackButtonPress={() => {
                         setSearchValue('');
-                        Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policyID));
+                        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
                     }}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}

@@ -49,9 +49,8 @@ function TaskView(props) {
     const taskTitle = convertToLTR(props.report.reportName || '');
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
-    const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
-    const disableState = !canModifyTask || isCanceled;
+    const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     return (
         <View>
@@ -72,7 +71,7 @@ function TaskView(props) {
                                     e.currentTarget.blur();
                                 }
 
-                                Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
+                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(props.report.reportID));
                             })}
                             style={({pressed}) => [
                                 styles.ph5,
@@ -91,9 +90,9 @@ function TaskView(props) {
                                         <Checkbox
                                             onPress={Session.checkIfActionIsAllowed(() => {
                                                 if (isCompleted) {
-                                                    Task.reopenTask(props.report, taskTitle);
+                                                    Task.reopenTask(props.report);
                                                 } else {
-                                                    Task.completeTask(props.report, taskTitle);
+                                                    Task.completeTask(props.report);
                                                 }
                                             })}
                                             isChecked={isCompleted}
@@ -102,7 +101,7 @@ function TaskView(props) {
                                             containerBorderRadius={8}
                                             caretSize={16}
                                             accessibilityLabel={taskTitle || props.translate('task.task')}
-                                            disabled={isCanceled || !canModifyTask}
+                                            disabled={!canModifyTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
                                             <Text
@@ -132,7 +131,7 @@ function TaskView(props) {
                         shouldParseTitle
                         description={props.translate('task.description')}
                         title={props.report.description || ''}
-                        onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.TASK_DESCRIPTION.getRoute(props.report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -150,7 +149,7 @@ function TaskView(props) {
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
-                            onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(props.report.reportID))}
                             shouldShowRightIcon={isOpen}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}
@@ -162,7 +161,7 @@ function TaskView(props) {
                 ) : (
                     <MenuItemWithTopDescription
                         description={props.translate('task.assignee')}
-                        onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(props.report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2]}

@@ -53,7 +53,7 @@ const defaultProps = {
  * @param {string} policyID
  */
 function openEditor(policyID) {
-    Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policyID));
+    Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policyID));
 }
 
 /**
@@ -117,39 +117,39 @@ function WorkspaceInitialPage(props) {
         {
             translationKey: 'workspace.common.settings',
             icon: Expensicons.Gear,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id)),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policy.id)),
         },
         {
             translationKey: 'workspace.common.reimburse',
             icon: Expensicons.Receipt,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(policy.id)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policy.id)),
             error: hasCustomUnitsError,
         },
         {
             translationKey: 'workspace.common.bills',
             icon: Expensicons.Bill,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceBillsRoute(policy.id)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policy.id)),
         },
         {
             translationKey: 'workspace.common.invoices',
             icon: Expensicons.Invoice,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policy.id)),
         },
         {
             translationKey: 'workspace.common.travel',
             icon: Expensicons.Luggage,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceTravelRoute(policy.id)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policy.id)),
         },
         {
             translationKey: 'workspace.common.members',
             icon: Expensicons.Users,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(policy.id)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id)),
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
         {

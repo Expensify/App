@@ -34,7 +34,7 @@ const lightTheme = {
     signInPage: colors.green800,
 
     // Additional keys
-    overlay: colors.lightHighlightBackground,
+    overlay: colors.lightBorders,
     inverse: colors.lightPrimaryText,
     shadow: colors.black,
     componentBG: colors.lightAppBackground,
@@ -51,7 +51,6 @@ const lightTheme = {
     textMutedReversed: colors.lightIcons,
     textError: colors.red,
     offline: colors.lightIcons,
-    modalBackdrop: colors.lightHighlightBackground,
     modalBackground: colors.lightAppBackground,
     cardBG: colors.lightHighlightBackground,
     cardBorder: colors.lightHighlightBackground,
@@ -81,6 +80,7 @@ const lightTheme = {
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
+    mapAttributionText: colors.black,
 };
 
 lightTheme.PAGE_BACKGROUND_COLORS = {

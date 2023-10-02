@@ -7,12 +7,9 @@ import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import TextInput from '../TextInput';
-import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import CONST from '../../CONST';
 import variables from '../../styles/variables';
 import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
-import RadioListItem from './RadioListItem';
-import UserListItem from './UserListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
@@ -24,6 +21,9 @@ import useLocalize from '../../hooks/useLocalize';
 import Log from '../../libs/Log';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import useActiveElement from '../../hooks/useActiveElement';
+import BaseListItem from './BaseListItem';
+import themeColors from '../../styles/themes/default';
+import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -48,10 +48,13 @@ function BaseSelectionList({
     headerMessage = '',
     confirmButtonText = '',
     onConfirm,
+    footerContent,
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
     showConfirmButton = false,
     isKeyboardShown = false,
+    disableKeyboardShortcuts = false,
+    children,
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -139,13 +142,16 @@ function BaseSelectionList({
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
 
+    // Disable `Enter` shortcut if the active element is a button or checkbox
+    const disableEnterShortcut = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
+
     /**
      * Scrolls to the desired item index in the section list
      *
      * @param {Number} index - the index of the item to scroll to
      * @param {Boolean} animated - whether to animate the scroll
      */
-    const scrollToIndex = (index, animated) => {
+    const scrollToIndex = useCallback((index, animated = true) => {
         const item = flattenedSections.allOptions[index];
 
         if (!listRef.current || !item) {
@@ -166,24 +172,39 @@ function BaseSelectionList({
         }
 
         listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
-    };
 
-    const selectRow = (item, index) => {
+        // If we don't disable dependencies here, we would need to make sure that the `sections` prop is stable in every usage of this component.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    /**
+     * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
+     *
+     * @param {Object} item - the list item
+     * @param {Boolean} shouldUnfocusRow - flag to decide if we should unfocus all rows. True when selecting a row with click or press (not keyboard)
+     */
+    const selectRow = (item, shouldUnfocusRow = false) => {
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
-            if (sections.length === 1) {
-                // If the list has only 1 section (e.g. Workspace Members list), we always focus the next available item
-                const nextAvailableIndex = _.findIndex(flattenedSections.allOptions, (option, i) => i > index && !option.isDisabled);
-                setFocusedIndex(nextAvailableIndex);
-            } else {
-                // If the list has multiple sections (e.g. Workspace Invite list), we focus the first one after all the selected (selected items are always at the top)
+            if (sections.length > 1) {
+                // If the list has only 1 section (e.g. Workspace Members list), we do nothing.
+                // If the list has multiple sections (e.g. Workspace Invite list), and `shouldUnfocusRow` is false,
+                // we focus the first one after all the selected (selected items are always at the top).
                 const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
-                setFocusedIndex(selectedOptionsCount);
+
+                if (!shouldUnfocusRow) {
+                    setFocusedIndex(selectedOptionsCount);
+                }
 
                 if (!item.isSelected) {
                     // If we're selecting an item, scroll to it's position at the top, so we can see it
                     scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
                 }
+            }
+
+            if (shouldUnfocusRow) {
+                // Unfocus all rows when selecting row with click/press
+                setFocusedIndex(-1);
             }
         }
 
@@ -197,7 +218,7 @@ function BaseSelectionList({
             return;
         }
 
-        selectRow(focusedOption, focusedIndex);
+        selectRow(focusedOption);
     };
 
     /**
@@ -218,6 +239,14 @@ function BaseSelectionList({
      */
     const getItemLayout = (data, flatDataArrayIndex) => {
         const targetItem = flattenedSections.itemLayouts[flatDataArrayIndex];
+
+        if (!targetItem) {
+            return {
+                length: 0,
+                offset: 0,
+                index: flatDataArrayIndex,
+            };
+        }
 
         return {
             length: targetItem.length,
@@ -244,32 +273,39 @@ function BaseSelectionList({
 
     const renderItem = ({item, index, section}) => {
         const normalizedIndex = index + lodashGet(section, 'indexOffset', 0);
-        const isDisabled = section.isDisabled;
+        const isDisabled = section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = normalizedIndex < 10;
 
-        if (canSelectMultiple) {
-            return (
-                <UserListItem
-                    item={item}
-                    isFocused={isItemFocused}
-                    onSelectRow={() => selectRow(item, index)}
-                    onDismissError={onDismissError}
-                    showTooltip={showTooltip}
-                />
-            );
-        }
-
         return (
-            <RadioListItem
+            <BaseListItem
                 item={item}
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
-                onSelectRow={() => selectRow(item, index)}
+                showTooltip={showTooltip}
+                canSelectMultiple={canSelectMultiple}
+                onSelectRow={() => selectRow(item, true)}
+                onDismissError={onDismissError}
             />
         );
     };
+
+    const scrollToFocusedIndexOnFirstRender = useCallback(() => {
+        if (!firstLayoutRef.current) {
+            return;
+        }
+        scrollToIndex(focusedIndex, false);
+        firstLayoutRef.current = false;
+    }, [focusedIndex, scrollToIndex]);
+
+    const updateAndScrollToFocusedIndex = useCallback(
+        (newFocusedIndex) => {
+            setFocusedIndex(newFocusedIndex);
+            scrollToIndex(newFocusedIndex, true);
+        },
+        [scrollToIndex],
+    );
 
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
@@ -290,14 +326,14 @@ function BaseSelectionList({
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        isActive: !activeElement && isFocused,
+        isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        isActive: Boolean(onConfirm) && isFocused,
+        isActive: !disableKeyboardShortcuts && Boolean(onConfirm) && isFocused,
     });
 
     return (
@@ -305,10 +341,7 @@ function BaseSelectionList({
             disabledIndexes={flattenedSections.disabledOptionsIndexes}
             focusedIndex={focusedIndex}
             maxIndex={flattenedSections.allOptions.length - 1}
-            onFocusedIndexChanged={(newFocusedIndex) => {
-                setFocusedIndex(newFocusedIndex);
-                scrollToIndex(newFocusedIndex, true);
-            }}
+            onFocusedIndexChanged={updateAndScrollToFocusedIndex}
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
@@ -345,7 +378,7 @@ function BaseSelectionList({
                                         style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
                                         onPress={onSelectAll}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
-                                        accessibilityRole="button"
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityState={{checked: flattenedSections.allSelected}}
                                         disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -372,7 +405,7 @@ function BaseSelectionList({
                                     onScrollBeginDrag={onScrollBeginDrag}
                                     keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
-                                    indicatorStyle="white"
+                                    indicatorStyle={themeColors.selectionListIndicatorColor}
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={showScrollIndicator}
                                     initialNumToRender={12}
@@ -380,18 +413,14 @@ function BaseSelectionList({
                                     windowSize={5}
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
-                                    onLayout={() => {
-                                        if (!firstLayoutRef.current) {
-                                            return;
-                                        }
-                                        scrollToIndex(focusedIndex, false);
-                                        firstLayoutRef.current = false;
-                                    }}
+                                    style={[styles.flexGrow0]}
+                                    onLayout={scrollToFocusedIndexOnFirstRender}
                                 />
+                                {children}
                             </>
                         )}
                         {showConfirmButton && (
-                            <FixedFooter>
+                            <FixedFooter style={[styles.mtAuto]}>
                                 <Button
                                     success
                                     style={[styles.w100]}
@@ -402,6 +431,7 @@ function BaseSelectionList({
                                 />
                             </FixedFooter>
                         )}
+                        {Boolean(footerContent) && <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>}
                     </View>
                 )}
             </SafeAreaConsumer>

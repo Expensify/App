@@ -325,10 +325,10 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
             }
 
             if (shouldNavigateToAdminChat) {
-                Navigation.navigate(ROUTES.getReportRoute(adminsChatReportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
             }
 
-            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
         })
         .then(endSignOnTransition);
 }
