@@ -135,11 +135,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             // or when continuously clicking different LHNs, only apply to small screen
             // since getTopmostReportId always returns on other devices
             const reportActionID = Navigation.getTopmostReportActionId();
-            if (
-                isCreateMenuOpen ||
-                (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||
-                (isSmallScreenWidth && isActiveReport(option.reportID) && !reportActionID)
-            ) {
+            if (isCreateMenuOpen || (option.reportID === Navigation.getTopmostReportId() && !reportActionID) || (isSmallScreenWidth && isActiveReport(option.reportID) && !reportActionID)) {
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
