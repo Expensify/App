@@ -7,13 +7,15 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
 import * as Emojis from '../../assets/emojis';
-import * as OnyxTypes from '../types/onyx';
-import {Emoji, HeaderEmoji} from '../../assets/emojis/types';
+import {FrequentlyUsedEmoji} from '../types/onyx';
+import {Emoji, HeaderEmoji, PickerEmojis} from '../../assets/emojis/types';
 
 type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
 type EmojiSpacer = {code: string; spacer: boolean};
+type UserSkinTone = {skinTone: number; createdAt: string};
+type UserEmojiPreference = {skinTones: UserSkinTone[]};
 
-let frequentlyUsedEmojis: OnyxTypes.FrequentlyUsedEmoji[] = [];
+let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
 Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
     callback: (val) => {
@@ -26,7 +28,7 @@ Onyx.connect({
                     const emoji = Emojis.emojiCodeTableWithSkinTones[item.code];
                     return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
                 })
-                .filter((emoji): emoji is OnyxTypes.FrequentlyUsedEmoji => !!emoji) ?? [];
+                .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
     },
 });
 
@@ -135,12 +137,10 @@ function containsOnlyEmojis(message: string): boolean {
 /**
  * Get the header emojis with their code, icon and index
  */
-function getHeaderEmojis(emojis: Array<Emoji | HeaderEmoji>): HeaderIndice[] {
-    // TODO - move into separate type
+function getHeaderEmojis(emojis: PickerEmojis): HeaderIndice[] {
     const headerIndices: HeaderIndice[] = [];
     emojis.forEach((emoji, index) => {
         if (!('header' in emoji)) {
-            // TODO - ask BK why it doesn't work the other way
             return;
         }
         headerIndices.push({code: emoji.code, index, icon: emoji.icon});
@@ -169,7 +169,7 @@ function getDynamicSpacing(emojiCount: number, suffix: number): EmojiSpacer[] {
 /**
  * Add dynamic spaces to emoji categories
  */
-function addSpacesToEmojiCategories(emojis: Array<Emoji | HeaderEmoji>) {
+function addSpacesToEmojiCategories(emojis: PickerEmojis) {
     let updatedEmojis: Array<EmojiSpacer | Emoji | HeaderEmoji> = [];
     emojis.forEach((emoji, index) => {
         if ('header' in emoji) {
@@ -184,12 +184,12 @@ function addSpacesToEmojiCategories(emojis: Array<Emoji | HeaderEmoji>) {
 /**
  * Get a merged array with frequently used emojis
  */
-function mergeEmojisWithFrequentlyUsedEmojis(emojis: Array<Emoji | HeaderEmoji>) {
+function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis) {
     if (frequentlyUsedEmojis.length === 0) {
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const mergedEmojis = ([Emojis.categoryFrequentlyUsed] as Array<Emoji | HeaderEmoji>).concat(frequentlyUsedEmojis, emojis);
+    const mergedEmojis = ([Emojis.categoryFrequentlyUsed] as PickerEmojis).concat(frequentlyUsedEmojis, emojis);
     return addSpacesToEmojiCategories(mergedEmojis);
 }
 
@@ -407,7 +407,7 @@ const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: number): string 
  * array of emoji codes, that represents all used variations of the
  * emoji.
  * */
-const getUniqueEmojiCodes = (emojiAsset: Emoji, users: Array<{skinTones: Array<{skinTone: number; createdAt: string}>}>): string[] => {
+const getUniqueEmojiCodes = (emojiAsset: Emoji, users: UserEmojiPreference[]): string[] => {
     const uniqueEmojiCodes: string[] = [];
     users.forEach((userSkinTones) => {
         userSkinTones.skinTones.forEach(({skinTone}) => {

@@ -12,6 +12,8 @@ type HeaderEmoji = {
     code: string;
 };
 
+type PickerEmojis = Array<Emoji | HeaderEmoji>;
+
 type EmojisList = Record<string, {keywords: string[]; name?: string}>;
 
-export type {Emoji, HeaderEmoji, EmojisList};
+export type {Emoji, HeaderEmoji, EmojisList, PickerEmojis};

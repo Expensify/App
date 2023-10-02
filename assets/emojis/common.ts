@@ -7,7 +7,7 @@ import Objects from '../images/emojiCategoryIcons/light-bulb.svg';
 import Symbols from '../images/emojiCategoryIcons/peace-sign.svg';
 import Flags from '../images/emojiCategoryIcons/flag.svg';
 import FrequentlyUsed from '../images/history.svg';
-import {Emoji, HeaderEmoji} from './types';
+import {PickerEmojis} from './types';
 
 const skinTones = [
     {
@@ -36,7 +36,7 @@ const skinTones = [
     },
 ] as const;
 
-const emojis: Array<Emoji | HeaderEmoji> = [
+const emojis: PickerEmojis = [
     {
         header: true,
         icon: Smiley,
