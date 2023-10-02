@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:opacity="opaque">
+    <item android:gravity="fill">
+        <color android:color="?attr/windowSplashScreenBackground" />
+    </item>
+
+    <item
+        tools:ignore="UnusedAttribute"
+        android:drawable="?windowSplashScreenAnimatedIcon"
+        android:gravity="center"
+        android:width="144dp"
+        android:height="144dp" />
+</layer-list>
