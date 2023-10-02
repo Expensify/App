@@ -1,6 +1,7 @@
 ---
 title: Expensify Card revenue share for ExpensifyApproved! partners
 description: Earn money when your clients adopt the Expensify Card
+redirect_from: articles/other/Card-Revenue-Share-for-ExpensifyApproved!-Partners/
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 
