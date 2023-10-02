@@ -158,9 +158,9 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         // If the changed currency doesn't support decimals, we can strip the decimals
         setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
 
-        // we want to check validation only when the currency changes
+        // we want to update only when decimals change (setNewAmount also changes when decimals change).
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currency]);
+    }, [setNewAmount]);
 
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
