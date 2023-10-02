@@ -25,8 +25,8 @@ function ArchivedReportFooterSkeletonView(props) {
                 animate={props.shouldAnimate}
                 width={styles.w100.width}
                 height={48}
-                backgroundColor={themeColors.borderLighter}
-                foregroundColor={themeColors.border}
+                backgroundColor={themeColors.skeletonLHNIn}
+                foregroundColor={themeColors.skeletonLHNOut}
             >
                 <Rect
                     x="0"
