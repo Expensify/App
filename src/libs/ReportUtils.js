@@ -1,4 +1,5 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
+import {useEffect, useRef} from 'react';
 import _ from 'underscore';
 import {format, parseISO} from 'date-fns';
 import Str from 'expensify-common/lib/str';
@@ -3654,6 +3655,30 @@ function getIOUReportActionDisplayMessage(reportAction) {
     return displayMessage;
 }
 
+/**
+ * Hook that triggers a fetch when reportActionID appears while reportID stays the same.
+ *
+ * @param {string} reportID - The current reportID from the route.
+ * @param {string|null} reportActionID - The current reportActionID from the route or null.
+ * @param {function} triggerFetch - The function to be triggered on the condition.
+ */
+function useRouteChangeHandler(reportID = '', reportActionID = '', triggerFetch = () => {}) {
+    // Store the previous reportID and reportActionID
+    const previousReportIDRef = useRef(null);
+    const previousReportActionIDRef = useRef(null);
+
+    useEffect(() => {
+        // Check if reportID is the same and reportActionID just appeared
+        if (reportID === previousReportIDRef.current && reportActionID && !previousReportActionIDRef.current) {
+            triggerFetch();
+        }
+
+        // Update refs for the next render
+        previousReportIDRef.current = reportID;
+        previousReportActionIDRef.current = reportActionID;
+    }, [reportID, reportActionID, triggerFetch]);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3795,4 +3820,5 @@ export {
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
+    useRouteChangeHandler,
 };

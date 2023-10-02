@@ -1,8 +1,8 @@
-import React, {useRef, useEffect, useContext, useMemo} from 'react';
+import React, {useRef, useEffect, useContext, useMemo, useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import * as Report from '../../../libs/actions/Report';
 import reportActionPropTypes from './reportActionPropTypes';
 import Timing from '../../../libs/actions/Timing';
@@ -65,15 +65,98 @@ const defaultProps = {
     isLoadingNewerReportActions: false,
 };
 
-function ReportActionsView(props) {
+/**
+ * Get the currently viewed report ID as number
+ *
+ * @param {Object} route
+ * @param {Object} route.params
+ * @param {String} route.params.reportID
+ * @returns {String}
+ */
+function getReportActionID(route) {
+    return {reportActionID: lodashGet(route, 'params.reportActionID', null), reportID: lodashGet(route, 'params.reportID', null)};
+}
+
+function ReportActionsView({reportActions: allReportActions, ...props}) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
-    const didLayout = useRef(false);
-    const didSubscribeToReportTypingEvents = useRef(false);
-    const isFetchNewerWasCalled = useRef(false);
-    const hasCachedActions = useRef(_.size(props.reportActions) > 0);
+    const route = useRoute();
+    const {reportActionID} = getReportActionID(route);
+    // const reportActionID = ''
 
-    const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
+    // const [canShowAllReports, setShowAllReports] = useState(false);
+    const testRef = useRef(false);
+    const didLayout = useRef(false);
+    // const isFirstRender = useRef(true);
+    const didSubscribeToReportTypingEvents = useRef(false);
+    const [isFetchNewerWasCalled, setFetchNewerWasCalled] = useState(false);
+    const [isLinkingToMessage, setLinkingToMessageTrigger] = useState(false);
+
+    const reportActionsBeforeAndIncludingLinked = useMemo(() => {
+        if (reportActionID && allReportActions?.length) {
+            return ReportActionsUtils.getSlicedRangeFromArrayByID(allReportActions, reportActionID);
+        }
+        return [];
+    }, [allReportActions, reportActionID]);
+
+    const reportActions = useMemo(() => {
+        console.log(
+            'get.reportActions.info|||',
+            '| reportActionID:',
+            reportActionID,
+            '| isFetchNewerWasCalled:',
+            isFetchNewerWasCalled,
+            '| isLinkingToMessage:',
+            isLinkingToMessage,
+            '| testRef.current:',
+            testRef.current,
+            '| reportActionsBeforeAndIncludingLinked:',
+            reportActionsBeforeAndIncludingLinked?.length,
+            '| allReportActions:',
+            allReportActions?.length,
+        );
+
+        if (!reportActionID || (!testRef.current && !isLinkingToMessage && !props.isLoadingInitialReportActions && isFetchNewerWasCalled)) {
+            console.log('get.reportActions.ALL||||', allReportActions.length);
+            return allReportActions;
+        }
+        console.log(
+            'get.reportActions.CUT||||',
+            reportActionsBeforeAndIncludingLinked[0]?.message?.text || reportActionsBeforeAndIncludingLinked[0]?.message
+        );
+        return reportActionsBeforeAndIncludingLinked;
+    }, [isFetchNewerWasCalled, allReportActions, reportActionsBeforeAndIncludingLinked, reportActionID, isLinkingToMessage, props.isLoadingInitialReportActions]);
+
+    useEffect(() => {
+        console.log('get.ROUTE_CHANGED.triggered', route);
+        if (!reportActionID) {
+            return;
+        }
+        testRef.current = true;
+        setLinkingToMessageTrigger(true);
+        props.fetchReportIfNeeded();
+        console.log('get.ROUTE_CHANGED.+++++++++');
+        setTimeout(() => {
+            testRef.current = false;
+            setLinkingToMessageTrigger(false);
+            console.log('get.ROUTE_CHANGED.+++++++++FINISH', route);
+        }, 7000);
+        // setLinkingToMessageTrigger(true);
+    }, [route, props.fetchReportIfNeeded, reportActionID]);
+
+    const isReportActionArrayCatted = useMemo(() => {
+        if (reportActions?.length !== allReportActions?.length && reportActionID) {
+            console.log('get.isReportActionArrayCatted.+++++++++');
+            return true;
+        }
+
+        console.log('get.isReportActionArrayCatted.----------');
+        return false;
+    }, [reportActions, allReportActions, reportActionID, isFetchNewerWasCalled]);
+
+    const hasCachedActions = useRef(_.size(reportActions) > 0);
+
+    const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(reportActions));
     const prevNetworkRef = useRef(props.network);
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
@@ -90,13 +173,13 @@ function ReportActionsView(props) {
         if (props.report.isOptimisticReport) {
             return;
         }
-
-        Report.openReport(reportID);
+        Report.openReport({reportID, reportActionID});
     };
 
     useEffect(() => {
         openReportIfNecessary();
         // eslint-disable-next-line react-hooks/exhaustive-deps
+        // isFirstRender.current = false;
     }, []);
 
     useEffect(() => {
@@ -129,7 +212,7 @@ function ReportActionsView(props) {
         // update ref with current state
         prevIsSmallScreenWidthRef.current = props.isSmallScreenWidth;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isSmallScreenWidth, props.report, props.reportActions, isReportFullyVisible]);
+    }, [props.isSmallScreenWidth, props.report, reportActions, isReportFullyVisible]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -153,7 +236,7 @@ function ReportActionsView(props) {
             return;
         }
 
-        const oldestReportAction = _.last(props.reportActions);
+        const oldestReportAction = _.last(reportActions);
 
         // Don't load more chats if we're already at the beginning of the chat history
         if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
@@ -161,6 +244,7 @@ function ReportActionsView(props) {
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
+        setShowAllReports(true);
     };
 
     /**
@@ -182,11 +266,15 @@ function ReportActionsView(props) {
         // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
         // This should be removed once the issue of frequent re-renders is resolved.
 
-        if (!isFetchNewerWasCalled.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
-            isFetchNewerWasCalled.current = true;
+        if (isReportActionArrayCatted || reportActionID) {
+            setFetchNewerWasCalled(true);
             return;
         }
-        const newestReportAction = _.first(props.reportActions);
+        if (!isFetchNewerWasCalled || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
+            return;
+        }
+
+        const newestReportAction = reportActions[0];
         Report.getNewerActions(reportID, newestReportAction.reportActionID);
     }, 700);
 
@@ -211,7 +299,7 @@ function ReportActionsView(props) {
     };
 
     // Comments have not loaded at all yet do nothing
-    if (!_.size(props.reportActions)) {
+    if (!_.size(reportActions)) {
         return null;
     }
 
@@ -220,7 +308,7 @@ function ReportActionsView(props) {
             <ReportActionsList
                 report={props.report}
                 onLayout={recordTimeToMeasureItemLayout}
-                sortedReportActions={props.reportActions}
+                sortedReportActions={reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
@@ -262,6 +350,13 @@ function arePropsEqual(oldProps, newProps) {
     if (oldProps.isLoadingInitialReportActions !== newProps.isLoadingInitialReportActions) {
         return false;
     }
+
+    // if (oldProps.isLinkingToMessage !== newProps.isLinkingToMessage) {
+    //     return false;
+    // }
+    // if (oldisReportActionArrayCatted !== newisReportActionArrayCatted) {
+    //     return false;
+    // }
 
     if (oldProps.report.lastReadTime !== newProps.report.lastReadTime) {
         return false;

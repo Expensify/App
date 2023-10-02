@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/prefer-underscore-method */
 import React, {useRef, useState, useEffect, useMemo, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
@@ -63,7 +64,7 @@ const propTypes = {
     reportMetadata: reportMetadataPropTypes,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
@@ -100,7 +101,7 @@ const propTypes = {
 
 const defaultProps = {
     isSidebarLoaded: false,
-    reportActions: [],
+    sortedReportActions: [],
     report: {
         hasOutstandingIOU: false,
     },
@@ -139,13 +140,26 @@ const checkDefaultReport = (report) => report === defaultProps.report;
 function getReportID(route) {
     return String(lodashGet(route, 'params.reportID', null));
 }
+/**
+ * Get the currently viewed report ID as number
+ *
+ * @param {Object} route
+ * @param {Object} route.params
+ * @param {String} route.params.reportID
+ * @returns {String}
+ */
+function getReportActionID(route) {
+    console.log('get.ROUTE', route?.params);
+    return {reportActionID: lodashGet(route, 'params.reportActionID', null), reportID: lodashGet(route, 'params.reportID', null)};
+}
 
 function ReportScreen({
     betas,
     route,
     report,
     reportMetadata,
-    reportActions,
+    // reportActions,
+    sortedReportActions,
     accountManagerReportID,
     personalDetails,
     markReadyForHydration,
@@ -156,6 +170,7 @@ function ReportScreen({
     errors,
     userLeavingStatus,
     currentReportID,
+    updateCurrentReportID,
 }) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -165,9 +180,53 @@ function ReportScreen({
     const reactionListRef = useRef();
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
+    const {reportActionID, reportID} = getReportActionID(route);
+    const [isLinkingToMessage, setLinkingToMessageTrigger] = useState(false);
+
+    const reportActions = useMemo(() => {
+        const val = ReportActionsUtils.getRangeFromArrayByID(sortedReportActions, reportActionID);
+        console.log('get.ROOT.reportActions', reportActionID, sortedReportActions.length, val.length);
+        return val;
+    }, [sortedReportActions, reportActionID]);
+    // const isReportActionArrayCatted = useMemo(() => sortedReportActions.length !== withoutGaps.length, [withoutGaps, sortedReportActions]);
+
+    // const reportActions = useMemo(() => {
+    //     //TODO: OpenReport, it means that we clicked on the link in current chat and we need to get a proper range of reportActions
+    //     // console.log(
+    //     //     'get.reportActions.initialSorted',
+    //     //     // sortedReportActions.length,
+    //     //     sortedReportActions.length,
+    //     //     !!reportActionID,
+    //     //     sortedReportActions.map((item) => {
+    //     //         return {message: item.message[0].text, previousReportActionID: item?.previousReportActionID, reportActionID: item?.reportActionID};
+    //     //     }),
+    //     // );
+    //     // // // console.log('get.reportActions.initialSorted', sortedReportActions.map((item) =>item?.previousReportActionID));
+    //     // console.log(
+    //     //     'get.reportActions.withoutGaps',
+    //     //     // withoutGaps.length,
+    //     //     withoutGaps.length,
+    //     //     !!reportActionID,
+    //     //     withoutGaps.map((item) => {
+    //     //         return {message: item.message[0].text, previousReportActionID: item?.previousReportActionID, reportActionID: item?.reportActionID};
+    //     //     }),
+    //     // );
+    //     return withoutGaps;
+    //     // return sortedReportActions;
+    // }, [sortedReportActions, reportActionID]);
+
+    // const reportActionsBeforeAndIncludingLinked = useMemo(() => {
+    //     if (reportActionID) {
+    //         firstRenderRefI.current = false;
+    //         return ReportActionsUtils.getSlicedRangeFromArrayByID(reportActions, reportActionID);
+    //     }
+    //     return null;
+    // }, [reportActions, reportActionID]);
+
+    // const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(0);
+    // >>>>>>> Stashed changes
     const [isBannerVisible, setIsBannerVisible] = useState(true);
 
-    const reportID = getReportID(route);
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
@@ -237,6 +296,8 @@ function ReportScreen({
         return reportIDFromPath !== '' && report.reportID && !isTransitioning;
     }, [route, report]);
 
+    // ReportUtils.useRouteChangeHandler(reportID, reportActionID,  () => Report.openReport({reportID: reportIDFromPath, reportActionID: reportActionID || ''}))
+
     const fetchReportIfNeeded = useCallback(() => {
         const reportIDFromPath = getReportID(route);
 
@@ -249,11 +310,26 @@ function ReportScreen({
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (report.reportID && report.reportID === getReportID(route)) {
+        if (report.reportID && report.reportID === getReportID(route) && !reportActionID) {
             return;
         }
-        Report.openReport(reportIDFromPath);
-    }, [report.reportID, route]);
+        console.log('getChat.OPEN_REPORT', reportActionID);
+        Report.openReport({reportID: reportIDFromPath, reportActionID: reportActionID || ''});
+    }, [report.reportID, route, reportActionID]);
+
+    // useEffect(() => {
+    //     console.log('get.ROUTE.0', route);
+    //     const {reportActionID} = getReportActionID(route);
+    //     if (!reportActionID) return;
+    //     fetchReportIfNeeded();
+    //     console.log('get.ROUTE.+++++++++', route);
+    //     setLinkingToMessageTrigger(true);
+    // }, [route, fetchReportIfNeeded]);
+    // ReportUtils.useRouteChangeHandler(reportID, reportActionID, () => {
+    //     console.log('getChat.OPEN_REPORT.000', reportActionID);
+    //     fetchReportIfNeeded();
+    //     // updateCurrentReportID(getReportID(route));
+    // });
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -283,7 +359,7 @@ function ReportScreen({
                     return;
                 }
 
-                Report.openReport(report.reportID);
+                Report.openReport({reportID: report.reportID});
             });
 
             return () => unsubscribeVisibilityListener();
@@ -426,10 +502,15 @@ function ReportScreen({
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
                             >
-                                {isReportReadyForDisplay && !isFirstlyLoadingReportActions && !isLoading && (
+                                {/* {isReportReadyForDisplay && !isFirstlyLoadingReportActions && !isLoading && ( */}
+                                {isReportReadyForDisplay && !isLoading && (
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
+                                        isLinkingToMessage={isLinkingToMessage}
+                                        setLinkingToMessageTrigger={setLinkingToMessageTrigger}
+                                        fetchReportIfNeeded={fetchReportIfNeeded}
+                                        reportActionID={reportActionID}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
                                         isLoadingOlderReportActions={reportMetadata.isLoadingOlderReportActions}
@@ -514,6 +595,12 @@ export default compose(
             userLeavingStatus: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
                 initialValue: false,
+            },
+            sortedReportActions: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+                canEvict: false,
+                selector: ReportActionsUtils.getSortedReportActionsForDisplay,
+                // selector: ReportActionsUtils.processReportActions,
             },
         },
         true,
