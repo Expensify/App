@@ -3520,6 +3520,10 @@ const styles = (theme) => ({
         backgroundColor: theme.border,
     },
 
+    reportContainerBorderRadius: {
+        borderRadius: variables.componentBorderRadiusLarge,
+    },
+
     reportPreviewBoxBody: {
         padding: 16,
     },
@@ -3670,6 +3674,7 @@ const styles = (theme) => ({
         borderRadius: variables.componentBorderRadiusLarge,
     },
     userReportStatusEmoji: {
+        flexShrink: 0,
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
     },
