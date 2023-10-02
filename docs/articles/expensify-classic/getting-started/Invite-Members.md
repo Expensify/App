@@ -20,7 +20,7 @@ If you are utilizing the Advanced Approval feature, you can specify who members 
 
 Navigate to **Settings > Workspaces > Group > *Workspace Name* > People** - then click Invite and enter all of the email addresses separated by comma. Indicate whether you want them to be an Employee, Admin, or Auditor on the Workspace.
 
-If you are utilizing the Advanced Approval feature, you can specify who members should submit their expense reports to and who an approver should send approved reports to for the next step in the approval process. If someone is the final approver, you can leave this field blank.
+If you are utilizing the Advanced Approval feature, you can specify who each member should submit their expense reports to and who an approver should send approved reports to for the next step in the approval process. If someone is the final approver, you can leave this field blank.
 
 Another convenient method is to employ the spreadsheet bulk upload option for inviting members to a Workspace. This proves particularly helpful when initially configuring your system or when dealing with numerous member updates. Simply click the "Import from Spreadsheet" button and upload a file in formats such as .csv, .txt, .xls, or .xlsx to streamline the process.
 
@@ -40,13 +40,13 @@ Click the Import button and you're done. We will import the new members with the
 
 You have the ability to invite your colleagues to join your Expensify Workspace by sharing a unique Workspace Joining Link. You can use this link as many times as necessary to invite multiple members through various communication methods such as internal emails, chats, text messages, and more.
 
-To find your unique link, simply go to **Settings > Workspace > Group > *Workspace Name* > People**. It's easily accessible from there.
+To find your unique link, simply go to **Settings > Workspace > Group > *Workspace Name* > People**. 
 
 ## Allowing Members to Automatically Join Your Workspace
 
 You can streamline the process of inviting colleagues to your Workspace by enabling the Pre-approve switch located below your Workspace Joining Link. This allows teammates to automatically become part of your Workspace as soon as they create an Expensify account using their work email address.
 
-Here's how it works: If a colleague signs up with a work email address that matches the email domain of a company Workspace owner (e.g., if the Workspace owner's email is admin@expensify.com and the colleague signs up with employee@expensify.com), they will be able to join your Workspace seamlessly without requiring a manual invitation. When new members join the Workspace, they will be set up to submit their expense reports to the Workspaceowner by default.
+Here's how it works: If a colleague signs up with a work email address that matches the email domain of a company Workspace owner (e.g., if the Workspace owner's email is admin@expensify.com and the colleague signs up with employee@expensify.com), they will be able to join your Workspace seamlessly without requiring a manual invitation. When new members join the Workspace, they will be set up to submit their expense reports to the Workspace owner by default.
 
 To enable this feature, go to **Settings > Workspace > Group > *Workspace Name* > People**.
 
