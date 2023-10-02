@@ -160,7 +160,7 @@ function ReportActionItemEmojiReactions(props) {
                 {!props.shouldBlockReactions && (
                     <AddReactionBubble
                         onSelectEmoji={props.toggleReaction}
-                        reportAction={reportAction}
+                        reportAction={{reportActionID}}
                     />
                 )}
             </View>
