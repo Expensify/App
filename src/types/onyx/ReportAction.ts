@@ -81,6 +81,7 @@ type ReportActionBase = {
     childVisibleActionCount?: number;
 
     pendingAction?: OnyxCommon.PendingAction;
+    errors?: OnyxCommon.Errors;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;

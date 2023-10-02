@@ -77,6 +77,12 @@ type Report = {
     participantAccountIDs?: number[];
     total?: number;
     currency?: string;
+    errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
+    lastMessageTranslationKey?: string;
+    isWaitingOnBankAccount?: boolean;
+    iouReportID?: string | number;
+    pendingFields?: OnyxCommon.ErrorFields;
 };
 
 export default Report;

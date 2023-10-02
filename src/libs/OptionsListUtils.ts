@@ -1,8 +1,9 @@
 /* eslint-disable no-continue */
+import {SvgProps} from 'react-native-svg';
 import _ from 'underscore';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import lodashOrderBy from 'lodash/orderBy';
-import lodashGet from 'lodash/get';
+import {ValueOf} from 'type-fest';
 import Str from 'expensify-common/lib/str';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import ONYXKEYS from '../ONYXKEYS';
@@ -18,42 +19,96 @@ import * as UserUtils from './UserUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ErrorUtils from './ErrorUtils';
+import {Beta, Login, Participant, PersonalDetails, Policy, PolicyCategory, Report, ReportAction} from '../types/onyx';
+import * as OnyxCommon from '../types/onyx/OnyxCommon';
+
+type PersonalDetailsCollection = Record<number, PersonalDetails | {accountID: number; login: string; avatar: string}>;
+type Avatar = {
+    source: string | (() => void);
+    name: string;
+    type: ValueOf<typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON | typeof CONST.ICON_TYPE_WORKSPACE>;
+    id: number | string;
+};
+
+type Option = {
+    text?: string | null;
+    boldStyle?: boolean;
+    alternateText?: string | null;
+    alternateTextMaxLines?: number;
+    icons?: Avatar[] | null;
+    login?: string | null;
+    reportID?: string | null;
+    hasDraftComment?: boolean;
+    keyForList?: string | null;
+    searchText?: string | null;
+    isPinned?: boolean;
+    isChatRoom?: boolean;
+    hasOutstandingIOU?: boolean;
+    customIcon?: {src: React.FC<SvgProps>; color: string};
+    participantsList?: Array<Partial<PersonalDetails>> | null;
+    descriptiveText?: string;
+    type?: string;
+    tooltipText?: string | null;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | null | '';
+    phoneNumber?: string | null;
+    pendingAction?: Record<string, string> | null;
+    allReportErrors?: OnyxCommon.Errors | null;
+    isDefaultRoom: boolean;
+    isArchivedRoom: boolean;
+    isPolicyExpenseChat: boolean;
+    isExpenseReport: boolean;
+    isMoneyRequestReport?: boolean;
+    isThread?: boolean;
+    isTaskReport?: boolean;
+    shouldShowSubscript: boolean;
+    ownerAccountID?: number | null;
+    isUnread?: boolean;
+    iouReportID?: string | number | null;
+    isWaitingOnBankAccount?: boolean;
+    policyID?: string | null;
+    subtitle?: string | null;
+    accountID: number | null;
+    iouReportAmount: number;
+    isIOUReportOwner: boolean | null;
+    isOptimisticAccount?: boolean;
+};
+
+type Tag = {enabled: boolean; name: string};
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
  * methods should be named for the views they build options for and then exported for use in a component.
  */
-
-let currentUserLogin;
-let currentUserAccountID;
+let currentUserLogin: string | undefined;
+let currentUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        currentUserLogin = val && val.email;
-        currentUserAccountID = val && val.accountID;
+    callback: (value) => {
+        currentUserLogin = value?.email;
+        currentUserAccountID = value?.accountID;
     },
 });
 
-let loginList;
+let loginList: OnyxEntry<Login>;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
-    callback: (val) => (loginList = _.isEmpty(val) ? {} : val),
+    callback: (value) => (loginList = Object.keys(value ?? {}).length === 0 ? {} : value),
 });
 
-let allPersonalDetails;
+let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (allPersonalDetails = _.isEmpty(val) ? {} : val),
+    callback: (value) => (allPersonalDetails = Object.keys(value ?? {}).length === 0 ? {} : value),
 });
 
-let preferredLocale;
+let preferredLocale: OnyxEntry<ValueOf<typeof CONST.LOCALES>>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => (preferredLocale = val || CONST.LOCALES.DEFAULT),
+    callback: (value) => (preferredLocale = value ?? CONST.LOCALES.DEFAULT),
 });
 
-const policies = {};
+const policies: OnyxCollection<Policy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (policy, key) => {
@@ -65,8 +120,8 @@ Onyx.connect({
     },
 });
 
-const lastReportActions = {};
-const allSortedReportActions = {};
+const lastReportActions: Record<string, ReportAction> = {};
+const allSortedReportActions: Record<string, ReportAction[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -76,11 +131,11 @@ Onyx.connect({
         const sortedReportActions = ReportActionUtils.getSortedReportActions(_.toArray(actions), true);
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allSortedReportActions[reportID] = sortedReportActions;
-        lastReportActions[reportID] = _.first(sortedReportActions);
+        lastReportActions[reportID] = sortedReportActions[0];
     },
 });
 
-const policyExpenseReports = {};
+const policyExpenseReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
@@ -93,16 +148,14 @@ Onyx.connect({
 
 /**
  * Get the option for a policy expense report.
- * @param {Object} report
- * @returns {Object}
  */
-function getPolicyExpenseReportOption(report) {
-    const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+function getPolicyExpenseReportOption(report: Report & {selected?: boolean; searchText?: string}) {
+    const expenseReport = policyExpenseReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
     const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
     const reportName = ReportUtils.getReportName(expenseReport);
     return {
         ...expenseReport,
-        keyForList: expenseReport.policyID,
+        keyForList: expenseReport?.policyID,
         text: reportName,
         alternateText: Localize.translateLocal('workspace.common.workspace'),
         icons: [
@@ -120,35 +173,27 @@ function getPolicyExpenseReportOption(report) {
 
 /**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
- *
- * @param {String} login
- * @return {String}
  */
-function addSMSDomainIfPhoneNumber(login) {
+function addSMSDomainIfPhoneNumber(login: string): string {
     const parsedPhoneNumber = parsePhoneNumber(login);
     if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
-        return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
+        return parsedPhoneNumber.number?.e164 + CONST.SMS.DOMAIN;
     }
     return login;
 }
 
 /**
  * Returns avatar data for a list of user accountIDs
- *
- * @param {Array<Number>} accountIDs
- * @param {Object} personalDetails
- * @param {Object} defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
- * @returns {Object}
  */
-function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}) {
-    const reversedDefaultValues = {};
-    _.map(Object.entries(defaultValues), (item) => {
+function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: PersonalDetailsCollection, defaultValues: Record<string, number> = {}) {
+    const reversedDefaultValues: Record<number, string> = {};
+
+    Object.entries(defaultValues).forEach((item) => {
         reversedDefaultValues[item[1]] = item[0];
     });
-
-    return _.map(accountIDs, (accountID) => {
-        const login = lodashGet(reversedDefaultValues, accountID, '');
-        const userPersonalDetail = lodashGet(personalDetails, accountID, {login, accountID, avatar: ''});
+    return accountIDs.map((accountID) => {
+        const login = reversedDefaultValues[accountID] ?? '';
+        const userPersonalDetail = personalDetails[accountID] ?? {login, accountID, avatar: ''};
 
         return {
             id: accountID,
@@ -161,19 +206,16 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
 
 /**
  * Returns the personal details for an array of accountIDs
- *
- * @param {Array} accountIDs
- * @param {Object} personalDetails
- * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
+ * @returns  keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
-    const personalDetailsForAccountIDs = {};
+function getPersonalDetailsForAccountIDs(accountIDs: number[], personalDetails: PersonalDetailsCollection) {
+    const personalDetailsForAccountIDs: Record<number, Partial<PersonalDetails>> = {};
     if (!personalDetails) {
         return personalDetailsForAccountIDs;
     }
-    _.each(accountIDs, (accountID) => {
+    accountIDs?.forEach((accountID) => {
         const cleanAccountID = Number(accountID);
-        let personalDetail = personalDetails[accountID];
+        let personalDetail: Partial<PersonalDetails> = personalDetails[accountID];
         if (!personalDetail) {
             personalDetail = {
                 avatar: UserUtils.getDefaultAvatar(cleanAccountID),
@@ -192,40 +234,36 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
 
 /**
  * Return true if personal details data is ready, i.e. report list options can be created.
- * @param {Object} personalDetails
- * @returns {Boolean}
  */
-function isPersonalDetailsReady(personalDetails) {
-    return !_.isEmpty(personalDetails) && _.some(_.keys(personalDetails), (key) => personalDetails[key].accountID);
+function isPersonalDetailsReady(personalDetails: PersonalDetailsCollection): boolean {
+    const personalDetailsKeys = Object.keys(personalDetails ?? {});
+    return personalDetailsKeys.length > 0 && personalDetailsKeys.some((key) => personalDetails[Number(key)].accountID);
 }
 
 /**
  * Get the participant option for a report.
- * @param {Object} participant
- * @param {Array<Object>} personalDetails
- * @returns {Object}
  */
-function getParticipantsOption(participant, personalDetails) {
+function getParticipantsOption(participant: Participant & {searchText?: string}, personalDetails: PersonalDetailsCollection) {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID];
-    const login = detail.login || participant.login;
-    const displayName = detail.displayName || LocalePhoneNumber.formatPhoneNumber(login);
+    const login = detail.login ?? participant.login ?? '';
+    const displayName = detail.displayName ?? LocalePhoneNumber.formatPhoneNumber(login);
     return {
         keyForList: String(detail.accountID),
         login,
         accountID: detail.accountID,
         text: displayName,
-        firstName: lodashGet(detail, 'firstName', ''),
-        lastName: lodashGet(detail, 'lastName', ''),
+        firstName: detail.firstName ?? '',
+        lastName: detail.lastName ?? '',
         alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
         icons: [
             {
-                source: UserUtils.getAvatar(detail.avatar, detail.accountID),
+                source: UserUtils.getAvatar(detail.avatar ?? '', detail.accountID ?? 0),
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
                 id: detail.accountID,
             },
         ],
-        phoneNumber: lodashGet(detail, 'phoneNumber', ''),
+        phoneNumber: detail.phoneNumber ?? '',
         selected: participant.selected,
         searchText: participant.searchText,
     };
@@ -234,15 +272,12 @@ function getParticipantsOption(participant, personalDetails) {
 /**
  * Constructs a Set with all possible names (displayName, firstName, lastName, email) for all participants in a report,
  * to be used in isSearchStringMatch.
- *
- * @param {Array<Object>} personalDetailList
- * @return {Set<String>}
  */
-function getParticipantNames(personalDetailList) {
+function getParticipantNames(personalDetailList?: Array<Partial<PersonalDetails>> | null): Set<string> {
     // We use a Set because `Set.has(value)` on a Set of with n entries is up to n (or log(n)) times faster than
     // `_.contains(Array, value)` for an Array with n members.
-    const participantNames = new Set();
-    _.each(personalDetailList, (participant) => {
+    const participantNames = new Set<string>();
+    personalDetailList?.forEach((participant) => {
         if (participant.login) {
             participantNames.add(participant.login.toLowerCase());
         }
@@ -262,21 +297,19 @@ function getParticipantNames(personalDetailList) {
 /**
  * A very optimized method to remove duplicates from an array.
  * Taken from https://stackoverflow.com/a/9229821/9114791
- *
- * @param {Array} items
- * @returns {Array}
  */
-function uniqFast(items) {
-    const seenItems = {};
-    const result = [];
+function uniqFast(items: string[]) {
+    const seenItems: Record<string, number> = {};
+    const result: string[] = [];
     let j = 0;
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
+
+    for (const item of items) {
         if (seenItems[item] !== 1) {
             seenItems[item] = 1;
             result[j++] = item;
         }
     }
+
     return result;
 }
 
@@ -287,26 +320,18 @@ function uniqFast(items) {
  * This method must be incredibly performant. It was found to be a big performance bottleneck
  * when dealing with accounts that have thousands of reports. For loops are more efficient than _.each
  * Array.prototype.push.apply is faster than using the spread operator, and concat() is faster than push().
- *
- * @param {Object} report
- * @param {String} reportName
- * @param {Array} personalDetailList
- * @param {Boolean} isChatRoomOrPolicyExpenseChat
- * @param {Boolean} isThread
- * @return {String}
+
  */
-function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolicyExpenseChat, isThread) {
-    let searchTerms = [];
+function getSearchText(report: Report, reportName: string, personalDetailList: Array<Partial<PersonalDetails>>, isChatRoomOrPolicyExpenseChat: boolean, isThread: boolean): string {
+    let searchTerms: string[] = [];
 
     if (!isChatRoomOrPolicyExpenseChat) {
-        for (let i = 0; i < personalDetailList.length; i++) {
-            const personalDetail = personalDetailList[i];
-
+        for (const personalDetail of personalDetailList) {
             if (personalDetail.login) {
                 // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
                 // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
                 // More info https://github.com/Expensify/App/issues/8007
-                searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
+                searchTerms = searchTerms.concat([personalDetail.displayName ?? '', personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
             }
         }
     }
@@ -324,12 +349,13 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
-            const participantAccountIDs = report.participantAccountIDs || [];
-            for (let i = 0; i < participantAccountIDs.length; i++) {
-                const accountID = participantAccountIDs[i];
-
-                if (allPersonalDetails[accountID] && allPersonalDetails[accountID].login) {
-                    searchTerms = searchTerms.concat(allPersonalDetails[accountID].login);
+            const participantAccountIDs = report.participantAccountIDs ?? [];
+            if (allPersonalDetails) {
+                for (const accountID of participantAccountIDs) {
+                    const login = allPersonalDetails[accountID]?.login;
+                    if (login) {
+                        searchTerms.push(login);
+                    }
                 }
             }
         }
@@ -340,24 +366,21 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
- * @param {Object} report
- * @param {Object} reportActions
- * @returns {Object}
  */
-function getAllReportErrors(report, reportActions) {
-    const reportErrors = report.errors || {};
-    const reportErrorFields = report.errorFields || {};
-    const reportActionErrors = {};
-    _.each(reportActions, (action) => {
-        if (action && !_.isEmpty(action.errors)) {
-            _.extend(reportActionErrors, action.errors);
+function getAllReportErrors(report: Report, reportActions: Record<string, ReportAction>) {
+    const reportErrors = report.errors ?? {};
+    const reportErrorFields = report.errorFields ?? {};
+    const reportActionErrors: OnyxCommon.Errors = {};
+    Object.values(reportActions ?? {}).forEach((action) => {
+        if (action && Object.keys(action.errors ?? {}).length > 0) {
+            Object.assign(reportActionErrors, action.errors);
         } else if (ReportActionUtils.isReportPreviewAction(action)) {
             const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(action);
 
             // Instead of adding all Smartscan errors, let's just add a generic error if there are any. This
             // will be more performant and provide the same result in the UI
             if (ReportUtils.hasMissingSmartscanFields(iouReportID)) {
-                _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
+                Object.assign(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
             }
         }
     });
@@ -368,27 +391,27 @@ function getAllReportErrors(report, reportActions) {
         ...reportErrorFields,
         reportActionErrors,
     };
-
     // Combine all error messages keyed by microtime into one object
-    const allReportErrors = _.reduce(errorSources, (prevReportErrors, errors) => (_.isEmpty(errors) ? prevReportErrors : _.extend(prevReportErrors, errors)), {});
+    const allReportErrors = Object.values(errorSources)?.reduce(
+        (prevReportErrors, errors) => (Object.keys(errors ?? {}).length > 0 ? prevReportErrors : Object.assign(prevReportErrors, errors)),
+        {},
+    );
 
     return allReportErrors;
 }
 
 /**
  * Get the last message text from the report directly or from other sources for special cases.
- * @param {Object} report
- * @returns {String}
  */
-function getLastMessageTextForReport(report) {
-    const lastReportAction = _.find(
-        allSortedReportActions[report.reportID],
-        (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+function getLastMessageTextForReport(report: Report) {
+    const lastReportAction = allSortedReportActions[report.reportID ?? '']?.find(
+        (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, String(key)) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
+
     let lastMessageTextFromReport = '';
 
-    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
-        lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
+    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText ?? '', html: report.lastMessageHtml ?? '', translationKey: report.lastMessageTranslationKey ?? ''})) {
+        lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey ?? 'common.attachment')}]`;
     } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
@@ -398,18 +421,16 @@ function getLastMessageTextForReport(report) {
         const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else {
-        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
+        lastMessageTextFromReport = report ? report.lastMessageText ?? '' : '';
 
         // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove
         // then set the last message text to the text of the latest visible action that is not a whisper or the report creation message.
-        const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
+        const lastNonWhisper = allSortedReportActions[report.reportID ?? '']?.find((action) => !ReportActionUtils.isWhisperAction(action)) ?? {};
         if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
-            const latestVisibleAction =
-                _.find(
-                    allSortedReportActions[report.reportID],
-                    (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action) && !ReportActionUtils.isCreatedAction(action),
-                ) || {};
-            lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
+            const latestVisibleAction: ReportAction | undefined = allSortedReportActions[report.reportID ?? ''].find(
+                (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action) && !ReportActionUtils.isCreatedAction(action),
+            );
+            lastMessageTextFromReport = latestVisibleAction?.message?.[0].text ?? '';
         }
     }
     return lastMessageTextFromReport;
@@ -417,18 +438,15 @@ function getLastMessageTextForReport(report) {
 
 /**
  * Creates a report list option
- *
- * @param {Array<Number>} accountIDs
- * @param {Object} personalDetails
- * @param {Object} report
- * @param {Object} reportActions
- * @param {Object} options
- * @param {Boolean} [options.showChatPreviewLine]
- * @param {Boolean} [options.forcePolicyNamePreview]
- * @returns {Object}
  */
-function createOption(accountIDs, personalDetails, report, reportActions = {}, {showChatPreviewLine = false, forcePolicyNamePreview = false}) {
-    const result = {
+function createOption(
+    accountIDs: number[],
+    personalDetails: PersonalDetailsCollection,
+    report: Report,
+    reportActions: Record<string, ReportAction>,
+    {showChatPreviewLine = false, forcePolicyNamePreview = false}: {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean},
+) {
+    const result: Option = {
         text: null,
         alternateText: null,
         pendingAction: null,
@@ -462,8 +480,8 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
-    const personalDetailList = _.values(personalDetailMap);
-    const personalDetail = personalDetailList[0] || {};
+    const personalDetailList = Object.values(personalDetailMap);
+    const personalDetail = personalDetailList[0] ?? {};
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
     let reportName;
@@ -482,7 +500,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
+        result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : null;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
@@ -490,7 +508,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
-        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
         result.hasOutstandingIOU = report.hasOutstandingIOU;
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
@@ -499,16 +517,14 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
-        const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
+        const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? 0] ?? null;
         let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
 
         if (result.isArchivedRoom) {
-            const archiveReason =
-                (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
-                CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+            const archiveReason = lastReportActions[report.reportID ?? ''].originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
+                displayName: archiveReason.displayName ?? PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
                 policyName: ReportUtils.getPolicyName(report),
             });
         }
@@ -526,7 +542,8 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     } else {
         reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
         result.keyForList = String(accountIDs[0]);
-        result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, [accountIDs[0], 'login'], ''));
+
+        result.alternateText = LocalePhoneNumber.formatPhoneNumber(personalDetails[accountIDs[0]].login ?? '');
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
@@ -539,8 +556,8 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     }
 
     result.text = reportName;
-    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), personalDetail.login, personalDetail.accountID);
+    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom ?? result.isPolicyExpenseChat, result.isThread);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar ?? '', personalDetail.accountID), personalDetail.login, personalDetail.accountID);
     result.subtitle = subtitle;
 
     return result;
@@ -548,16 +565,10 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
 /**
  * Searches for a match when provided with a value
- *
- * @param {String} searchValue
- * @param {String} searchText
- * @param {Set<String>} [participantNames]
- * @param {Boolean} isChatRoom
- * @returns {Boolean}
  */
-function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isChatRoom = false) {
+function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isChatRoom = false): boolean {
     const searchWords = new Set(searchValue.replace(/,/g, ' ').split(' '));
-    const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
+    const valueToSearch = searchText?.replace(new RegExp(/&nbsp;/g), '');
     let matching = true;
     searchWords.forEach((word) => {
         // if one of the word is not matching, we don't need to check further
@@ -565,7 +576,7 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
             return;
         }
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        matching = matchRegex.test(valueToSearch) || (!isChatRoom && participantNames.has(word));
+        matching = matchRegex.test(valueToSearch ?? '') || (!isChatRoom && participantNames.has(word));
     });
     return matching;
 }
@@ -574,69 +585,59 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
  * Checks if the given userDetails is currentUser or not.
  * Note: We can't migrate this off of using logins because this is used to check if you're trying to start a chat with
  * yourself or a different user, and people won't be starting new chats via accountID usually.
- *
- * @param {Object} userDetails
- * @returns {Boolean}
  */
-function isCurrentUser(userDetails) {
+function isCurrentUser(userDetails: PersonalDetails): boolean {
     if (!userDetails) {
         return false;
     }
 
     // If user login is a mobile number, append sms domain if not appended already.
-    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
+    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login ?? '');
 
-    if (currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase()) {
+    if (currentUserLogin?.toLowerCase() === userDetailsLogin.toLowerCase()) {
         return true;
     }
 
     // Check if userDetails login exists in loginList
-    return _.some(_.keys(loginList), (login) => login.toLowerCase() === userDetailsLogin.toLowerCase());
+    return Object.keys(loginList ?? {}).some((login) => login.toLowerCase() === userDetailsLogin.toLowerCase());
 }
 
 /**
  * Calculates count of all enabled options
- *
- * @param {Object[]} options - an initial strings array
- * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
- * @param {String} options[].name - a name of an option
- * @returns {Number}
  */
-function getEnabledCategoriesCount(options) {
-    return _.filter(options, (option) => option.enabled).length;
+function getEnabledCategoriesCount(options: Record<string, PolicyCategory>): number {
+    return Object.values(options).filter((option) => option.enabled).length;
 }
 
 /**
  * Verifies that there is at least one enabled option
- *
- * @param {Object[]} options - an initial strings array
- * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
- * @param {String} options[].name - a name of an option
- * @returns {Boolean}
  */
-function hasEnabledOptions(options) {
-    return _.some(options, (option) => option.enabled);
+function hasEnabledOptions(options: Record<string, PolicyCategory>): boolean {
+    return Object.values(options).some((option) => option.enabled);
 }
 
 /**
  * Build the options for the category tree hierarchy via indents
- *
- * @param {Object[]} options - an initial object array
- * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
- * @param {String} options[].name - a name of an option
- * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
- * @returns {Array<Object>}
  */
-function getCategoryOptionTree(options, isOneLine = false) {
-    const optionCollection = {};
+function getCategoryOptionTree(options: PolicyCategory[], isOneLine = false) {
+    const optionCollection: Record<
+        string,
+        {
+            text: string;
+            keyForList: string;
+            searchText: string;
+            tooltipText: string;
+            isDisabled: boolean;
+        }
+    > = {};
 
-    _.each(options, (option) => {
+    Object.values(options).forEach((option) => {
         if (!option.enabled) {
             return;
         }
 
         if (isOneLine) {
-            if (_.has(optionCollection, option.name)) {
+            if (Object.prototype.hasOwnProperty.call(optionCollection, option.name)) {
                 return;
             }
 
@@ -669,28 +670,23 @@ function getCategoryOptionTree(options, isOneLine = false) {
         });
     });
 
-    return _.values(optionCollection);
+    return Object.values(optionCollection);
 }
 
 /**
  * Build the section list for categories
- *
- * @param {Object<String, {name: String, enabled: Boolean}>} categories
- * @param {String[]} recentlyUsedCategories
- * @param {Object[]} selectedOptions
- * @param {String} selectedOptions[].name
- * @param {String} searchInputValue
- * @param {Number} maxRecentReportsToShow
- * @returns {Array<Object>}
  */
-function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+function getCategoryListSections(
+    categories: Record<string, PolicyCategory>,
+    recentlyUsedCategories: string[],
+    selectedOptions: PolicyCategory[],
+    searchInputValue: string,
+    maxRecentReportsToShow: number,
+) {
     const categorySections = [];
-    const categoriesValues = _.chain(categories)
-        .values()
-        .filter((category) => category.enabled)
-        .value();
+    const categoriesValues = Object.values(categories).filter((category) => category.enabled);
 
-    const numberOfCategories = _.size(categoriesValues);
+    const numberOfCategories = categoriesValues.length;
     let indexOffset = 0;
 
     if (numberOfCategories === 0 && selectedOptions.length > 0) {
@@ -705,8 +701,8 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         return categorySections;
     }
 
-    if (!_.isEmpty(searchInputValue)) {
-        const searchCategories = _.filter(categoriesValues, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+    if (searchInputValue) {
+        const searchCategories = categoriesValues.filter((category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         categorySections.push({
             // "Search" section
@@ -731,17 +727,16 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         return categorySections;
     }
 
-    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-    const filteredRecentlyUsedCategories = _.map(
-        _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category)),
-        (category) => ({
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const filteredRecentlyUsedCategories = recentlyUsedCategories
+        .filter((category) => !selectedOptionNames.includes(category))
+        .map((category) => ({
             name: category,
             enabled: lodashGet(categories, `${category}.enabled`, false),
-        }),
-    );
-    const filteredCategories = _.filter(categoriesValues, (category) => !_.includes(selectedOptionNames, category.name));
+        }));
+    const filteredCategories = categoriesValues.filter((category) => !selectedOptionNames.includes(category.name));
 
-    if (!_.isEmpty(selectedOptions)) {
+    if (selectedOptions) {
         categorySections.push({
             // "Selected" section
             title: '',
@@ -780,14 +775,9 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 
 /**
  * Transforms the provided tags into objects with a specific structure.
- *
- * @param {Object[]} tags - an initial tag array
- * @param {Boolean} tags[].enabled - a flag to enable/disable option in a list
- * @param {String} tags[].name - a name of an option
- * @returns {Array<Object>}
  */
-function getTagsOptions(tags) {
-    return _.map(tags, (tag) => ({
+function getTagsOptions(tags: Tag[]) {
+    return tags.map((tag) => ({
         text: tag.name,
         keyForList: tag.name,
         searchText: tag.name,
@@ -798,26 +788,16 @@ function getTagsOptions(tags) {
 
 /**
  * Build the section list for tags
- *
- * @param {Object[]} tags
- * @param {String} tags[].name
- * @param {Boolean} tags[].enabled
- * @param {String[]} recentlyUsedTags
- * @param {Object[]} selectedOptions
- * @param {String} selectedOptions[].name
- * @param {String} searchInputValue
- * @param {Number} maxRecentReportsToShow
- * @returns {Array<Object>}
  */
-function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOptions: Array<{name: string; enabled: boolean}>, searchInputValue: string, maxRecentReportsToShow: number) {
     const tagSections = [];
-    const enabledTags = _.filter(tags, (tag) => tag.enabled);
-    const numberOfTags = _.size(enabledTags);
+    const enabledTags = tags.filter((tag) => tag.enabled);
+    const numberOfTags = enabledTags.length;
     let indexOffset = 0;
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTags === 0 && selectedOptions.length > 0) {
-        const selectedTagOptions = _.map(selectedOptions, (option) => ({
+        const selectedTagOptions = selectedOptions.map((option) => ({
             name: option.name,
             // Should be marked as enabled to be able to be de-selected
             enabled: true,
@@ -833,8 +813,8 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
         return tagSections;
     }
 
-    if (!_.isEmpty(searchInputValue)) {
-        const searchTags = _.filter(enabledTags, (tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+    if (searchInputValue) {
+        const searchTags = enabledTags.filter((tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         tagSections.push({
             // "Search" section
@@ -859,19 +839,18 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
         return tagSections;
     }
 
-    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-    const filteredRecentlyUsedTags = _.map(
-        _.filter(recentlyUsedTags, (recentlyUsedTag) => {
-            const tagObject = _.find(tags, (tag) => tag.name === recentlyUsedTag);
-            return Boolean(tagObject && tagObject.enabled) && !_.includes(selectedOptionNames, recentlyUsedTag);
-        }),
-        (tag) => ({name: tag, enabled: true}),
-    );
-    const filteredTags = _.filter(enabledTags, (tag) => !_.includes(selectedOptionNames, tag.name));
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const filteredRecentlyUsedTags = recentlyUsedTags
+        .filter((recentlyUsedTag) => {
+            const tagObject = tags.find((tag) => tag.name === recentlyUsedTag);
+            return Boolean(tagObject && tagObject.enabled) && !selectedOptionNames.includes(recentlyUsedTag);
+        })
+        .map((tag) => ({name: tag, enabled: true}));
+    const filteredTags = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
 
-    if (!_.isEmpty(selectedOptions)) {
-        const selectedTagOptions = _.map(selectedOptions, (option) => {
-            const tagObject = _.find(tags, (tag) => tag.name === option.name);
+    if (selectedOptions) {
+        const selectedTagOptions = selectedOptions.map((option) => {
+            const tagObject = tags.find((tag) => tag.name === option.name);
             return {
                 name: option.name,
                 enabled: Boolean(tagObject && tagObject.enabled),
@@ -916,16 +895,10 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
 
 /**
  * Build the options
- *
- * @param {Object} reports
- * @param {Object} personalDetails
- * @param {Object} options
- * @returns {Object}
- * @private
  */
 function getOptions(
-    reports,
-    personalDetails,
+    reports: Record<string, Report>,
+    personalDetails: PersonalDetailsCollection,
     {
         reportActions = {},
         betas = [],
@@ -954,6 +927,34 @@ function getOptions(
         tags = {},
         recentlyUsedTags = [],
         canInviteUser = true,
+    }: {
+        betas: Beta[];
+        reportActions?: Record<string, ReportAction>;
+        selectedOptions?: any[];
+        maxRecentReportsToShow?: number;
+        excludeLogins?: any[];
+        includeMultipleParticipantReports?: boolean;
+        includePersonalDetails?: boolean;
+        includeRecentReports?: boolean;
+        // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
+        sortByReportTypeInSearch?: boolean;
+        searchInputValue?: string;
+        showChatPreviewLine?: boolean;
+        sortPersonalDetailsByAlphaAsc?: boolean;
+        forcePolicyNamePreview?: boolean;
+        includeOwnedWorkspaceChats?: boolean;
+        includeThreads?: boolean;
+        includeTasks?: boolean;
+        includeMoneyRequests?: boolean;
+        excludeUnknownUsers?: boolean;
+        includeP2P?: boolean;
+        includeCategories?: boolean;
+        categories?: Record<string, PolicyCategory>;
+        recentlyUsedCategories?: any[];
+        includeTags?: boolean;
+        tags?: Record<string, Tag>;
+        recentlyUsedTags?: any[];
+        canInviteUser?: boolean;
     },
 ) {
     if (includeCategories) {
@@ -970,7 +971,7 @@ function getOptions(
     }
 
     if (includeTags) {
-        const tagOptions = getTagListSections(_.values(tags), recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow);
+        const tagOptions = getTagListSections(Object.values(tags), recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow);
 
         return {
             recentReports: [],
@@ -994,13 +995,13 @@ function getOptions(
     }
 
     let recentReportOptions = [];
-    let personalDetailsOptions = [];
-    const reportMapForAccountIDs = {};
+    let personalDetailsOptions: Option[] = [];
+    const reportMapForAccountIDs: Record<number, Report> = {};
     const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
-    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
+    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, betas, policies));
+    const filteredReports = Object.values(reports).filter((report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, betas, policies));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -1014,8 +1015,8 @@ function getOptions(
     });
     orderedReports.reverse();
 
-    const allReportOptions = [];
-    _.each(orderedReports, (report) => {
+    const allReportOptions: Option[] = [];
+    orderedReports.forEach((report) => {
         if (!report) {
             return;
         }
@@ -1025,7 +1026,7 @@ function getOptions(
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        const accountIDs = report.participantAccountIDs || [];
+        const accountIDs = report.participantAccountIDs ?? [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
@@ -1072,14 +1073,13 @@ function getOptions(
             }),
         );
     });
-
     // We're only picking personal details that have logins set
     // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
     // See https://github.com/Expensify/Expensify/issues/293465 for more context
     // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
     const havingLoginPersonalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login));
-    let allPersonalDetailsOptions = _.map(havingLoginPersonalDetails, (personalDetail) =>
-        createOption([personalDetail.accountID], personalDetails, reportMapForAccountIDs[personalDetail.accountID], reportActions, {
+    let allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails).map((personalDetail) =>
+        createOption([personalDetail?.accountID ?? 0], personalDetails, reportMapForAccountIDs[personalDetail?.accountID], reportActions, {
             showChatPreviewLine,
             forcePolicyNamePreview,
         }),
@@ -1087,20 +1087,18 @@ function getOptions(
 
     if (sortPersonalDetailsByAlphaAsc) {
         // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
-        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text && personalDetail.text.toLowerCase()], 'asc');
+        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
     }
 
     // Always exclude already selected options and the currently logged in user
     const optionsToExclude = [...selectedOptions, {login: currentUserLogin}];
 
-    _.each(excludeLogins, (login) => {
+    excludeLogins.forEach((login) => {
         optionsToExclude.push({login});
     });
 
     if (includeRecentReports) {
-        for (let i = 0; i < allReportOptions.length; i++) {
-            const reportOption = allReportOptions[i];
-
+        for (const reportOption of allReportOptions) {
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
             if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
                 break;
@@ -1117,8 +1115,8 @@ function getOptions(
             // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
             if (
                 !includeThreads &&
-                (reportOption.login || reportOption.reportID) &&
-                _.some(optionsToExclude, (option) => (option.login && option.login === reportOption.login) || (option.reportID && option.reportID === reportOption.reportID))
+                (reportOption.login ?? reportOption.reportID) &&
+                optionsToExclude.some((option) => (option.login && option.login === reportOption.login) ?? option.reportID === reportOption.reportID)
             ) {
                 continue;
             }
@@ -1129,7 +1127,7 @@ function getOptions(
 
             if (searchValue) {
                 // Determine if the search is happening within a chat room and starts with the report ID
-                const isReportIdSearch = isChatRoom && Str.startsWith(reportOption.reportID, searchValue);
+                const isReportIdSearch = isChatRoom && Str.startsWith(reportOption.reportID ?? '', searchValue);
 
                 // Check if the search string matches the search text or participant names considering the type of the room
                 const isSearchMatch = isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom);
@@ -1150,8 +1148,8 @@ function getOptions(
 
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
-        _.each(allPersonalDetailsOptions, (personalDetailOption) => {
-            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
+        allPersonalDetailsOptions.forEach((personalDetailOption) => {
+            if (optionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -1163,23 +1161,23 @@ function getOptions(
         });
     }
 
-    let currentUserOption = _.find(allPersonalDetailsOptions, (personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
+    let currentUserOption = allPersonalDetailsOptions.find((personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
     if (searchValue && currentUserOption && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
         currentUserOption = null;
     }
 
     let userToInvite = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
-    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase());
+    const noOptionsMatchExactly = !personalDetailsOptions.concat(recentReportOptions).find((option) => option.login === addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase());
 
     if (
         searchValue &&
         (noOptions || noOptionsMatchExactly) &&
         !isCurrentUser({login: searchValue}) &&
-        _.every(selectedOptions, (option) => option.login !== searchValue) &&
+        selectedOptions.every((option) => option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
-            (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number.input)))) &&
-        !_.find(optionsToExclude, (optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
+            (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
+        !optionsToExclude.find((optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
         !excludeUnknownUsers
     ) {
@@ -1198,8 +1196,8 @@ function getOptions(
         });
         userToInvite.isOptimisticAccount = true;
         userToInvite.login = searchValue;
-        userToInvite.text = userToInvite.text || searchValue;
-        userToInvite.alternateText = userToInvite.alternateText || searchValue;
+        userToInvite.text = userToInvite.text ?? searchValue;
+        userToInvite.alternateText = userToInvite.alternateText ?? searchValue;
 
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [
@@ -1226,7 +1224,7 @@ function getOptions(
                     if (!option.login) {
                         return 2;
                     }
-                    if (option.login.toLowerCase() !== searchValue.toLowerCase()) {
+                    if (option.login.toLowerCase() !== searchValue?.toLowerCase()) {
                         return 1;
                     }
 
@@ -1250,14 +1248,8 @@ function getOptions(
 
 /**
  * Build the options for the Search view
- *
- * @param {Object} reports
- * @param {Object} personalDetails
- * @param {String} searchValue
- * @param {Array<String>} betas
- * @returns {Object}
  */
-function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
+function getSearchOptions(reports: Record<string, Report>, personalDetails: PersonalDetailsCollection, betas: Beta[] = [], searchValue = '') {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -1277,13 +1269,9 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
- *
- * @param {Object} personalDetail
- * @param {String} amountText
- * @returns {Object}
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
-    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails, amountText: string) {
+    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
     return {
         text: personalDetail.displayName || formattedLogin,
         alternateText: formattedLogin || personalDetail.displayName,
@@ -1303,13 +1291,9 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
 
 /**
  * Build the IOUConfirmationOptions for showing participants
- *
- * @param {Array} participants
- * @param {String} amountText
- * @returns {Array}
  */
-function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
-    return _.map(participants, (participant) => ({
+function getIOUConfirmationOptionsFromParticipants(participants: Option[], amountText: string) {
+    return participants.map((participant) => ({
         ...participant,
         descriptiveText: amountText,
     }));
@@ -1317,28 +1301,11 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
 
 /**
  * Build the options for the New Group view
- *
- * @param {Object} reports
- * @param {Object} personalDetails
- * @param {Array<String>} [betas]
- * @param {String} [searchValue]
- * @param {Array} [selectedOptions]
- * @param {Array} [excludeLogins]
- * @param {Boolean} [includeOwnedWorkspaceChats]
- * @param {boolean} [includeP2P]
- * @param {boolean} [includeCategories]
- * @param {Object} [categories]
- * @param {Array<String>} [recentlyUsedCategories]
- * @param {boolean} [includeTags]
- * @param {Object} [tags]
- * @param {Array<String>} [recentlyUsedTags]
- * @param {boolean} [canInviteUser]
- * @returns {Object}
  */
 function getFilteredOptions(
-    reports,
-    personalDetails,
-    betas = [],
+    reports: Record<string, Report>,
+    personalDetails: PersonalDetailsCollection,
+    betas: Beta[] = [],
     searchValue = '',
     selectedOptions = [],
     excludeLogins = [],
@@ -1374,22 +1341,12 @@ function getFilteredOptions(
 
 /**
  * Build the options for the Share Destination for a Task
- * *
- * @param {Object} reports
- * @param {Object} personalDetails
- * @param {Array<String>} [betas]
- * @param {String} [searchValue]
- * @param {Array} [selectedOptions]
- * @param {Array} [excludeLogins]
- * @param {Boolean} [includeOwnedWorkspaceChats]
- * @returns {Object}
- *
  */
 
 function getShareDestinationOptions(
-    reports,
-    personalDetails,
-    betas = [],
+    reports: Record<string, Report>,
+    personalDetails: PersonalDetailsCollection,
+    betas: Beta[] = [],
     searchValue = '',
     selectedOptions = [],
     excludeLogins = [],
@@ -1418,30 +1375,29 @@ function getShareDestinationOptions(
 /**
  * Format personalDetails or userToInvite to be shown in the list
  *
- * @param {Object} member - personalDetails or userToInvite
- * @param {Boolean} isSelected - whether the item is selected
- * @returns {Object}
+ * @param member - personalDetails or userToInvite
+ * @param isSelected - whether the item is selected
  */
-function formatMemberForList(member, isSelected) {
+function formatMemberForList(member: Option | PersonalDetails, isSelected: boolean) {
     if (!member) {
         return undefined;
     }
 
-    const avatarSource = lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'avatar', '');
-    const accountID = lodashGet(member, 'accountID', '');
+    const avatarSource = member.participantsList?.[0]?.avatar ?? member.avatar ?? '';
+    const accountID = member.accountID;
 
     return {
-        text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
-        alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
-        keyForList: lodashGet(member, 'keyForList', '') || String(accountID),
+        text: member.text ?? member.displayName ?? '',
+        alternateText: member.alternateText ?? member.login ?? '',
+        keyForList: member.keyForList ?? String(accountID),
         isSelected,
         isDisabled: false,
         accountID,
-        login: lodashGet(member, 'login', ''),
+        login: member.login ?? '',
         rightElement: null,
         avatar: {
             source: UserUtils.getAvatar(avatarSource, accountID),
-            name: lodashGet(member, 'participantsList[0].login', '') || lodashGet(member, 'displayName', ''),
+            name: member.participantsList?.[0]?.login ?? member.displayName ?? '',
             type: 'avatar',
         },
         pendingAction: lodashGet(member, 'pendingAction'),
@@ -1450,15 +1406,9 @@ function formatMemberForList(member, isSelected) {
 
 /**
  * Build the options for the Workspace Member Invite view
- *
- * @param {Object} personalDetails
- * @param {Array<String>} betas
- * @param {String} searchValue
- * @param {Array} excludeLogins
- * @returns {Object}
  */
-function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', excludeLogins = []) {
-    return getOptions([], personalDetails, {
+function getMemberInviteOptions(personalDetails: PersonalDetailsCollection, betas = [], searchValue = '', excludeLogins = []) {
+    return getOptions({}, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         includePersonalDetails: true,
@@ -1469,15 +1419,8 @@ function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', e
 
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
- *
- * @param {Boolean} hasSelectableOptions
- * @param {Boolean} hasUserToInvite
- * @param {String} searchValue
- * @param {Boolean} [maxParticipantsReached]
- * @param {Boolean} [hasMatchedParticipant]
- * @return {String}
  */
-function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false, hasMatchedParticipant = false) {
+function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, maxParticipantsReached = false, hasMatchedParticipant = false): string {
     if (maxParticipantsReached) {
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
@@ -1510,11 +1453,9 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
 /**
  * Helper method to check whether an option can show tooltip or not
- * @param {Object} option
- * @returns {Boolean}
  */
-function shouldOptionShowTooltip(option) {
-    return (!option.isChatRoom || option.isThread) && !option.isArchivedRoom;
+function shouldOptionShowTooltip(option: Option): boolean {
+    return Boolean((!option.isChatRoom || option.isThread) && !option.isArchivedRoom);
 }
 
 export {

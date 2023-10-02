@@ -1,7 +1,7 @@
 import Account from './Account';
 import Request from './Request';
 import Credentials from './Credentials';
-import IOU from './IOU';
+import IOU, {Participant} from './IOU';
 import Modal from './Modal';
 import Network from './Network';
 import CustomStatusDraft from './CustomStatusDraft';
@@ -98,4 +98,5 @@ export type {
     RecentlyUsedCategories,
     RecentlyUsedTags,
     PolicyTag,
+    Participant,
 };
