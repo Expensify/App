@@ -38,7 +38,7 @@ function EditRequestReceiptPage({route, transactionID}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={EditRequestReceiptPage.displayName}
-            headerGapStyles={isDraggingOver ? [styles.dragAndDropHeader] : []}
+            headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
         >
             <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
                 <HeaderWithBackButton

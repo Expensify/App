@@ -3705,7 +3705,7 @@ const styles = (theme) => ({
         lineHeight: variables.lineHeightLarge,
     },
 
-    dragAndDropHeader: {
+    receiptDropHeaderGap: {
         backgroundColor: theme.receiptDropUIBG,
     },
 });
