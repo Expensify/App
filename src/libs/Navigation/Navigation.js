@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import lodashGet from 'lodash/get';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import {getActionFromState} from '@react-navigation/core';
 import Log from '../Log';
@@ -12,7 +13,6 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import getStateFromPath from './getStateFromPath';
 import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
-import getTopmostCentralPane from './getTopmostCentralPane';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -149,70 +149,6 @@ function setParams(params, routeKey) {
 }
 
 /**
- * Replace a given reportID in the navigation stack.
- *
- * @param {String} oldReportID
- * @param {String} newReportID
- */
-function replaceReportIDInNavigationStack(oldReportID, newReportID) {
-    const state = navigationRef.getState();
-
-    const topmostCentralPane = getTopmostCentralPane(state);
-    if (!topmostCentralPane) {
-        return;
-    }
-
-    const directReportIDParam = _.get(topmostCentralPane, 'params.params.reportID');
-    if (directReportIDParam === oldReportID) {
-        setParams(
-            {
-                reportID: newReportID,
-            },
-            _.get(topmostCentralPane, 'key', ''),
-        );
-    }
-
-    const topmostReportID = getTopmostReportId();
-    if (topmostReportID === oldReportID) {
-        navigationRef.current.dispatch({
-            ...StackActions.replace('Report', {
-                reportID: newReportID,
-            }),
-        });
-    }
-
-    if (!topmostCentralPane.state) {
-        return;
-    }
-
-    const centralPaneRoutes = _.get(topmostCentralPane, 'state.routes', []);
-    _.each(centralPaneRoutes, (route) => {
-        const reportIDParam = _.get(route, 'params.reportID');
-        if (!reportIDParam) {
-            return;
-        }
-
-        if (reportIDParam !== oldReportID) {
-            return;
-        }
-
-        route.setParams({reportID: newReportID});
-
-        if (route.name !== 'Report') {
-            return;
-        }
-
-        navigationRef.current.dispatch({
-            ...StackActions.replace('Report', {
-                reportID: newReportID,
-            }),
-            source: route.key,
-            target: navigationRef.current.getState().key,
-        });
-    });
-}
-
-/**
  * Dismisses the last modal stack if there is any
  *
  * @param {String | undefined} targetReportID - The reportID to navigate to after dismissing the modal
@@ -250,7 +186,7 @@ function dismissModal(targetReportID) {
  */
 function getActiveRoute() {
     const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
-    const currentRouteHasName = _.get(currentRoute, 'name', false);
+    const currentRouteHasName = lodashGet(currentRoute, 'name', false);
     if (!currentRouteHasName) {
         return '';
     }
@@ -332,7 +268,6 @@ export default {
     setIsNavigationReady,
     getTopmostReportId,
     getRouteNameFromStateEvent,
-    replaceReportIDInNavigationStack,
 };
 
 export {navigationRef};
