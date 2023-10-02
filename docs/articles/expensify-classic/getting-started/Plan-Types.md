@@ -1,6 +1,6 @@
 ---
 title: Plan-Types
-description: Plan-Types
+description: Learn which Expensify plan is the best fit for you
 ---
 # Overview
 You can access comprehensive information about Expensify's plans and pricing by visiting www.expensify.com/pricing. Below, we provide an overview of each plan type to assist you in selecting the one that best suits your business or personal requirements.
