@@ -2448,13 +2448,6 @@ const styles = (theme) => ({
         alignItems: 'center',
     },
 
-    checkboxPressable: {
-        borderRadius: 6,
-        padding: 2,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
     checkedContainer: {
         backgroundColor: theme.checkBox,
     },
@@ -3674,6 +3667,7 @@ const styles = (theme) => ({
         borderRadius: variables.componentBorderRadiusLarge,
     },
     userReportStatusEmoji: {
+        flexShrink: 0,
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
     },
