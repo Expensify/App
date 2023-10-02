@@ -26,6 +26,9 @@ const propTypes = {
     /** Should this message fragment be styled as deleted? */
     styleAsDeleted: PropTypes.bool.isRequired,
 
+    /** Text of an IOU report action */
+    iouMessage: PropTypes.string,
+
     /** Additional styles to add after local styles. */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]).isRequired,
 
@@ -34,6 +37,10 @@ const propTypes = {
     /** localization props */
     ...withLocalizePropTypes,
 };
+
+const defaultProps = {
+    iouMessage: undefined,
+}
 
 function TextCommentFragment(props) {
     const {fragment, styleAsDeleted} = props;
@@ -92,6 +99,7 @@ function TextCommentFragment(props) {
 }
 
 TextCommentFragment.propTypes = propTypes;
+TextCommentFragment.defaultProps = defaultProps;
 TextCommentFragment.displayName = 'TextCommentFragment';
 
 export default compose(withWindowDimensions, withLocalize)(memo(TextCommentFragment));
