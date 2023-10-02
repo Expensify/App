@@ -568,7 +568,7 @@ function MoneyRequestConfirmationList(props) {
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouTag}
                             description={policyTagListName}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.TAG, props.transactionID, props.reportID))}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             disabled={didConfirm || props.isReadOnly}
                         />

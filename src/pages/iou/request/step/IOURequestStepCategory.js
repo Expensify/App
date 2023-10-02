@@ -62,13 +62,7 @@ function IOURequestStepCategory({
      * @param {String} category.searchText
      */
     const updateCategory = (category) => {
-        if (category.searchText === transaction.category) {
-            // TODO: see if this is really necessary
-            // IOU.resetMoneyRequestCategory();
-        } else {
-            IOU.setMoneeRequestCategory(transactionID, category.searchText);
-        }
-
+        IOU.setMoneeRequestCategory(transactionID, category.searchText);
         goBack();
     };
 

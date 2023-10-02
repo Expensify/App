@@ -2288,6 +2288,13 @@ function setMoneyRequestTag(tag) {
     Onyx.merge(ONYXKEYS.IOU, {tag});
 }
 
+/*
+ * @param {String} tag
+ */
+function setMoneeRequestTag(tag) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {tag});
+}
+
 function resetMoneyRequestTag() {
     Onyx.merge(ONYXKEYS.IOU, {tag: ''});
 }
@@ -2403,6 +2410,7 @@ export {
     setMoneeRequestCategory,
     resetMoneyRequestCategory,
     setMoneyRequestTag,
+    setMoneeRequestTag,
     resetMoneyRequestTag,
     setMoneeRequestParticipants,
     setMoneeRequestAmount,
