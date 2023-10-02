@@ -288,6 +288,8 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
             </View>
             <Button
                 success
+                allowBubble
+                pressOnEnter
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => onSubmit(waypoints)}
                 isDisabled={_.size(validatedWaypoints) < 2 || (!isOffline && (hasRouteError || isLoadingRoute || isLoading))}

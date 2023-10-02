@@ -1939,7 +1939,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
             ],
             automatic: false,
             avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
-            created: DateUtils.getDBTime(),
+            created: DateUtils.getDBTimeWithSkew(),
             message: [
                 {
                     translationKey: isAttachment ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
@@ -3382,31 +3382,16 @@ function shouldReportShowSubscript(report) {
  * @returns {Boolean}
  */
 function isReportDataReady() {
-    return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key].reportID);
+    return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key] && allReports[key].reportID);
 }
 
 /**
- * Find the parent report action in assignee report for a task report
- * Returns an empty object if assignee report is the same as the share destination report
- *
- * @param {Object} taskReport
- * @returns {Object}
+ * Return true if reportID from path is valid
+ * @param {String} reportIDFromPath
+ * @returns {Boolean}
  */
-function getTaskParentReportActionIDInAssigneeReport(taskReport) {
-    const assigneeChatReportID = lodashGet(getChatByParticipants(isReportManager(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
-    if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
-        return {};
-    }
-
-    const clonedParentReportActionID = lodashGet(ReportActionsUtils.getParentReportActionInReport(taskReport.reportID, assigneeChatReportID), 'reportActionID');
-    if (!clonedParentReportActionID) {
-        return {};
-    }
-
-    return {
-        reportID: assigneeChatReportID,
-        reportActionID: clonedParentReportActionID,
-    };
+function isValidReportIDFromPath(reportIDFromPath) {
+    return typeof reportIDFromPath === 'string' && !['', 'null', '0'].includes(reportIDFromPath);
 }
 
 /**
@@ -3788,12 +3773,12 @@ export {
     isChildReport,
     shouldReportShowSubscript,
     isReportDataReady,
+    isValidReportIDFromPath,
     isSettled,
     isAllowedToComment,
     getBankAccountRoute,
     getParentReport,
     getRootParentReport,
-    getTaskParentReportActionIDInAssigneeReport,
     getReportPreviewMessage,
     getModifiedExpenseMessage,
     shouldDisableWriteActions,
