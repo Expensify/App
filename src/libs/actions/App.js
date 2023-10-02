@@ -313,8 +313,17 @@ function endSignOnTransition() {
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
  * @param {Boolean} [shouldNavigateToAdminChat] Optional, navigate to the #admin room after creation
+ * @param {Boolean} [isThereModalToDismiss] Optional, if there is a modal to dismiss
+
  */
-function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false, shouldNavigateToAdminChat = true) {
+function createWorkspaceAndNavigateToIt(
+    policyOwnerEmail = '',
+    makeMeAdmin = false,
+    policyName = '',
+    transitionFromOldDot = false,
+    shouldNavigateToAdminChat = true,
+    isThereModalToDismiss = true,
+) {
     const policyID = Policy.generatePolicyID();
     const adminsChatReportID = Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
     Navigation.isNavigationReady()
@@ -325,7 +334,11 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
             }
 
             if (shouldNavigateToAdminChat) {
-                Navigation.dismissModal(adminsChatReportID);
+                if (isThereModalToDismiss) {
+                    Navigation.dismissModal(adminsChatReportID);
+                } else {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
+                }
             }
             return Navigation.isNavigationReady();
         })
