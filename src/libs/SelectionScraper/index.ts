@@ -14,9 +14,11 @@ const tagAttribute = 'data-testid';
  */
 const getHTMLOfSelection = (): string => {
     // If browser doesn't support Selection API, return an empty string.
+    if (!window.getSelection) {
+        return '';
+    }
     const selection = window.getSelection();
-
-    if (!selection || !window.getSelection) {
+    if (!selection) {
         return '';
     }
 
@@ -66,8 +68,8 @@ const getHTMLOfSelection = (): string => {
             // and finally commonAncestorContainer.parentNode.closest('data-testid') is targeted dom.
             if (range.commonAncestorContainer instanceof HTMLElement) {
                 parent = range.commonAncestorContainer.closest(`[${tagAttribute}]`);
-            } else if (range.commonAncestorContainer.parentNode) {
-                parent = (range.commonAncestorContainer.parentNode as HTMLElement).closest(`[${tagAttribute}]`);
+            } else {
+                parent = (range.commonAncestorContainer.parentNode as HTMLElement | null)?.closest(`[${tagAttribute}]`) ?? null;
             }
 
             // Keep traversing up to clone all parents with 'data-testid' attribute.
@@ -76,7 +78,7 @@ const getHTMLOfSelection = (): string => {
                 cloned.appendChild(child);
                 child = cloned as DocumentFragment;
 
-                parent = (parent.parentNode as HTMLElement).closest(`[${tagAttribute}]`);
+                parent = (parent.parentNode as HTMLElement | null)?.closest(`[${tagAttribute}]`) ?? null;
             }
 
             div.appendChild(child);
@@ -100,16 +102,21 @@ const getHTMLOfSelection = (): string => {
  * Clears all attributes from dom elements
  */
 const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
+    // Encoding HTML chars '< >' in the text, because any HTML will be removed in stripHTML method.
+    const domDataNode = dom as DataNode;
+    let data = '';
+    if (dom.type.toString() === 'text' && domDataNode.data) {
+        data = Str.htmlEncode(domDataNode.data);
+        return {
+            ...dom,
+            data,
+        } as DataNode;
+    }
+
     const domElement = dom as Element;
     let domName = domElement.name;
     let domChildren: Node[] = [];
     const domAttribs: Element['attribs'] = {};
-    let data = '';
-
-    // Encoding HTML chars '< >' in the text, because any HTML will be removed in stripHTML method.
-    if (dom.type.toString() === 'text') {
-        data = Str.htmlEncode((dom as DataNode).data);
-    }
 
     // We are skipping elements which has html and body in data-testid, since ExpensiMark can't parse it. Also this data
     // has no meaning for us.
@@ -130,13 +137,6 @@ const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
 
     if (domElement.children) {
         domChildren = domElement.children.map((c) => replaceNodes(c, isChildOfEditorElement || !!domElement.attribs?.[tagAttribute]));
-    }
-
-    if (data) {
-        return {
-            ...dom,
-            data,
-        } as DataNode;
     }
 
     return {
