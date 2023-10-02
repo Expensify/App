@@ -327,8 +327,8 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
             if (shouldNavigateToAdminChat) {
                 Navigation.dismissModal(adminsChatReportID);
             }
+            return Navigation.isNavigationReady();
         })
-        .then(() => Navigation.isNavigationReady())
         .then(() => {
             Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
         })
