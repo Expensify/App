@@ -117,13 +117,13 @@ function OptionRowLHN(props) {
     const shouldShowGreenDotIndicator =
         !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
 
-    const sortedDisplayNames =
+    const fullTitle =
         optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.isArchivedRoom && optionItem.displayNamesWithTooltips && optionItem.displayNamesWithTooltips.length > 1
             ? _.filter(
                   _.map(optionItem.displayNamesWithTooltips, ({displayName}) => displayName),
                   (displayName) => !_.isEmpty(displayName),
               ).join(', ')
-            : '';
+            : optionItem.text;
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -230,7 +230,7 @@ function OptionRowLHN(props) {
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
                                             accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={!_.isEmpty(sortedDisplayNames) ? sortedDisplayNames : optionItem.text}
+                                            fullTitle={fullTitle}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
