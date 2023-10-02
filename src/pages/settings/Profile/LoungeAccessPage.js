@@ -2,6 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import moment from 'moment';
+import 'moment/locale/es';
 import * as Lounge from '../../../libs/actions/Lounge';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -112,18 +114,27 @@ function LoungeAccessPage(props) {
                 <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('loungeAccessPage.addressLabel')}</Text>
                 <Text style={[styles.mb4]}>{translate('loungeAccessPage.address')}</Text>
                 <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('loungeAccessPage.nextCheckInLabel')}</Text>
-                <Text style={[styles.mb4]}>
-                    {props.user.loungeCheckInDetails.isCheckedIn
-                        ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn')
-                        : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn')}{' '}
-                    <Text style={[styles.textStrong]}>
-                        {NumberFormatUtils.format(props.preferredLocale, props.user.loungeCheckInDetails.checkInsRemaining)}{' '}
-                        {props.user.loungeCheckInDetails.checkInsRemaining === 1
-                            ? translate('loungeAccessPage.nextCheckInNumberCountSingular')
-                            : translate('loungeAccessPage.nextCheckInNumberCountPlural')}
-                    </Text>{' '}
-                    {translate('loungeAccessPage.nextCheckInAfterNumber')}
-                </Text>
+                {props.user.loungeCheckInDetails.checkInsRemaining === 0 && !props.user.loungeCheckInDetails.isCheckedIn ? (
+                    <Text style={[styles.mb4]}>
+                        <Text style={[styles.textStrong]}>
+                            {translate('loungeAccessPage.noCheckInsLeftFirstPart')}
+                        </Text>
+                        {translate('loungeAccessPage.noCheckInsLeftSecondPart', { nextCheckIn: moment().locale(props.preferredLocale).add(1, 'months').startOf('month').format('MMMM D') })}
+                    </Text>
+                ) : (
+                    <Text style={[styles.mb4]}>
+                        {props.user.loungeCheckInDetails.isCheckedIn
+                            ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn')
+                            : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn')}{' '}
+                        <Text style={[styles.textStrong]}>
+                            {NumberFormatUtils.format(props.preferredLocale, props.user.loungeCheckInDetails.checkInsRemaining)}{' '}
+                            {props.user.loungeCheckInDetails.checkInsRemaining === 1
+                                ? translate('loungeAccessPage.nextCheckInNumberCountSingular')
+                                : translate('loungeAccessPage.nextCheckInNumberCountPlural')}
+                        </Text>{' '}
+                        {translate('loungeAccessPage.nextCheckInAfterNumber')}
+                    </Text>
+                )}
                 {props.user.loungeCheckInDetails.isCheckedIn ? (
                     <Button
                         shouldUseDefaultHover={false}
@@ -168,6 +179,9 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
+        },
+        preferredLocale: {
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
     }),
 )(LoungeAccessPage);

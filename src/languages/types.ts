@@ -138,6 +138,8 @@ type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number;
 
 type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
+type NoCheckInsLeftParams = {nextCheckIn: string};
+
 type EnterMagicCodeParams = {contactMethod: string};
 
 type TransferParams = {amount: string};
@@ -281,6 +283,7 @@ export type {
     SizeExceededParams,
     ResolutionConstraintsParams,
     NotAllowedExtensionParams,
+    NoCheckInsLeftParams,
     EnterMagicCodeParams,
     TransferParams,
     InstantSummaryParams,
