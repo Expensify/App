@@ -198,6 +198,8 @@ type FormattedMaxLengthParams = {formattedMaxLength: string};
 
 type TagSelectionParams = {tagName: string};
 
+type WalletProgramParams = {walletProgram: string};
+
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
@@ -313,4 +315,5 @@ export type {
     TagSelectionParams,
     SetTheDistanceParams,
     UpdatedTheDistanceParams,
+    WalletProgramParams,
 };
