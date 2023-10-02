@@ -19,7 +19,7 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import MoneyRequestConfirmationList from '../../../../components/MoneyRequestConfirmationList';
+import MoneyRequestConfirmationList from '../../../../components/MoneeRequestConfirmationList';
 import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import * as IOU from '../../../../libs/actions/IOU';

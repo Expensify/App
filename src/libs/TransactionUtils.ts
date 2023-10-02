@@ -224,6 +224,10 @@ function getMerchant(transaction: Transaction): string {
     return transaction?.modifiedMerchant ?? transaction?.merchant ?? '';
 }
 
+function getDistance(transaction: Transaction): number {
+    return transaction?.routes?.route0?.distance ?? 0;
+}
+
 /**
  * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
  */
@@ -414,6 +418,7 @@ export {
     isSplitRequest,
     getAmount,
     getCurrency,
+    getDistance,
     getMerchant,
     getCreated,
     getCategory,
