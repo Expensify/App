@@ -201,6 +201,13 @@ function ReportActionItem(props) {
         Report.expandURLPreview(props.report.reportID, props.action.reportActionID);
     }, [props.action, props.report.reportID]);
 
+    useEffect(() => {
+        if (!props.draftMessage || !ReportActionsUtils.isDeletedAction(props.action)) {
+            return;
+        }
+        Report.saveReportActionDraft(props.report.reportID, props.action, '');
+    }, [props.draftMessage, props.action, props.report.reportID]);
+
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
     const latestDecision = lodashGet(props, ['action', 'message', 0, 'moderationDecision', 'decision'], '');
