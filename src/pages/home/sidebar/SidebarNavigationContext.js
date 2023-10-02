@@ -5,6 +5,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import GLOBAL_NAVIGATION_MAPPING from '../../../GLOBAL_NAVIGATION_MAPPING';
 
 const propTypes = {
+    /** Children to wrap. The part of app that should have acces to this context */
     children: PropTypes.node.isRequired,
 };
 

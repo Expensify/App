@@ -27,11 +27,10 @@ import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
 import Text from '../../../components/Text';
+import Performance from '../../../libs/Performance';
+import Timing from '../../../libs/actions/Timing';
 
 const basePropTypes = {
-    /** Toggles the navigation menu open and closed */
-    onLinkClick: PropTypes.func.isRequired,
-
     /** Safe area insets required for mobile devices margins */
     insets: safeAreaInsetPropTypes.isRequired,
 
@@ -147,7 +146,9 @@ class SidebarLinks extends React.PureComponent {
             return;
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
-        this.props.onLinkClick();
+
+        Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
+        Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
     }
 
     render() {

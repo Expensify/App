@@ -1,16 +1,15 @@
 import React from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import sidebarPropTypes from './sidebarPropTypes';
 import * as Browser from '../../../../libs/Browser';
-import GlobalNavigation from '../GlobalNavigation/GlobalNavigation';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import GlobalNavigation from '../GlobalNavigation';
 import SubNavigation from '../SubNavigation/SubNavigation';
 
 const propTypes = {
-    ...sidebarPropTypes,
-    ...windowDimensionsPropTypes,
+    /** Children to wrap (floating button). */
+    children: PropTypes.node.isRequired,
 };
 
 function BaseSidebarScreen(props) {
@@ -22,11 +21,8 @@ function BaseSidebarScreen(props) {
             testID={BaseSidebarScreen.displayName}
         >
             <View style={[styles.flex1, styles.flexRow, styles.globalAndSubNavigationContainer]}>
-                <GlobalNavigation
-                    isSmallScreenWidth={props.isSmallScreenWidth}
-                    isCreateMenuOpen={props.isCreateMenuOpen}
-                />
-                <SubNavigation isSmallScreenWidth={props.isSmallScreenWidth} />
+                <GlobalNavigation />
+                <SubNavigation />
             </View>
             {props.children}
         </ScreenWrapper>
@@ -36,4 +32,4 @@ function BaseSidebarScreen(props) {
 BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 
-export default withWindowDimensions(BaseSidebarScreen);
+export default BaseSidebarScreen;

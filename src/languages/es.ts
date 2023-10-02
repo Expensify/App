@@ -2271,4 +2271,7 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
     },
+    globalNavigationOptions: {
+        chats: 'Chats',
+    },
 } satisfies EnglishTranslation;

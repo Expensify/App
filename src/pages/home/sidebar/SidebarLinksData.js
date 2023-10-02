@@ -63,7 +63,7 @@ const defaultProps = {
     policies: [],
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
+function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, policies, priorityMode}) {
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef(null);
@@ -105,7 +105,6 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         >
             <SidebarLinks
                 // Forwarded props:
-                onLinkClick={onLinkClick}
                 insets={insets}
                 isSmallScreenWidth={isSmallScreenWidth}
                 priorityMode={priorityMode}

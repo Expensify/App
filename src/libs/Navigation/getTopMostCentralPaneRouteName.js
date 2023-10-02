@@ -8,12 +8,12 @@ import lodashFindLast from 'lodash/findLast';
  */
 function getTopMostCentralPaneRouteName(state) {
     if (!state) {
-        return;
+        return undefined;
     }
     const topmostCentralPane = lodashFindLast(state.routes, (route) => route.name === 'CentralPaneNavigator');
 
     if (!topmostCentralPane) {
-        return;
+        return undefined;
     }
 
     if (topmostCentralPane.state && topmostCentralPane.state.routes) {

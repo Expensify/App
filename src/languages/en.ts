@@ -1788,4 +1788,7 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
+    globalNavigationOptions: {
+        chats: 'Chats',
+    },
 } satisfies TranslationBase;
