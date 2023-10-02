@@ -8,6 +8,7 @@ import useLocalize from '../../../../hooks/useLocalize';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as CartUtils from '../../../../libs/CardUtils';
+import PressableWithDelayToggle from '../../../../components/Pressable/PressableWithDelayToggle';
 
 const propTypes = {
     /** Card number */
@@ -61,11 +62,16 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.cardNumber')}
                 title={pan}
-                iconRight={Expensicons.Copy}
-                shouldShowRightIcon
+                shouldShowRightComponent
+                rightComponent={
+                    <PressableWithDelayToggle
+                        tooltipText={translate('reportActionContextMenu.copyToClipboard')}
+                        tooltipTextChecked={translate('reportActionContextMenu.copied')}
+                        icon={Expensicons.Copy}
+                        onPress={handleCopyToClipboard}
+                    />
+                }
                 interactive={false}
-                onIconRightPress={handleCopyToClipboard}
-                iconRightAccessibilityLabel={translate('cardPage.cardDetails.copyCardNumber')}
             />
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.expiration')}
