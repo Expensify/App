@@ -79,15 +79,14 @@ function HeaderView(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
-    const title = ReportUtils.getReportName(reportHeaderData);
+    // Use sorted display names for the title for group chats on native small screen widths
+    const title = isMultipleParticipant ? _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ') : ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
     const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
-    // Use sorted display names for the fullTitle instead of title for group chats on native small screen widths
-    const sortedDisplayNames = isMultipleParticipant ? _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ') : '';
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
     const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
 
@@ -244,7 +243,7 @@ function HeaderView(props) {
                             )}
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
-                                    fullTitle={!_.isEmpty(sortedDisplayNames) ? sortedDisplayNames : title}
+                                    fullTitle={title}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
