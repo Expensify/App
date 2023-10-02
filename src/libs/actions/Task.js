@@ -273,22 +273,6 @@ function completeTask(taskReport) {
         },
     ];
 
-    // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
-    // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-    const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
-    if (!_.isEmpty(assigneeReportAction)) {
-        const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
-            taskReportID,
-            completedTaskReportAction.created,
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            assigneeReportAction.reportID,
-            assigneeReportAction.reportActionID,
-        );
-        if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
-            optimisticData.push(optimisticDataForClonedParentReportAction);
-        }
-    }
-
     API.write(
         'CompleteTask',
         {
@@ -358,22 +342,6 @@ function reopenTask(taskReport) {
             },
         },
     ];
-
-    // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
-    // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-    const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
-    if (!_.isEmpty(assigneeReportAction)) {
-        const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
-            taskReportID,
-            reopenedTaskReportAction.created,
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            assigneeReportAction.reportID,
-            assigneeReportAction.reportActionID,
-        );
-        if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
-            optimisticData.push(optimisticDataForClonedParentReportAction);
-        }
-    }
 
     API.write(
         'ReopenTask',
@@ -825,6 +793,15 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`,
+            value: {
+                [parentReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
     ];
 
     const failureData = [
@@ -841,6 +818,15 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {
                 [optimisticReportActionID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`,
+            value: {
+                [parentReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
             },
         },
     ];

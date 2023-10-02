@@ -46,6 +46,12 @@ Onyx.connect({
     },
 });
 
+let networkTimeSkew = 0;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (val) => (networkTimeSkew = lodashGet(val, 'timeSkew', 0)),
+});
+
 /**
  * Gets the locale string and setting default locale for date-fns
  *
@@ -308,6 +314,15 @@ function getDBTime(timestamp = '') {
 }
 
 /**
+ * Returns the current time plus skew in milliseconds in the format expected by the database
+ *
+ * @returns {String}
+ */
+function getDBTimeWithSkew() {
+    return getDBTime(new Date().valueOf() + networkTimeSkew);
+}
+
+/**
  * @param {String} dateTime
  * @param {Number} milliseconds
  * @returns {String}
@@ -383,6 +398,7 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
+    getDBTimeWithSkew,
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
     getStatusUntilDate,

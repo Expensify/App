@@ -75,6 +75,10 @@
                     {
                         "/": "/teachersunite/*",
                         "comment": "Teachers Unite!"
+                    },
+                    {
+                        "/": "/search/*",
+                        "comment": "Search"
                     }
                 ]
             }
