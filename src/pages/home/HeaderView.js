@@ -80,7 +80,7 @@ function HeaderView(props) {
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = isMultipleParticipant ? _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ') : ReportUtils.getReportName(reportHeaderData);
+    const title = isMultipleParticipant ? ReportUtils.getDisplayNamesStringFromTooltips(displayNamesWithTooltips) : ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);

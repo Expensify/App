@@ -119,10 +119,7 @@ function OptionRowLHN(props) {
 
     const fullTitle =
         optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.isArchivedRoom && optionItem.displayNamesWithTooltips && optionItem.displayNamesWithTooltips.length > 1
-            ? _.filter(
-                  _.map(optionItem.displayNamesWithTooltips, ({displayName}) => displayName),
-                  (displayName) => !_.isEmpty(displayName),
-              ).join(', ')
+            ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips)
             : optionItem.text;
 
     /**

@@ -1225,6 +1225,30 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
 }
 
 /**
+ * Gets a joined string of display names from the list of display name with tooltip objects.
+ *
+ * @param {Object} displayNamesWithTooltips
+ * @returns {String}
+ */
+function getDisplayNamesStringFromTooltips(displayNamesWithTooltips) {
+    return _.filter(
+        _.map(displayNamesWithTooltips, ({displayName}) => displayName),
+        (displayName) => !_.isEmpty(displayName),
+    ).join(', ');
+}
+
+/**
+ * Get the report given a reportID
+ *
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReport(reportID) {
+    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
+}
+
+/**
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
@@ -3824,6 +3848,7 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
+    getDisplayNamesStringFromTooltips,
     getReportName,
     getReport,
     getReportIDFromLink,
