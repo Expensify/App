@@ -11,6 +11,7 @@ import navigationRef from './navigationRef';
 import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
 import originalGetTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
+import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import getStateFromPath from './getStateFromPath';
 import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
@@ -49,6 +50,9 @@ const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopm
 
 // Re-exporting the getTopMostCentralPaneRouteName here to fill in default value for state. The getTopMostCentralPaneRouteName isn't defined in this file to avoid cyclic dependencies.
 const getTopMostCentralPaneRouteName = (state = navigationRef.getState()) => originalGetTopMostCentralPaneRouteName(state);
+
+// Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
+const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
 /**
  * Method for finding on which index in stack we are.
@@ -273,6 +277,7 @@ export default {
     getTopmostReportId,
     getRouteNameFromStateEvent,
     getTopMostCentralPaneRouteName,
+    getTopmostReportActionId,
 };
 
 export {navigationRef};

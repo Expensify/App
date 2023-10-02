@@ -1,6 +1,7 @@
 ---
 title: The Free Plan
 description: Everything you need to know about Expensify's Free Plan!
+redirect_from: articles/split-bills/workspaces/The-Free-Plan/
 ---
 
 <!-- The lines above are required by Jekyll to process the .md file -->

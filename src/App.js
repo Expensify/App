@@ -9,7 +9,7 @@ import {PickerStateProvider} from 'react-native-picker-select';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
-import {LocaleContextProvider} from './components/withLocalize';
+import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import PopoverContextProvider from './components/PopoverProvider';
