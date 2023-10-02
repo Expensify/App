@@ -301,7 +301,7 @@ function addActions(reportID, text = '', file) {
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction || reportCommentAction;
 
-    const currentTime = DateUtils.getDBTime();
+    const currentTime = DateUtils.getDBTimeWithSkew();
 
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
 
@@ -690,7 +690,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             '',
             undefined,
             undefined,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             parentReportAction.reportActionID,
             parentReportID,
         );
@@ -1454,10 +1454,13 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {String} reportID
  * @param {String} previousValue
  * @param {String} newValue
+ * @param {boolean} navigate
  */
-function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
+function updateNotificationPreference(reportID, previousValue, newValue, navigate) {
     if (previousValue === newValue) {
-        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+        if (navigate) {
+            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+        }
         return;
     }
     const optimisticData = [
@@ -1475,7 +1478,9 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
-    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+    if (navigate) {
+        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+    }
 }
 
 /**
@@ -1835,7 +1840,7 @@ function showReportActionNotification(reportID, reportAction) {
     const notificationParams = {
         report,
         reportAction,
-        onClick: () => Navigation.navigate(ROUTES.getReportRoute(reportID)),
+        onClick: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)),
     };
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         LocalNotification.showModifiedExpenseNotification(notificationParams);
@@ -2325,7 +2330,7 @@ export {
     reconnect,
     updateWelcomeMessage,
     updateWriteCapabilityAndNavigate,
-    updateNotificationPreferenceAndNavigate,
+    updateNotificationPreference,
     subscribeToReportTypingEvents,
     subscribeToReportLeavingEvents,
     unsubscribeFromReportChannel,

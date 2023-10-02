@@ -105,9 +105,9 @@ const defaultProps = {
         hasOutstandingIOU: false,
     },
     reportMetadata: {
-        isLoadingInitialReportActions: false,
-        isLoadingNewerReportActions: false,
+        isLoadingInitialReportActions: true,
         isLoadingOlderReportActions: false,
+        isLoadingNewerReportActions: false,
     },
     isComposerFullSize: false,
     betas: [],
@@ -118,15 +118,6 @@ const defaultProps = {
     markReadyForHydration: null,
     ...withCurrentReportIDDefaultProps,
 };
-
-/**
- *
- * Function to check weather the report available in props is default
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-const checkDefaultReport = (report) => report === defaultProps.report;
 
 /**
  * Get the currently viewed report ID as number
@@ -189,8 +180,6 @@ function ReportScreen({
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
 
-    const isDefaultReport = checkDefaultReport(report);
-
     let headerView = (
         <HeaderView
             reportID={reportID}
@@ -249,11 +238,12 @@ function ReportScreen({
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (report.reportID && report.reportID === getReportID(route)) {
+        if (report.reportID && report.reportID === getReportID(route) && !reportMetadata.isLoadingInitialReportActions) {
             return;
         }
+
         Report.openReport(reportIDFromPath);
-    }, [report.reportID, route]);
+    }, [report.reportID, route, reportMetadata.isLoadingInitialReportActions]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -365,17 +355,8 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () =>
-            (!firstRenderRef.current &&
-                !_.isEmpty(report) &&
-                !isDefaultReport &&
-                !report.reportID &&
-                !isOptimisticDelete &&
-                !reportMetadata.isLoadingInitialReportActions &&
-                !isLoading &&
-                !userLeavingStatus) ||
-            shouldHideReport,
-        [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete, userLeavingStatus, reportMetadata.isLoadingInitialReportActions],
+        () => (!firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingInitialReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
+        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
 
     return (
@@ -488,9 +469,9 @@ export default compose(
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
                 initialValue: {
+                    isLoadingInitialReportActions: true,
                     isLoadingOlderReportActions: false,
                     isLoadingNewerReportActions: false,
-                    isLoadingInitialReportActions: false,
                 },
             },
             isComposerFullSize: {
