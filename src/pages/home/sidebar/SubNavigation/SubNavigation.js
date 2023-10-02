@@ -29,6 +29,7 @@ function SubNavigation(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
+            includePaddingTop={false}
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             testID={SubNavigation.displayName}
