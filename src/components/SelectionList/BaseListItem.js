@@ -28,7 +28,7 @@ function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip,
                 onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
                 accessibilityLabel={item.text}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

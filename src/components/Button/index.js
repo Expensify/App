@@ -310,7 +310,7 @@ class Button extends Component {
                 ]}
                 id={this.props.id}
                 accessibilityLabel={this.props.accessibilityLabel}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 hoverDimmingValue={1}
             >
                 {this.renderContent()}

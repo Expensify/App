@@ -273,7 +273,7 @@ function MagicCodeInput(props) {
                                 value={input}
                                 hideFocusedState
                                 autoComplete={index === 0 ? props.autoComplete : 'off'}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                inputMode={CONST.INPUT_MODE.NUMERIC}
                                 onChangeText={(value) => {
                                     // Do not run when the event comes from an input that is
                                     // not currently being responsible for the input, this is
@@ -291,7 +291,7 @@ function MagicCodeInput(props) {
                                 selectionColor="transparent"
                                 textInputContainerStyles={[styles.borderNone]}
                                 inputStyle={[styles.inputTransparent]}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
                     </View>
