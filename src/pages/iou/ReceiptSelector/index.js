@@ -1,5 +1,5 @@
-import {View, Text, PixelRatio} from 'react-native';
-import React, {useContext, useState} from 'react';
+import {View, Text, PanResponder, PixelRatio} from 'react-native';
+import React, {useContext, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -8,7 +8,6 @@ import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
 import CONST from '../../../CONST';
 import ReceiptUpload from '../../../../assets/images/receipt-upload.svg';
-import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Button from '../../../components/Button';
 import styles from '../../../styles/styles';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
@@ -37,6 +36,9 @@ const propTypes = {
             /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
+
+        /** The current route path */
+        path: PropTypes.string,
     }).isRequired,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
@@ -44,16 +46,20 @@ const propTypes = {
 
     /** The id of the transaction we're editing */
     transactionID: PropTypes.string,
+
+    /** Whether or not the receipt selector is in a tab navigator for tab animations */
+    // eslint-disable-next-line react/no-unused-prop-types
+    isInTabNavigator: PropTypes.bool,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
     transactionID: '',
+    isInTabNavigator: true,
 };
 
 function ReceiptSelector(props) {
-    const reportID = lodashGet(props.route, 'params.reportID', '');
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
@@ -119,8 +125,15 @@ function ReceiptSelector(props) {
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, reportID, report);
+        IOU.navigateToNextPage(iou, iouType, report, props.route.path);
     };
+
+    const panResponder = useRef(
+        PanResponder.create({
+            onMoveShouldSetPanResponder: () => true,
+            onPanResponderTerminationRequest: () => false,
+        }),
+    ).current;
 
     return (
         <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
@@ -136,35 +149,37 @@ function ReceiptSelector(props) {
                             height={CONST.RECEIPT.ICON_SIZE}
                         />
                     </View>
-                    <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
-                    <Text style={[styles.subTextReceiptUpload]}>
-                        {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
-                        <CopyTextToClipboard
-                            text={CONST.EMAIL.RECEIPTS}
-                            textStyles={[styles.textBlue]}
-                        />
-                        {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
-                    </Text>
+                    <View
+                        style={styles.receiptViewTextContainer}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...panResponder.panHandlers}
+                    >
+                        <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
+                        <Text style={[styles.subTextReceiptUpload]}>
+                            {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+                            <CopyTextToClipboard
+                                text={CONST.EMAIL.RECEIPTS}
+                                textStyles={[styles.textBlue]}
+                            />
+                            {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
+                        </Text>
+                    </View>
                     <AttachmentPicker>
                         {({openPicker}) => (
-                            <PressableWithFeedback
+                            <Button
+                                medium
+                                success
+                                text={translate('receipt.chooseFile')}
                                 accessibilityLabel={translate('receipt.chooseFile')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            >
-                                <Button
-                                    medium
-                                    success
-                                    text={translate('receipt.chooseFile')}
-                                    style={[styles.p9]}
-                                    onPress={() => {
-                                        openPicker({
-                                            onPicked: (file) => {
-                                                setReceiptAndNavigate(file, props.iou, props.report);
-                                            },
-                                        });
-                                    }}
-                                />
-                            </PressableWithFeedback>
+                                style={[styles.p9]}
+                                onPress={() => {
+                                    openPicker({
+                                        onPicked: (file) => {
+                                            setReceiptAndNavigate(file, props.iou, props.report);
+                                        },
+                                    });
+                                }}
+                            />
                         )}
                     </AttachmentPicker>
                 </>
