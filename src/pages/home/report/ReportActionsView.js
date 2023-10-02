@@ -188,7 +188,7 @@ function ReportActionsView(props) {
         }
         const newestReportAction = _.first(props.reportActions);
         Report.getNewerActions(reportID, newestReportAction.reportActionID);
-    }, 700);
+    }, 500);
 
     /**
      * Runs when the FlatList finishes laying out
@@ -255,11 +255,15 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
+    if (oldProps.isLoadingInitialReportActions !== newProps.isLoadingInitialReportActions) {
+        return false;
+    }
+    
     if (oldProps.isLoadingOlderReportActions !== newProps.isLoadingOlderReportActions) {
         return false;
     }
 
-    if (oldProps.isLoadingInitialReportActions !== newProps.isLoadingInitialReportActions) {
+    if (oldProps.isLoadingNewerReportActions !== newProps.isLoadingNewerReportActions) {
         return false;
     }
 

@@ -120,7 +120,6 @@ function ReportActionsList({
 }) {
     const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
