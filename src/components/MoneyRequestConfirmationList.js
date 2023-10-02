@@ -556,7 +556,7 @@ function MoneyRequestConfirmationList(props) {
                     {shouldShowCategories && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            rightLabel={translate('required')}
+                            rightLabel={Boolean(props.policy.requiresCategory) ? translate('required') : ''}
                             title={props.iouCategory}
                             description={translate('common.category')}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID))}
@@ -567,6 +567,7 @@ function MoneyRequestConfirmationList(props) {
                     {shouldShowTags && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
+                            rightLabel={Boolean(props.policy.requiresTag) ? translate('required') : ''}
                             title={props.iouTag}
                             description={policyTagListName}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID))}

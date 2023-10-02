@@ -32,6 +32,7 @@ import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import transactionPropTypes from '../transactionPropTypes';
 import Image from '../Image';
+import ReceiptAudit from '../ReceiptAudit';
 import Switch from '../Switch';
 import ReportActionItemImage from './ReportActionItemImage';
 import * as TransactionUtils from '../../libs/TransactionUtils';
@@ -97,10 +98,6 @@ function getViolationForField(transactionViolation, field) {
     const {translate} = useLocalize();
     const fieldViolation = _.find(transactionViolation.violation, (violation) => violations[violation] === field);
     return fieldViolation ? translate(fieldViolation) : '';
-}
-
-function getNotesCount(transactionViolations) {
-    return _.intersection(transactionViolations.notice, notes).length;
 }
 
 function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy, transactionViolation}) {
@@ -172,6 +169,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
             </View>
 
             {hasReceipt && (
+                <>
                 <OfflineWithFeedback pendingAction={pendingAction}>
                     <View style={styles.moneyRequestViewImage}>
                         <ReportActionItemImage
@@ -181,15 +179,9 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         />
                     </View>
                 </OfflineWithFeedback>
+                    <ReceiptAudit notice={transactionViolation.notice} />
+                </>
             )}
-    <Icon
-        width={32}
-        height={32}
-        src={getNotesCount(transaction) > 0 ? Expensicons.Receipt : Expensicons.Checkmark}
-    />
-<Text>
-        Receipt Audit • {getNotesCount(transaction) > 0 ? `${getNotesCount(transaction)} Issue(s) Found` : 'No issues Found'}
-</Text>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
                 <MenuItemWithTopDescription
                     title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
