@@ -212,6 +212,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
+    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
@@ -257,7 +258,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
                 nativeID={NUM_PAD_CONTAINER_VIEW_ID}
             >
-                {DeviceCapabilities.canUseTouchScreen() ? (
+                {canUseTouchScreen ? (
                     <BigNumberPad
                         nativeID={NUM_PAD_VIEW_ID}
                         numberPressed={updateAmountNumberPad}
@@ -267,7 +268,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 <Button
                     success
                     medium={isExtraSmallScreenHeight}
-                    style={[styles.w100, styles.mt5]}
+                    style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt2]}
                     onPress={submitAndNavigateToNextPage}
                     pressOnEnter
                     text={buttonText}
