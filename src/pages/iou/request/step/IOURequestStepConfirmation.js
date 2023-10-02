@@ -55,7 +55,7 @@ const propTypes = {
     personalDetails: personalDetailsPropType,
 
     /** The policy of the report */
-    policy: policyPropTypes,
+    ...policyPropTypes,
 
     /** The full IOU report */
     report: reportPropTypes,
