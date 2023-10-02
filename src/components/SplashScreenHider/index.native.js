@@ -18,6 +18,9 @@ const defaultProps = {
 function SplashScreenHider(props) {
     const {onHide} = props;
 
+    const logoSizeRatio = BootSplash.logoSizeRatio || 1;
+    const navigationBarHeight = BootSplash.navigationBarHeight || 0;
+
     const opacity = useSharedValue(1);
     const scale = useSharedValue(1);
 
@@ -64,15 +67,15 @@ function SplashScreenHider(props) {
                 opacityStyle,
                 {
                     // Apply negative margins to center the logo on window (instead of screen)
-                    marginBottom: -(BootSplash.navigationBarHeight || 0),
+                    marginBottom: -navigationBarHeight,
                 },
             ]}
         >
             <Reanimated.View style={scaleStyle}>
                 <Logo
                     viewBox="0 0 80 80"
-                    width={100}
-                    height={100}
+                    width={100 * logoSizeRatio}
+                    height={100 * logoSizeRatio}
                 />
             </Reanimated.View>
         </Reanimated.View>
