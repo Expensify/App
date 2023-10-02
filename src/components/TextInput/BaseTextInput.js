@@ -248,9 +248,7 @@ function BaseTextInput(props) {
             if (lineHeightValue) {
                 return lineHeightValue.lineHeight;
             }
-        } else if (Browser.isSafari() || Browser.isMobileChrome()) {
-            return height;
-        }
+        } 
         return undefined;
     }, [props.inputStyle, height]);
 
