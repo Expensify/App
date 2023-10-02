@@ -52,7 +52,6 @@ const lightTheme = {
     textMutedReversed: colors.lightIcons,
     textError: colors.red,
     offline: colors.lightIcons,
-    modalBackdrop: colors.lightHighlightBackground,
     modalBackground: colors.lightAppBackground,
     cardBG: colors.lightHighlightBackground,
     cardBorder: colors.lightHighlightBackground,

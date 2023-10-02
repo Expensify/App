@@ -3733,6 +3733,7 @@ const styles = (theme: ThemeDefault) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
         userReportStatusEmoji: {
+            flexShrink: 0,
             fontSize: variables.fontSizeNormal,
             marginRight: 4,
         },
