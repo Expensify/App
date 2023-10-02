@@ -86,7 +86,7 @@ function IOURequestStepConfirmation({
 
     const isManualRequestDM = TransactionUtils.isManualRequest(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const headerTitle = TransactionUtils.getHeaderTitle(translate, transaction);
+    const headerTitle = translate(TransactionUtils.getHeaderTitle(transaction));
     const participants = useMemo(
         () =>
             _.map(transaction.participants, (participant) => {

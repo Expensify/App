@@ -52,7 +52,7 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const optionsSelectorRef = useRef();
     const iouRequestType = TransactionUtils.getRequestType(transaction);
-    const headerTitle = TransactionUtils.getHeaderTitle(translate, transaction);
+    const headerTitle = translate(TransactionUtils.getHeaderTitle(transaction));
 
     const goToNextStep = () => {
         Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID), true);

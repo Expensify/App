@@ -1,5 +1,6 @@
 import Onyx, {OnyxCollection} from 'react-native-onyx';
 import {format, parseISO, isValid} from 'date-fns';
+import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
@@ -265,9 +266,50 @@ function getCreated(transaction: Transaction): string {
 }
 
 function isDistanceRequest(transaction: Transaction): boolean {
+    // This is the case for temporary transaction objects that haven't been saved yet
+    if (Object.keys(transaction?.comment?.waypoints ?? {}).length > 1) {
+        return true;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+function isScanRequest(transaction: Transaction): boolean {
+    return Boolean(transaction?.receipt?.source);
+}
+
+function isSplitRequest(transaction: Transaction): boolean {
+    // TODO: Figure out what makes a transaction a split request
+    return false;
+}
+
+function getRequestType(transaction: Transaction): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
+    if (isDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE;
+    }
+    if (isScanRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.SCAN;
+    }
+    return CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+function isManualRequest(transaction: Transaction): boolean {
+    return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+/**
+ * Returns the translation key to use for the header title
+ */
+function getHeaderTitle(transaction: Transaction): string {
+    const headerTitles = {
+        [CONST.IOU.REQUEST_TYPE.DISTANCE]: 'tabSelector.distance',
+        [CONST.IOU.REQUEST_TYPE.MANUAL]: 'tabSelector.manual',
+        [CONST.IOU.REQUEST_TYPE.SCAN]: 'tabSelector.scan',
+    };
+    return headerTitles[getRequestType(transaction)];
 }
 
 function isReceiptBeingScanned(transaction: Transaction): boolean {
@@ -365,6 +407,11 @@ export {
     getUpdatedTransaction,
     getTransaction,
     getDescription,
+    getHeaderTitle,
+    getRequestType,
+    isManualRequest,
+    isScanRequest,
+    isSplitRequest,
     getAmount,
     getCurrency,
     getMerchant,
