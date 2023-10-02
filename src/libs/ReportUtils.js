@@ -1935,7 +1935,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
             ],
             automatic: false,
             avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
-            created: DateUtils.getDBTime(),
+            created: DateUtils.getDBTimeWithSkew(),
             message: [
                 {
                     translationKey: isAttachment ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
@@ -3382,30 +3382,6 @@ function isReportDataReady() {
 }
 
 /**
- * Find the parent report action in assignee report for a task report
- * Returns an empty object if assignee report is the same as the share destination report
- *
- * @param {Object} taskReport
- * @returns {Object}
- */
-function getTaskParentReportActionIDInAssigneeReport(taskReport) {
-    const assigneeChatReportID = lodashGet(getChatByParticipants(isReportManager(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
-    if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
-        return {};
-    }
-
-    const clonedParentReportActionID = lodashGet(ReportActionsUtils.getParentReportActionInReport(taskReport.reportID, assigneeChatReportID), 'reportActionID');
-    if (!clonedParentReportActionID) {
-        return {};
-    }
-
-    return {
-        reportID: assigneeChatReportID,
-        reportActionID: clonedParentReportActionID,
-    };
-}
-
-/**
  * Return the errors we have when creating a chat or a workspace room
  * @param {Object} report
  * @returns {Object} errors
@@ -3781,7 +3757,6 @@ export {
     getBankAccountRoute,
     getParentReport,
     getRootParentReport,
-    getTaskParentReportActionIDInAssigneeReport,
     getReportPreviewMessage,
     getModifiedExpenseMessage,
     shouldDisableWriteActions,
