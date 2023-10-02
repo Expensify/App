@@ -174,7 +174,7 @@ class ReimbursementAccountPage extends React.Component {
         // user left off in the flow.
         const backTo = lodashGet(this.props.route.params, 'backTo');
         const policyId = lodashGet(this.props.route.params, 'policyID');
-        Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep), policyId, backTo));
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(this.getRouteForCurrentStep(currentStep), policyId, backTo));
     }
 
     /*
@@ -206,7 +206,7 @@ class ReimbursementAccountPage extends React.Component {
      * @returns {String}
      */
     getStepToOpenFromRouteParams() {
-        switch (lodashGet(this.props.route, ['params', 'stepToOpen'])) {
+        switch (lodashGet(this.props.route, ['params', 'stepToOpen'], '')) {
             case 'new':
                 return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
             case 'company':
@@ -421,6 +421,7 @@ class ReimbursementAccountPage extends React.Component {
                     plaidLinkOAuthToken={this.props.plaidLinkToken}
                     getDefaultStateForField={this.getDefaultStateForField}
                     policyName={policyName}
+                    policyID={policyID}
                 />
             );
         }

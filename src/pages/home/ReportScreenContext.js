@@ -1,4 +1,6 @@
 import {createContext} from 'react';
 
-const ReportScreenContext = createContext();
-export default ReportScreenContext;
+const ActionListContext = createContext();
+const ReactionListContext = createContext();
+
+export {ActionListContext, ReactionListContext};
