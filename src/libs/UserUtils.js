@@ -106,9 +106,8 @@ function getDefaultAvatarURL(accountID = '', isNewDot = false) {
         return CONST.CONCIERGE_ICON_URL;
     }
 
-    // The default avatar for a user is based on a simple hash of their accountID.
     // Note that Avatar count starts at 1 which is why 1 has to be added to the result (or else 0 would result in a broken avatar link)
-    const accountIDHashBucket = hashText(String(accountID), isNewDot ? CONST.DEFAULT_AVATAR_COUNT : CONST.OLD_DEFAULT_AVATAR_COUNT) + 1;
+    const accountIDHashBucket = (Number(accountID) % (isNewDot ? CONST.DEFAULT_AVATAR_COUNT : CONST.OLD_DEFAULT_AVATAR_COUNT)) + 1;
     const avatarPrefix = isNewDot ? `default-avatar` : `avatar`;
 
     return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${accountIDHashBucket}.png`;

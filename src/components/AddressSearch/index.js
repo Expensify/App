@@ -34,7 +34,7 @@ const propTypes = {
     onBlur: PropTypes.func,
 
     /** Error text to display */
-    errorText: PropTypes.string,
+    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** Hint text to display */
     hint: PropTypes.string,
@@ -95,6 +95,9 @@ const propTypes = {
     /** Maximum number of characters allowed in search input */
     maxInputLength: PropTypes.number,
 
+    /** The result types to return from the Google Places Autocomplete request */
+    resultTypes: PropTypes.string,
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -123,6 +126,7 @@ const defaultProps = {
     },
     maxInputLength: undefined,
     predefinedPlaces: [],
+    resultTypes: 'address',
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -134,10 +138,10 @@ function AddressSearch(props) {
     const query = useMemo(
         () => ({
             language: props.preferredLocale,
-            types: 'address',
+            types: props.resultTypes,
             components: props.isLimitedToUSA ? 'country:us' : undefined,
         }),
-        [props.preferredLocale, props.isLimitedToUSA],
+        [props.preferredLocale, props.resultTypes, props.isLimitedToUSA],
     );
 
     const saveLocationDetails = (autocompleteData, details) => {
@@ -287,6 +291,12 @@ function AddressSearch(props) {
                             <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
                         )
                     }
+                    renderHeaderComponent={() =>
+                        !props.value &&
+                        props.predefinedPlaces && (
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.pt2, styles.ph3, styles.overflowAuto]}>{props.translate('common.recentDestinations')}</Text>
+                        )
+                    }
                     onPress={(data, details) => {
                         saveLocationDetails(data, details);
 
@@ -296,7 +306,7 @@ function AddressSearch(props) {
                     query={query}
                     requestUrl={{
                         useOnPlatform: 'all',
-                        url: ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
+                        url: props.network.isOffline ? null : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
                     }}
                     textInputProps={{
                         InputComp: TextInput,

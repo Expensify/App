@@ -429,6 +429,7 @@ function updateAvatar(file) {
                         avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         originalFileName: null,
                     },
+                    fallbackIcon: file.uri,
                 },
             },
         },
@@ -479,6 +480,7 @@ function deleteAvatar() {
             value: {
                 [currentUserAccountID]: {
                     avatar: defaultAvatar,
+                    fallbackIcon: null,
                 },
             },
         },
@@ -490,6 +492,7 @@ function deleteAvatar() {
             value: {
                 [currentUserAccountID]: {
                     avatar: allPersonalDetails[currentUserAccountID].avatar,
+                    fallbackIcon: allPersonalDetails[currentUserAccountID].fallbackIcon,
                 },
             },
         },

@@ -135,8 +135,10 @@ function cherry_pick_pr {
 
   git switch staging
   git switch -c cherry-pick-staging
-  git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_MERGE_COMMIT"
   git cherry-pick -x --mainline 1 "$VERSION_BUMP_COMMIT"
+  setup_git_as_human
+  git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_MERGE_COMMIT"
+  setup_git_as_osbotify
 
   git switch staging
   git merge cherry-pick-staging --no-ff -m "Merge pull request #$(($1 + 1)) from Expensify/cherry-pick-staging"
@@ -207,7 +209,7 @@ tag_staging
 git switch main
 
 # Verify output for checklist and deploy comment
-assert_prs_merged_between '1.0.0-0' '1.0.0-1' "[ '1' ]"
+assert_prs_merged_between '1.0.0-0' '1.0.0-1' "[ 1 ]"
 
 success "Scenario #1 completed successfully!"
 
@@ -236,10 +238,10 @@ cherry_pick_pr 3
 tag_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ '3', '1' ]"
+assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ 3, 1 ]"
 
 # Verify output for deploy comment
-assert_prs_merged_between '1.0.0-1' '1.0.0-2' "[ '3' ]"
+assert_prs_merged_between '1.0.0-1' '1.0.0-2' "[ 3 ]"
 
 success "Scenario #3 completed successfully!"
 
@@ -250,7 +252,7 @@ title "Scenario #4A: Run the production deploy"
 update_production_from_staging
 
 # Verify output for release body and production deploy comments
-assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ '3', '1' ]"
+assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ 3, 1 ]"
 
 success "Scenario #4A completed successfully!"
 
@@ -261,7 +263,7 @@ update_staging_from_main
 tag_staging
 
 # Verify output for new checklist and staging deploy comments
-assert_prs_merged_between '1.0.0-2' '1.0.1-0' "[ '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-0' "[ 2 ]"
 
 success "Scenario #4B completed successfully!"
 
@@ -282,10 +284,10 @@ update_staging_from_main
 tag_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.0-2' '1.0.1-1' "[ '5', '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-1' "[ 5, 2 ]"
 
 # Verify output for deploy comment
-assert_prs_merged_between '1.0.1-0' '1.0.1-1' "[ '5' ]"
+assert_prs_merged_between '1.0.1-0' '1.0.1-1' "[ 5 ]"
 
 success "Scenario #5 completed successfully!"
 
@@ -305,10 +307,10 @@ update_staging_from_main
 tag_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.0-2' '1.0.1-2' "[ '6', '5', '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-2' "[ 6, 5, 2 ]"
 
 # Verify output for deploy comment
-assert_prs_merged_between '1.0.1-1' '1.0.1-2' "[ '6' ]"
+assert_prs_merged_between '1.0.1-1' '1.0.1-2' "[ 6 ]"
 
 info "Appending and prepending content to myFile.txt in PR #7"
 setup_git_as_human
@@ -327,10 +329,10 @@ update_staging_from_main
 tag_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.0-2' '1.0.1-3' "[ '7', '6', '5', '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-3' "[ 7, 6, 5, 2 ]"
 
 # Verify output for deploy comment
-assert_prs_merged_between '1.0.1-2' '1.0.1-3' "[ '7' ]"
+assert_prs_merged_between '1.0.1-2' '1.0.1-3' "[ 7 ]"
 
 info "Making an unrelated change in PR #8"
 setup_git_as_human
@@ -387,10 +389,10 @@ update_staging_from_main
 tag_staging
 
 # Verify production release list
-assert_prs_merged_between '1.0.0-2' '1.0.1-4' "[ '9', '7', '6', '5', '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-4' "[ 9, 7, 6, 5, 2 ]"
 
 # Verify PR list for the new checklist
-assert_prs_merged_between '1.0.1-4' '1.0.2-0' "[ '10', '8' ]"
+assert_prs_merged_between '1.0.1-4' '1.0.2-0' "[ 10, 8 ]"
 
 ### Cleanup
 title "Cleaning up..."

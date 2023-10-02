@@ -32,7 +32,7 @@ const propTypes = {
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Menu options to display */
-    /** e.g. [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}] */
+    /** e.g. [{text: 'Pay with Expensify', icon: Wallet}] */
     options: PropTypes.arrayOf(
         PropTypes.shape({
             value: PropTypes.string.isRequired,
@@ -108,7 +108,6 @@ function ButtonWithDropdownMenu(props) {
                         isLoading={props.isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
-                        pressOnEnter
                         large={isButtonSizeLarge}
                         medium={!isButtonSizeLarge}
                         innerStyles={[innerStyleDropButton]}
@@ -144,7 +143,6 @@ function ButtonWithDropdownMenu(props) {
                     isLoading={props.isLoading}
                     text={selectedItem.text}
                     onPress={(event) => props.onPress(event, props.options[0].value)}
-                    pressOnEnter
                     large={isButtonSizeLarge}
                     medium={!isButtonSizeLarge}
                     innerStyles={[innerStyleDropButton]}

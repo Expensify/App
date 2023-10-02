@@ -97,7 +97,7 @@ function navigate(route = ROUTES.HOME, type) {
  * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
  * @param {Bool} shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shouldPopToTop = false) {
+function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
     }
@@ -161,11 +161,11 @@ function dismissModal(targetReportID) {
     const lastRoute = _.last(rootState.routes);
     switch (lastRoute.name) {
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
-        case NAVIGATORS.FULL_SCREEN_NAVIGATOR:
+        case SCREENS.NOT_FOUND:
         case SCREENS.REPORT_ATTACHMENTS:
             // if we are not in the target report, we need to navigate to it after dismissing the modal
             if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
-                const state = getStateFromPath(ROUTES.getReportRoute(targetReportID));
+                const state = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReportID));
 
                 const action = getActionFromState(state, linkingConfig.config);
                 action.type = 'REPLACE';
