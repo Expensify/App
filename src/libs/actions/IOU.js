@@ -117,7 +117,7 @@ function buildOnyxDataForMoneyRequest(
     iouAction,
     optimisticPersonalDetailListAction,
     reportPreviewAction,
-    optimisticRecentlyUsedCategories,
+    optimisticPolicyRecentlyUsedCategories,
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
     isNewIOUReport,
@@ -168,8 +168,12 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
-    if (!_.isEmpty(optimisticRecentlyUsedCategories)) {
-        optimisticData.push(optimisticRecentlyUsedCategories);
+    if (!_.isEmpty(optimisticPolicyRecentlyUsedCategories)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
+            value: optimisticPolicyRecentlyUsedCategories,
+        });
     }
 
     if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
@@ -1111,7 +1115,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         }
 
         // Add category to optimistic policy recently used categories when a participant is a workspace
-        let optimisticPolicyRecentlyUsedCategories = {};
+        let optimisticPolicyRecentlyUsedCategories = [];
         if (isPolicyExpenseChat) {
             optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
         }

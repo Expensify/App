@@ -1182,17 +1182,13 @@ function clearErrors(policyID) {
  */
 function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
     if (!policyID || !category) {
-        return {};
+        return [];
     }
 
     const policyRecentlyUsedCategories = lodashGet(allRecentlyUsedCategories, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, []);
     const uniquePolicyRecentlyUsedCategories = _.filter(policyRecentlyUsedCategories, (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory !== category);
 
-    return {
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
-        value: [category, ...uniquePolicyRecentlyUsedCategories],
-    };
+    return [category, ...uniquePolicyRecentlyUsedCategories];
 }
 
 export {
