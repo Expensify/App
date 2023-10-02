@@ -1566,12 +1566,12 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
 }
 
 /**
- * Get the proper message schema for modified expense message.
+ * Get the proper message schema for modified distance message.
  *
- * @param {String} newValue
- * @param {String} oldValue
- * @param {String} valueName
- * @param {Boolean} valueInQuotes
+ * @param {String} newDistance
+ * @param {String} oldDistance
+ * @param {String} newAmount
+ * @param {String} oldAmount
  * @returns {String}
  */
 
