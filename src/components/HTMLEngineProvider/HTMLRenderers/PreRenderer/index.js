@@ -11,7 +11,7 @@ const isScrollingVertically = (event) =>
     // value of deltaX, so user can use trackpad scroll on the code block horizontally at a wide angle.
     Math.abs(event.deltaY) > Math.abs(event.deltaX) * 2;
 
-const debouncedIsScrollingVertically = (event) => _.debounce(isScrollingVertically(event), 100, true);
+const debouncedIsScrollingVertically = _.debounce(isScrollingVertically, 100, true);
 
 function PreRenderer(props) {
     const scrollViewRef = useRef();
