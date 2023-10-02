@@ -118,7 +118,7 @@ function OptionRowLHN(props) {
         !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
 
     const fullTitle =
-        optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.isArchivedRoom && optionItem.displayNamesWithTooltips && optionItem.displayNamesWithTooltips.length > 1
+        optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.isArchivedRoom && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 1
             ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips)
             : optionItem.text;
 
