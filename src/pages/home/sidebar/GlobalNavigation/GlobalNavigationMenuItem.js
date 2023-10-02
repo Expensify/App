@@ -41,7 +41,7 @@ const GlobalNavigationMenuItem = React.forwardRef(({icon, iconFill, title, focus
     <Hoverable>
         {(isHovered) => (
             <PressableWithFeedback
-                onPress={focused ? () => {} : onPress}
+                onPress={() => focused && onPress()}
                 style={styles.globalNavigationItemContainer}
                 ref={ref}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
