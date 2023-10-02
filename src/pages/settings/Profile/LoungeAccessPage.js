@@ -144,7 +144,7 @@ function LoungeAccessPage(props) {
                 ) : (
                     <Text style={[styles.mb4]}>
                         {props.user.loungeCheckInDetails.isCheckedIn
-                            ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn')
+                            ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn', { checkInsRemaining: props.user.loungeCheckInDetails.checkInsRemaining })
                             : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn', { checkInsRemaining: props.user.loungeCheckInDetails.checkInsRemaining })}{' '}
                         <Text style={[styles.textStrong]}>
                             {NumberFormatUtils.format(props.preferredLocale, props.user.loungeCheckInDetails.checkInsRemaining)}{' '}
