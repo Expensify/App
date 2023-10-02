@@ -338,6 +338,10 @@ class BaseOptionsSelector extends Component {
         });
     }
 
+    /**
+     * Completes the follow-up action after clicking on multiple select button
+     * @param {Object} option
+     */
     addToSelection(option) {
         if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
             this.textInput.focus();
