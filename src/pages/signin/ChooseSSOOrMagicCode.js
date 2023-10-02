@@ -54,9 +54,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingSAMLLogin}) {
     return (
         <>
             <View>
-                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>
-                    {translate('samlSignIn.welcomeSAMLEnabled')}
-                </Text>
+                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>{translate('samlSignIn.welcomeSAMLEnabled')}</Text>
                 <Button
                     isDisabled={isOffline}
                     success
@@ -78,9 +76,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingSAMLLogin}) {
                     isDisabled={isOffline}
                     style={[styles.mv3]}
                     text={translate('samlSignIn.useMagicCode')}
-                    isLoading={
-                        account.isLoading && account.loadingForm === (account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
-                    }
+                    isLoading={account.isLoading && account.loadingForm === (account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
                     onPress={() => {
                         Session.resendValidateCode(credentials.login);
                         setIsUsingSAMLLogin(false);
@@ -101,5 +97,5 @@ ChooseSSOOrMagicCode.displayName = 'ChooseSSOOrMagicCode';
 
 export default withOnyx({
     credentials: {key: ONYXKEYS.CREDENTIALS},
-     account: {key: ONYXKEYS.ACCOUNT},
+    account: {key: ONYXKEYS.ACCOUNT},
 })(ChooseSSOOrMagicCode);
