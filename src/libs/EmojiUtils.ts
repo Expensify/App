@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {SvgProps} from 'react-native-svg';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
