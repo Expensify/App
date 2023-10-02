@@ -170,8 +170,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     }, [reports, personalDetails, searchTerm]);
 
     // When search term updates we will fetch any reports
-    const setSearchTermAndDebounceSearchInServer = useCallback((text) => {
-        if (text) {
+    const setSearchTermAndDebounceSearchInServer = useCallback((text = '') => {
+        if (text.length) {
             Report.debouncedSearchInServer(text);
         }
         setSearchTerm(text);
