@@ -245,6 +245,7 @@ class ContactMethodDetailsPage extends Component {
                         title={this.props.translate('contacts.removeContactMethod')}
                         onConfirm={this.confirmDeleteAndHideModal}
                         onCancel={() => this.toggleDeleteModal(false)}
+                        onModalHide={() => this.validateCodeFormRef.current.focus()}
                         prompt={this.props.translate('contacts.removeAreYouSure')}
                         confirmText={this.props.translate('common.yesContinue')}
                         cancelText={this.props.translate('common.cancel')}
