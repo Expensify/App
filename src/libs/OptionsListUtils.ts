@@ -409,6 +409,7 @@ function getLastMessageTextForReport(report: Report) {
     );
 
     let lastMessageTextFromReport = '';
+    const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText ?? '', html: report.lastMessageHtml ?? '', translationKey: report.lastMessageTranslationKey ?? ''})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey ?? 'common.attachment')}]`;
@@ -420,6 +421,12 @@ function getLastMessageTextForReport(report: Report) {
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
+    } else if (
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
+    ) {
+        lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText ?? '' : '';
 
@@ -1375,32 +1382,29 @@ function getShareDestinationOptions(
 /**
  * Format personalDetails or userToInvite to be shown in the list
  *
- * @param member - personalDetails or userToInvite
- * @param isSelected - whether the item is selected
+ * @param {Object} member - personalDetails or userToInvite
+ * @param {Object} config - keys to overwrite the default values
+ * @returns {Object}
  */
-function formatMemberForList(member: Option | PersonalDetails, isSelected: boolean) {
+function formatMemberForList(member, config = {}) {
     if (!member) {
         return undefined;
     }
 
-    const avatarSource = member.participantsList?.[0]?.avatar ?? member.avatar ?? '';
-    const accountID = member.accountID;
+    const accountID = lodashGet(member, 'accountID', '');
 
     return {
-        text: member.text ?? member.displayName ?? '',
-        alternateText: member.alternateText ?? member.login ?? '',
-        keyForList: member.keyForList ?? String(accountID),
-        isSelected,
+        text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
+        alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
+        keyForList: lodashGet(member, 'keyForList', '') || String(accountID),
+        isSelected: false,
         isDisabled: false,
         accountID,
         login: member.login ?? '',
         rightElement: null,
-        avatar: {
-            source: UserUtils.getAvatar(avatarSource, accountID),
-            name: member.participantsList?.[0]?.login ?? member.displayName ?? '',
-            type: 'avatar',
-        },
+        icons: lodashGet(member, 'icons'),
         pendingAction: lodashGet(member, 'pendingAction'),
+        ...config,
     };
 }
 
