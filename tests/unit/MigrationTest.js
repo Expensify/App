@@ -495,7 +495,7 @@ describe('Migrations', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
                     reportID: 1,
                     participants: ['fake@test.com'],
-                    participantAccountIDs: 5,
+                    participantAccountIDs: [5],
                 },
             })
                 .then(PersonalDetailsByAccountID)
@@ -508,7 +508,7 @@ describe('Migrations', () => {
                             Onyx.disconnect(connectionID);
                             const expectedReport = {
                                 reportID: 1,
-                                participantAccountIDs: 5,
+                                participantAccountIDs: [5],
                             };
                             expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`]).toMatchObject(expectedReport);
                         },
