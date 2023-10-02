@@ -2684,6 +2684,8 @@ const CONST = {
         HIDDEN_MARGIN_VERTICAL: 0,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
+    SEARCH_MAX_LENGTH: 500,
+    ERROR_EXCEED_RANGE: 20,
 } as const;
 
 export default CONST;

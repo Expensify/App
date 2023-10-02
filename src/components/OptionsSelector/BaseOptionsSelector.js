@@ -53,6 +53,7 @@ class BaseOptionsSelector extends Component {
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
+        this.updateSearchValue = this.updateSearchValue.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
@@ -62,6 +63,8 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
+            errorMessage: "",
+            searchValue: this.props.value,
         };
     }
 
@@ -164,6 +167,24 @@ class BaseOptionsSelector extends Component {
 
         return defaultIndex;
     }
+
+    updateSearchValue(value){
+        if (value.length > this.props.maxLength) {
+            this.setState({
+                searchValue: value,
+                errorMessage: this.props.translate("common.error.characterLimitExceedCounter", {length: value.length, limit: this.props.maxLength}),
+            });
+            return;
+        }
+
+        this.setState({
+            searchValue: value,
+            errorMessage: "",
+        });
+
+        this.props.onChangeText(value);
+    }
+
 
     subscribeToKeyboardShortcut() {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
@@ -346,14 +367,15 @@ class BaseOptionsSelector extends Component {
         const textInput = (
             <TextInput
                 ref={(el) => (this.textInput = el)}
-                value={this.props.value}
+                value={this.state.searchValue}
                 label={this.props.textInputLabel}
                 accessibilityLabel={this.props.textInputLabel}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                onChangeText={this.props.onChangeText}
+                onChangeText={this.updateSearchValue}
+                errorText={this.state.errorMessage}
                 onSubmitEditing={this.selectFocusedOption}
                 placeholder={this.props.placeholderText}
-                maxLength={this.props.maxLength}
+                maxLength={this.props.maxLength + CONST.ERROR_EXCEED_RANGE}
                 keyboardType={this.props.keyboardType}
                 onBlur={(e) => {
                     if (!this.props.shouldFocusOnSelectRow) {
@@ -379,7 +401,7 @@ class BaseOptionsSelector extends Component {
                 multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
                 onAddToSelection={this.props.onAddToSelection}
                 hideSectionHeaders={this.props.hideSectionHeaders}
-                headerMessage={this.props.headerMessage}
+                headerMessage={this.state.errorMessage ? "" : this.props.headerMessage}
                 boldStyle={this.props.boldStyle}
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
