@@ -93,17 +93,17 @@ const notes = [
     'overLimit',
 ];
 
-function getViolationForField(transaction, field) {
-    // const {translate} = useLocalize();
-    // const fieldViolation = _.find(transaction.violations, (violation) => violations[violation] === field);
-    // return fieldViolation ? translate(fieldViolation) : '';
+function getViolationForField(transactionViolation, field) {
+    const {translate} = useLocalize();
+    const fieldViolation = _.find(transactionViolation.violation, (violation) => violations[violation] === field);
+    return fieldViolation ? translate(fieldViolation) : '';
 }
 
-function getNotesCount(transaction) {
-    // return _.intersection(transaction.violations, notes).length;
+function getNotesCount(transactionViolations) {
+    return _.intersection(transactionViolations.notice, notes).length;
 }
 
-function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
+function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy, transactionViolation}) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -203,9 +203,9 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                 />
-                {Boolean(getViolationForField(transaction, 'amount')) && (
+                {Boolean(getViolationForField(transactionViolation, 'amount')) && (
                     <View>
-                        <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transaction, 'amount')}</Text>
+                        <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transactionViolation, 'amount')}</Text>
                     </View>
                 )}
             </OfflineWithFeedback>
@@ -234,9 +234,9 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     subtitle={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                     subtitleTextStyle={styles.textLabelError}
                 />
-            {Boolean(getViolationForField(transaction, 'date')) && (
+            {Boolean(getViolationForField(transactionViolation, 'date')) && (
                 <View>
-                    <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transaction, 'date')}</Text>
+                    <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transactionViolation, 'date')}</Text>
                 </View>
             )}
             </OfflineWithFeedback>
@@ -349,6 +349,13 @@ export default compose(
                 const parentReportAction = ReportActionsUtils.getParentReportAction(report);
                 const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+            },
+        },
+        transactionViolation: {
+            key: ({report}) => {
+                const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+                const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
             },
         },
         policyTags: {
