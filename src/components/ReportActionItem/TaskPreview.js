@@ -8,6 +8,7 @@ import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../withCurrentUserPersonalDetails';
 import Icon from '../Icon';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
@@ -52,9 +53,12 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
+    ...withCurrentUserPersonalDetailsDefaultProps,
     personalDetailsList: {},
     taskReport: {},
     isHovered: false,
@@ -92,7 +96,7 @@ function TaskPreview(props) {
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
+                        disabled={!Task.canModifyTask(props.taskReport, props.currentUserPersonalDetails.accountID)}
                         onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
                                 Task.reopenTask(props.taskReport);
@@ -119,6 +123,7 @@ TaskPreview.displayName = 'TaskPreview';
 
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
     withOnyx({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,

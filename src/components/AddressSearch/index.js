@@ -291,6 +291,12 @@ function AddressSearch(props) {
                             <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
                         )
                     }
+                    renderHeaderComponent={() =>
+                        !props.value &&
+                        props.predefinedPlaces && (
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.pt2, styles.ph3, styles.overflowAuto]}>{props.translate('common.recentDestinations')}</Text>
+                        )
+                    }
                     onPress={(data, details) => {
                         saveLocationDetails(data, details);
 

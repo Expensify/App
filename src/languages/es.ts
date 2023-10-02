@@ -166,6 +166,7 @@ export default {
         notifications: 'Notificaciones',
         na: 'N/A',
         noResultsFound: 'No se han encontrado resultados',
+        recentDestinations: 'Destinos recientes',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
         todayAt: 'Hoy a las',
