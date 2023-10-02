@@ -40,7 +40,7 @@ const propTypes = {
 
 const defaultProps = {
     iouMessage: undefined,
-}
+};
 
 function TextCommentFragment(props) {
     const {fragment, styleAsDeleted} = props;
