@@ -16,15 +16,15 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
-import useNetwork from '../../hooks/useNetwork';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import useLocalize from '../../hooks/useLocalize';
 import compose from '../../libs/compose';
 import Visibility from '../../libs/Visibility';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
+import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import ReportFooter from './report/ReportFooter';
 import Banner from '../../components/Banner';
 import reportPropTypes from '../reportPropTypes';
+import reportMetadataPropTypes from '../reportMetadataPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
@@ -33,7 +33,7 @@ import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import MoneyReportHeader from '../../components/MoneyReportHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
-import ReportScreenContext from './ReportScreenContext';
+import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
@@ -58,6 +58,9 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: reportPropTypes,
+
+    /** The report metadata loading states */
+    reportMetadata: reportMetadataPropTypes,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
@@ -85,6 +88,9 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
+    /** Onyx function that marks the component ready for hydration */
+    markReadyForHydration: PropTypes.func,
+
     /** Whether user is leaving the current report */
     userLeavingStatus: PropTypes.bool,
 
@@ -97,7 +103,10 @@ const defaultProps = {
     reportActions: [],
     report: {
         hasOutstandingIOU: false,
+    },
+    reportMetadata: {
         isLoadingReportActions: false,
+        isLoadingMoreReportActions: false,
     },
     isComposerFullSize: false,
     betas: [],
@@ -105,6 +114,7 @@ const defaultProps = {
     accountManagerReportID: null,
     userLeavingStatus: false,
     personalDetails: {},
+    markReadyForHydration: null,
     ...withCurrentReportIDDefaultProps,
 };
 
@@ -133,9 +143,11 @@ function ReportScreen({
     betas,
     route,
     report,
+    reportMetadata,
     reportActions,
     accountManagerReportID,
     personalDetails,
+    markReadyForHydration,
     policies,
     isSidebarLoaded,
     viewportOffsetTop,
@@ -145,7 +157,6 @@ function ReportScreen({
     currentReportID,
 }) {
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const firstRenderRef = useRef(true);
@@ -153,8 +164,6 @@ function ReportScreen({
     const reactionListRef = useRef();
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
-
-    const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(0);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
 
     const reportID = getReportID(route);
@@ -162,19 +171,19 @@ function ReportScreen({
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = _.isEmpty(reportActions) && report.isLoadingReportActions;
+    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingReportActions;
 
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
 
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
-    const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails) || firstRenderRef.current;
+    const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
-    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
 
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
@@ -344,112 +353,112 @@ function ReportScreen({
         }
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
+    const onListLayout = useCallback(() => {
+        if (!markReadyForHydration) {
+            return;
+        }
+
+        markReadyForHydration();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () => (!_.isEmpty(report) && !isDefaultReport && !report.reportID && !isOptimisticDelete && !report.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
+        () =>
+            (!firstRenderRef.current &&
+                !_.isEmpty(report) &&
+                !isDefaultReport &&
+                !report.reportID &&
+                !isOptimisticDelete &&
+                !report.isLoadingReportActions &&
+                !isLoading &&
+                !userLeavingStatus) ||
+            shouldHideReport,
         [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete, userLeavingStatus],
     );
 
     return (
-        <ReportScreenContext.Provider
-            value={{
-                flatListRef,
-                reactionListRef,
-            }}
-        >
-            <ScreenWrapper
-                style={screenWrapperStyle}
-                shouldEnableKeyboardAvoidingView={isTopMostReportId}
-                testID={ReportScreen.displayName}
-            >
-                <FullPageNotFoundView
-                    shouldShow={shouldShowNotFoundPage}
-                    subtitleKey="notFound.noAccess"
-                    shouldShowCloseButton={false}
-                    shouldShowBackButton={isSmallScreenWidth}
-                    shouldShowLink={false}
+        <ActionListContext.Provider value={flatListRef}>
+            <ReactionListContext.Provider value={reactionListRef}>
+                <ScreenWrapper
+                    style={screenWrapperStyle}
+                    shouldEnableKeyboardAvoidingView={isTopMostReportId}
+                    testID={ReportScreen.displayName}
                 >
-                    <OfflineWithFeedback
-                        pendingAction={addWorkspaceRoomOrChatPendingAction}
-                        errors={addWorkspaceRoomOrChatErrors}
-                        shouldShowErrorMessages={false}
-                        needsOffscreenAlphaCompositing
+                    <FullPageNotFoundView
+                        shouldShow={shouldShowNotFoundPage}
+                        subtitleKey="notFound.noAccess"
+                        shouldShowCloseButton={false}
+                        shouldShowBackButton={isSmallScreenWidth}
+                        onBackButtonPress={Navigation.goBack}
+                        shouldShowLink={false}
                     >
-                        {headerView}
-                        {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
-                            <View style={[styles.borderBottom]}>
-                                <View style={[styles.appBG, styles.pl0]}>
-                                    <View style={[styles.ph5, styles.pb3]}>
-                                        <TaskHeaderActionButton report={report} />
+                        <OfflineWithFeedback
+                            pendingAction={addWorkspaceRoomOrChatPendingAction}
+                            errors={addWorkspaceRoomOrChatErrors}
+                            shouldShowErrorMessages={false}
+                            needsOffscreenAlphaCompositing
+                        >
+                            {headerView}
+                            {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                                <View style={[styles.borderBottom]}>
+                                    <View style={[styles.appBG, styles.pl0]}>
+                                        <View style={[styles.ph5, styles.pb3]}>
+                                            <TaskHeaderActionButton report={report} />
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                        )}
-                    </OfflineWithFeedback>
-                    {Boolean(accountManagerReportID) && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
-                        <Banner
-                            containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
-                            textStyles={[styles.colorReversed]}
-                            text={translate('reportActionsView.chatWithAccountManager')}
-                            onClose={dismissBanner}
-                            onPress={chatWithAccountManager}
-                            shouldShowCloseButton
-                        />
-                    )}
-                    <DragAndDropProvider isDisabled={!isReportReadyForDisplay}>
-                        <View
-                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                            onLayout={(event) => {
-                                // Rounding this value for comparison because they can look like this: 411.9999694824219
-                                const newSkeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
-
-                                // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
-                                // takes up so we can set the skeleton view container height.
-                                if (newSkeletonViewContainerHeight === 0) {
-                                    return;
-                                }
-                                setSkeletonViewContainerHeight(newSkeletonViewContainerHeight);
-                            }}
-                        >
-                            {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
-                                <ReportActionsView
-                                    reportActions={reportActions}
-                                    report={report}
-                                    isComposerFullSize={isComposerFullSize}
-                                    parentViewHeight={skeletonViewContainerHeight}
-                                    policy={policy}
-                                />
                             )}
+                        </OfflineWithFeedback>
+                        {!!accountManagerReportID && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
+                            <Banner
+                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                                textStyles={[styles.colorReversed]}
+                                text={translate('reportActionsView.chatWithAccountManager')}
+                                onClose={dismissBanner}
+                                onPress={chatWithAccountManager}
+                                shouldShowCloseButton
+                            />
+                        )}
+                        <DragAndDropProvider isDisabled={!isReportReadyForDisplay}>
+                            <View
+                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                onLayout={onListLayout}
+                            >
+                                {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
+                                    <ReportActionsView
+                                        reportActions={reportActions}
+                                        report={report}
+                                        isLoadingReportActions={reportMetadata.isLoadingReportActions}
+                                        isLoadingMoreReportActions={reportMetadata.isLoadingMoreReportActions}
+                                        isComposerFullSize={isComposerFullSize}
+                                        policy={policy}
+                                    />
+                                )}
 
-                            {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
-                            we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                            {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView containerHeight={skeletonViewContainerHeight} />}
+                                {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
+                                    If we prevent rendering the report while they are loading then
+                                    we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                                {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
-                            {isReportReadyForDisplay && (
-                                <>
+                                {isReportReadyForDisplay ? (
                                     <ReportFooter
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        isOffline={isOffline}
                                         reportActions={reportActions}
                                         report={report}
                                         isComposerFullSize={isComposerFullSize}
                                         onSubmitComment={onSubmitComment}
                                         policies={policies}
                                     />
-                                </>
-                            )}
-
-                            {!isReportReadyForDisplay && (
-                                <ReportFooter
-                                    shouldDisableCompose
-                                    isOffline={isOffline}
-                                />
-                            )}
-                        </View>
-                    </DragAndDropProvider>
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-        </ReportScreenContext.Provider>
+                                ) : (
+                                    <ReportFooter shouldDisableCompose />
+                                )}
+                            </View>
+                        </DragAndDropProvider>
+                    </FullPageNotFoundView>
+                </ScreenWrapper>
+            </ReactionListContext.Provider>
+        </ActionListContext.Provider>
     );
 }
 
@@ -460,35 +469,50 @@ ReportScreen.displayName = 'ReportScreen';
 export default compose(
     withViewportOffsetTop,
     withCurrentReportID,
-    withOnyx({
-        isSidebarLoaded: {
-            key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    withOnyx(
+        {
+            isSidebarLoaded: {
+                key: ONYXKEYS.IS_SIDEBAR_LOADED,
+            },
+            reportActions: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+                canEvict: false,
+                selector: ReportActionsUtils.getSortedReportActionsForDisplay,
+            },
+            report: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+                allowStaleData: true,
+            },
+            reportMetadata: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
+                initialValue: {
+                    isLoadingReportActions: false,
+                    isLoadingMoreReportActions: false,
+                },
+            },
+            isComposerFullSize: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
+                initialValue: false,
+            },
+            betas: {
+                key: ONYXKEYS.BETAS,
+            },
+            policies: {
+                key: ONYXKEYS.COLLECTION.POLICY,
+                allowStaleData: true,
+            },
+            accountManagerReportID: {
+                key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
+                initialValue: null,
+            },
+            personalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            },
+            userLeavingStatus: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
+                initialValue: false,
+            },
         },
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-            canEvict: false,
-            selector: ReportActionsUtils.getSortedReportActionsForDisplay,
-        },
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-        },
-        isComposerFullSize: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        accountManagerReportID: {
-            key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        userLeavingStatus: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
-        },
-    }),
+        true,
+    ),
 )(ReportScreen);
