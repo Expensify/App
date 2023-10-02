@@ -12,6 +12,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
+import * as PolicyUtils from '../PolicyUtils';
 import Log from '../Log';
 
 const allPolicies = {};
@@ -63,6 +64,13 @@ let allPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
+});
+
+let allRecentlyUsedCategories = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedCategories = val),
 });
 
 /**
@@ -1168,6 +1176,25 @@ function clearErrors(policyID) {
     hideWorkspaceAlertMessage(policyID);
 }
 
+/**
+ * @param {String} policyID
+ * @param {String} category
+ * @returns {Object}
+ */
+function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
+    if (!policyID || !category) {
+        return {};
+    }
+
+    const policyRecentlyUsedCategories = lodashGet(allRecentlyUsedCategories, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, []);
+
+    return {
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
+        value: PolicyUtils.addCategoryToRecentlyUsed(policyRecentlyUsedCategories, category),
+    };
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -1197,4 +1224,5 @@ export {
     setWorkspaceInviteMembersDraft,
     clearErrors,
     openDraftWorkspaceRequest,
+    buildOptimisticPolicyRecentlyUsedCategories,
 };

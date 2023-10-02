@@ -22,7 +22,7 @@ import * as Report from './Report';
 import * as NumberUtils from '../NumberUtils';
 import ReceiptGeneric from '../../../assets/images/receipt-generic.png';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
-import * as PolicyUtils from '../PolicyUtils';
+import * as Policy from './Policy';
 
 let allReports;
 Onyx.connect({
@@ -43,13 +43,6 @@ Onyx.connect({
 
         allTransactions = val;
     },
-});
-
-let allRecentlyUsedCategories = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
-    waitForCollectionCallback: true,
-    callback: (val) => (allRecentlyUsedCategories = val),
 });
 
 let allRecentlyUsedTags = {};
@@ -176,11 +169,7 @@ function buildOnyxDataForMoneyRequest(
     ];
 
     if (!_.isEmpty(optimisticRecentlyUsedCategories)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
-            value: optimisticRecentlyUsedCategories,
-        });
+        optimisticData.push(optimisticRecentlyUsedCategories);
     }
 
     if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
@@ -464,10 +453,7 @@ function getMoneyRequestInformation(
         billable,
     );
 
-    const optimisticPolicyRecentlyUsedCategories = PolicyUtils.addCategoryToRecentlyUsed(
-        allRecentlyUsedCategories[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`] || [],
-        category,
-    );
+    const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
 
     const optimisticPolicyRecentlyUsedTags = {};
     const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
@@ -1125,12 +1111,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         }
 
         // Add category to optimistic policy recently used categories when a participant is a workspace
-        let optimisticPolicyRecentlyUsedCategories;
-        if (category && isPolicyExpenseChat) {
-            optimisticPolicyRecentlyUsedCategories = PolicyUtils.addCategoryToRecentlyUsed(
-                allRecentlyUsedCategories[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${participant.policyID}`] || [],
-                category,
-            );
+        let optimisticPolicyRecentlyUsedCategories = {};
+        if (isPolicyExpenseChat) {
+            optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
         }
 
         // STEP 5: Build Onyx Data
