@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import CONFIG from '../../../CONFIG';
 import Icon from '../../../components/Icon';
 import Text from '../../../components/Text';
@@ -12,6 +11,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
+import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
     /** The credentials of the logged in person */
@@ -19,16 +19,18 @@ const propTypes = {
         /** The email/phone the user logged in with */
         login: PropTypes.string,
     }),
-    ...withLocalizePropTypes,
 };
+
 const defaultProps = {
     credentials: {},
 };
 
-function SAMLSignInPage(props) {
+function SAMLSignInPage({credentials}) {
+    const {translate} = useLocalize();
+
     useEffect(() => {
-        window.open(`${CONFIG.EXPENSIFY.SAML_URL}?email=${props.credentials.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`, '_self');
-    }, [props.credentials.login]);
+        window.open(`${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`, '_self');
+    }, [credentials.login]);
 
     return (
         <View style={styles.deeplinkWrapperContainer}>
@@ -40,9 +42,9 @@ function SAMLSignInPage(props) {
                         src={Illustrations.RocketBlue}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{props.translate('samlSignIn.launching')}</Text>
+                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('samlSignIn.launching')}</Text>
                 <View style={[styles.mt2, styles.mh2, styles.fontSizeNormal, styles.textAlignCenter]}>
-                    <Text style={[styles.textAlignCenter]}>{props.translate('samlSignIn.oneMoment')}</Text>
+                    <Text style={[styles.textAlignCenter]}>{translate('samlSignIn.oneMoment')}</Text>
                 </View>
             </View>
             <View style={styles.deeplinkWrapperFooter}>
@@ -61,7 +63,6 @@ SAMLSignInPage.propTypes = propTypes;
 SAMLSignInPage.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
     withOnyx({
         credentials: {key: ONYXKEYS.CREDENTIALS},
     }),

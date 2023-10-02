@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, useWindowDimensions} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -7,16 +7,15 @@ import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import Text from '../../components/Text';
 import Button from '../../components/Button';
-import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as Session from '../../libs/actions/Session';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 import CONST from '../../CONST';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
+import useLocalize from '../../hooks/useLocalize';
+import useNetwork from '../../hooks/useNetwork';
 
 const propTypes = {
     /* Onyx Props */
@@ -38,10 +37,6 @@ const propTypes = {
 
     /** Function to change whether the user is using SAML or magic codes to log in */
     setIsUsingSAMLLogin: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -49,40 +44,44 @@ const defaultProps = {
     account: {},
 };
 
-function SAMLEnabledForm(props) {
+function SAMLEnabledForm({credentials, account, setIsUsingSAMLLogin}) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     return (
         <>
             <View>
-                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
-                    {props.translate('samlSignIn.welcomeSAMLEnabled')}
+                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>
+                    {translate('samlSignIn.welcomeSAMLEnabled')}
                 </Text>
                 <Button
-                    isDisabled={props.network.isOffline}
+                    isDisabled={isOffline}
                     success
                     style={[styles.mv3]}
-                    text={props.translate('samlSignIn.useSingleSignOn')}
-                    isLoading={props.account.isLoading}
+                    text={translate('samlSignIn.useSingleSignOn')}
+                    isLoading={account.isLoading}
                     onPress={() => {
                         Navigation.navigate(ROUTES.SAML_SIGN_IN);
                     }}
                 />
 
                 <View style={[styles.mt5]}>
-                    <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
-                        {props.translate('samlSignIn.orContinueWithMagicCode')}
+                    <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>
+                        {translate('samlSignIn.orContinueWithMagicCode')}
                     </Text>
                 </View>
 
                 <Button
-                    isDisabled={props.network.isOffline}
+                    isDisabled={isOffline}
                     style={[styles.mv3]}
-                    text={props.translate('samlSignIn.useMagicCode')}
+                    text={translate('samlSignIn.useMagicCode')}
                     isLoading={
-                        props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
+                        account.isLoading && account.loadingForm === (account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
                     }
                     onPress={() => {
-                        Session.resendValidateCode(props.credentials.login);
-                        props.setIsUsingSAMLLogin(false);
+                        Session.resendValidateCode(credentials.login);
+                        setIsUsingSAMLLogin(false);
                     }}
                 />
                 <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
@@ -99,9 +98,6 @@ SAMLEnabledForm.defaultProps = defaultProps;
 SAMLEnabledForm.displayName = 'SAMLEnabledForm';
 
 export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withNetwork(),
     withOnyx({
         credentials: {key: ONYXKEYS.CREDENTIALS},
         account: {key: ONYXKEYS.ACCOUNT},
