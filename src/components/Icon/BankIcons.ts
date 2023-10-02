@@ -110,7 +110,7 @@ function getAssetIcon(bankName: string, isCard: boolean): React.FC<SvgProps> {
  * Returns Bank Icon Object that matches to existing bank icons or default icons
  */
 
-export default function getBankIcon(bankName: string, isCard = false) {
+export default function getBankIcon(bankName: string, isCard = false): BankIcon {
     const bankIcon: BankIcon = {
         icon: isCard ? Expensicons.CreditCard : GenericBank,
     };
