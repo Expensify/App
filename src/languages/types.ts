@@ -190,7 +190,11 @@ type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
 
+type FormattedMaxLengthParams = {formattedMaxLength: string};
+
 type TagSelectionParams = {tagName: string};
+
+type WalletProgramParams = {walletProgram: string};
 
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -303,5 +307,7 @@ export type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    FormattedMaxLengthParams,
     TagSelectionParams,
+    WalletProgramParams,
 };
