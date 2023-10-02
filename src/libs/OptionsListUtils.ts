@@ -409,7 +409,7 @@ function getLastMessageTextForReport(report: Report) {
     );
 
     let lastMessageTextFromReport = '';
-    const lastActionName = lodashGet(lastReportAction, 'actionName', '');
+    const lastActionName = lastReportAction?.actionName ?? '';
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText ?? '', html: report.lastMessageHtml ?? '', translationKey: report.lastMessageTranslationKey ?? ''})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey ?? 'common.attachment')}]`;
@@ -739,7 +739,7 @@ function getCategoryListSections(
         .filter((category) => !selectedOptionNames.includes(category))
         .map((category) => ({
             name: category,
-            enabled: lodashGet(categories, `${category}.enabled`, false),
+            enabled: categories[`${category}`]?.enabled ?? false,
         }));
     const filteredCategories = categoriesValues.filter((category) => !selectedOptionNames.includes(category.name));
 
@@ -1391,19 +1391,19 @@ function formatMemberForList(member, config = {}) {
         return undefined;
     }
 
-    const accountID = lodashGet(member, 'accountID', '');
+    const accountID = member.accountID;
 
     return {
-        text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
-        alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
-        keyForList: lodashGet(member, 'keyForList', '') || String(accountID),
+        text: member.text ?? member.displayName ?? '',
+        alternateText: member.alternateText ?? member.login ?? '',
+        keyForList: member.keyForList ?? String(accountID),
         isSelected: false,
         isDisabled: false,
         accountID,
         login: member.login ?? '',
         rightElement: null,
-        icons: lodashGet(member, 'icons'),
-        pendingAction: lodashGet(member, 'pendingAction'),
+        icons: member.icons,
+        pendingAction: member.pendingAction,
         ...config,
     };
 }
