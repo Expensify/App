@@ -237,9 +237,10 @@ function ReportScreen({
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (report.reportID && report.reportID === getReportID(route)) {
+        if (report.reportID && report.reportID === getReportID(route) && !_.isEmpty(reportActions)) {
             return;
         }
+
         Report.openReport(reportIDFromPath);
     }, [report.reportID, route]);
 
@@ -353,11 +354,21 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () =>
-            (!firstRenderRef.current && !_.isEmpty(report) && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingReportActions && !isLoading && !userLeavingStatus) ||
-            shouldHideReport,
+        () => (!firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
         [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
+    console.log('Report Screen render');
+
+    console.log(report);
+
+    console.table({
+        shouldShowNotFoundPage,
+        reportId: report.reportID,
+        isOptimisticDelete,
+        isLoadingReportActions: reportMetadata.isLoadingReportActions,
+        isLoading,
+        userLeavingStatus,
+    });
 
     return (
         <ActionListContext.Provider value={flatListRef}>
