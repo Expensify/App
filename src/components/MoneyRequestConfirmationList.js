@@ -197,7 +197,8 @@ function MoneyRequestConfirmationList(props) {
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(ReportUtils.getReport(props.reportID))), [props.reportID]);
 
     // A flag for showing the categories field
-    const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories));
+    const shouldShowCategories =
+        isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && (props.iouCategory || OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories)));
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(props.policyTags);

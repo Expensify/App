@@ -1,5 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -69,7 +70,7 @@ function SplitBillDetailsPage(props) {
     }
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
-    const {amount: splitAmount, currency: splitCurrency, comment: splitComment} = ReportUtils.getTransactionDetails(transaction);
+    const {amount: splitAmount, currency: splitCurrency, comment: splitComment, category: splitCategory} = ReportUtils.getTransactionDetails(transaction);
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
@@ -87,9 +88,11 @@ function SplitBillDetailsPage(props) {
                             iouAmount={splitAmount}
                             iouComment={splitComment}
                             iouCurrencyCode={splitCurrency}
+                            iouCategory={splitCategory}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly
                             shouldShowFooter={false}
+                            reportID={lodashGet(props.report, 'reportID', '')}
                         />
                     )}
                 </View>
