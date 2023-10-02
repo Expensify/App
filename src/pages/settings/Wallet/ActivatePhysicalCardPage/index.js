@@ -3,29 +3,30 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {isUndefined} from 'lodash';
 import _ from 'underscore';
-import Text from '../../../components/Text';
-import Navigation from '../../../libs/Navigation/Navigation';
-import styles from '../../../styles/styles';
-import MagicCodeInput from '../../../components/MagicCodeInput';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
-import * as CardSettings from '../../../libs/actions/Card';
-import BigNumberPad from '../../../components/BigNumberPad';
-import Button from '../../../components/Button';
-import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
-import themeColors from '../../../styles/themes/default';
-import SCREENS from '../../../SCREENS';
-import * as LottieAnimations from '../../../components/LottieAnimations';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
-import ONYXKEYS from '../../../ONYXKEYS';
-import useLocalize from '../../../hooks/useLocalize';
-import ROUTES from '../../../ROUTES';
-import CONST from '../../../CONST';
-import assignedCardPropTypes from './assignedCardPropTypes';
-import * as CardUtils from '../../../libs/CardUtils';
-import useNetwork from '../../../hooks/useNetwork';
+import Text from '../../../../components/Text';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import styles from '../../../../styles/styles';
+import MagicCodeInput from '../../../../components/MagicCodeInput';
+import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
+import * as ErrorUtils from '../../../../libs/ErrorUtils';
+import * as CardSettings from '../../../../libs/actions/Card';
+import BigNumberPad from '../../../../components/BigNumberPad';
+import Button from '../../../../components/Button';
+import IllustratedHeaderPageLayout from '../../../../components/IllustratedHeaderPageLayout';
+import themeColors from '../../../../styles/themes/default';
+import SCREENS from '../../../../SCREENS';
+import * as LottieAnimations from '../../../../components/LottieAnimations';
+import useWindowDimensions from '../../../../hooks/useWindowDimensions';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import useLocalize from '../../../../hooks/useLocalize';
+import ROUTES from '../../../../ROUTES';
+import CONST from '../../../../CONST';
+import assignedCardPropTypes from '../assignedCardPropTypes';
+import * as CardUtils from '../../../../libs/CardUtils';
+import useNetwork from '../../../../hooks/useNetwork';
+import NotFoundPage from '../../../ErrorPage/NotFoundPage';
+import getFooterContainerStyles from './getFooterContainerStyles';
 
 const propTypes = {
     /* Onyx Props */
@@ -47,6 +48,7 @@ const defaultProps = {
 };
 
 const LAST_FOUR_DIGITS_LENGTH = 4;
+const MAGIC_INPUT_MIN_HEIGHT = 86;
 
 function ActivatePhysicalCardPage({
     cardList,
@@ -65,8 +67,10 @@ function ActivatePhysicalCardPage({
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
     const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
     const cardID = lodashGet(physicalCard, 'cardID', 0);
+    const cardError = ErrorUtils.getLatestErrorMessage(cardList[cardID]);
 
     const activateCardCodeInputRef = useRef(null);
+    const footerContainerStyles = [styles.mt2, ...getFooterContainerStyles()];
 
     /**
      * If state of the card is CONST.CARD_STATE.OPEN, navigate to card details screen.
@@ -78,22 +82,12 @@ function ActivatePhysicalCardPage({
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
     }, [cardID, cardList, domain]);
 
-    /**
-     * Set form error if there is one for cardID in onyx
-     */
-    useEffect(() => {
-        if (isUndefined(lodashGet(cardList[cardID], 'errors', undefined))) {
-            setFormError('');
-        } else {
-            setFormError(ErrorUtils.getLatestErrorMessage(cardList[cardID]));
-        }
-    }, [cardList, cardID]);
-
-    useEffect(() => {
-        return () => {
+    useEffect(
+        () => () => {
             CardSettings.clearCardListErrors(cardID);
-        };
-    }, [cardID]);
+        },
+        [cardID],
+    );
 
     /**
      * Update lastPressedDigit with value that was pressed on BigNumberPad.
@@ -112,18 +106,28 @@ function ActivatePhysicalCardPage({
      */
     const onCodeInput = (text) => {
         setFormError('');
+
+        if (cardError) {
+            CardSettings.clearCardListErrors(cardID);
+        }
+
         setLastFourDigits(text);
     };
 
     const submitAndNavigateToNextPage = useCallback(() => {
+        activateCardCodeInputRef.current.blur();
+
         if (lastFourDigits.replace(CONST.MAGIC_CODE_EMPTY_CHAR, '').length !== LAST_FOUR_DIGITS_LENGTH) {
             setFormError(translate('activateCardPage.error.notEnoughDigits'));
             return;
         }
 
-        activateCardCodeInputRef.current.blur();
         CardSettings.activatePhysicalExpensifyCard(Number(lastFourDigits), cardID);
-    }, [lastFourDigits, cardID]);
+    }, [lastFourDigits, cardID, translate]);
+
+    if (_.isEmpty(physicalCard)) {
+        return <NotFoundPage />;
+    }
 
     return (
         <IllustratedHeaderPageLayout
@@ -131,9 +135,22 @@ function ActivatePhysicalCardPage({
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain))}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.Magician}
+            footerContainerStyles={footerContainerStyles}
+            footer={
+                <Button
+                    success
+                    isDisabled={isOffline}
+                    isLoading={cardList[cardID].isLoading}
+                    medium={isExtraSmallScreenHeight}
+                    style={[styles.w100, styles.p0]}
+                    onPress={submitAndNavigateToNextPage}
+                    pressOnEnter
+                    text={translate('activateCardPage.activatePhysicalCard')}
+                />
+            }
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
-            <View style={[styles.mh5]}>
+            <View style={[styles.mh5, {minHeight: MAGIC_INPUT_MIN_HEIGHT}]}>
                 <MagicCodeInput
                     isDisableKeyboard
                     autoComplete="off"
@@ -142,23 +159,13 @@ function ActivatePhysicalCardPage({
                     value={lastFourDigits}
                     lastPressedDigit={lastPressedDigit}
                     onChangeText={onCodeInput}
-                    errorText={formError}
+                    errorText={formError || cardError}
                     ref={activateCardCodeInputRef}
                     shouldSubmitOnComplete={false}
                 />
             </View>
-            <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}>
+            <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>
                 {DeviceCapabilities.canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}
-                <Button
-                    success
-                    isDisabled={isOffline}
-                    isLoading={cardList[cardID].isLoading}
-                    medium={isExtraSmallScreenHeight}
-                    style={[styles.w100, styles.mt5]}
-                    onPress={submitAndNavigateToNextPage}
-                    pressOnEnter
-                    text={translate('activateCardPage.activatePhysicalCard')}
-                />
             </View>
         </IllustratedHeaderPageLayout>
     );

@@ -31,16 +31,21 @@ const propTypes = {
     /** Style to apply to the header image container */
     // eslint-disable-next-line react/forbid-prop-types
     headerContainerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Style to apply to the footer container */
+    // eslint-disable-next-line react/forbid-prop-types
+    footerContainerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     backgroundColor: themeColors.appBG,
     header: null,
     headerContainerStyles: [],
+    footerContainerStyles: [],
     footer: null,
 };
 
-function HeaderPageLayout({backgroundColor, children, footer, headerContainerStyles, style, headerContent, ...propsToPassToHeader}) {
+function HeaderPageLayout({backgroundColor, children, footer, headerContainerStyles, footerContainerStyles, style, headerContent, ...propsToPassToHeader}) {
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const appBGColor = StyleUtils.getBackgroundColorStyle(themeColors.appBG);
@@ -87,7 +92,7 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
                             </View>
                             <View style={[styles.pt5, appBGColor]}>{children}</View>
                         </ScrollView>
-                        {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
+                        {!_.isNull(footer) && <FixedFooter style={footerContainerStyles}>{footer}</FixedFooter>}
                     </View>
                 </>
             )}
