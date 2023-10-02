@@ -56,25 +56,4 @@ function maskCard(lastFour = ''): string {
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
-/**
- * Formats an address object into an easily readable string
- *
- * @returns - formatted address
- */
-function getFormattedAddress(privatePersonalDetails: OnyxTypes.PrivatePersonalDetails): string | null {
-    const {address} = privatePersonalDetails;
-    const [street1, street2] = (address?.street ?? '').split('\n');
-    const addressItems = [street1, street2, address?.city, address?.state, address?.zip, address?.country];
-    const areAllAddressItemsEmpty = addressItems.every((item) => !item);
-
-    if (areAllAddressItemsEmpty) {
-        return null;
-    }
-
-    const formatted = addressItems.join(', ');
-
-    // Remove the last comma of the address
-    return formatted.trim().replace(/,$/, '');
-}
-
-export {getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getFormattedAddress};
+export {getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard};

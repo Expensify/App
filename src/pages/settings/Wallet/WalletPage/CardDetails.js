@@ -7,7 +7,7 @@ import Clipboard from '../../../../libs/Clipboard';
 import useLocalize from '../../../../hooks/useLocalize';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import * as CartUtils from '../../../../libs/CardUtils';
+import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import PressableWithDelayToggle from '../../../../components/Pressable/PressableWithDelayToggle';
 
 const propTypes = {
@@ -85,7 +85,7 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
             />
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.address')}
-                title={CartUtils.getFormattedAddress(privatePersonalDetails)}
+                title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails)}
                 interactive={false}
             />
         </>
