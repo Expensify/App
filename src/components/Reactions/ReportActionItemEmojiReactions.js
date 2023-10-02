@@ -15,12 +15,13 @@ import ReactionTooltipContent from './ReactionTooltipContent';
 import * as EmojiUtils from '../../libs/EmojiUtils';
 import {ReactionListContext} from '../../pages/home/ReportScreenContext';
 import OfflineWithFeedback from '../OfflineWithFeedback';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 
 const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
 
-    /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
-    reportActionID: PropTypes.string.isRequired,
+    /** The report action that these reactions are for */
+    reportAction: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /**
      * Function to call when the user presses on an emoji.
@@ -46,6 +47,9 @@ function ReportActionItemEmojiReactions(props) {
     const popoverReactionListAnchors = useRef({});
 
     let totalReactionCount = 0;
+
+    const reportAction = props.reportAction;
+    const reportActionID = reportAction.reportActionID;
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
     const sortedReactions = _.sortBy(props.emojiReactions, (emojiReaction, emojiName) => {
@@ -97,7 +101,7 @@ function ReportActionItemEmojiReactions(props) {
         };
 
         const onReactionListOpen = (event) => {
-            reactionListRef.current.showReactionList(event, popoverReactionListAnchors.current[reactionEmojiName], reactionEmojiName, props.reportActionID);
+            reactionListRef.current.showReactionList(event, popoverReactionListAnchors.current[reactionEmojiName], reactionEmojiName, reportActionID);
         };
 
         return {
@@ -134,7 +138,10 @@ function ReportActionItemEmojiReactions(props) {
                             key={reaction.reactionEmojiName}
                         >
                             <View>
-                                <OfflineWithFeedback pendingAction={reaction.hasPendingAction}>
+                                <OfflineWithFeedback
+                                    pendingAction={reaction.hasPendingAction}
+                                    shouldDisableOpacity={Boolean(reportAction.pendingAction)}
+                                >
                                     <EmojiReactionBubble
                                         ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref)}
                                         count={reaction.reactionCount}
@@ -153,7 +160,7 @@ function ReportActionItemEmojiReactions(props) {
                 {!props.shouldBlockReactions && (
                     <AddReactionBubble
                         onSelectEmoji={props.toggleReaction}
-                        reportAction={{reportActionID: props.reportActionID}}
+                        reportAction={reportAction}
                     />
                 )}
             </View>
