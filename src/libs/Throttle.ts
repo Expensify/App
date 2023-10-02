@@ -1,12 +1,32 @@
-function throttle(func: (...args: unknown[]) => void, timeFrame: number): (...args: unknown[]) => void {
-    let lastTime = 0;
-    return function (...args) {
-        const now = new Date().getTime();
-        if (now - lastTime >= timeFrame) {
-            func(...args);
-            lastTime = now;
-        }
-    };
-}
+const throttle = <R, A extends unknown[]>(fn: (...args: A) => R, delay: number): [(...args: A) => R | undefined, () => void] => {
+    let wait = false;
+    let timeout: undefined | number;
+    let cancelled = false;
+
+    return [
+        (...args: A) => {
+            if (cancelled) {
+                return undefined;
+            }
+            if (wait) {
+                return undefined;
+            }
+
+            const val = fn(...args);
+
+            wait = true;
+
+            timeout = window.setTimeout(() => {
+                wait = false;
+            }, delay);
+
+            return val;
+        },
+        () => {
+            cancelled = true;
+            clearTimeout(timeout);
+        },
+    ];
+};
 
 export default throttle;

@@ -18,7 +18,8 @@ const reconnectionCallbacks: Record<string, () => Promise<void>> = {};
 /**
  * Loop over all reconnection callbacks and fire each one
  */
-const triggerReconnectionCallbacks = throttle((reason) => {
+const [triggerReconnectionCallbacks] = throttle((reason: string) => {
+    alert(reason);
     Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason?.toString()}`);
     Object.values(reconnectionCallbacks).forEach((callback) => {
         callback();
