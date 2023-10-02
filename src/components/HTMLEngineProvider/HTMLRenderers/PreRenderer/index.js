@@ -45,6 +45,9 @@ function PreRenderer(props) {
         eventListenerRefValue.getScrollableNode().addEventListener('wheel', scrollNode);
 
         return () => {
+            if (!eventListenerRefValue.getScrollableNode()) {
+                return;
+            }
             eventListenerRefValue.getScrollableNode().removeEventListener('wheel', scrollNode);
         };
     }, [scrollNode]);
