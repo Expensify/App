@@ -58,7 +58,7 @@ const getNewSelection = (oldSelection, prevLength, newLength) => {
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const isAmountValid = (amount) => !amount.length || parseFloat(amount) < 0.01;
+const isAmountInvalid = (amount) => !amount.length || parseFloat(amount) < 0.01;
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -73,8 +73,6 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
-    const [isInvalidAmount, setIsInvalidAmount] = useState(isAmountValid(selectedAmountAsString));
-    const [firstPress, setFirstPress] = useState(false);
     const [formError, setFormError] = useState('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
@@ -123,26 +121,29 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Sets the selection and the amount accordingly to the value passed to the input
      * @param {String} newAmount - Changed amount from user input
      */
-    const setNewAmount = (newAmount) => {
-        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
-        // More info: https://github.com/Expensify/App/issues/16974
-        const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
-        // Use a shallow copy of selection to trigger setSelection
-        // More info: https://github.com/Expensify/App/issues/16385
-        if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces)) {
-            setSelection((prevSelection) => ({...prevSelection}));
-            return;
-        }
-        const checkInvalidAmount = isAmountValid(newAmountWithoutSpaces);
-        setIsInvalidAmount(checkInvalidAmount);
-        setFormError(checkInvalidAmount ? 'iou.error.invalidAmount' : '');
-        setCurrentAmount((prevAmount) => {
-            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
-            const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
-            return strippedAmount;
-        });
-    };
+    const setNewAmount = useCallback(
+        (newAmount) => {
+            // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+            // More info: https://github.com/Expensify/App/issues/16974
+            const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
+            // Use a shallow copy of selection to trigger setSelection
+            // More info: https://github.com/Expensify/App/issues/16385
+            if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces)) {
+                setSelection((prevSelection) => ({...prevSelection}));
+                return;
+            }
+            if (!_.isEmpty(formError)) {
+                setFormError('');
+            }
+            setCurrentAmount((prevAmount) => {
+                const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+                const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+                setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
+                return strippedAmount;
+            });
+        },
+        [formError],
+    );
 
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
@@ -167,7 +168,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             const newAmount = MoneyRequestUtils.addLeadingZero(`${currentAmount.substring(0, selection.start)}${key}${currentAmount.substring(selection.end)}`);
             setNewAmount(newAmount);
         },
-        [currentAmount, selection, shouldUpdateSelection],
+        [currentAmount, selection, shouldUpdateSelection, setNewAmount],
     );
 
     /**
@@ -186,13 +187,13 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(() => {
-        if (isInvalidAmount) {
-            setFirstPress(true);
+        if (isAmountInvalid(currentAmount)) {
             setFormError('iou.error.invalidAmount');
             return;
         }
+
         onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount, isInvalidAmount]);
+    }, [onSubmitButtonPress, currentAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -245,7 +246,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     onKeyPress={textInputKeyPress}
                 />
             </View>
-            {!_.isEmpty(formError) && firstPress && (
+            {!_.isEmpty(formError) && (
                 <FormHelpMessage
                     style={[styles.ph5]}
                     isError
