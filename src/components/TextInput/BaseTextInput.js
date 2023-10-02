@@ -242,7 +242,7 @@ function BaseTextInput(props) {
     For other platforms, explicitly remove `lineHeight` from single-line inputs
     to prevent long text from disappearing once it exceeds the input space.
     See https://github.com/Expensify/App/issues/13802 */
-    
+
     const lineHeight = useMemo(() => {
         if (Browser.isSafari() && _.isArray(props.inputStyle)) {
             const lineHeightValue = _.find(props.inputStyle, (f) => f.lineHeight !== undefined);
