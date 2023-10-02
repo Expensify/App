@@ -328,7 +328,7 @@ export default {
     INSIGHTS_OLDDOT: 'insights',
 
     // Workspaces tab
-    INDIVIDUALS_OLDDOT: 'individuals',
-    GROUPS_OLDDOT: 'groups',
+    INDIVIDUALS_OLDDOT: 'individual_workspaces',
+    GROUPS_OLDDOT: 'group_workspaces',
     CARDS_AND_DOMAINS_OLDDOT: 'cards-and-domains',
 } as const;
