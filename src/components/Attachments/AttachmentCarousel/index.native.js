@@ -27,17 +27,18 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
     const [activeSource, setActiveSource] = useState(source);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
+    const [isReceipt, setIsReceipt] = useState(false);
 
     const compareImage = useCallback(
         (attachment) => {
-            if (attachment.isReceipt) {
+            if (attachment.isReceipt && isReceipt) {
                 const action = ReportActionsUtils.getParentReportAction(report);
                 const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
                 return attachment.transactionID === transactionID;
             }
             return attachment.source === source;
         },
-        [source, report],
+        [source, report, isReceipt],
     );
 
     useEffect(() => {
@@ -76,6 +77,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
             const item = attachments[newPageIndex];
 
             setPage(newPageIndex);
+            setIsReceipt(item.isReceipt);
             setActiveSource(item.source);
 
             onNavigate(item);

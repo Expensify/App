@@ -243,7 +243,7 @@ function AttachmentPickerWithMenuItems({
                                         onAddActionPressed();
 
                                         // Drop focus to avoid blue focus ring.
-                                        actionButtonRef.current.blur();
+                                        // actionButtonRef.current.blur();
                                         setMenuVisibility(!isMenuVisible);
                                     }}
                                     style={styles.composerSizeButton}
