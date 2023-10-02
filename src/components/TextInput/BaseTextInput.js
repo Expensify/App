@@ -250,7 +250,7 @@ function BaseTextInput(props) {
             }
         } 
         return undefined;
-    }, [props.inputStyle, height]);
+    }, [props.inputStyle]);
 
     return (
         <>
