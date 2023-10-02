@@ -140,6 +140,8 @@ type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
 type NoCheckInsLeftParams = {nextCheckIn: string};
 
+type RemainingCheckInsParams = {checkInsRemaining: number};
+
 type EnterMagicCodeParams = {contactMethod: string};
 
 type TransferParams = {amount: string};
@@ -284,6 +286,7 @@ export type {
     ResolutionConstraintsParams,
     NotAllowedExtensionParams,
     NoCheckInsLeftParams,
+    RemainingCheckInsParams,
     EnterMagicCodeParams,
     TransferParams,
     InstantSummaryParams,

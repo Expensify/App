@@ -603,7 +603,7 @@ export default {
         addressLabel: 'Address',
         address: '88 Kearny Street, Floor 16, San Francisco, CA',
         nextCheckInLabel: 'Next check-in',
-        nextCheckInBeforeNumberCheckIn: 'You’re eligible to check in to the lounge and have',
+        nextCheckInBeforeNumberCheckIn: () => 'You’re eligible to check in to the lounge and have',
         nextCheckInBeforeNumberCheckedIn: 'You’re checked in and have',
         nextCheckInNumberCountSingular: 'check-in',
         nextCheckInNumberCountPlural: 'check-ins',
