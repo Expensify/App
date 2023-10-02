@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useRef, useEffect, memo, useCallback, useContext} from 'react';
+import React, {useState, useRef, useEffect, memo, useCallback, useContext, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -61,12 +61,13 @@ import * as Session from '../../../libs/actions/Session';
 import MoneyRequestView from '../../../components/ReportActionItem/MoneyRequestView';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
-import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import {ReactionListContext} from '../ReportScreenContext';
 import usePrevious from '../../../hooks/usePrevious';
 import Permissions from '../../../libs/Permissions';
+import themeColors from '../../../styles/themes/default';
+import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import RenderHTML from '../../../components/RenderHTML';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
 
@@ -138,6 +139,9 @@ function ReportActionItem(props) {
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
+    const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
+
+    const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}), [isReportActionLinked]);
 
     // When active action changes, we need to update the `isContextMenuActive` state
     const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID);
@@ -196,6 +200,13 @@ function ReportActionItem(props) {
         downloadedPreviews.current = urls;
         Report.expandURLPreview(props.report.reportID, props.action.reportActionID);
     }, [props.action, props.report.reportID]);
+
+    useEffect(() => {
+        if (!props.draftMessage || !ReportActionsUtils.isDeletedAction(props.action)) {
+            return;
+        }
+        Report.saveReportActionDraft(props.report.reportID, props.action, '');
+    }, [props.draftMessage, props.action, props.report.reportID]);
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
@@ -594,7 +605,7 @@ function ReportActionItem(props) {
                 disabled={Boolean(props.draftMessage)}
             >
                 {(hovered) => (
-                    <View>
+                    <View style={highlightedBackgroundColorIfNeeded}>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
@@ -638,7 +649,7 @@ function ReportActionItem(props) {
                                         />
                                     </View>
                                 )}
-                                {renderReportActionItem(hovered, isWhisper, hasErrors)}
+                                {renderReportActionItem(hovered || isReportActionLinked, isWhisper, hasErrors)}
                             </OfflineWithFeedback>
                         </View>
                     </View>
@@ -711,6 +722,7 @@ export default compose(
             prevProps.report.managerID === nextProps.report.managerID &&
             prevProps.report.managerEmail === nextProps.report.managerEmail &&
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
-            lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0),
+            lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0) &&
+            prevProps.linkedReportActionID === nextProps.linkedReportActionID,
     ),
 );
