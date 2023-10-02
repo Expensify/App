@@ -109,7 +109,9 @@ class EmojiPickerMenu extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.frequentlyUsedEmojis === this.props.frequentlyUsedEmojis) return;
+        if (prevProps.frequentlyUsedEmojis === this.props.frequentlyUsedEmojis) {
+            return;
+        }
 
         const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
         this.emojis = filteredEmojis;

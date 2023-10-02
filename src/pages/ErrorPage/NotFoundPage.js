@@ -5,7 +5,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 // eslint-disable-next-line rulesdir/no-negated-variables
 function NotFoundPage() {
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={NotFoundPage.displayName}>
             <FullPageNotFoundView shouldShow />
         </ScreenWrapper>
     );

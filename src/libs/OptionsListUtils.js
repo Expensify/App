@@ -92,31 +92,30 @@ Onyx.connect({
 });
 
 /**
- * Get the options for a policy expense report.
+ * Get the option for a policy expense report.
  * @param {Object} report
- * @returns {Array}
+ * @returns {Object}
  */
-function getPolicyExpenseReportOptions(report) {
+function getPolicyExpenseReportOption(report) {
     const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
     const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
     const reportName = ReportUtils.getReportName(expenseReport);
-    return [
-        {
-            ...expenseReport,
-            keyForList: expenseReport.policyID,
-            text: reportName,
-            alternateText: Localize.translateLocal('workspace.common.workspace'),
-            icons: [
-                {
-                    source: policyExpenseChatAvatarSource,
-                    name: reportName,
-                    type: CONST.ICON_TYPE_WORKSPACE,
-                },
-            ],
-            selected: report.selected,
-            isPolicyExpenseChat: true,
-        },
-    ];
+    return {
+        ...expenseReport,
+        keyForList: expenseReport.policyID,
+        text: reportName,
+        alternateText: Localize.translateLocal('workspace.common.workspace'),
+        icons: [
+            {
+                source: policyExpenseChatAvatarSource,
+                name: reportName,
+                type: CONST.ICON_TYPE_WORKSPACE,
+            },
+        ],
+        selected: report.selected,
+        isPolicyExpenseChat: true,
+        searchText: report.searchText,
+    };
 }
 
 /**
@@ -201,38 +200,35 @@ function isPersonalDetailsReady(personalDetails) {
 }
 
 /**
- * Get the participant options for a report.
- * @param {Array<Object>} participants
+ * Get the participant option for a report.
+ * @param {Object} participant
  * @param {Array<Object>} personalDetails
- * @returns {Array}
+ * @returns {Object}
  */
-function getParticipantsOptions(participants, personalDetails) {
-    const details = getPersonalDetailsForAccountIDs(_.pluck(participants, 'accountID'), personalDetails);
-    return _.map(participants, (participant) => {
-        const detail = details[participant.accountID];
-        const login = detail.login || participant.login;
-        const displayName = detail.displayName || LocalePhoneNumber.formatPhoneNumber(login);
-        return {
-            keyForList: String(detail.accountID),
-            login,
-            accountID: detail.accountID,
-            text: displayName,
-            firstName: lodashGet(detail, 'firstName', ''),
-            lastName: lodashGet(detail, 'lastName', ''),
-            alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
-            icons: [
-                {
-                    source: UserUtils.getAvatar(detail.avatar, detail.accountID),
-                    name: login,
-                    type: CONST.ICON_TYPE_AVATAR,
-                    id: detail.accountID,
-                },
-            ],
-            payPalMeAddress: lodashGet(detail, 'payPalMeAddress', ''),
-            phoneNumber: lodashGet(detail, 'phoneNumber', ''),
-            selected: participant.selected,
-        };
-    });
+function getParticipantsOption(participant, personalDetails) {
+    const detail = getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID];
+    const login = detail.login || participant.login;
+    const displayName = detail.displayName || LocalePhoneNumber.formatPhoneNumber(login);
+    return {
+        keyForList: String(detail.accountID),
+        login,
+        accountID: detail.accountID,
+        text: displayName,
+        firstName: lodashGet(detail, 'firstName', ''),
+        lastName: lodashGet(detail, 'lastName', ''),
+        alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
+        icons: [
+            {
+                source: UserUtils.getAvatar(detail.avatar, detail.accountID),
+                name: login,
+                type: CONST.ICON_TYPE_AVATAR,
+                id: detail.accountID,
+            },
+        ],
+        phoneNumber: lodashGet(detail, 'phoneNumber', ''),
+        selected: participant.selected,
+        searchText: participant.searchText,
+    };
 }
 
 /**
@@ -390,6 +386,7 @@ function getLastMessageTextForReport(report) {
         (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     let lastMessageTextFromReport = '';
+    const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
@@ -399,7 +396,14 @@ function getLastMessageTextForReport(report) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getModifiedExpenseMessage(lastReportAction);
+        const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
+        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
+    } else if (
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
+    ) {
+        lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
@@ -446,7 +450,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         login: null,
         reportID: null,
         phoneNumber: null,
-        payPalMeAddress: null,
         hasDraftComment: false,
         keyForList: null,
         searchText: null,
@@ -540,12 +543,11 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.login = personalDetail.login;
         result.accountID = Number(personalDetail.accountID);
         result.phoneNumber = personalDetail.phoneNumber;
-        result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), false, personalDetail.login, personalDetail.accountID);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), personalDetail.login, personalDetail.accountID);
     result.subtitle = subtitle;
 
     return result;
@@ -600,9 +602,33 @@ function isCurrentUser(userDetails) {
 }
 
 /**
- * Build the options for the category tree hierarchy via indents
+ * Calculates count of all enabled options
  *
  * @param {Object[]} options - an initial strings array
+ * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
+ * @param {String} options[].name - a name of an option
+ * @returns {Number}
+ */
+function getEnabledCategoriesCount(options) {
+    return _.filter(options, (option) => option.enabled).length;
+}
+
+/**
+ * Verifies that there is at least one enabled option
+ *
+ * @param {Object[]} options - an initial strings array
+ * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
+ * @param {String} options[].name - a name of an option
+ * @returns {Boolean}
+ */
+function hasEnabledOptions(options) {
+    return _.some(options, (option) => option.enabled);
+}
+
+/**
+ * Build the options for the category tree hierarchy via indents
+ *
+ * @param {Object[]} options - an initial object array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
  * @param {String} options[].name - a name of an option
  * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
@@ -612,6 +638,10 @@ function getCategoryOptionTree(options, isOneLine = false) {
     const optionCollection = {};
 
     _.each(options, (option) => {
+        if (!option.enabled) {
+            return;
+        }
+
         if (isOneLine) {
             if (_.has(optionCollection, option.name)) {
                 return;
@@ -652,12 +682,8 @@ function getCategoryOptionTree(options, isOneLine = false) {
 /**
  * Build the section list for categories
  *
- * @param {Object[]} categories
- * @param {String} categories[].name
- * @param {Boolean} categories[].enabled
- * @param {Object[]} recentlyUsedCategories
- * @param {String} recentlyUsedCategories[].name
- * @param {Boolean} recentlyUsedCategories[].enabled
+ * @param {Object<String, {name: String, enabled: Boolean}>} categories
+ * @param {String[]} recentlyUsedCategories
  * @param {Object[]} selectedOptions
  * @param {String} selectedOptions[].name
  * @param {String} searchInputValue
@@ -666,11 +692,28 @@ function getCategoryOptionTree(options, isOneLine = false) {
  */
 function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const categorySections = [];
-    const numberOfCategories = _.size(categories);
+    const categoriesValues = _.chain(categories)
+        .values()
+        .filter((category) => category.enabled)
+        .value();
+
+    const numberOfCategories = _.size(categoriesValues);
     let indexOffset = 0;
 
+    if (numberOfCategories === 0 && selectedOptions.length > 0) {
+        categorySections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(selectedOptions, true),
+        });
+
+        return categorySections;
+    }
+
     if (!_.isEmpty(searchInputValue)) {
-        const searchCategories = _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchCategories = _.filter(categoriesValues, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         categorySections.push({
             // "Search" section
@@ -689,15 +732,21 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(categories),
+            data: getCategoryOptionTree(categoriesValues),
         });
 
         return categorySections;
     }
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-    const filteredRecentlyUsedCategories = _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category.name));
-    const filteredCategories = _.filter(categories, (category) => !_.includes(selectedOptionNames, category.name));
+    const filteredRecentlyUsedCategories = _.map(
+        _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category)),
+        (category) => ({
+            name: category,
+            enabled: lodashGet(categories, `${category}.enabled`, false),
+        }),
+    );
+    const filteredCategories = _.filter(categoriesValues, (category) => !_.includes(selectedOptionNames, category.name));
 
     if (!_.isEmpty(selectedOptions)) {
         categorySections.push({
@@ -737,6 +786,142 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 }
 
 /**
+ * Transforms the provided tags into objects with a specific structure.
+ *
+ * @param {Object[]} tags - an initial tag array
+ * @param {Boolean} tags[].enabled - a flag to enable/disable option in a list
+ * @param {String} tags[].name - a name of an option
+ * @returns {Array<Object>}
+ */
+function getTagsOptions(tags) {
+    return _.map(tags, (tag) => ({
+        text: tag.name,
+        keyForList: tag.name,
+        searchText: tag.name,
+        tooltipText: tag.name,
+        isDisabled: !tag.enabled,
+    }));
+}
+
+/**
+ * Build the section list for tags
+ *
+ * @param {Object[]} tags
+ * @param {String} tags[].name
+ * @param {Boolean} tags[].enabled
+ * @param {String[]} recentlyUsedTags
+ * @param {Object[]} selectedOptions
+ * @param {String} selectedOptions[].name
+ * @param {String} searchInputValue
+ * @param {Number} maxRecentReportsToShow
+ * @returns {Array<Object>}
+ */
+function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+    const tagSections = [];
+    const enabledTags = _.filter(tags, (tag) => tag.enabled);
+    const numberOfTags = _.size(enabledTags);
+    let indexOffset = 0;
+
+    // If all tags are disabled but there's a previously selected tag, show only the selected tag
+    if (numberOfTags === 0 && selectedOptions.length > 0) {
+        const selectedTagOptions = _.map(selectedOptions, (option) => ({
+            name: option.name,
+            // Should be marked as enabled to be able to be de-selected
+            enabled: true,
+        }));
+        tagSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTagsOptions(selectedTagOptions),
+        });
+
+        return tagSections;
+    }
+
+    if (!_.isEmpty(searchInputValue)) {
+        const searchTags = _.filter(enabledTags, (tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+
+        tagSections.push({
+            // "Search" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTagsOptions(searchTags),
+        });
+
+        return tagSections;
+    }
+
+    if (numberOfTags < CONST.TAG_LIST_THRESHOLD) {
+        tagSections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTagsOptions(enabledTags),
+        });
+
+        return tagSections;
+    }
+
+    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredRecentlyUsedTags = _.map(
+        _.filter(recentlyUsedTags, (recentlyUsedTag) => {
+            const tagObject = _.find(tags, (tag) => tag.name === recentlyUsedTag);
+            return Boolean(tagObject && tagObject.enabled) && !_.includes(selectedOptionNames, recentlyUsedTag);
+        }),
+        (tag) => ({name: tag, enabled: true}),
+    );
+    const filteredTags = _.filter(enabledTags, (tag) => !_.includes(selectedOptionNames, tag.name));
+
+    if (!_.isEmpty(selectedOptions)) {
+        const selectedTagOptions = _.map(selectedOptions, (option) => {
+            const tagObject = _.find(tags, (tag) => tag.name === option.name);
+            return {
+                name: option.name,
+                enabled: Boolean(tagObject && tagObject.enabled),
+            };
+        });
+
+        tagSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTagsOptions(selectedTagOptions),
+        });
+
+        indexOffset += selectedOptions.length;
+    }
+
+    if (!_.isEmpty(filteredRecentlyUsedTags)) {
+        const cutRecentlyUsedTags = filteredRecentlyUsedTags.slice(0, maxRecentReportsToShow);
+
+        tagSections.push({
+            // "Recent" section
+            title: Localize.translateLocal('common.recent'),
+            shouldShow: true,
+            indexOffset,
+            data: getTagsOptions(cutRecentlyUsedTags),
+        });
+
+        indexOffset += filteredRecentlyUsedTags.length;
+    }
+
+    tagSections.push({
+        // "All" section when items amount more than the threshold
+        title: Localize.translateLocal('common.all'),
+        shouldShow: true,
+        indexOffset,
+        data: getTagsOptions(filteredTags),
+    });
+
+    return tagSections;
+}
+
+/**
  * Build the options
  *
  * @param {Object} reports
@@ -772,11 +957,14 @@ function getOptions(
         includeCategories = false,
         categories = {},
         recentlyUsedCategories = [],
+        includeTags = false,
+        tags = {},
+        recentlyUsedTags = [],
         canInviteUser = true,
     },
 ) {
     if (includeCategories) {
-        const categoryOptions = getCategoryListSections(_.values(categories), recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
+        const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
 
         return {
             recentReports: [],
@@ -784,6 +972,20 @@ function getOptions(
             userToInvite: null,
             currentUserOption: null,
             categoryOptions,
+            tagOptions: [],
+        };
+    }
+
+    if (includeTags) {
+        const tagOptions = getTagListSections(_.values(tags), recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow);
+
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions,
         };
     }
 
@@ -794,6 +996,7 @@ function getOptions(
             userToInvite: null,
             currentUserOption: null,
             categoryOptions: [],
+            tagOptions: [],
         };
     }
 
@@ -895,10 +1098,10 @@ function getOptions(
     }
 
     // Always exclude already selected options and the currently logged in user
-    const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+    const optionsToExclude = [...selectedOptions, {login: currentUserLogin}];
 
     _.each(excludeLogins, (login) => {
-        loginOptionsToExclude.push({login});
+        optionsToExclude.push({login});
     });
 
     if (includeRecentReports) {
@@ -919,7 +1122,11 @@ function getOptions(
             }
 
             // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
-            if (!includeThreads && reportOption.login && _.some(loginOptionsToExclude, (option) => option.login === reportOption.login)) {
+            if (
+                !includeThreads &&
+                (reportOption.login || reportOption.reportID) &&
+                _.some(optionsToExclude, (option) => (option.login && option.login === reportOption.login) || (option.reportID && option.reportID === reportOption.reportID))
+            ) {
                 continue;
             }
 
@@ -943,7 +1150,7 @@ function getOptions(
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
-                loginOptionsToExclude.push({login: reportOption.login});
+                optionsToExclude.push({login: reportOption.login});
             }
         }
     }
@@ -951,7 +1158,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
-            if (_.some(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === personalDetailOption.login)) {
+            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -979,7 +1186,7 @@ function getOptions(
         _.every(selectedOptions, (option) => option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
             (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number.input)))) &&
-        !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
+        !_.find(optionsToExclude, (optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
         !excludeUnknownUsers
     ) {
@@ -1044,6 +1251,7 @@ function getOptions(
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
         categoryOptions: [],
+        tagOptions: [],
     };
 }
 
@@ -1127,11 +1335,14 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {boolean} [includeP2P]
  * @param {boolean} [includeCategories]
  * @param {Object} [categories]
- * @param {Array<Object>} [recentlyUsedCategories]
+ * @param {Array<String>} [recentlyUsedCategories]
+ * @param {boolean} [includeTags]
+ * @param {Object} [tags]
+ * @param {Array<String>} [recentlyUsedTags]
  * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
-function getNewChatOptions(
+function getFilteredOptions(
     reports,
     personalDetails,
     betas = [],
@@ -1143,6 +1354,9 @@ function getNewChatOptions(
     includeCategories = false,
     categories = {},
     recentlyUsedCategories = [],
+    includeTags = false,
+    tags = {},
+    recentlyUsedTags = [],
     canInviteUser = true,
 ) {
     return getOptions(reports, personalDetails, {
@@ -1158,6 +1372,9 @@ function getNewChatOptions(
         includeCategories,
         categories,
         recentlyUsedCategories,
+        includeTags,
+        tags,
+        recentlyUsedTags,
         canInviteUser,
     });
 }
@@ -1209,32 +1426,28 @@ function getShareDestinationOptions(
  * Format personalDetails or userToInvite to be shown in the list
  *
  * @param {Object} member - personalDetails or userToInvite
- * @param {Boolean} isSelected - whether the item is selected
+ * @param {Object} config - keys to overwrite the default values
  * @returns {Object}
  */
-function formatMemberForList(member, isSelected) {
+function formatMemberForList(member, config = {}) {
     if (!member) {
         return undefined;
     }
 
-    const avatarSource = lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'avatar', '');
     const accountID = lodashGet(member, 'accountID', '');
 
     return {
         text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
         alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
         keyForList: lodashGet(member, 'keyForList', '') || String(accountID),
-        isSelected,
+        isSelected: false,
         isDisabled: false,
         accountID,
         login: lodashGet(member, 'login', ''),
         rightElement: null,
-        avatar: {
-            source: UserUtils.getAvatar(avatarSource, accountID),
-            name: lodashGet(member, 'participantsList[0].login', '') || lodashGet(member, 'displayName', ''),
-            type: 'avatar',
-        },
+        icons: lodashGet(member, 'icons'),
         pendingAction: lodashGet(member, 'pendingAction'),
+        ...config,
     };
 }
 
@@ -1313,7 +1526,7 @@ export {
     isCurrentUser,
     isPersonalDetailsReady,
     getSearchOptions,
-    getNewChatOptions,
+    getFilteredOptions,
     getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,
@@ -1322,11 +1535,13 @@ export {
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,
-    getPolicyExpenseReportOptions,
-    getParticipantsOptions,
+    getPolicyExpenseReportOption,
+    getParticipantsOption,
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
+    getEnabledCategoriesCount,
+    hasEnabledOptions,
     getCategoryOptionTree,
     formatMemberForList,
 };
