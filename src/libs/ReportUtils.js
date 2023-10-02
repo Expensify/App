@@ -1208,7 +1208,7 @@ function getReport(reportID) {
     /**
      * using typical string concatenation here due to performance issues
      * with template literals.
-    */
+     */
     return allReports[ONYXKEYS.COLLECTION.REPORT + reportID] || {};
 }
 
@@ -1314,7 +1314,7 @@ function getPolicyExpenseChatName(report, policy = undefined) {
     /**
      * using typical string concatenation here due to performance issues
      * with template literals.
-    */
+     */
     const policyItem = allPolicies[ONYXKEYS.COLLECTION.POLICY + report.policyID];
     if (policyItem) {
         policyExpenseChatRole = policyItem.role || 'user';
