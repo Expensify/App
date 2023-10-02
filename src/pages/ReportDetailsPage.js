@@ -116,7 +116,7 @@ function ReportDetailsPage(props) {
         }
 
         // Prevent displaying private notes option for threads and task reports
-        if (!isThread && !ReportUtils.isTaskReport(props.report)) {
+        if (!isThread && !isMoneyRequestReport && !ReportUtils.isTaskReport(props.report)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
@@ -138,7 +138,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [props.report, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
+    }, [isArchivedRoom, participants.length, shouldDisableSettings, isThread, isMoneyRequestReport, props.report, isUserCreatedPolicyRoom, canLeaveRoom]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
