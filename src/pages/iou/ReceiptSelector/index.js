@@ -1,5 +1,5 @@
-import {View, Text, PixelRatio} from 'react-native';
-import React, {useContext, useState} from 'react';
+import {View, Text, PanResponder, PixelRatio} from 'react-native';
+import React, {useContext, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -60,7 +60,6 @@ const defaultProps = {
 };
 
 function ReceiptSelector(props) {
-    const reportID = lodashGet(props.route, 'params.reportID', '');
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
@@ -126,8 +125,15 @@ function ReceiptSelector(props) {
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, reportID, report, props.route.path);
+        IOU.navigateToNextPage(iou, iouType, report, props.route.path);
     };
+
+    const panResponder = useRef(
+        PanResponder.create({
+            onMoveShouldSetPanResponder: () => true,
+            onPanResponderTerminationRequest: () => false,
+        }),
+    ).current;
 
     return (
         <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
@@ -143,15 +149,21 @@ function ReceiptSelector(props) {
                             height={CONST.RECEIPT.ICON_SIZE}
                         />
                     </View>
-                    <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
-                    <Text style={[styles.subTextReceiptUpload]}>
-                        {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
-                        <CopyTextToClipboard
-                            text={CONST.EMAIL.RECEIPTS}
-                            textStyles={[styles.textBlue]}
-                        />
-                        {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
-                    </Text>
+                    <View
+                        style={styles.receiptViewTextContainer}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...panResponder.panHandlers}
+                    >
+                        <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
+                        <Text style={[styles.subTextReceiptUpload]}>
+                            {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+                            <CopyTextToClipboard
+                                text={CONST.EMAIL.RECEIPTS}
+                                textStyles={[styles.textBlue]}
+                            />
+                            {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
+                        </Text>
+                    </View>
                     <AttachmentPicker>
                         {({openPicker}) => (
                             <Button
