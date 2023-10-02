@@ -23,6 +23,7 @@ import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.common.ReactConstants;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.uimanager.PixelUtil;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -45,6 +46,19 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
   @Override
   public String getName() {
     return NAME;
+  }
+
+  // From https://stackoverflow.com/a/61062773
+  public static boolean isSamsungOneUI4() {
+    String name = "SEM_PLATFORM_INT";
+
+    try {
+      Field field = Build.VERSION.class.getDeclaredField(name);
+      int version = (field.getInt(null) - 90000) / 10000;
+      return version == 4;
+    } catch (Exception ignored) {
+      return false;
+    }
   }
 
   @Override
