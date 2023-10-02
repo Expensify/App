@@ -482,7 +482,7 @@ export default {
         dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
         dragReceiptAfterEmail: ' or choose a file to upload below.',
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
-        chooseFile: 'Choose File',
+        chooseFile: 'Choose file',
         givePermission: 'Give permission',
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
