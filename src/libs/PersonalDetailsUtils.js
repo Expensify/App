@@ -17,8 +17,8 @@ Onyx.connect({
 });
 
 /**
- * @param {Object} passedPersonalDetails
- * @param {Array} pathToDisplayName
+ * @param {Object | Null} passedPersonalDetails
+ * @param {Array | String} pathToDisplayName
  * @param {String} [defaultValue] optional default display name value
  * @returns {String}
  */

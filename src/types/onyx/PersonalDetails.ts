@@ -40,6 +40,8 @@ type PersonalDetails = {
         /** Whether timezone is automatically set */
         automatic?: boolean;
     };
+
+    status?: string;
 };
 
 export default PersonalDetails;

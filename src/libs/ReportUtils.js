@@ -108,9 +108,9 @@ function getPolicyType(report, policies) {
 /**
  * Get the policy name from a given report
  * @param {Object} report
- * @param {String} report.policyID
- * @param {String} report.oldPolicyName
- * @param {String} report.policyName
+ * @param {String} [report.policyID]
+ * @param {String} [report.oldPolicyName]
+ * @param {String} [report.policyName]
  * @param {Boolean} [returnEmptyIfNotFound]
  * @param {Object} [policy]
  * @returns {String}
@@ -363,7 +363,7 @@ function isUserCreatedPolicyRoom(report) {
 /**
  * Whether the provided report is a Policy Expense chat.
  * @param {Object} report
- * @param {String} report.chatType
+ * @param {String} [report.chatType]
  * @returns {Boolean}
  */
 function isPolicyExpenseChat(report) {
@@ -389,7 +389,7 @@ function isControlPolicyExpenseReport(report) {
 /**
  * Whether the provided report is a chat room
  * @param {Object} report
- * @param {String} report.chatType
+ * @param {String} [report.chatType]
  * @returns {Boolean}
  */
 function isChatRoom(report) {
@@ -578,8 +578,8 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
 /**
  * Whether the provided report is an archived room
  * @param {Object} report
- * @param {Number} report.stateNum
- * @param {Number} report.statusNum
+ * @param {Number} [report.stateNum]
+ * @param {Number} [report.statusNum]
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
@@ -2912,7 +2912,7 @@ function shouldHideReport(report, currentReportId) {
  * filter out the majority of reports before filtering out very specific minority of reports.
  *
  * @param {Object} report
- * @param {String} currentReportId
+ * @param {String | Null} currentReportId
  * @param {Boolean} isInGSDMode
  * @param {String[]} betas
  * @param {Object} policies
