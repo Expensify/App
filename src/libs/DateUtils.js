@@ -4,11 +4,10 @@ import {es, enGB} from 'date-fns/locale';
 import {
     formatDistanceToNow,
     subMinutes,
+    addDays,
+    subDays,
     isBefore,
     subMilliseconds,
-    isToday,
-    isTomorrow,
-    isYesterday,
     startOfWeek,
     endOfWeek,
     format,
@@ -45,6 +44,12 @@ Onyx.connect({
     callback: (val) => {
         timezone = lodashGet(val, [currentUserAccountID, 'timezone'], CONST.DEFAULT_TIME_ZONE);
     },
+});
+
+let networkTimeSkew = 0;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (val) => (networkTimeSkew = lodashGet(val, 'timeSkew', 0)),
 });
 
 /**
@@ -86,6 +91,47 @@ function getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone = ti
 }
 
 /**
+ * Checks if a given date is today in the specified time zone.
+ *
+ * @param {Date} date - The date to compare.
+ * @param {String} timeZone - The time zone to consider.
+ * @returns {Boolean} True if the date is today; otherwise, false.
+ */
+function isToday(date, timeZone) {
+    const currentDate = new Date();
+    const currentDateInTimeZone = utcToZonedTime(currentDate, timeZone);
+    return isSameDay(date, currentDateInTimeZone);
+}
+
+/**
+ * Checks if a given date is tomorrow in the specified time zone.
+ *
+ * @param {Date} date - The date to compare.
+ * @param {String} timeZone - The time zone to consider.
+ * @returns {Boolean} True if the date is tomorrow; otherwise, false.
+ */
+function isTomorrow(date, timeZone) {
+    const currentDate = new Date();
+    const tomorrow = addDays(currentDate, 1); // Get the date for tomorrow in the current time zone
+    const tomorrowInTimeZone = utcToZonedTime(tomorrow, timeZone);
+    return isSameDay(date, tomorrowInTimeZone);
+}
+
+/**
+ * Checks if a given date is yesterday in the specified time zone.
+ *
+ * @param {Date} date - The date to compare.
+ * @param {String} timeZone - The time zone to consider.
+ * @returns {Boolean} True if the date is yesterday; otherwise, false.
+ */
+function isYesterday(date, timeZone) {
+    const currentDate = new Date();
+    const yesterday = subDays(currentDate, 1); // Get the date for yesterday in the current time zone
+    const yesterdayInTimeZone = utcToZonedTime(yesterday, timeZone);
+    return isSameDay(date, yesterdayInTimeZone);
+}
+
+/**
  * Formats an ISO-formatted datetime string to local date and time string
  *
  * e.g.
@@ -117,13 +163,13 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
         yesterdayAt = yesterdayAt.toLowerCase();
     }
 
-    if (isToday(date)) {
+    if (isToday(date, currentSelectedTimezone)) {
         return `${todayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
     }
-    if (isTomorrow(date)) {
+    if (isTomorrow(date, currentSelectedTimezone)) {
         return `${tomorrowAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
     }
-    if (isYesterday(date)) {
+    if (isYesterday(date, currentSelectedTimezone)) {
         return `${yesterdayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
@@ -268,6 +314,15 @@ function getDBTime(timestamp = '') {
 }
 
 /**
+ * Returns the current time plus skew in milliseconds in the format expected by the database
+ *
+ * @returns {String}
+ */
+function getDBTimeWithSkew() {
+    return getDBTime(new Date().valueOf() + networkTimeSkew);
+}
+
+/**
  * @param {String} dateTime
  * @param {Number} milliseconds
  * @returns {String}
@@ -298,7 +353,9 @@ function getDateStringFromISOTimestamp(isoTimestamp) {
  * @returns {String}
  */
 function getStatusUntilDate(inputDate) {
-    if (!inputDate) return '';
+    if (!inputDate) {
+        return '';
+    }
     const {translateLocal} = Localize;
 
     const input = new Date(inputDate);
@@ -341,9 +398,14 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
+    getDBTimeWithSkew,
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
     getStatusUntilDate,
+    setLocale,
+    isToday,
+    isTomorrow,
+    isYesterday,
 };
 
 export default DateUtils;

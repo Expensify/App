@@ -58,13 +58,13 @@ function MoneyRequestMerchantPage({iou, route}) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(iou.participantAccountIDs) || (iou.amount === 0 && !iou.receiptPath) || shouldReset) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+        if (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset) {
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
         }
-    }, [iou.id, iou.participantAccountIDs, iou.amount, iou.receiptPath, iouType, reportID]);
+    }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID]);
 
     function navigateBack() {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     }
 
     const validate = useCallback((value) => {
@@ -93,6 +93,7 @@ function MoneyRequestMerchantPage({iou, route}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            testID={MoneyRequestMerchantPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.merchant')}
@@ -125,6 +126,7 @@ function MoneyRequestMerchantPage({iou, route}) {
 
 MoneyRequestMerchantPage.propTypes = propTypes;
 MoneyRequestMerchantPage.defaultProps = defaultProps;
+MoneyRequestMerchantPage.displayName = 'MoneyRequestMerchantPage';
 
 export default withOnyx({
     iou: {
