@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/onyx-props-must-have-default */
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ScrollView, View} from 'react-native';
@@ -24,13 +23,14 @@ import {defaultAccount, TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes'
 
 const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
-const defaultSession = {
+const defaultProps = {
+    account: defaultAccount,
     session: {
         email: null,
     },
 };
 
-function VerifyStep({account = defaultAccount, session = defaultSession}) {
+function VerifyStep({account, session}) {
     const {translate} = useLocalize();
 
     const formRef = React.useRef(null);
@@ -146,7 +146,9 @@ VerifyStep.propTypes = {
         email: PropTypes.string.isRequired,
     }),
 };
+VerifyStep.defaultProps = defaultProps;
 
+// eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     session: {key: ONYXKEYS.SESSION},
