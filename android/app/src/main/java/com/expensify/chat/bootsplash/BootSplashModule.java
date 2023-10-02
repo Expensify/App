@@ -75,6 +75,7 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
             ? Math.round(PixelUtil.toDIPFromPixel(resources.getDimensionPixelSize(heightResId)))
             : 0;
 
+    constants.put("logoSizeRatio", isSamsungOneUI4() ? 0.5 : 1);
     constants.put("navigationBarHeight", height);
     return constants;
   }

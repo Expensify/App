@@ -7,6 +7,8 @@
         <color android:color="?attr/windowSplashScreenBackground" />
     </item>
 
+    <!-- There's an issue with logo size on Samsung OneUI v4
+         We need to render it 2 times smaller (288 / 2 = 144) -->
     <item
         tools:ignore="UnusedAttribute"
         android:drawable="?windowSplashScreenAnimatedIcon"
