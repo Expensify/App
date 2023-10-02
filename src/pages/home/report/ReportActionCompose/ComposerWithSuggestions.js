@@ -211,7 +211,7 @@ function ComposerWithSuggestions({
                     suggestionsRef.current.resetSuggestions();
                 }
 
-                const remainder = ComposerUtils.getCommonSuffixLength(commentRef.current, newComment);
+                const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
                 setSelection({
                     start: newComment.length - remainder,
                     end: newComment.length - remainder,
@@ -327,7 +327,7 @@ function ComposerWithSuggestions({
                     (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
                 );
                 if (lastReportAction) {
-                    Report.saveReportActionDraft(reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
+                    Report.saveReportActionDraft(reportID, lastReportAction, _.last(lastReportAction.message).html);
                 }
             }
         },
