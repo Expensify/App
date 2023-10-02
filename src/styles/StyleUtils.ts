@@ -577,7 +577,7 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle | CSSProper
 /**
  * Generate the styles for the ReportActionItem wrapper view.
  */
-function getReportActionItemStyle(isHovered = false, isLoading = false): ViewStyle | CSSProperties {
+function getReportActionItemStyle(isHovered = false): ViewStyle | CSSProperties {
     // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -587,7 +587,7 @@ function getReportActionItemStyle(isHovered = false, isLoading = false): ViewSty
             ? themeColors.hoverComponentBG
             : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
               themeColors.transparent,
-        opacity: isLoading ? 0.5 : 1,
+        opacity: 1,
         ...styles.cursorInitial,
     };
 }
@@ -938,11 +938,9 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: {lef
 /**
  * Gets the correct position for auto complete suggestion container
  */
-function getAutoCompleteSuggestionContainerStyle(itemsHeight: number, shouldIncludeReportRecipientLocalTimeHeight: boolean): ViewStyle | CSSProperties {
+function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle | CSSProperties {
     'worklet';
 
-    const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
-    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + optionalPadding;
     const borderWidth = 2;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + borderWidth;
 
@@ -950,7 +948,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number, shouldIncl
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(height + padding),
+        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING),
         height,
     };
 }

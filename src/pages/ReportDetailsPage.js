@@ -124,7 +124,7 @@ function ReportDetailsPage(props) {
             });
         }
 
-        if (isUserCreatedPolicyRoom || canLeaveRoom || isThread) {
+        if (isUserCreatedPolicyRoom || canLeaveRoom) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',

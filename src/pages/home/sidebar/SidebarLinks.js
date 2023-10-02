@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import React from 'react';
-import {View} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
@@ -77,6 +77,13 @@ class SidebarLinks extends React.PureComponent {
         SidebarUtils.setIsSidebarLoadedReady();
         this.isSidebarLoaded = true;
 
+        // Eagerly set the locale on date-fns, it helps navigating to the report screen faster
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                this.props.updateLocale();
+            });
+        });
+
         let modal = {};
         this.unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
@@ -134,11 +141,7 @@ class SidebarLinks extends React.PureComponent {
         // or when clicking the active LHN row on large screens
         // or when continuously clicking different LHNs, only apply to small screen
         // since getTopmostReportId always returns on other devices
-        if (
-            this.props.isCreateMenuOpen ||
-            (!this.props.isSmallScreenWidth && this.props.isActiveReport(option.reportID)) ||
-            (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())
-        ) {
+        if (this.props.isCreateMenuOpen || option.reportID === Navigation.getTopmostReportId() || (this.props.isSmallScreenWidth && this.props.isActiveReport(option.reportID))) {
             return;
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
@@ -195,4 +198,5 @@ class SidebarLinks extends React.PureComponent {
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 export default compose(withLocalize, withWindowDimensions)(SidebarLinks);
+
 export {basePropTypes};
