@@ -1191,27 +1191,26 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
  * @returns {Array}
  */
 function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
-    const displayNames = _.map(personalDetailsList, (user) => {
-        const accountID = Number(user.accountID);
-        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
-        const avatar = UserUtils.getDefaultAvatar(accountID);
+    return _.chain(personalDetailsList)
+        .map((user) => {
+            const accountID = Number(user.accountID);
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
+            const avatar = UserUtils.getDefaultAvatar(accountID);
 
-        let pronouns = user.pronouns;
-        if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
-            const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-            pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
-        }
+            let pronouns = user.pronouns;
+            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+                const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+            }
 
-        return {
-            displayName,
-            avatar,
-            login: user.login || '',
-            accountID,
-            pronouns,
-        };
-    });
-
-    return _.chain(displayNames)
+            return {
+                displayName,
+                avatar,
+                login: user.login || '',
+                accountID,
+                pronouns,
+            };
+        })
         .sort((first, second) => {
             // First sort by displayName/login
             const displayNameLoginOrder = first.displayName.localeCompare(second.displayName);
