@@ -20,6 +20,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import Form from '../../components/Form';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as UserUtils from '../../libs/UserUtils';
 import Avatar from '../../components/Avatar';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -60,7 +61,7 @@ function WorkspaceSettingsPage(props) {
             const outputCurrency = values.currency;
             Policy.updateGeneralSettings(props.policy.id, values.name.trim(), outputCurrency);
             Keyboard.dismiss();
-            Navigation.goBack(ROUTES.getWorkspaceInitialRoute(props.policy.id));
+            Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(props.policy.id));
         },
         [props.policy.id, props.policy.isPolicyUpdating],
     );
@@ -125,6 +126,9 @@ function WorkspaceSettingsPage(props) {
                         pendingAction={lodashGet(props.policy, 'pendingFields.avatar', null)}
                         errors={lodashGet(props.policy, 'errorFields.avatar', null)}
                         onErrorClose={() => Policy.clearAvatarErrors(props.policy.id)}
+                        previewSource={UserUtils.getFullSizeAvatar(props.policy.avatar, '')}
+                        headerTitle={props.translate('workspace.common.workspaceAvatar')}
+                        originalFileName={props.policy.originalFileName}
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(props.policy, 'pendingFields.generalSettings')}>
                         <TextInput

@@ -9,7 +9,7 @@ import {PickerStateProvider} from 'react-native-picker-select';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
-import {LocaleContextProvider} from './components/withLocalize';
+import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import PopoverContextProvider from './components/PopoverProvider';
@@ -22,6 +22,7 @@ import ThemeProvider from './styles/themes/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
+import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import * as Session from './libs/actions/Session';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
@@ -58,6 +59,7 @@ function App() {
                     KeyboardStateProvider,
                     PopoverContextProvider,
                     CurrentReportIDContextProvider,
+                    ReportAttachmentsProvider,
                     PickerStateProvider,
                     EnvironmentProvider,
                     ThemeProvider,
