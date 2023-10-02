@@ -1,6 +1,8 @@
 ---
-title: Other-Export-Options.md
+title: Other Export Options
+description: Other Export Options
 ---
+
 # Overview
 Here’s a quick look at how to export your expense and report data into a spreadsheet, accounting package, or PDF.  We’ll also show you how to print out your reports in a few easy steps. 
 
