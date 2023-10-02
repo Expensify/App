@@ -14,7 +14,9 @@ type UnitRate = {rate: number};
  * These are policies that we can use to create reports with in NewDot.
  */
 function getActivePolicies(policies: OnyxTypes.Policy[]): OnyxTypes.Policy[] {
-    return policies.filter((policy) => policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return (policies ?? []).filter(
+        (policy) => policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
 }
 
 /**
@@ -22,14 +24,14 @@ function getActivePolicies(policies: OnyxTypes.Policy[]): OnyxTypes.Policy[] {
  * Data structure: {accountID: {role:'user', errors: []}, accountID2: {role:'admin', errors: [{1231312313: 'Unable to do X'}]}, ...}
  */
 function hasPolicyMemberError(policyMembers: PolicyMemberList): boolean {
-    return Object.values(policyMembers).some((member) => Object.keys(member?.errors ?? {}).length > 0);
+    return Object.values(policyMembers ?? {}).some((member) => Object.keys(member?.errors ?? {}).length > 0);
 }
 
 /**
  * Check if the policy has any error fields.
  */
 function hasPolicyErrorFields(policy: OnyxTypes.Policy): boolean {
-    return Object.keys(policy?.errorFields ?? {}).some((fieldErrors) => Object.keys(fieldErrors).length > 0);
+    return Object.keys(policy?.errorFields ?? {}).some((fieldErrors) => Object.keys(fieldErrors ?? {}).length > 0);
 }
 
 /**
@@ -87,19 +89,19 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxTypes.Policy, policyMembe
 function shouldShowPolicy(policy: OnyxTypes.Policy, isOffline: boolean): boolean {
     return (
         policy &&
-        policy.isPolicyExpenseChatEnabled &&
-        policy.role === CONST.POLICY.ROLE.ADMIN &&
-        (isOffline || policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors).length > 0)
+        policy?.isPolicyExpenseChatEnabled &&
+        policy?.role === CONST.POLICY.ROLE.ADMIN &&
+        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
     );
 }
 
 function isExpensifyTeam(email: string): boolean {
-    const emailDomain = Str.extractEmailDomain(email);
+    const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
 function isExpensifyGuideTeam(email: string): boolean {
-    const emailDomain = Str.extractEmailDomain(email);
+    const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
@@ -115,9 +117,9 @@ const isPolicyAdmin = (policy: OnyxTypes.Policy): boolean => policy?.role === CO
  */
 function getMemberAccountIDsForWorkspace(policyMembers: PolicyMemberList, personalDetails: PersonalDetailsList): MemberEmailsToAccountIDs {
     const memberEmailsToAccountIDs: Record<string, string> = {};
-    Object.keys(policyMembers).forEach((accountID) => {
+    Object.keys(policyMembers ?? {}).forEach((accountID) => {
         const member = policyMembers?.[accountID];
-        if (Object.keys(member?.errors ?? {}).length > 0) {
+        if (Object.keys(member?.errors ?? {})?.length > 0) {
             return;
         }
         const personalDetail = personalDetails[accountID];
@@ -134,7 +136,7 @@ function getMemberAccountIDsForWorkspace(policyMembers: PolicyMemberList, person
  */
 function getIneligibleInvitees(policyMembers: PolicyMemberList, personalDetails: PersonalDetailsList): string[] {
     const memberEmailsToExclude: string[] = [...CONST.EXPENSIFY_EMAILS];
-    Object.keys(policyMembers).forEach((accountID) => {
+    Object.keys(policyMembers ?? {}).forEach((accountID) => {
         const policyMember = policyMembers?.[accountID];
         // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
         if (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyMember?.errors ?? {}).length > 0) {
@@ -154,11 +156,11 @@ function getIneligibleInvitees(policyMembers: PolicyMemberList, personalDetails:
  * Gets the tag from policy tags, defaults to the first if no key is provided.
  */
 function getTag(policyTags: Record<string, OnyxTypes.PolicyTag>, tagKey?: keyof typeof policyTags) {
-    if (Object.keys(policyTags).length === 0) {
+    if (Object.keys(policyTags ?? {})?.length === 0) {
         return {};
     }
 
-    const policyTagKey = tagKey ?? Object.keys(policyTags)[0];
+    const policyTagKey = tagKey ?? Object.keys(policyTags ?? {})[0];
 
     return policyTags?.[policyTagKey] ?? {};
 }
@@ -167,11 +169,11 @@ function getTag(policyTags: Record<string, OnyxTypes.PolicyTag>, tagKey?: keyof 
  * Gets the first tag name from policy tags.
  */
 function getTagListName(policyTags: Record<string, OnyxTypes.PolicyTag>) {
-    if (Object.keys(policyTags).length === 0) {
+    if (Object.keys(policyTags ?? {})?.length === 0) {
         return '';
     }
 
-    const policyTagKeys = Object.keys(policyTags)[0] ?? [];
+    const policyTagKeys = Object.keys(policyTags ?? {})[0] ?? [];
 
     return policyTags?.[policyTagKeys]?.name ?? '';
 }
@@ -180,17 +182,17 @@ function getTagListName(policyTags: Record<string, OnyxTypes.PolicyTag>) {
  * Gets the tags of a policy for a specific key. Defaults to the first tag if no key is provided.
  */
 function getTagList(policyTags: Record<string, Record<string, OnyxTypes.PolicyTag>>, tagKey: string) {
-    if (Object.keys(policyTags).length === 0) {
+    if (Object.keys(policyTags ?? {})?.length === 0) {
         return {};
     }
 
-    const policyTagKey = tagKey ?? Object.keys(policyTags)[0];
+    const policyTagKey = tagKey ?? Object.keys(policyTags ?? {})[0];
 
     return policyTags?.[policyTagKey]?.tags ?? {};
 }
 
 function isPendingDeletePolicy(policy: OnyxTypes.Policy): boolean {
-    return policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 export {
