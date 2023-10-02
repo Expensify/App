@@ -62,8 +62,6 @@ function SAMLSignInPage({credentials}) {
 SAMLSignInPage.propTypes = propTypes;
 SAMLSignInPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-    }),
-)(SAMLSignInPage);
+export default withOnyx({
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+})(SAMLSignInPage);

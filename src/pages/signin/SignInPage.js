@@ -19,12 +19,12 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
-import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import getPlatform from '../../libs/getPlatform';
 import Permissions from '../../libs/Permissions';
 import CONST from '../../CONST';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
