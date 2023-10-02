@@ -6,7 +6,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import useLocalize from '../hooks/useLocalize';
 import ReceiptSelector from './iou/ReceiptSelector';
 import DragAndDropProvider from '../components/DragAndDrop/Provider';
-import themeColors from '../styles/themes/default';
+import styles from '../styles/styles';
 
 const propTypes = {
     /** React Navigation route */
@@ -38,15 +38,7 @@ function EditRequestReceiptPage({route, transactionID}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={EditRequestReceiptPage.displayName}
-            headerGapStyles={
-                isDraggingOver
-                    ? [
-                          {
-                              backgroundColor: themeColors.receiptDropUIBG,
-                          },
-                      ]
-                    : []
-            }
+            headerGapStyles={isDraggingOver ? [styles.dragAndDropHeader] : []}
         >
             <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
                 <HeaderWithBackButton
