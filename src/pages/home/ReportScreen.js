@@ -105,7 +105,7 @@ const defaultProps = {
         hasOutstandingIOU: false,
     },
     reportMetadata: {
-        isLoadingReportActions: false,
+        isLoadingReportActions: true,
         isLoadingMoreReportActions: false,
     },
     isComposerFullSize: false,
@@ -468,7 +468,7 @@ export default compose(
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
                 initialValue: {
-                    isLoadingReportActions: false,
+                    isLoadingReportActions: true,
                     isLoadingMoreReportActions: false,
                 },
             },
