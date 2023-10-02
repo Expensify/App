@@ -248,7 +248,7 @@ function BaseTextInput(props) {
             if (lineHeightValue) {
                 return lineHeightValue.lineHeight;
             }
-        } 
+        }
         return undefined;
     }, [props.inputStyle]);
 
