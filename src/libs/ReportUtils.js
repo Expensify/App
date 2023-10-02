@@ -3387,7 +3387,7 @@ function isReportDataReady() {
 
 /**
  * Return true if reportID is valid
- * @param {String} reportID
+ * @param {String} reportIDFromPath
  * @returns {Boolean}
  */
 function isValidReportID(reportID) {
