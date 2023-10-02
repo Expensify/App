@@ -17,7 +17,7 @@ const items = [
     'I verified that each component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions',
 ];
 
-function detectReactComponent(code: string, filename: string) {
+function detectReactComponent(code: string, filename: string): boolean | undefined {
     if (!code) {
         console.error('failed to get code from a filename', code, filename);
         return;
@@ -49,7 +49,7 @@ function nodeBase64ToUtf8(data: string) {
     return Buffer.from(data, 'base64').toString('utf-8');
 }
 
-async function detectReactComponentInFile(filename: string) {
+async function detectReactComponentInFile(filename: string): Promise<boolean | undefined> {
     const params = {
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
@@ -65,14 +65,14 @@ async function detectReactComponentInFile(filename: string) {
     }
 }
 
-function filterFiles({filename, status}: {filename: string; status: string}) {
+function filterFiles({filename, status}: {filename: string; status: string}): boolean {
     if (status !== 'added') {
         return false;
     }
     return filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx');
 }
 
-async function detectFunction(changedFiles: Array<{filename: string; status: string}>) {
+async function detect(changedFiles: Array<{filename: string; status: string}>): Promise<boolean> {
     const filteredFiles = changedFiles.filter(filterFiles);
     for (const file of filteredFiles) {
         const result = await detectReactComponentInFile(file.filename);
@@ -84,6 +84,6 @@ async function detectFunction(changedFiles: Array<{filename: string; status: str
 }
 
 export default {
-    detectFunction,
+    detect,
     items,
 };
