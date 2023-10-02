@@ -146,6 +146,7 @@ export default compose(
             canEvict: false,
         },
     }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         transaction: {
             key: ({report, parentReportActions}) => {
