@@ -357,18 +357,6 @@ function ReportScreen({
         () => (!firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
         [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
-    console.log('Report Screen render');
-
-    console.log(report);
-
-    console.table({
-        shouldShowNotFoundPage,
-        reportId: report.reportID,
-        isOptimisticDelete,
-        isLoadingReportActions: reportMetadata.isLoadingReportActions,
-        isLoading,
-        userLeavingStatus,
-    });
 
     return (
         <ActionListContext.Provider value={flatListRef}>
