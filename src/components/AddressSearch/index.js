@@ -293,12 +293,11 @@ function AddressSearch(props) {
                         )
                     }
                     listLoaderComponent={
-                        <View style={[styles.flex1, styles.autoCompleteSuggestionContainer, styles.ph3]}>
+                        <View style={[styles.pv4]}>
                             <ActivityIndicator
                                 color={themeColors.spinner}
                                 size="small"
                             />
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.loading')}</Text>
                         </View>
                     }
                     renderHeaderComponent={() =>
