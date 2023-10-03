@@ -1,5 +1,10 @@
 import {OnyxUpdate} from 'react-native-onyx';
 
+type Data = {
+    phpCommandName: string;
+    authWriteCommands: string[];
+};
+
 type Response = {
     previousUpdateID?: number | string;
     lastUpdateID?: number | string;
@@ -7,6 +12,9 @@ type Response = {
     onyxData?: OnyxUpdate[];
     requestID?: string;
     message?: string;
+    title?: string;
+    data?: Data;
+    type?: string;
 };
 
 export default Response;
