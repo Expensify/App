@@ -51,7 +51,6 @@ function SuggestionMention({
     personalDetails,
     updateComment,
     composerHeight,
-    shouldShowReportRecipientLocalTime,
     forwardedRef,
     isAutoSuggestionPickerLarge,
     measureParentContainer,
@@ -235,7 +234,10 @@ function SuggestionMention({
 
     useEffect(() => {
         calculateMentionSuggestion(selection.end);
-    }, [selection, calculateMentionSuggestion]);
+
+        // We want this hook to run only on selection change.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selection]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -285,7 +287,6 @@ function SuggestionMention({
             isComposerFullSize={isComposerFullSize}
             isMentionPickerLarge={isAutoSuggestionPickerLarge}
             composerHeight={composerHeight}
-            shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
             measureParentContainer={measureParentContainer}
         />
     );
