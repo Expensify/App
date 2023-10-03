@@ -9,12 +9,14 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Report from '../../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import {useRoute} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
+import CONST from '../../../CONST';
+import InvertedFlatList from '../../../components/InvertedFlatList';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
 import reportActionPropTypes from './reportActionPropTypes';
-import CONST from '../../../CONST';
-import InvertedFlatList from '../../../components/InvertedFlatList';
 import useLocalize from '../../../hooks/useLocalize';
 import useNetwork from '../../../hooks/useNetwork';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
@@ -117,6 +119,7 @@ function ReportActionsList({
     const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
     const prevReportID = useRef(null);
@@ -133,6 +136,7 @@ function ReportActionsList({
     const reportActionSize = useRef(sortedReportActions.length);
     const lastReadRef = useRef(report.lastReadTime);
     const firstRenderRef = useRef(true);
+    const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
     // This state is used to force a re-render when the user manually marks a message as unread
     // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
@@ -332,6 +336,7 @@ function ReportActionsList({
                     reportAction={reportAction}
                     index={index}
                     report={report}
+                    linkedReportActionID={linkedReportActionID}
                     hasOutstandingIOU={hasOutstandingIOU}
                     sortedReportActions={sortedReportActions}
                     mostRecentIOUReportActionID={mostRecentIOUReportActionID}
@@ -340,7 +345,7 @@ function ReportActionsList({
                 />
             );
         },
-        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarkedUnread, shouldHideThreadDividerLine, currentUnreadMarker],
+        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarkedUnread, shouldHideThreadDividerLine, currentUnreadMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
