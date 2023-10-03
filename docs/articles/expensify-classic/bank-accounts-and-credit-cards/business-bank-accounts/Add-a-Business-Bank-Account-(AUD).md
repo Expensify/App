@@ -10,7 +10,6 @@ _Your policy currency must be set to AUD and reimbursement setting set to Indire
 To set this up, you’ll run through the following steps:
 
 1. Go to *Settings > Your Account > Payments* and click *Add Verified Bank Account*
-
 ![Click the Verified Bank Account button in the bottom right-hand corner of the screen](https://help.expensify.com/assets/images/add-vba-australian-account.png){:width="100%"}
 
 2. Enter the required information to connect to your business bank account. If you don't know your Bank User ID/Direct Entry ID/APCA Number, please contact your bank and they will be able to provide this.
