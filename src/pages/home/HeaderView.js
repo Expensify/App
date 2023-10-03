@@ -94,14 +94,6 @@ function HeaderView(props) {
     const threeDotMenuItems = [];
     if (isTaskReport && !isCanceledTaskReport) {
         const canModifyTask = Task.canModifyTask(props.report, props.session.accountID);
-        if (ReportUtils.isOpenTaskReport(props.report) && canModifyTask) {
-            threeDotMenuItems.push({
-                icon: Expensicons.Checkmark,
-                iconFill: themeColors.icon,
-                text: props.translate('task.markAsComplete'),
-                onSelected: () => Task.completeTask(props.report),
-            });
-        }
 
         // Task is marked as completed
         if (ReportUtils.isCompletedTaskReport(props.report) && canModifyTask) {
