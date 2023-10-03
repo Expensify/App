@@ -70,7 +70,7 @@ function SplitBillDetailsPage(props) {
     }
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
-    const {amount: splitAmount, currency: splitCurrency, comment: splitComment} = ReportUtils.getTransactionDetails(transaction);
+    const {amount: splitAmount, currency: splitCurrency, comment: splitComment, merchant: splitMerchant, created: splitCreated} = ReportUtils.getTransactionDetails(transaction);
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
@@ -87,8 +87,10 @@ function SplitBillDetailsPage(props) {
                             payeePersonalDetails={payeePersonalDetails}
                             selectedParticipants={participantsExcludingPayee}
                             iouAmount={splitAmount}
-                            iouComment={splitComment}
                             iouCurrencyCode={splitCurrency}
+                            iouComment={splitComment}
+                            iouCreated={splitCreated}
+                            iouMerchant={splitMerchant}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly
                             shouldShowFooter={false}

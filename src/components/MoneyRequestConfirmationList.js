@@ -539,7 +539,7 @@ function MoneyRequestConfirmationList(props) {
                         style={[styles.moneyRequestMenuItem]}
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID))}
-                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
+                        disabled={didConfirm || props.isReadOnly}
                     />
                     {props.isDistanceRequest ? (
                         <MenuItemWithTopDescription
@@ -559,7 +559,7 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(props.iouType, props.reportID))}
-                            disabled={didConfirm || props.isReadOnly || !isTypeRequest}
+                            disabled={didConfirm || props.isReadOnly}
                         />
                     )}
                     {shouldShowCategories && (

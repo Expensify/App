@@ -220,7 +220,10 @@ function getCurrency(transaction: Transaction): string {
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: Transaction): string {
-    return transaction?.modifiedMerchant ?? transaction?.merchant ?? '';
+    if (transaction?.modifiedMerchant?.length) {
+        return transaction.modifiedMerchant;
+    }
+    return transaction?.merchant ?? '';
 }
 
 /**
@@ -255,7 +258,12 @@ function getTag(transaction: Transaction): string {
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
 function getCreated(transaction: Transaction): string {
-    const created = transaction?.modifiedCreated ?? transaction?.created ?? '';
+    let created: string;
+    if (transaction?.modifiedCreated?.length) {
+        created = transaction.modifiedCreated;
+    } else {
+        created = transaction?.created ?? '';
+    }
     const createdDate = parseISO(created);
     if (isValid(createdDate)) {
         return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);

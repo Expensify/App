@@ -1238,7 +1238,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
 }
 
 /** Used exclusively for starting a split bill request that contains a receipt, the split request will be completed once the receipt is scanned */
-function startSplitBillRequest(participants, currentUserLogin, currentUserAccountID, comment, receipt, existingSplitChatReportID = '') {
+function startSplitBill(participants, currentUserLogin, currentUserAccountID, comment, created, merchant, receipt, existingSplitChatReportID = '') {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -1258,7 +1258,7 @@ function startSplitBillRequest(participants, currentUserLogin, currentUserAccoun
     }
 
     // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
-    const splitTransaction = TransactionUtils.buildOptimisticTransaction(0, undefined, CONST.REPORT.SPLIT_REPORTID, comment, '', '', '', '', receiptObject, filename);
+    const splitTransaction = TransactionUtils.buildOptimisticTransaction(0, undefined, CONST.REPORT.SPLIT_REPORTID, comment, created, '', '', merchant, receiptObject, filename);
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const splitChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
@@ -1419,7 +1419,7 @@ function startSplitBillRequest(participants, currentUserLogin, currentUserAccoun
     console.log('split chat report', splitChatReport);
 
     API.write(
-        'StartSplitBillRequest',
+        'StartSplitBill',
         {
             chatReportID: splitChatReport.reportID,
             reportActionID: splitIOUReportAction.reportActionID,
@@ -1427,6 +1427,8 @@ function startSplitBillRequest(participants, currentUserLogin, currentUserAccoun
             splits: JSON.stringify(splits),
             receipt,
             comment,
+            created,
+            merchant,
             shouldCreateSplitChatReport,
             ...(shouldCreateSplitChatReport ? {createdReportActionID: splitChatCreatedReportAction.reportActionID} : {}),
         },
@@ -2501,7 +2503,7 @@ export {
     deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
-    startSplitBillRequest,
+    startSplitBill,
     requestMoney,
     sendMoneyElsewhere,
     approveMoneyRequest,

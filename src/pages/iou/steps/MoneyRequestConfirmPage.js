@@ -192,11 +192,13 @@ function MoneyRequestConfirmPage(props) {
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && props.iou.receiptPath) {
                 const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID.current) ? reportID.current : '';
                 FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
-                    IOU.startSplitBillRequest(
+                    IOU.startSplitBill(
                         selectedParticipants,
                         props.currentUserPersonalDetails.login,
                         props.currentUserPersonalDetails.accountID,
                         trimmedComment,
+                        props.iou.created,
+                        props.iou.merchant,
                         receipt,
                         existingSplitChatReportID,
                     );
