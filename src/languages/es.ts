@@ -819,7 +819,7 @@ export default {
         pleaseEnterLastFour: 'Introduce los cuatro últimos dígitos de la tarjeta.',
         activatePhysicalCard: 'Activar tarjeta física',
         error: {
-            thatDidntMatch: 'No coinciden los 4 últimos dígitos de tu tarjeta. Inténtelo de nuevo.',
+            thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
         },
     },
     transferAmountPage: {
