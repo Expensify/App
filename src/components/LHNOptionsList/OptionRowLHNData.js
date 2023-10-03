@@ -106,7 +106,7 @@ function OptionRowLHNData({
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy);
+        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
@@ -156,6 +156,7 @@ const personalDetailsSelector = (personalDetails) =>
                 firstName: personalData.firstName,
                 status: personalData.status,
                 avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
+                fallbackIcon: personalData.fallbackIcon,
             };
             return finalPersonalDetails;
         },

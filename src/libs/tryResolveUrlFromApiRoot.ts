@@ -1,4 +1,5 @@
 import Config from '../CONFIG';
+import {Request} from '../types/onyx';
 import * as ApiUtils from './ApiUtils';
 
 // Absolute URLs (`/` or `//`) should be resolved from API ROOT
@@ -24,7 +25,7 @@ function tryResolveUrlFromApiRoot(url: string | number): string | number {
     if (typeof url === 'number') {
         return url;
     }
-    const apiRoot = ApiUtils.getApiRoot({shouldUseSecure: false});
+    const apiRoot = ApiUtils.getApiRoot({shouldUseSecure: false} as Request);
     return url.replace(ORIGIN_PATTERN, apiRoot);
 }
 
