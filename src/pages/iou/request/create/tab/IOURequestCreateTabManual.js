@@ -8,56 +8,16 @@ import FullPageNotFoundView from '../../../../../components/BlockingViews/FullPa
 import styles from '../../../../../styles/styles';
 import HeaderWithBackButton from '../../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../../components/ScreenWrapper';
+import IOURequestStepAmount from '../../step/IOURequestStepAmount';
 
 const propTypes = {};
 
 const defaultProps = {};
 
 function IOURequestCreateTabManual() {
-    const {params: iouType, transactionID, reportID} = useRoute();
-    const {translate} = useLocalize();
-    const isEditing = false;
+    const route = useRoute();
 
-    // TODO: const content = (
-    //     <MoneyRequestAmountForm
-    //         isEditing={isEditing}
-    //         currency={currency}
-    //         amount={iou.amount}
-    //         ref={(e) => (textInput.current = e)}
-    //         onCurrencyButtonPress={navigateToCurrencySelectionPage}
-    //         onSubmitButtonPress={navigateToNextPage}
-    //     />
-    // );
-    const content = <Text>Manual Tab</Text>;
-
-    // ScreenWrapper is only needed in edit mode because we have a dedicated route for the edit amount page (MoneyRequestEditAmountPage).
-    // The rest of the cases this component is rendered through <MoneyRequestSelectorPage /> which has it's own ScreenWrapper
-    if (!isEditing) {
-        return content;
-    }
-
-    return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
-            // TODO: onEntryTransitionEnd={focusTextInput}
-            onEntryTransitionEnd={() => {}}
-            testID={IOURequestCreateTabManual.displayName}
-        >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={translate('iou.amount')}
-                            // TODO: onBackButtonPress={navigateBack}
-                            onBackButtonPress={() => {}}
-                        />
-                        {content}
-                    </View>
-                </FullPageNotFoundView>
-            )}
-        </ScreenWrapper>
-    );
+    return <IOURequestStepAmount route={route} />;
 }
 
 IOURequestCreateTabManual.propTypes = propTypes;

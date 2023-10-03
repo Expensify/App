@@ -3,6 +3,9 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
@@ -14,7 +17,9 @@ import * as IOUUtils from '../../../libs/IOUUtils';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import CreateIOUStartTabManual from './create/tab/IOURequestCreateTabManual';
 import CreateIOUStartRequest from './create/IOURequestCreate';
-import {useRoute} from '@react-navigation/native';
+import IOURouteContext from '../IOURouteContext';
+import reportPropTypes from '../../reportPropTypes';
+import transactionPropTypes from '../../../components/transactionPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -28,18 +33,28 @@ const propTypes = {
             backTo: PropTypes.string,
         }),
     }).isRequired,
+
+    /* Onyx Props */
+    /** The report on which the request is initiated on */
+    report: reportPropTypes,
+
+    /** The transaction being modified */
+    transaction: transactionPropTypes,
+};
+
+const defaultProps = {
+    report: {},
+    transaction: {},
 };
 
 function IOURequestPage({
+    report,
     route,
     route: {
         params: {iouType, backTo},
     },
+    transaction,
 }) {
-    const route2 = useRoute();
-    // TODO: remove these
-    console.log('[tim]', route2);
-    console.log('[tim]', backTo, route);
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
@@ -58,39 +73,48 @@ function IOURequestPage({
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
-            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
-            testID={IOURequestPage.displayName}
-        >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <DragAndDropProvider
-                        isDisabled={iouType !== CONST.TAB_REQUEST.SCAN}
-                        setIsDraggingOver={setIsDraggingOver}
-                    >
-                        <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                            <HeaderWithBackButton
-                                title={tabTitles[iouType]}
-                                onBackButtonPress={goBack}
-                            />
+        <IOURouteContext.Provider value={{report, route, transaction}}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableKeyboardAvoidingView={false}
+                headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
+                testID={IOURequestPage.displayName}
+            >
+                {({safeAreaPaddingBottomStyle}) => (
+                    <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
+                        <DragAndDropProvider
+                            isDisabled={iouType !== CONST.TAB_REQUEST.SCAN}
+                            setIsDraggingOver={setIsDraggingOver}
+                        >
+                            <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                                <HeaderWithBackButton
+                                    title={tabTitles[iouType]}
+                                    onBackButtonPress={goBack}
+                                />
 
-                            {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
-                                <CreateIOUStartRequest />
-                            ) : (
-                                // TODO: see if this is necessary and if there are any routes using it
-                                <CreateIOUStartTabManual />
-                            )}
-                        </View>
-                    </DragAndDropProvider>
-                </FullPageNotFoundView>
-            )}
-        </ScreenWrapper>
+                                {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
+                                    <CreateIOUStartRequest />
+                                ) : (
+                                    // TODO: see if this is necessary and if there are any routes using it
+                                    <CreateIOUStartTabManual />
+                                )}
+                            </View>
+                        </DragAndDropProvider>
+                    </FullPageNotFoundView>
+                )}
+            </ScreenWrapper>
+        </IOURouteContext.Provider>
     );
 }
 
 IOURequestPage.displayName = 'IOURequestPage';
 IOURequestPage.propTypes = propTypes;
 
-export default IOURequestPage;
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
+    },
+    transaction: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
+    },
+})(IOURequestPage);

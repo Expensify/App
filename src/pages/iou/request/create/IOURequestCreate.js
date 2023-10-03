@@ -6,9 +6,9 @@ import CONST from '../../../../CONST';
 import TabSelector from '../../../../components/TabSelector/TabSelector';
 import OnyxTabNavigator, {TopTab} from '../../../../libs/Navigation/OnyxTabNavigator';
 import IOURequestCreateTabDistance from './tab/IOURequestCreateTabDistance';
-import IOURequestCreateTabManual from './tab/IOURequestCreateTabManual';
 import IOURequestCreateTabScan from './tab/IOURequestCreateTabScan';
 import ONYXKEYS from '../../../../ONYXKEYS';
+import IOURequestStepAmount from '../step/IOURequestStepAmount';
 
 const propTypes = {
     /** The tab to select by default (whatever the user visited last) */
@@ -20,7 +20,6 @@ const defaultProps = {
 };
 
 function IOURequestCreate({selectedTab}) {
-    console.log('[tim selectedTab', selectedTab);
     return (
         <OnyxTabNavigator
             id={CONST.TAB.IOU_REQUEST_TYPE}
@@ -35,7 +34,7 @@ function IOURequestCreate({selectedTab}) {
         >
             <TopTab.Screen
                 name={CONST.TAB_REQUEST.MANUAL}
-                component={IOURequestCreateTabManual}
+                component={IOURequestStepAmount}
             />
             <TopTab.Screen
                 name={CONST.TAB_REQUEST.SCAN}

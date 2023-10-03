@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../../../../ONYXKEYS';
@@ -10,22 +10,18 @@ import CONST from '../../../../../CONST';
 import compose from '../../../../../libs/compose';
 import reportPropTypes from '../../../../reportPropTypes';
 import * as IOU from '../../../../../libs/actions/IOU';
-import {useRoute} from '@react-navigation/native';
+import IOURouteContext from '../../../IOURouteContext';
 
-const propTypes = {
-    /* Onyx Props */
-    /** The transaction object storing all the data for creation */
-    transaction: transactionPropTypes,
+const propTypes = {};
 
-    report: reportPropTypes,
-};
+const defaultProps = {};
 
-const defaultProps = {
-    transaction: {},
-    report: {},
-};
-
-function IOURequestCreateTabDistance({transaction: {transactionID, reportID, participants}, report}) {
+function IOURequestCreateTabDistance() {
+    const {
+        report,
+        route,
+        transaction: {transactionID, reportID, participants},
+    } = useContext(IOURouteContext);
     /**
      * @param {Number} index of the waypoint that the user needs to be taken to
      */
@@ -67,16 +63,4 @@ IOURequestCreateTabDistance.propTypes = propTypes;
 IOURequestCreateTabDistance.defaultProps = defaultProps;
 IOURequestCreateTabDistance.displayName = 'IOURequestCreateTabDistance';
 
-export default compose(
-    withOnyx({
-        transaction: {
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        report: {
-            key: ({transaction: {reportID = '0'}}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        },
-    }),
-)(IOURequestCreateTabDistance);
+export default IOURequestCreateTabDistance;
