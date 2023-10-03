@@ -57,7 +57,7 @@ const defaultProps = {
     session: {
         email: null,
     },
-    policy: undefined,
+    policy: {},
 };
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, report: moneyRequestReport, isSmallScreenWidth}) {
