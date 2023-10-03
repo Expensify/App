@@ -20,6 +20,7 @@ import reportPropTypes from '../../reportPropTypes';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 import {ReactionListContext} from '../ReportScreenContext';
+import useReportScrollManager from '../../../hooks/useReportScrollManager';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -82,12 +83,8 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute();
     const {reportActionID} = getReportActionID(route);
-    // const reportActionID = ''
-
-    // const [canShowAllReports, setShowAllReports] = useState(false);
     const testRef = useRef(false);
     const didLayout = useRef(false);
-    // const isFirstRender = useRef(true);
     const didSubscribeToReportTypingEvents = useRef(false);
     const [isFetchNewerWasCalled, setFetchNewerWasCalled] = useState(false);
     const [isLinkingToMessage, setLinkingToMessageTrigger] = useState(false);
@@ -116,43 +113,31 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
             allReportActions?.length,
         );
 
-        if (!reportActionID || (!testRef.current && !isLinkingToMessage && !props.isLoadingInitialReportActions && isFetchNewerWasCalled)) {
-            console.log('get.reportActions.ALL||||', allReportActions.length);
+        if (!reportActionID || (!isLinkingToMessage && !props.isLoadingInitialReportActions && isFetchNewerWasCalled)) {
             return allReportActions;
         }
-        console.log(
-            'get.reportActions.CUT||||',
-            reportActionsBeforeAndIncludingLinked[0]?.message?.text || reportActionsBeforeAndIncludingLinked[0]?.message
-        );
         return reportActionsBeforeAndIncludingLinked;
     }, [isFetchNewerWasCalled, allReportActions, reportActionsBeforeAndIncludingLinked, reportActionID, isLinkingToMessage, props.isLoadingInitialReportActions]);
 
     useEffect(() => {
-        console.log('get.ROUTE_CHANGED.triggered', route);
         if (!reportActionID) {
             return;
         }
-        testRef.current = true;
+        setFetchNewerWasCalled(false);
         setLinkingToMessageTrigger(true);
         props.fetchReportIfNeeded();
-        console.log('get.ROUTE_CHANGED.+++++++++');
         setTimeout(() => {
-            testRef.current = false;
             setLinkingToMessageTrigger(false);
-            console.log('get.ROUTE_CHANGED.+++++++++FINISH', route);
-        }, 7000);
+        }, 700);
         // setLinkingToMessageTrigger(true);
     }, [route, props.fetchReportIfNeeded, reportActionID]);
 
     const isReportActionArrayCatted = useMemo(() => {
         if (reportActions?.length !== allReportActions?.length && reportActionID) {
-            console.log('get.isReportActionArrayCatted.+++++++++');
             return true;
         }
-
-        console.log('get.isReportActionArrayCatted.----------');
         return false;
-    }, [reportActions, allReportActions, reportActionID, isFetchNewerWasCalled]);
+    }, [reportActions, allReportActions, reportActionID]);
 
     const hasCachedActions = useRef(_.size(reportActions) > 0);
 
@@ -244,7 +229,6 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-        setShowAllReports(true);
     };
 
     /**
@@ -312,6 +296,8 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
+                isLinkingLoader={!!reportActionID && props.isLoadingInitialReportActions}
+                isReportActionArrayCatted={isReportActionArrayCatted}
                 isLoadingInitialReportActions={props.isLoadingInitialReportActions}
                 isLoadingOlderReportActions={props.isLoadingOlderReportActions}
                 isLoadingNewerReportActions={props.isLoadingNewerReportActions}
@@ -351,12 +337,9 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    // if (oldProps.isLinkingToMessage !== newProps.isLinkingToMessage) {
-    //     return false;
-    // }
-    // if (oldisReportActionArrayCatted !== newisReportActionArrayCatted) {
-    //     return false;
-    // }
+    if (oldProps.isLoadingNewerReportActions !== newProps.isLoadingNewerReportActions) {
+        return false;
+    }
 
     if (oldProps.report.lastReadTime !== newProps.report.lastReadTime) {
         return false;

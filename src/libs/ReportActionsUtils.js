@@ -355,7 +355,8 @@ function getSlicedRangeFromArrayByID(array, id) {
     }
 
     // return array.slice(0, index+1);
-    return array.slice(index, array.length);
+    // return array.slice(index, array.length);
+    return array.slice(index, array.length - index > 50 ? index + 50 : array.length);
 }
 
 /**
