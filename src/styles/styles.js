@@ -3280,6 +3280,7 @@ const styles = (theme) => ({
         position: 'absolute',
         top: 0,
         left: 0,
+        height: 540,
     },
 
     eReceiptPanel: {
