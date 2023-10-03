@@ -10,6 +10,12 @@ import * as CollectionUtils from './CollectionUtils';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
+type LastVisibleMessage = {
+    lastMessageTranslationKey?: string;
+    lastMessageText: string;
+    lastMessageHtml?: string;
+};
+
 const allReports: OnyxCollection<OnyxTypes.Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -94,13 +100,6 @@ function getParentReportAction(report: OnyxTypes.Report | null, allReportActions
         return {};
     }
     return (allReportActionsParam ?? allReportActions)?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
-}
-
-/**
- * Find the reportAction having the given childReportID in parent report actions
- */
-function getParentReportActionInReport(childReportID: string, parentReportID: string): OnyxTypes.ReportAction | null {
-    return Object.values(allReportActions?.[parentReportID] ?? {}).find((reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`) ?? null;
 }
 
 /**
@@ -320,7 +319,9 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxTypes.ReportA
 
     // If a whisper action is the REPORTPREVIEW action, we are displaying it.
     return (
-        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction)) && !isDeletedAction(reportAction)
+        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
+        !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
+        !isDeletedAction(reportAction)
     );
 }
 
@@ -345,7 +346,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: OnyxTypes.Report
     return maxAction ?? null;
 }
 
-function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxTypes.ReportActions = {}): OnyxTypes.Report | null {
+function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxTypes.ReportActions = {}): LastVisibleMessage {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
     const message = lastVisibleAction?.message?.[0];
 
@@ -575,7 +576,6 @@ export {
     getMostRecentReportActionLastModified,
     getNumberOfMoneyRequests,
     getParentReportAction,
-    getParentReportActionInReport,
     getReportAction,
     getReportPreviewAction,
     getSortedReportActions,
