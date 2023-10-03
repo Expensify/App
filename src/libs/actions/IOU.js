@@ -878,6 +878,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             : ReportUtils.getChatByParticipants(participantAccountIDs);
     const splitChatReport = existingSplitChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     const isOwnPolicyExpenseChat = splitChatReport.isOwnPolicyExpenseChat;
+    const shouldCreateSplitChatReport = _.isEmpty(existingSplitChatReportID);
 
     // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
     const formattedParticipants = isOwnPolicyExpenseChat
@@ -917,7 +918,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     splitChatReport.lastMessageHtml = splitIOUReportAction.message[0].html;
 
     // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
-    if (!existingSplitChatReport) {
+    if (shouldCreateSplitChatReport) {
         splitChatReport.pendingFields = {
             createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
@@ -927,12 +928,12 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         {
             // Use set for new reports because it doesn't exist yet, is faster,
             // and we need the data to be available when we navigate to the chat page
-            onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
+            onyxMethod: shouldCreateSplitChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
             value: splitChatReport,
         },
         {
-            onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
+            onyxMethod: shouldCreateSplitChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
                 ...(existingSplitChatReport ? {} : {[splitCreatedReportAction.reportActionID]: splitCreatedReportAction}),
@@ -951,7 +952,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
-                ...(existingSplitChatReport ? {} : {[splitCreatedReportAction.reportActionID]: {pendingAction: null}}),
+                ...(shouldCreateSplitChatReport ? {[splitCreatedReportAction.reportActionID]: {pendingAction: null}} : {}),
                 [splitIOUReportAction.reportActionID]: {pendingAction: null},
             },
         },
@@ -1040,10 +1041,15 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         if ((!hasMultipleParticipants && !existingSplitChatReportID) || isOwnPolicyExpenseChat) {
             oneOnOneChatReport = splitChatReport;
             shouldCreateOptimisticPersonalDetails = !existingSplitChatReport;
+            console.log(shouldCreateOptimisticPersonalDetails);
         } else {
             const existingChatReport = ReportUtils.getChatByParticipants([accountID]);
             isNewOneOnOneChatReport = !existingChatReport;
             shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport;
+            if (!existingChatReport) {
+                console.log('building chat report');
+            }
+            console.log(shouldCreateOptimisticPersonalDetails);
             oneOnOneChatReport = existingChatReport || ReportUtils.buildOptimisticChatReport([accountID]);
         }
 
@@ -1229,6 +1235,211 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
     resetMoneyRequestInfo();
     Navigation.dismissModal(splitData.chatReportID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
+}
+
+/** Used exclusively for starting a split bill request that contains a receipt, the split request will be completed once the receipt is scanned */
+function startSplitBillRequest(participants, currentUserLogin, currentUserAccountID, comment, receipt, existingSplitChatReportID = '') {
+    const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
+    const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
+    const existingSplitChatReport =
+        existingSplitChatReportID || participants[0].reportID
+            ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
+            : ReportUtils.getChatByParticipants(participantAccountIDs);
+    const splitChatReport = existingSplitChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    const isOwnPolicyExpenseChat = splitChatReport.isOwnPolicyExpenseChat;
+    const shouldCreateSplitChatReport = _.isEmpty(existingSplitChatReportID);
+
+    const receiptObject = {};
+    let filename;
+    if (receipt && receipt.source) {
+        receiptObject.source = receipt.source;
+        receiptObject.state = receipt.state || CONST.IOU.RECEIPT_STATE.SCANREADY;
+        filename = receipt.name;
+    }
+
+    // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
+    const splitTransaction = TransactionUtils.buildOptimisticTransaction(0, undefined, CONST.REPORT.SPLIT_REPORTID, comment, '', '', '', '', receiptObject, filename);
+
+    // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
+    const splitChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+    const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+        0,
+        CONST.CURRENCY.USD,
+        comment,
+        participants,
+        splitTransaction.transactionID,
+        '',
+        '',
+        false,
+        false,
+        receiptObject,
+        isOwnPolicyExpenseChat,
+    );
+
+    splitChatReport.lastReadTime = DateUtils.getDBTime();
+    splitChatReport.lastMessageText = splitIOUReportAction.message[0].text;
+    splitChatReport.lastMessageHtml = splitIOUReportAction.message[0].html;
+
+    // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
+    if (shouldCreateSplitChatReport) {
+        splitChatReport.pendingFields = {
+            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+    }
+
+    const optimisticData = [
+        {
+            // Use set for new reports because it doesn't exist yet, is faster,
+            // and we need the data to be available when we navigate to the chat page
+            onyxMethod: shouldCreateSplitChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
+            value: splitChatReport,
+        },
+        {
+            onyxMethod: shouldCreateSplitChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
+            value: {
+                ...(shouldCreateSplitChatReport ? {[splitChatCreatedReportAction.reportActionID]: splitChatCreatedReportAction} : {}),
+                [splitIOUReportAction.reportActionID]: splitIOUReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
+            value: splitTransaction,
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
+            value: {
+                ...(shouldCreateSplitChatReport ? {[splitChatCreatedReportAction.reportActionID]: {pendingAction: null}} : {}),
+                [splitIOUReportAction.reportActionID]: {pendingAction: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
+            value: {pendingAction: null},
+        },
+    ];
+
+    if (shouldCreateSplitChatReport) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
+            value: {pendingFields: {createChat: null}},
+        });
+    }
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
+            value: {
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+            },
+        },
+    ];
+
+    if (existingSplitChatReport) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
+            value: {
+                [splitIOUReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                },
+            },
+        });
+    } else {
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
+                value: {
+                    errorFields: {
+                        createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
+                value: {
+                    [splitIOUReportAction.reportActionID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError(null),
+                    },
+                },
+            },
+        );
+    }
+
+    const splits = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
+
+    _.each(participants, (participant) => {
+        const email = participant.isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
+        const accountID = participant.isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
+        if (email === currentUserEmailForIOUSplit) {
+            return;
+        }
+
+        // When splitting with a workspace chat, we only need to supply the policyID
+        if (participant.isOwnPolicyExpenseChat) {
+            splits.push({
+                policyID: participant.policyID,
+            });
+            return;
+        }
+
+        // Add optimistic personal details for new participants
+        if (shouldCreateSplitChatReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [accountID]: {
+                        accountID,
+                        avatar: UserUtils.getDefaultAvatarURL(accountID),
+                        displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
+                        login: participant.login,
+                    },
+                },
+            });
+        }
+
+        splits.push({
+            email,
+            accountID,
+        });
+    });
+    console.log('split chat report', splitChatReport);
+
+    API.write(
+        'StartSplitBillRequest',
+        {
+            chatReportID: splitChatReport.reportID,
+            reportActionID: splitIOUReportAction.reportActionID,
+            transactionID: splitTransaction.transactionID,
+            splits: JSON.stringify(splits),
+            receipt,
+            comment,
+            shouldCreateSplitChatReport,
+            ...(shouldCreateSplitChatReport ? {createdReportActionID: splitChatCreatedReportAction.reportActionID} : {}),
+        },
+        {optimisticData, successData, failureData},
+    );
+
+    resetMoneyRequestInfo();
+    if (existingSplitChatReport) {
+        Navigation.dismissModal(existingSplitChatReport.reportID);
+    } else {
+        Navigation.dismissModal();
+    }
+    Report.notifyNewAction(splitChatReport.chatReportID, currentUserAccountID);
 }
 
 /**
@@ -2290,6 +2501,7 @@ export {
     deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
+    startSplitBillRequest,
     requestMoney,
     sendMoneyElsewhere,
     approveMoneyRequest,
