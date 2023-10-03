@@ -65,13 +65,14 @@ const menuItems = [
 
 function LoungeAccessPage(props) {
     const {translate} = useLocalize();
+    const {checkInsRemaining, isCheckedIn} = props.user.loungeCheckInDetails;
 
     if (!props.user.hasLoungeAccess) {
         return <NotFoundPage />;
     }
 
     const checkIn = () => {
-        Lounge.recordLoungeVisit(props.user.loungeCheckInDetails.checkInsRemaining);
+        Lounge.recordLoungeVisit(checkInsRemaining);
     };
 
     const overlayContent = () => (
@@ -134,26 +135,26 @@ function LoungeAccessPage(props) {
                 <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('loungeAccessPage.addressLabel')}</Text>
                 <Text style={[styles.mb4]}>{translate('loungeAccessPage.address')}</Text>
                 <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('loungeAccessPage.nextCheckInLabel')}</Text>
-                {props.user.loungeCheckInDetails.checkInsRemaining === 0 && !props.user.loungeCheckInDetails.isCheckedIn ? (
+                {checkInsRemaining === 0 && !isCheckedIn ? (
                     <Text style={[styles.mb4]}>
                         <Text style={[styles.textStrong]}>{translate('loungeAccessPage.noCheckInsLeftFirstPart')}</Text>
                         {translate('loungeAccessPage.noCheckInsLeftSecondPart', {nextCheckIn: nextCheckIn()})}
                     </Text>
                 ) : (
                     <Text style={[styles.mb4]}>
-                        {props.user.loungeCheckInDetails.isCheckedIn
-                            ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn', {checkInsRemaining: props.user.loungeCheckInDetails.checkInsRemaining})
-                            : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn', {checkInsRemaining: props.user.loungeCheckInDetails.checkInsRemaining})}{' '}
+                        {isCheckedIn
+                            ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn', {checkInsRemaining})
+                            : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn', {checkInsRemaining})}{' '}
                         <Text style={[styles.textStrong]}>
-                            {NumberFormatUtils.format(props.preferredLocale, props.user.loungeCheckInDetails.checkInsRemaining)}{' '}
-                            {props.user.loungeCheckInDetails.checkInsRemaining === 1
+                            {NumberFormatUtils.format(props.preferredLocale, checkInsRemaining)}{' '}
+                            {checkInsRemaining === 1
                                 ? translate('loungeAccessPage.nextCheckInNumberCountSingular')
                                 : translate('loungeAccessPage.nextCheckInNumberCountPlural')}
                         </Text>{' '}
                         {translate('loungeAccessPage.nextCheckInAfterNumber')}
                     </Text>
                 )}
-                {props.user.loungeCheckInDetails.isCheckedIn ? (
+                {isCheckedIn ? (
                     <Button
                         shouldUseDefaultHover={false}
                         style={[styles.buttonSuccess, styles.w100]}
@@ -164,7 +165,7 @@ function LoungeAccessPage(props) {
                     />
                 ) : (
                     <>
-                        {props.user.loungeCheckInDetails.checkInsRemaining > 0 && (
+                        {checkInsRemaining > 0 && (
                             <Button
                                 style={[styles.w100]}
                                 text={translate('loungeAccessPage.checkIn')}
