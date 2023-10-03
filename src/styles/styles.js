@@ -2448,13 +2448,6 @@ const styles = (theme) => ({
         alignItems: 'center',
     },
 
-    checkboxPressable: {
-        borderRadius: 6,
-        padding: 2,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
     checkedContainer: {
         backgroundColor: theme.checkBox,
     },
@@ -3520,6 +3513,10 @@ const styles = (theme) => ({
         backgroundColor: theme.border,
     },
 
+    reportContainerBorderRadius: {
+        borderRadius: variables.componentBorderRadiusLarge,
+    },
+
     reportPreviewBoxBody: {
         padding: 16,
     },
@@ -3670,6 +3667,7 @@ const styles = (theme) => ({
         borderRadius: variables.componentBorderRadiusLarge,
     },
     userReportStatusEmoji: {
+        flexShrink: 0,
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
     },
@@ -3698,6 +3696,10 @@ const styles = (theme) => ({
         color: theme.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightLarge,
+    },
+
+    receiptDropHeaderGap: {
+        backgroundColor: theme.receiptDropUIBG,
     },
 });
 
