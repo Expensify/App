@@ -1,6 +1,6 @@
 --
 title: Navan Integration
-Connecting Navan and Expensify
+description: Connecting Navan and Expensify
 --
 # Overview
 Booking travel through Navan? Link your Expensify and Navan accounts to automatically send flight receipts to Expensify for easy reporting. 
