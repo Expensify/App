@@ -395,7 +395,8 @@ function MoneyRequestConfirmationList(props) {
                 onSendMoney(paymentMethod);
             } else {
                 // validate the amount for distance requests
-                if (props.isDistanceRequest && !isDistanceRequestWithoutRoute && !MoneyRequestUtils.validateAmount(String(props.iouAmount))) {
+                const decimals = CurrencyUtils.getCurrencyDecimals(props.iouCurrencyCode);
+                if (props.isDistanceRequest && !isDistanceRequestWithoutRoute && !MoneyRequestUtils.validateAmount(String(props.iouAmount), decimals)) {
                     setFormError('common.error.invalidAmount');
                     return;
                 }
@@ -404,7 +405,7 @@ function MoneyRequestConfirmationList(props) {
                 onConfirm(selectedParticipants);
             }
         },
-        [selectedParticipants, onSendMoney, onConfirm, props.iouType, props.isDistanceRequest, isDistanceRequestWithoutRoute, props.iouAmount],
+        [selectedParticipants, onSendMoney, onConfirm, props.iouType, props.isDistanceRequest, isDistanceRequestWithoutRoute, props.iouCurrencyCode, props.iouAmount],
     );
 
     const footerContent = useMemo(() => {
