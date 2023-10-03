@@ -1,6 +1,6 @@
 ---
 title: Add a Deposit Account (AUD)
-description: Expensify allows you to add a personal bank account to receive reimbursements for your expenses. We never take money out of this account — it is only a place for us to deposit funds from your employer. 
+description: Expensify allows you to add a personal bank account to receive reimbursements for your expenses. We never take money out of this account — it is only a place for us to deposit funds from your employer. This article covers deposit accounts for Australian banks.
 This article covers deposit accounts for Australian banks. 
 ---
 
