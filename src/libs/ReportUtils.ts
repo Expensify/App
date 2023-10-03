@@ -4,7 +4,7 @@ import {format, parseISO} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -23,171 +23,139 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
+import {Login, PersonalDetails, Policy, Report, ReportAction} from '../types/onyx';
+import {ValueOf} from 'type-fest';
 
-let currentUserEmail;
-let currentUserAccountID;
-let isAnonymousUser;
+let currentUserEmail: string | undefined;
+let currentUserAccountID: number | undefined;
+let isAnonymousUser = false;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => {
+    callback: (value) => {
         // When signed out, val is undefined
-        if (!val) {
+        if (!value) {
             return;
         }
 
-        currentUserEmail = val.email;
-        currentUserAccountID = val.accountID;
-        isAnonymousUser = val.authTokenType === 'anonymousAccount';
+        currentUserEmail = value.email;
+        currentUserAccountID = value.accountID;
+        // TODO: There is no such a field so it will always be false should we remove it?
+        isAnonymousUser = value.authTokenType === 'anonymousAccount';
     },
 });
 
-let allPersonalDetails;
-let currentUserPersonalDetails;
+let allPersonalDetails: OnyxCollection<PersonalDetails>;
+let currentUserPersonalDetails: OnyxEntry<PersonalDetails | undefined>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        currentUserPersonalDetails = lodashGet(val, currentUserAccountID, {});
-        allPersonalDetails = val || {};
+    callback: (value) => {
+        currentUserPersonalDetails = value?.[currentUserAccountID ?? ''];
+        allPersonalDetails = value ?? {};
     },
 });
 
-let allReports;
+let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (val) => (allReports = val),
 });
 
-let doesDomainHaveApprovedAccountant;
+let doesDomainHaveApprovedAccountant = false;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     waitForCollectionCallback: true,
-    callback: (val) => (doesDomainHaveApprovedAccountant = lodashGet(val, 'doesDomainHaveApprovedAccountant', false)),
+    callback: (value) => (doesDomainHaveApprovedAccountant = value?.doesDomainHaveApprovedAccountant ?? false),
 });
 
-let allPolicies;
+let allPolicies: OnyxCollection<Policy>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (val) => (allPolicies = val),
 });
 
-let loginList;
+let loginList: OnyxEntry<Login>;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
     callback: (val) => (loginList = val),
 });
 
-function getChatType(report) {
-    return report ? report.chatType : '';
+function getChatType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
+    return report?.chatType;
 }
 
-/**
- * @param {String} policyID
- * @returns {Object}
- */
-function getPolicy(policyID) {
+function getPolicy(policyID: string): Policy | null | {} {
     if (!allPolicies || !policyID) {
         return {};
     }
-    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] || {};
+    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
 }
 
 /**
  * Get the policy type from a given report
- * @param {Object} report
- * @param {String} report.policyID
- * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
- * @returns {String}
+ * @param  report
+ * @param  policies must have Onyxkey prefix (i.e 'policy_') for keys
  */
-function getPolicyType(report, policies) {
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+function getPolicyType(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): string {
+    return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.type ?? '';
 }
 
 /**
  * Get the policy name from a given report
- * @param {Object} report
- * @param {String} report.policyID
- * @param {String} report.oldPolicyName
- * @param {String} report.policyName
- * @param {Boolean} [returnEmptyIfNotFound]
- * @param {Object} [policy]
- * @returns {String}
  */
-function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined) {
+function getPolicyName(report: OnyxEntry<Report>, returnEmptyIfNotFound = false, policy: OnyxEntry<Policy | undefined> = undefined): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
-    if (_.isEmpty(report)) {
+    if (Object.keys(report ?? {}).length === 0) {
         return noPolicyFound;
     }
 
-    if ((!allPolicies || _.size(allPolicies) === 0) && !report.policyName) {
+    if ((!allPolicies || Object.keys(allPolicies).length === 0) && !report?.policyName) {
         return Localize.translateLocal('workspace.common.unavailable');
     }
-    const finalPolicy = policy || _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
+    const finalPolicy = policy || allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
     // Public rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
-    const policyName = lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
+    const policyName = finalPolicy?.name ?? report?.policyName ?? report?.oldPolicyName ?? noPolicyFound;
 
     return policyName;
 }
 
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
- *
- * @param {Array} accountIDs
- * @returns {string}
  */
-function getReportParticipantsTitle(accountIDs) {
-    return (
-        _.chain(accountIDs)
-
-            // Somehow it's possible for the logins coming from report.participantAccountIDs to contain undefined values so we use compact to remove them.
-            .compact()
-            .value()
-            .join(', ')
-    );
+function getReportParticipantsTitle(accountIDs: number[]): string {
+    return accountIDs.filter(Boolean).join(', ');
 }
 
 /**
  * Checks if a report is a chat report.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isChatReport(report) {
-    return report && report.type === CONST.REPORT.TYPE.CHAT;
+function isChatReport(report: OnyxEntry<Report>): boolean {
+    return report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
 /**
  * Checks if a report is an Expense report.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isExpenseReport(report) {
-    return report && report.type === CONST.REPORT.TYPE.EXPENSE;
+function isExpenseReport(report: OnyxEntry<Report>): boolean {
+    return report?.type === CONST.REPORT.TYPE.EXPENSE;
 }
 
 /**
  * Checks if a report is an IOU report.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isIOUReport(report) {
-    return report && report.type === CONST.REPORT.TYPE.IOU;
+function isIOUReport(report: OnyxEntry<Report>): boolean {
+    return report?.type === CONST.REPORT.TYPE.IOU;
 }
 
 /**
  * Checks if a report is a task report.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isTaskReport(report) {
-    return report && report.type === CONST.REPORT.TYPE.TASK;
+function isTaskReport(report: OnyxEntry<Report>): boolean {
+    return report?.type === CONST.REPORT.TYPE.TASK;
 }
 
 /**
@@ -201,12 +169,12 @@ function isTaskReport(report) {
  * @param {Object} parentReportAction
  * @returns {Boolean}
  */
-function isCanceledTaskReport(report = {}, parentReportAction = {}) {
-    if (!_.isEmpty(parentReportAction) && lodashGet(parentReportAction, ['message', 0, 'isDeletedParentAction'], false)) {
+function isCanceledTaskReport(report: OnyxEntry<Report> = {}, parentReportAction: OnyxEntry<ReportAction> = {}): boolean {
+    if (Object.keys(parentReportAction ?? {}).length > 0 && (parentReportAction?.message?.[0].isDeletedParentAction ?? false)) {
         return true;
     }
 
-    if (!_.isEmpty(report) && report.isDeletedParentAction) {
+    if (Object.keys(report ?? {}).length > 0 && report?.isDeletedParentAction) {
         return true;
     }
 
@@ -216,70 +184,56 @@ function isCanceledTaskReport(report = {}, parentReportAction = {}) {
 /**
  * Checks if a report is an open task report.
  *
- * @param {Object} report
- * @param {Object} parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
- * @returns {Boolean}
+ * @param report
+ * @param parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  */
-function isOpenTaskReport(report, parentReportAction = {}) {
-    return isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS.OPEN;
+function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction> = {}): boolean {
+    return isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
 /**
  * Checks if a report is a completed task report.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isCompletedTaskReport(report) {
-    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
+function isCompletedTaskReport(report: OnyxEntry<Report>) {
+    return isTaskReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
 /**
  * Checks if the current user is the manager of the supplied report
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isReportManager(report) {
-    return report && report.managerID === currentUserAccountID;
+function isReportManager(report: OnyxEntry<Report>): boolean {
+    return report?.managerID === currentUserAccountID;
 }
 
 /**
  * Checks if the supplied report has been approved
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isReportApproved(report) {
-    return report && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
+function isReportApproved(report: OnyxEntry<Report>): boolean {
+    return report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
 /**
  * Given a collection of reports returns them sorted by last read
- *
- * @param {Object} reports
- * @returns {Array}
  */
-function sortReportsByLastRead(reports) {
-    return _.chain(reports)
-        .toArray()
-        .filter((report) => report && report.reportID && report.lastReadTime)
-        .sortBy('lastReadTime')
-        .value();
+function sortReportsByLastRead(reports: OnyxCollection<Report>): OnyxEntry<Report>[] {
+    return Object.values(reports ?? {})
+        .filter((report) => report?.reportID && report?.lastReadTime)
+        .sort((a, b) => {
+            const aTime = a?.lastReadTime ? parseISO(a.lastReadTime) : 0;
+            const bTime = b?.lastReadTime ? parseISO(b.lastReadTime) : 0;
+            return Number(aTime) - Number(bTime);
+        });
 }
 
 /**
  * Whether the Money Request report is settled
- *
- * @param {String} reportID
- * @returns {Boolean}
  */
-function isSettled(reportID) {
+function isSettled(reportID: string): boolean {
     if (!allReports) {
         return false;
     }
-    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
-    if ((typeof report === 'object' && Object.keys(report).length === 0) || report.isWaitingOnBankAccount) {
+    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
+    if ((typeof report === 'object' && Object.keys(report).length === 0) || report?.isWaitingOnBankAccount) {
         return false;
     }
 
@@ -288,151 +242,111 @@ function isSettled(reportID) {
 
 /**
  * Whether the current user is the submitter of the report
- *
- * @param {String} reportID
- * @returns {Boolean}
  */
-function isCurrentUserSubmitter(reportID) {
+function isCurrentUserSubmitter(reportID: string): boolean {
     if (!allReports) {
         return false;
     }
-    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
-    return report && report.ownerEmail === currentUserEmail;
+    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
+    return report?.ownerEmail === currentUserEmail;
 }
 
 /**
  * Whether the provided report is an Admin room
- * @param {Object} report
- * @param {String} report.chatType
- * @returns {Boolean}
  */
-function isAdminRoom(report) {
+function isAdminRoom(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
 }
 
 /**
  * Whether the provided report is an Admin-only posting room
- * @param {Object} report
- * @param {String} report.writeCapability
- * @returns {Boolean}
  */
-function isAdminsOnlyPostingRoom(report) {
-    return lodashGet(report, 'writeCapability', CONST.REPORT.WRITE_CAPABILITIES.ALL) === CONST.REPORT.WRITE_CAPABILITIES.ADMINS;
+function isAdminsOnlyPostingRoom(report: OnyxEntry<Report>): boolean {
+    return (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL) === CONST.REPORT.WRITE_CAPABILITIES.ADMINS;
 }
 
 /**
  * Whether the provided report is a Announce room
- * @param {Object} report
- * @param {String} report.chatType
- * @returns {Boolean}
  */
-function isAnnounceRoom(report) {
+function isAnnounceRoom(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
 }
 
 /**
  * Whether the provided report is a default room
- * @param {Object} report
- * @param {String} report.chatType
- * @returns {Boolean}
  */
-function isDefaultRoom(report) {
+function isDefaultRoom(report: OnyxEntry<Report>): boolean {
     return [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, CONST.REPORT.CHAT_TYPE.DOMAIN_ALL].indexOf(getChatType(report)) > -1;
 }
 
 /**
  * Whether the provided report is a Domain room
- * @param {Object} report
- * @param {String} report.chatType
- * @returns {Boolean}
  */
-function isDomainRoom(report) {
+function isDomainRoom(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL;
 }
 
 /**
  * Whether the provided report is a user created policy room
- * @param {Object} report
- * @param {String} report.chatType
- * @returns {Boolean}
  */
-function isUserCreatedPolicyRoom(report) {
+function isUserCreatedPolicyRoom(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
 }
 
 /**
  * Whether the provided report is a Policy Expense chat.
- * @param {Object} report
- * @param {String} report.chatType
- * @returns {Boolean}
  */
-function isPolicyExpenseChat(report) {
+function isPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
 }
 
 /** Wether the provided report belongs to a Control policy and is an epxense chat
- * @param {Object} report
- * @returns {Boolean}
  */
-function isControlPolicyExpenseChat(report) {
+function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
     return isPolicyExpenseChat(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
 }
 
 /** Wether the provided report belongs to a Control policy and is an epxense report
- * @param {Object} report
- * @returns {Boolean}
  */
-function isControlPolicyExpenseReport(report) {
+function isControlPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
     return isExpenseReport(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
 }
 
 /**
  * Whether the provided report is a chat room
- * @param {Object} report
- * @param {String} report.chatType
- * @returns {Boolean}
  */
-function isChatRoom(report) {
+function isChatRoom(report: OnyxEntry<Report>): boolean {
     return isUserCreatedPolicyRoom(report) || isDefaultRoom(report);
 }
 
 /**
  * Whether the provided report is a public room
- * @param {Object} report
- * @param {String} report.visibility
- * @returns {Boolean}
  */
-function isPublicRoom(report) {
-    return report && (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC || report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE);
+function isPublicRoom(report: OnyxEntry<Report>): boolean {
+    return report?.visibility === CONST.REPORT.VISIBILITY.PUBLIC || report?.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
 }
 
 /**
  * Whether the provided report is a public announce room
- * @param {Object} report
- * @param {String} report.visibility
- * @returns {Boolean}
  */
-function isPublicAnnounceRoom(report) {
-    return report && report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
+function isPublicAnnounceRoom(report: OnyxEntry<Report>): boolean {
+    return report?.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
 }
 
 /**
  * If the report is a policy expense, the route should be for adding bank account for that policy
  * else since the report is a personal IOU, the route should be for personal bank account.
- * @param {Object} report
- * @returns {String}
  */
-function getBankAccountRoute(report) {
-    return isPolicyExpenseChat(report) ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', report.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
+function getBankAccountRoute(report: OnyxEntry<Report>): string {
+    return isPolicyExpenseChat(report) ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', report?.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
 }
 
 /**
  * Check if personal detail of accountID is empty or optimistic data
- * @param {String} accountID user accountID
- * @returns {Boolean}
  */
-function isOptimisticPersonalDetail(accountID) {
-    return _.isEmpty(allPersonalDetails[accountID]) || !!allPersonalDetails[accountID].isOptimisticPersonalDetail;
+function isOptimisticPersonalDetail(accountID: number): boolean {
+    console.log(allPersonalDetails?.[accountID]);
+    return _.isEmpty(allPersonalDetails?.[accountID]) || !!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail;
 }
 
 /**

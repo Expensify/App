@@ -45,6 +45,9 @@ type Report = {
     /** Linked policy's ID */
     policyID?: string;
 
+    /** Linked policy's name */
+    policyName?: string | null;
+
     /** Name of the report */
     reportName?: string;
 
@@ -77,6 +80,9 @@ type Report = {
     participantAccountIDs?: number[];
     total?: number;
     currency?: string;
+    isDeletedParentAction?: boolean;
+    isWaitingOnBankAccount?: boolean;
+    visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
 };
 
 export default Report;
