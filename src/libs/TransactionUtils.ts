@@ -364,7 +364,7 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
 /**
  * Returns the most recent transactions in an object
  */
-function getRecentTransactions(transactions: Object, size = 2): Array<String> {
+function getRecentTransactions(transactions: {[index: string]: string}, size = 2): Array<String> {
     return _.sortBy(_.keys(transactions), (transactionID) => -new Date(transactions[transactionID])).slice(0, size);
 }
 
