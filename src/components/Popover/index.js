@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {createPortal} from 'react-dom';
 import {propTypes, defaultProps} from './popoverPropTypes';
 import CONST from '../../CONST';
@@ -12,6 +12,7 @@ import PopoverWithoutOverlay from '../PopoverWithoutOverlay';
  */
 function Popover(props) {
     const {isVisible, onClose, isSmallScreenWidth, fullscreen, animationInTiming, onLayout, animationOutTiming, disableAnimation, withoutOverlay, anchorPosition} = props;
+    const withoutOverlayRef = useRef(null);
 
     // Not adding this inside the PopoverProvider
     // because this is an issue on smaller screens as well.
@@ -46,8 +47,14 @@ function Popover(props) {
     }
 
     if (withoutOverlay && !isSmallScreenWidth) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return createPortal(<PopoverWithoutOverlay {...props} />, document.body);
+        return createPortal(
+            <PopoverWithoutOverlay
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                withoutOverlayRef={withoutOverlayRef}
+            />,
+            document.body,
+        );
     }
 
     return (
