@@ -414,6 +414,7 @@ class BaseOptionsSelector extends Component {
                     if (this.props.selectedOptions.length === 0) {
                         this.scrollToIndex(this.state.focusedIndex, false);
                     }
+
                     if (this.props.onLayout) {
                         this.props.onLayout();
                     }
