@@ -58,7 +58,7 @@ const getNewSelection = (oldSelection, prevLength, newLength) => {
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const isAmountValid = (amount) => !amount.length || parseFloat(amount) < 0.01;
+const isAmountInvalid = (amount) => !amount.length || parseFloat(amount) < 0.01;
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -74,8 +74,6 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
-    const [isInvalidAmount, setIsInvalidAmount] = useState(isAmountValid(selectedAmountAsString));
-    const [firstPress, setFirstPress] = useState(false);
     const [formError, setFormError] = useState('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
@@ -135,9 +133,9 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
-            const checkInvalidAmount = isAmountValid(newAmountWithoutSpaces);
-            setIsInvalidAmount(checkInvalidAmount);
-            setFormError(checkInvalidAmount ? 'iou.error.invalidAmount' : '');
+            if (!_.isEmpty(formError)) {
+                setFormError('');
+            }
             setCurrentAmount((prevAmount) => {
                 const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
                 const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
@@ -145,7 +143,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 return strippedAmount;
             });
         },
-        [decimals],
+        [decimals, formError],
     );
 
     // Modifies the amount to match the decimals for changed currency.
@@ -204,13 +202,13 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(() => {
-        if (isInvalidAmount) {
-            setFirstPress(true);
+        if (isAmountInvalid(currentAmount)) {
             setFormError('iou.error.invalidAmount');
             return;
         }
+
         onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount, isInvalidAmount]);
+    }, [onSubmitButtonPress, currentAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -263,7 +261,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     onKeyPress={textInputKeyPress}
                 />
             </View>
-            {!_.isEmpty(formError) && firstPress && (
+            {!_.isEmpty(formError) && (
                 <FormHelpMessage
                     style={[styles.ph5]}
                     isError
