@@ -26,13 +26,13 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxCollection<OnyxTypes.PersonalDetails> | undefined;
+let allPersonalDetails: OnyxCollection<OnyxTypes.PersonalDetails> = null;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
 });
 
-let privatePersonalDetails: OnyxEntry<OnyxTypes.PrivatePersonalDetails> | undefined;
+let privatePersonalDetails: OnyxEntry<OnyxTypes.PrivatePersonalDetails> = null;
 Onyx.connect({
     key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     callback: (val) => (privatePersonalDetails = val),
@@ -561,7 +561,7 @@ function clearAvatarErrors() {
 /**
  * Get private personal details value
  */
-function getPrivatePersonalDetails(): OnyxEntry<OnyxTypes.PrivatePersonalDetails> | undefined {
+function getPrivatePersonalDetails(): OnyxEntry<OnyxTypes.PrivatePersonalDetails> {
     return privatePersonalDetails;
 }
 
