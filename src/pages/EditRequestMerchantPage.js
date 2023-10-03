@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { View, InteractionManager } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View, InteractionManager} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import setSelection from '../libs/setSelection';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -21,8 +21,8 @@ const propTypes = {
     onSubmit: PropTypes.func.isRequired,
 };
 
-function EditRequestMerchantPage({ defaultMerchant, onSubmit }) {
-    const { translate } = useLocalize();
+function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
+    const {translate} = useLocalize();
     const merchantInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
 
