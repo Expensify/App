@@ -60,7 +60,7 @@ function clearOnfidoToken() {
  * @param {String} currentStep
  * @returns {Object}
  */
-function getVBBADataForOnyx(currentStep) {
+function getVBBADataForOnyx(currentStep = undefined) {
     return {
         optimisticData: [
             {
