@@ -147,9 +147,7 @@ function LoungeAccessPage(props) {
                             : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn', {checkInsRemaining})}{' '}
                         <Text style={[styles.textStrong]}>
                             {NumberFormatUtils.format(props.preferredLocale, checkInsRemaining)}{' '}
-                            {checkInsRemaining === 1
-                                ? translate('loungeAccessPage.nextCheckInNumberCountSingular')
-                                : translate('loungeAccessPage.nextCheckInNumberCountPlural')}
+                            {checkInsRemaining === 1 ? translate('loungeAccessPage.nextCheckInNumberCountSingular') : translate('loungeAccessPage.nextCheckInNumberCountPlural')}
                         </Text>{' '}
                         {translate('loungeAccessPage.nextCheckInAfterNumber')}
                     </Text>
