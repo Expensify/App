@@ -824,7 +824,7 @@ export default {
         pleaseEnterLastFour: 'Please enter the last four digits of your card.',
         activatePhysicalCard: 'Activate physical card',
         error: {
-            notEnoughDigits: 'Not enough digits.',
+            thatDidntMatch: "That didn't match the last 4 digits on your card. Please try again.",
         },
     },
     transferAmountPage: {
