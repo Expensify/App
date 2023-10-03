@@ -129,7 +129,6 @@ function SignInPage({credentials, account, isInModal}) {
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => App.setLocale(Localize.getDevicePreferredLocale()), []);
-
     const {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,

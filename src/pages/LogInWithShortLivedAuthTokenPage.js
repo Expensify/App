@@ -16,6 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import TextLink from '../components/TextLink';
 import ONYXKEYS from '../ONYXKEYS';
+import * as ErrorUtils from '../libs/ErrorUtils';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short-lived token are in the URL */
@@ -58,6 +59,12 @@ function LogInWithShortLivedAuthTokenPage(props) {
             Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             return;
         }
+
+        const error = lodashGet(props, 'route.params.error', '');
+        if (error) {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: ErrorUtils.getMicroSecondOnyxError(error)});
+        }
+
         const exitTo = lodashGet(props, 'route.params.exitTo', '');
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {

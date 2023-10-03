@@ -12,9 +12,11 @@ import Terms from './Terms';
 import CONST from '../../CONST';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useNetwork from '../../hooks/useNetwork';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import FormHelpMessage from '../../components/FormHelpMessage';
 
 const propTypes = {
     /* Onyx Props */
@@ -31,7 +33,7 @@ const propTypes = {
         isLoading: PropTypes.bool,
 
         /** Form that is being loaded */
-        loadingForm: PropTypes.oneOf(CONST.FORMS),
+        loadingForm: PropTypes.string,
 
         /** Whether this account has 2FA enabled or not */
         requiresTwoFactorAuth: PropTypes.bool,
@@ -82,6 +84,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
                         setIsUsingMagicCode(true);
                     }}
                 />
+                {Boolean(account) && !_.isEmpty(account.errors) && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
                 <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
             </View>
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
