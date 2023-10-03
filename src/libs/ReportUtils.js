@@ -657,7 +657,7 @@ function isDM(report) {
  * @returns {Boolean}
  */
 function hasSingleParticipant(report) {
-    return report.participantAccountIDs && report.participantAccountIDs.length === 1;
+    return report && report.participantAccountIDs && report.participantAccountIDs.length === 1;
 }
 
 /**
@@ -1566,6 +1566,28 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
 }
 
 /**
+ * Get the proper message schema for modified distance message.
+ *
+ * @param {String} newDistance
+ * @param {String} oldDistance
+ * @param {String} newAmount
+ * @param {String} oldAmount
+ * @returns {String}
+ */
+
+function getProperSchemaForModifiedDistanceMessage(newDistance, oldDistance, newAmount, oldAmount) {
+    if (!oldDistance) {
+        return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
+    }
+    return Localize.translateLocal('iou.updatedTheDistance', {
+        newDistanceToDisplay: newDistance,
+        oldDistanceToDisplay: oldDistance,
+        newAmountToDisplay: newAmount,
+        oldAmountToDisplay: oldAmount,
+    });
+}
+
+/**
  * Get the report action message when expense has been modified.
  *
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
@@ -1585,12 +1607,20 @@ function getModifiedExpenseMessage(reportAction) {
         _.has(reportActionOriginalMessage, 'oldCurrency') &&
         _.has(reportActionOriginalMessage, 'amount') &&
         _.has(reportActionOriginalMessage, 'currency');
+
+    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage.oldCurrency;
         const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.oldAmount, oldCurrency);
 
         const currency = reportActionOriginalMessage.currency;
         const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.amount, currency);
+
+        // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
+        // We check the merchant is in distance format (includes @) as a sanity check
+        if (hasModifiedMerchant && reportActionOriginalMessage.merchant.includes('@')) {
+            return getProperSchemaForModifiedDistanceMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, amount, oldAmount);
+        }
 
         return getProperSchemaForModifiedExpenseMessage(amount, oldAmount, Localize.translateLocal('iou.amount'), false);
     }
@@ -1608,7 +1638,6 @@ function getModifiedExpenseMessage(reportAction) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false);
     }
 
-    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
     if (hasModifiedMerchant) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, Localize.translateLocal('common.merchant'), true);
     }
@@ -1939,7 +1968,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
             ],
             automatic: false,
             avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
-            created: DateUtils.getDBTimeWithSkew(),
+            created: DateUtils.getDBTime(),
             message: [
                 {
                     translationKey: isAttachment ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
