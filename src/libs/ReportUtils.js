@@ -2449,7 +2449,7 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
 function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = false, comment = '', transaction = undefined) {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const recentReceiptTransactions = lodashGet(reportPreviewAction, 'childRecentReceiptTransactionIDs', {});
-    const transactionsToKeep = TransactionUtils.getLatestTransactions(recentReceiptTransactions);
+    const transactionsToKeep = TransactionUtils.getRecentTransactions(recentReceiptTransactions);
     const previousTransactions = _.mapObject(recentReceiptTransactions, (value, key) => (_.contains(transactionsToKeep, key) ? value : null));
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
