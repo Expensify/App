@@ -62,9 +62,9 @@ class KYCWall extends React.Component {
      * @returns {Object}
      */
     getAnchorPosition(domRect) {
-        if (this.props.popoverPlacement === 'bottom') {
+        if (this.props.anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
             return {
-                anchorPositionVertical: domRect.top + (domRect.height - 2),
+                anchorPositionVertical: domRect.top + domRect.height + CONST.MODAL.POPOVER_MENU_PADDING,
                 anchorPositionHorizontal: domRect.left + 20,
             };
         }
@@ -92,15 +92,15 @@ class KYCWall extends React.Component {
      * If they do have a valid payment method they are navigated to the "enable payments" route to complete KYC checks.
      * If they are already KYC'd we will continue whatever action is gated behind the KYC wall.
      *
-     * @param {Event} event
+     * @param {Event} _event
      * @param {String} iouPaymentType
      */
-    continue(event, iouPaymentType) {
+    continue(_event, iouPaymentType) {
         if (this.state.shouldShowAddPaymentMenu) {
             this.setState({shouldShowAddPaymentMenu: false});
             return;
         }
-        this.setState({transferBalanceButton: event.nativeEvent.target});
+        this.setState({transferBalanceButton: this.anchorRef.current});
         const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
         const paymentCardList = this.props.fundList || {};
 
@@ -110,7 +110,7 @@ class KYCWall extends React.Component {
             (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, this.props.bankAccountList))
         ) {
             Log.info('[KYC Wallet] User does not have valid payment method');
-            const clickedElementLocation = getClickedTargetLocation(event.nativeEvent.target);
+            const clickedElementLocation = getClickedTargetLocation(this.anchorRef.current);
             const position = this.getAnchorPosition(clickedElementLocation);
             this.setPositionAddPaymentMenu(position);
             this.setState({
@@ -142,6 +142,7 @@ class KYCWall extends React.Component {
                         vertical: this.state.anchorPositionVertical,
                         horizontal: this.state.anchorPositionHorizontal,
                     }}
+                    anchorAlignment={this.props.anchorAlignment}
                     onItemSelected={(item) => {
                         this.setState({shouldShowAddPaymentMenu: false});
                         if (item === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
