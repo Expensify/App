@@ -144,7 +144,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}
         }
 
         if (shouldNavigateToWorkspaceChat && workspaceChatReport) {
-            if (workspaceChatReport.reportID != null) {
+            if (workspaceChatReport.reportID !== null) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReport.reportID));
             }
 
