@@ -51,7 +51,6 @@ function SuggestionMention({
     personalDetails,
     updateComment,
     composerHeight,
-    shouldShowReportRecipientLocalTime,
     forwardedRef,
     isAutoSuggestionPickerLarge,
     measureParentContainer,
@@ -169,6 +168,7 @@ function SuggestionMention({
                             name: detail.login,
                             source: UserUtils.getAvatar(detail.avatar, detail.accountID),
                             type: 'avatar',
+                            fallbackIcon: detail.fallbackIcon,
                         },
                     ],
                 });
@@ -199,7 +199,7 @@ function SuggestionMention({
             }
 
             const leftString = value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
-            const words = leftString.split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
+            const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord = _.last(words);
 
             let atSignIndex;
@@ -234,7 +234,10 @@ function SuggestionMention({
 
     useEffect(() => {
         calculateMentionSuggestion(selection.end);
-    }, [selection, calculateMentionSuggestion]);
+
+        // We want this hook to run only on selection change.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selection]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -284,7 +287,6 @@ function SuggestionMention({
             isComposerFullSize={isComposerFullSize}
             isMentionPickerLarge={isAutoSuggestionPickerLarge}
             composerHeight={composerHeight}
-            shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
             measureParentContainer={measureParentContainer}
         />
     );

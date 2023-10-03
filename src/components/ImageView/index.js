@@ -22,13 +22,16 @@ const propTypes = {
 
     /** image file name */
     fileName: PropTypes.string.isRequired,
+
+    onError: PropTypes.func,
 };
 
 const defaultProps = {
     isAuthTokenRequired: false,
+    onError: () => {},
 };
 
-function ImageView({isAuthTokenRequired, url, fileName}) {
+function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     const [isLoading, setIsLoading] = useState(true);
     const [containerHeight, setContainerHeight] = useState(0);
     const [containerWidth, setContainerWidth] = useState(0);
@@ -232,14 +235,15 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
                     source={{uri: url}}
                     isAuthTokenRequired={isAuthTokenRequired}
                     // Hide image until finished loading to prevent showing preview with wrong dimensions.
-                    style={isLoading ? undefined : [styles.w100, styles.h100]}
+                    style={isLoading || zoomScale === 0 ? undefined : [styles.w100, styles.h100]}
                     // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
                     // Both `center` and `contain` keeps the image centered on both x and y axis.
                     resizeMode={zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
+                    onError={onError}
                 />
-                {isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                {(isLoading || zoomScale === 0) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
             </View>
         );
     }
@@ -268,6 +272,7 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
                     resizeMode={Image.resizeMode.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
+                    onError={onError}
                 />
             </PressableWithoutFeedback>
 
