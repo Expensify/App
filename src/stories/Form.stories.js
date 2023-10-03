@@ -11,8 +11,8 @@ import CheckboxWithLabel from '../components/CheckboxWithLabel';
 import Text from '../components/Text';
 import NetworkConnection from '../libs/NetworkConnection';
 import CONST from '../CONST';
-import InputWrapper from "../components/Form/InputWrapper";
-import FormProvider from "../components/Form/FormProvider";
+import InputWrapper from '../components/Form/InputWrapper';
+import FormProvider from '../components/Form/FormProvider';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
