@@ -6,7 +6,7 @@ import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
 import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
 import {Receipt, Comment, WaypointCollection} from '../types/onyx/Transaction';
-import _ from 'underscore';
+import _ from 'lodash';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
 
@@ -364,8 +364,8 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
 /**
  * Returns the most recent transactions in an object
  */
-function getRecentTransactions(transactions: {[index: string]: string}, size = 2): Array<String> {
-    return _.sortBy(_.keys(transactions), (transactionID) => -new Date(transactions[transactionID])).slice(0, size);
+function getRecentTransactions(transactions: Record<string, string>, size = 2): unknown[] {
+    return _.sortBy(Object.keys(transactions), (transactionID) => -new Date(transactions[transactionID])).slice(0, size);
 }
 
 export {
