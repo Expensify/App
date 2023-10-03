@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
@@ -7,9 +8,10 @@ import Clipboard from '../../../../libs/Clipboard';
 import useLocalize from '../../../../hooks/useLocalize';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import * as CartUtils from '../../../../libs/CardUtils';
-import TextLink from '../../../../components/TextLink';
+import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
+import PressableWithDelayToggle from '../../../../components/Pressable/PressableWithDelayToggle';
 import styles from '../../../../styles/styles';
+import TextLink from '../../../../components/TextLink';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 
@@ -68,11 +70,18 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.cardNumber')}
                 title={pan}
-                iconRight={Expensicons.Copy}
-                shouldShowRightIcon
+                shouldShowRightComponent
+                rightComponent={
+                    <View style={styles.justifyContentCenter}>
+                        <PressableWithDelayToggle
+                            tooltipText={translate('reportActionContextMenu.copyToClipboard')}
+                            tooltipTextChecked={translate('reportActionContextMenu.copied')}
+                            icon={Expensicons.Copy}
+                            onPress={handleCopyToClipboard}
+                        />
+                    </View>
+                }
                 interactive={false}
-                onIconRightPress={handleCopyToClipboard}
-                iconRightAccessibilityLabel={translate('cardPage.cardDetails.copyCardNumber')}
             />
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.expiration')}
@@ -86,7 +95,7 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
             />
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.address')}
-                title={CartUtils.getFormattedAddress(privatePersonalDetails)}
+                title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails)}
                 interactive={false}
             />
             <TextLink

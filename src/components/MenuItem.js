@@ -346,7 +346,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 )}
                                 {Boolean(props.shouldShowRightIcon) && (
                                     <PressableWithFeedback
-                                        style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}
+                                        wrapperStyle={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}
                                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityLabel={props.iconRightAccessibilityLabel ? props.iconRightAccessibilityLabel : ''}
                                         accessible={!props.onIconRightPress}
