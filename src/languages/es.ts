@@ -597,7 +597,8 @@ export default {
         addressLabel: 'Dirección',
         address: '88 Kearny Street, Floor 16, San Francisco, CA',
         nextCheckInLabel: 'Próximo check-in',
-        nextCheckInBeforeNumberCheckIn: ({checkInsRemaining}: RemainingCheckInsParams) => `Eres elegible para realizar el check-in en la sala vip y te queda${checkInsRemaining === 1 ? '' : 'n'}`,
+        nextCheckInBeforeNumberCheckIn: ({checkInsRemaining}: RemainingCheckInsParams) =>
+            `Eres elegible para realizar el check-in en la sala vip y te queda${checkInsRemaining === 1 ? '' : 'n'}`,
         nextCheckInBeforeNumberCheckedIn: ({checkInsRemaining}: RemainingCheckInsParams) => `Estás registrado y te queda${checkInsRemaining === 1 ? '' : 'n'}`,
         nextCheckInNumberCountSingular: 'check-in',
         nextCheckInNumberCountPlural: 'check-ins',

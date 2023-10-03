@@ -109,18 +109,18 @@ function LoungeAccessPage(props) {
      *
      * @returns {String}
      */
-         const nextCheckIn = () => {
-            // The .format('LL') returns localized format of the date:
-            // - November 1, 2023 - for English language
-            // - 1 de noviembre de 2023 - for Spanish language
-            const dayMonthYear = moment().locale(props.preferredLocale).add(1, 'months').startOf('month').format('LL')
-    
-            // We only care about the day and the month, so we
-            // get rid of the year for both languages:
-            return dayMonthYear
-                .replace(/, \d{4}/, '') // Drop English year
-                .replace(/ de \d{4}/, '') // Drop Spanish year
-        }
+    const nextCheckIn = () => {
+        // The .format('LL') returns localized format of the date:
+        // - November 1, 2023 - for English language
+        // - 1 de noviembre de 2023 - for Spanish language
+        const dayMonthYear = moment().locale(props.preferredLocale).add(1, 'months').startOf('month').format('LL');
+
+        // We only care about the day and the month, so we
+        // get rid of the year for both languages:
+        return dayMonthYear
+            .replace(/, \d{4}/, '') // Drop English year
+            .replace(/ de \d{4}/, ''); // Drop Spanish year
+    };
 
     return (
         <IllustratedHeaderPageLayout
@@ -136,16 +136,14 @@ function LoungeAccessPage(props) {
                 <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('loungeAccessPage.nextCheckInLabel')}</Text>
                 {props.user.loungeCheckInDetails.checkInsRemaining === 0 && !props.user.loungeCheckInDetails.isCheckedIn ? (
                     <Text style={[styles.mb4]}>
-                        <Text style={[styles.textStrong]}>
-                            {translate('loungeAccessPage.noCheckInsLeftFirstPart')}
-                        </Text>
-                        {translate('loungeAccessPage.noCheckInsLeftSecondPart', { nextCheckIn: nextCheckIn() })}
+                        <Text style={[styles.textStrong]}>{translate('loungeAccessPage.noCheckInsLeftFirstPart')}</Text>
+                        {translate('loungeAccessPage.noCheckInsLeftSecondPart', {nextCheckIn: nextCheckIn()})}
                     </Text>
                 ) : (
                     <Text style={[styles.mb4]}>
                         {props.user.loungeCheckInDetails.isCheckedIn
-                            ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn', { checkInsRemaining: props.user.loungeCheckInDetails.checkInsRemaining })
-                            : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn', { checkInsRemaining: props.user.loungeCheckInDetails.checkInsRemaining })}{' '}
+                            ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn', {checkInsRemaining: props.user.loungeCheckInDetails.checkInsRemaining})
+                            : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn', {checkInsRemaining: props.user.loungeCheckInDetails.checkInsRemaining})}{' '}
                         <Text style={[styles.textStrong]}>
                             {NumberFormatUtils.format(props.preferredLocale, props.user.loungeCheckInDetails.checkInsRemaining)}{' '}
                             {props.user.loungeCheckInDetails.checkInsRemaining === 1
