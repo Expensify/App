@@ -70,6 +70,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
 
     const textInput = useRef(null);
 
+    const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
@@ -128,7 +129,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces)) {
+            if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces, decimals)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
@@ -142,8 +143,22 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 return strippedAmount;
             });
         },
-        [formError],
+        [decimals, formError],
     );
+
+    // Modifies the amount to match the decimals for changed currency.
+    useEffect(() => {
+        // If the changed currency supports decimals, we can return
+        if (MoneyRequestUtils.validateAmount(currentAmount, decimals)) {
+            return;
+        }
+
+        // If the changed currency doesn't support decimals, we can strip the decimals
+        setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
+
+        // we want to update only when decimals change (setNewAmount also changes when decimals change).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [setNewAmount]);
 
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
@@ -267,10 +282,11 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 ) : null}
                 <Button
                     success
+                    allowBubble
+                    pressOnEnter
                     medium={isExtraSmallScreenHeight}
                     style={[styles.w100, styles.mt5]}
                     onPress={submitAndNavigateToNextPage}
-                    pressOnEnter
                     text={buttonText}
                 />
             </View>
