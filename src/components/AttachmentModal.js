@@ -80,7 +80,7 @@ const propTypes = {
     /** The report that has this attachment */
     report: reportPropTypes,
 
-    /** The transaction associated with the receipt, if any */
+    /** The transaction associated with the receipt attachment, if any */
     transaction: transactionPropTypes,
 
     ...withLocalizePropTypes,
@@ -101,7 +101,7 @@ const defaultProps = {
     allowDownload: false,
     headerTitle: null,
     report: {},
-    transaction: undefined,
+    transaction: {},
     onModalShow: () => {},
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
@@ -113,7 +113,7 @@ function AttachmentModal(props) {
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
+    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
     const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
@@ -213,19 +213,19 @@ function AttachmentModal(props) {
     }, [isModalOpen, isConfirmButtonDisabled, props.onConfirm, file, source]);
 
     /**
-     * Close the confirm modal.
+     * Close the confirm modals.
      */
     const closeConfirmModal = useCallback(() => {
         setIsAttachmentInvalid(false);
-        setIsDeleteCommentConfirmModalVisible(false);
+        setIsDeleteReceiptConfirmModalVisible(false);
     }, []);
 
     /**
-     * Close the confirm modal.
+     * Detach the receipt and close the confirm modal.
      */
     const deleteAndCloseConfirmModal = useCallback(() => {
         IOU.detachReceipt(transaction.transactionID, report.reportID);
-        setIsDeleteCommentConfirmModalVisible(false);
+        setIsDeleteReceiptConfirmModalVisible(false);
     }, [transaction, report]);
 
     /**
@@ -348,7 +348,7 @@ function AttachmentModal(props) {
 
     const sourceForAttachmentView = props.source || source;
 
-    const threeDotMenuItems = [
+    const threeDotsMenuItems = [
         {
             icon: Expensicons.Camera,
             text: props.translate('common.replace'),
@@ -365,11 +365,11 @@ function AttachmentModal(props) {
     ];
 
     if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction)) {
-        threeDotMenuItems.push({
+        threeDotsMenuItems.push({
             icon: Expensicons.Trashcan,
             text: props.translate('receipt.deleteReceipt'),
             onSelected: () => {
-                setIsDeleteCommentConfirmModalVisible(true);
+                setIsDeleteReceiptConfirmModalVisible(true);
             },
         });
     }
@@ -408,7 +408,7 @@ function AttachmentModal(props) {
                     onCloseButtonPress={closeModal}
                     shouldShowThreeDotsButton={isAttachmentReceipt}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
-                    threeDotsMenuItems={threeDotMenuItems}
+                    threeDotsMenuItems={threeDotsMenuItems}
                     shouldOverlay
                 />
                 <View style={styles.imageModalImageCenterContainer}>
@@ -455,26 +455,28 @@ function AttachmentModal(props) {
                     </SafeAreaConsumer>
                 )}
             </Modal>
-
-            <ConfirmModal
-                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                onConfirm={closeConfirmModal}
-                onCancel={closeConfirmModal}
-                isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                confirmText={translate('common.close')}
-                shouldShowCancelButton={false}
-            />
-            <ConfirmModal
-                title={translate('receipt.deleteReceipt')}
-                isVisible={isDeleteCommentConfirmModalVisible}
-                onConfirm={deleteAndCloseConfirmModal}
-                onCancel={closeConfirmModal}
-                prompt={translate('receipt.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
+            {isAttachmentReceipt ? (
+                <ConfirmModal
+                    title={translate('receipt.deleteReceipt')}
+                    isVisible={isDeleteReceiptConfirmModalVisible}
+                    onConfirm={deleteAndCloseConfirmModal}
+                    onCancel={closeConfirmModal}
+                    prompt={translate('receipt.deleteConfirmation')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+            ) : (
+                <ConfirmModal
+                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                    onConfirm={closeConfirmModal}
+                    onCancel={closeConfirmModal}
+                    isVisible={isAttachmentInvalid}
+                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                    confirmText={translate('common.close')}
+                    shouldShowCancelButton={false}
+                />
+            )}
 
             {props.children &&
                 props.children({

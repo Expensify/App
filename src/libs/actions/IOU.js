@@ -2115,7 +2115,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 }
 
 function detachReceipt(transactionID, reportID) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
     const newTransaction = {...transaction, filename: '', receipt: {}};
 
     const optimisticData = [
