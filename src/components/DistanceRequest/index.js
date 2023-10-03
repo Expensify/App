@@ -15,19 +15,17 @@ import useLocalize from '../../hooks/useLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import reportPropTypes from '../../pages/reportPropTypes';
 import usePrevious from '../../hooks/usePrevious';
-import theme from '../../styles/themes/default';
 import * as Transaction from '../../libs/actions/Transaction';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import Button from '../Button';
 import DraggableList from '../DraggableList';
-import * as Expensicons from '../Icon/Expensicons';
-import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import transactionPropTypes from '../transactionPropTypes';
 import ScreenWrapper from '../ScreenWrapper';
 import FullPageNotFoundView from '../BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../HeaderWithBackButton';
 import DistanceRequestFooter from './DistanceRequestFooter';
+import DistanceRequestRenderItem from './DistanceRequestRenderItem';
 
 const propTypes = {
     /** The transactionID of this request */
@@ -80,7 +78,6 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
     const numberOfPreviousWaypoints = _.size(previousWaypoints);
     const scrollViewRef = useRef(null);
 
-    const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const isLoading = lodashGet(transaction, 'isLoading', false);
     const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
@@ -154,39 +151,6 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
         [transactionID, waypoints, waypointsList],
     );
 
-    const renderItem = ({item, drag, getIndex, isActive}) => {
-        const index = getIndex();
-        let descriptionKey = 'distance.waypointDescription.';
-        let waypointIcon;
-        if (index === 0) {
-            descriptionKey += 'start';
-            waypointIcon = Expensicons.DotIndicatorUnfilled;
-        } else if (index === lastWaypointIndex) {
-            descriptionKey += 'finish';
-            waypointIcon = Expensicons.Location;
-        } else {
-            descriptionKey += 'stop';
-            waypointIcon = Expensicons.DotIndicator;
-        }
-
-        return (
-            <MenuItemWithTopDescription
-                description={translate(descriptionKey)}
-                title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
-                icon={Expensicons.DragHandles}
-                iconFill={theme.icon}
-                secondaryIcon={waypointIcon}
-                secondaryIconFill={theme.icon}
-                shouldShowRightIcon
-                onPress={() => navigateToWaypointEditPage(index)}
-                onSecondaryInteraction={drag}
-                focused={isActive}
-                key={item}
-                disabled={isLoadingRoute}
-            />
-        );
-    };
-
     const content = (
         <>
             <View style={styles.flex1}>
@@ -197,7 +161,17 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
                     onDragEnd={updateWaypoints}
                     scrollEventThrottle={variables.distanceScrollEventThrottle}
                     ref={scrollViewRef}
-                    renderItem={renderItem}
+                    renderItem={({item, drag, isActive, getIndex}) => (
+                        <DistanceRequestRenderItem
+                            waypoints={waypoints}
+                            item={item}
+                            onSecondaryInteraction={drag}
+                            isActive={isActive}
+                            getIndex={getIndex}
+                            onPress={navigateToWaypointEditPage}
+                            disabled={isLoadingRoute}
+                        />
+                    )}
                     ListFooterComponent={
                         <DistanceRequestFooter
                             waypoints={waypoints}
