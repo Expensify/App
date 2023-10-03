@@ -40,6 +40,9 @@ type PersonalDetails = {
         /** Whether timezone is automatically set */
         automatic?: boolean;
     };
+
+    /** If trying to get PersonalDetails from the server and user is offling */
+    isOptimisticPersonalDetail?: boolean;
 };
 
 export default PersonalDetails;

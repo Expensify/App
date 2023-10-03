@@ -82,7 +82,7 @@ Onyx.connect({
     callback: (val) => (loginList = val),
 });
 
-function getChatType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
+function getChatType(report?: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
     return report?.chatType;
 }
 
@@ -140,7 +140,7 @@ function isChatReport(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if a report is an Expense report.
  */
-function isExpenseReport(report: OnyxEntry<Report>): boolean {
+function isExpenseReport(report?: OnyxEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.EXPENSE;
 }
 
@@ -164,12 +164,8 @@ function isTaskReport(report: OnyxEntry<Report>): boolean {
  * This is because when you delete a task, we still allow you to chat on the report itself
  * There's another situation where you don't have access to the parentReportAction (because it was created in a chat you don't have access to)
  * In this case, we have added the key to the report itself
- *
- * @param {Object} report
- * @param {Object} parentReportAction
- * @returns {Boolean}
  */
-function isCanceledTaskReport(report: OnyxEntry<Report> = {}, parentReportAction: OnyxEntry<ReportAction> = {}): boolean {
+function isCanceledTaskReport(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
     if (Object.keys(parentReportAction ?? {}).length > 0 && (parentReportAction?.message?.[0].isDeletedParentAction ?? false)) {
         return true;
     }
@@ -187,7 +183,7 @@ function isCanceledTaskReport(report: OnyxEntry<Report> = {}, parentReportAction
  * @param report
  * @param parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  */
-function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction> = {}): boolean {
+function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
     return isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
@@ -232,12 +228,12 @@ function isSettled(reportID: string): boolean {
     if (!allReports) {
         return false;
     }
-    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
-    if ((typeof report === 'object' && Object.keys(report).length === 0) || report?.isWaitingOnBankAccount) {
+    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if ((typeof report === 'object' && Object.keys(report ?? {}).length === 0) || report?.isWaitingOnBankAccount) {
         return false;
     }
 
-    return report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
+    return report?.statusNum === CONST.REPORT.STATUS.REIMBURSED;
 }
 
 /**
@@ -247,7 +243,7 @@ function isCurrentUserSubmitter(reportID: string): boolean {
     if (!allReports) {
         return false;
     }
-    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
+    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     return report?.ownerEmail === currentUserEmail;
 }
 
@@ -296,7 +292,7 @@ function isUserCreatedPolicyRoom(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report is a Policy Expense chat.
  */
-function isPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
+function isPolicyExpenseChat(report?: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
 }
 
@@ -345,63 +341,47 @@ function getBankAccountRoute(report: OnyxEntry<Report>): string {
  * Check if personal detail of accountID is empty or optimistic data
  */
 function isOptimisticPersonalDetail(accountID: number): boolean {
-    console.log(allPersonalDetails?.[accountID]);
-    return _.isEmpty(allPersonalDetails?.[accountID]) || !!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail;
+    return Object.keys(allPersonalDetails?.[accountID] ?? {}).length === 0 || !!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail;
 }
 
 /**
  * Checks if a report is a task report from a policy expense chat.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isWorkspaceTaskReport(report) {
+function isWorkspaceTaskReport(report: OnyxEntry<Report>): boolean {
     if (!isTaskReport(report)) {
         return false;
     }
-    const parentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     return isPolicyExpenseChat(parentReport);
 }
 
 /**
  * Returns true if report has a parent
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isThread(report) {
-    return Boolean(report && report.parentReportID && report.parentReportActionID);
+function isThread(report: OnyxEntry<Report>): boolean {
+    return Boolean(report?.parentReportID && report?.parentReportActionID);
 }
 
 /**
  * Returns true if report is of type chat and has a parent and is therefore a Thread.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isChatThread(report) {
-    return isThread(report) && report.type === CONST.REPORT.TYPE.CHAT;
+function isChatThread(report: OnyxEntry<Report>): boolean {
+    return isThread(report) && report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isConciergeChatReport(report) {
-    return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
+function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
+    return report?.participantAccountIDs?.length === 1 && Number(report?.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
 }
 
 /**
  * Check if the report is a single chat report that isn't a thread
  * and personal detail of participant is optimistic data
- * @param {Object} report
- * @param {Array} report.participantAccountIDs
- * @returns {Boolean}
  */
-function shouldDisableDetailPage(report) {
-    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+function shouldDisableDetailPage(report: OnyxEntry<Report>): boolean {
+    const participantAccountIDs = report?.participantAccountIDs ?? [];
 
     if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         return false;
@@ -414,12 +394,10 @@ function shouldDisableDetailPage(report) {
 
 /**
  * Returns true if this report has only one participant and it's an Expensify account.
- * @param {Object} report
- * @returns {Boolean}
  */
-function isExpensifyOnlyParticipantInReport(report) {
-    const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
-    return reportParticipants.length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
+function isExpensifyOnlyParticipantInReport(report: OnyxEntry<Report>): boolean {
+    const reportParticipants = report?.participantAccountIDs?.filter((accountID) => accountID !== currentUserAccountID) ?? [];
+    return reportParticipants.length === 1 && reportParticipants.some((accountID) => CONST.EXPENSIFY_ACCOUNT_IDS.includes(accountID));
 }
 
 /**
@@ -429,30 +407,26 @@ function isExpensifyOnlyParticipantInReport(report) {
  * @param {Array<Number>} accountIDs
  * @return {Boolean}
  */
-function hasExpensifyEmails(accountIDs) {
-    return _.some(accountIDs, (accountID) => Str.extractEmailDomain(lodashGet(allPersonalDetails, [accountID, 'login'], '')) === CONST.EXPENSIFY_PARTNER_NAME);
+function hasExpensifyEmails(accountIDs: number[]): boolean {
+    return accountIDs.some((accountID) => Str.extractCompanyNameFromEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EXPENSIFY_PARTNER_NAME);
 }
 
 /**
  * Returns true if there are any guides accounts (team.expensify.com) in a list of accountIDs
  * by cross-referencing the accountIDs with personalDetails since guides that are participants
  * of the user's chats should have their personal details in Onyx.
- * @param {Array<Number>} accountIDs
- * @returns {Boolean}
  */
-function hasExpensifyGuidesEmails(accountIDs) {
-    return _.some(accountIDs, (accountID) => Str.extractEmailDomain(lodashGet(allPersonalDetails, [accountID, 'login'], '')) === CONST.EMAIL.GUIDES_DOMAIN);
+function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
+    return accountIDs.some((accountID) => Str.extractCompanyNameFromEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
-/**
- * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
- * @param {Boolean} [ignoreDomainRooms]
- * @param {Object} policies
- * @param {Boolean} isFirstTimeNewExpensifyUser
- * @param {Boolean} openOnAdminRoom
- * @returns {Object}
- */
-function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom = false) {
+function findLastAccessedReport(
+    reports: OnyxCollection<Report>,
+    ignoreDomainRooms: boolean,
+    policies: OnyxCollection<Policy>,
+    isFirstTimeNewExpensifyUser: boolean,
+    openOnAdminRoom = false,
+): OnyxEntry<Report> | undefined {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
@@ -462,7 +436,7 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
 
     let adminReport;
     if (openOnAdminRoom) {
-        adminReport = _.find(sortedReports, (report) => {
+        adminReport = sortedReports.find((report) => {
             const chatType = getChatType(report);
             return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
         });
@@ -473,42 +447,34 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
             return sortedReports[0];
         }
 
-        return adminReport || _.find(sortedReports, (report) => !isConciergeChatReport(report));
+        return adminReport || sortedReports.find((report) => !isConciergeChatReport(report));
     }
 
     if (ignoreDomainRooms) {
         // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
         // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
         // Domain rooms are now the only type of default room that are on the defaultRooms beta.
-        sortedReports = _.filter(
-            sortedReports,
+        sortedReports = sortedReports.filter(
             (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(lodashGet(report, ['participantAccountIDs'], [])),
         );
     }
 
-    return adminReport || _.last(sortedReports);
+    return adminReport || sortedReports[sortedReports.length - 1];
 }
 
 /**
  * Whether the provided report is an archived room
- * @param {Object} report
- * @param {Number} report.stateNum
- * @param {Number} report.statusNum
- * @returns {Boolean}
  */
-function isArchivedRoom(report) {
-    return report && report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+function isArchivedRoom(report: OnyxEntry<Report>): boolean {
+    return report?.statusNum === CONST.REPORT.STATUS.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 /**
  * Checks if the current user is allowed to comment on the given report.
- * @param {Object} report
- * @param {String} [report.writeCapability]
- * @returns {Boolean}
  */
-function isAllowedToComment(report) {
+function isAllowedToComment(report: OnyxEntry<Report>): boolean {
     // Default to allowing all users to post
-    const capability = lodashGet(report, 'writeCapability', CONST.REPORT.WRITE_CAPABILITIES.ALL) || CONST.REPORT.WRITE_CAPABILITIES.ALL;
+    const capability = (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL) || CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
     if (capability === CONST.REPORT.WRITE_CAPABILITIES.ALL) {
         return true;
@@ -521,111 +487,83 @@ function isAllowedToComment(report) {
 
     // If we've made it here, commenting on this report is restricted.
     // If the user is an admin, allow them to post.
-    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-    return lodashGet(policy, 'role', '') === CONST.POLICY.ROLE.ADMIN;
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    return (policy?.role ?? '') === CONST.POLICY.ROLE.ADMIN;
 }
 
 /**
  * Checks if the current user is the admin of the policy given the policy expense chat.
- * @param {Object} report
- * @param {String} report.policyID
- * @param {Object} policies must have OnyxKey prefix (i.e 'policy_') for keys
- * @returns {Boolean}
  */
-function isPolicyExpenseChatAdmin(report, policies) {
+function isPolicyExpenseChatAdmin(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
     if (!isPolicyExpenseChat(report)) {
         return false;
     }
 
-    const policyRole = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']);
+    const policyRole = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.role ?? '';
 
     return policyRole === CONST.POLICY.ROLE.ADMIN;
 }
 
 /**
  * Checks if the current user is the admin of the policy.
- * @param {String} policyID
- * @param {Object} policies must have OnyxKey prefix (i.e 'policy_') for keys
- * @returns {Boolean}
  */
-function isPolicyAdmin(policyID, policies) {
-    const policyRole = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'role']);
+function isPolicyAdmin(policyID: string, policies: OnyxCollection<Policy>): boolean {
+    const policyRole = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.role ?? '';
 
     return policyRole === CONST.POLICY.ROLE.ADMIN;
 }
 
 /**
  * Returns true if report is a DM/Group DM chat.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isDM(report) {
+function isDM(report: OnyxEntry<Report>): boolean {
     return !getChatType(report);
 }
 
 /**
  * Returns true if report has a single participant.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function hasSingleParticipant(report) {
-    return report && report.participantAccountIDs && report.participantAccountIDs.length === 1;
+function hasSingleParticipant(report: OnyxEntry<Report>): boolean {
+    return report?.participantAccountIDs?.length === 1;
 }
 
 /**
  * If the report is a thread and has a chat type set, it is a workspace chat.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isWorkspaceThread(report) {
+function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
     return Boolean(isThread(report) && !isDM(report));
 }
 
 /**
  * Returns true if reportAction has a child.
- *
- * @param {Object} reportAction
- * @returns {Boolean}
  */
-function isThreadParent(reportAction) {
-    return reportAction && reportAction.childReportID && reportAction.childReportID !== 0;
+// TODO: It's not used anywhere should I remove it?
+function isThreadParent(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.childReportID !== 0;
 }
 
 /**
  * Returns true if reportAction is the first chat preview of a Thread
- *
- * @param {Object} reportAction
- * @param {String} reportID
- * @returns {Boolean}
  */
-function isThreadFirstChat(reportAction, reportID) {
-    return !_.isUndefined(reportAction.childReportID) && reportAction.childReportID.toString() === reportID;
+function isThreadFirstChat(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
+    return reportAction?.childReportID?.toString() === reportID;
 }
 
 /**
  * Checks if a report is a child report.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isChildReport(report) {
+function isChildReport(report: OnyxEntry<Report>): boolean {
     return isThread(report) || isTaskReport(report);
 }
 
 /**
  * An Expense Request is a thread where the parent report is an Expense Report and
  * the parentReportAction is a transaction.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
-function isExpenseRequest(report) {
+function isExpenseRequest(report: OnyxEntry<Report>): boolean {
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
         return isExpenseReport(parentReport) && ReportActionsUtils.isTransactionThread(parentReportAction);
     }
     return false;
@@ -634,9 +572,6 @@ function isExpenseRequest(report) {
 /**
  * An IOU Request is a thread where the parent report is an IOU Report and
  * the parentReportAction is a transaction.
- *
- * @param {Object} report
- * @returns {Boolean}
  */
 function isIOURequest(report) {
     if (isThread(report)) {
