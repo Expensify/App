@@ -112,11 +112,10 @@ let hasInitialReportActions = false;
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(currentReportId, draftReportIDs, allReportsDict, betas, policies, priorityMode, allReportActions) {
-    const allReportsDictKeys = Object.keys(allReportsDict);
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
         // eslint-disable-next-line es/no-optional-chaining
-        [currentReportId, allReportsDictKeys, betas, draftReportIDs, policies, priorityMode, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
+        [currentReportId, draftReportIDs, allReportsDict, betas, policies, priorityMode, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
         (key, value) => {
             /**
              *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,
@@ -254,7 +253,6 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
         phoneNumber: null,
         isUnread: null,
         isUnreadWithMention: null,
-        hasDraftComment: false,
         keyForList: null,
         searchText: null,
         isPinned: false,
