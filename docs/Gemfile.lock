@@ -263,6 +263,7 @@ DEPENDENCIES
   github-pages
   http_parser.rb (~> 0.6.0)
   jekyll-feed (~> 0.12)
+  jekyll-redirect-from
   jekyll-seo-tag
   tzinfo (~> 1.2)
   tzinfo-data
@@ -270,4 +271,4 @@ DEPENDENCIES
   webrick (~> 1.7)
 
 BUNDLED WITH
-   2.4.3
+   2.4.19

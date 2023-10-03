@@ -767,10 +767,15 @@ const styles = (theme) => ({
         marginRight: 20,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 40,
+        paddingVertical: 40,
         gap: 4,
         flex: 1,
     }),
+
+    receiptViewTextContainer: {
+        paddingHorizontal: 40,
+        ...sizing.w100,
+    },
 
     cameraView: {
         flex: 1,
@@ -1489,7 +1494,8 @@ const styles = (theme) => ({
     },
 
     optionsListSectionHeader: {
-        height: variables.optionsListSectionHeaderHeight,
+        marginTop: 8,
+        marginBottom: 4,
     },
 
     overlayStyles: (current) => ({
@@ -2443,13 +2449,6 @@ const styles = (theme) => ({
         alignItems: 'center',
     },
 
-    checkboxPressable: {
-        borderRadius: 6,
-        padding: 2,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
     checkedContainer: {
         backgroundColor: theme.checkBox,
     },
@@ -3390,7 +3389,7 @@ const styles = (theme) => ({
     },
 
     signInIconButton: {
-        padding: 2,
+        paddingVertical: 2,
     },
 
     googleButtonContainer: {
@@ -3515,6 +3514,10 @@ const styles = (theme) => ({
         backgroundColor: theme.border,
     },
 
+    reportContainerBorderRadius: {
+        borderRadius: variables.componentBorderRadiusLarge,
+    },
+
     reportPreviewBoxBody: {
         padding: 16,
     },
@@ -3628,7 +3631,7 @@ const styles = (theme) => ({
 
     mapView: {
         flex: 1,
-        borderRadius: 20,
+        borderRadius: 16,
         overflow: 'hidden',
     },
 
@@ -3645,7 +3648,8 @@ const styles = (theme) => ({
     },
 
     confirmationListMapItem: {
-        ...spacing.m5,
+        ...spacing.mv2,
+        ...spacing.mh5,
         height: 200,
     },
 
@@ -3665,12 +3669,39 @@ const styles = (theme) => ({
         borderRadius: variables.componentBorderRadiusLarge,
     },
     userReportStatusEmoji: {
+        flexShrink: 0,
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
     },
     draggableTopBar: {
         height: 30,
         width: '100%',
+    },
+
+    walletCard: {
+        borderRadius: variables.componentBorderRadiusLarge,
+        position: 'relative',
+        alignSelf: 'center',
+        overflow: 'hidden',
+    },
+
+    walletCardNumber: {
+        color: theme.text,
+        fontSize: variables.fontSizeNormal,
+    },
+
+    walletCardHolder: {
+        position: 'absolute',
+        left: 16,
+        bottom: 16,
+        width: variables.cardNameWidth,
+        color: theme.text,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightLarge,
+    },
+
+    receiptDropHeaderGap: {
+        backgroundColor: theme.receiptDropUIBG,
     },
 });
 
