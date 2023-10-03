@@ -192,7 +192,7 @@ export default {
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
             characterLimit: ({limit}: CharacterLimitParams) => `Exceeds the maximum length of ${limit} characters`,
-            characterLimitExceedCounter: ({length, limit}) => `Characters limit exceeded(${length}/${limit})`,
+            characterLimitExceedCounter: ({length, limit}) => `Characters limit exceeded (${length}/${limit})`,
             dateInvalid: 'Please select a valid date',
             invalidCharacter: 'Invalid character',
             enterMerchant: 'Enter a merchant name',
