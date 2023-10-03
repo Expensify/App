@@ -73,6 +73,8 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
+    /** /** Whetjer the report is ready for display */
+    isReportReadyForDisplay: PropTypes.bool,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -84,6 +86,7 @@ const defaultProps = {
     isComposerFullSize: false,
     pendingAction: null,
     shouldShowComposeInput: true,
+    isReportReadyForDisplay: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -106,6 +109,7 @@ function ReportActionCompose({
     reportID,
     reportActions,
     shouldShowComposeInput,
+    isReportReadyForDisplay,
 }) {
     const {translate} = useLocalize();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -318,7 +322,7 @@ function ReportActionCompose({
     const handleSendMessage = useCallback(() => {
         'worklet';
 
-        if (isSendDisabled) {
+        if (isSendDisabled || !isReportReadyForDisplay) {
             return;
         }
 
@@ -330,7 +334,7 @@ function ReportActionCompose({
         runOnJS(resetFullComposerSize)();
         updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
         runOnJS(submitForm)();
-    }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef]);
+    }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
     return (
         <View

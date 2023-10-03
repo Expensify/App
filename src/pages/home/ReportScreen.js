@@ -432,7 +432,7 @@ function ReportScreen({
                                         policies={policies}
                                     />
                                 ) : (
-                                    <ReportFooter shouldDisableCompose />
+                                    <ReportFooter isReportReadyForDisplay={false} />
                                 )}
                             </View>
                         </DragAndDropProvider>
