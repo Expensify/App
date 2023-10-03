@@ -57,8 +57,16 @@ function isCreatedAction(reportAction) {
  */
 function isDeletedAction(reportAction) {
     // A deleted comment has either an empty array or an object with html field with empty string as value
-    const message = lodashGet(reportAction, 'message', []);
-    return message.length === 0 || lodashGet(message, [0, 'html']) === '';
+    let message = [];
+    if (reportAction.message) {
+        message = reportAction.message;
+    }
+
+    if (message.length === 0) {
+        return true;
+    }
+
+    return message[0].html === '';
 }
 
 /**
@@ -66,7 +74,10 @@ function isDeletedAction(reportAction) {
  * @returns {Boolean}
  */
 function isDeletedParentAction(reportAction) {
-    return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false) && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
+    const isDeleted = (reportAction && reportAction.message && reportAction.message[0] && reportAction.message[0].isDeletedParentAction) || false;
+    const childVisibleActionCount = (reportAction && reportAction.childVisibleActionCount) || 0;
+
+    return isDeleted && childVisibleActionCount > 0;
 }
 
 /**
@@ -74,7 +85,7 @@ function isDeletedParentAction(reportAction) {
  * @returns {Boolean}
  */
 function isPendingRemove(reportAction) {
-    return lodashGet(reportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
+    return reportAction['message[0].moderationDecision.decision'] === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
 /**
