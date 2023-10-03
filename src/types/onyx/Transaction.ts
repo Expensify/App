@@ -8,6 +8,10 @@ type Comment = {
     comment?: string;
     waypoints?: WaypointCollection;
     isLoading?: boolean;
+    type?: string;
+    customUnit?: Record<string, unknown>;
+    source?: string;
+    originalTransactionID?: string;
 };
 
 type GeometryType = 'LineString';
@@ -15,6 +19,12 @@ type GeometryType = 'LineString';
 type Geometry = {
     coordinates: number[][] | null;
     type?: GeometryType;
+};
+
+type Receipt = {
+    receiptID?: number;
+    source?: string;
+    state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
 };
 
 type Route = {
@@ -31,7 +41,7 @@ type Transaction = {
     comment: Comment;
     created: string;
     currency: string;
-    errors: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors;
     errorFields?: OnyxCommon.ErrorFields;
     // The name of the file used for a receipt (formerly receiptFilename)
     filename?: string;
@@ -39,20 +49,16 @@ type Transaction = {
     modifiedAmount?: number;
     modifiedCreated?: string;
     modifiedCurrency?: string;
+    modifiedMerchant?: string;
+    modifiedWaypoints?: WaypointCollection;
     pendingAction: OnyxCommon.PendingAction;
-    pendingFields: {
-        comment: string;
-    };
-    receipt: {
-        receiptID?: number;
-        source?: string;
-        state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
-    };
+    receipt: Receipt;
     reportID: string;
     routes?: Routes;
     transactionID: string;
     tag: string;
+    pendingFields?: Partial<{[K in keyof Transaction]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
 };
 
 export default Transaction;
-export type {WaypointCollection};
+export type {WaypointCollection, Comment, Receipt};

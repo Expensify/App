@@ -33,3 +33,4 @@ function clearMiddlewares() {
 }
 
 export {clearMiddlewares, processWithMiddleware, use};
+export type {Middleware};
