@@ -23,6 +23,7 @@ const ONYXKEYS = {
         POLICY: 'policy_',
     },
     NETWORK: 'network',
+    DRAFT_REPORT_IDS: 'draftReportIDs',
 };
 
 describe('Sidebar', () => {
@@ -100,12 +101,7 @@ describe('Sidebar', () => {
         it('includes an empty chat report if it has a draft', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // Given a new report with a draft text
-            const report = {
-                ...LHNTestUtils.getFakeReport([1, 2], 0),
-                hasDraft: true,
-            };
-
+            const report = LHNTestUtils.getFakeReport([1, 2], 0);
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated to contain that report
@@ -114,6 +110,8 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            // Set the draft status for the given reportID
+                            [ONYXKEYS.DRAFT_REPORT_IDS]: {[report.reportID]: true},
                         }),
                     )
 
@@ -341,6 +339,8 @@ describe('Sidebar', () => {
                                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                                    // Set the draft status for the given reportID
+                                    [ONYXKEYS.DRAFT_REPORT_IDS]: {[report2.reportID]: boolArr[boolArr.length - 1]},
                                 }),
                             )
                             // Then depending on the outcome, either one or two reports are visible
@@ -435,10 +435,7 @@ describe('Sidebar', () => {
 
         it('always shows pinned and draft chats', () => {
             // Given a draft report and a pinned report
-            const draftReport = {
-                ...LHNTestUtils.getFakeReport([1, 2]),
-                hasDraft: true,
-            };
+            const draftReport = LHNTestUtils.getFakeReport([1, 2]);
             const pinnedReport = {
                 ...LHNTestUtils.getFakeReport([3, 4]),
                 isPinned: true,
@@ -455,6 +452,8 @@ describe('Sidebar', () => {
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${pinnedReport.reportID}`]: pinnedReport,
+                            // Set the draft status for the given reportID
+                            [ONYXKEYS.DRAFT_REPORT_IDS]: {[draftReport.reportID]: true},
                         }),
                     )
 
@@ -666,6 +665,8 @@ describe('Sidebar', () => {
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                                // Set the draft status for the given reportID
+                                [ONYXKEYS.DRAFT_REPORT_IDS]: {[report2.reportID]: boolArr[boolArr.length - 1]},
                             }),
                         )
 

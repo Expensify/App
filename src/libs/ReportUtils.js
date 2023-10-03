@@ -1307,7 +1307,9 @@ function getMoneyRequestTotal(report, allReportsDict = null) {
  */
 function getPolicyExpenseChatName(report, policy = undefined) {
     const ownerAccountID = report.ownerAccountID;
-    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || allPersonalDetails[ownerAccountID].login || report.reportName;
+    const personalDetails = allPersonalDetails[ownerAccountID];
+    const login = personalDetails ? personalDetails.login : null;
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || login || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
