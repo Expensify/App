@@ -2304,9 +2304,10 @@ function setMoneyRequestTag(tag) {
 }
 
 /*
+ * @param {String} transactionID
  * @param {String} tag
  */
-function setMoneeRequestTag(tag) {
+function setMoneeRequestTag(transactionID, tag) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {tag});
 }
 

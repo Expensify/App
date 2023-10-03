@@ -10,6 +10,7 @@ import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
 import IOURequestStepDescription from './step/IOURequestStepDescription';
 import IOURequestStepDate from './step/IOURequestStepDate';
 import IOURequestStepCategory from './step/IOURequestStepCategory';
+import IOURequestStepTag from './step/IOURequestStepTag';
 
 const propTypes = {
     /** Route from navigation */
@@ -68,7 +69,7 @@ function IOURequestStepPage({
     }
 
     if (step === 'tag') {
-        return null;
+        return <IOURequestStepTag route={route} />;
     }
 
     if (step === 'merchant') {

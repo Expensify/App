@@ -19,6 +19,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import reportPropTypes from '../../../reportPropTypes';
 import styles from '../../../../styles/styles';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -53,7 +54,14 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestStepTag({route: {iouType, transactionID, reportID}, report, policyTags, transaction}) {
+function IOURequestStepTag({
+    route: {
+        params: {iouType, transactionID, reportID},
+    },
+    report,
+    policyTags,
+    transaction: {tag},
+}) {
     const {translate} = useLocalize();
 
     // Fetches the first tag list of the policy
@@ -77,13 +85,13 @@ function IOURequestStepTag({route: {iouType, transactionID, reportID}, report, p
         >
             <HeaderWithBackButton
                 title={policyTagListName}
-                onBackButtonPress={navigateBack}
+                onBackButtonPress={goBack}
             />
             <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
             <TagPicker
                 policyID={report.policyID}
                 tag={tagListKey}
-                selectedTag={iou.tag}
+                selectedTag={tag}
                 onSubmit={updateTag}
             />
         </ScreenWrapper>
