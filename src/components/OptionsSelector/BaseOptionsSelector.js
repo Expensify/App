@@ -383,7 +383,6 @@ class BaseOptionsSelector extends Component {
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
             />
         );
-
         const optionsList = (
             <OptionsList
                 ref={(el) => (this.list = el)}
