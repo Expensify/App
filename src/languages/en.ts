@@ -43,6 +43,7 @@ import type {
     ResolutionConstraintsParams,
     NotAllowedExtensionParams,
     NoCheckInsLeftParams,
+    RemainingCheckInsParams,
     EnterMagicCodeParams,
     TransferParams,
     InstantSummaryParams,
@@ -603,8 +604,10 @@ export default {
         addressLabel: 'Address',
         address: '88 Kearny Street, Floor 16, San Francisco, CA',
         nextCheckInLabel: 'Next check-in',
-        nextCheckInBeforeNumberCheckIn: () => 'You’re eligible to check in to the lounge and have',
-        nextCheckInBeforeNumberCheckedIn: 'You’re checked in and have',
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        nextCheckInBeforeNumberCheckIn: ({checkInsRemaining}: RemainingCheckInsParams) => 'You’re eligible to check in to the lounge and have',
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        nextCheckInBeforeNumberCheckedIn: ({checkInsRemaining}: RemainingCheckInsParams) => 'You’re checked in and have',
         nextCheckInNumberCountSingular: 'check-in',
         nextCheckInNumberCountPlural: 'check-ins',
         nextCheckInAfterNumber: 'remaining this month.',
