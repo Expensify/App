@@ -19,6 +19,7 @@ import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
+import MoneyRequestHeaderStatusBar from '../../components/MoneyRequestHeaderStatusBar';
 
 const propTypes = {
     /* Onyx Props */
@@ -79,6 +80,7 @@ function SplitBillDetailsPage(props) {
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
                 >
+                    <MoneyRequestHeaderStatusBar />
                     {Boolean(participants.length) && (
                         <MoneyRequestConfirmationList
                             hasMultipleParticipants
