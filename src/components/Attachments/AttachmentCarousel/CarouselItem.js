@@ -32,6 +32,9 @@ const propTypes = {
 
         /** Whether the attachment has been flagged */
         hasBeenFlagged: PropTypes.bool,
+
+        /** The id of the transaction related to the attachment */
+        transactionID: PropTypes.string,
     }).isRequired,
 
     /** Whether the attachment is currently being viewed in the carousel */

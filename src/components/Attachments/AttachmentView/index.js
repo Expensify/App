@@ -3,6 +3,7 @@ import {View, ActivityIndicator} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import Icon from '../../Icon';
 import * as Expensicons from '../../Icon/Expensicons';
@@ -20,7 +21,6 @@ import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
 import * as TransactionUtils from '../../../libs/TransactionUtils';
 import DistanceEReceipt from '../../DistanceEReceipt';
 import useNetwork from '../../../hooks/useNetwork';
-import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
@@ -43,6 +43,8 @@ const propTypes = {
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
 
+    /** The id of the transaction related to the attachment */
+    // eslint-disable-next-line react/no-unused-prop-types
     transactionID: PropTypes.string,
 };
 

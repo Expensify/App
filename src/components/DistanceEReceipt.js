@@ -36,17 +36,17 @@ function DistanceEReceipt({transaction}) {
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : translate('common.tbd');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const sortedWaypoints = useMemo(() => {
-        // The waypoint keys are sometimes out of order
-        return _.chain(waypoints)
-            .keys()
-            .sort((keyA, keyB) => {
-                return TransactionUtils.getWaypointIndex(keyA) - TransactionUtils.getWaypointIndex(keyB);
-            })
-            .map((key) => ({[key]: waypoints[key]}))
-            .reduce((result, obj) => Object.assign(result, obj), {})
-            .value();
-    }, [waypoints]);
+    const sortedWaypoints = useMemo(
+        () =>
+            // The waypoint keys are sometimes out of order
+            _.chain(waypoints)
+                .keys()
+                .sort((keyA, keyB) => TransactionUtils.getWaypointIndex(keyA) - TransactionUtils.getWaypointIndex(keyB))
+                .map((key) => ({[key]: waypoints[key]}))
+                .reduce((result, obj) => _.assign(result, obj), {})
+                .value(),
+        [waypoints],
+    );
     return (
         <View style={[styles.ph5, styles.pv5, styles.flex1, styles.alignItemsCenter]}>
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}>
@@ -56,7 +56,7 @@ function DistanceEReceipt({transaction}) {
                         pointerEvents="none"
                     />
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {isOffline || !Boolean(thumbnailSource) ? (
+                        {isOffline || !thumbnailSource ? (
                             <PendingMapView />
                         ) : (
                             <ThumbnailImage
