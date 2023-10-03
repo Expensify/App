@@ -51,7 +51,9 @@ function BaseSelectionList({
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
     showConfirmButton = false,
+    shouldFocusOnSelectRow = false,
     isKeyboardShown = false,
+    inputRef = null,
     disableKeyboardShortcuts = false,
     children,
 }) {
@@ -64,7 +66,6 @@ function BaseSelectionList({
     const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElement = useActiveElement();
     const isFocused = useIsFocused();
-
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
@@ -208,6 +209,17 @@ function BaseSelectionList({
         }
 
         onSelectRow(item);
+
+        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
+            textInputRef.current.focus();
+        }
+    };
+
+    const selectAllRow = () => {
+        onSelectAll();
+        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
+            textInputRef.current.focus();
+        }
     };
 
     const selectFocusedOption = () => {
@@ -348,7 +360,13 @@ function BaseSelectionList({
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
-                                    ref={textInputRef}
+                                    ref={(el) => {
+                                        if (inputRef) {
+                                            // eslint-disable-next-line no-param-reassign
+                                            inputRef.current = el;
+                                        }
+                                        textInputRef.current = el;
+                                    }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -375,7 +393,7 @@ function BaseSelectionList({
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
                                     <PressableWithFeedback
                                         style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
-                                        onPress={onSelectAll}
+                                        onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
                                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityState={{checked: flattenedSections.allSelected}}
@@ -385,7 +403,7 @@ function BaseSelectionList({
                                         <Checkbox
                                             accessibilityLabel={translate('workspace.people.selectAll')}
                                             isChecked={flattenedSections.allSelected}
-                                            onPress={onSelectAll}
+                                            onPress={selectAllRow}
                                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         />
                                         <View style={[styles.flex1]}>

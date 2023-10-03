@@ -1161,9 +1161,22 @@ function getDisabledLinkStyles(isDisabled = false): ViewStyle {
 }
 
 /**
+ * Returns the checkbox pressable style
+ */
+function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
+    return {
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        // eslint-disable-next-line object-shorthand
+        borderRadius: borderRadius,
+    };
+}
+
+/**
  * Returns the checkbox container style
  */
-function getCheckboxContainerStyle(size: number, borderRadius: number): ViewStyle {
+function getCheckboxContainerStyle(size: number, borderRadius = 4): ViewStyle {
     return {
         backgroundColor: themeColors.componentBG,
         height: size,
@@ -1251,6 +1264,7 @@ export {
     getBorderColorStyle,
     getButtonBackgroundColorStyle,
     getCheckboxContainerStyle,
+    getCheckboxPressableStyle,
     getColoredBackgroundStyle,
     getComposeTextAreaPadding,
     getDefaultWorkspaceAvatarColor,

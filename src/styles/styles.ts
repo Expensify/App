@@ -1549,7 +1549,8 @@ const styles = (theme: ThemeDefault) =>
         },
 
         optionsListSectionHeader: {
-            height: variables.optionsListSectionHeaderHeight,
+            marginTop: 8,
+            marginBottom: 4,
         },
 
         overlayStyles: (current: OverlayStylesParams) =>
@@ -2503,13 +2504,6 @@ const styles = (theme: ThemeDefault) =>
             width: 20,
             borderColor: theme.icon,
             borderWidth: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-
-        checkboxPressable: {
-            borderRadius: 6,
-            padding: 2,
             justifyContent: 'center',
             alignItems: 'center',
         },
@@ -3696,7 +3690,7 @@ const styles = (theme: ThemeDefault) =>
 
         mapView: {
             flex: 1,
-            borderRadius: 20,
+            borderRadius: 16,
             overflow: 'hidden',
         },
 
@@ -3713,7 +3707,8 @@ const styles = (theme: ThemeDefault) =>
         },
 
         confirmationListMapItem: {
-            ...spacing.m5,
+            ...spacing.mv2,
+            ...spacing.mh5,
             height: 200,
         },
 
@@ -3762,6 +3757,10 @@ const styles = (theme: ThemeDefault) =>
             color: theme.text,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightLarge,
+        },
+
+        receiptDropHeaderGap: {
+            backgroundColor: theme.receiptDropUIBG,
         },
     } satisfies Styles);
 
