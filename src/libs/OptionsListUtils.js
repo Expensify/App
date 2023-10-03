@@ -68,14 +68,16 @@ Onyx.connect({
 
 const lastReportActions = {};
 const allSortedReportActions = {};
+const allReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
         if (!key || !actions) {
             return;
         }
-        const sortedReportActions = ReportActionUtils.getSortedReportActions(_.toArray(actions), true);
         const reportID = CollectionUtils.extractCollectionItemID(key);
+        allReportActions[reportID] = actions;
+        const sortedReportActions = ReportActionUtils.getSortedReportActions(_.toArray(actions), true);
         allSortedReportActions[reportID] = sortedReportActions;
         lastReportActions[reportID] = _.first(sortedReportActions);
     },
@@ -366,7 +368,8 @@ function getAllReportErrors(report, reportActions) {
         {},
     );
 
-    const parentReportAction = !report.parentReportID || !report.parentReportActionID ? {} : lodashGet(allSortedReportActions, [report.parentReportID, report.parentReportActionID], {});
+    const parentReportAction = !report.parentReportID || !report.parentReportActionID ? {} : lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
+
     if (parentReportAction.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], '');
         const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
