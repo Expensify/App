@@ -1332,7 +1332,7 @@ const styles = (theme) => ({
 
     createMenuPositionSidebar: (windowHeight) => ({
         horizontal: 18,
-        vertical: windowHeight - 100,
+        vertical: windowHeight - 75,
     }),
 
     createMenuPositionProfile: (windowWidth) => ({
@@ -1398,12 +1398,23 @@ const styles = (theme) => ({
 
     sidebarLink: {
         textDecorationLine: 'none',
+    },
+
+    sidebarLinkLHN: {
+        textDecorationLine: 'none',
         marginLeft: 12,
         marginRight: 12,
-        borderRadius: 12,
+        borderRadius: 8,
     },
 
     sidebarLinkInner: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+
+    sidebarLinkInnerLHN: {
         alignItems: 'center',
         flexDirection: 'row',
         paddingLeft: 8,
@@ -1421,7 +1432,16 @@ const styles = (theme) => ({
         backgroundColor: theme.sidebarHover,
     },
 
+    sidebarLinkHoverLHN: {
+        backgroundColor: theme.highlightBG,
+    },
+
     sidebarLinkActive: {
+        backgroundColor: theme.border,
+        textDecorationLine: 'none',
+    },
+
+    sidebarLinkActiveLHN: {
         backgroundColor: theme.highlightBG,
         textDecorationLine: 'none',
     },
