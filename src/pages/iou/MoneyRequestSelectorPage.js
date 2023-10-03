@@ -108,39 +108,36 @@ function MoneyRequestSelectorPage(props) {
                                 title={title[iouType]}
                                 onBackButtonPress={Navigation.dismissModal}
                             />
-                            {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST || iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
-                                <OnyxTabNavigator
-                                    id={CONST.TAB.RECEIPT_TAB_ID}
-                                    selectedTab={props.selectedTab}
-                                    tabBar={({state, navigation, position}) => (
-                                        <TabSelector
-                                            state={state}
-                                            navigation={navigation}
-                                            position={position}
-                                        />
-                                    )}
-                                >
+                            <OnyxTabNavigator
+                                id={CONST.TAB.RECEIPT_TAB_ID}
+                                selectedTab={props.selectedTab}
+                                tabBar={({state, navigation, position}) => (
+                                    <TabSelector
+                                        state={state}
+                                        navigation={navigation}
+                                        position={position}
+                                    />
+                                )}
+                            >
+                                <TopTab.Screen
+                                    name={CONST.TAB.MANUAL}
+                                    component={NewRequestAmountPage}
+                                    initialParams={{reportID, iouType}}
+                                />
+                                <TopTab.Screen
+                                    name={CONST.TAB.SCAN}
+                                    component={ReceiptSelector}
+                                    initialParams={{reportID, iouType, pageIndex: 1}}
+                                />
+                                {shouldDisplayDistanceRequest && (
                                     <TopTab.Screen
-                                        name={CONST.TAB.MANUAL}
-                                        component={NewRequestAmountPage}
+                                        name={CONST.TAB.DISTANCE}
+                                        component={NewDistanceRequestPage}
                                         initialParams={{reportID, iouType}}
                                     />
-                                    <TopTab.Screen
-                                        name={CONST.TAB.SCAN}
-                                        component={ReceiptSelector}
-                                        initialParams={{reportID, iouType, pageIndex: 1}}
-                                    />
-                                    {shouldDisplayDistanceRequest && (
-                                        <TopTab.Screen
-                                            name={CONST.TAB.DISTANCE}
-                                            component={NewDistanceRequestPage}
-                                            initialParams={{reportID, iouType}}
-                                        />
-                                    )}
-                                </OnyxTabNavigator>
-                            ) : (
-                                <NewRequestAmountPage route={props.route} />
-                            )}
+                                )}
+                            </OnyxTabNavigator>
+                            )
                         </View>
                     </DragAndDropProvider>
                 </FullPageNotFoundView>

@@ -1309,10 +1309,10 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
  * @param {String} amountText
  * @returns {Array}
  */
-function getIOUConfirmationOptionsFromParticipants(participants, amountText, isPartialSplitBill) {
+function getIOUConfirmationOptionsFromParticipants(participants, amountText, shouldHideDesciptiveText) {
     return _.map(participants, (participant) => ({
         ...participant,
-        descriptiveText: isPartialSplitBill ? '' : amountText,
+        descriptiveText: shouldHideDesciptiveText ? '' : amountText,
     }));
 }
 
