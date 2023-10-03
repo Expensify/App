@@ -101,6 +101,7 @@ function EditRequestDistancePage({report, route, transaction}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={EditRequestDistancePage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.distance')}
