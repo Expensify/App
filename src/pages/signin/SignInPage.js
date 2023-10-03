@@ -90,7 +90,7 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     const platform = getPlatform();
 
     // SAML is temporarily restricted to users on the beta or to users signing in on web and mweb
-    if (Permissions.canUseSAML() || platform === CONST.PLATFORM.WEB) {
+    if (Permissions.canUseSAML() || (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP)) {
         shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
         shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired;
     }
