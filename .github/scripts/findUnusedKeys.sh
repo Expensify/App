@@ -210,7 +210,12 @@ find_theme_style_and_store_keys() {
     fi
 
     # Check if we are inside an arrow function
-    if [[ "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{ || "$line" =~ ^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\(.*\)[[:space:]]*'=>' ]]; then
+    if [[ "$line" =~ ^[[:space:]]*([a-zA-Zgv 0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{ || "$line" =~ ^[[:space:]]*([a-zA-Zgv 0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>' ]]; then
+      inside_arrow_function=true
+      continue
+    fi
+
+    if [[ "$line" =~ ^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\(.*\)[[:space:]]*'=>' ]]; then
       inside_arrow_function=true
       continue
     fi
