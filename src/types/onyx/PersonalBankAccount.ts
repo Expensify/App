@@ -1,6 +1,8 @@
+import * as OnyxCommon from './OnyxCommon';
+
 type PersonalBankAccount = {
     /** An error message to display to the user */
-    error?: string;
+    errors?: OnyxCommon.Errors;
 
     /** Whether we should show the view that the bank account was successfully added */
     shouldShowSuccess?: boolean;

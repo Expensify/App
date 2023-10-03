@@ -7,9 +7,9 @@ import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropT
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as ReimbursementAccount from './ReimbursementAccount';
-import PlaidBankAccount from '../../types/onyx/PlaidBankAccount';
-import {ACHContractStepProps, BankAccountStepProps, CompanyStepProps, OnfidoData, ReimbursementAccountProps, RequestorStepProps} from '../../types/onyx/ReimbursementAccountDraft';
-import {OnyxData} from '../../types/onyx/Request';
+import type PlaidBankAccount from '../../types/onyx/PlaidBankAccount';
+import type {ACHContractStepProps, BankAccountStepProps, CompanyStepProps, OnfidoData, ReimbursementAccountProps, RequestorStepProps} from '../../types/onyx/ReimbursementAccountDraft';
+import type {OnyxData} from '../../types/onyx/Request';
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -46,7 +46,7 @@ function openPersonalBankAccountSetupView(exitReportID: string) {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
         }
-        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT, '');
+        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
     });
 }
 
@@ -70,7 +70,7 @@ function getVBBADataForOnyx(): OnyxData {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: true,
-                    errors: undefined,
+                    errors: null,
                 },
             },
         ],
@@ -80,7 +80,7 @@ function getVBBADataForOnyx(): OnyxData {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: undefined,
+                    errors: null,
                 },
             },
         ],
@@ -154,7 +154,7 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
         plaidAccessToken: account.plaidAccessToken,
     };
 
-    const onyxData = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -271,7 +271,7 @@ function validateBankAccount(bankAccountID: number, validateCode: string) {
 }
 
 function openReimbursementAccountPage(stepToOpen: string, subStep: string, localCurrentStep: string) {
-    const onyxData = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
