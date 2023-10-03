@@ -1,6 +1,4 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
@@ -18,18 +16,21 @@ import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
 import * as OnyxUpdates from './OnyxUpdates';
 import redirectToSignIn from './SignInRedirect';
+import type Login from '../../types/onyx/Login';
+import type OnyxPersonalDetails from '../../types/onyx/PersonalDetails';
+import type {OnyxUpdatesFromServer} from '../../types/onyx';
 
-let currentUserAccountID = '';
+let currentUserAccountID = -1;
 let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = lodashGet(val, 'accountID', -1);
-        currentEmail = lodashGet(val, 'email', '');
+        currentUserAccountID = val?.accountID ?? -1;
+        currentEmail = val?.email ?? '';
     },
 });
 
-let myPersonalDetails = {};
+let myPersonalDetails: Partial<OnyxPersonalDetails> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
@@ -44,9 +45,9 @@ Onyx.connect({
 /**
  * Attempt to close the user's account
  *
- * @param {String} message optional reason for closing account
+ * @param message optional reason for closing account
  */
-function closeAccount(message) {
+function closeAccount(message: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
     // command succeeds, a Pusher response will clear all Onyx data.
     API.write(
@@ -75,20 +76,17 @@ function closeAccount(message) {
 
 /**
  * Resends a validation link to a given login
- *
- * @param {String} login
- * @param {Boolean} isPasswordless - temporary param to trigger passwordless flow in backend
  */
-function resendValidateCode(login) {
+function resendValidateCode(login: string) {
     Session.resendValidateCode(login);
 }
 
 /**
  * Requests a new validate code be sent for the passed contact method
  *
- * @param {String} contactMethod - the new contact method that the user is trying to verify
+ * @param contactMethod - the new contact method that the user is trying to verify
  */
-function requestContactMethodValidateCode(contactMethod) {
+function requestContactMethodValidateCode(contactMethod: string) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -149,11 +147,9 @@ function requestContactMethodValidateCode(contactMethod) {
 }
 
 /**
- * Sets whether or not the user is subscribed to Expensify news
- *
- * @param {Boolean} isSubscribed
+ * Sets whether the user is subscribed to Expensify news
  */
-function updateNewsletterSubscription(isSubscribed) {
+function updateNewsletterSubscription(isSubscribed: boolean) {
     API.write(
         'UpdateNewsletterSubscription',
         {
@@ -181,10 +177,9 @@ function updateNewsletterSubscription(isSubscribed) {
 /**
  * Delete a specific contact method
  *
- * @param {String} contactMethod - the contact method being deleted
- * @param {Array} loginList
+ * @param contactMethod - the contact method being deleted
  */
-function deleteContactMethod(contactMethod, loginList) {
+function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>) {
     const oldLoginData = loginList[contactMethod];
 
     const optimisticData = [
@@ -243,11 +238,8 @@ function deleteContactMethod(contactMethod, loginList) {
 
 /**
  * Clears any possible stored errors for a specific field on a contact method
- *
- * @param {String} contactMethod
- * @param {String} fieldName
  */
-function clearContactMethodErrors(contactMethod, fieldName) {
+function clearContactMethodErrors(contactMethod: string, fieldName: string) {
     Onyx.merge(ONYXKEYS.LOGIN_LIST, {
         [contactMethod]: {
             errorFields: {
@@ -263,9 +255,9 @@ function clearContactMethodErrors(contactMethod, fieldName) {
 /**
  * Resets the state indicating whether a validation code has been sent to a specific contact method.
  *
- * @param {String} contactMethod - The identifier of the contact method to reset.
+ * @param contactMethod - The identifier of the contact method to reset.
  */
-function resetContactMethodValidateCodeSentState(contactMethod) {
+function resetContactMethodValidateCodeSentState(contactMethod: string) {
     Onyx.merge(ONYXKEYS.LOGIN_LIST, {
         [contactMethod]: {
             validateCodeSent: false,
@@ -275,10 +267,8 @@ function resetContactMethodValidateCodeSentState(contactMethod) {
 
 /**
  * Adds a secondary login to a user's account
- *
- * @param {String} contactMethod
  */
-function addNewContactMethodAndNavigate(contactMethod) {
+function addNewContactMethodAndNavigate(contactMethod: string) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -333,11 +323,8 @@ function addNewContactMethodAndNavigate(contactMethod) {
 
 /**
  * Validates a login given an accountID and validation code
- *
- * @param {Number} accountID
- * @param {String} validateCode
  */
-function validateLogin(accountID, validateCode) {
+function validateLogin(accountID: number, validateCode: string) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     const optimisticData = [
@@ -363,10 +350,9 @@ function validateLogin(accountID, validateCode) {
 /**
  * Validates a secondary login / contact method
  *
- * @param {String} contactMethod - The contact method the user is trying to verify
- * @param {String} validateCode
+ * @param contactMethod - The contact method the user is trying to verify
  */
-function validateSecondaryLogin(contactMethod, validateCode) {
+function validateSecondaryLogin(contactMethod: string, validateCode: string) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -448,11 +434,9 @@ function validateSecondaryLogin(contactMethod, validateCode) {
  * Checks the blockedFromConcierge object to see if it has an expiresAt key,
  * and if so whether the expiresAt date of a user's ban is before right now
  *
- * @param {Object} blockedFromConciergeNVP
- * @returns {Boolean}
  */
-function isBlockedFromConcierge(blockedFromConciergeNVP) {
-    if (_.isEmpty(blockedFromConciergeNVP)) {
+function isBlockedFromConcierge(blockedFromConciergeNVP: {expiresAt: number}) {
+    if (!blockedFromConciergeNVP || Object.keys(blockedFromConciergeNVP).length === 0) {
         return false;
     }
 
@@ -463,18 +447,17 @@ function isBlockedFromConcierge(blockedFromConciergeNVP) {
     return moment().isBefore(moment(blockedFromConciergeNVP.expiresAt), 'day');
 }
 
-function triggerNotifications(onyxUpdates) {
-    _.each(onyxUpdates, (update) => {
+function triggerNotifications(onyxUpdates: any) {
+    onyxUpdates.forEach((update) => {
         if (!update.shouldNotify) {
             return;
         }
 
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-        const reportActions = _.values(update.value);
+        const reportActions = Object.values(update.value);
 
-        // eslint-disable-next-line rulesdir/no-negated-variables
-        const notifiableActions = _.filter(reportActions, (action) => ReportActionsUtils.isNotifiableReportAction(action));
-        _.each(notifiableActions, (action) => Report.showReportActionNotification(reportID, action));
+        const notifiableActions = reportActions.filter((action) => ReportActionsUtils.isNotifiableReportAction(action));
+        notifiableActions.forEach((action) => Report.showReportActionNotification(reportID, action));
     });
 }
 
@@ -490,7 +473,7 @@ function subscribeToUserEvents() {
 
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON: OnyxUpdatesFromServer) => {
         // The data for this push event comes in two different formats:
         // 1. Original format - this is what was sent before the RELIABLE_UPDATES project and will go away once RELIABLE_UPDATES is fully complete
         //     - The data is an array of objects, where each object is an onyx update
@@ -498,8 +481,8 @@ function subscribeToUserEvents() {
         // 1. Reliable updates format - this is what was sent with the RELIABLE_UPDATES project and will be the format from now on
         //     - The data is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
         //       Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
-        if (_.isArray(pushJSON)) {
-            _.each(pushJSON, (multipleEvent) => {
+        if (Array.isArray(pushJSON)) {
+            pushJSON.forEach((multipleEvent) => {
                 PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
             });
             return;
@@ -512,7 +495,7 @@ function subscribeToUserEvents() {
             previousUpdateID: Number(pushJSON.previousUpdateID || 0),
         };
         if (!OnyxUpdates.doesClientNeedToBeUpdated(Number(pushJSON.previousUpdateID || 0))) {
-            OnyxUpdates.apply(updates);
+            OnyxUpdates.apply(updates as any);
             return;
         }
 
@@ -522,7 +505,7 @@ function subscribeToUserEvents() {
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
-    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON) =>
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxUpdate[]) =>
         SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
             if (!currentUserAccountID) {
@@ -541,9 +524,8 @@ function subscribeToUserEvents() {
 
 /**
  * Sync preferredSkinTone with Onyx and Server
- * @param {String} skinTone
  */
-function updatePreferredSkinTone(skinTone) {
+function updatePreferredSkinTone(skinTone: string) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -562,9 +544,8 @@ function updatePreferredSkinTone(skinTone) {
 
 /**
  * Sync frequentlyUsedEmojis with Onyx and Server
- * @param {Object[]} frequentlyUsedEmojis
  */
-function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
+function updateFrequentlyUsedEmojis(frequentlyUsedEmojis: string[]) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -583,9 +564,8 @@ function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
 
 /**
  * Sync user chat priority mode with Onyx and Server
- * @param {String} mode
  */
-function updateChatPriorityMode(mode) {
+function updateChatPriorityMode(mode: string) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -603,10 +583,7 @@ function updateChatPriorityMode(mode) {
     Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
 
-/**
- * @param {Boolean} shouldUseStagingServer
- */
-function setShouldUseStagingServer(shouldUseStagingServer) {
+function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
     Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
 }
 
@@ -623,19 +600,19 @@ function clearScreenShareRequest() {
 
 /**
  * Open an OldDot tab linking to a screen share request.
- * @param {String} accessToken Access token required to join a screen share room, generated by the backend
- * @param {String} roomName Name of the screen share room to join
+ * @param accessToken Access token required to join a screen share room, generated by the backend
+ * @param roomName Name of the screen share room to join
  */
-function joinScreenShare(accessToken, roomName) {
+function joinScreenShare(accessToken: string, roomName: string) {
     Link.openOldDotLink(`inbox?action=screenShare&accessToken=${accessToken}&name=${roomName}`);
     clearScreenShareRequest();
 }
 
 /**
  * Downloads the statement PDF for the provided period
- * @param {String} period YYYYMM format
+ * @param period YYYYMM format
  */
-function generateStatementPDF(period) {
+function generateStatementPDF(period: string) {
     API.read(
         'GetStatementPDF',
         {period},
@@ -673,10 +650,8 @@ function generateStatementPDF(period) {
 
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
- *
- * @param {String} newDefaultContactMethod
  */
-function setContactMethodAsDefault(newDefaultContactMethod) {
+function setContactMethodAsDefault(newDefaultContactMethod: string) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData = [
         {
@@ -754,14 +729,19 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
             },
         },
     ];
-    API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
+    API.write(
+        'SetContactMethodAsDefault',
+        {partnerUserID: newDefaultContactMethod},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
-/**
- * @param {String} theme
- */
-function updateTheme(theme) {
+function updateTheme(theme: string) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -783,12 +763,10 @@ function updateTheme(theme) {
 
 /**
  * Sets a custom status
- *
- * @param {Object} status
- * @param {String} status.text
- * @param {String} status.emojiCode
  */
-function updateCustomStatus(status) {
+type CustomStatus = {text: string; emojiCode: string; clearAfter?: string};
+
+function updateCustomStatus(status: CustomStatus) {
     API.write('UpdateStatus', status, {
         optimisticData: [
             {
@@ -826,18 +804,14 @@ function clearCustomStatus() {
 /**
  * Sets a custom status
  *
- * @param {Object} status
- * @param {String} status.text
- * @param {String} status.emojiCode
- * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
+ * @param status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
  */
-function updateDraftCustomStatus(status) {
+function updateDraftCustomStatus(status: CustomStatus) {
     Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, status);
 }
 
 /**
  * Clear the custom draft status
- *
  */
 function clearDraftCustomStatus() {
     Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
