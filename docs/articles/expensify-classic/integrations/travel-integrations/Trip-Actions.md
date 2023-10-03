@@ -1,5 +1,5 @@
 --
-Navan Integration
+title: Navan Integration
 Connecting Navan and Expensify
 --
 # Overview
