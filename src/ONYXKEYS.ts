@@ -1,5 +1,4 @@
 import {ValueOf} from 'type-fest';
-import {OnyxUpdate} from 'react-native-onyx';
 import DeepValueOf from './types/utils/DeepValueOf';
 import * as OnyxTypes from './types/onyx';
 import CONST from './CONST';
@@ -29,9 +28,6 @@ const ONYXKEYS = {
 
     /** Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe */
     PERSISTED_REQUESTS: 'networkRequestQueue',
-
-    /** Onyx updates from a response, or success or failure data from a request. */
-    QUEUED_ONYX_UPDATES: 'queuedOnyxUpdates',
 
     /** Stores current date */
     CURRENT_DATE: 'currentDate',
@@ -307,7 +303,6 @@ type OnyxValues = {
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.Request[];
-    [ONYXKEYS.QUEUED_ONYX_UPDATES]: OnyxUpdate[];
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.IOU]: OnyxTypes.IOU;
