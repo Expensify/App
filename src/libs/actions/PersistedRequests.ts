@@ -31,18 +31,21 @@ function remove(requestToRemove: Request) {
      * We only remove the first matching request because the order of requests matters.
      * If we were to remove all matching requests, we can end up with a final state that is different than what the user intended.
      */
-    const requests = [...persistedRequests];
-    const index = requests.findIndex((persistedRequest) => isEqual(persistedRequest, requestToRemove));
-    if (index !== -1) {
-        requests.splice(index, 1);
+    const index = persistedRequests.findIndex((persistedRequest) => isEqual(persistedRequest, requestToRemove));
+    if (index === -1) {
+        return;
     }
+    persistedRequests.splice(index, 1);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+}
 
-    persistedRequests = requests;
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
+function update(oldRequestIndex: number, newRequest: Request) {
+    persistedRequests.splice(oldRequestIndex, 1, newRequest);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
 function getAll(): Request[] {
     return persistedRequests;
 }
 
-export {clear, save, getAll, remove};
+export {clear, save, getAll, remove, update};
