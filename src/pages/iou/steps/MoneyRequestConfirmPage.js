@@ -117,11 +117,15 @@ function MoneyRequestConfirmPage(props) {
 
     const navigateBack = () => {
         let fallback;
+
         if (reportID.current) {
             fallback = ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current);
         } else {
             fallback = ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType.current);
         }
+
+        IOU.resetMoneyRequestCategory();
+
         Navigation.goBack(fallback);
     };
 
