@@ -44,7 +44,7 @@ const propTypes = {
         /** Is this account having trouble receiving emails */
         hasEmailDeliveryFailure: PropTypes.bool,
 
-        /** Whether the account is in a loading state */
+        /** Whether or not a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
 
         /** Whether or not the user has SAML enabled on their account */

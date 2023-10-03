@@ -31,7 +31,7 @@ const propTypes = {
         isLoading: PropTypes.bool,
 
         /** Form that is being loaded */
-        loadingForm: PropTypes.bool,
+        loadingForm: PropTypes.oneOf(CONST.FORMS),
 
         /** Whether this account has 2FA enabled or not */
         requiresTwoFactorAuth: PropTypes.bool,
