@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {runOnJS} from 'react-native-reanimated';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
@@ -10,7 +9,6 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import CONST from '../../../../CONST';
 import Tooltip from '../../../../components/Tooltip';
 import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
-import updatePropsPaperWorklet from '../../../../libs/updatePropsPaperWorklet';
 import useLocalize from '../../../../hooks/useLocalize';
 
 const propTypes = {
