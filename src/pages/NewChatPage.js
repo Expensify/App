@@ -170,9 +170,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     }, [reports, personalDetails, searchTerm]);
 
     // When search term updates we will fetch any reports
-    const setSearchTermAndDebounceSearchInServer = useCallback((text = '') => {
+    const setSearchTermAndSearchInServer = useCallback((text = '') => {
         if (text.length) {
-            Report.debouncedSearchInServer(text);
+            Report.searchInServer(text);
         }
         setSearchTerm(text);
     }, []);
@@ -204,7 +204,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             selectedOptions={selectedOptions}
                             value={searchTerm}
                             onSelectRow={(option) => createChat(option)}
-                            onChangeText={setSearchTermAndDebounceSearchInServer}
+                            onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             boldStyle
                             shouldFocusOnSelectRow={!Browser.isMobile()}

@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -80,7 +80,7 @@ class SearchPage extends Component {
 
     onChangeText(searchValue = '') {
         if (searchValue.length) {
-            Report.debouncedSearchInServer(searchValue);
+            Report.searchInServer(searchValue);
         }
 
         // When the user searches we will
@@ -127,7 +127,7 @@ class SearchPage extends Component {
                 data: [{loadingRow: true}],
                 shouldShow: true,
                 indexOffset,
-            })
+            });
         }
         return sections;
     }

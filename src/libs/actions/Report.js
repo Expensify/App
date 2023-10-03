@@ -2172,9 +2172,10 @@ function clearPrivateNotesError(reportID, accountID) {
  * @private
  * @param {string} searchInput
  */
-function searchInServer(searchInput) {
+function searchForReports(searchInput) {
     // We do not try to make this request while offline because it sets a loading indicator optimistically
     if (isNetworkOffline) {
+        Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
 
@@ -2182,13 +2183,6 @@ function searchInServer(searchInput) {
         'SearchForReports',
         {searchInput},
         {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-                    value: true,
-                },
-            ],
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -2211,10 +2205,21 @@ function searchInServer(searchInput) {
  * @private
  * @param {string} searchInput
  */
-const debouncedSearchInServer = lodashDebounce(searchInServer, 300, {leading: false});
+const debouncedSearchInServer = lodashDebounce(searchForReports, 300, {leading: false});
+
+/**
+ * @param {string} searchInput
+ */
+function searchInServer(searchInput) {
+    // Why not set this in optimistic data? It won't run until the API request happens and while the API request is debounced
+    // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
+    // tell the user there are no options, then we start searching, and tell them there are no options again.
+    Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
+    debouncedSearchInServer(searchInput);
+}
 
 export {
-    debouncedSearchInServer,
+    searchInServer,
     addComment,
     addAttachment,
     reconnect,
