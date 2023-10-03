@@ -1,21 +1,24 @@
+import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
-import * as OnyxTypes from '../types/onyx';
+import {PersonalDetails, Policy, PolicyMembers, PolicyTags} from '../types/onyx';
 
-type PolicyMemberList = Record<string, OnyxTypes.PolicyMember>;
-type PolicyMembersCollection = Record<string, PolicyMemberList>;
 type MemberEmailsToAccountIDs = Record<string, string>;
-type PersonalDetailsList = Record<string, OnyxTypes.PersonalDetails>;
+type PersonalDetailsList = Record<string, PersonalDetails>;
 type UnitRate = {rate: number};
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePolicies(policies: OnyxTypes.Policy[]): OnyxTypes.Policy[] {
-    return (policies ?? []).filter(
-        (policy) => policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefined {
+    if (!policies) {
+        return;
+    }
+    return (Object.values(policies) ?? []).filter<Policy>(
+        (policy): policy is Policy =>
+            policy !== null && policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 }
 
@@ -23,28 +26,28 @@ function getActivePolicies(policies: OnyxTypes.Policy[]): OnyxTypes.Policy[] {
  * Checks if we have any errors stored within the POLICY_MEMBERS. Determines whether we should show a red brick road error or not.
  * Data structure: {accountID: {role:'user', errors: []}, accountID2: {role:'admin', errors: [{1231312313: 'Unable to do X'}]}, ...}
  */
-function hasPolicyMemberError(policyMembers: PolicyMemberList): boolean {
+function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean {
     return Object.values(policyMembers ?? {}).some((member) => Object.keys(member?.errors ?? {}).length > 0);
 }
 
 /**
  * Check if the policy has any error fields.
  */
-function hasPolicyErrorFields(policy: OnyxTypes.Policy): boolean {
+function hasPolicyErrorFields(policy: OnyxEntry<Policy>): boolean {
     return Object.keys(policy?.errorFields ?? {}).some((fieldErrors) => Object.keys(fieldErrors ?? {}).length > 0);
 }
 
 /**
  * Check if the policy has any errors, and if it doesn't, then check if it has any error fields.
  */
-function hasPolicyError(policy: OnyxTypes.Policy): boolean {
+function hasPolicyError(policy: OnyxEntry<Policy>): boolean {
     return Object.keys(policy?.errors ?? {}).length > 0 ? true : hasPolicyErrorFields(policy);
 }
 
 /**
  * Checks if we have any errors stored within the policy custom units.
  */
-function hasCustomUnitsError(policy: OnyxTypes.Policy): boolean {
+function hasCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
     return Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
 }
 
@@ -71,8 +74,8 @@ function getUnitRateValue(customUnitRate: UnitRate, toLocaleDigit: (arg: string)
 /**
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
-function getPolicyBrickRoadIndicatorStatus(policy: OnyxTypes.Policy, policyMembersCollection: PolicyMembersCollection): string {
-    const policyMembers = policyMembersCollection?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`] ?? {};
+function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, policyMembersCollection: OnyxCollection<PolicyMembers>): string {
+    const policyMembers = policyMembersCollection?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy?.id}`] ?? {};
     if (hasPolicyMemberError(policyMembers) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
@@ -86,8 +89,9 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxTypes.Policy, policyMembe
  * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
  * updating the screen. Passing the offline status from the component.
  */
-function shouldShowPolicy(policy: OnyxTypes.Policy, isOffline: boolean): boolean {
+function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolean {
     return (
+        policy !== null &&
         policy &&
         policy?.isPolicyExpenseChatEnabled &&
         policy?.role === CONST.POLICY.ROLE.ADMIN &&
@@ -108,21 +112,21 @@ function isExpensifyGuideTeam(email: string): boolean {
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = (policy: OnyxTypes.Policy): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
+const isPolicyAdmin = (policy: OnyxEntry<Policy>): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
  *
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(policyMembers: PolicyMemberList, personalDetails: PersonalDetailsList): MemberEmailsToAccountIDs {
+function getMemberAccountIDsForWorkspace(policyMembers: OnyxEntry<PolicyMembers>, personalDetails: OnyxEntry<PersonalDetailsList>): MemberEmailsToAccountIDs {
     const memberEmailsToAccountIDs: Record<string, string> = {};
     Object.keys(policyMembers ?? {}).forEach((accountID) => {
         const member = policyMembers?.[accountID];
         if (Object.keys(member?.errors ?? {})?.length > 0) {
             return;
         }
-        const personalDetail = personalDetails[accountID];
+        const personalDetail = personalDetails?.[accountID];
         if (!personalDetail?.login) {
             return;
         }
@@ -134,12 +138,12 @@ function getMemberAccountIDsForWorkspace(policyMembers: PolicyMemberList, person
 /**
  * Get login list that we should not show in the workspace invite options
  */
-function getIneligibleInvitees(policyMembers: PolicyMemberList, personalDetails: PersonalDetailsList): string[] {
+function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personalDetails: OnyxEntry<PersonalDetailsList>): string[] {
     const memberEmailsToExclude: string[] = [...CONST.EXPENSIFY_EMAILS];
     Object.keys(policyMembers ?? {}).forEach((accountID) => {
         const policyMember = policyMembers?.[accountID];
         // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
-        if (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyMember?.errors ?? {}).length > 0) {
+        if (policyMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyMember?.errors ?? {}).length > 0) {
             return;
         }
         const memberEmail = personalDetails?.[accountID]?.login;
@@ -155,7 +159,7 @@ function getIneligibleInvitees(policyMembers: PolicyMemberList, personalDetails:
 /**
  * Gets the tag from policy tags, defaults to the first if no key is provided.
  */
-function getTag(policyTags: Record<string, OnyxTypes.PolicyTag>, tagKey?: keyof typeof policyTags) {
+function getTag(policyTags: OnyxEntry<PolicyTags>, tagKey?: keyof typeof policyTags) {
     if (Object.keys(policyTags ?? {})?.length === 0) {
         return {};
     }
@@ -168,7 +172,7 @@ function getTag(policyTags: Record<string, OnyxTypes.PolicyTag>, tagKey?: keyof 
 /**
  * Gets the first tag name from policy tags.
  */
-function getTagListName(policyTags: Record<string, OnyxTypes.PolicyTag>) {
+function getTagListName(policyTags: OnyxEntry<PolicyTags>) {
     if (Object.keys(policyTags ?? {})?.length === 0) {
         return '';
     }
@@ -181,7 +185,7 @@ function getTagListName(policyTags: Record<string, OnyxTypes.PolicyTag>) {
 /**
  * Gets the tags of a policy for a specific key. Defaults to the first tag if no key is provided.
  */
-function getTagList(policyTags: Record<string, Record<string, OnyxTypes.PolicyTag>>, tagKey: string) {
+function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string) {
     if (Object.keys(policyTags ?? {})?.length === 0) {
         return {};
     }
@@ -191,7 +195,7 @@ function getTagList(policyTags: Record<string, Record<string, OnyxTypes.PolicyTa
     return policyTags?.[policyTagKey]?.tags ?? {};
 }
 
-function isPendingDeletePolicy(policy: OnyxTypes.Policy): boolean {
+function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
