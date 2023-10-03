@@ -14,14 +14,17 @@ const requestsToIgnoreLastUpdateID = ['OpenApp', 'ReconnectApp', 'GetMissingOnyx
  * @returns {Promise}
  */
 function SaveResponseInOnyx(requestResponse, request) {
-    return requestResponse.then((response) => {
-        // Make sure we have response data (i.e. response isn't a promise being passed down to us by a failed retry request and response undefined)
-        if (!response && !request.successData && !request.failureData) {
-            return;
+    return requestResponse.then((response = {}) => {
+        const onyxUpdates = response.onyxData;
+
+        // Sometimes we call requests that are successfull but they don't have any response or any success/failure data to set. Let's return early since
+        // we don't need to store anything here.
+        if (!onyxUpdates && !request.successData && !request.failureData) {
+            return Promise.resolve(response);
         }
 
         // If there is an OnyxUpdate for using memory only keys, enable them
-        _.find(_.get(response, 'onyxData', {}), ({key, value}) => {
+        _.find(onyxUpdates, ({key, value}) => {
             if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS || !value) {
                 return false;
             }
@@ -32,13 +35,13 @@ function SaveResponseInOnyx(requestResponse, request) {
 
         const responseToApply = {
             type: CONST.ONYX_UPDATE_TYPES.HTTPS,
-            lastUpdateID: Number((response && response.lastUpdateID) || 0),
-            previousUpdateID: Number((response && response.previousUpdateID) || 0),
+            lastUpdateID: Number(response.lastUpdateID || 0),
+            previousUpdateID: Number(response.previousUpdateID || 0),
             request,
             response,
         };
 
-        if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number((response && response.previousUpdateID) || 0))) {
+        if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response.previousUpdateID || 0))) {
             return OnyxUpdates.apply(responseToApply);
         }
 
