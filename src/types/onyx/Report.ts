@@ -12,12 +12,6 @@ type Report = {
     /** List of icons for report participants */
     icons?: OnyxCommon.Icon[];
 
-    /** Are we loading more report actions? */
-    isLoadingMoreReportActions?: boolean;
-
-    /** Flag to check if the report actions data are loading */
-    isLoadingReportActions?: boolean;
-
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat?: boolean;
 
@@ -55,7 +49,7 @@ type Report = {
     reportName?: string;
 
     /** ID of the report */
-    reportID?: string;
+    reportID: string;
 
     /** The state that the report is currently in */
     stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
@@ -83,6 +77,7 @@ type Report = {
     participantAccountIDs?: number[];
     total?: number;
     currency?: string;
+    preexistingReportID?: string;
 };
 
 export default Report;
