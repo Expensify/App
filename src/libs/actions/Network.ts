@@ -5,10 +5,6 @@ function setIsOffline(isOffline: boolean) {
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline});
 }
 
-function setTimeSkew(skew: number) {
-    Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: skew});
-}
-
 function setShouldForceOffline(shouldForceOffline: boolean) {
     Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline});
 }
@@ -20,4 +16,4 @@ function setShouldFailAllRequests(shouldFailAllRequests: boolean) {
     Onyx.merge(ONYXKEYS.NETWORK, {shouldFailAllRequests});
 }
 
-export {setIsOffline, setShouldForceOffline, setShouldFailAllRequests, setTimeSkew};
+export {setIsOffline, setShouldForceOffline, setShouldFailAllRequests};
