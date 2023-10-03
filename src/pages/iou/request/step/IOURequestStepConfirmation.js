@@ -76,6 +76,7 @@ function IOURequestStepConfirmation({
     personalDetails,
     policy,
     report,
+    route,
     route: {
         params: {iouType, reportID, transactionID},
     },
@@ -320,6 +321,7 @@ function IOURequestStepConfirmation({
                             contentContainerStyle={[styles.flex1, styles.flexColumn]}
                         >
                             <MoneyRequestConfirmationList
+                                route={route}
                                 transactionID={transactionID}
                                 hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                                 selectedParticipants={participants}

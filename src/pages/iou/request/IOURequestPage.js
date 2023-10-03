@@ -2,12 +2,9 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
-import ONYXKEYS from '../../../ONYXKEYS';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import useLocalize from '../../../hooks/useLocalize';
@@ -17,7 +14,7 @@ import * as IOUUtils from '../../../libs/IOUUtils';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import CreateIOUStartTabManual from './create/tab/IOURequestCreateTabManual';
 import CreateIOUStartRequest from './create/IOURequestCreate';
-import transactionPropTypes from '../../../components/transactionPropTypes';
+import {useRoute} from '@react-navigation/native';
 
 const propTypes = {
     /** Route from navigation */
@@ -27,37 +24,35 @@ const propTypes = {
             /** The type of IOU being created */
             iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)).isRequired,
 
-            /** The optimistic ID of a new transaction that is being created */
-            transactionID: PropTypes.string.isRequired,
-
-            /** The ID of a report the transaction is attached to (can be null if the user is starting from the global create) */
-            reportID: PropTypes.string,
-
-            /** The ID of the currently selected tab */
-            selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
+            /** An optional path to take the user to when the back button is pressed in the header */
+            backTo: PropTypes.string,
         }),
     }).isRequired,
-
-    /* Onyx Props */
-    /** The transaction with changes saved to it in Onyx */
-    transaction: transactionPropTypes,
-};
-
-const defaultProps = {
-    transaction: {},
 };
 
 function IOURequestPage({
+    route,
     route: {
-        params: {iouType},
+        params: {iouType, backTo},
     },
 }) {
+    const route2 = useRoute();
+    console.log('[tim]', route2);
+    console.log('[tim]', backTo, route);
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
+    };
+
+    const goBack = () => {
+        if (backTo) {
+            Navigation.goBack(backTo, true);
+            return;
+        }
+        Navigation.dismissModal();
     };
 
     return (
@@ -76,7 +71,7 @@ function IOURequestPage({
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
                                 title={tabTitles[iouType]}
-                                onBackButtonPress={Navigation.dismissModal}
+                                onBackButtonPress={goBack}
                             />
 
                             {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
@@ -95,10 +90,5 @@ function IOURequestPage({
 
 IOURequestPage.displayName = 'IOURequestPage';
 IOURequestPage.propTypes = propTypes;
-IOURequestPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`,
-    },
-})(IOURequestPage);
+export default IOURequestPage;

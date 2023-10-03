@@ -44,6 +44,21 @@ import * as PolicyUtils from '../libs/PolicyUtils';
 import * as MoneyRequestUtils from '../libs/MoneyRequestUtils';
 
 const propTypes = {
+    /** React Navigation route */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string.isRequired,
+
+            /** The ID of the transaction being configured */
+            transactionID: PropTypes.string.isRequired,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+        }).isRequired,
+    }).isRequired,
+
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func,
 
@@ -150,6 +165,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    route: {},
     onConfirm: () => {},
     onSendMoney: () => {},
     onSelectParticipant: () => {},
@@ -455,6 +471,10 @@ function MoneyRequestConfirmationList(props) {
         );
     }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, translate, formError]);
 
+    const goToDistanceTab = () => {
+        Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(props.iouType, props.transactionID, props.reportID, props.route.path));
+    };
+
     return (
         <OptionsSelector
             sections={optionSelectorSections}
@@ -539,7 +559,7 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(props.iouType, props.transactionID, props.reportID))}
+                            onPress={goToDistanceTab}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     ) : (
