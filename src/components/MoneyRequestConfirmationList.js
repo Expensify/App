@@ -243,7 +243,11 @@ function MoneyRequestConfirmationList(props) {
     const getParticipantsWithAmount = useCallback(
         (participantsList) => {
             const iouAmount = IOUUtils.calculateAmount(participantsList.length, props.iouAmount, props.iouCurrencyCode);
-            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode));
+            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
+                participantsList,
+                CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode),
+                props.iouAmount === 0,
+            );
         },
         [props.iouAmount, props.iouCurrencyCode],
     );
@@ -252,7 +256,9 @@ function MoneyRequestConfirmationList(props) {
 
     const splitOrRequestOptions = useMemo(() => {
         let text;
-        if (props.receiptPath || isDistanceRequestWithoutRoute) {
+        if (props.receiptPath && props.hasMultipleParticipants && props.iouAmount === 0) {
+            text = translate('iou.split');
+        } else if (props.receiptPath || isDistanceRequestWithoutRoute) {
             text = translate('iou.request');
         } else {
             const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
@@ -289,6 +295,7 @@ function MoneyRequestConfirmationList(props) {
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
                 payeePersonalDetails,
                 CurrencyUtils.convertToDisplayString(myIOUAmount, props.iouCurrencyCode),
+                props.iouAmount === 0,
             );
 
             sections.push(
