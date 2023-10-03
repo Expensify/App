@@ -1,3 +1,4 @@
+// TODO: This file came from MoneyRequestParticipantsPage.js and we need to be sure any recent changes are copied to this file
 import React, {useRef, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -51,7 +52,7 @@ function IOURequestStepParticipants({
 }) {
     const {translate} = useLocalize();
     const optionsSelectorRef = useRef();
-    const selectedReportID = useRef();
+    const selectedReportID = useRef(reportID);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = translate(TransactionUtils.getHeaderTitle(transaction));
 
@@ -65,9 +66,9 @@ function IOURequestStepParticipants({
         [transactionID],
     );
 
-    const goToNextStep = useCallback(() => {
+    const goToNextStep = () => {
         Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current), true);
-    }, [selectedReportID.current]);
+    };
 
     const goBack = () => {
         Navigation.goBack();

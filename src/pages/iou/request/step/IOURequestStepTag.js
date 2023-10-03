@@ -91,7 +91,7 @@ function IOURequestStepTag({
             <TagPicker
                 policyID={report.policyID}
                 tag={tagListKey}
-                selectedTag={tag}
+                selectedTag={tag || ''}
                 onSubmit={updateTag}
             />
         </ScreenWrapper>
