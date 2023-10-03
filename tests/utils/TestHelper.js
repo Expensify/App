@@ -212,4 +212,8 @@ function buildTestReportComment(created, actorAccountID, actionID = null) {
     };
 }
 
-export {getGlobalFetchMock, signInWithTestUser, signOutTestUser, setPersonalDetails, buildPersonalDetails, buildTestReportComment};
+function assertFormDataMatchesObject(formData, obj) {
+    expect(_.reduce(Array.from(formData.entries()), (memo, x) => ({...memo, [x[0]]: x[1]}), {})).toEqual(expect.objectContaining(obj));
+}
+
+export {getGlobalFetchMock, signInWithTestUser, signOutTestUser, setPersonalDetails, buildPersonalDetails, buildTestReportComment, assertFormDataMatchesObject};
