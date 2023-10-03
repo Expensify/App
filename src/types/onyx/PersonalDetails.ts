@@ -1,3 +1,11 @@
+type Timezone = {
+    /** Value of selected timezone */
+    selected?: string;
+
+    /** Whether timezone is automatically set */
+    automatic?: boolean;
+};
+
 type PersonalDetails = {
     /** ID of the current user from their personal details */
     accountID: number;
@@ -33,15 +41,11 @@ type PersonalDetails = {
     localCurrencyCode?: string;
 
     /** Timezone of the current user from their personal details */
-    timezone?: {
-        /** Value of selected timezone */
-        selected?: string;
-
-        /** Whether timezone is automatically set */
-        automatic?: boolean;
-    };
+    timezone?: Timezone;
 
     status?: string;
 };
+
+export type {Timezone};
 
 export default PersonalDetails;
