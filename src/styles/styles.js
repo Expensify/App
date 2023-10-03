@@ -1861,6 +1861,13 @@ const styles = (theme) => ({
         borderRadius: 18,
     },
 
+    singleAvatarMedium: {
+        height: 52,
+        width: 52,
+        backgroundColor: theme.icon,
+        borderRadius: 52,
+    },
+
     secondAvatar: {
         position: 'absolute',
         right: -18,
@@ -1876,6 +1883,15 @@ const styles = (theme) => ({
         bottom: -13,
         borderWidth: 3,
         borderRadius: 18,
+        borderColor: 'transparent',
+    },
+
+    secondAvatarMedium: {
+        position: 'absolute',
+        right: -36,
+        bottom: -36,
+        borderWidth: 3,
+        borderRadius: 52,
         borderColor: 'transparent',
     },
 
