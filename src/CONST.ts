@@ -2611,6 +2611,9 @@ const CONST = {
         POLICY_ID: 'ABD1345ED7293535',
         POLICY_NAME: 'Expensify.org / Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
+        PUBLIC_ROOM_ADMIN_ID: 8340048,
+        PUBLIC_ROOM_ADMIN_LOGIN: 'volunteer@expensify.org',
+        PUBLIC_ROOM_ADMIN_DISPLAY_NAME: 'Expensify.org Admin',
     },
     CUSTOM_STATUS_TYPES: {
         NEVER: 'never',
