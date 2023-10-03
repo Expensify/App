@@ -1,6 +1,7 @@
 ---
 title: Enable Location Access on Web
 description: How to enable location access for Expensify websites on your browser
+redirect_from: articles/other/Enable-Location-Access-on-Web/
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 
