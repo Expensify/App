@@ -37,6 +37,7 @@ function IOURequestPage({
     },
 }) {
     const route2 = useRoute();
+    // TODO: remove these
     console.log('[tim]', route2);
     console.log('[tim]', backTo, route);
     const {translate} = useLocalize();
@@ -48,6 +49,7 @@ function IOURequestPage({
     };
 
     const goBack = () => {
+        // TODO: get this working
         if (backTo) {
             Navigation.goBack(backTo, true);
             return;
