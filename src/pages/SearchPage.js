@@ -83,7 +83,6 @@ class SearchPage extends Component {
             Report.searchInServer(searchValue);
         }
 
-        // When the user searches we will
         this.setState({searchValue}, this.debouncedUpdateOptions);
     }
 

@@ -360,38 +360,30 @@ class BaseOptionsSelector extends Component {
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
         const textInput = (
-            <>
-                <TextInput
-                    ref={(el) => (this.textInput = el)}
-                    value={this.props.value}
-                    label={this.props.textInputLabel}
-                    accessibilityLabel={this.props.textInputLabel}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    onChangeText={this.props.onChangeText}
-                    onSubmitEditing={this.selectFocusedOption}
-                    placeholder={this.props.placeholderText}
-                    maxLength={this.props.maxLength}
-                    keyboardType={this.props.keyboardType}
-                    onBlur={(e) => {
-                        if (!this.props.shouldFocusOnSelectRow) {
-                            return;
-                        }
-                        this.relatedTarget = e.relatedTarget;
-                    }}
-                    selectTextOnFocus
-                    blurOnSubmit={Boolean(this.state.allOptions.length)}
-                    spellCheck={false}
-                    shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
-                />
-                {Boolean(this.props.textInputAlert) && (
-                    <FormHelpMessage
-                        message={this.props.textInputAlert}
-                        style={[styles.mb3]}
-                        isError={false}
-                    />
-                )}
-            </>
+            <TextInput
+                ref={(el) => (this.textInput = el)}
+                value={this.props.value}
+                label={this.props.textInputLabel}
+                accessibilityLabel={this.props.textInputLabel}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                onChangeText={this.props.onChangeText}
+                onSubmitEditing={this.selectFocusedOption}
+                placeholder={this.props.placeholderText}
+                maxLength={this.props.maxLength}
+                keyboardType={this.props.keyboardType}
+                onBlur={(e) => {
+                    if (!this.props.shouldFocusOnSelectRow) {
+                        return;
+                    }
+                    this.relatedTarget = e.relatedTarget;
+                }}
+                selectTextOnFocus
+                blurOnSubmit={Boolean(this.state.allOptions.length)}
+                spellCheck={false}
+                shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
+            />
         );
+
         const optionsList = (
             <OptionsList
                 ref={(el) => (this.list = el)}
@@ -451,6 +443,13 @@ class BaseOptionsSelector extends Component {
                             <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
                                 {this.props.children}
                                 {this.props.shouldShowTextInput && textInput}
+                                {Boolean(this.props.textInputAlert) && (
+                                    <FormHelpMessage
+                                        message={this.props.textInputAlert}
+                                        style={[styles.mb3]}
+                                        isError={false}
+                                    />
+                                )}
                             </View>
                             {optionsList}
                         </>
