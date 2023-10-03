@@ -415,9 +415,9 @@ class BaseOptionsSelector extends Component {
                         this.scrollToIndex(this.state.focusedIndex, false);
                     }
                     if (this.props.onLayout) {
-                            this.props.onLayout();
-                        }
-                    }}
+                        this.props.onLayout();
+                    }
+                }}
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 listContainerStyles={this.props.listContainerStyles}
                 listStyles={this.props.listStyles}
