@@ -84,6 +84,9 @@ const propTypes = {
 
     /** Whether to wrap large text up to 2 lines */
     isRowMultilineSupported: PropTypes.bool,
+
+    /** Whether to show the header message below the input */
+    shouldShowHeaderMessage: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -109,6 +112,7 @@ const defaultProps = {
     shouldDisableRowInnerPadding: false,
     showScrollIndicator: false,
     isRowMultilineSupported: false,
+    shouldShowHeaderMessage: true,
 };
 
 export {propTypes, defaultProps};

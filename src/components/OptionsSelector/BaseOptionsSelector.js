@@ -17,7 +17,6 @@ import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDe
 import setSelection from '../../libs/setSelection';
 import compose from '../../libs/compose';
 import getPlatform from '../../libs/getPlatform';
-import OptionsListSkeletonRow from '../OptionsListSkeletonRow';
 import FormHelpMessage from '../FormHelpMessage';
 
 const propTypes = {
@@ -394,12 +393,6 @@ class BaseOptionsSelector extends Component {
         );
         const optionsList = (
             <>
-                {this.props.shouldShowLoader && (
-                    <OptionsListSkeletonRow
-                        lineWidth="100%"
-                        shouldAnimate
-                    />
-                )}
                 <OptionsList
                     ref={(el) => (this.list = el)}
                     optionHoveredStyle={this.props.optionHoveredStyle}
@@ -432,6 +425,7 @@ class BaseOptionsSelector extends Component {
                     isLoading={!this.props.shouldShowOptions}
                     showScrollIndicator={this.props.showScrollIndicator}
                     isRowMultilineSupported={this.props.isRowMultilineSupported}
+                    shouldShowHeaderMessage={this.props.shouldShowHeaderMessage}
                 />
             </>
         );

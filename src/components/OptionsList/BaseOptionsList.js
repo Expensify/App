@@ -10,6 +10,7 @@ import Text from '../Text';
 import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import usePrevious from '../../hooks/usePrevious';
+import OptionsListSkeletonRow from '../OptionsListSkeletonRow';
 
 const propTypes = {
     /** Determines whether the keyboard gets dismissed in response to a drag */
@@ -65,6 +66,7 @@ function BaseOptionsList({
     isDisabled,
     innerRef,
     isRowMultilineSupported,
+    shouldShowHeaderMessage,
 }) {
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
@@ -189,6 +191,15 @@ function BaseOptionsList({
             return option.name === item.searchText;
         });
 
+        if (item.loadingRow) {
+            return (
+                <OptionsListSkeletonRow
+                    lineWidth="100%"
+                    shouldAnimate
+                />
+            );
+        }
+
         return (
             <OptionRow
                 option={item}
@@ -236,14 +247,13 @@ function BaseOptionsList({
 
         return <View />;
     };
-
     return (
         <View style={listContainerStyles}>
             {isLoading ? (
                 <OptionsListSkeletonView shouldAnimate />
             ) : (
                 <>
-                    {headerMessage ? (
+                    {shouldShowHeaderMessage && headerMessage ? (
                         <View style={[styles.ph5, styles.pb5]}>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                         </View>

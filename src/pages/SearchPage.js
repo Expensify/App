@@ -121,6 +121,13 @@ class SearchPage extends Component {
             });
         }
 
+        if (this.props.isSearchingForReports) {
+            sections.push({
+                data: [{loadingRow: true}],
+                shouldShow: true,
+                indexOffset,
+            })
+        }
         return sections;
     }
 
@@ -199,7 +206,7 @@ class SearchPage extends Component {
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                 autoFocus
-                                shouldShowLoader={this.props.isSearchingForReports}
+                                shouldShowHeaderMessage={!this.props.isSearchingForReports}
                             />
                         </View>
                     </>
