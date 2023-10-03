@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import {zonedTimeToUtc, utcToZonedTime, formatInTimeZone} from 'date-fns-tz';
 import {es, enGB} from 'date-fns/locale';
 import {
@@ -18,14 +17,15 @@ import {
     isSameYear,
 } from 'date-fns';
 
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import throttle from 'lodash/throttle';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as CurrentDate from './actions/CurrentDate';
+import {Timezone} from '../types/onyx/PersonalDetails';
 
-let currentUserAccountID;
+let currentUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -38,26 +38,27 @@ Onyx.connect({
     },
 });
 
-let timezone = CONST.DEFAULT_TIME_ZONE;
+let timezone: Required<Timezone> = CONST.DEFAULT_TIME_ZONE;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        timezone = lodashGet(val, [currentUserAccountID, 'timezone'], CONST.DEFAULT_TIME_ZONE);
-    },
-});
+    callback: (value) => {
+        if (!currentUserAccountID) {
+            return;
+        }
 
-let networkTimeSkew = 0;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (val) => (networkTimeSkew = lodashGet(val, 'timeSkew', 0)),
+        const personalDetailsTimezone = value?.[currentUserAccountID]?.timezone;
+
+        timezone = {
+            selected: personalDetailsTimezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
+            automatic: personalDetailsTimezone?.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
+        };
+    },
 });
 
 /**
  * Gets the locale string and setting default locale for date-fns
- *
- * @param {String} localeString
  */
-function setLocale(localeString) {
+function setLocale(localeString: string) {
     switch (localeString) {
         case CONST.LOCALES.EN:
             setDefaultOptions({locale: enGB});
@@ -73,15 +74,8 @@ function setLocale(localeString) {
 /**
  * Gets the user's stored time zone NVP and returns a localized
  * Moment object for the given ISO-formatted datetime string
- *
- * @private
- * @param {String} locale
- * @param {String} datetime
- * @param {String} [currentSelectedTimezone]
- * @returns  {Moment}
- *
  */
-function getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone = timezone.selected) {
+function getLocalDateFromDatetime(locale: string, datetime: string, currentSelectedTimezone = timezone.selected): Date {
     setLocale(locale);
     if (!datetime) {
         return utcToZonedTime(new Date(), currentSelectedTimezone);
@@ -93,11 +87,11 @@ function getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone = ti
 /**
  * Checks if a given date is today in the specified time zone.
  *
- * @param {Date} date - The date to compare.
- * @param {String} timeZone - The time zone to consider.
- * @returns {Boolean} True if the date is today; otherwise, false.
+ * @param date - The date to compare.
+ * @param timeZone - The time zone to consider.
+ * @returns True if the date is today; otherwise, false.
  */
-function isToday(date, timeZone) {
+function isToday(date: Date, timeZone: string): boolean {
     const currentDate = new Date();
     const currentDateInTimeZone = utcToZonedTime(currentDate, timeZone);
     return isSameDay(date, currentDateInTimeZone);
@@ -106,11 +100,11 @@ function isToday(date, timeZone) {
 /**
  * Checks if a given date is tomorrow in the specified time zone.
  *
- * @param {Date} date - The date to compare.
- * @param {String} timeZone - The time zone to consider.
- * @returns {Boolean} True if the date is tomorrow; otherwise, false.
+ * @param date - The date to compare.
+ * @param timeZone - The time zone to consider.
+ * @returns True if the date is tomorrow; otherwise, false.
  */
-function isTomorrow(date, timeZone) {
+function isTomorrow(date: Date, timeZone: string): boolean {
     const currentDate = new Date();
     const tomorrow = addDays(currentDate, 1); // Get the date for tomorrow in the current time zone
     const tomorrowInTimeZone = utcToZonedTime(tomorrow, timeZone);
@@ -120,11 +114,11 @@ function isTomorrow(date, timeZone) {
 /**
  * Checks if a given date is yesterday in the specified time zone.
  *
- * @param {Date} date - The date to compare.
- * @param {String} timeZone - The time zone to consider.
- * @returns {Boolean} True if the date is yesterday; otherwise, false.
+ * @param date - The date to compare.
+ * @param timeZone - The time zone to consider.
+ * @returns True if the date is yesterday; otherwise, false.
  */
-function isYesterday(date, timeZone) {
+function isYesterday(date: Date, timeZone: string): boolean {
     const currentDate = new Date();
     const yesterday = subDays(currentDate, 1); // Get the date for yesterday in the current time zone
     const yesterdayInTimeZone = utcToZonedTime(yesterday, timeZone);
@@ -138,15 +132,8 @@ function isYesterday(date, timeZone) {
  *
  * Jan 20 at 5:30 PM          within the past year
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
- *
- * @param {String} locale
- * @param {String} datetime
- * @param {Boolean} includeTimeZone
- * @param {String} [currentSelectedTimezone]
- * @param {Boolean} isLowercase
- * @returns {String}
  */
-function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, currentSelectedTimezone, isLowercase = false) {
+function datetimeToCalendarTime(locale: string, datetime: string, includeTimeZone = false, currentSelectedTimezone = timezone.selected, isLowercase = false): string {
     const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = Localize.translate(locale, 'common.todayAt');
@@ -190,12 +177,8 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
  * 3 days ago           within the past month
  * Jan 20               within the past year
  * Jan 20, 2019         anything over 1 year
- *
- * @param {String} locale
- * @param {String} datetime
- * @returns {String}
  */
-function datetimeToRelative(locale, datetime) {
+function datetimeToRelative(locale: string, datetime: string): string {
     const date = getLocalDateFromDatetime(locale, datetime);
     return formatDistanceToNow(date, {addSuffix: true});
 }
@@ -209,51 +192,50 @@ function datetimeToRelative(locale, datetime) {
  * EST
  * GMT +07  -  For GMT timezone
  *
- * @param {String} datetime
- * @param {String} selectedTimezone
- * @returns {String}
+ * @param datetime
+ * @param selectedTimezone
+ * @returns
  */
-function getZoneAbbreviation(datetime, selectedTimezone) {
+function getZoneAbbreviation(datetime: string, selectedTimezone: string): string {
     return formatInTimeZone(datetime, selectedTimezone, 'zzz');
 }
 
 /**
  * Format date to a long date format with weekday
  *
- * @param {String} datetime
- * @returns {String} Sunday, July 9, 2023
+ * @returns Sunday, July 9, 2023
  */
-function formatToLongDateWithWeekday(datetime) {
+function formatToLongDateWithWeekday(datetime: string): string {
     return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY);
 }
 
 /**
  * Format date to a weekday format
  *
- * @param {String} datetime
- * @returns {String} Sunday
+ * @returns Sunday
  */
-function formatToDayOfWeek(datetime) {
+function formatToDayOfWeek(datetime: string): string {
     return format(new Date(datetime), CONST.DATE.WEEKDAY_TIME_FORMAT);
 }
 
 /**
  * Format date to a local time
  *
- * @param {String} datetime
- * @returns {String} 2:30 PM
+ * @returns 2:30 PM
  */
-function formatToLocalTime(datetime) {
+function formatToLocalTime(datetime: string): string {
     return format(new Date(datetime), CONST.DATE.LOCAL_TIME_FORMAT);
 }
+
+const THREE_HOURS = 1000 * 60 * 60 * 3;
 
 /**
  * A throttled version of a function that updates the current date in Onyx store
  */
-const updateCurrentDate = _.throttle(() => {
+const updateCurrentDate = throttle(() => {
     const currentDate = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     CurrentDate.setCurrentDate(currentDate);
-}, 1000 * 60 * 60 * 3); // 3 hours
+}, THREE_HOURS);
 
 /**
  * Initialises the event listeners that trigger the current date update
@@ -265,10 +247,7 @@ function startCurrentDateUpdater() {
     });
 }
 
-/**
- * @returns {Object}
- */
-function getCurrentTimezone() {
+function getCurrentTimezone(): Required<Timezone> {
     const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (timezone.automatic && timezone.selected !== currentTimezone) {
         return {...timezone, selected: currentTimezone};
@@ -279,10 +258,7 @@ function getCurrentTimezone() {
 // Used to throttle updates to the timezone when necessary
 let lastUpdatedTimezoneTime = new Date();
 
-/**
- * @returns {Boolean}
- */
-function canUpdateTimezone() {
+function canUpdateTimezone(): boolean {
     const currentTime = new Date();
     const fiveMinutesAgo = subMinutes(currentTime, 5);
     // Compare the last updated time with five minutes ago
@@ -295,49 +271,31 @@ function setTimezoneUpdated() {
 
 /**
  * Get the UNIX timestamp in microseconds, with millisecond precision.
- *
- * @returns {Number}
  */
-function getMicroseconds() {
+function getMicroseconds(): number {
     return Date.now() * CONST.MICROSECONDS_PER_MS;
 }
 
 /**
  * Returns the current time in milliseconds in the format expected by the database
- *
- * @param {String|Number} [timestamp]
- * @returns {String}
  */
-function getDBTime(timestamp = '') {
+function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
     return datetime.toISOString().replace('T', ' ').replace('Z', '');
 }
 
-/**
- * Returns the current time plus skew in milliseconds in the format expected by the database
- *
- * @returns {String}
- */
-function getDBTimeWithSkew() {
-    return getDBTime(new Date().valueOf() + networkTimeSkew);
-}
-
-/**
- * @param {String} dateTime
- * @param {Number} milliseconds
- * @returns {String}
- */
-function subtractMillisecondsFromDateTime(dateTime, milliseconds) {
+function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
     const date = zonedTimeToUtc(dateTime, 'UTC');
     const newTimestamp = subMilliseconds(date, milliseconds).valueOf();
+
     return getDBTime(newTimestamp);
 }
 
 /**
- * @param {string} isoTimestamp example: 2023-05-16 05:34:14.388
- * @returns {string} example: 2023-05-16
+ * @param isoTimestamp example: 2023-05-16 05:34:14.388
+ * @returns example: 2023-05-16
  */
-function getDateStringFromISOTimestamp(isoTimestamp) {
+function getDateStringFromISOTimestamp(isoTimestamp: string): string {
     if (!isoTimestamp) {
         return '';
     }
@@ -348,11 +306,8 @@ function getDateStringFromISOTimestamp(isoTimestamp) {
 
 /**
  * receive date like 2020-05-16 05:34:14 and format it to show in string like "Until 05:34 PM"
- *
- * @param {String} inputDate
- * @returns {String}
  */
-function getStatusUntilDate(inputDate) {
+function getStatusUntilDate(inputDate: string): string {
     if (!inputDate) {
         return '';
     }
@@ -381,9 +336,6 @@ function getStatusUntilDate(inputDate) {
     return translateLocal('statusPage.untilTime', {time: format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
 }
 
-/**
- * @namespace DateUtils
- */
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -398,7 +350,6 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
-    getDBTimeWithSkew,
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
     getStatusUntilDate,
