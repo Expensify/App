@@ -58,7 +58,7 @@ const defaultProps = {
     parentReport: {},
     parentReportAction: {},
     transaction: {},
-    policy: undefined,
+    policy: {},
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}) {
