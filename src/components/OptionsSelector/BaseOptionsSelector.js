@@ -64,7 +64,7 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
-            errorMessage: "",
+            errorMessage: '',
             searchValue: this.props.value,
         };
     }
@@ -169,23 +169,22 @@ class BaseOptionsSelector extends Component {
         return defaultIndex;
     }
 
-    updateSearchValue(value){
+    updateSearchValue(value) {
         if (value.length > this.props.maxLength) {
             this.setState({
                 searchValue: value,
-                errorMessage: this.props.translate("common.error.characterLimitExceedCounter", {length: value.length, limit: this.props.maxLength}),
+                errorMessage: this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}),
             });
             return;
         }
 
         this.setState({
             searchValue: value,
-            errorMessage: "",
+            errorMessage: '',
         });
 
         this.props.onChangeText(value);
     }
-
 
     subscribeToKeyboardShortcut() {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
@@ -416,7 +415,7 @@ class BaseOptionsSelector extends Component {
                 multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
                 onAddToSelection={this.addToSelection}
                 hideSectionHeaders={this.props.hideSectionHeaders}
-                headerMessage={this.state.errorMessage ? "" : this.props.headerMessage}
+                headerMessage={this.state.errorMessage ? '' : this.props.headerMessage}
                 boldStyle={this.props.boldStyle}
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
