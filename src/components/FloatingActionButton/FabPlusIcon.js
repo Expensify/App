@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
-import Animated, {useSharedValue, useAnimatedProps, withTiming, interpolateColor} from 'react-native-reanimated';
+import Animated, {useSharedValue, useAnimatedProps, withTiming, interpolateColor, Easing} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import themeColors from '../../styles/themes/default';
 
@@ -17,6 +17,7 @@ function FabPlusIcon({isActive}) {
     useEffect(() => {
         animatedValue.value = withTiming(isActive ? 1 : 0, {
             duration: 340,
+            easing: Easing.inOut(Easing.ease),
         });
     }, [isActive, animatedValue]);
 
