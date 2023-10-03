@@ -35,14 +35,14 @@ Have a Workspace Admin role in Expensify.
 With this connection in place, all Expensify users can effortlessly synchronize their expenses with Accelo, streamlining their workflow and improving efficiency.
 
 ## How to upload your Accelo Project Codes as Tags in Expensify
-Once you have connected Accelo to Expensify, the next step is to upload your Accelo Project Codes as Tags in Expensify. Simply go to Go to *Settings* > *Workspaces* > *Group* > _[Workspace Name]_ > *Tags* and upload your CSV.
-If you directly integrate with Xero or QuickBooks Online, you must upload your Project Codes by appending your tags. Go to *Settings* > *Workspaces* > *Group* > _[Workspace Name]_ > *Tags* and click on “Append a custom tag list from a CSV” to upload your Project Codes via a CSV.
+Once you have connected Accelo to Expensify, the next step is to upload your Accelo Project Codes as Tags in Expensify. Simply go to Go to **Settings** > *Workspaces* > **Group** > _[Workspace Name]_ > **Tags** and upload your CSV.
+If you directly integrate with Xero or QuickBooks Online, you must upload your Project Codes by appending your tags. Go to **Settings** > **Workspaces** > **Group** > _[Workspace Name]_ > **Tags** and click on “Append a custom tag list from a CSV” to upload your Project Codes via a CSV.
 
 # Deep Dive
 ## Information sync between Expensify and Accelo
 The Accelo integration does a one-way sync, which means it brings expenses from Expensify into Accelo. When this happens, it transfers specific information from Expensify expenses to Accelo:
 
-*Expensify*		- 	*Accelo*
+**Expensify**		- 	**Accelo**
 Comment		    -	  Title
 Date			    -	  Date Incurred
 Category		  -	  Type
@@ -58,7 +58,8 @@ Attendees		  -	  Submitted By
 
 ## Expense Status
 The status of your expense report in Expensify is also synced in Accelo.
-*Expensify Report Status*	-	*Accelo Expense Status*
+
+**Expensify Report Status**	-	**Accelo Expense Status**
 Open 				  -	  Submitted                                                                                                                                
 Submitted			-	  Submitted                                                                                                                        
 Approved			-	  Approved 
