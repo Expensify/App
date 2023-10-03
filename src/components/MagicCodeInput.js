@@ -106,7 +106,7 @@ function MagicCodeInput(props) {
 
     useEffect(() => {
         lastValue.current = input.length;
-    }, [input])
+    }, [input]);
 
     const blurMagicCodeInput = () => {
         inputRefs.current.blur();
@@ -212,7 +212,7 @@ function MagicCodeInput(props) {
             return;
         }
 
-        const addedValue = value.slice(lastValue.current.length, value.length) || value
+        const addedValue = value.slice(lastValue.current.length, value.length) || value;
         lastValue.current = value;
         // Updates the focused input taking into consideration the last input
         // edited and the number of digits added by the user.
@@ -330,7 +330,7 @@ function MagicCodeInput(props) {
                             autoComplete={input.length === 0 && props.autoComplete}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             onChangeText={(value) => {
-                                onChangeText(value)
+                                onChangeText(value);
                             }}
                             onKeyPress={onKeyPress}
                             onFocus={onFocus}
