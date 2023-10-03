@@ -1,5 +1,6 @@
 ---
 title: Using the app
+description: Streamline expense management effortlessly with the Expensify mobile app. Learn how to install, enable push notifications, and use SmartScan to capture, categorize, and track expenses. Versatile for personal and business use, Expensify is a secure and automated solution for managing your finances on the go.
 ---
 # Overview
 The Expensify mobile app is the ultimate expense management solution that makes it effortless to track and submit your receipts and expenses. Use the app to snap a picture of your receipts, categorize and submit expenses, and even review and approve expense reports.
