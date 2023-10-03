@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
@@ -9,6 +10,7 @@ import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetai
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import PressableWithDelayToggle from '../../../../components/Pressable/PressableWithDelayToggle';
+import styles from '../../../../styles/styles';
 
 const propTypes = {
     /** Card number */
@@ -64,12 +66,14 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
                 title={pan}
                 shouldShowRightComponent
                 rightComponent={
-                    <PressableWithDelayToggle
-                        tooltipText={translate('reportActionContextMenu.copyToClipboard')}
-                        tooltipTextChecked={translate('reportActionContextMenu.copied')}
-                        icon={Expensicons.Copy}
-                        onPress={handleCopyToClipboard}
-                    />
+                    <View style={styles.justifyContentCenter}>
+                        <PressableWithDelayToggle
+                            tooltipText={translate('reportActionContextMenu.copyToClipboard')}
+                            tooltipTextChecked={translate('reportActionContextMenu.copied')}
+                            icon={Expensicons.Copy}
+                            onPress={handleCopyToClipboard}
+                        />
+                    </View>
                 }
                 interactive={false}
             />
