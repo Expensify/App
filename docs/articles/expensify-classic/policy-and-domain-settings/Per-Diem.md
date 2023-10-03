@@ -1,6 +1,5 @@
 ---
 title: Expensify Per Diem Settings
-```
 description: Expensify Per Diems support simple, pre-determined, tax-free allowances set by your jurisdiction or company.
 ---
 # Overview
