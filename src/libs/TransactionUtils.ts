@@ -1,12 +1,12 @@
 import Onyx, {OnyxCollection} from 'react-native-onyx';
 import {format, parseISO, isValid} from 'date-fns';
+import _ from 'lodash';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
 import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
 import {Receipt, Comment, WaypointCollection} from '../types/onyx/Transaction';
-import _ from 'lodash';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
 
