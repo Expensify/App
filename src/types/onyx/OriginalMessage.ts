@@ -88,7 +88,7 @@ type OriginalMessageClosed = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CLOSED;
     originalMessage: {
         policyName: string;
-        reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>
+        reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
         lastModified?: string;
     };
 };
