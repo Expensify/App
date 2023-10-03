@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import memoize from 'lodash/memoize';
 import {SvgProps} from 'react-native-svg';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
@@ -12,8 +12,10 @@ import {Emoji, HeaderEmoji, PickerEmojis} from '../../assets/emojis/types';
 
 type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
 type EmojiSpacer = {code: string; spacer: boolean};
+type EmojiPickerList = Array<EmojiSpacer | Emoji | HeaderEmoji>;
 type UserSkinTone = {skinTone: number; createdAt: string};
 type UserEmojiPreference = {skinTones: UserSkinTone[]};
+type ReplacedEmoji = {text: string; emojis: Emoji[]};
 
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
 Onyx.connect({
@@ -32,11 +34,11 @@ Onyx.connect({
     },
 });
 
-const findEmojiByName = (name: string) => Emojis.emojiNameTable[name];
+const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
 
-const findEmojiByCode = (code: string) => Emojis.emojiCodeTableWithSkinTones[code];
+const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
-const getEmojiName = (emoji: Emoji, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT) => {
+const getEmojiName = (emoji: Emoji, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): string => {
     if (lang === CONST.LOCALES.DEFAULT) {
         return emoji.name;
     }
@@ -47,7 +49,7 @@ const getEmojiName = (emoji: Emoji, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT) =
 /**
  * Given an English emoji name, get its localized version
  */
-const getLocalizedEmojiName = (name: string, lang: 'en' | 'es') => {
+const getLocalizedEmojiName = (name: string, lang: 'en' | 'es'): string => {
     if (lang === CONST.LOCALES.DEFAULT) {
         return name;
     }
@@ -59,7 +61,7 @@ const getLocalizedEmojiName = (name: string, lang: 'en' | 'es') => {
 /**
  * Get the unicode code of an emoji in base 16.
  */
-const getEmojiUnicode = _.memoize((input: string) => {
+const getEmojiUnicode = memoize((input: string) => {
     if (input.length === 0) {
         return '';
     }
@@ -99,7 +101,7 @@ const getEmojiUnicode = _.memoize((input: string) => {
 /**
  * Function to remove Skin Tone and utf16 surrogates from Emoji
  */
-function trimEmojiUnicode(emojiCode: string) {
+function trimEmojiUnicode(emojiCode: string): string {
     return emojiCode.replace(/(fe0f|1f3fb|1f3fc|1f3fd|1f3fe|1f3ff)$/, '').trim();
 }
 
@@ -169,8 +171,8 @@ function getDynamicSpacing(emojiCount: number, suffix: number): EmojiSpacer[] {
 /**
  * Add dynamic spaces to emoji categories
  */
-function addSpacesToEmojiCategories(emojis: PickerEmojis) {
-    let updatedEmojis: Array<EmojiSpacer | Emoji | HeaderEmoji> = [];
+function addSpacesToEmojiCategories(emojis: PickerEmojis): EmojiPickerList {
+    let updatedEmojis: EmojiPickerList = [];
     emojis.forEach((emoji, index) => {
         if ('header' in emoji) {
             updatedEmojis = updatedEmojis.concat(getDynamicSpacing(updatedEmojis.length, index), [emoji], getDynamicSpacing(1, index));
@@ -184,24 +186,24 @@ function addSpacesToEmojiCategories(emojis: PickerEmojis) {
 /**
  * Get a merged array with frequently used emojis
  */
-function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis) {
+function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis): EmojiPickerList {
     if (frequentlyUsedEmojis.length === 0) {
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const mergedEmojis = ([Emojis.categoryFrequentlyUsed] as PickerEmojis).concat(frequentlyUsedEmojis, emojis);
+    const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...frequentlyUsedEmojis, ...emojis];
     return addSpacesToEmojiCategories(mergedEmojis);
 }
 
 /**
  * Get the updated frequently used emojis list by usage
  */
-function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]) {
+function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]): FrequentlyUsedEmoji[] {
     let frequentEmojiList = [...frequentlyUsedEmojis];
 
     const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
     const currentTimestamp = moment().unix();
-    ([] as Emoji[]).concat(newEmoji).forEach((emoji) => {
+    (Array.isArray(newEmoji) ? [...newEmoji] : [newEmoji]).forEach((emoji) => {
         let currentEmojiCount = 1;
         const emojiIndex = frequentEmojiList.findIndex((e) => e.code === emoji.code);
         if (emojiIndex >= 0) {
@@ -241,7 +243,7 @@ const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: number):
  * @param text - The text to extract emojis from.
  * @returns An array of emoji codes.
  */
-function extractEmojis(text: string) {
+function extractEmojis(text: string): Emoji[] {
     if (!text) {
         return [];
     }
@@ -275,7 +277,7 @@ function extractEmojis(text: string) {
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
-function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT) {
+function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     const trie = emojisTrie[lang];
     if (!trie) {
         return {text, emojis: []};
@@ -323,7 +325,7 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
 /**
  * Find all emojis in a text and replace them with their code.
  */
-function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
+function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     const {text: convertedText = '', emojis = []} = replaceEmojis(text, preferredSkinTone, lang);
 
     return {
@@ -336,7 +338,7 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_D
  * Suggest emojis when typing emojis prefix after colon
  * @param [limit] - matching emojis limit
  */
-function suggestEmojis(text: string, lang: keyof typeof emojisTrie, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS) {
+function suggestEmojis(text: string, lang: keyof typeof emojisTrie, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
     const trie = emojisTrie[lang];
     if (!trie) {
         return [];
@@ -377,7 +379,7 @@ function suggestEmojis(text: string, lang: keyof typeof emojisTrie, limit = CONS
  * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
  */
 const getPreferredSkinToneIndex = (val: string | number): number | string => {
-    if (Number.isInteger(Number(val))) {
+    if (val !== null && Number.isInteger(Number(val))) {
         return val;
     }
 

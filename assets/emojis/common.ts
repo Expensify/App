@@ -7,7 +7,7 @@ import Objects from '../images/emojiCategoryIcons/light-bulb.svg';
 import Symbols from '../images/emojiCategoryIcons/peace-sign.svg';
 import Flags from '../images/emojiCategoryIcons/flag.svg';
 import FrequentlyUsed from '../images/history.svg';
-import {PickerEmojis} from './types';
+import {HeaderEmoji, PickerEmojis} from './types';
 
 const skinTones = [
     {
@@ -7620,7 +7620,7 @@ const emojis: PickerEmojis = [
     },
 ];
 
-const categoryFrequentlyUsed = {
+const categoryFrequentlyUsed: HeaderEmoji = {
     header: true,
     code: 'frequentlyUsed',
     icon: FrequentlyUsed,

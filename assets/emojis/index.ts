@@ -5,16 +5,16 @@ import {Emoji} from './types';
 
 type EmojiTable = Record<string, Emoji>;
 
-const emojiNameTable: EmojiTable = emojis.reduce((prev, cur) => {
-    const newValue: EmojiTable = prev;
+const emojiNameTable = emojis.reduce<EmojiTable>((prev, cur) => {
+    const newValue = prev;
     if (!('header' in cur) && cur.name) {
         newValue[cur.name] = cur;
     }
     return newValue;
 }, {});
 
-const emojiCodeTableWithSkinTones: EmojiTable = emojis.reduce((prev, cur) => {
-    const newValue: EmojiTable = prev;
+const emojiCodeTableWithSkinTones = emojis.reduce<EmojiTable>((prev, cur) => {
+    const newValue = prev;
     if (!('header' in cur)) {
         newValue[cur.code] = cur;
     }
