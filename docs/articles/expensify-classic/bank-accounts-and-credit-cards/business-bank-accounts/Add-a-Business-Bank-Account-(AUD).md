@@ -36,7 +36,7 @@ If you are new to using Batch Payments in Australia, to reimburse your staff or 
 
 ANZ Bank - [Import a file for payroll payments](https://www.anz.com.au/support/internet-banking/pay-transfer-business/payroll/import-file/)
 CommBank - [Importing and using  Direct Entry (EFT) files](https://www.commbank.com.au/business/pds/003-279-importing-a-de-file.pdf)
-Westpac - Importing Payment Files[https://www.westpac.com.au/docs/pdf/bb/Importing-Payment-Files-Guide-Online.pdf)
+Westpac - [Importing Payment Files](https://www.westpac.com.au/business-banking/online-banking/support-faqs/import-files/)
 NAB - [Quick Reference Guide - Upload a payment file](https://www.nab.com.au/business/online-banking/nab-connect/help)
 Bendigo Bank - [Bulk payments user guide](https://www.bendigobank.com.au/globalassets/documents/business/bulk-payments-user-guide.pdf)
 Bank of Queensland - [Payments file upload facility FAQ](https://www.boq.com.au/help-and-support/online-banking/ob-faqs-and-support/faq-pfuf)
