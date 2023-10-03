@@ -79,8 +79,7 @@ function getVBBADataForOnyx(currentStep = undefined) {
                 value: {
                     isLoading: false,
                     errors: null,
-                    shouldUpdateDataToDraft: !!currentStep,
-                    stepToUpdate: currentStep,
+                    stepToUpdateToDraft: currentStep,
                 },
             },
         ],
