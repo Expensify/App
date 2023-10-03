@@ -320,8 +320,7 @@ function openReimbursementAccountPage(stepToOpen: string, subStep: string, local
  * Updates the bank account in the database with the company step data
  */
 function updateCompanyInformationForBankAccount(bankAccount: BankAccountCompanyInformation, policyID: string) {
-    type UpdateCompanyInformationParams = {policyID: string};
-    type UpdateCompanyInformationForBankAccountParams = BankAccountCompanyInformation & UpdateCompanyInformationParams;
+    type UpdateCompanyInformationForBankAccountParams = BankAccountCompanyInformation & {policyID: string};
 
     const parameters: UpdateCompanyInformationForBankAccountParams = {...bankAccount, policyID};
 
