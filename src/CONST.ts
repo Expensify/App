@@ -2643,6 +2643,11 @@ const CONST = {
         MEDIUM: 'medium',
     },
 
+    HEADLINE_SIZE: {
+        LARGE: 'large',
+        MEDIUM: 'medium',
+    },
+
     SF_COORDINATES: [-122.4194, 37.7749],
 
     NAVIGATION: {

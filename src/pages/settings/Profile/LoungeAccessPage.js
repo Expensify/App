@@ -175,7 +175,7 @@ function LoungeAccessPage(props) {
                 )}
             </View>
             <FeatureList
-                headlineType="strong"
+                headlineSize={CONST.HEADLINE_SIZE.LARGE}
                 headline="loungeAccessPage.headline"
                 description="loungeAccessPage.description"
                 menuItems={menuItems}
