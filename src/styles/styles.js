@@ -1494,7 +1494,8 @@ const styles = (theme) => ({
     },
 
     optionsListSectionHeader: {
-        height: variables.optionsListSectionHeaderHeight,
+        marginTop: 8,
+        marginBottom: 4,
     },
 
     overlayStyles: (current) => ({
@@ -2444,13 +2445,6 @@ const styles = (theme) => ({
         width: 20,
         borderColor: theme.icon,
         borderWidth: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
-    checkboxPressable: {
-        borderRadius: 6,
-        padding: 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -3637,7 +3631,7 @@ const styles = (theme) => ({
 
     mapView: {
         flex: 1,
-        borderRadius: 20,
+        borderRadius: 16,
         overflow: 'hidden',
     },
 
@@ -3654,7 +3648,8 @@ const styles = (theme) => ({
     },
 
     confirmationListMapItem: {
-        ...spacing.m5,
+        ...spacing.mv2,
+        ...spacing.mh5,
         height: 200,
     },
 
@@ -3674,6 +3669,7 @@ const styles = (theme) => ({
         borderRadius: variables.componentBorderRadiusLarge,
     },
     userReportStatusEmoji: {
+        flexShrink: 0,
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
     },
@@ -3702,6 +3698,10 @@ const styles = (theme) => ({
         color: theme.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightLarge,
+    },
+
+    receiptDropHeaderGap: {
+        backgroundColor: theme.receiptDropUIBG,
     },
 });
 
