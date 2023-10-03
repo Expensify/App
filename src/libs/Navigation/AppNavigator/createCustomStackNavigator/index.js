@@ -40,7 +40,6 @@ function ResponsiveStackNavigator(props) {
         getIsSmallScreenWidth: () => isSmallScreenWidthRef.current,
     });
 
-
     return (
         <NavigationContent>
             <StackView
