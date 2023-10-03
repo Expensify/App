@@ -1424,7 +1424,8 @@ const styles = (theme) => ({
     },
 
     sidebarLinkTextBold: {
-        fontWeight: '700',
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
         color: theme.heading,
     },
 
