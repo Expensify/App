@@ -1,5 +1,5 @@
 ---
-title: Connect-ANZ.md
+title: Connect ANZ
 description: If you're an ANZ Visa customer, you can set up your cards to import transactions directly into Expensify and get a discount on your Expensify subscription.
 ---
 
