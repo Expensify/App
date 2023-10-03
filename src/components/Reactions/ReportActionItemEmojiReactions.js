@@ -1,4 +1,5 @@
 import React, {useRef, useContext} from 'react';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -113,7 +114,7 @@ function ReportActionItemEmojiReactions(props) {
             reactionCount,
             hasUserReacted,
             onReactionListOpen,
-            hasPendingAction: reaction.pendingAction,
+            pendingAction: reaction.pendingAction,
         };
     });
 
@@ -139,8 +140,8 @@ function ReportActionItemEmojiReactions(props) {
                         >
                             <View>
                                 <OfflineWithFeedback
-                                    pendingAction={reaction.hasPendingAction}
-                                    shouldDisableOpacity={Boolean(reportAction.pendingAction)}
+                                    pendingAction={reaction.pendingAction}
+                                    shouldDisableOpacity={Boolean(lodashGet(reportAction, 'pendingAction'))}
                                 >
                                     <EmojiReactionBubble
                                         ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref)}
