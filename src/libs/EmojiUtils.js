@@ -411,7 +411,7 @@ function suggestEmojis(text, lang, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMO
 /**
  * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
  *
- * @param {Number | String} val
+ * @param {Number | String | null} val
  * @returns {Number}
  */
 const getPreferredSkinToneIndex = (val) => {

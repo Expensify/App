@@ -27,8 +27,11 @@ import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import * as Environment from '../Environment/Environment';
 import * as Session from './Session';
+import ReportAction from '../../types/onyx/ReportAction';
+import Report from '../../types/onyx/Report';
+import PersonalDetails from '../../types/onyx/PersonalDetails';
 
-let currentUserAccountID;
+let currentUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -41,7 +44,7 @@ Onyx.connect({
     },
 });
 
-let preferredSkinTone;
+let preferredSkinTone: number;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     callback: (val) => {
@@ -49,57 +52,60 @@ Onyx.connect({
     },
 });
 
-const allReportActions = {};
+const allReportActions: Record<string, ReportAction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
+    callback: (action, key) => {
+        if (!key || !action) {
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReportActions[reportID] = actions;
+        allReportActions[reportID] = action;
     },
 });
 
-const currentReportData = {};
+const currentReportData: Record<string, Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (data, key) => {
-        if (!key || !data) {
+    callback: (report, key) => {
+        if (!key || !report) {
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        currentReportData[reportID] = data;
+        currentReportData[reportID] = report;
     },
 });
 
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
-});
-
-let allPersonalDetails;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        allPersonalDetails = val || {};
+        isNetworkOffline = val?.isOffline ?? false;
     },
 });
 
-const allReports = {};
-let conciergeChatReportID;
-const typingWatchTimers = {};
+let allPersonalDetails: Record<string, PersonalDetails> = {};
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => {
+        allPersonalDetails = val ?? {};
+    },
+});
+
+const allReports: Record<string, Report> = {};
+let conciergeChatReportID: string | undefined;
+const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 /**
  * Get the private pusher channel name for a Report.
- *
- * @param {String} reportID
- * @returns {String}
  */
-function getReportChannelName(reportID) {
+function getReportChannelName(reportID: string): string {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
+
+type NonNormalizedStatus = Record<string, boolean> & {
+    userLogin?: string;
+};
 
 /**
  * There are 2 possibilities that we can receive via pusher for a user's typing/leaving status:
@@ -108,15 +114,14 @@ function getReportChannelName(reportID) {
  * 2. The "old" way from e.com which is passed as {userLogin: login} (e.g. {userLogin: bstites@expensify.com})
  *
  * This method makes sure that no matter which we get, we return the "new" format
- *
- * @param {Object} status
- * @returns {Object}
  */
-function getNormalizedStatus(status) {
-    let normalizedStatus = status;
+function getNormalizedStatus(status: NonNormalizedStatus): Record<string, boolean> {
+    let normalizedStatus: Record<string, boolean>;
 
-    if (_.first(_.keys(status)) === 'userLogin') {
+    if (status.userLogin) {
         normalizedStatus = {[status.userLogin]: true};
+    } else {
+        normalizedStatus = status;
     }
 
     return normalizedStatus;
@@ -124,10 +129,8 @@ function getNormalizedStatus(status) {
 
 /**
  * Initialize our pusher subscriptions to listen for someone typing in a report.
- *
- * @param {String} reportID
  */
-function subscribeToReportTypingEvents(reportID) {
+function subscribeToReportTypingEvents(reportID: string) {
     if (!reportID) {
         return;
     }
@@ -136,12 +139,12 @@ function subscribeToReportTypingEvents(reportID) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
 
     const pusherChannelName = getReportChannelName(reportID);
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING, (typingStatus) => {
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING, (typingStatus: NonNormalizedStatus) => {
         // If the pusher message comes from OldDot, we expect the typing status to be keyed by user
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
         const normalizedTypingStatus = getNormalizedStatus(typingStatus);
-        const accountIDOrLogin = _.first(_.keys(normalizedTypingStatus));
+        const accountIDOrLogin = Object.keys(normalizedTypingStatus)[0];
 
         if (!accountIDOrLogin) {
             return;
@@ -159,22 +162,20 @@ function subscribeToReportTypingEvents(reportID) {
 
         // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
-            const typingStoppedStatus = {};
+            const typingStoppedStatus: Record<string, boolean> = {};
             typingStoppedStatus[accountIDOrLogin] = false;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
     }).catch((error) => {
-        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
+        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {errorType: error.type, pusherChannelName});
     });
 }
 
 /**
  * Initialize our pusher subscriptions to listen for someone leaving a room.
- *
- * @param {String} reportID
  */
-function subscribeToReportLeavingEvents(reportID) {
+function subscribeToReportLeavingEvents(reportID: string) {
     if (!reportID) {
         return;
     }
@@ -183,12 +184,12 @@ function subscribeToReportLeavingEvents(reportID) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
 
     const pusherChannelName = getReportChannelName(reportID);
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, (leavingStatus) => {
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, (leavingStatus: NonNormalizedStatus) => {
         // If the pusher message comes from OldDot, we expect the leaving status to be keyed by user
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
         const normalizedLeavingStatus = getNormalizedStatus(leavingStatus);
-        const accountIDOrLogin = _.first(_.keys(normalizedLeavingStatus));
+        const accountIDOrLogin = Object.keys(normalizedLeavingStatus)[0];
 
         if (!accountIDOrLogin) {
             return;
@@ -200,16 +201,14 @@ function subscribeToReportLeavingEvents(reportID) {
 
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, true);
     }).catch((error) => {
-        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
+        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {errorType: error.type, pusherChannelName});
     });
 }
 
 /**
  * Remove our pusher subscriptions to listen for someone typing in a report.
- *
- * @param {String} reportID
  */
-function unsubscribeFromReportChannel(reportID) {
+function unsubscribeFromReportChannel(reportID: string) {
     if (!reportID) {
         return;
     }
@@ -221,10 +220,8 @@ function unsubscribeFromReportChannel(reportID) {
 
 /**
  * Remove our pusher subscriptions to listen for someone leaving a report.
- *
- * @param {String} reportID
  */
-function unsubscribeFromLeavingRoomReportChannel(reportID) {
+function unsubscribeFromLeavingRoomReportChannel(reportID: string) {
     if (!reportID) {
         return;
     }
@@ -240,9 +237,9 @@ let newActionSubscribers = [];
 /**
  * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
  * Add subscriber for report id
- * @param {String} reportID
- * @param {Function} callback
- * @returns {Function} Remove subscriber for report id
+ * @param reportID
+ * @param callback
+ * @returns Remove subscriber for report id
  */
 function subscribeToNewActionEvent(reportID, callback) {
     newActionSubscribers.push({callback, reportID});
@@ -254,9 +251,9 @@ function subscribeToNewActionEvent(reportID, callback) {
 /**
  * Notify the ReportActionsView that a new comment has arrived
  *
- * @param {String} reportID
- * @param {Number} accountID
- * @param {String} reportActionID
+ * @param reportID
+ * @param accountID
+ * @param reportActionID
  */
 function notifyNewAction(reportID, accountID, reportActionID) {
     const actionSubscriber = _.find(newActionSubscribers, (subscriber) => subscriber.reportID === reportID);
@@ -274,9 +271,9 @@ function notifyNewAction(reportID, accountID, reportActionID) {
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
  *
- * @param {String} reportID
- * @param {String} [text]
- * @param {Object} [file]
+ * @param reportID
+ * @param [text]
+ * @param [file]
  */
 function addActions(reportID, text = '', file) {
     let reportCommentText = '';
@@ -416,9 +413,9 @@ function addActions(reportID, text = '', file) {
  *
  * Add an attachment and optional comment.
  *
- * @param {String} reportID
- * @param {File} file
- * @param {String} [text]
+ * @param reportID
+ * @param file
+ * @param [text]
  */
 function addAttachment(reportID, file, text = '') {
     addActions(reportID, text, file);
@@ -427,8 +424,8 @@ function addAttachment(reportID, file, text = '') {
 /**
  * Add a single comment to a report
  *
- * @param {String} reportID
- * @param {String} text
+ * @param reportID
+ * @param text
  */
 function addComment(reportID, text) {
     addActions(reportID, text);
@@ -442,12 +439,12 @@ function reportActionsExist(reportID) {
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
- * @param {String} reportID
- * @param {Array} participantLoginList The list of users that are included in a new chat, not including the user creating it
- * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
- * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
- * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
- * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
+ * @param reportID
+ * @param participantLoginList The list of users that are included in a new chat, not including the user creating it
+ * @param newReportObject The optimistic report object created when making a new chat, saved as optimistic data
+ * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
+ * @param isFromDeepLink Whether or not this report is being opened from a deep link
+ * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
 function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
     const optimisticReportData = [
@@ -623,8 +620,8 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 /**
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
- * @param {Array} userLogins list of user logins to start a chat report with.
- * @param {Boolean} shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
+ * @param userLogins list of user logins to start a chat report with.
+ * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
 function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
     let newChat = {};
@@ -649,7 +646,7 @@ function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
 /**
  * This will find an existing chat, or create a new one if none exists, for the given accountID or set of accountIDs. It will then navigate to this chat.
  *
- * @param {Array} participantAccountIDs of user logins to start a chat report with.
+ * @param participantAccountIDs of user logins to start a chat report with.
  */
 function navigateToAndOpenReportWithAccountIDs(participantAccountIDs) {
     let newChat = {};
@@ -667,9 +664,9 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs) {
 /**
  * This will navigate to an existing thread, or create a new one if necessary
  *
- * @param {String} childReportID The reportID we are trying to open
- * @param {Object} parentReportAction the parent comment of a thread
- * @param {String} parentReportID The reportID of the parent
+ * @param childReportID The reportID we are trying to open
+ * @param parentReportAction the parent comment of a thread
+ * @param parentReportID The reportID of the parent
  *
  */
 function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0') {
@@ -703,7 +700,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
 /**
  * Get the latest report history without marking the report as read.
  *
- * @param {String} reportID
+ * @param reportID
  */
 function reconnect(reportID) {
     API.write(
@@ -755,8 +752,8 @@ function reconnect(reportID) {
  * Gets the older actions that have not been read yet.
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
  *
- * @param {String} reportID
- * @param {String} reportActionID
+ * @param reportID
+ * @param reportActionID
  */
 function readOldestAction(reportID, reportActionID) {
     API.read(
@@ -800,8 +797,8 @@ function readOldestAction(reportID, reportActionID) {
 /**
  * Gets metadata info about links in the provided report action
  *
- * @param {String} reportID
- * @param {String} reportActionID
+ * @param reportID
+ * @param reportActionID
  */
 function expandURLPreview(reportID, reportActionID) {
     API.read('ExpandURLPreview', {
@@ -813,7 +810,7 @@ function expandURLPreview(reportID, reportActionID) {
 /**
  * Marks the new report actions as read
  *
- * @param {String} reportID
+ * @param reportID
  */
 function readNewestAction(reportID) {
     const lastReadTime = DateUtils.getDBTime();
@@ -840,8 +837,8 @@ function readNewestAction(reportID) {
 /**
  * Sets the last read time on a report
  *
- * @param {String} reportID
- * @param {String} reportActionCreated
+ * @param reportID
+ * @param reportActionCreated
  */
 function markCommentAsUnread(reportID, reportActionCreated) {
     // If no action created date is provided, use the last action's
@@ -874,8 +871,8 @@ function markCommentAsUnread(reportID, reportActionCreated) {
 /**
  * Toggles the pinned state of the report.
  *
- * @param {Object} reportID
- * @param {Boolean} isPinnedChat
+ * @param reportID
+ * @param isPinnedChat
  */
 function togglePinnedState(reportID, isPinnedChat) {
     const pinnedValue = !isPinnedChat;
@@ -903,8 +900,8 @@ function togglePinnedState(reportID, isPinnedChat) {
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
  *
- * @param {String} reportID
- * @param {String} comment
+ * @param reportID
+ * @param comment
  */
 function saveReportComment(reportID, comment) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
@@ -912,8 +909,8 @@ function saveReportComment(reportID, comment) {
 
 /**
  * Saves the number of lines for the comment
- * @param {String} reportID
- * @param {Number} numberOfLines
+ * @param reportID
+ * @param numberOfLines
  */
 function saveReportCommentNumberOfLines(reportID, numberOfLines) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`, numberOfLines);
@@ -922,9 +919,9 @@ function saveReportCommentNumberOfLines(reportID, numberOfLines) {
 /**
  * Immediate indication whether the report has a draft comment.
  *
- * @param {String} reportID
- * @param {Boolean} hasDraft
- * @returns {Promise}
+ * @param reportID
+ * @param hasDraft
+ * @returns
  */
 function setReportWithDraft(reportID, hasDraft) {
     return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
@@ -933,7 +930,7 @@ function setReportWithDraft(reportID, hasDraft) {
 /**
  * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
  *
- * @param {String} reportID
+ * @param reportID
  */
 function broadcastUserIsTyping(reportID) {
     const privateReportChannelName = getReportChannelName(reportID);
@@ -944,7 +941,7 @@ function broadcastUserIsTyping(reportID) {
 /**
  * Broadcasts to the report's private pusher channel whether a user is leaving a report
  *
- * @param {String} reportID
+ * @param reportID
  */
 function broadcastUserIsLeavingRoom(reportID) {
     const privateReportChannelName = getReportChannelName(reportID);
@@ -956,7 +953,7 @@ function broadcastUserIsLeavingRoom(reportID) {
 /**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
  *
- * @param {Object} report
+ * @param report
  */
 function handleReportChanged(report) {
     if (!report) {
@@ -966,7 +963,7 @@ function handleReportChanged(report) {
     // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
     // In this case, the API will let us know by returning a preexistingReportID.
     // We should clear out the optimistically created report and re-route the user to the preexisting report.
-    if (report && report.reportID && report.preexistingReportID) {
+    if (report?.reportID && report.preexistingReportID) {
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
 
         // Only re-route them if they are still looking at the optimistically created report
@@ -977,7 +974,7 @@ function handleReportChanged(report) {
         return;
     }
 
-    if (report && report.reportID) {
+    if (report?.reportID) {
         allReports[report.reportID] = report;
 
         if (ReportUtils.isConciergeChatReport(report)) {
@@ -1000,8 +997,8 @@ Onyx.connect({
 /**
  * Deletes a comment from the report, basically sets it as empty string
  *
- * @param {String} reportID
- * @param {Object} reportAction
+ * @param reportID
+ * @param reportAction
  */
 function deleteReportComment(reportID, reportAction) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
@@ -1130,9 +1127,9 @@ function deleteReportComment(reportID, reportAction) {
  *      links=["https://www.google.com"]
  * returns: "test https://www.google.com test"
  *
- * @param {String} html
- * @param {Array} links
- * @returns {String}
+ * @param html
+ * @param links
+ * @returns
  */
 const removeLinksFromHtml = (html, links) => {
     let htmlCopy = html.slice();
@@ -1147,9 +1144,9 @@ const removeLinksFromHtml = (html, links) => {
 /**
  * This function will handle removing only links that were purposely removed by the user while editing.
  *
- * @param {String} newCommentText text of the comment after editing.
- * @param {String} originalHtml original html of the comment before editing.
- * @returns {String}
+ * @param newCommentText text of the comment after editing.
+ * @param originalHtml original html of the comment before editing.
+ * @returns
  */
 const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
     const parser = new ExpensiMark();
@@ -1165,9 +1162,9 @@ const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
 /**
  * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
  *
- * @param {String} reportID
- * @param {Object} originalReportAction
- * @param {String} textForNewComment
+ * @param reportID
+ * @param originalReportAction
+ * @param textForNewComment
  */
 function editReportComment(reportID, originalReportAction, textForNewComment) {
     const parser = new ExpensiMark();
@@ -1274,9 +1271,9 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 /**
  * Saves the draft for a comment report action. This will put the comment into "edit mode"
  *
- * @param {String} reportID
- * @param {Object} reportAction
- * @param {String} draftMessage
+ * @param reportID
+ * @param reportAction
+ * @param draftMessage
  */
 function saveReportActionDraft(reportID, reportAction, draftMessage) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
@@ -1285,19 +1282,19 @@ function saveReportActionDraft(reportID, reportAction, draftMessage) {
 
 /**
  * Saves the number of lines for the report action draft
- * @param {String} reportID
- * @param {Number} reportActionID
- * @param {Number} numberOfLines
+ * @param reportID
+ * @param reportActionID
+ * @param numberOfLines
  */
 function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLines) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${reportActionID}`, numberOfLines);
 }
 
 /**
- * @param {String} reportID
- * @param {String} previousValue
- * @param {String} newValue
- * @param {boolean} navigate
+ * @param reportID
+ * @param previousValue
+ * @param newValue
+ * @param navigate
  */
 function updateNotificationPreference(reportID, previousValue, newValue, navigate) {
     if (previousValue === newValue) {
@@ -1327,9 +1324,9 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
 }
 
 /**
- * @param {String} reportID
- * @param {String} previousValue
- * @param {String} newValue
+ * @param reportID
+ * @param previousValue
+ * @param newValue
  */
 function updateWelcomeMessage(reportID, previousValue, newValue) {
     // No change needed, navigate back
@@ -1358,8 +1355,8 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
 }
 
 /**
- * @param {Object} report
- * @param {String} newValue
+ * @param report
+ * @param newValue
  */
 function updateWriteCapabilityAndNavigate(report, newValue) {
     if (report.writeCapability === newValue) {
@@ -1405,11 +1402,11 @@ function navigateToConciergeChat() {
 /**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
- * @param {String} policyID
- * @param {String} reportName
- * @param {String} visibility
- * @param {Array<Number>} policyMembersAccountIDs
- * @param {String} writeCapability
+ * @param policyID
+ * @param reportName
+ * @param visibility
+ * @param policyMembersAccountIDs
+ * @param writeCapability
  */
 function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL) {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
@@ -1501,7 +1498,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
 /**
  * Deletes a report, along with its reportActions, any linked reports, and any linked IOU report.
  *
- * @param {String} reportID
+ * @param reportID
  */
 function deleteReport(reportID) {
     const report = allReports[reportID];
@@ -1521,13 +1518,13 @@ function deleteReport(reportID) {
     Onyx.multiSet(onyxData);
 
     // Delete linked IOU report
-    if (report && report.iouReportID) {
+    if (report?.iouReportID) {
         deleteReport(report.iouReportID);
     }
 }
 
 /**
- * @param {String} reportID The reportID of the policy report (workspace room)
+ * @param reportID The reportID of the policy report (workspace room)
  */
 function navigateToConciergeChatAndDeleteReport(reportID) {
     // Dismiss the current report screen and replace it with Concierge Chat
@@ -1537,10 +1534,10 @@ function navigateToConciergeChatAndDeleteReport(reportID) {
 }
 
 /**
- * @param {Object} policyRoomReport
- * @param {Number} policyRoomReport.reportID
- * @param {String} policyRoomReport.reportName
- * @param {String} policyRoomName The updated name for the policy room
+ * @param policyRoomReport
+ * @param policyRoomReport.reportID
+ * @param policyRoomReport.reportName
+ * @param policyRoomName The updated name for the policy room
  */
 function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
     const reportID = policyRoomReport.reportID;
@@ -1591,7 +1588,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
 }
 
 /**
- * @param {String} reportID The reportID of the policy room.
+ * @param reportID The reportID of the policy room.
  */
 function clearPolicyRoomNameErrors(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -1605,18 +1602,18 @@ function clearPolicyRoomNameErrors(reportID) {
 }
 
 /**
- * @param {String} reportID
- * @param {Boolean} isComposerFullSize
+ * @param reportID
+ * @param isComposerFullSize
  */
 function setIsComposerFullSize(reportID, isComposerFullSize) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
 }
 
 /**
- * @param {String} reportID
- * @param {Object} action the associated report action (optional)
- * @param {Boolean} isRemote whether or not this notification is a remote push notification
- * @returns {Boolean}
+ * @param reportID
+ * @param action the associated report action (optional)
+ * @param isRemote whether or not this notification is a remote push notification
+ * @returns
  */
 function shouldShowReportActionNotification(reportID, action = null, isRemote = false) {
     const tag = isRemote ? '[PushNotification]' : '[LocalNotification]';
@@ -1669,8 +1666,8 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
 }
 
 /**
- * @param {String} reportID
- * @param {Object} reportAction
+ * @param reportID
+ * @param reportAction
  */
 function showReportActionNotification(reportID, reportAction) {
     if (!shouldShowReportActionNotification(reportID, reportAction)) {
@@ -1697,7 +1694,7 @@ function showReportActionNotification(reportID, reportAction) {
 /**
  * Clear the errors associated with the IOUs of a given report.
  *
- * @param {String} reportID
+ * @param reportID
  */
 function clearIOUError(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
@@ -1706,17 +1703,17 @@ function clearIOUError(reportID) {
 /**
  * Returns true if the accountID has reacted to the report action (with the given skin tone).
  * Uses the NEW FORMAT for "emojiReactions"
- * @param {String} accountID
- * @param {Array<Object | String | number>} users
- * @param {Number} [skinTone]
- * @returns {boolean}
+ * @param accountID
+ * @param users
+ * @param [skinTone]
+ * @returns
  */
 function hasAccountIDEmojiReacted(accountID, users, skinTone) {
     if (_.isUndefined(skinTone)) {
         return Boolean(users[accountID]);
     }
     const usersReaction = users[accountID];
-    if (!usersReaction || !usersReaction.skinTones || !_.size(usersReaction.skinTones)) {
+    if (!usersReaction?.skinTones || !_.size(usersReaction.skinTones)) {
         return false;
     }
     return Boolean(usersReaction.skinTones[skinTone]);
@@ -1725,13 +1722,13 @@ function hasAccountIDEmojiReacted(accountID, users, skinTone) {
 /**
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
- * @param {String} reportID
- * @param {String} reportActionID
- * @param {Object} emoji
- * @param {String} emoji.name
- * @param {String} emoji.code
- * @param {String[]} [emoji.types]
- * @param {Number} [skinTone]
+ * @param reportID
+ * @param reportActionID
+ * @param emoji
+ * @param emoji.name
+ * @param emoji.code
+ * @param [emoji.types]
+ * @param [skinTone]
  */
 function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredSkinTone) {
     const createdAt = moment().utc().format(CONST.DATE.SQL_DATE_TIME);
@@ -1769,12 +1766,12 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
 /**
  * Removes a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
- * @param {String} reportID
- * @param {String} reportActionID
- * @param {Object} emoji
- * @param {String} emoji.name
- * @param {String} emoji.code
- * @param {String[]} [emoji.types]
+ * @param reportID
+ * @param reportActionID
+ * @param emoji
+ * @param emoji.name
+ * @param emoji.code
+ * @param [emoji.types]
  */
 function removeEmojiReaction(reportID, reportActionID, emoji) {
     const optimisticData = [
@@ -1804,11 +1801,11 @@ function removeEmojiReaction(reportID, reportActionID, emoji) {
 /**
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
- * @param {String} reportID
- * @param {Object} reportAction
- * @param {Object} reactionObject
- * @param {Object} existingReactions
- * @param {Number} [paramSkinTone]
+ * @param reportID
+ * @param reportAction
+ * @param reactionObject
+ * @param existingReactions
+ * @param [paramSkinTone]
  */
 function toggleEmojiReaction(reportID, reportAction, reactionObject, existingReactions, paramSkinTone = preferredSkinTone) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
@@ -1835,8 +1832,8 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
 }
 
 /**
- * @param {String|null} url
- * @param {Boolean} isAuthenticated
+ * @param url
+ * @param isAuthenticated
  */
 function openReportFromDeepLink(url, isAuthenticated) {
     const route = ReportUtils.getRouteFromLink(url);
@@ -1874,7 +1871,7 @@ function getCurrentUserAccountID() {
 /**
  * Leave a report by setting the state to submitted and closed
  *
- * @param {String} reportID
+ * @param reportID
  */
 function leaveRoom(reportID) {
     const report = lodashGet(allReports, [reportID], {});
@@ -1934,7 +1931,7 @@ function leaveRoom(reportID) {
 }
 
 /**
- * @param {String} reportID
+ * @param reportID
  */
 function setLastOpenedPublicRoom(reportID) {
     Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
@@ -1943,7 +1940,7 @@ function setLastOpenedPublicRoom(reportID) {
 /**
  * Navigates to the last opened public room
  *
- * @param {String} lastOpenedPublicRoomID
+ * @param lastOpenedPublicRoomID
  */
 function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
     Navigation.isNavigationReady().then(() => {
@@ -1955,9 +1952,9 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
 /**
  * Flag a comment as offensive
  *
- * @param {String} reportID
- * @param {Object} reportAction
- * @param {String} severity
+ * @param reportID
+ * @param reportAction
+ * @param severity
  */
 function flagComment(reportID, reportAction, severity) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
@@ -2040,9 +2037,9 @@ function flagComment(reportID, reportAction, severity) {
 /**
  * Updates a given user's private notes on a report
  *
- * @param {String} reportID
- * @param {Number} accountID
- * @param {String} note
+ * @param reportID
+ * @param accountID
+ * @param note
  */
 const updatePrivateNotes = (reportID, accountID, note) => {
     const optimisticData = [
@@ -2103,7 +2100,7 @@ const updatePrivateNotes = (reportID, accountID, note) => {
 /**
  * Fetches all the private notes for a given report
  *
- * @param {String} reportID
+ * @param reportID
  */
 function getReportPrivateNote(reportID) {
     if (_.isEmpty(reportID)) {
@@ -2149,8 +2146,8 @@ function getReportPrivateNote(reportID) {
 /**
  * Checks if there are any errors in the private notes for a given report
  *
- * @param {Object} report
- * @returns {Boolean} Returns true if there are errors in any of the private notes on the report
+ * @param report
+ * @returns Returns true if there are errors in any of the private notes on the report
  */
 function hasErrorInPrivateNotes(report) {
     const privateNotes = lodashGet(report, 'privateNotes', {});
@@ -2160,8 +2157,8 @@ function hasErrorInPrivateNotes(report) {
 /**
  * Clears all errors associated with a given private note
  *
- * @param {String} reportID
- * @param {Number} accountID
+ * @param reportID
+ * @param accountID
  */
 function clearPrivateNotesError(reportID, accountID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
