@@ -350,11 +350,6 @@ function getOptionData(
         isWaitingOnBankAccount: false,
         isLastMessageDeletedParentAction: false,
         isAllowedToComment: true,
-        isThread: null,
-        isTaskReport: null,
-        isWaitingForTaskCompleteFromAssignee: null,
-        parentReportID: null,
-        notificationPreference: null,
     };
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
@@ -387,9 +382,9 @@ function getOptionData(
     result.keyForList = String(report.reportID);
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
-    result.parentReportID = report.parentReportID;
+    result.parentReportID = report.parentReportID ?? null;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
-    result.notificationPreference = report.notificationPreference;
+    result.notificationPreference = report.notificationPreference ?? null;
     result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
