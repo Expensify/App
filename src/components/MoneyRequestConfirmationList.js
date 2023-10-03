@@ -438,6 +438,7 @@ function MoneyRequestConfirmationList(props) {
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                style={[styles.mt2]}
             />
         );
 
@@ -501,7 +502,7 @@ function MoneyRequestConfirmationList(props) {
                 title={props.iouComment}
                 description={translate('common.description')}
                 onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION.getRoute(props.iouType, props.reportID))}
-                style={[styles.moneyRequestMenuItem, styles.mb2]}
+                style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
                 numberOfLinesTitle={2}
@@ -527,7 +528,7 @@ function MoneyRequestConfirmationList(props) {
                         shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                         title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                         description={translate('common.date')}
-                        style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        style={[styles.moneyRequestMenuItem]}
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
@@ -537,7 +538,7 @@ function MoneyRequestConfirmationList(props) {
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouMerchant}
                             description={translate('common.distance')}
-                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(props.iouType, props.reportID))}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
@@ -547,7 +548,7 @@ function MoneyRequestConfirmationList(props) {
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouMerchant}
                             description={translate('common.merchant')}
-                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(props.iouType, props.reportID))}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
@@ -559,7 +560,7 @@ function MoneyRequestConfirmationList(props) {
                             title={props.iouCategory}
                             description={translate('common.category')}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID))}
-                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
@@ -569,12 +570,12 @@ function MoneyRequestConfirmationList(props) {
                             title={props.iouTag}
                             description={policyTagListName}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID))}
-                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
                     {shouldShowBillable && (
-                        <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
                             <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
                             <Switch
                                 accessibilityLabel={translate('common.billable')}
