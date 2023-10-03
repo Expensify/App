@@ -373,7 +373,9 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
 
     // If a whisper action is the REPORTPREVIEW action, we are displaying it.
     return (
-        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction)) && !isDeletedAction(reportAction)
+        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
+        !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
+        !isDeletedAction(reportAction)
     );
 }
 
