@@ -1,7 +1,6 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View, InteractionManager} from 'react-native';
+import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
-import setSelection from '../libs/setSelection';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import TextInput from '../components/TextInput';
@@ -41,7 +40,6 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
             focusTimeoutRef.current = setTimeout(() => {
                 if (merchantInputRef.current) {
                     merchantInputRef.current.focus();
-                    setSelection(merchantInputRef.current, 0, defaultMerchant.length);
                 }
                 return () => {
                     if (!focusTimeoutRef.current) {
