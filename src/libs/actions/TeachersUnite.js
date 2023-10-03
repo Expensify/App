@@ -7,6 +7,9 @@ import Navigation from '../Navigation/Navigation';
 import CONST from '../../CONST';
 import * as ReportUtils from '../ReportUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
+import * as NumberUtils from '../NumberUtils';
+import DateUtils from '../DateUtils';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 
 let sessionEmail = '';
 let sessionAccountID = 0;
@@ -31,17 +34,63 @@ Onyx.connect({
  */
 function referTeachersUniteVolunteer(partnerUserID, firstName, lastName) {
     const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport([], CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, CONST.TEACHERS_UNITE.POLICY_ID);
+    const {
+        optimisticData: personalDetailsOptimisticData,
+        successData: personalDetailsSuccessData,
+        failureData: personalDetailsFailureData,
+    } = PersonalDetailsUtils.getNewPersonalDetailsOnyxData([CONST.TEACHERS_UNITE.PUBLIC_ROOM_ADMIN_LOGIN], [CONST.TEACHERS_UNITE.PUBLIC_ROOM_ADMIN_ID]);
+
+    const reportID = CONST.TEACHERS_UNITE.PUBLIC_ROOM_ID;
+    const reportActionID = NumberUtils.rand64();
+
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticPublicRoom.reportID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 ...optimisticPublicRoom,
-                reportID: optimisticPublicRoom.reportID,
+                reportID,
                 policyName: CONST.TEACHERS_UNITE.POLICY_NAME,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    reportActionID,
+                    reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    message: [
+                        {
+                            html: `Hey <mention-user>@${sessionEmail}</mention-user>! Thanks for referring your friend <mention-user>@${partnerUserID}</mention-user> to <a href=${CONST.FOOTER.ORG_URL} rel=\"noreferrer noopener\">Expensify.org</a> Teachers Unite. We have gone ahead and reached out to them! We'll continue to share any important announcements here to keep you in the loop about the campaign's impact. If you'd like to refer someone else, just click on Save The World in the app's main menu. Thanks for helping us to Save The World!`,
+                            isEdited: false,
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        },
+                    ],
+                    created: DateUtils.getDBTime(),
+                    actorAccountID: CONST.TEACHERS_UNITE.PUBLIC_ROOM_ADMIN_ID,
+                    whisperedToAccountIDs: [sessionAccountID],
+                },
+            },
+        },
+        ...personalDetailsOptimisticData,
     ];
+
+    const successData = [personalDetailsSuccessData];
+    const failureData = [personalDetailsFailureData];
+
+    // eslint-disable-next-line no-console
+    console.group('ReferTeachersUniteVolunteer');
+    // eslint-disable-next-line no-console
+    console.log('optimisticData', optimisticData);
+    // eslint-disable-next-line no-console
+    console.log('successData', successData);
+    // eslint-disable-next-line no-console
+    console.log('failureData', failureData);
+    // eslint-disable-next-line no-console
+    console.groupEnd();
+
     API.write(
         'ReferTeachersUniteVolunteer',
         {
@@ -50,9 +99,10 @@ function referTeachersUniteVolunteer(partnerUserID, firstName, lastName) {
             lastName,
             partnerUserID,
         },
-        {optimisticData},
+        {optimisticData, successData, failureData},
     );
-    Navigation.dismissModal(CONST.TEACHERS_UNITE.PUBLIC_ROOM_ID);
+
+    Navigation.dismissModal(reportID);
 }
 
 /**
