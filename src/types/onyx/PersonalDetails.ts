@@ -1,6 +1,6 @@
 import * as OnyxCommon from './OnyxCommon';
 
-type PersonalDetailsTimezone = {
+type Timezone = {
     /** Value of selected timezone */
     selected?: string;
 
@@ -48,7 +48,7 @@ type PersonalDetails = {
     localCurrencyCode?: string;
 
     /** Timezone of the current user from their personal details */
-    timezone?: PersonalDetailsTimezone;
+    timezone?: Timezone;
 
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
@@ -64,4 +64,4 @@ type PersonalDetails = {
 };
 
 export default PersonalDetails;
-export type {PersonalDetailsTimezone};
+export type {Timezone};

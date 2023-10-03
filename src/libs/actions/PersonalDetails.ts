@@ -4,7 +4,7 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import * as OnyxTypes from '../../types/onyx';
-import {PersonalDetailsTimezone} from '../../types/onyx/PersonalDetails';
+import {Timezone} from '../../types/onyx/PersonalDetails';
 import * as API from '../API';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import Navigation from '../Navigation/Navigation';
@@ -272,7 +272,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
  * Updates timezone's 'automatic' setting, and updates
  * selected timezone if set to automatically update.
  */
-function updateAutomaticTimezone(timezone: PersonalDetailsTimezone) {
+function updateAutomaticTimezone(timezone: Timezone) {
     if (!currentUserAccountID) {
         return;
     }
@@ -305,7 +305,7 @@ function updateAutomaticTimezone(timezone: PersonalDetailsTimezone) {
  * initial Timezone page.
  */
 function updateSelectedTimezone(selectedTimezone: string) {
-    const timezone: PersonalDetailsTimezone = {
+    const timezone: Timezone = {
         selected: selectedTimezone,
     };
 
