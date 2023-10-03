@@ -47,7 +47,6 @@ function HeaderWithBackButton({
     },
     threeDotsMenuItems = [],
     children = null,
-    onModalHide = () => {},
     shouldOverlay = false,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
@@ -139,7 +138,6 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
-                            onModalHide={onModalHide}
                             shouldOverlay={shouldOverlay}
                         />
                     )}
