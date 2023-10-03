@@ -26,7 +26,7 @@ These four headings are crucial to the setup. You'll want to configure a spreads
 
 Some example spreadsheets can be found below:
 
-- :de: [Here](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1596692482998-Germany+-+Per+Diem.csv) for an example of Germany multi-subrates
+- 🇩🇪 [Here](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1596692482998-Germany+-+Per+Diem.csv) for an example of Germany multi-subrates
 - :sweden: [Here](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1604410653223-Swedish+Per+Diem+Rates.csv) for an example of Sweden multi-subrates
 - :south_africa: [Here](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1596692413995-SA+Per+Diem+Rates.csv) for an example of South Africa single rates
 
