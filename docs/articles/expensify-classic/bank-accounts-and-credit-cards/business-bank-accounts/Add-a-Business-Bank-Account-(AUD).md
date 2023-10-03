@@ -26,7 +26,7 @@ If you’re no longer using a bank account you previously connected to Expensify
 
 1. Navigate to Settings > Accounts > Payments 
 2. Click *Delete* 
-![Click the Delete button](https://help.expensify.com/assets/imagesdelete-australian-bank-account.png){:width="100%"}
+![Click the Delete button](https://help.expensify.com/assets/images/delete-australian-bank-account.png){:width="100%"}
 
 You can complete this process either via the web app (on a computer), or via the mobile app.
 
