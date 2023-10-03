@@ -10,8 +10,6 @@ type PushJSON = OnyxUpdateEvent[] | OnyxUpdatesFromServer;
 
 type Callback = (data: OnyxUpdate[]) => Promise<void>;
 
-type OnEvent = (pushJSON: PushJSON) => void;
-
 // Keeps track of all the callbacks that need triggered for each event type
 const multiEventCallbackMapping: Record<string, Callback> = {};
 
@@ -29,7 +27,7 @@ function triggerMultiEventHandler(eventType: string, data: OnyxUpdate[]): Promis
 /**
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  */
-function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: OnEvent) {
+function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: PushJSON) => void) {
     const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
 
     function logPusherEvent(pushJSON: PushJSON) {
