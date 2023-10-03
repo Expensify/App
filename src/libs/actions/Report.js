@@ -984,7 +984,6 @@ function handleReportChanged(report) {
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: handleReportChanged,
 });
 
