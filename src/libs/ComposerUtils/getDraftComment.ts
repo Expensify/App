@@ -1,7 +1,7 @@
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-const draftCommentMap = {};
+const draftCommentMap: Record<string, OnyxEntry<string>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     callback: (value, key) => {
@@ -18,9 +18,7 @@ Onyx.connect({
  * Returns a draft comment from the onyx collection.
  * Note: You should use the HOCs/hooks to get onyx data, instead of using this directly.
  * A valid use case to use this is if the value is only needed once for an initial value.
- * @param {String} reportID
- * @returns {String|undefined}
  */
-export default function getDraftComment(reportID) {
+export default function getDraftComment(reportID: string): OnyxEntry<string> {
     return draftCommentMap[reportID];
 }

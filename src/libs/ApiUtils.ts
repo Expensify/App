@@ -1,10 +1,10 @@
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import * as Environment from './Environment/Environment';
 import proxyConfig from '../../config/proxyConfig';
+import {Request} from '../types/onyx';
 
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
@@ -16,7 +16,7 @@ Environment.getEnvironment().then((envName) => {
     // We connect here, so we have the updated ENV_NAME when Onyx callback runs
     Onyx.connect({
         key: ONYXKEYS.USER,
-        callback: (val) => {
+        callback: (value) => {
             // Toggling between APIs is not allowed on production and internal dev environment
             if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB) {
                 shouldUseStagingServer = false;
@@ -24,7 +24,7 @@ Environment.getEnvironment().then((envName) => {
             }
 
             const defaultToggleState = ENV_NAME === CONST.ENVIRONMENT.STAGING || ENV_NAME === CONST.ENVIRONMENT.ADHOC;
-            shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', defaultToggleState);
+            shouldUseStagingServer = value?.shouldUseStagingServer ?? defaultToggleState;
         },
     });
 });
@@ -32,13 +32,9 @@ Environment.getEnvironment().then((envName) => {
 /**
  * Get the currently used API endpoint
  * (Non-production environments allow for dynamically switching the API)
- *
- * @param {Object} [request]
- * @param {Boolean} [request.shouldUseSecure]
- * @returns {String}
  */
-function getApiRoot(request) {
-    const shouldUseSecure = lodashGet(request, 'shouldUseSecure', false);
+function getApiRoot(request?: Request): string {
+    const shouldUseSecure = request?.shouldUseSecure ?? false;
 
     if (shouldUseStagingServer) {
         if (CONFIG.IS_USING_WEB_PROXY) {
@@ -52,22 +48,16 @@ function getApiRoot(request) {
 
 /**
  * Get the command url for the given request
- *
- * @param {Object} request
- * @param {String} request.command - the name of the API command
- * @param {Boolean} [request.shouldUseSecure]
- * @returns {String}
+ * @param - the name of the API command
  */
-function getCommandURL(request) {
+function getCommandURL(request: Request): string {
     return `${getApiRoot(request)}api?command=${request.command}`;
 }
 
 /**
  * Check if we're currently using the staging API root
- *
- * @returns {Boolean}
  */
-function isUsingStagingApi() {
+function isUsingStagingApi(): boolean {
     return shouldUseStagingServer;
 }
 
