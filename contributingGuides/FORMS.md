@@ -4,6 +4,20 @@ This document lists specific guidelines for using our Form component and general
 
 ## General Form UI/UX
 
+### Inputs
+Any form input needs to be wrapped in [InputWrapper](https://github.com/Expensify/App/blob/029d009731dcd3c44cd1321672b9672ef0d3d7d9/src/components/Form/InputWrapper.js) and passed as `InputComponent` property additionally it's necessary po pass an unique `inputID`. All other props of the input can be passed as `InputWrapper` props.
+```jsx
+<InputWrapper
+    // `InputWrapper` required props
+    InputComponent={TextInput}
+    inputID="uniqueTextInputID"
+    // `TextInput` specific props
+    placeholder="Text input placeholder"
+    label="Text input label"
+    shouldSaveDraft
+/>
+```
+
 ### Labels, Placeholders, & Hints
 
 Labels are required for each input and should clearly mark the field. Optional text may appear below a field when a hint, suggestion, or context feels necessary. If validation fails on such a field, its error should clearly explain why without relying on the hint. Inline errors should always replace the microcopy hints. Placeholders should not be used as it’s customary for labels to appear inside form fields and animate them above the field when focused.
@@ -14,6 +28,7 @@ Labels and hints are enabled by passing the appropriate props to each input:
 
 ```jsx
 <InputWrapper
+    InputComponent={TextInput}
     label="Value"
     hint="Hint text goes here"
 />
@@ -44,6 +59,7 @@ We have a couple of keyboard types [defined](https://github.com/Expensify/App/bl
 
 ```jsx
 <InputWrapper
+    InputComponent={TextInput}
     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
 />
 ```
@@ -58,6 +74,7 @@ Browsers use the name prop to autofill information into the input. Here's a [ref
 
 ```jsx
 <InputWrapper
+    InputComponent={TextInput} 
     name="fname"
 />
 ```
@@ -179,9 +196,9 @@ Submit buttons shall not be disabled or blocked from being pressed in most cases
 
 The only time we won’t allow a user to press the submit button is when we have submitted the form and are waiting for a response (e.g. from the API). In this case we will show a loading indicator and additional taps on the submit button will have no effect. This is handled by the Form component and will also ensure that a form cannot be submitted multiple times.
 
-## Using Form.js
+## Using Form
 
-The example below shows how to use [Form.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/components/Form.js) in our app. You can also refer to [Form.stories.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/stories/Form.stories.js) for more examples.
+The example below shows how to use [FormProvider](https://github.com/Expensify/App/blob/029d009731dcd3c44cd1321672b9672ef0d3d7d9/src/components/Form/FormProvider.js) and [InputWrapper](https://github.com/Expensify/App/blob/029d009731dcd3c44cd1321672b9672ef0d3d7d9/src/components/Form/InputWrapper.js) in our app. You can also refer to [Form.stories.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/stories/Form.stories.js) for more examples.
 
 ```jsx
 function validate(values) {
@@ -208,7 +225,7 @@ function onSubmit(values) {
     validate={this.validate}
     onSubmit={this.onSubmit}
 >
-    // Wrapping TextInput in a View to show that Form inputs can be nested in other components
+    // Wrapping InputWrapper in a View to show that Form inputs can be nested in other components
     <View>
         <InputWrapper
             InputComponent={TextInput}
@@ -227,7 +244,7 @@ function onSubmit(values) {
 </FormProvider>
 ```
 
-`Form.js` also works with inputs nested in a custom component, e.g. [AddressForm](https://github.com/Expensify/App/blob/86579225ff30b21dea507347735259637a2df461/src/pages/ReimbursementAccount/AddressForm.js). The only exception is that the nested component shouldn't be wrapped around any HoC.
+`FormProvider` also works with inputs nested in a custom component, e.g. [AddressForm](https://github.com/Expensify/App/blob/86579225ff30b21dea507347735259637a2df461/src/pages/ReimbursementAccount/AddressForm.js). The only exception is that the nested component shouldn't be wrapped around any HoC and all inputs in the component needs to be wrapped with `InputWrapper`.
 
 ```jsx
 const BankAccountForm = () => (
@@ -292,13 +309,13 @@ An example of this can be seen in the [ACHContractStep](https://github.com/Expen
 
 ### Safe Area Padding
 
-Any `FormWrapper.js` that has a button will also add safe area padding by default. If the `<FormWrapper/>` is inside a `<ScreenWrapper>` we will want to disable the default safe area padding applied there e.g.
+Any `FormProvider.js` that has a button will also add safe area padding by default. If the `<FormProvider>` is inside a `<ScreenWrapper>` we will want to disable the default safe area padding applied there e.g.
 
 ```js
 <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-    <FormWrapper>
+    <FormProvider>
         {...}
-    </FormWrapper>
+    </FormProvider>
 </ScreenWrapper>
 ```
 
