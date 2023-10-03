@@ -314,7 +314,15 @@ function ReportScreen({
             // optimistic case
             (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && prevReport.statusNum === CONST.REPORT.STATUS.OPEN && report.statusNum === CONST.REPORT.STATUS.CLOSED)
         ) {
-            Navigation.goBack();
+            Navigation.dismissModal();
+            if (Navigation.getTopmostReportId() === prevOnyxReportID) {
+                Navigation.setShouldPopAllStateOnUP();
+                Navigation.goBack(ROUTES.HOME, false, true);
+            }
+            if (prevReport.parentReportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
+                return;
+            }
             Report.navigateToConciergeChat();
             return;
         }
@@ -329,7 +337,7 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum]);
+    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum, prevReport.parentReportID]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.

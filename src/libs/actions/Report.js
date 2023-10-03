@@ -1922,15 +1922,6 @@ function leaveRoom(reportID) {
             ],
         },
     );
-    Navigation.dismissModal();
-    if (Navigation.getTopmostReportId() === reportID) {
-        Navigation.goBack(ROUTES.HOME);
-    }
-    if (report.parentReportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
-        return;
-    }
-    navigateToConciergeChat();
 }
 
 /**
