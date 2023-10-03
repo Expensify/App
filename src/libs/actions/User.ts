@@ -20,6 +20,9 @@ import type Login from '../../types/onyx/Login';
 import type OnyxPersonalDetails from '../../types/onyx/PersonalDetails';
 import type {OnyxUpdatesFromServer} from '../../types/onyx';
 
+type CustomStatus = {text: string; emojiCode: string; clearAfter?: string};
+type BlockedFromConciergeNVP = {expiresAt: number};
+
 let currentUserAccountID = -1;
 let currentEmail = '';
 Onyx.connect({
@@ -435,7 +438,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
  * and if so whether the expiresAt date of a user's ban is before right now
  *
  */
-function isBlockedFromConcierge(blockedFromConciergeNVP: {expiresAt: number}) {
+function isBlockedFromConcierge(blockedFromConciergeNVP: BlockedFromConciergeNVP) {
     if (!blockedFromConciergeNVP || Object.keys(blockedFromConciergeNVP).length === 0) {
         return false;
     }
@@ -764,8 +767,6 @@ function updateTheme(theme: string) {
 /**
  * Sets a custom status
  */
-type CustomStatus = {text: string; emojiCode: string; clearAfter?: string};
-
 function updateCustomStatus(status: CustomStatus) {
     API.write('UpdateStatus', status, {
         optimisticData: [
