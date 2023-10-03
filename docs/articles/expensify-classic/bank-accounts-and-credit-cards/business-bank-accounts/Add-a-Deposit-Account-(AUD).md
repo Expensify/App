@@ -7,7 +7,6 @@ description: Expensify allows you to add a personal bank account to receive reim
 1. Confirm with your Policy Admin that they’ve set up Global Reimbursment
 2. Set your default policy (by selecting the correct policy after clicking on your profile picture) before adding your deposit account.
 3. Go to *Settings > Account > Payments* and click *Add Deposit-Only Bank Account*
-
 ![Click the Add Deposit-Only Bank Account button](https://help.expensify.com/assets/images/add-australian-deposit-only-account.png){:width="100%"}
 
 4. Enter your BSB, account number and name. If your screen looks different than the image below, that means your company hasn't enabled reimbursements through Expensify. Please contact your administrator and ask them to enable reimbursements. 
