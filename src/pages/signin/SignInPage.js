@@ -79,11 +79,11 @@ const defaultProps = {
  * @param {Boolean} isAccountValidated
  * @param {Boolean} isSAMLEnabled
  * @param {Boolean} isSAMLRequired
- * @param {Boolean} isUsingSAMLLogin
+ * @param {Boolean} isUsingMagicCode
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, isSAMLEnabled, isSAMLRequired, isUsingSAMLLogin, hasEmailDeliveryFailure}) {
+function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, isSAMLEnabled, isSAMLRequired, isUsingMagicCode, hasEmailDeliveryFailure}) {
     const shouldShowLoginForm = !hasLogin && !hasValidateCode;
     let shouldShowChooseSSOOrMagicCode = false;
     let shouldInitiateSAMLLogin = false;
@@ -91,13 +91,13 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
 
     // SAML is temporarily restricted to users on the beta or to users signing in on web and mweb
     if (Permissions.canUseSAML() || platform === CONST.PLATFORM.WEB) {
-        shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && isUsingSAMLLogin;
+        shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
         shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired;
     }
 
-    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !isUsingSAMLLogin;
+    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
-    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !isUsingSAMLLogin;
+    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin;
     const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode;
 
@@ -122,12 +122,13 @@ function SignInPage({credentials, account, isInModal}) {
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
     const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
-    const [isUsingSAMLLogin, setIsUsingSAMLLogin] = useState(Boolean(account.isSAMLEnabled || account.isSAMLRequired));
+
+    /** This state is needed to keep track of whether the user has opted to use magic codes
+     * instead of signing in via SAML when SAML is enabled and not required */
+    const [isUsingMagicCode, setIsUsingMagicCode] = useState(false);
 
     useEffect(() => Performance.measureTTI(), []);
-    useEffect(() => {
-        App.setLocale(Localize.getDevicePreferredLocale());
-    }, []);
+    useEffect(() => App.setLocale(Localize.getDevicePreferredLocale()), []);
 
     const {
         shouldShowLoginForm,
@@ -146,7 +147,7 @@ function SignInPage({credentials, account, isInModal}) {
         isAccountValidated: Boolean(account.validated),
         isSAMLEnabled: Boolean(account.isSAMLEnabled),
         isSAMLRequired: Boolean(account.isSAMLRequired),
-        isUsingSAMLLogin,
+        isUsingMagicCode,
         hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
     });
 
@@ -218,11 +219,11 @@ function SignInPage({credentials, account, isInModal}) {
                     <ValidateCodeForm
                         isUsingRecoveryCode={isUsingRecoveryCode}
                         setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                        setIsUsingSAMLLogin={setIsUsingSAMLLogin}
+                        setIsUsingMagicCode={setIsUsingMagicCode}
                     />
                 )}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingSAMLLogin={setIsUsingSAMLLogin} />}
+                {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
                 {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
         </View>

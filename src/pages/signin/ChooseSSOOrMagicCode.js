@@ -37,8 +37,8 @@ const propTypes = {
         requiresTwoFactorAuth: PropTypes.bool,
     }),
 
-    /** Function to change whether the user is using SAML or magic codes to log in */
-    setIsUsingSAMLLogin: PropTypes.func.isRequired,
+    /** Function that returns whether the user is using SAML or magic codes to log in */
+    setIsUsingMagicCode: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -46,7 +46,7 @@ const defaultProps = {
     account: {},
 };
 
-function ChooseSSOOrMagicCode({credentials, account, setIsUsingSAMLLogin}) {
+function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -79,7 +79,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingSAMLLogin}) {
                     isLoading={account.isLoading && account.loadingForm === (account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
                     onPress={() => {
                         Session.resendValidateCode(credentials.login);
-                        setIsUsingSAMLLogin(false);
+                        setIsUsingMagicCode(true);
                     }}
                 />
                 <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
