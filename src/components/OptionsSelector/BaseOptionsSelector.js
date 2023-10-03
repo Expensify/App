@@ -392,42 +392,40 @@ class BaseOptionsSelector extends Component {
             </>
         );
         const optionsList = (
-            <>
-                <OptionsList
-                    ref={(el) => (this.list = el)}
-                    optionHoveredStyle={this.props.optionHoveredStyle}
-                    onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
-                    sections={this.props.sections}
-                    focusedIndex={this.state.focusedIndex}
-                    selectedOptions={this.props.selectedOptions}
-                    canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                    shouldShowMultipleOptionSelectorAsButton={this.props.shouldShowMultipleOptionSelectorAsButton}
-                    multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
-                    onAddToSelection={this.addToSelection}
-                    hideSectionHeaders={this.props.hideSectionHeaders}
-                    headerMessage={this.props.headerMessage}
-                    boldStyle={this.props.boldStyle}
-                    showTitleTooltip={this.props.showTitleTooltip}
-                    isDisabled={this.props.isDisabled}
-                    shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
-                    highlightSelectedOptions={this.props.highlightSelectedOptions}
-                    onLayout={() => {
-                        if (this.props.selectedOptions.length === 0) {
-                            this.scrollToIndex(this.state.focusedIndex, false);
+            <OptionsList
+                ref={(el) => (this.list = el)}
+                optionHoveredStyle={this.props.optionHoveredStyle}
+                onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
+                sections={this.props.sections}
+                focusedIndex={this.state.focusedIndex}
+                selectedOptions={this.props.selectedOptions}
+                canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                shouldShowMultipleOptionSelectorAsButton={this.props.shouldShowMultipleOptionSelectorAsButton}
+                multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
+                onAddToSelection={this.addToSelection}
+                hideSectionHeaders={this.props.hideSectionHeaders}
+                headerMessage={this.props.headerMessage}
+                boldStyle={this.props.boldStyle}
+                showTitleTooltip={this.props.showTitleTooltip}
+                isDisabled={this.props.isDisabled}
+                shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
+                highlightSelectedOptions={this.props.highlightSelectedOptions}
+                onLayout={() => {
+                    if (this.props.selectedOptions.length === 0) {
+                        this.scrollToIndex(this.state.focusedIndex, false);
+                    }
+                    if (this.props.onLayout) {
+                            this.props.onLayout();
                         }
-                        if (this.props.onLayout) {
-                                this.props.onLayout();
-                            }
-                        }}
-                    contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
-                    listContainerStyles={this.props.listContainerStyles}
-                    listStyles={this.props.listStyles}
-                    isLoading={!this.props.shouldShowOptions}
-                    showScrollIndicator={this.props.showScrollIndicator}
-                    isRowMultilineSupported={this.props.isRowMultilineSupported}
-                    shouldShowHeaderMessage={this.props.shouldShowHeaderMessage}
-                />
-            </>
+                    }}
+                contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
+                listContainerStyles={this.props.listContainerStyles}
+                listStyles={this.props.listStyles}
+                isLoading={!this.props.shouldShowOptions}
+                showScrollIndicator={this.props.showScrollIndicator}
+                isRowMultilineSupported={this.props.isRowMultilineSupported}
+                shouldShowHeaderMessage={this.props.shouldShowHeaderMessage}
+            />
         );
         return (
             <ArrowKeyFocusManager

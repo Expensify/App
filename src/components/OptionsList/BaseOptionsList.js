@@ -247,6 +247,7 @@ function BaseOptionsList({
 
         return <View />;
     };
+
     return (
         <View style={listContainerStyles}>
             {isLoading ? (

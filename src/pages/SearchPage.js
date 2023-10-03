@@ -39,13 +39,14 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
-    ...networkPropTypes,
+    network: networkPropTypes,
 };
 
 const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    network: {},
 };
 
 class SearchPage extends Component {
