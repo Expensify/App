@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useMemo, useRef, useEffect} from 'react';
+import React, {useState, useMemo, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
@@ -22,26 +22,24 @@ const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
 
     /** Indicates whether the app is loading initial data */
-    isLoadingReportData: PropTypes.bool,
+    isLoadingApp: PropTypes.bool,
 };
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
-    isLoadingReportData: true,
+    isLoadingApp: true,
 };
 
-function PronounsPage({currentUserPersonalDetails, isLoadingReportData}) {
+function PronounsPage({currentUserPersonalDetails, isLoadingApp}) {
     const {translate} = useLocalize();
     const currentPronouns = lodashGet(currentUserPersonalDetails, 'pronouns', '');
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
-    const loadingCompleteRef = useRef(false);
     const [searchValue, setSearchValue] = useState('');
 
     useEffect(() => {
-        if ((isLoadingReportData && _.isEmpty(currentUserPersonalDetails.login)) || loadingCompleteRef.current) {
+        if (isLoadingApp && _.isEmpty(currentUserPersonalDetails.login)) {
             return;
         }
-        loadingCompleteRef.current = true;
         const currentPronounsText = _.chain(CONST.PRONOUNS_LIST)
             .find((_value) => _value === currentPronounsKey)
             .value();
@@ -50,7 +48,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingReportData}) {
 
         // Only need to add login to dependency because after the data is loaded, other fields are also exist
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUserPersonalDetails.login, isLoadingReportData]);
+    }, [currentUserPersonalDetails.login, isLoadingApp]);
 
     const filteredPronounsList = useMemo(() => {
         const pronouns = _.chain(CONST.PRONOUNS_LIST)
@@ -87,7 +85,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingReportData}) {
             includeSafeAreaPaddingBottom={false}
             testID={PronounsPage.displayName}
         >
-            {isLoadingReportData && _.isEmpty(currentUserPersonalDetails.login) ? (
+            {isLoadingApp && _.isEmpty(currentUserPersonalDetails.login) ? (
                 <FullScreenLoadingIndicator />
             ) : (
                 <>
@@ -119,8 +117,8 @@ PronounsPage.displayName = 'PronounsPage';
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
         },
     }),
 )(PronounsPage);
