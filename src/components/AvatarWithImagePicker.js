@@ -1,6 +1,6 @@
 import _ from 'underscore';
-import React, { useState, useRef, useEffect } from 'react';
-import { View } from 'react-native';
+import React, {useState, useRef, useEffect} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
@@ -116,8 +116,31 @@ const defaultProps = {
     originalFileName: '',
 };
 
-function AvatarWithImagePicker(props) {
-    const animation = new SpinningIndicatorAnimation();
+function AvatarWithImagePicker({ 
+    isUploading, 
+    isFocused, 
+    DefaultAvatar, 
+    style, 
+    pendingAction, 
+    errors, 
+    errorRowStyles, 
+    onErrorClose, 
+    translate, 
+    source, 
+    fallbackIcon, 
+    size, 
+    type, 
+    headerTitle, 
+    previewSource, 
+    originalFileName, 
+    isUsingDefaultAvatar, 
+    onImageRemoved, 
+    anchorPosition, 
+    anchorAlignment, 
+    onImageSelected, 
+    editorMaskImage  }) {
+
+    const animation = useRef(new SpinningIndicatorAnimation()).current;
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [validationError, setValidationError] = useState(null);
     const [phraseParam, setPhraseParam] = useState({});
@@ -128,20 +151,21 @@ function AvatarWithImagePicker(props) {
     const anchorRef = useRef();
 
     useEffect(() => {
-        if (props.isUploading) {
+        if (isUploading) {
             animation.start();
         }
         
         return () => {
             animation.stop();
         };
-    }, [props.isUploading]);
+    }, [isUploading]);
 
     useEffect(() => {
-        if (!props.isFocused) {
+        // check if the component is no longer focused, then reset the error.
+        if (!isFocused) {
             setError(null, {});
         }
-    }, [props.isFocused]);
+    }, [isFocused]);
 
     const setError = (error, phraseParam) => {
         setValidationError(error);
@@ -199,35 +223,34 @@ function AvatarWithImagePicker(props) {
         setIsAvatarCropModalOpen(false);
     };
 
-    const DefaultAvatar = props.DefaultAvatar;
-    const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
+    const additionalStyles = _.isArray(style) ? style : [style];
 
     return (
         <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                             <View style={[styles.pRelative, styles.avatarLarge]}>
                     <OfflineWithFeedback
-                        pendingAction={props.pendingAction}
-                        errors={props.errors}
-                        errorRowStyles={props.errorRowStyles}
-                        onClose={props.onErrorClose}
+                        pendingAction={pendingAction}
+                        errors={errors}
+                        errorRowStyles={errorRowStyles}
+                        onClose={onErrorClose}
                     >
-                        <Tooltip text={props.translate('avatarWithImagePicker.editImage')}>
+                        <Tooltip text={translate('avatarWithImagePicker.editImage')}>
                             <PressableWithoutFeedback
                                 onPress={() => setIsMenuVisible(prev => !prev)}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                                accessibilityLabel={props.translate('avatarWithImagePicker.editImage')}
+                                accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                                 disabled={isAvatarCropModalOpen}
                                 ref={anchorRef}
                             >
                                 <View>
-                                    {props.source ? (
+                                    {source ? (
                                         <Avatar
                                             containerStyles={styles.avatarLarge}
                                             imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                            source={props.source}
-                                            fallbackIcon={props.fallbackIcon}
-                                            size={props.size}
-                                            type={props.type}
+                                            source={source}
+                                            fallbackIcon={fallbackIcon}
+                                            size={size}
+                                            type={type}
                                         />
                                     ) : (
                                         <DefaultAvatar />
@@ -245,10 +268,10 @@ function AvatarWithImagePicker(props) {
                         </Tooltip>
                     </OfflineWithFeedback>
                     <AttachmentModal
-                        headerTitle={props.headerTitle}
-                        source={props.previewSource}
-                        originalFileName={props.originalFileName}
-                        fallbackSource={props.fallbackIcon}
+                        headerTitle={headerTitle}
+                        source={previewSource}
+                        originalFileName={originalFileName}
+                        fallbackSource={fallbackIcon}
                     >
                         {({show}) => (
                             <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
@@ -256,7 +279,7 @@ function AvatarWithImagePicker(props) {
                                     const menuItems = [
                                         {
                                             icon: Expensicons.Upload,
-                                            text: props.translate('avatarWithImagePicker.uploadPhoto'),
+                                            text: translate('avatarWithImagePicker.uploadPhoto'),
                                             onSelected: () => {
                                                 if (Browser.isSafari()) {
                                                     return;
@@ -269,19 +292,19 @@ function AvatarWithImagePicker(props) {
                                     ];
 
                                     // If current avatar isn't a default avatar, allow Remove Photo option
-                                    if (!props.isUsingDefaultAvatar) {
+                                    if (!isUsingDefaultAvatar) {
                                         menuItems.push({
                                             icon: Expensicons.Trashcan,
-                                            text: props.translate('avatarWithImagePicker.removePhoto'),
+                                            text: translate('avatarWithImagePicker.removePhoto'),
                                             onSelected: () => {
                                                 setError(null, {});
-                                                props.onImageRemoved();
+                                                onImageRemoved();
                                             },
                                         });
 
                                         menuItems.push({
                                             icon: Expensicons.Eye,
-                                            text: props.translate('avatarWithImagePicker.viewPhoto'),
+                                            text: translate('avatarWithImagePicker.viewPhoto'),
                                             onSelected: () => show(),
                                         });
                                     }
@@ -301,10 +324,10 @@ function AvatarWithImagePicker(props) {
                                                 }
                                             }}
                                             menuItems={menuItems}
-                                            anchorPosition={props.anchorPosition}
+                                            anchorPosition={anchorPosition}
                                             withoutOverlay
                                             anchorRef={anchorRef}
-                                            anchorAlignment={props.anchorAlignment}
+                                            anchorAlignment={anchorAlignment}
                                         />
                                     );
                                 }}
@@ -315,18 +338,18 @@ function AvatarWithImagePicker(props) {
                 {validationError && (
                     <DotIndicatorMessage
                         style={[styles.mt6]}
-                        messages={{0: props.translate(validationError, phraseParam)}}
+                        messages={{0: translate(validationError, phraseParam)}}
                         type="error"
                     />
                 )}
                 <AvatarCropModal
                     onClose={hideAvatarCropModal}
                     isVisible={isAvatarCropModalOpen}
-                    onSave={props.onImageSelected}
+                    onSave={onImageSelected}
                     imageUri={imageUri}
                     imageName={imageName}
                     imageType={imageType}
-                    maskImage={props.editorMaskImage}
+                    maskImage={editorMaskImage}
                 />
         </View>
     );
