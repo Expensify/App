@@ -27,7 +27,7 @@ describe('DraftReportUtils', () => {
             const instance1 = DraftReportUtils.getInstance();
             const instance2 = DraftReportUtils.getInstance();
             const instance3 = DraftReportUtils.getInstance();
-    
+
             // Ensure that all instances are the same
             expect(instance1).toBe(instance2);
             expect(instance2).toBe(instance3);
@@ -47,7 +47,7 @@ describe('DraftReportUtils', () => {
 
     it('should return an empty object of draft report IDs when draft is unset through onyx', async () => {
         const draftReportUtils = DraftReportUtils.getInstance();
-        
+
         await Onyx.merge(ONYXKEYS.DRAFT_REPORT_IDS, {[reportID]: true});
         let draftReportIDs = draftReportUtils.getDraftReportIDs();
         expect(draftReportIDs).toEqual({[`${reportID}`]: true});
