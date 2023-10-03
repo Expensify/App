@@ -19,6 +19,7 @@ A file feed is an automated transfer of data files from Egencia to Expensify.
 Egencia controls the feed, so to connect Expensify you will need to:
 1. Contact your Egencia account manager.
 2. Request that they enable your Expensify feed.
+
 # How to Connect to a Central Purchasing Account
 Once your Egencia account manager has established the feed, you can automatically forward all Egencia booking receipts to a single Expensify account. To do this: 
 1. Open a chat with Concierge. 
