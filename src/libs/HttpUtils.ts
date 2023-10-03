@@ -6,11 +6,9 @@ import * as ApiUtils from './ApiUtils';
 import alert from '../components/Alert';
 import type Response from '../types/onyx/Response';
 
-type ProcessHttpRequest = (url: string, method: string, body: FormData | null, canCancel: boolean) => Promise<Response>;
-type Xhr = (command: string, data: Record<string, string | Blob>, type: string, shouldUseSecure: boolean) => Promise<Response>;
-
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
+
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
@@ -29,8 +27,8 @@ let cancellationController = new AbortController();
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
  */
-const processHTTPRequest: ProcessHttpRequest = (url, method = 'get', body = null, canCancel = true) =>
-    fetch(url, {
+function processHTTPRequest(url: string, method = 'get', body: FormData | null = null, canCancel = true): Promise<Response> {
+    return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: canCancel ? cancellationController.signal : undefined,
         method,
@@ -104,6 +102,7 @@ const processHTTPRequest: ProcessHttpRequest = (url, method = 'get', body = null
             }
             return response;
         });
+}
 
 /**
  * Makes XHR request
@@ -112,10 +111,10 @@ const processHTTPRequest: ProcessHttpRequest = (url, method = 'get', body = null
  * @param type HTTP request type (get/post)
  * @param shouldUseSecure should we use the secure server
  */
-const xhr: Xhr = (command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) => {
+function xhr(command: string, data: Record<string, string | Blob>, type: string = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
-        if (data[key] === undefined) {
+        if (!data[key]) {
             return;
         }
         formData.append(key, data[key]);
@@ -123,7 +122,7 @@ const xhr: Xhr = (command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecu
 
     const url = ApiUtils.getCommandURL({shouldUseSecure, command});
     return processHTTPRequest(url, type, formData, Boolean(data.canCancel));
-};
+}
 
 function cancelPendingRequests() {
     cancellationController.abort();
