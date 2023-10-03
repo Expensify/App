@@ -76,7 +76,6 @@ class QRShare extends Component {
 
                 {!_.isEmpty(this.props.subtitle) && (
                     <Text
-                        family="EXP_NEUE_BOLD"
                         fontSize={variables.fontSizeLabel}
                         numberOfLines={2}
                         style={[styles.mt1, styles.textAlignCenter]}
