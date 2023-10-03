@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import {useAnimatedRef} from 'react-native-reanimated';
+import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
 import {PortalHost} from '@gorhom/portal';
 import styles from '../../../../styles/styles';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -37,6 +37,7 @@ import getModalState from '../../../../libs/getModalState';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
 import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
+import updatePropsPaperWorklet from '../../../../libs/updatePropsPaperWorklet';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -314,6 +315,23 @@ function ReportActionCompose({
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
 
+    const handleSendMessage = useCallback(() => {
+        'worklet';
+
+        if (isSendDisabled) {
+            return;
+        }
+
+        const viewTag = animatedRef();
+        const viewName = 'RCTMultilineTextInputView';
+        const updates = {text: ''};
+        // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
+        runOnJS(setIsCommentEmpty)(true);
+        runOnJS(resetFullComposerSize)();
+        updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
+        runOnJS(submitForm)();
+    }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef]);
+
     return (
         <View
             ref={containerRef}
@@ -381,7 +399,7 @@ function ReportActionCompose({
                                     isFullComposerAvailable={isFullComposerAvailable}
                                     setIsFullComposerAvailable={setIsFullComposerAvailable}
                                     setIsCommentEmpty={setIsCommentEmpty}
-                                    submitForm={submitForm}
+                                    handleSendMessage={handleSendMessage}
                                     shouldShowComposeInput={shouldShowComposeInput}
                                     onFocus={onFocus}
                                     onBlur={onBlur}
@@ -409,10 +427,7 @@ function ReportActionCompose({
                     )}
                     <SendButton
                         isDisabled={isSendDisabled}
-                        setIsCommentEmpty={setIsCommentEmpty}
-                        resetFullComposerSize={resetFullComposerSize}
-                        submitForm={submitForm}
-                        animatedRef={animatedRef}
+                        handleSendMessage={handleSendMessage}
                     />
                 </View>
                 <View

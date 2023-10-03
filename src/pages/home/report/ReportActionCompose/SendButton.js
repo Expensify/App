@@ -17,35 +17,17 @@ const propTypes = {
     /** Whether the button is disabled */
     isDisabled: PropTypes.bool.isRequired,
 
-    /** Reference to the animated view */
-    animatedRef: PropTypes.func.isRequired,
-
-    /** Sets the isCommentEmpty flag to true */
-    setIsCommentEmpty: PropTypes.func.isRequired,
-
-    /** resets the composer to normal size */
-    resetFullComposerSize: PropTypes.func.isRequired,
-
-    /** Submits the form */
-    submitForm: PropTypes.func.isRequired,
+    /** Handle clicking on send button */
+    handleSendMessage: PropTypes.func.isRequired,
 };
 
-function SendButton({isDisabled: isDisabledProp, animatedRef, setIsCommentEmpty, resetFullComposerSize, submitForm}) {
+function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
     const {translate} = useLocalize();
 
     const Tap = Gesture.Tap()
         .enabled()
         .onEnd(() => {
-            'worklet';
-
-            const viewTag = animatedRef();
-            const viewName = 'RCTMultilineTextInputView';
-            const updates = {text: ''};
-            // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
-            runOnJS(setIsCommentEmpty)(true);
-            runOnJS(resetFullComposerSize)();
-            updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
-            runOnJS(submitForm)();
+            handleSendMessage();
         });
 
     return (
