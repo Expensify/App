@@ -37,7 +37,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp}) {
     const [searchValue, setSearchValue] = useState('');
 
     useEffect(() => {
-        if (isLoadingApp && _.isEmpty(currentUserPersonalDetails.login)) {
+        if (isLoadingApp && _.isUndefined(currentUserPersonalDetails.pronouns)) {
             return;
         }
         const currentPronounsText = _.chain(CONST.PRONOUNS_LIST)
@@ -46,9 +46,9 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp}) {
 
         setSearchValue(currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '');
 
-        // Only need to add login to dependency because after the data is loaded, other fields are also exist
+        // Only need to update search value when the first time the data is loaded
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUserPersonalDetails.login, isLoadingApp]);
+    }, [isLoadingApp]);
 
     const filteredPronounsList = useMemo(() => {
         const pronouns = _.chain(CONST.PRONOUNS_LIST)
@@ -85,7 +85,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp}) {
             includeSafeAreaPaddingBottom={false}
             testID={PronounsPage.displayName}
         >
-            {isLoadingApp && _.isEmpty(currentUserPersonalDetails.login) ? (
+            {isLoadingApp && _.isUndefined(currentUserPersonalDetails.pronouns) ? (
                 <FullScreenLoadingIndicator />
             ) : (
                 <>
