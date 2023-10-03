@@ -172,15 +172,33 @@ function AvatarWithImagePicker({
         setPhraseParam(phraseParam);
     };
 
+    /**
+     * Check if the attachment extension is allowed.
+     *
+     * @param {Object} image
+     * @returns {Boolean}
+     */
     const isValidExtension = (image) => {
         const { fileExtension } = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
         return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension.toLowerCase());
     };
 
+     /**
+     * Check if the attachment size is less than allowed size.
+     *
+     * @param {Object} image
+     * @returns {Boolean}
+     */
     const isValidSize = (image) => {
         return image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
     };
 
+    /**
+     * Check if the attachment resolution matches constraints.
+     *
+     * @param {Object} image
+     * @returns {Promise}
+     */
     const isValidResolution = async (image) => {
         const resolution = await getImageResolution(image);
         return resolution.height >= CONST.AVATAR_MIN_HEIGHT_PX &&
@@ -189,6 +207,11 @@ function AvatarWithImagePicker({
             resolution.width <= CONST.AVATAR_MAX_WIDTH_PX;
     };
 
+    /**
+     * Validates if an image has a valid resolution and opens an avatar crop modal
+     *
+     * @param {Object} image
+     */
     const showAvatarCropModal = async (image) => {
         if (!isValidExtension(image)) {
             setError('avatarWithImagePicker.notAllowedExtension', { allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS });
