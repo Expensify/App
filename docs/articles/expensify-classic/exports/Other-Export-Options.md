@@ -29,6 +29,7 @@ The PDF will include all expenses, any attached receipts, and all report notes.
 2. Click into a report
 3. Click on **Details** in the top right of the report
 4. Click the **print icon**
+
 # FAQ 
 ## Why isn’t my report exporting?
 Big reports with lots of expenses may cause the PDF download to fail due to images with large resolutions. In that case, try breaking the report into multiple smaller reports. Also, please note that a report must have at least one expense to be exported or saved as a PDF.
