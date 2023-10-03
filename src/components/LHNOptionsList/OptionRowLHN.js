@@ -3,7 +3,6 @@ import React, {useState, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -26,7 +25,6 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
 import Permissions from '../../libs/Permissions';
 import Tooltip from '../Tooltip';
-import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Style for hovered state */
@@ -54,8 +52,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     optionItem: PropTypes.object,
 
-    // eslint-disable-next-line react/forbid-prop-types
-    draftReportIDs: PropTypes.object,
+    hasDraft: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -66,7 +63,7 @@ const defaultProps = {
     optionItem: null,
     isFocused: false,
     betas: [],
-    draftReportIDs: {},
+    hasDraft: false,
 };
 
 function OptionRowLHN(props) {
@@ -141,7 +138,7 @@ function OptionRowLHN(props) {
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
     const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(optionItem);
-    const isDraft = props.draftReportIDs[props.reportID];
+    const isDraft = props.hasDraft;
 
     return (
         <OfflineWithFeedback
@@ -296,12 +293,6 @@ OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-export default React.memo(
-    withOnyx({
-        draftReportIDs: {
-            key: ONYXKEYS.DRAFT_REPORT_IDS,
-        },
-    })(OptionRowLHN),
-);
+export default React.memo(OptionRowLHN);
 
 export {propTypes, defaultProps};

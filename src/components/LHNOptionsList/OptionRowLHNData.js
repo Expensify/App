@@ -86,9 +86,11 @@ function OptionRowLHNData({
     receiptTransactions,
     parentReportActions,
     transaction,
+    draftReportIDs,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
+    const hasDraft = draftReportIDs ? draftReportIDs[reportID] : false;
     // We only want to pass a boolean to the memoized component,
     // instead of a changing number (so we prevent unnecessary re-renders).
     const isFocused = !shouldDisableFocusOptions && currentReportID === reportID;
@@ -118,7 +120,7 @@ function OptionRowLHNData({
     }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
 
     useEffect(() => {
-        if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
+        if (!optionItem || hasDraft || !comment || comment.length <= 0 || isFocused) {
             return;
         }
         setDraftStatusForReportID(reportID, true);
@@ -131,6 +133,7 @@ function OptionRowLHNData({
             {...propsToForward}
             isFocused={isFocused}
             optionItem={optionItem}
+            hasDraft={hasDraft}
         />
     );
 }
@@ -181,6 +184,9 @@ export default React.memo(
             },
         }),
         withOnyx({
+            draftReportIDs: {
+                key: ONYXKEYS.DRAFT_REPORT_IDS,
+            },
             fullReport: {
                 key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
             },

@@ -1209,6 +1209,10 @@ function getReport(reportID) {
      * using typical string concatenation here due to performance issues
      * with template literals.
      */
+    if (!allReports) {
+        return {};
+    }
+
     return allReports[ONYXKEYS.COLLECTION.REPORT + reportID] || {};
 }
 

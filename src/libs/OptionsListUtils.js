@@ -444,7 +444,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         login: null,
         reportID: null,
         phoneNumber: null,
-        hasDraftComment: false,
         keyForList: null,
         searchText: null,
         isDefaultRoom: false,

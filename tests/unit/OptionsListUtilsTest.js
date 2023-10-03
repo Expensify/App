@@ -16,7 +16,6 @@ describe('OptionsListUtils', () => {
             reportID: 1,
             participantAccountIDs: [2, 1],
             reportName: 'Iron Man, Mister Fantastic',
-            hasDraft: true,
         },
         2: {
             lastReadTime: '2021-01-14 11:25:39.296',
