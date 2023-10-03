@@ -10,6 +10,7 @@ import Button from '../../Button';
 import AttachmentView from '../AttachmentView';
 import SafeAreaConsumer from '../../SafeAreaConsumer';
 import ReportAttachmentsContext from '../../../pages/home/report/ReportAttachmentsContext';
+import * as AttachmentsPropTypes from '../propTypes';
 
 const propTypes = {
     /** Attachment required information such as the source and file name */
@@ -20,8 +21,8 @@ const propTypes = {
         /** Whether source URL requires authentication */
         isAuthTokenRequired: PropTypes.bool,
 
-        /** The source (URL) of the attachment */
-        source: PropTypes.string,
+        /** URL to full-sized attachment or SVG function */
+        source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
 
         /** Additional information about the attachment file */
         file: PropTypes.shape({

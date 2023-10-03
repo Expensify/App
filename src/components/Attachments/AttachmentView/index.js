@@ -101,7 +101,7 @@ function AttachmentView({
 
     // Check both source and file.name since PDFs dragged into the the text field
     // will appear with a source that is a blob
-    if (Str.isPDF(source) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
+    if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         return (
