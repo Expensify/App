@@ -2,39 +2,32 @@ import React, {useCallback, useEffect, useMemo, useState, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import lodashIsNil from 'lodash/isNil';
 import lodashIsEmpty from 'lodash/isEmpty';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '../CONST';
-import ROUTES from '../ROUTES';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import variables from '../styles/variables';
-import * as MapboxToken from '../libs/actions/MapboxToken';
-import useNetwork from '../hooks/useNetwork';
-import useLocalize from '../hooks/useLocalize';
-import Navigation from '../libs/Navigation/Navigation';
-import reportPropTypes from '../pages/reportPropTypes';
-import DotIndicatorMessage from './DotIndicatorMessage';
-import * as ErrorUtils from '../libs/ErrorUtils';
-import usePrevious from '../hooks/usePrevious';
-import theme from '../styles/themes/default';
-import * as Transaction from '../libs/actions/Transaction';
-import * as TransactionUtils from '../libs/TransactionUtils';
-import * as IOUUtils from '../libs/IOUUtils';
-import Button from './Button';
-import DistanceMapView from './DistanceMapView';
-import DraggableList from './DraggableList';
-import * as Expensicons from './Icon/Expensicons';
-import PendingMapView from './MapView/PendingMapView';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import transactionPropTypes from './transactionPropTypes';
-import ScreenWrapper from './ScreenWrapper';
-import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from './HeaderWithBackButton';
-
-const MAX_WAYPOINTS = 25;
+import ROUTES from '../../ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
+import styles from '../../styles/styles';
+import variables from '../../styles/variables';
+import * as MapboxToken from '../../libs/actions/MapboxToken';
+import useNetwork from '../../hooks/useNetwork';
+import useLocalize from '../../hooks/useLocalize';
+import Navigation from '../../libs/Navigation/Navigation';
+import reportPropTypes from '../../pages/reportPropTypes';
+import usePrevious from '../../hooks/usePrevious';
+import theme from '../../styles/themes/default';
+import * as Transaction from '../../libs/actions/Transaction';
+import * as TransactionUtils from '../../libs/TransactionUtils';
+import * as IOUUtils from '../../libs/IOUUtils';
+import Button from '../Button';
+import DraggableList from '../DraggableList';
+import * as Expensicons from '../Icon/Expensicons';
+import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
+import transactionPropTypes from '../transactionPropTypes';
+import ScreenWrapper from '../ScreenWrapper';
+import FullPageNotFoundView from '../BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '../HeaderWithBackButton';
+import DistanceRequestFooter from './DistanceRequestFooter';
 
 const propTypes = {
     /** The transactionID of this request */
@@ -42,15 +35,6 @@ const propTypes = {
 
     /** The report to which the distance request is associated */
     report: reportPropTypes,
-
-    /** Data about Mapbox token for calling Mapbox API */
-    mapboxAccessToken: PropTypes.shape({
-        /** Temporary token for Mapbox API */
-        token: PropTypes.string,
-
-        /** Time when the token will expire in ISO 8601 */
-        expiration: PropTypes.string,
-    }),
 
     /** Are we editing an existing distance request, or creating a new one? */
     isEditingRequest: PropTypes.bool,
@@ -78,13 +62,10 @@ const defaultProps = {
     transactionID: '',
     report: {},
     isEditingRequest: false,
-    mapboxAccessToken: {
-        token: '',
-    },
     transaction: {},
 };
 
-function DistanceRequest({transactionID, report, transaction, mapboxAccessToken, route, isEditingRequest, onSubmit}) {
+function DistanceRequest({transactionID, report, transaction, route, isEditingRequest, onSubmit}) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
@@ -109,40 +90,6 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
     const haveValidatedWaypointsChanged = !_.isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
     const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
-    const waypointMarkers = useMemo(
-        () =>
-            _.filter(
-                _.map(waypoints, (waypoint, key) => {
-                    if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
-                        return;
-                    }
-
-                    const index = TransactionUtils.getWaypointIndex(key);
-                    let MarkerComponent;
-                    if (index === 0) {
-                        MarkerComponent = Expensicons.DotIndicatorUnfilled;
-                    } else if (index === lastWaypointIndex) {
-                        MarkerComponent = Expensicons.Location;
-                    } else {
-                        MarkerComponent = Expensicons.DotIndicator;
-                    }
-
-                    return {
-                        id: `${waypoint.lng},${waypoint.lat},${index}`,
-                        coordinate: [waypoint.lng, waypoint.lat],
-                        markerComponent: () => (
-                            <MarkerComponent
-                                width={CONST.MAP_MARKER_SIZE}
-                                height={CONST.MAP_MARKER_SIZE}
-                                fill={theme.icon}
-                            />
-                        ),
-                    };
-                }),
-                (waypoint) => waypoint,
-            ),
-        [waypoints, lastWaypointIndex],
-    );
 
     useEffect(() => {
         MapboxToken.init();
@@ -240,51 +187,6 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
         );
     };
 
-    const footer = (
-        <>
-            {hasRouteError && (
-                <DotIndicatorMessage
-                    style={[styles.mh5, styles.mv3]}
-                    messages={ErrorUtils.getLatestErrorField(transaction, 'route')}
-                    type="error"
-                />
-            )}
-            <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
-                <Button
-                    small
-                    icon={Expensicons.Plus}
-                    onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
-                    text={translate('distance.addStop')}
-                    isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
-                    innerStyles={[styles.ph10]}
-                />
-            </View>
-            <View style={styles.mapViewContainer}>
-                {!isOffline && Boolean(mapboxAccessToken.token) ? (
-                    <DistanceMapView
-                        accessToken={mapboxAccessToken.token}
-                        mapPadding={CONST.MAPBOX.PADDING}
-                        pitchEnabled={false}
-                        initialState={{
-                            zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                            location: CONST.MAPBOX.DEFAULT_COORDINATE,
-                        }}
-                        directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
-                        style={styles.mapView}
-                        waypoints={waypointMarkers}
-                        styleURL={CONST.MAPBOX.STYLE_URL}
-                        overlayStyle={styles.m4}
-                    />
-                ) : (
-                    <PendingMapView
-                        title={translate('distance.mapPending.title')}
-                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                    />
-                )}
-            </View>
-        </>
-    );
-
     const content = (
         <>
             <View style={styles.flex1}>
@@ -296,7 +198,14 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
                     scrollEventThrottle={variables.distanceScrollEventThrottle}
                     ref={scrollViewRef}
                     renderItem={renderItem}
-                    ListFooterComponent={footer}
+                    ListFooterComponent={
+                        <DistanceRequestFooter
+                            waypoints={waypoints}
+                            hasRouteError={hasRouteError}
+                            navigateToWaypointEditPage={navigateToWaypointEditPage}
+                            transactionID={transactionID}
+                        />
+                    }
                 />
             </View>
             <View style={[styles.w100, styles.pt2]}>
