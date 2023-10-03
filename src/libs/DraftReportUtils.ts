@@ -1,6 +1,11 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 
+/**
+ * A singleton class to manage the draft report IDs
+ * @class DraftReportUtils
+ * @singleton
+ */
 class DraftReportUtils {
     private static instance: DraftReportUtils;
 
@@ -14,11 +19,17 @@ class DraftReportUtils {
         this.subscribeToDraftReportIDs();
     }
 
+    /**
+     * @returns The singleton instance
+     */
     public static getInstance(): DraftReportUtils {
         // Ensure singleton instance
         return DraftReportUtils.instance ?? new DraftReportUtils();
     }
 
+    /**
+     * Subscribe to the draft report IDs
+     */
     private subscribeToDraftReportIDs() {
         Onyx.connect({
             key: ONYXKEYS.DRAFT_REPORT_IDS,
@@ -32,6 +43,9 @@ class DraftReportUtils {
         });
     }
 
+    /**
+     * @returns The draft report IDs
+     */
     getDraftReportIDs() {
         return this.draftReportIDs;
     }
