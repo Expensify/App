@@ -1,6 +1,6 @@
 ---
 title: Uber integration
-Connecting your Uber account to Expensify
+description: Connecting your Uber account to Expensify
 ---
 ## Overview
 
