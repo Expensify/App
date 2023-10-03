@@ -18,8 +18,7 @@ const defaultProps = {};
 
 function IOURequestCreateTabDistance() {
     const {
-        report,
-        route,
+        report = {},
         transaction: {transactionID, reportID, participants},
     } = useContext(IOURouteContext);
     /**

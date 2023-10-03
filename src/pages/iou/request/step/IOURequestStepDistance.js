@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState, useRef} from 'react';
+import React, {useEffect, useMemo, useState, useRef, useContext} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -11,6 +11,7 @@ import styles from '../../../../styles/styles';
 import variables from '../../../../styles/variables';
 import LinearGradient from '../../../../components/LinearGradient';
 import * as MapboxToken from '../../../../libs/actions/MapboxToken';
+import * as IOU from '../../../../libs/actions/IOU';
 import useNetwork from '../../../../hooks/useNetwork';
 import useLocalize from '../../../../hooks/useLocalize';
 import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
@@ -25,15 +26,14 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import PendingMapView from '../../../../components/MapView/PendingMapView';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import * as StyleUtils from '../../../../styles/StyleUtils';
-import transactionPropTypes from '../../../../components/transactionPropTypes';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
+import IOURouteContext from '../../IOURouteContext';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
 const propTypes = {
-    /** The transactionID of this request */
-    transactionID: PropTypes.string,
-
     /** Data about Mapbox token for calling Mapbox API */
     mapboxAccessToken: PropTypes.shape({
         /** Temporary token for Mapbox API */
@@ -42,32 +42,25 @@ const propTypes = {
         /** Time when the token will expire in ISO 8601 */
         expiration: PropTypes.string,
     }),
-
-    /** Called on submit of this page */
-    onSubmit: PropTypes.func.isRequired,
-
-    /** Called when a waypoint is selected */
-    onWaypointSelect: PropTypes.func.isRequired,
-
-    /* Onyx Props */
-    /** The transaction being modified */
-    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
-    transactionID: '',
     mapboxAccessToken: {
         token: '',
     },
-    transaction: {},
 };
 
-function IOURequestStepDistance({transactionID, transaction, mapboxAccessToken, onSubmit, onWaypointSelect}) {
+function IOURequestStepDistance({mapboxAccessToken}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const {
+        report,
+        transaction,
+        transaction: {transactionID, reportID, participants},
+    } = useContext(IOURouteContext);
 
     const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
     const previousWaypoints = usePrevious(waypoints);
@@ -158,6 +151,33 @@ function IOURequestStepDistance({transactionID, transaction, mapboxAccessToken, 
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
+    /**
+     * @param {Number} index of the waypoint that the user needs to be taken to
+     */
+    const navigateToWaypointPage = (index) => {
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.WAYPOINT, transactionID, reportID, index));
+    };
+
+    const goToNextStep = () => {
+        // If the transaction has participants already, the user came from the confirmation step so take them back to that step.
+        if (!_.isEmpty(participants)) {
+            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+            return;
+        }
+
+        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
+        // inside a report. In this case, we know the participants already and can skip the participants step and go straight
+        // to the confirm step.
+        if (report.reportID) {
+            IOU.autoAssignParticipants(transactionID, report);
+            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+            return;
+        }
+
+        // If there was no reportID, then that means the user started this flow from the global + menu
+        // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
+    };
 
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
@@ -195,7 +215,7 @@ function IOURequestStepDistance({transactionID, transaction, mapboxAccessToken, 
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
                                 shouldShowRightIcon
-                                onPress={() => onWaypointSelect(index)}
+                                onPress={() => navigateToWaypointPage(index)}
                                 key={key}
                             />
                         );
@@ -219,7 +239,7 @@ function IOURequestStepDistance({transactionID, transaction, mapboxAccessToken, 
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => onWaypointSelect(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
+                    onPress={() => navigateToWaypointPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
@@ -251,7 +271,7 @@ function IOURequestStepDistance({transactionID, transaction, mapboxAccessToken, 
             <Button
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                onPress={() => onSubmit(waypoints)}
+                onPress={() => goToNextStep(waypoints)}
                 isDisabled={_.size(validatedWaypoints) < 2 || (!isOffline && (hasRouteError || isLoadingRoute || isLoading))}
                 text={translate('common.next')}
                 isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}

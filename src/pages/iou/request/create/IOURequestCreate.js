@@ -5,10 +5,10 @@ import PropTypes from 'prop-types';
 import CONST from '../../../../CONST';
 import TabSelector from '../../../../components/TabSelector/TabSelector';
 import OnyxTabNavigator, {TopTab} from '../../../../libs/Navigation/OnyxTabNavigator';
-import IOURequestCreateTabDistance from './tab/IOURequestCreateTabDistance';
 import IOURequestCreateTabScan from './tab/IOURequestCreateTabScan';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import IOURequestStepAmount from '../step/IOURequestStepAmount';
+import IOURequestStepDistance from '../step/IOURequestStepDistance';
 
 const propTypes = {
     /** The tab to select by default (whatever the user visited last) */
@@ -42,7 +42,7 @@ function IOURequestCreate({selectedTab}) {
             />
             <TopTab.Screen
                 name={CONST.TAB_REQUEST.DISTANCE}
-                component={IOURequestCreateTabDistance}
+                component={IOURequestStepDistance}
             />
         </OnyxTabNavigator>
     );
