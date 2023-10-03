@@ -2,6 +2,7 @@ import React, {useCallback, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {useIsFocused} from '@react-navigation/native';
 import CONST from '../../../CONST';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -48,6 +49,7 @@ function RoomNamePage(props) {
     const translate = props.translate;
 
     const roomNameInputRef = useRef(null);
+    const isFocused = useIsFocused();
 
     const validate = useCallback(
         (values) => {
@@ -101,6 +103,7 @@ function RoomNamePage(props) {
                             ref={(ref) => (roomNameInputRef.current = ref)}
                             inputID="roomName"
                             defaultValue={report.reportName}
+                            isFocused={isFocused}
                         />
                     </View>
                 </Form>

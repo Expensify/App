@@ -71,11 +71,36 @@ const defaultProps = {
     maxAvatarsInRow: CONST.AVATAR_ROW_SIZE.DEFAULT,
 };
 
+const avatarSizeToStylesMap = {
+    [CONST.AVATAR_SIZE.SMALL]: {
+        singleAvatarStyle: styles.singleAvatarSmall,
+        secondAvatarStyles: styles.secondAvatarSmall,
+    },
+    [CONST.AVATAR_SIZE.LARGE]: {
+        singleAvatarStyle: styles.singleAvatarMedium,
+        secondAvatarStyles: styles.secondAvatarMedium,
+    },
+    default: {
+        singleAvatarStyle: styles.singleAvatar,
+        secondAvatarStyles: styles.secondAvatar,
+    },
+};
 function MultipleAvatars(props) {
     let avatarContainerStyles = StyleUtils.getContainerStyles(props.size, props.isInReportAction);
-    const singleAvatarStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
-    const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
+    const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[props.size] || avatarSizeToStylesMap.default, [props.size]);
+
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
+    const avatarSize = useMemo(() => {
+        if (props.isFocusMode) {
+            return CONST.AVATAR_SIZE.MID_SUBSCRIPT;
+        }
+
+        if (props.size === CONST.AVATAR_SIZE.LARGE) {
+            return CONST.AVATAR_SIZE.MEDIUM;
+        }
+
+        return CONST.AVATAR_SIZE.SMALLER;
+    }, [props.isFocusMode, props.size]);
 
     const avatarRows = useMemo(() => {
         // If we're not displaying avatars in rows or the number of icons is less than or equal to the max avatars in a row, return a single row
@@ -228,7 +253,7 @@ function MultipleAvatars(props) {
                                 <Avatar
                                     source={props.icons[0].source || props.fallbackIcon}
                                     fill={themeColors.iconSuccessFill}
-                                    size={props.isFocusMode ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER}
+                                    size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
                                     name={props.icons[0].name}
                                     type={props.icons[0].type}
@@ -236,7 +261,13 @@ function MultipleAvatars(props) {
                                 />
                             </View>
                         </UserDetailsTooltip>
-                        <View style={[...secondAvatarStyles, props.icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[1].type) : {}]}>
+                        <View
+                            style={[
+                                secondAvatarStyles,
+                                ...props.secondAvatarStyle,
+                                props.icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[1].type) : {},
+                            ]}
+                        >
                             {props.icons.length === 2 ? (
                                 <UserDetailsTooltip
                                     accountID={props.icons[1].id}
@@ -250,7 +281,7 @@ function MultipleAvatars(props) {
                                         <Avatar
                                             source={props.icons[1].source || props.fallbackIcon}
                                             fill={themeColors.iconSuccessFill}
-                                            size={props.isFocusMode ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER}
+                                            size={avatarSize}
                                             imageStyles={[singleAvatarStyle]}
                                             name={props.icons[1].name}
                                             type={props.icons[1].type}
