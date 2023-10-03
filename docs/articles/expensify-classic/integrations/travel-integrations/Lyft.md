@@ -1,5 +1,5 @@
 ---
-Lyft Integration
+title: Lyft Integration
 Connecting your Lyft account to Expensify
 ---
 
