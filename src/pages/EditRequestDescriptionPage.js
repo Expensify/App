@@ -73,6 +73,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                             updateMultilineInputRange(descriptionInputRef.current);
                         }}
                         autoGrowHeight
+                        selectTextOnFocus
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
                         submitOnEnter={!Browser.isMobile()}

@@ -1,5 +1,7 @@
-import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { View, InteractionManager } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import setSelection from '../libs/setSelection';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import TextInput from '../components/TextInput';
@@ -19,9 +21,10 @@ const propTypes = {
     onSubmit: PropTypes.func.isRequired,
 };
 
-function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
-    const {translate} = useLocalize();
+function EditRequestMerchantPage({ defaultMerchant, onSubmit }) {
+    const { translate } = useLocalize();
     const merchantInputRef = useRef(null);
+    const focusTimeoutRef = useRef(null);
 
     const validate = useCallback((value) => {
         const errors = {};
@@ -33,11 +36,27 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
         return errors;
     }, []);
 
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                if (merchantInputRef.current) {
+                    merchantInputRef.current.focus();
+                    setSelection(merchantInputRef.current, 0, defaultMerchant.length);
+                }
+                return () => {
+                    if (!focusTimeoutRef.current) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
+            }, CONST.ANIMATED_TRANSITION);
+        }, []),
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => merchantInputRef.current && merchantInputRef.current.focus()}
             testID={EditRequestMerchantPage.displayName}
         >
             <HeaderWithBackButton title={translate('common.merchant')} />
@@ -58,6 +77,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
                         accessibilityLabel={translate('common.merchant')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(e) => (merchantInputRef.current = e)}
+                        selectTextOnFocus
                     />
                 </View>
             </Form>
