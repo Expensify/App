@@ -26,7 +26,7 @@ To enable Expensify for your Google Apps domain and add an “Expenses” link t
 To sync your Google Apps users to your Expensify Workspace, follow these steps:
 1. Follow the above steps to install Expensify in your Google Apps directory.
 2. Log in to [Expensify](https://www.expensify.com/).
-3. Click [Settings>Workspaces>Group](https://www.expensify.com/admin_policies?param={%22section%22:%22group%22}).
+3. Click [Settings>Workspaces>Group](https://www.expensify.com/admin_policies?param={"section":"group"}).
 4. Select the Workspace you wish to invite users to.
 5. Select **People** from the admin menu.
 6. Click **Sync G Suite Now** to identify anyone on your domain not yet on the Workspace and add them to it. 
