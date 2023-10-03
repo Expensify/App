@@ -2,16 +2,16 @@ import type {DraggableChildrenFn} from 'react-beautiful-dnd';
 import {useEffect, useRef} from 'react';
 import {createPortal} from 'react-dom';
 
-type DraggableInPortalProps = {
+type DraggableInPortal = {
     shouldUsePortal?: boolean;
 };
 
-export default function useDraggableInPortal({shouldUsePortal}: DraggableInPortalProps): (render: DraggableChildrenFn) => DraggableChildrenFn {
+export default function useDraggableInPortal({shouldUsePortal}: DraggableInPortal): (render: DraggableChildrenFn) => DraggableChildrenFn {
     const element = useRef<HTMLDivElement>(document.createElement('div')).current;
 
     useEffect(() => {
         if (!shouldUsePortal || !element) {
-            return () => {};
+            return;
         }
         element.style.pointerEvents = 'none';
         element.style.position = 'absolute';
@@ -30,7 +30,7 @@ export default function useDraggableInPortal({shouldUsePortal}: DraggableInPorta
         return (render) => render;
     }
 
-    return (render) => (provided, snapshot, rubric) => {
+    return (render): DraggableChildrenFn => (provided, snapshot, rubric) => {
         const result = render(provided, snapshot, rubric);
         const style = provided.draggableProps.style;
         if (style && 'position' in style && style.position === 'fixed') {
@@ -40,4 +40,4 @@ export default function useDraggableInPortal({shouldUsePortal}: DraggableInPorta
     };
 }
 
-export type {DraggableInPortalProps};
+export type {DraggableInPortal};

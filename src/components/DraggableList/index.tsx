@@ -11,9 +11,11 @@ type ReorderParams<T> = {
     endIndex: number;
 };
 
-// Function to help us with reordering the result
+/**
+ * Reorders a list by moving an item from a start index to an end index.
+ */
 const reorder = <T,>({list, startIndex, endIndex}: ReorderParams<T>): T[] => {
-    const result = Array.from(list);
+    const result = [...list];
     const [removed] = result.splice(startIndex, 1);
 
     if (removed) {
@@ -75,7 +77,7 @@ function DraggableList<T>(
      * The `react-beautiful-dnd` library uses `position: fixed` to move the dragged item to the top of the screen.
      * But when the parent component uses the `transform` property, the `position: fixed` doesn't work as expected.
      * Since the TabSelector component uses the `transform` property to animate the tab change
-     * we have to use portals when any of the parent components use the `transform` property.
+     * we have to use portals. It is required when any of the parent components use the `transform` property.
      */
     const renderDraggable = useDraggableInPortal({shouldUsePortal});
 

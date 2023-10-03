@@ -202,7 +202,7 @@ function getRoute(transactionID: string, waypoints: WaypointCollection) {
 }
 
 /**
- * Updates full set of waypoints for the specific transaction.
+ * Updates all waypoints stored in the transaction specified by the provided transactionID.
  *
  * @param transactionID - The ID of the transaction to be updated
  * @param waypoints - An object containing all the waypoints
