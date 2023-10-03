@@ -30,7 +30,6 @@ import useWindowDimensions from '../hooks/useWindowDimensions';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import useNativeDriver from '../libs/useNativeDriver';
-import useNetwork from '../hooks/useNetwork';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -122,7 +121,6 @@ function AttachmentModal(props) {
             : undefined,
     );
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
 
     const onCarouselAttachmentChange = props.onCarouselAttachmentChange;
 
@@ -352,7 +350,7 @@ function AttachmentModal(props) {
                 <HeaderWithBackButton
                     title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
                     shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !isAttachmentReceipt && !isOffline}
+                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !isAttachmentReceipt}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
