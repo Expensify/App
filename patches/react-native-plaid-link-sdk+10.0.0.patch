@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-plaid-link-sdk/android/build.gradle b/node_modules/react-native-plaid-link-sdk/android/build.gradle
+index 5fa85a5..0b28564 100644
+--- a/node_modules/react-native-plaid-link-sdk/android/build.gradle
++++ b/node_modules/react-native-plaid-link-sdk/android/build.gradle
+@@ -27,7 +27,6 @@ buildscript {
+ 
+ apply plugin: 'com.android.library'
+ apply plugin: "kotlin-android"
+-apply plugin: "kotlin-android-extensions"
+ 
+ android {
+     compileSdkVersion 31
