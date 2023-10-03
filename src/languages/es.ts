@@ -458,7 +458,7 @@ export default {
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Enviar mensaje',
-        fabNewChatExplained: 'Enviar mensaje',
+        fabNewChatExplained: 'Enviar mensaje (Acción flotante)',
         chatPinned: 'Chat fijado',
         draftedMessage: 'Mensaje borrador',
         listOfChatMessages: 'Lista de mensajes del chat',
