@@ -2,15 +2,11 @@
 title: Copilot
 description: Safely delegate tasks without sharing login information.
 ---
-<!-- The lines above are required by Jekyll to process the .md file -->
 
 # About
-<!--
 The Copilot feature allows you to safely delegate tasks without sharing login information. Your chosen user can access your account through their own Expensify account, with customizable permissions to manage expenses, create reports, and more. This can even be extended to users outside your policy or domain.
--->
 
 # How-to
-<!--
 # How to add a Copilot
 1. Log into the Expensify desktop website.
 2. Navigate to *Settings > Account > Account Details > _Copilot: Delegated Access_*.
@@ -42,10 +38,8 @@ If you ever need to remove a Copilot, you can do so by following the below steps
 2. Navigate to *Settings > Your Account > Account Details > _Copilot: Delegated Access_*
 3. Click the red X next to the Copilot you'd like to remove
 
--->
 
 # Deep Dive
-<!--
 ## Copilot Permissions
 A Copilot can do the following actions in your account:
 - Prepare expenses on your behalf
@@ -64,10 +58,8 @@ To ensure a receipt is routed to the Expensify account in which you are a copilo
 2. Put the email of the account in which you are a copilot in the subject line
 3. Send
 
--->
 
 # FAQ
-<!--
 ## Can a Copilot's Secondary Login be used to forward receipts?
 Yes! A Copilot can use any of the email addresses tied to their account to forward receipts into the account of the person they're assisting.
 
@@ -75,4 +67,3 @@ Yes! A Copilot can use any of the email addresses tied to their account to forwa
 No, only the original account holder can add another Copilot to the account.
 ## Is there a restriction on the number of Copilots I can have or the number of users for whom I can act as a Copilot?
 There is no limit! You can have as many Copilots as you like, and you can be a Copilot for as many users as you need.
--->
