@@ -8,10 +8,12 @@ import refPropTypes from './refPropTypes';
 
 const withCurrentUserPersonalDetailsPropTypes = {
     currentUserPersonalDetails: personalDetailsPropType,
+    isLoading: PropTypes.bool,
 };
 
 const withCurrentUserPersonalDetailsDefaultProps = {
     currentUserPersonalDetails: {},
+    isLoading: true,
 };
 
 export default function (WrappedComponent) {
@@ -25,6 +27,7 @@ export default function (WrappedComponent) {
         session: PropTypes.shape({
             accountID: PropTypes.number,
         }),
+        isLoading: PropTypes.bool,
     };
     const defaultProps = {
         forwardedRef: undefined,
@@ -32,6 +35,7 @@ export default function (WrappedComponent) {
         session: {
             accountID: 0,
         },
+        isLoading: true
     };
 
     function WithCurrentUserPersonalDetails(props) {
@@ -67,6 +71,9 @@ export default function (WrappedComponent) {
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        isLoading: {
+           key: ONYXKEYS.IS_LOADING_APP,
         },
     })(withCurrentUserPersonalDetails);
 }
