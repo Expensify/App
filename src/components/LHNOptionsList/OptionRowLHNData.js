@@ -19,7 +19,7 @@ import CONST from '../../CONST';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 
 const propTypes = {
-    /** Wether row should be focused */
+    /** Whether row should be focused */
     isFocused: PropTypes.bool,
 
     /** List of users' personal details */
