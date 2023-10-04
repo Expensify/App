@@ -1,6 +1,7 @@
-import {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import PropTypes from 'prop-types';
 
 const sidebarPropTypes = {
-    ...windowDimensionsPropTypes,
+    /** Children to wrap (floating button). */
+    children: PropTypes.node.isRequired,
 };
 export default sidebarPropTypes;

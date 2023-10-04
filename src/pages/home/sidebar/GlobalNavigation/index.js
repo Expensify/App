@@ -1,7 +1,6 @@
 import React, {useMemo, useContext} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import PressableAvatarWithIndicator from '../PressableAvatarWithIndicator';
 import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import CONST from '../../../../CONST';
