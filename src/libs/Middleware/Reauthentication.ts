@@ -10,7 +10,7 @@ import Middleware from './types';
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
 let isAuthenticating: Promise<void> | null = null;
 
-function reauthenticate(commandName: string): Promise<void> {
+function reauthenticate(commandName?: string): Promise<void> {
     if (isAuthenticating) {
         return isAuthenticating;
     }
@@ -61,7 +61,6 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                     if (request.resolve) {
                         request.resolve(data);
                     }
-
                     return data;
                 }
 
