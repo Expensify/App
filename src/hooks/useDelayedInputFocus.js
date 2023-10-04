@@ -8,7 +8,7 @@ import CONST from '../CONST';
  * @param {Object} inputRef
  * @param {Number} [delay]
  */
-export default function useDelayedInputFocus(inputRef, delay = CONST.INPUT_FOCUS_DELAY) {
+export default function useDelayedInputFocus(inputRef, delay = CONST.ANIMATED_TRANSITION) {
     const timeoutRef = useRef(null);
 
     useFocusEffect(

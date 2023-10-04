@@ -146,7 +146,7 @@ function WorkspaceNewRoomPage(props) {
     );
 
     const roomNameInputRef = useRef(null);
-    useDelayedInputFocus(roomNameInputRef);
+    useDelayedInputFocus(roomNameInputRef, CONST.INPUT_FOCUS_DELAY);
 
     return (
         <FullPageNotFoundView
