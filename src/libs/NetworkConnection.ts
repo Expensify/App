@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
 import NetInfo from '@react-native-community/netinfo';
+import throttle from 'lodash/throttle';
 import AppStateMonitor from './AppStateMonitor';
 import Log from './Log';
-import throttle from 'lodash/throttle';
 import * as NetworkActions from './actions/Network';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
