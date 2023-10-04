@@ -9,12 +9,12 @@ const propTypes = {
     shouldAnimate: PropTypes.bool,
 
     /** Number of possible visible content items */
-    possibleVisibleContentItems: PropTypes.number
+    possibleVisibleContentItems: PropTypes.number,
 };
 
 const defaultProps = {
     shouldAnimate: true,
-    possibleVisibleContentItems: 0
+    possibleVisibleContentItems: 0,
 };
 
 function ReportActionsSkeletonView({shouldAnimate, possibleVisibleContentItems}) {

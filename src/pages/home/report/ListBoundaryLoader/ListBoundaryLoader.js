@@ -42,7 +42,12 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
         // skeleton view above the created action in a newly generated optimistic chat or one with not
         // that many comments.
         if (isLoadingInitialReportActions && lastReportActionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return <ReportActionsSkeletonView shouldAnimate={!isOffline} possibleVisibleContentItems={3} />;
+            return (
+                <ReportActionsSkeletonView
+                    shouldAnimate={!isOffline}
+                    possibleVisibleContentItems={3}
+                />
+            );
         }
 
         return null;

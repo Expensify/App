@@ -258,7 +258,7 @@ function arePropsEqual(oldProps, newProps) {
     if (oldProps.isLoadingInitialReportActions !== newProps.isLoadingInitialReportActions) {
         return false;
     }
-    
+
     if (oldProps.isLoadingOlderReportActions !== newProps.isLoadingOlderReportActions) {
         return false;
     }
