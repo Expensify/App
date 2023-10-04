@@ -106,9 +106,9 @@ const defaultProps = {
         hasOutstandingIOU: false,
     },
     reportMetadata: {
-        isLoadingInitialReportActions: false,
-        isLoadingNewerReportActions: false,
+        isLoadingInitialReportActions: true,
         isLoadingOlderReportActions: false,
+        isLoadingNewerReportActions: false,
     },
     isComposerFullSize: false,
     betas: [],
@@ -119,15 +119,6 @@ const defaultProps = {
     markReadyForHydration: null,
     ...withCurrentReportIDDefaultProps,
 };
-
-/**
- *
- * Function to check weather the report available in props is default
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-const checkDefaultReport = (report) => report === defaultProps.report;
 
 /**
  * Get the currently viewed report ID as number
@@ -248,8 +239,6 @@ function ReportScreen({
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
 
-    const isDefaultReport = checkDefaultReport(report);
-
     let headerView = (
         <HeaderView
             reportID={reportID}
@@ -303,33 +292,35 @@ function ReportScreen({
 
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
-        if (!reportIDFromPath) {
+        if (!ReportUtils.isValidReportIDFromPath(reportIDFromPath)) {
             return;
         }
 
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (report.reportID && report.reportID === getReportID(route) && !reportActionID) {
+
+        // useEffect(() => {
+        //     console.log('get.ROUTE.0', route);
+        //     const {reportActionID} = getReportActionID(route);
+        //     if (!reportActionID) return;
+        //     fetchReportIfNeeded();
+        //     console.log('get.ROUTE.+++++++++', route);
+        //     setLinkingToMessageTrigger(true);
+        // }, [route, fetchReportIfNeeded]);
+        // ReportUtils.useRouteChangeHandler(reportID, reportActionID, () => {
+        //     console.log('getChat.OPEN_REPORT.000', reportActionID);
+        //     fetchReportIfNeeded();
+        //     // updateCurrentReportID(getReportID(route));
+        // });
+
+        // if (report.reportID && report.reportID === getReportID(route) && !reportActionID) {
+        if (report.reportID && report.reportID === getReportID(route) && !reportMetadata.isLoadingInitialReportActions) {
             return;
         }
-        console.log('getChat.OPEN_REPORT', reportActionID);
-        Report.openReport({reportID: reportIDFromPath, reportActionID: reportActionID || ''});
-    }, [report.reportID, route, reportActionID]);
 
-    // useEffect(() => {
-    //     console.log('get.ROUTE.0', route);
-    //     const {reportActionID} = getReportActionID(route);
-    //     if (!reportActionID) return;
-    //     fetchReportIfNeeded();
-    //     console.log('get.ROUTE.+++++++++', route);
-    //     setLinkingToMessageTrigger(true);
-    // }, [route, fetchReportIfNeeded]);
-    // ReportUtils.useRouteChangeHandler(reportID, reportActionID, () => {
-    //     console.log('getChat.OPEN_REPORT.000', reportActionID);
-    //     fetchReportIfNeeded();
-    //     // updateCurrentReportID(getReportID(route));
-    // });
+        Report.openReport({reportID: reportIDFromPath, reportActionID: reportActionID || ''});
+    }, [report.reportID, route, reportMetadata.isLoadingInitialReportActions]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -443,15 +434,13 @@ function ReportScreen({
     const shouldShowNotFoundPage = useMemo(
         () =>
             (!firstRenderRef.current &&
-                !_.isEmpty(report) &&
-                !isDefaultReport &&
                 !report.reportID &&
                 !isOptimisticDelete &&
                 !reportMetadata.isLoadingInitialReportActions &&
                 !isLoading &&
                 !userLeavingStatus) ||
             shouldHideReport,
-        [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete, userLeavingStatus, reportMetadata.isLoadingInitialReportActions],
+        [report, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus, reportMetadata.isLoadingInitialReportActions],
     );
 
     return (
@@ -569,9 +558,9 @@ export default compose(
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
                 initialValue: {
+                    isLoadingInitialReportActions: true,
                     isLoadingOlderReportActions: false,
                     isLoadingNewerReportActions: false,
-                    isLoadingInitialReportActions: false,
                 },
             },
             isComposerFullSize: {

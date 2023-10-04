@@ -38,6 +38,7 @@ module.exports = {
         {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
             rules: {
+                'rulesdir/no-multiple-onyx-in-file': 'off',
                 'rulesdir/onyx-props-must-have-default': 'off',
                 'react-native-a11y/has-accessibility-hint': ['off'],
                 'react-native-a11y/has-valid-accessibility-descriptors': [
@@ -163,6 +164,7 @@ module.exports = {
                     },
                 ],
                 curly: 'error',
+                'you-dont-need-lodash-underscore/throttle': 'off',
             },
         },
         {
