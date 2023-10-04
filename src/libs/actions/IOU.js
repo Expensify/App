@@ -895,7 +895,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             : ReportUtils.getChatByParticipants(participantAccountIDs);
     const splitChatReport = existingSplitChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     const isOwnPolicyExpenseChat = splitChatReport.isOwnPolicyExpenseChat;
-    const shouldCreateSplitChatReport = _.isEmpty(existingSplitChatReportID);
 
     // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
     const formattedParticipants = isOwnPolicyExpenseChat
@@ -935,7 +934,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     splitChatReport.lastMessageHtml = splitIOUReportAction.message[0].html;
 
     // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
-    if (shouldCreateSplitChatReport) {
+    if (!existingSplitChatReport) {
         splitChatReport.pendingFields = {
             createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
@@ -945,12 +944,12 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         {
             // Use set for new reports because it doesn't exist yet, is faster,
             // and we need the data to be available when we navigate to the chat page
-            onyxMethod: shouldCreateSplitChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
             value: splitChatReport,
         },
         {
-            onyxMethod: shouldCreateSplitChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
                 ...(existingSplitChatReport ? {} : {[splitCreatedReportAction.reportActionID]: splitCreatedReportAction}),
@@ -969,7 +968,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
-                ...(shouldCreateSplitChatReport ? {[splitCreatedReportAction.reportActionID]: {pendingAction: null}} : {}),
+                ...(existingSplitChatReport ? {} : {[splitCreatedReportAction.reportActionID]: {pendingAction: null}}),
                 [splitIOUReportAction.reportActionID]: {pendingAction: null},
             },
         },
@@ -1058,15 +1057,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         if ((!hasMultipleParticipants && !existingSplitChatReportID) || isOwnPolicyExpenseChat) {
             oneOnOneChatReport = splitChatReport;
             shouldCreateOptimisticPersonalDetails = !existingSplitChatReport;
-            console.log(shouldCreateOptimisticPersonalDetails);
         } else {
             const existingChatReport = ReportUtils.getChatByParticipants([accountID]);
             isNewOneOnOneChatReport = !existingChatReport;
             shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport;
-            if (!existingChatReport) {
-                console.log('building chat report');
-            }
-            console.log(shouldCreateOptimisticPersonalDetails);
             oneOnOneChatReport = existingChatReport || ReportUtils.buildOptimisticChatReport([accountID]);
         }
 
@@ -1257,7 +1251,6 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
 
 /** Used exclusively for starting a split bill request that contains a receipt, the split request will be completed once the receipt is scanned */
 function startSplitBill(participants, currentUserLogin, currentUserAccountID, comment, created, merchant, receipt, existingSplitChatReportID = '') {
-    console.log(participants);
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -1435,7 +1428,6 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             accountID,
         });
     });
-    console.log('split chat report', splitChatReport);
 
     API.write(
         'StartSplitBill',
