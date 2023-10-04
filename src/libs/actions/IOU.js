@@ -1249,7 +1249,17 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
-/** Used exclusively for starting a split bill request that contains a receipt, the split request will be completed once the receipt is scanned */
+/** Used exclusively for starting a split bill request that contains a receipt, the split request will be completed once the receipt is scanned
+ *
+ * @param {Array} participants
+ * @param {String} currentUserLogin
+ * @param {Number} currentUserAccountID
+ * @param {String} comment
+ * @param {String} created
+ * @param {String} merchant
+ * @param {Object} receipt
+ * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
+ */
 function startSplitBill(participants, currentUserLogin, currentUserAccountID, comment, created, merchant, receipt, existingSplitChatReportID = '') {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
