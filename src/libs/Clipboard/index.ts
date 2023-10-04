@@ -1,17 +1,37 @@
 // on Web/desktop this import will be replaced with `react-native-web`
-import {Clipboard} from 'react-native-web';
-import lodashGet from 'lodash/get';
+import {Clipboard as RNWClipboard} from 'react-native-web';
 import CONST from '../../CONST';
 import * as Browser from '../Browser';
+import {SetString, Clipboard} from './types';
 
-const canSetHtml = () => lodashGet(navigator, 'clipboard.write');
+type ComposerSelection = {
+    start: number;
+    end: number;
+    direction: 'forward' | 'backward' | 'none';
+};
+
+type AnchorSelection = {
+    anchorOffset: number;
+    focusOffset: number;
+    anchorNode: Node;
+    focusNode: Node;
+};
+
+type Nullable<T> = {[K in keyof T]: T[K] | null};
+type OriginalSelection = ComposerSelection | Partial<Nullable<AnchorSelection>>;
+
+/*
+* @param {this: void} object The object to query.
+*/
+
+const canSetHtml = () => (...args: ClipboardItems) => navigator?.clipboard?.write([...args]);
 
 /**
  * Deprecated method to write the content as HTML to clipboard.
- * @param {String} html HTML representation
- * @param {String} text Plain text representation
+ * @param HTML representation
+ * @param Plain text representation
  */
-function setHTMLSync(html, text) {
+function setHTMLSync(html: string, text: string) {
     const node = document.createElement('span');
     node.textContent = html;
     node.style.all = 'unset';
@@ -22,16 +42,16 @@ function setHTMLSync(html, text) {
     node.addEventListener('copy', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        e.clipboardData.clearData();
-        e.clipboardData.setData('text/html', html);
-        e.clipboardData.setData('text/plain', text);
+        e.clipboardData?.clearData();
+        e.clipboardData?.setData('text/html', html);
+        e.clipboardData?.setData('text/plain', text);
     });
     document.body.appendChild(node);
 
-    const selection = window.getSelection();
-    const firstAnchorChild = selection.anchorNode && selection.anchorNode.firstChild;
+    const selection = window?.getSelection();
+    const firstAnchorChild = selection?.anchorNode?.firstChild;
     const isComposer = firstAnchorChild instanceof HTMLTextAreaElement;
-    let originalSelection = null;
+    let originalSelection: OriginalSelection | null = null;
     if (isComposer) {
         originalSelection = {
             start: firstAnchorChild.selectionStart,
@@ -40,17 +60,17 @@ function setHTMLSync(html, text) {
         };
     } else {
         originalSelection = {
-            anchorNode: selection.anchorNode,
-            anchorOffset: selection.anchorOffset,
-            focusNode: selection.focusNode,
-            focusOffset: selection.focusOffset,
+            anchorNode: selection?.anchorNode,
+            anchorOffset: selection?.anchorOffset,
+            focusNode: selection?.focusNode,
+            focusOffset: selection?.focusOffset,
         };
     }
 
-    selection.removeAllRanges();
+    selection?.removeAllRanges();
     const range = document.createRange();
     range.selectNodeContents(node);
-    selection.addRange(range);
+    selection?.addRange(range);
 
     try {
         document.execCommand('copy');
@@ -59,12 +79,14 @@ function setHTMLSync(html, text) {
         // See https://dvcs.w3.org/hg/editing/raw-file/tip/editing.html#the-copy-command for more details.
     }
 
-    selection.removeAllRanges();
+    selection?.removeAllRanges();
 
     if (isComposer) {
-        firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
+        const composerSelection = originalSelection as ComposerSelection;
+        firstAnchorChild.setSelectionRange(composerSelection.start, composerSelection.end, composerSelection.direction);
     } else {
-        selection.setBaseAndExtent(originalSelection.anchorNode, originalSelection.anchorOffset, originalSelection.focusNode, originalSelection.focusOffset);
+        const anchorSelection = originalSelection as AnchorSelection;
+        selection?.setBaseAndExtent(anchorSelection.anchorNode, anchorSelection.anchorOffset, anchorSelection.focusNode, anchorSelection.focusOffset);
     }
 
     document.body.removeChild(node);
@@ -72,10 +94,10 @@ function setHTMLSync(html, text) {
 
 /**
  * Writes the content as HTML if the web client supports it.
- * @param {String} html HTML representation
- * @param {String} text Plain text representation
+ * @param HTML representation
+ * @param Plain text representation
  */
-const setHtml = (html, text) => {
+const setHtml = (html: string, text: string) => {
     if (!html || !text) {
         return;
     }
@@ -92,9 +114,10 @@ const setHtml = (html, text) => {
         setHTMLSync(html, text);
     } else {
         navigator.clipboard.write([
-            // eslint-disable-next-line no-undef
             new ClipboardItem({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'text/html': new Blob([html], {type: 'text/html'}),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'text/plain': new Blob([text], {type: 'text/plain'}),
             }),
         ]);
@@ -103,15 +126,15 @@ const setHtml = (html, text) => {
 
 /**
  * Sets a string on the Clipboard object via react-native-web
- *
- * @param {String} text
  */
-const setString = (text) => {
-    Clipboard.setString(text);
+const setString: SetString = (text) => {
+    RNWClipboard.setString(text);
 };
 
-export default {
+const clipboard: Clipboard = {
     setString,
     canSetHtml,
     setHtml,
 };
+
+export default clipboard;
