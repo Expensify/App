@@ -24,7 +24,6 @@ import * as User from '../../../../libs/actions/User';
 import * as ReportUtils from '../../../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
-import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
 import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
@@ -33,6 +32,7 @@ import compose from '../../../../libs/compose';
 import withKeyboardState from '../../../../components/withKeyboardState';
 import {propTypes, defaultProps} from './composerWithSuggestionsProps';
 import focusWithDelay from '../../../../libs/focusWithDelay';
+import useDebounce from '../../../../hooks/useDebounce';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -91,7 +91,6 @@ function ComposerWithSuggestions({
     setIsFullComposerAvailable,
     setIsCommentEmpty,
     submitForm,
-    shouldShowReportRecipientLocalTime,
     shouldShowComposeInput,
     measureParentContainer,
     // Refs
@@ -132,6 +131,9 @@ function ComposerWithSuggestions({
     const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
 
+    // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
+    const isScrollLikelyLayoutTriggered = useRef(false);
+
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
      * API is not called too often.
@@ -140,6 +142,23 @@ function ComposerWithSuggestions({
         User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
         insertedEmojisRef.current = [];
     }, []);
+
+    /**
+     * Reset isScrollLikelyLayoutTriggered to false.
+     *
+     * The function is debounced with a handpicked wait time to address 2 issues:
+     * 1. There is a slight delay between onChangeText and onScroll
+     * 2. Layout change will trigger onScroll multiple times
+     */
+    const debouncedLowerIsScrollLikelyLayoutTriggered = useDebounce(
+        useCallback(() => (isScrollLikelyLayoutTriggered.current = false), []),
+        500,
+    );
+
+    const raiseIsScrollLikelyLayoutTriggered = useCallback(() => {
+        isScrollLikelyLayoutTriggered.current = true;
+        debouncedLowerIsScrollLikelyLayoutTriggered();
+    }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
 
     /**
      * Set the TextInput Ref
@@ -165,6 +184,14 @@ function ComposerWithSuggestions({
         RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
     }, [textInputRef]);
 
+    const debouncedSaveReportComment = useMemo(
+        () =>
+            _.debounce((selectedReportID, newComment) => {
+                Report.saveReportComment(selectedReportID, newComment || '');
+            }, 1000),
+        [],
+    );
+
     /**
      * Update the value of the comment in Onyx
      *
@@ -173,6 +200,7 @@ function ComposerWithSuggestions({
      */
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
+            raiseIsScrollLikelyLayoutTriggered();
             const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
@@ -191,7 +219,7 @@ function ComposerWithSuggestions({
                     suggestionsRef.current.resetSuggestions();
                 }
 
-                const remainder = ComposerUtils.getCommonSuffixLength(commentRef.current, newComment);
+                const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
                 setSelection({
                     start: newComment.length - remainder,
                     end: newComment.length - remainder,
@@ -218,7 +246,16 @@ function ComposerWithSuggestions({
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty, suggestionsRef],
+        [
+            debouncedUpdateFrequentlyUsedEmojis,
+            preferredLocale,
+            preferredSkinTone,
+            reportID,
+            setIsCommentEmpty,
+            suggestionsRef,
+            raiseIsScrollLikelyLayoutTriggered,
+            debouncedSaveReportComment,
+        ],
     );
 
     /**
@@ -259,7 +296,7 @@ function ComposerWithSuggestions({
         }
         setIsFullComposerAvailable(false);
         return trimmedComment;
-    }, [updateComment, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID]);
+    }, [updateComment, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID, debouncedSaveReportComment]);
 
     /**
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
@@ -307,7 +344,7 @@ function ComposerWithSuggestions({
                     (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
                 );
                 if (lastReportAction) {
-                    Report.saveReportActionDraft(reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
+                    Report.saveReportActionDraft(reportID, lastReportAction, _.last(lastReportAction.message).html);
                 }
             }
         },
@@ -325,8 +362,8 @@ function ComposerWithSuggestions({
         [suggestionsRef],
     );
 
-    const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
-        if (!suggestionsRef.current) {
+    const hideSuggestionMenu = useCallback(() => {
+        if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
             return;
         }
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
@@ -450,6 +487,7 @@ function ComposerWithSuggestions({
             return;
         }
         Report.setReportWithDraft(reportID, true);
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -504,7 +542,7 @@ function ComposerWithSuggestions({
                         }
                         setComposerHeight(composerLayoutHeight);
                     }}
-                    onScroll={updateShouldShowSuggestionMenuToFalse}
+                    onScroll={hideSuggestionMenu}
                 />
             </View>
 
@@ -513,7 +551,6 @@ function ComposerWithSuggestions({
                 isComposerFullSize={isComposerFullSize}
                 updateComment={updateComment}
                 composerHeight={composerHeight}
-                shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
                 measureParentContainer={measureParentContainer}
                 // Input
                 value={value}

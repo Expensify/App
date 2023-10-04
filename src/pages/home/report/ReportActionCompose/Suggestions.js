@@ -33,7 +33,6 @@ function Suggestions({
     setSelection,
     updateComment,
     composerHeight,
-    shouldShowReportRecipientLocalTime,
     forwardedRef,
     resetKeyboardInput,
     measureParentContainer,
@@ -101,7 +100,6 @@ function Suggestions({
         isComposerFullSize,
         updateComment,
         composerHeight,
-        shouldShowReportRecipientLocalTime,
         isAutoSuggestionPickerLarge,
         measureParentContainer,
     };

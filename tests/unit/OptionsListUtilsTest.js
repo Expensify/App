@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import {View} from 'react-native';
 import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -660,6 +661,7 @@ describe('OptionsListUtils', () => {
         const selectedOptions = [
             {
                 name: 'Medical',
+                enabled: true,
             },
         ];
         const smallCategoriesList = {
@@ -686,13 +688,6 @@ describe('OptionsListUtils', () => {
                 shouldShow: false,
                 indexOffset: 0,
                 data: [
-                    {
-                        text: 'Taxi',
-                        keyForList: 'Taxi',
-                        searchText: 'Taxi',
-                        tooltipText: 'Taxi',
-                        isDisabled: true,
-                    },
                     {
                         text: 'Restaurant',
                         keyForList: 'Restaurant',
@@ -817,7 +812,7 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Medical',
                         searchText: 'Medical',
                         tooltipText: 'Medical',
-                        isDisabled: true,
+                        isDisabled: false,
                     },
                 ],
             },
@@ -826,13 +821,6 @@ describe('OptionsListUtils', () => {
                 shouldShow: true,
                 indexOffset: 1,
                 data: [
-                    {
-                        text: 'Taxi',
-                        keyForList: 'Taxi',
-                        searchText: 'Taxi',
-                        tooltipText: 'Taxi',
-                        isDisabled: true,
-                    },
                     {
                         text: 'Restaurant',
                         keyForList: 'Restaurant',
@@ -847,13 +835,6 @@ describe('OptionsListUtils', () => {
                 shouldShow: true,
                 indexOffset: 3,
                 data: [
-                    {
-                        text: 'Taxi',
-                        keyForList: 'Taxi',
-                        searchText: 'Taxi',
-                        tooltipText: 'Taxi',
-                        isDisabled: true,
-                    },
                     {
                         text: 'Restaurant',
                         keyForList: 'Restaurant',
@@ -883,13 +864,6 @@ describe('OptionsListUtils', () => {
                         isDisabled: false,
                     },
                     {
-                        text: '    Vegetables',
-                        keyForList: 'Vegetables',
-                        searchText: 'Food: Vegetables',
-                        tooltipText: 'Vegetables',
-                        isDisabled: true,
-                    },
-                    {
                         text: 'Cars',
                         keyForList: 'Cars',
                         searchText: 'Cars',
@@ -902,13 +876,6 @@ describe('OptionsListUtils', () => {
                         searchText: 'Cars: Audi',
                         tooltipText: 'Audi',
                         isDisabled: false,
-                    },
-                    {
-                        text: '    BMW',
-                        keyForList: 'BMW',
-                        searchText: 'Cars: BMW',
-                        tooltipText: 'BMW',
-                        isDisabled: true,
                     },
                     {
                         text: '    Mercedes-Benz',
@@ -937,13 +904,6 @@ describe('OptionsListUtils', () => {
                         searchText: 'Travel: Meals: Breakfast',
                         tooltipText: 'Breakfast',
                         isDisabled: false,
-                    },
-                    {
-                        text: '        Dinner',
-                        keyForList: 'Dinner',
-                        searchText: 'Travel: Meals: Dinner',
-                        tooltipText: 'Dinner',
-                        isDisabled: true,
                     },
                     {
                         text: '        Lunch',
@@ -982,13 +942,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food: Milk',
                         isDisabled: false,
                     },
-                    {
-                        text: 'Food: Vegetables',
-                        keyForList: 'Food: Vegetables',
-                        searchText: 'Food: Vegetables',
-                        tooltipText: 'Food: Vegetables',
-                        isDisabled: true,
-                    },
                 ],
             },
         ];
@@ -998,6 +951,23 @@ describe('OptionsListUtils', () => {
                 shouldShow: false,
                 indexOffset: 0,
                 data: [],
+            },
+        ];
+        const emptyCategoriesList = {};
+        const emptySelectedResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                    },
+                ],
             },
         ];
 
@@ -1054,6 +1024,9 @@ describe('OptionsListUtils', () => {
             recentlyUsedCategories,
         );
         expect(largeWrongSearchResult.categoryOptions).toStrictEqual(largeWrongSearchResultList);
+
+        const emptyResult = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], search, selectedOptions, [], false, false, true, emptyCategoriesList);
+        expect(emptyResult.categoryOptions).toStrictEqual(emptySelectedResultList);
     });
 
     it('getFilteredOptions() for tags', () => {
@@ -1444,13 +1417,6 @@ describe('OptionsListUtils', () => {
         };
         const result = [
             {
-                text: 'Taxi',
-                keyForList: 'Taxi',
-                searchText: 'Taxi',
-                tooltipText: 'Taxi',
-                isDisabled: true,
-            },
-            {
                 text: 'Restaurant',
                 keyForList: 'Restaurant',
                 searchText: 'Restaurant',
@@ -1479,13 +1445,6 @@ describe('OptionsListUtils', () => {
                 isDisabled: false,
             },
             {
-                text: '    Vegetables',
-                keyForList: 'Vegetables',
-                searchText: 'Food: Vegetables',
-                tooltipText: 'Vegetables',
-                isDisabled: true,
-            },
-            {
                 text: 'Cars',
                 keyForList: 'Cars',
                 searchText: 'Cars',
@@ -1500,25 +1459,11 @@ describe('OptionsListUtils', () => {
                 isDisabled: false,
             },
             {
-                text: '    BMW',
-                keyForList: 'BMW',
-                searchText: 'Cars: BMW',
-                tooltipText: 'BMW',
-                isDisabled: true,
-            },
-            {
                 text: '    Mercedes-Benz',
                 keyForList: 'Mercedes-Benz',
                 searchText: 'Cars: Mercedes-Benz',
                 tooltipText: 'Mercedes-Benz',
                 isDisabled: false,
-            },
-            {
-                text: 'Medical',
-                keyForList: 'Medical',
-                searchText: 'Medical',
-                tooltipText: 'Medical',
-                isDisabled: true,
             },
             {
                 text: 'Travel',
@@ -1540,13 +1485,6 @@ describe('OptionsListUtils', () => {
                 searchText: 'Travel: Meals: Breakfast',
                 tooltipText: 'Breakfast',
                 isDisabled: false,
-            },
-            {
-                text: '        Dinner',
-                keyForList: 'Dinner',
-                searchText: 'Travel: Meals: Dinner',
-                tooltipText: 'Dinner',
-                isDisabled: true,
             },
             {
                 text: '        Lunch',
@@ -1610,7 +1548,7 @@ describe('OptionsListUtils', () => {
     });
 
     it('formatMemberForList()', () => {
-        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, key === '1'));
+        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, {isSelected: key === '1'}));
 
         // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
         expect(formattedMembers[0].text).toBe('Mister Fantastic');
@@ -1629,7 +1567,8 @@ describe('OptionsListUtils', () => {
         // `rightElement` is always null
         expect(_.every(formattedMembers, (personalDetail) => personalDetail.rightElement === null)).toBe(true);
 
-        // The PERSONAL_DETAILS list doesn't specify `participantsList[n].avatar`, so the default one should be used
-        expect(_.every(formattedMembers, (personalDetail) => Boolean(personalDetail.avatar.source))).toBe(true);
+        // Passing a config should override the other keys
+        const formattedMembersWithRightElement = _.map(PERSONAL_DETAILS, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, {rightElement: <View />}));
+        expect(_.every(formattedMembersWithRightElement, (personalDetail) => Boolean(personalDetail.rightElement))).toBe(true);
     });
 });
