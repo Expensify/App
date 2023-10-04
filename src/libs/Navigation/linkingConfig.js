@@ -73,7 +73,7 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET_DOMAINCARDS.route,
                                 exact: true,
                             },
-                            Settings_Report_Fraud: {
+                            Settings_Wallet_ReportVirtualCardFraud: {
                                 path: ROUTES.SETTINGS_REPORT_FRAUD.route,
                                 exact: true,
                             },
