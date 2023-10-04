@@ -282,6 +282,7 @@ class OptionRow extends Component {
                                             ) : (
                                                 <PressableWithFeedback
                                                     onPress={() => this.props.onSelectedStatePressed(this.props.option)}
+                                                    disabled={this.state.isDisabled}
                                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                                     accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                                 >
