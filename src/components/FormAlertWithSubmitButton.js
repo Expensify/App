@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
@@ -45,6 +46,10 @@ const propTypes = {
 
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
+    /** Styles for the button */
+    // eslint-disable-next-line react/forbid-prop-types
+    buttonStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
@@ -58,9 +63,12 @@ const defaultProps = {
     disablePressOnEnter: false,
     isSubmitActionDangerous: false,
     footerContent: null,
+    buttonStyles: [],
 };
 
 function FormAlertWithSubmitButton(props) {
+    const buttonStyles = [_.isEmpty(props.footerContent) ? {} : styles.mb3, ...props.buttonStyles];
+
     return (
         <FormAlertWrapper
             containerStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd, ...props.containerStyles]}
@@ -76,7 +84,7 @@ function FormAlertWithSubmitButton(props) {
                             success
                             isDisabled
                             text={props.buttonText}
-                            style={[styles.mb3]}
+                            style={buttonStyles}
                             danger={props.isSubmitActionDangerous}
                         />
                     ) : (
@@ -84,6 +92,7 @@ function FormAlertWithSubmitButton(props) {
                             success
                             pressOnEnter={!props.disablePressOnEnter}
                             text={props.buttonText}
+                            style={buttonStyles}
                             onPress={props.onSubmit}
                             isDisabled={props.isDisabled}
                             isLoading={props.isLoading}

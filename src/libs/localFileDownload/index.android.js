@@ -10,13 +10,14 @@ import * as FileUtils from '../fileDownload/FileUtils';
  * @param {String} textContent
  */
 export default function localFileDownload(fileName, textContent) {
+    const newFileName = FileUtils.appendTimeToFileName(fileName);
     const dir = RNFetchBlob.fs.dirs.DocumentDir;
-    const path = `${dir}/${fileName}.txt`;
+    const path = `${dir}/${newFileName}.txt`;
 
     RNFetchBlob.fs.writeFile(path, textContent, 'utf8').then(() => {
         RNFetchBlob.MediaCollection.copyToMediaStore(
             {
-                name: fileName,
+                name: newFileName,
                 parentFolder: '', // subdirectory in the Media Store, empty goes to 'Downloads'
                 mimeType: 'text/plain',
             },

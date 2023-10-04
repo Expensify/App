@@ -10,10 +10,11 @@ import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 import useThrottledButtonState from '../../hooks/useThrottledButtonState';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Ref passed to the component by React.forwardRef (do not pass from parent) */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
+    innerRef: refPropTypes,
 
     /** The text to display */
     text: PropTypes.string,
@@ -67,6 +68,7 @@ const defaultProps = {
     icon: null,
     inline: true,
     iconChecked: Expensicons.Checkmark,
+    innerRef: () => {},
 };
 
 function PressableWithDelayToggle(props) {
@@ -100,6 +102,7 @@ function PressableWithDelayToggle(props) {
             ref={props.innerRef}
             onPress={updatePressState}
             accessibilityLabel={tooltipText}
+            suppressHighlighting={props.inline ? true : undefined}
         >
             <>
                 {props.inline && labelText}
@@ -123,6 +126,7 @@ function PressableWithDelayToggle(props) {
                                         style={props.iconStyles}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
+                                        inline={props.inline}
                                     />
                                 )}
                             </>

@@ -59,7 +59,7 @@ function NewTaskTitlePage(props) {
     // the response
     function onSubmit(values) {
         Task.setTitleValue(values.taskTitle);
-        Navigation.navigate(ROUTES.NEW_TASK);
+        Navigation.goBack(ROUTES.NEW_TASK);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -77,6 +77,7 @@ function NewTaskTitlePage(props) {
             }}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={NewTaskTitlePage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('task.title')}

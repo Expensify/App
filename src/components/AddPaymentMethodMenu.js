@@ -9,7 +9,7 @@ import CONST from '../CONST';
 import withWindowDimensions from './withWindowDimensions';
 import Permissions from '../libs/Permissions';
 import PopoverMenu from './PopoverMenu';
-import paypalMeDataPropTypes from './paypalMeDataPropTypes';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Should the component be visible? */
@@ -24,23 +24,19 @@ const propTypes = {
         vertical: PropTypes.number,
     }),
 
-    /** Account details for PayPal.Me */
-    payPalMeData: paypalMeDataPropTypes,
-
-    /** Should we show the Paypal option */
-    shouldShowPaypal: PropTypes.bool,
-
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** Popover anchor ref */
+    anchorRef: refPropTypes,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     anchorPosition: {},
-    payPalMeData: {},
-    shouldShowPaypal: true,
     betas: [],
+    anchorRef: () => {},
 };
 
 function AddPaymentMethodMenu(props) {
@@ -49,6 +45,7 @@ function AddPaymentMethodMenu(props) {
             isVisible={props.isVisible}
             onClose={props.onClose}
             anchorPosition={props.anchorPosition}
+            anchorRef={props.anchorRef}
             onItemSelected={props.onClose}
             menuItems={[
                 {
@@ -67,16 +64,8 @@ function AddPaymentMethodMenu(props) {
                           },
                       ]
                     : []),
-                ...(props.shouldShowPaypal && !props.payPalMeData.description
-                    ? [
-                          {
-                              text: props.translate('common.payPalMe'),
-                              icon: Expensicons.PayPal,
-                              onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.PAYPAL),
-                          },
-                      ]
-                    : []),
             ]}
+            withoutOverlay
         />
     );
 }
@@ -89,9 +78,6 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
-        payPalMeData: {
-            key: ONYXKEYS.PAYPAL,
-        },
         betas: {
             key: ONYXKEYS.BETAS,
         },

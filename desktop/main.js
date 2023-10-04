@@ -1,4 +1,4 @@
-const {app, dialog, BrowserWindow, Menu, MenuItem, shell, ipcMain} = require('electron');
+const {app, dialog, clipboard, BrowserWindow, Menu, MenuItem, shell, ipcMain} = require('electron');
 const _ = require('underscore');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
@@ -11,7 +11,8 @@ const CONFIG = require('../src/CONFIG').default;
 const CONST = require('../src/CONST').default;
 const Localize = require('../src/libs/Localize');
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8082;
+const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 
 app.setName('New Expensify');
 
@@ -25,19 +26,50 @@ app.setName('New Expensify');
 // See: https://github.com/electron/electron/issues/22597
 app.commandLine.appendSwitch('enable-network-information-downlink-max');
 
-// Initialize the right click menu
-// See https://github.com/sindresorhus/electron-context-menu
-// Add the Paste and Match Style command to the context menu
-contextMenu({
-    append: (defaultActions, parameters) => [
-        new MenuItem({
-            // Only enable the menu item for Editable context which supports paste
-            visible: parameters.isEditable && parameters.editFlags.canPaste,
-            role: 'pasteAndMatchStyle',
-            accelerator: 'CmdOrCtrl+Shift+V',
-        }),
-    ],
-});
+/**
+ * Inserts the plain text from the clipboard into the provided browser window's web contents.
+ *
+ * @param {BrowserWindow} browserWindow - The Electron BrowserWindow instance where the text should be inserted.
+ */
+function pasteAsPlainText(browserWindow) {
+    const text = clipboard.readText();
+    browserWindow.webContents.insertText(text);
+}
+
+/**
+ * Initialize the right-click menu
+ * See https://github.com/sindresorhus/electron-context-menu
+ *
+ * @param {String} preferredLocale - The current user language to be used for translating menu labels.
+ * @returns {Function} A dispose function to clean up the created context menu.
+ */
+
+function createContextMenu(preferredLocale = LOCALES.DEFAULT) {
+    return contextMenu({
+        labels: {
+            cut: Localize.translate(preferredLocale, 'desktopApplicationMenu.cut'),
+            paste: Localize.translate(preferredLocale, 'desktopApplicationMenu.paste'),
+            copy: Localize.translate(preferredLocale, 'desktopApplicationMenu.copy'),
+        },
+        append: (defaultActions, parameters, browserWindow) => [
+            new MenuItem({
+                // Only enable the menu item for Editable context which supports paste
+                visible: parameters.isEditable && parameters.editFlags.canPaste,
+                role: 'pasteAndMatchStyle',
+                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
+                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAndMatchStyle'),
+            }),
+            new MenuItem({
+                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAsPlainText'),
+                visible: parameters.isEditable && parameters.editFlags.canPaste && clipboard.readText().length > 0,
+                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
+                click: () => pasteAsPlainText(browserWindow),
+            }),
+        ],
+    });
+}
+
+let disposeContextMenu = createContextMenu();
 
 // Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
@@ -323,7 +355,16 @@ const mainWindow = () => {
                             {id: 'cut', role: 'cut'},
                             {id: 'copy', role: 'copy'},
                             {id: 'paste', role: 'paste'},
-                            {id: 'pasteAndMatchStyle', role: 'pasteAndMatchStyle'},
+                            {
+                                id: 'pasteAndMatchStyle',
+                                role: 'pasteAndMatchStyle',
+                                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
+                            },
+                            {
+                                id: 'pasteAsPlainText',
+                                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
+                                click: () => pasteAsPlainText(browserWindow),
+                            },
                             {id: 'delete', role: 'delete'},
                             {id: 'selectAll', role: 'selectAll'},
                             {type: 'separator'},
@@ -496,6 +537,8 @@ const mainWindow = () => {
 
                 ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
                     Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
+                    disposeContextMenu();
+                    disposeContextMenu = createContextMenu(updatedLocale);
                 });
 
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {

@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Tooltip from '../Tooltip';
@@ -55,6 +55,7 @@ const defaultProps = {
 
 function AddReactionBubble(props) {
     const ref = useRef();
+    useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
     const onPress = () => {
         const openPicker = (refParam, anchorOrigin) => {
@@ -66,14 +67,18 @@ function AddReactionBubble(props) {
                 refParam || ref.current,
                 anchorOrigin,
                 props.onWillShowPicker,
-                props.reportAction,
+                props.reportAction.reportActionID,
             );
         };
 
-        if (props.onPressOpenPicker) {
-            props.onPressOpenPicker(openPicker);
+        if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
+            if (props.onPressOpenPicker) {
+                props.onPressOpenPicker(openPicker);
+            } else {
+                openPicker();
+            }
         } else {
-            openPicker();
+            EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
         }
     };
 
@@ -89,6 +94,7 @@ function AddReactionBubble(props) {
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 // disable dimming
                 pressDimmingValue={1}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {({hovered, pressed}) => (
                     <>

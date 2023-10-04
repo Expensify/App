@@ -1,36 +1,37 @@
 import React from 'react';
 import {View} from 'react-native';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
-import CONST from '../../../CONST';
-import DropZone from '../../../components/DragAndDrop/DropZone';
+import DragAndDropConsumer from '../../../components/DragAndDrop/Consumer';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
+import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
-    ...withLocalizePropTypes,
+    /** Callback to execute when a file is dropped. */
+    onDrop: PropTypes.func.isRequired,
 };
 
-function ReportDropUI(props) {
+function ReportDropUI({onDrop}) {
+    const {translate} = useLocalize();
     return (
-        <DropZone
-            dropZoneViewHolderName={CONST.REPORT.DROP_HOST_NAME}
-            dropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
-        >
-            <View style={styles.mb3}>
-                <Icon
-                    src={Expensicons.DragAndDrop}
-                    width={100}
-                    height={100}
-                />
+        <DragAndDropConsumer onDrop={onDrop}>
+            <View style={[styles.reportDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <View style={styles.mb3}>
+                    <Icon
+                        src={Expensicons.DragAndDrop}
+                        width={100}
+                        height={100}
+                    />
+                </View>
+                <Text style={[styles.textHeadline]}>{translate('reportActionCompose.dropToUpload')}</Text>
             </View>
-            <Text style={[styles.textHeadline]}>{props.translate('reportActionCompose.dropToUpload')}</Text>
-        </DropZone>
+        </DragAndDropConsumer>
     );
 }
 
 ReportDropUI.displayName = 'ReportDropUI';
 ReportDropUI.propTypes = propTypes;
 
-export default withLocalize(ReportDropUI);
+export default ReportDropUI;

@@ -34,8 +34,9 @@ const BasePreRenderer = forwardRef((props, ref) => {
         <ScrollView
             ref={ref}
             horizontal
-            style={[styles.mv2, styles.overscrollBehaviorNone]}
+            style={[styles.mv2, styles.overscrollBehaviorXNone]}
             bounces={false}
+            keyboardShouldPersistTaps="always"
         >
             <ShowContextMenuContext.Consumer>
                 {({anchor, report, action, checkIfContextMenuActive}) => (

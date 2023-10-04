@@ -10,6 +10,23 @@
     position: relative;
 }
 
+#onfido-mount button:focus,
+#onfido-mount button:focus[data-focusvisible-polyfill],
+#onfido-mount button:active {
+    box-shadow: none !important;
+}
+
+#onfido-mount .-action--primary:focus,
+#onfido-mount .-action--primary:focus[data-focusvisible-polyfill],
+#onfido-mount .-action--primary:active {
+    border-color: transparent;
+}
+
+#onfido-mount button:focus-visible {
+    outline: 0;
+    box-shadow: inset 0px 0px 0px 1px #5AB0FF !important;
+}
+
 /* This is needed to dsiable the blue outline that shows up once the payment page is opened through keyboard */
 #onfido-mount [tabindex="-1"]:focus-visible,
 #onfido-mount [tabindex="-1"]:focus[data-focusvisible-polyfill] {
@@ -28,5 +45,12 @@
          set to 100%, but we have a header on the top of the page that can be used to cancel out of the flow. This
          spacing makes room for the header without cutting off the bottom of the Onfido window. */
         height: 92% !important;
+    }
+
+    /* 
+    * Solves issue with height not working for `onfido-sdk-ui-Modal-inner` container when device width is in between 490 - 600pixels.
+    */
+    #onfido-mount {
+        height: 100%;
     }
 }

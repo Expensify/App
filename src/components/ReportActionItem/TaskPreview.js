@@ -8,6 +8,7 @@ import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../withCurrentUserPersonalDetails';
 import Icon from '../Icon';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
@@ -22,6 +23,8 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
+import * as Session from '../../libs/actions/Session';
+import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import reportPropTypes from '../../pages/reportPropTypes';
 import refPropTypes from '../refPropTypes';
@@ -30,7 +33,7 @@ import ControlSelection from '../../libs/ControlSelection';
 
 const propTypes = {
     /** All personal details asssociated with user */
-    personalDetailsList: personalDetailsPropType,
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
@@ -54,7 +57,7 @@ const propTypes = {
         ownerAccountID: PropTypes.number,
     }),
 
-    /* Onyx Props */
+ /* Onyx Props */
     /** chatReport associated with taskReport */
     chatReport: reportPropTypes,
     
@@ -63,11 +66,13 @@ const propTypes = {
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
+        ...withLocalizePropTypes,
 
-    ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
+    ...withCurrentUserPersonalDetailsDefaultProps,
     personalDetailsList: {},
     taskReport: {},
     isHovered: false,
@@ -84,11 +89,20 @@ function TaskPreview(props) {
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
     const taskAssignee = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], ''));
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
+    const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
+    const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
+    const htmlForTaskPreview =
+        taskAssignee && taskAssigneeAccountID !== 0 ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
+    const isDeletedParentAction = ReportUtils.isCanceledTaskReport(props.taskReport, props.action);
+
+    if (isDeletedParentAction) {
+        return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />;
+    }
 
     return (
         <View style={[styles.chatItemMessage]}>
             <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
+                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.taskReportID))}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
@@ -101,14 +115,14 @@ function TaskPreview(props) {
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
-                        onPress={() => {
+                        disabled={!Task.canModifyTask(props.taskReport, props.currentUserPersonalDetails.accountID)}
+                        onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
-                                Task.reopenTask(props.taskReportID, taskTitle);
+                                Task.reopenTask(props.taskReport);
                             } else {
-                                Task.completeTask(props.taskReportID, taskTitle);
+                                Task.completeTask(props.taskReport);
                             }
-                        }}
+                        })}
                         accessibilityLabel={props.translate('task.task')}
                     />
                     <RenderHTML html={htmlForTaskPreview} />
@@ -128,12 +142,15 @@ TaskPreview.displayName = 'TaskPreview';
 
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
     withOnyx({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            initialValue: {},
         },
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            initialValue: {},
         },
     }),
 )(TaskPreview);

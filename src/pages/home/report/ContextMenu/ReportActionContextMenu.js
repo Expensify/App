@@ -3,58 +3,6 @@ import React from 'react';
 const contextMenuRef = React.createRef();
 
 /**
- * Show the ReportActionContextMenu modal popover.
- *
- * @param {string} type - the context menu type to display [EMAIL, LINK, REPORT_ACTION, REPORT]
- * @param {Object} [event] - A press event.
- * @param {String} [selection] - Copied content.
- * @param {Element} contextMenuAnchor - popoverAnchor
- * @param {String} reportID - Active Report Id
- * @param {Object} reportAction - ReportAction for ContextMenu
- * @param {String} draftMessage - ReportAction Draftmessage
- * @param {Function} [onShow=() => {}] - Run a callback when Menu is shown
- * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
- * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
- * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
- * @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
- * @param {Boolean} isUnreadChat - Flag to check if the chat has unread messages in the LHN. Used for the Mark as Read/Unread action
- */
-function showContextMenu(
-    type,
-    event,
-    selection,
-    contextMenuAnchor,
-    reportID = '0',
-    reportAction = {},
-    draftMessage = '',
-    onShow = () => {},
-    onHide = () => {},
-    isArchivedRoom = false,
-    isChronosReport = false,
-    isPinnedChat = false,
-    isUnreadChat = false,
-) {
-    if (!contextMenuRef.current) {
-        return;
-    }
-    contextMenuRef.current.showContextMenu(
-        type,
-        event,
-        selection,
-        contextMenuAnchor,
-        reportID,
-        reportAction,
-        draftMessage,
-        onShow,
-        onHide,
-        isArchivedRoom,
-        isChronosReport,
-        isPinnedChat,
-        isUnreadChat,
-    );
-}
-
-/**
  * Hide the ReportActionContextMenu modal popover.
  * Hides the popover menu with an optional delay
  * @param {Boolean} shouldDelay - whether the menu should close after a delay
@@ -81,6 +29,68 @@ function hideContextMenu(shouldDelay, onHideCallback = () => {}) {
 
         contextMenuRef.current.hideContextMenu(onHideCallback);
     }, 800);
+}
+
+/**
+ * Show the ReportActionContextMenu modal popover.
+ *
+ * @param {string} type - the context menu type to display [EMAIL, LINK, REPORT_ACTION, REPORT]
+ * @param {Object} [event] - A press event.
+ * @param {String} [selection] - Copied content.
+ * @param {Element} contextMenuAnchor - popoverAnchor
+ * @param {String} reportID - Active Report Id
+ * @param {String} reportActionID - ReportActionID for ContextMenu
+ * @param {String} originalReportID - The currrent Report Id of the reportAction
+ * @param {String} draftMessage - ReportAction Draftmessage
+ * @param {Function} [onShow=() => {}] - Run a callback when Menu is shown
+ * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
+ * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
+ * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
+ * @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
+ * @param {Boolean} isUnreadChat - Flag to check if the chat has unread messages in the LHN. Used for the Mark as Read/Unread action
+ */
+function showContextMenu(
+    type,
+    event,
+    selection,
+    contextMenuAnchor,
+    reportID = '0',
+    reportActionID = '0',
+    originalReportID = '0',
+    draftMessage = '',
+    onShow = () => {},
+    onHide = () => {},
+    isArchivedRoom = false,
+    isChronosReport = false,
+    isPinnedChat = false,
+    isUnreadChat = false,
+) {
+    if (!contextMenuRef.current) {
+        return;
+    }
+    // If there is an already open context menu, close it first before opening
+    // a new one.
+    if (contextMenuRef.current.instanceID) {
+        hideContextMenu();
+        contextMenuRef.current.runAndResetOnPopoverHide();
+    }
+
+    contextMenuRef.current.showContextMenu(
+        type,
+        event,
+        selection,
+        contextMenuAnchor,
+        reportID,
+        reportActionID,
+        originalReportID,
+        draftMessage,
+        onShow,
+        onHide,
+        isArchivedRoom,
+        isChronosReport,
+        isPinnedChat,
+        isUnreadChat,
+    );
 }
 
 function hideDeleteModal() {
@@ -118,4 +128,11 @@ function isActiveReportAction(actionID) {
     return contextMenuRef.current.isActiveReportAction(actionID);
 }
 
-export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, showDeleteModal, hideDeleteModal};
+function clearActiveReportAction() {
+    if (!contextMenuRef.current) {
+        return;
+    }
+    return contextMenuRef.current.clearActiveReportAction();
+}
+
+export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};

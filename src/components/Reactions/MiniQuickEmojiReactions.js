@@ -67,7 +67,7 @@ function MiniQuickEmojiReactions(props) {
             ref.current,
             undefined,
             () => {},
-            props.reportAction,
+            props.reportAction.reportActionID,
         );
     };
 
@@ -80,12 +80,23 @@ function MiniQuickEmojiReactions(props) {
                     tooltipText={`:${EmojiUtils.getLocalizedEmojiName(emoji.name, props.preferredLocale)}:`}
                     onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji, props.emojiReactions))}
                 >
-                    <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
+                    <Text
+                        style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                    >
+                        {EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}
+                    </Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={Session.checkIfActionIsAllowed(openEmojiPicker)}
+                onPress={Session.checkIfActionIsAllowed(() => {
+                    if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
+                        openEmojiPicker();
+                    } else {
+                        EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
+                    }
+                })}
                 isDelayButtonStateComplete={false}
                 tooltipText={props.translate('emojiReactions.addReactionTooltip')}
             >

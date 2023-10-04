@@ -13,7 +13,7 @@ import EmojiReactionsPropTypes from './EmojiReactionsPropTypes';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 import * as EmojiUtils from '../../libs/EmojiUtils';
-import ReportScreenContext from '../../pages/home/ReportScreenContext';
+import {ReactionListContext} from '../../pages/home/ReportScreenContext';
 
 const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
@@ -28,17 +28,22 @@ const propTypes = {
      */
     toggleReaction: PropTypes.func.isRequired,
 
+    /** We disable reacting with emojis on report actions that have errors */
+    shouldBlockReactions: PropTypes.bool,
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
     emojiReactions: {},
+    shouldBlockReactions: false,
 };
 
 function ReportActionItemEmojiReactions(props) {
-    const {reactionListRef} = useContext(ReportScreenContext);
-    const popoverReactionListAnchor = useRef(null);
+    const reactionListRef = useContext(ReactionListContext);
+    const popoverReactionListAnchors = useRef({});
+
     let totalReactionCount = 0;
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
@@ -67,72 +72,88 @@ function ReportActionItemEmojiReactions(props) {
         return (oldestUserReactionTimestamp || emojiReaction.createdAt) + emojiName;
     });
 
+    const formattedReactions = _.map(sortedReactions, (reaction) => {
+        const reactionEmojiName = reaction.emojiName;
+        const usersWithReactions = _.pick(reaction.users, _.identity);
+        let reactionCount = 0;
+
+        // Loop through the users who have reacted and see how many skintones they reacted with so that we get the total count
+        _.forEach(usersWithReactions, (user) => {
+            reactionCount += _.size(user.skinTones);
+        });
+        if (!reactionCount) {
+            return null;
+        }
+        totalReactionCount += reactionCount;
+        const emojiAsset = EmojiUtils.findEmojiByName(reactionEmojiName);
+        const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emojiAsset, reaction.users);
+        const hasUserReacted = Report.hasAccountIDEmojiReacted(props.currentUserPersonalDetails.accountID, reaction.users);
+        const reactionUsers = _.keys(usersWithReactions);
+        const reactionUserAccountIDs = _.map(reactionUsers, Number);
+
+        const onPress = () => {
+            props.toggleReaction(emojiAsset);
+        };
+
+        const onReactionListOpen = (event) => {
+            reactionListRef.current.showReactionList(event, popoverReactionListAnchors.current[reactionEmojiName], reactionEmojiName, props.reportActionID);
+        };
+
+        return {
+            reactionEmojiName,
+            emojiCodes,
+            reactionUserAccountIDs,
+            onPress,
+            reactionUsers,
+            reactionCount,
+            hasUserReacted,
+            onReactionListOpen,
+        };
+    });
+
     return (
-        <View
-            ref={popoverReactionListAnchor}
-            style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
-        >
-            {_.map(sortedReactions, (reaction) => {
-                const reactionEmojiName = reaction.emojiName;
-                const usersWithReactions = _.pick(reaction.users, _.identity);
-                let reactionCount = 0;
-
-                // Loop through the users who have reacted and see how many skintones they reacted with so that we get the total count
-                _.forEach(usersWithReactions, (user) => {
-                    reactionCount += _.size(user.skinTones);
-                });
-                if (!reactionCount) {
-                    return null;
-                }
-                totalReactionCount += reactionCount;
-                const emojiAsset = EmojiUtils.findEmojiByName(reactionEmojiName);
-                const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emojiAsset, reaction.users);
-                const hasUserReacted = Report.hasAccountIDEmojiReacted(props.currentUserPersonalDetails.accountID, reaction.users);
-                const reactionUsers = _.keys(usersWithReactions);
-                const reactionUserAccountIDs = _.map(reactionUsers, Number);
-
-                const onPress = () => {
-                    props.toggleReaction(emojiAsset);
-                };
-
-                const onReactionListOpen = (event) => {
-                    reactionListRef.current.showReactionList(event, popoverReactionListAnchor.current, reaction.emoji, props.reportActionID);
-                };
-
-                return (
-                    <Tooltip
-                        renderTooltipContent={() => (
-                            <ReactionTooltipContent
-                                emojiName={EmojiUtils.getLocalizedEmojiName(reactionEmojiName, props.preferredLocale)}
-                                emojiCodes={emojiCodes}
-                                accountIDs={reactionUserAccountIDs}
-                                currentUserPersonalDetails={props.currentUserPersonalDetails}
-                            />
-                        )}
-                        renderTooltipContentKey={[..._.map(reactionUsers, (user) => user.toString()), ...emojiCodes]}
-                        key={reactionEmojiName}
-                    >
-                        <View>
-                            <EmojiReactionBubble
-                                ref={props.forwardedRef}
-                                count={reactionCount}
-                                emojiCodes={emojiCodes}
-                                onPress={onPress}
-                                reactionUsers={reactionUsers}
-                                hasUserReacted={hasUserReacted}
-                                onReactionListOpen={onReactionListOpen}
-                            />
-                        </View>
-                    </Tooltip>
-                );
-            })}
-            {totalReactionCount > 0 && (
-                <AddReactionBubble
-                    onSelectEmoji={props.toggleReaction}
-                    reportAction={{reportActionID: props.reportActionID}}
-                />
-            )}
-        </View>
+        totalReactionCount > 0 && (
+            <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
+                {_.map(formattedReactions, (reaction) => {
+                    if (reaction === null) {
+                        return;
+                    }
+                    return (
+                        <Tooltip
+                            renderTooltipContent={() => (
+                                <ReactionTooltipContent
+                                    emojiName={EmojiUtils.getLocalizedEmojiName(reaction.reactionEmojiName, props.preferredLocale)}
+                                    emojiCodes={reaction.emojiCodes}
+                                    accountIDs={reaction.reactionUserAccountIDs}
+                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
+                                />
+                            )}
+                            renderTooltipContentKey={[..._.map(reaction.reactionUsers, (user) => user.toString()), ...reaction.emojiCodes]}
+                            key={reaction.reactionEmojiName}
+                        >
+                            <View>
+                                <EmojiReactionBubble
+                                    ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref)}
+                                    count={reaction.reactionCount}
+                                    emojiCodes={reaction.emojiCodes}
+                                    onPress={reaction.onPress}
+                                    reactionUsers={reaction.reactionUsers}
+                                    hasUserReacted={reaction.hasUserReacted}
+                                    onReactionListOpen={reaction.onReactionListOpen}
+                                    shouldBlockReactions={props.shouldBlockReactions}
+                                />
+                            </View>
+                        </Tooltip>
+                    );
+                })}
+                {!props.shouldBlockReactions && (
+                    <AddReactionBubble
+                        onSelectEmoji={props.toggleReaction}
+                        reportAction={{reportActionID: props.reportActionID}}
+                    />
+                )}
+            </View>
+        )
     );
 }
 

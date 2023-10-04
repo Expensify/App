@@ -4,6 +4,7 @@ import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 let personalDetails = [];
 let allPersonalDetails = {};
@@ -24,7 +25,7 @@ Onyx.connect({
 function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
     const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
 
-    return displayName || defaultValue || 'Hidden';
+    return displayName || defaultValue || Localize.translateLocal('common.hidden');
 }
 
 /**
@@ -115,7 +116,7 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
-                displayName: login,
+                displayName: LocalePhoneNumber.formatPhoneNumber(login),
             };
 
             /**
@@ -123,7 +124,6 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
              * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
              */
             successData[accountID] = null;
-            failureData[accountID] = null;
         }
     });
 
@@ -152,4 +152,29 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
     };
 }
 
-export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData};
+/**
+ * Applies common formatting to each piece of an address
+ *
+ * @param {String} piece - address piece to format
+ * @returns {String} - formatted piece
+ */
+function formatPiece(piece) {
+    return piece ? `${piece}, ` : '';
+}
+
+/**
+ * Formats an address object into an easily readable string
+ *
+ * @param {OnyxTypes.PrivatePersonalDetails} privatePersonalDetails - details object
+ * @returns {String} - formatted address
+ */
+function getFormattedAddress(privatePersonalDetails) {
+    const {address} = privatePersonalDetails;
+    const [street1, street2] = (address.street || '').split('\n');
+    const formattedAddress = formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
+
+    // Remove the last comma of the address
+    return formattedAddress.trim().replace(/,$/, '');
+}
+
+export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData, getFormattedAddress};

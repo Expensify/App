@@ -1,5 +1,5 @@
-import {Linking} from 'react-native';
 import * as FileUtils from './FileUtils';
+import * as Link from '../actions/Link';
 
 /**
  * Downloading attachment in web, desktop
@@ -23,7 +23,7 @@ export default function fileDownload(url, fileName) {
                 link.style.display = 'none';
                 link.setAttribute(
                     'download',
-                    fileName || FileUtils.getAttachmentName(url), // generating the file name
+                    FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(url), // generating the file name
                 );
 
                 // Append to html link element page
@@ -39,7 +39,7 @@ export default function fileDownload(url, fileName) {
             })
             .catch(() => {
                 // file could not be downloaded, open sourceURL in new tab
-                Linking.openURL(url);
+                Link.openExternalLink(url);
                 return resolve();
             });
     });
