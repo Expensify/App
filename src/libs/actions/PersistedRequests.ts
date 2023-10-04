@@ -35,13 +35,15 @@ function remove(requestToRemove: Request) {
     if (index === -1) {
         return;
     }
-    persistedRequests.splice(index, 1);
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+    const requests = [...persistedRequests];
+    requests.splice(index, 1);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function update(oldRequestIndex: number, newRequest: Request) {
-    persistedRequests.splice(oldRequestIndex, 1, newRequest);
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+    const requests = [...persistedRequests];
+    requests.splice(oldRequestIndex, 1, newRequest);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function getAll(): Request[] {
