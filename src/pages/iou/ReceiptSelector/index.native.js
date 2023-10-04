@@ -248,8 +248,8 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     <Button
                         medium
                         success
-                        text={translate('receipt.givePermission')}
-                        accessibilityLabel={translate('receipt.givePermission')}
+                        text={translate('common.continue')}
+                        accessibilityLabel={translate('common.continue')}
                         style={[styles.p9, styles.pt5]}
                         onPress={askForPermissions}
                     />

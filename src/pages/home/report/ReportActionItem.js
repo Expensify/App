@@ -510,9 +510,15 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        let content = (
+            <ReportActionItemCreated
+                reportID={props.report.reportID}
+                policyID={props.report.policyID}
+            />
+        );
         const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            return (
+            content = (
                 <ShowContextMenuContext.Provider
                     value={{
                         anchor: popoverAnchorRef,
@@ -530,7 +536,7 @@ function ReportActionItem(props) {
         }
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
-                return (
+                content = (
                     <>
                         <ReportActionItemSingle
                             action={parentReportAction}
@@ -545,7 +551,7 @@ function ReportActionItem(props) {
                 );
             }
 
-            return (
+            content = (
                 <TaskView
                     report={props.report}
                     shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
@@ -553,7 +559,7 @@ function ReportActionItem(props) {
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
-            return (
+            content = (
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <MoneyReportView
                         report={props.report}
@@ -562,12 +568,13 @@ function ReportActionItem(props) {
                 </OfflineWithFeedback>
             );
         }
-        return (
-            <ReportActionItemCreated
-                reportID={props.report.reportID}
-                policyID={props.report.policyID}
-            />
-        );
+
+        const isNormalCreatedAction =
+            !ReportActionsUtils.isTransactionThread(parentReportAction) &&
+            !ReportUtils.isTaskReport(props.report) &&
+            !ReportUtils.isExpenseReport(props.report) &&
+            !ReportUtils.isIOUReport(props.report);
+        return <View style={[props.shouldHideThreadDividerLine && !isNormalCreatedAction && styles.mb2]}>{content}</View>;
     }
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return <RenameAction action={props.action} />;

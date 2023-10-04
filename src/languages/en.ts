@@ -68,6 +68,8 @@ import type {
     ManagerApprovedParams,
     SetTheRequestParams,
     UpdatedTheRequestParams,
+    SetTheDistanceParams,
+    UpdatedTheDistanceParams,
     RemovedTheRequestParams,
     FormattedMaxLengthParams,
     RequestedAmountMessageParams,
@@ -482,8 +484,7 @@ export default {
         dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
         dragReceiptAfterEmail: ' or choose a file to upload below.',
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
-        chooseFile: 'Choose File',
-        givePermission: 'Give permission',
+        chooseFile: 'Choose file',
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         cameraErrorTitle: 'Camera Error',
@@ -541,9 +542,12 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         changedTheRequest: 'changed the request',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `set the ${valueName} to ${newValueToDisplay}`,
+        setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) => `set the distance to ${newDistanceToDisplay}, which set the amount to ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `removed the ${valueName} (previously ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
             `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
+        updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
+            `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
@@ -865,6 +869,7 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Welcome message',
+        welcomeMessageOptional: 'Welcome message (optional)',
         explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
     },
     languagePage: {

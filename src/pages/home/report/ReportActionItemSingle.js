@@ -88,7 +88,7 @@ const showWorkspaceDetails = (reportID) => {
 };
 
 function ReportActionItemSingle(props) {
-    const actorAccountID = props.action.actorAccountID;
+    const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
     let {displayName} = props.personalDetailsList[actorAccountID] || {};
     const {avatar, login, pendingFields, status, fallbackIcon} = props.personalDetailsList[actorAccountID] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
