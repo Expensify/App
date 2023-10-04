@@ -58,7 +58,7 @@ const getNewSelection = (oldSelection, prevLength, newLength) => {
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const isAmountValid = (amount) => !amount.length || parseFloat(amount) < 0.01;
+const isAmountInvalid = (amount) => !amount.length || parseFloat(amount) < 0.01;
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -70,11 +70,10 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
 
     const textInput = useRef(null);
 
+    const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
-    const [isInvalidAmount, setIsInvalidAmount] = useState(isAmountValid(selectedAmountAsString));
-    const [firstPress, setFirstPress] = useState(false);
     const [formError, setFormError] = useState('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
@@ -106,10 +105,10 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     };
 
     useEffect(() => {
-        if (!currency || !amount) {
+        if (!currency || !_.isNumber(amount)) {
             return;
         }
-        const amountAsStringForState = CurrencyUtils.convertToFrontendAmount(amount).toString();
+        const amountAsStringForState = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
         setCurrentAmount(amountAsStringForState);
         setSelection({
             start: amountAsStringForState.length,
@@ -123,26 +122,43 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Sets the selection and the amount accordingly to the value passed to the input
      * @param {String} newAmount - Changed amount from user input
      */
-    const setNewAmount = (newAmount) => {
-        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
-        // More info: https://github.com/Expensify/App/issues/16974
-        const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
-        // Use a shallow copy of selection to trigger setSelection
-        // More info: https://github.com/Expensify/App/issues/16385
-        if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces)) {
-            setSelection((prevSelection) => ({...prevSelection}));
+    const setNewAmount = useCallback(
+        (newAmount) => {
+            // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+            // More info: https://github.com/Expensify/App/issues/16974
+            const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
+            // Use a shallow copy of selection to trigger setSelection
+            // More info: https://github.com/Expensify/App/issues/16385
+            if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces, decimals)) {
+                setSelection((prevSelection) => ({...prevSelection}));
+                return;
+            }
+            if (!_.isEmpty(formError)) {
+                setFormError('');
+            }
+            setCurrentAmount((prevAmount) => {
+                const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+                const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+                setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
+                return strippedAmount;
+            });
+        },
+        [decimals, formError],
+    );
+
+    // Modifies the amount to match the decimals for changed currency.
+    useEffect(() => {
+        // If the changed currency supports decimals, we can return
+        if (MoneyRequestUtils.validateAmount(currentAmount, decimals)) {
             return;
         }
-        const checkInvalidAmount = isAmountValid(newAmountWithoutSpaces);
-        setIsInvalidAmount(checkInvalidAmount);
-        setFormError(checkInvalidAmount ? 'iou.error.invalidAmount' : '');
-        setCurrentAmount((prevAmount) => {
-            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
-            const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
-            return strippedAmount;
-        });
-    };
+
+        // If the changed currency doesn't support decimals, we can strip the decimals
+        setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
+
+        // we want to update only when decimals change (setNewAmount also changes when decimals change).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [setNewAmount]);
 
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
@@ -167,7 +183,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             const newAmount = MoneyRequestUtils.addLeadingZero(`${currentAmount.substring(0, selection.start)}${key}${currentAmount.substring(selection.end)}`);
             setNewAmount(newAmount);
         },
-        [currentAmount, selection, shouldUpdateSelection],
+        [currentAmount, selection, shouldUpdateSelection, setNewAmount],
     );
 
     /**
@@ -186,13 +202,13 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(() => {
-        if (isInvalidAmount) {
-            setFirstPress(true);
+        if (isAmountInvalid(currentAmount)) {
             setFormError('iou.error.invalidAmount');
             return;
         }
+
         onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount, isInvalidAmount]);
+    }, [onSubmitButtonPress, currentAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -212,6 +228,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
+    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
@@ -245,7 +262,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     onKeyPress={textInputKeyPress}
                 />
             </View>
-            {!_.isEmpty(formError) && firstPress && (
+            {!_.isEmpty(formError) && (
                 <FormHelpMessage
                     style={[styles.ph5]}
                     isError
@@ -257,7 +274,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
                 nativeID={NUM_PAD_CONTAINER_VIEW_ID}
             >
-                {DeviceCapabilities.canUseTouchScreen() ? (
+                {canUseTouchScreen ? (
                     <BigNumberPad
                         nativeID={NUM_PAD_VIEW_ID}
                         numberPressed={updateAmountNumberPad}
@@ -266,10 +283,11 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 ) : null}
                 <Button
                     success
-                    medium={isExtraSmallScreenHeight}
-                    style={[styles.w100, styles.mt5]}
-                    onPress={submitAndNavigateToNextPage}
+                    allowBubble
                     pressOnEnter
+                    medium={isExtraSmallScreenHeight}
+                    style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt2]}
+                    onPress={submitAndNavigateToNextPage}
                     text={buttonText}
                 />
             </View>
