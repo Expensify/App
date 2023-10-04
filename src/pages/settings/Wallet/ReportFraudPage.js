@@ -65,14 +65,6 @@ function ReportFraudPage({
         FormActions.setErrors(ONYXKEYS.FORMS.REPORT_FRAUD_FORM, virtualCard.errors);
     }, [domain, formData.isLoading, prevIsLoading, virtualCard.errors]);
 
-    const submitReportFraud = () => {
-        Card.reportDigitalExpensifyCardFraud(virtualCard.cardID);
-    };
-
-    const onBackButtonPress = () => {
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
-    };
-
     if (_.isEmpty(virtualCard)) {
         return <NotFoundPage />;
     }
@@ -84,12 +76,12 @@ function ReportFraudPage({
         >
             <HeaderWithBackButton
                 title={translate('reportFraudPage.title')}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain))}
             />
             <Form
                 formID={ONYXKEYS.FORMS.REPORT_FRAUD_FORM}
                 style={[styles.flexGrow1, styles.mh5]}
-                onSubmit={submitReportFraud}
+                onSubmit={() => Card.reportDigitalExpensifyCardFraud(virtualCard.cardID)}
                 submitButtonText={translate('reportFraudPage.deactivateCard')}
             >
                 <Text style={[styles.baseFontStyle]}>{translate('reportFraudPage.description')}</Text>
