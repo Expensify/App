@@ -14,6 +14,8 @@ const defaultProps = {
 };
 
 function OptionRowLHNDataWithFocus({currentReportID, shouldDisableFocusOptions, ...props}) {
+    // We only want to pass a boolean to the memoized component,
+    // instead of a changing number (so we prevent unnecessary re-renders).
     const isFocused = !shouldDisableFocusOptions && currentReportID === props.reportID;
 
     return (

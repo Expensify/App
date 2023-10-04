@@ -84,8 +84,6 @@ function OptionRowLHNData({
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
-    // We only want to pass a boolean to the memoized component,
-    // instead of a changing number (so we prevent unnecessary re-renders).
 
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
