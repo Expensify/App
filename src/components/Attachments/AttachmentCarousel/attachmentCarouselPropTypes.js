@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../../pages/reportPropTypes';
 import reportActionPropTypes from '../../../pages/home/report/reportActionPropTypes';
+import reportMetadataPropTypes from '../../../pages/reportMetadataPropTypes';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
@@ -20,11 +21,15 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
+
+    /** The report metadata */
+    reportMetadata: reportMetadataPropTypes,
 };
 
 const defaultProps = {
     source: '',
     reportActions: {},
+    reportMetadata: {},
     onNavigate: () => {},
     onClose: () => {},
     setDownloadButtonVisibility: () => {},

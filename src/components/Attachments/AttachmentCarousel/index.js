@@ -28,7 +28,7 @@ const viewabilityConfig = {
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportMetadata, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
     const scrollRef = useRef(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -164,7 +164,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     // Even an empty chat will have the 'created' report action, if its not there
     // then we are coming from a deep link and actions are not yet loaded. We should
     // wait until actions load.
-    if (report.isLoadingReportActions || _.isEmpty(reportActions)) {
+    if (reportMetadata.isLoadingReportActions || _.isEmpty(reportActions)) {
         return <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />;
     }
 
@@ -240,6 +240,12 @@ export default compose(
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             canEvict: false,
+        },
+        reportMetadata: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
+            initialValue: {
+                isLoadingReportActions: false,
+            },
         },
     }),
     withLocalize,

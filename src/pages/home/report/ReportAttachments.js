@@ -10,6 +10,7 @@ import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportPropTypes from '../../reportPropTypes';
+import reportMetadataPropTypes from '../../../pages/reportMetadataPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -25,10 +26,14 @@ const propTypes = {
 
     /** The report that has this attachment */
     report: reportPropTypes,
+
+    /** The report metadata */
+    reportMetadata: reportMetadataPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    reportMetadata: {},
 };
 
 /**
@@ -60,14 +65,14 @@ function ReportAttachments(props) {
         // Case 2 (for small screens) - if we are logged in, then use the deep link for attachments,
         // of a chat we haven't opened after login (from any page other than the chat itself), the
         // report actions are not loaded for that report
-        const reportActions = ReportActionUtils.getAllReportActions(props.report.reportID);
-        if (props.report.isLoadingReportActions || !_.isEmpty(reportActions)) {
+        const reportActions = ReportActionUtils.getAllReportActions(reportID);
+        if (props.reportMetadata.isLoadingReportActions || !_.isEmpty(reportActions)) {
             reportActionsLoadedRef.current = true;
             return;
         }
 
         Report.openReport(reportID);
-    }, [props.report, reportID]);
+    }, [props.reportMetadata, reportID]);
 
     return (
         <AttachmentModal
@@ -91,5 +96,8 @@ ReportAttachments.displayName = 'ReportAttachments';
 export default withOnyx({
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+    },
+    reportMetadata: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
     },
 })(ReportAttachments);
