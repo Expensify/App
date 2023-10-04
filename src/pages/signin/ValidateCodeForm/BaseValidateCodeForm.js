@@ -300,6 +300,7 @@ function BaseValidateCodeForm(props) {
                             label={props.translate('recoveryCodeForm.recoveryCode')}
                             errorText={formError.recoveryCode ? props.translate(formError.recoveryCode) : ''}
                             hasError={hasError}
+                            onSubmitEditing={validateAndSubmitForm}
                             autoFocus
                         />
                     ) : (
