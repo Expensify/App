@@ -7,6 +7,7 @@ description: Expensify-Egencia integration automatically adds Egencia booking re
 ## Requirements: 
 - You'll need to have a Control Workspace
 - A verified Domain
+
 # How to use Egencia with Expensify
 When an employee makes a booking in Egencia: 
 - The receipt itinerary will automatically be imported to the traveler's Expensify account along with the expense details without needing to submit the information manually.
