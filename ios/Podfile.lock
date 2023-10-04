@@ -771,7 +771,7 @@ PODS:
     - React
     - React-Core
     - Turf
-  - RNPermissions (3.9.2):
+  - RNPermissions (3.9.3):
     - React-Core
   - RNReactNativeHapticFeedback (1.14.0):
     - React-Core
@@ -1272,7 +1272,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
-  RNPermissions: cac1c6ac961d288daa26bbe02966ff364e77bd3a
+  RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNReanimated: ab2e96c6d5591c3dfbb38a464f54c8d17fb34a87
   RNScreens: d037903436160a4b039d32606668350d2a808806
@@ -1287,4 +1287,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: ff769666b7221c15936ebc5576a8c8e467dc6879
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.13.0
