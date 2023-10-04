@@ -89,7 +89,7 @@ function translate(desiredLanguage = CONST.LOCALES.DEFAULT, phraseKey, phrasePar
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
         const phraseString = _.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
         Log.alert(`${phraseString} was not found in the en locale`);
-        if (_.contains(userEmail, CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
+        if (userEmail.includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
             return CONST.MISSING_TRANSLATION;
         }
         return phraseString;
