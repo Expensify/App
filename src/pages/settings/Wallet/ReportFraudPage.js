@@ -65,7 +65,7 @@ function ReportFraudPage({
             return;
         }
 
-        FormActions.setErrors(ONYXKEYS.FORMS.REPORT_FRAUD_FORM, virtualCard.errors);
+        FormActions.setErrors(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD, virtualCard.errors);
     }, [domain, formData.isLoading, prevIsLoading, virtualCard.errors]);
 
     if (_.isEmpty(virtualCard)) {
@@ -104,6 +104,6 @@ export default withOnyx({
         key: ONYXKEYS.CARD_LIST,
     },
     formData: {
-        key: ONYXKEYS.FORMS.REPORT_FRAUD_FORM,
+        key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
     },
 })(ReportFraudPage);

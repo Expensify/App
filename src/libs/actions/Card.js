@@ -15,7 +15,7 @@ function reportVirtualExpensifyCardFraud(cardID) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.FORMS.REPORT_FRAUD_FORM,
+                    key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
                     value: {
                         isLoading: true,
                     },
@@ -24,7 +24,7 @@ function reportVirtualExpensifyCardFraud(cardID) {
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.FORMS.REPORT_FRAUD_FORM,
+                    key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
                     value: {
                         isLoading: false,
                     },
@@ -33,7 +33,7 @@ function reportVirtualExpensifyCardFraud(cardID) {
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.FORMS.REPORT_FRAUD_FORM,
+                    key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
                     value: {
                         isLoading: false,
                     },
