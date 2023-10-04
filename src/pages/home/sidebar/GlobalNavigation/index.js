@@ -9,10 +9,8 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import useLocalize from '../../../../hooks/useLocalize';
 import GlobalNavigationMenuItem from './GlobalNavigationMenuItem';
-import defaultTheme from '../../../../styles/themes/default';
 import {SidebarNavigationContext} from '../SidebarNavigationContext';
-
-const propTypes = {};
+import SignInOrAvatarWithOptionalStatus from '../SignInOrAvatarWithOptionalStatus';
 
 function GlobalNavigation() {
     const sidebarNavigation = useContext(SidebarNavigationContext);
@@ -33,7 +31,7 @@ function GlobalNavigation() {
 
     return (
         <View style={[styles.ph5, styles.pv3, styles.alignItemsCenter, styles.h100, styles.globalNavigation]}>
-            <PressableAvatarWithIndicator />
+            <SignInOrAvatarWithOptionalStatus />
             <View style={styles.mt4}>
                 {_.map(items, (item) => (
                     <GlobalNavigationMenuItem
@@ -49,7 +47,6 @@ function GlobalNavigation() {
     );
 }
 
-GlobalNavigation.propTypes = propTypes;
 GlobalNavigation.displayName = 'GlobalNavigation';
 
 export default GlobalNavigation;

@@ -6,7 +6,6 @@ import styles from '../../../../styles/styles';
 import * as StyleUtils from '../../../../styles/StyleUtils';
 import Icon from '../../../../components/Icon';
 import CONST from '../../../../CONST';
-import Hoverable from '../../../../components/Hoverable';
 import variables from '../../../../styles/variables';
 import defaultTheme from '../../../../styles/themes/default';
 import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
@@ -39,35 +38,30 @@ const defaultProps = {
 
 function GlobalNavigationMenuItem({icon, title, isFocused, onPress, forwardedRef}) {
     return (
-        <Hoverable>
-            {(isHovered) => (
-                <PressableWithFeedback
-                    onPress={() => !isFocused && onPress()}
-                    style={styles.globalNavigationItemContainer}
-                    ref={forwardedRef}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
-                    accessibilityLabel={title}
-                >
-                    {({pressed}) => (
-                        <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
-                            <View style={styles.globalNavigationSelectionIndicator(isFocused)} />
-                            <View style={[styles.flexColumn, styles.flex1, styles.alignItemsCenter, styles.mr1]}>
-                                <Icon
-                                    additionalStyles={[styles.popoverMenuIcon]}
-                                    hovered={isHovered}
-                                    pressed={pressed}
-                                    src={icon}
-                                    fill={isFocused ? defaultTheme.iconMenu : defaultTheme.icon}
-                                />
-                                <View style={[styles.mt1, styles.alignItemsCenter]}>
-                                    <Text style={[StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall), styles.globalNavigationMenuItem(isFocused)]}>{title}</Text>
-                                </View>
-                            </View>
+        <PressableWithFeedback
+            onPress={() => !isFocused && onPress()}
+            style={styles.globalNavigationItemContainer}
+            ref={forwardedRef}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
+            accessibilityLabel={title}
+        >
+            {({pressed}) => (
+                <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
+                    <View style={styles.globalNavigationSelectionIndicator(isFocused)} />
+                    <View style={[styles.flexColumn, styles.flex1, styles.alignItemsCenter, styles.mr1]}>
+                        <Icon
+                            additionalStyles={[styles.popoverMenuIcon]}
+                            pressed={pressed}
+                            src={icon}
+                            fill={isFocused ? defaultTheme.iconMenu : defaultTheme.icon}
+                        />
+                        <View style={[styles.mt1, styles.alignItemsCenter]}>
+                            <Text style={[StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall), styles.globalNavigationMenuItem(isFocused)]}>{title}</Text>
                         </View>
-                    )}
-                </PressableWithFeedback>
+                    </View>
+                </View>
             )}
-        </Hoverable>
+        </PressableWithFeedback>
     );
 }
 

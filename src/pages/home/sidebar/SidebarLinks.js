@@ -161,7 +161,7 @@ class SidebarLinks extends React.PureComponent {
                     dataSet={{dragArea: true}}
                 >
                     <Header
-                        title={<Text style={styles.textHeadline}>Chats</Text>}
+                        title={<Text style={styles.textHeadline}>{this.props.translate('globalNavigationOptions.chats')}</Text>}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         shouldShowEnvironmentBadge
                     />
