@@ -119,8 +119,6 @@ function AttachmentModal(props) {
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
-    const [transaction] = useState(props.transaction);
-    const [report] = useState(props.report);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
@@ -221,12 +219,13 @@ function AttachmentModal(props) {
     }, []);
 
     /**
-     * Detach the receipt and close the confirm modal.
+     * Detach the receipt and close the modal.
      */
-    const deleteAndCloseConfirmModal = useCallback(() => {
-        IOU.detachReceipt(transaction.transactionID, report.reportID);
+    const deleteAndCloseModal = useCallback(() => {
+        IOU.detachReceipt(props.transaction.transactionID, props.report.reportID);
         setIsDeleteReceiptConfirmModalVisible(false);
-    }, [transaction, report]);
+        Navigation.dismissModal(props.report.reportID);
+    }, [props.transaction, props.report]);
 
     /**
      * @param {Object} _file
@@ -459,7 +458,7 @@ function AttachmentModal(props) {
                 <ConfirmModal
                     title={translate('receipt.deleteReceipt')}
                     isVisible={isDeleteReceiptConfirmModalVisible}
-                    onConfirm={deleteAndCloseConfirmModal}
+                    onConfirm={deleteAndCloseModal}
                     onCancel={closeConfirmModal}
                     prompt={translate('receipt.deleteConfirmation')}
                     confirmText={translate('common.delete')}

@@ -2114,7 +2114,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     Navigation.dismissModal(chatReport.reportID);
 }
 
-function detachReceipt(transactionID, reportID) {
+function detachReceipt(transactionID) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
     const newTransaction = {...transaction, filename: '', receipt: {}};
 
@@ -2135,7 +2135,6 @@ function detachReceipt(transactionID, reportID) {
     ];
 
     API.write('DetachReceipt', {transactionID}, {optimisticData, failureData});
-    Navigation.dismissModal(reportID);
 }
 
 /**
