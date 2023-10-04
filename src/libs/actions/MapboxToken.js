@@ -42,7 +42,7 @@ const setExpirationTimer = () => {
     }, REFRESH_INTERVAL);
 };
 
-const hasTokenExpired = () => isAfter(new Date(), currentToken.expiration);
+const hasTokenExpired = () => isAfter(new Date(), new Date(currentToken.expiration));
 
 const clearToken = () => {
     console.debug('[MapboxToken] Deleting the token stored in Onyx');
