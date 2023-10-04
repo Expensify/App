@@ -3715,7 +3715,7 @@ const styles = (theme) => ({
         backgroundColor: theme.receiptDropUIBG,
     },
 
-    checkBoxWithLabelCheckBoxStyle: {
+    checkboxWithLabelCheckboxStyle: {
         marginLeft: -2,
     },
 });
