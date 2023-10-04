@@ -5,11 +5,26 @@ import Text from '../../../components/Text';
 import * as Localize from '../../../libs/Localize';
 import CONST from '../../../CONST';
 import TextLink from '../../../components/TextLink';
+import userWalletPropTypes from '../userWalletPropTypes';
 
-function ShortTermsForm() {
+const propTypes = {
+    /** The user's wallet */
+    userWallet: userWalletPropTypes,
+};
+
+const defaultProps = {
+    userWallet: {},
+};
+
+function ShortTermsForm(props) {
     return (
         <>
-            <Text style={styles.mb5}>{Localize.translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount')}</Text>
+            <Text style={styles.mb5}>
+                {Localize.translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount', {
+                    walletProgram:
+                        props.userWallet.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID ? CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS : CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK,
+                })}
+            </Text>
 
             <View style={[styles.shortTermsBorder, styles.p2, styles.mb6]}>
                 <View style={[styles.shortTermsRow, styles.mb4]}>
@@ -132,6 +147,8 @@ function ShortTermsForm() {
     );
 }
 
+ShortTermsForm.propTypes = propTypes;
+ShortTermsForm.defaultProps = defaultProps;
 ShortTermsForm.displayName = 'ShortTermsForm';
 
 export default ShortTermsForm;
