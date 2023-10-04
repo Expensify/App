@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const attachmentSourcePropType = PropTypes.oneOfType([PropTypes.string, PropTypes.func]);
+const attachmentSourcePropType = PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.number]);
 const attachmentFilePropType = PropTypes.shape({
     name: PropTypes.string,
 });
