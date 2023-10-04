@@ -25,18 +25,7 @@ const defaultProps = {
  *
  * @returns {React.Component}
  */
-function Suggestions({
-    isComposerFullSize,
-    value,
-    setValue,
-    selection,
-    setSelection,
-    updateComment,
-    composerHeight,
-    forwardedRef,
-    resetKeyboardInput,
-    measureParentContainer,
-}) {
+function Suggestions({isComposerFullSize, value, setValue, selection, setSelection, updateComment, composerHeight, forwardedRef, resetKeyboardInput, measureParentContainer}) {
     const suggestionEmojiRef = useRef(null);
     const suggestionMentionRef = useRef(null);
 
