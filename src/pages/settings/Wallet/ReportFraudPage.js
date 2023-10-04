@@ -69,7 +69,9 @@ function ReportFraudPage({
         Card.reportDigitalExpensifyCardFraud(virtualCard.cardID);
     };
 
-    const onBackButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
+    const onBackButtonPress = () => {
+        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
+    };
 
     if (_.isEmpty(virtualCard)) {
         return <NotFoundPage />;
