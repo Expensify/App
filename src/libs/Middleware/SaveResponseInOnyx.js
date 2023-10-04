@@ -58,7 +58,6 @@ function SaveResponseInOnyx(requestResponse, request) {
                 ...response,
                 shouldPauseQueue: true,
             });
-            // # TODO: update with correct logic to log error to the console
         })
         .catch(console.error);
 }
