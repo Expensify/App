@@ -170,7 +170,7 @@ function OptionRowLHN(props) {
                         onSecondaryInteraction={(e) => showPopover(e)}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
-                            styles.sidebarLinkInnerLHN,
+                        style={[
                             styles.flexRow,
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
