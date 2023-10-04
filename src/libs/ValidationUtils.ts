@@ -314,8 +314,8 @@ function isReservedRoomName(roomName: string): boolean {
 /**
  * Checks if the room name already exists.
  */
-function isExistingRoomName(roomName: string, reports: Report[], policyID: string): boolean {
-    return reports.some((report) => report && report.policyID === policyID && report.reportName === roomName);
+function isExistingRoomName(roomName: string, reports: Record<string, Report>, policyID: string): boolean {
+    return Object.values(reports).some((report) => report && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**

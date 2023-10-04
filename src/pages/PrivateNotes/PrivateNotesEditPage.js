@@ -92,7 +92,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
         Keyboard.dismiss();
 
         // Take user back to the PrivateNotesView page
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.reportID, route.params.accountID));
     };
 
     return (
@@ -114,6 +114,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     subtitle={translate('privateNotes.myNote')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.repotID, route.params.accountID))}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />

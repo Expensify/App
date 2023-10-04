@@ -64,11 +64,11 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
     const {translate} = useLocalize();
 
     useEffect(() => {
-        if (network.isOffline) {
+        if (network.isOffline && report.isLoadingPrivateNotes) {
             return;
         }
         Report.getReportPrivateNote(report.reportID);
-    }, [report.reportID, network.isOffline]);
+    }, [report.reportID, network.isOffline, report.isLoadingPrivateNotes]);
 
     /**
      * Gets the menu item for each workspace

@@ -31,6 +31,7 @@ function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={EditRequestTagPage.displayName}
         >
             <HeaderWithBackButton
                 title={tagName || translate('common.tag')}
