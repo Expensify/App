@@ -1239,6 +1239,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
 
 /** Used exclusively for starting a split bill request that contains a receipt, the split request will be completed once the receipt is scanned */
 function startSplitBill(participants, currentUserLogin, currentUserAccountID, comment, created, merchant, receipt, existingSplitChatReportID = '') {
+    console.log(participants);
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -1381,7 +1382,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     const splits = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
 
     _.each(participants, (participant) => {
-        const email = participant.isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
+        const email = participant.isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || participant.text).toLowerCase();
         const accountID = participant.isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
@@ -1405,7 +1406,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                         accountID,
                         avatar: UserUtils.getDefaultAvatarURL(accountID),
                         displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
-                        login: participant.login,
+                        login: participant.login || participant.text,
                     },
                 },
             });
