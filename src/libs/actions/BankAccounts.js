@@ -57,7 +57,7 @@ function clearOnfidoToken() {
 
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
- * @param {String | undefined} currentStep The step that we need to update the data from BE to draft value
+ * @param {String | undefined} currentStep The step that we need to update the data from backend to draft value
  * @returns {Object}
  */
 function getVBBADataForOnyx(currentStep = undefined) {
@@ -79,6 +79,9 @@ function getVBBADataForOnyx(currentStep = undefined) {
                 value: {
                     isLoading: false,
                     errors: null,
+                    // The value of some fields of the currentStep are changed i.e. being trimmed or phone number is parsed when backend returns the data
+                    // So we need to add this field in successData to update the current data from reimbursement account to the draft value of the form
+                    // if currentStep is undefined that means the step doesn't need update to the drafts
                     stepToUpdateToDraft: currentStep,
                 },
             },
