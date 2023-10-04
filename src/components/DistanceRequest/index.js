@@ -95,7 +95,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
 
     useEffect(() => {
         const transactionWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-        if (!transactionID || !_.isEmpty(transactionWaypoints)) {
+        if (!lodashGet(transaction, 'transactionID') || !_.isEmpty(transactionWaypoints)) {
             return;
         }
 
@@ -139,7 +139,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             const newWaypoints = {};
             _.each(data, (waypoint, index) => {
                 const newWaypoint = lodashGet(waypoints, waypoint, {});
-                newWaypoints[`waypoint${index}`] = lodashIsEmpty(newWaypoint) ? null : newWaypoint;
+                newWaypoints[`waypoint${index}`] = lodashIsEmpty(newWaypoint) ? {} : newWaypoint;
             });
 
             setOptimisticWaypoints(newWaypoints);
@@ -227,7 +227,7 @@ DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID || 0}`,
     },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
