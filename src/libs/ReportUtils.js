@@ -126,6 +126,14 @@ function transactionThreadHasViolations(report) {
     return true;
 }
 
+function reportHasViolations(reportID) {
+    let transactions = TransactionUtils.getAllReportTransactions(reportID);
+    return _.find(transactions, (transaction) => {
+        const violations = lodashGet(transactionViolations, `${transaction.transactionID}.violation`, []);
+        return !_.isEmpty(violations);
+    });
+}
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -3898,4 +3906,5 @@ export {
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
     transactionThreadHasViolations,
+    reportHasViolations,
 };

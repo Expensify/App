@@ -118,7 +118,7 @@ function ReportPreview(props) {
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
-    const hasErrors = (hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID)) || props.iouReport.violations === true;
+    const hasErrors = (hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID)) || ReportUtils.reportHasViolations(props.iouReportID);
     const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || ''));
 
