@@ -102,12 +102,12 @@ const getDistanceMerchant = (hasRoute, distanceInMeters, unit, rate, currency, t
  * @param {Number} distance - The distance traveled in meters
  * @param {'mi' | 'km'} unit - The unit of measurement for the distance
  * @param {Number} rate - Rate used for calculating the request amount
- * @returns {Number} The computed request amount (rounded) in "cents".
+ * @returns {Number} The computed request amount.
  */
 const getDistanceRequestAmount = (distance, unit, rate) => {
     const convertedDistance = convertDistanceUnit(distance, unit);
     const roundedDistance = convertedDistance.toFixed(2);
-    return Math.round(roundedDistance * rate);
+    return roundedDistance * rate;
 };
 
 export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};

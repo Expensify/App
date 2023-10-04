@@ -3,12 +3,11 @@ import sidebarPropTypes from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 import FreezeWrapper from '../../../../libs/Navigation/FreezeWrapper';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
+import withWindowDimensions from '../../../../components/withWindowDimensions';
 
 function SidebarScreen(props) {
-    const {isSmallScreenWidth} = useWindowDimensions();
     return (
-        <FreezeWrapper keepVisible={!isSmallScreenWidth}>
+        <FreezeWrapper keepVisible={!props.isSmallScreenWidth}>
             <BaseSidebarScreen
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
@@ -22,4 +21,4 @@ function SidebarScreen(props) {
 SidebarScreen.propTypes = sidebarPropTypes;
 SidebarScreen.displayName = 'SidebarScreen';
 
-export default SidebarScreen;
+export default withWindowDimensions(SidebarScreen);

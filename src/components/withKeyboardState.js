@@ -1,6 +1,7 @@
-import React, {forwardRef, createContext, useEffect, useState} from 'react';
-import {Keyboard} from 'react-native';
+/* eslint-disable react/no-unused-state */
+import React, {forwardRef, createContext} from 'react';
 import PropTypes from 'prop-types';
+import {Keyboard} from 'react-native';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 const KeyboardStateContext = createContext(null);
@@ -14,24 +15,32 @@ const keyboardStateProviderPropTypes = {
     children: PropTypes.node.isRequired,
 };
 
-function KeyboardStateProvider(props) {
-    const {children} = props;
-    const [isKeyboardShown, setIsKeyboardShown] = useState(false);
-    useEffect(() => {
-        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-            setIsKeyboardShown(true);
-        });
-        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-            setIsKeyboardShown(false);
-        });
+class KeyboardStateProvider extends React.Component {
+    constructor(props) {
+        super(props);
 
-        return () => {
-            keyboardDidShowListener.remove();
-            keyboardDidHideListener.remove();
+        this.state = {
+            isKeyboardShown: false,
         };
-    }, []);
+    }
 
-    return <KeyboardStateContext.Provider value={{isKeyboardShown}}>{children}</KeyboardStateContext.Provider>;
+    componentDidMount() {
+        this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+            this.setState({isKeyboardShown: true});
+        });
+        this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            this.setState({isKeyboardShown: false});
+        });
+    }
+
+    componentWillUnmount() {
+        this.keyboardDidShowListener.remove();
+        this.keyboardDidHideListener.remove();
+    }
+
+    render() {
+        return <KeyboardStateContext.Provider value={this.state}>{this.props.children}</KeyboardStateContext.Provider>;
+    }
 }
 
 KeyboardStateProvider.propTypes = keyboardStateProviderPropTypes;

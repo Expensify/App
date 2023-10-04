@@ -21,13 +21,9 @@ function Template(args) {
 const Default = Template.bind({});
 Default.args = {
     buttonText: 'Pay using Expensify',
-    onPress: (e, item) => {
-        alert(`Button ${item} is pressed.`);
-    },
-    pressOnEnter: true,
     options: [
-        {value: 'One', text: 'One'},
-        {value: 'Two', text: 'Two'},
+        {value: 1, text: 'One'},
+        {value: 2, text: 'Two'},
     ],
 };
 

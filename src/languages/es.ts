@@ -67,15 +67,12 @@ import type {
     ParentNavigationSummaryParams,
     ManagerApprovedParams,
     SetTheRequestParams,
-    SetTheDistanceParams,
     UpdatedTheRequestParams,
-    UpdatedTheDistanceParams,
     RemovedTheRequestParams,
     FormattedMaxLengthParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
     EnglishTranslation,
-    WalletProgramParams,
 } from './types';
 
 /* eslint-disable max-len */
@@ -168,7 +165,6 @@ export default {
         notifications: 'Notificaciones',
         na: 'N/A',
         noResultsFound: 'No se han encontrado resultados',
-        recentDestinations: 'Destinos recientes',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
         todayAt: 'Hoy a las',
@@ -202,7 +198,6 @@ export default {
         debitCard: 'Tarjeta de débito',
         bankAccount: 'Cuenta bancaria',
         join: 'Unirse',
-        joinThread: 'Unirse al hilo',
         decline: 'Rechazar',
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
@@ -239,7 +234,6 @@ export default {
         merchant: 'Comerciante',
         category: 'Categoría',
         billable: 'Facturable',
-        nonBillable: 'No facturable',
         tag: 'Etiqueta',
         receipt: 'Recibo',
         replace: 'Sustituir',
@@ -477,6 +471,7 @@ export default {
         dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
         chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
         chooseFile: 'Elegir archivo',
+        givePermission: 'Permitir',
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
         cameraErrorTitle: 'Error en la cámara',
@@ -534,14 +529,10 @@ export default {
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheRequest: 'cambió la solicitud',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `estableció ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
-        setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) =>
-            `estableció la distancia a ${newDistanceToDisplay}, lo que estableció el importe a ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) =>
             `eliminó ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} (previamente ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
-            `cambió ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
-        updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
-            `cambió la distancia a ${newDistanceToDisplay} (previamente ${oldDistanceToDisplay}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
+            `cambío ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero`,
@@ -818,14 +809,6 @@ export default {
         availableSpend: 'Capacidad de gasto restante',
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
-        cardDetails: {
-            cardNumber: 'Número de tarjeta virtual',
-            expiration: 'Expiración',
-            cvv: 'CVV',
-            address: 'Dirección',
-            revealDetails: 'Revelar detalles',
-            copyCardNumber: 'Copiar número de la tarjeta',
-        },
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,
@@ -874,7 +857,6 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Mensaje de bienvenida',
-        welcomeMessageOptional: 'Mensaje de bienvenida (opcional)',
         explainerText: 'Configura un mensaje de bienvenida privado y personalizado que se enviará cuando los usuarios se unan a esta sala de chat.',
     },
     languagePage: {
@@ -921,7 +903,7 @@ export default {
         phrase2: 'Términos de Servicio',
         phrase3: 'y',
         phrase4: 'Privacidad',
-        phrase5: `El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus`,
+        phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
     },
     validateCodeForm: {
@@ -1104,7 +1086,7 @@ export default {
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Por favor, introduce un número de identificación fiscal válido',
             website: 'Por favor, introduce un sitio web válido',
-            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: 'Por favor, introduce un código postal válido',
             phoneNumber: 'Por favor, introduce un teléfono válido',
             companyName: 'Por favor, introduce un nombre comercial legal válido',
             addressCity: 'Por favor, introduce una ciudad válida',
@@ -1203,7 +1185,7 @@ export default {
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
         shortTermsForm: {
-            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
+            expensifyPaymentsAccount: 'La billetera Expensify es emitida por The Bancorp Bank.',
             perPurchase: 'Por compra',
             atmWithdrawal: 'Retiro de cajero automático',
             cashReload: 'Recarga de efectivo',
@@ -1246,10 +1228,10 @@ export default {
                 'transferencia (con una tarifa mínima de $ 0.25). ',
             fdicInsuranceBancorp:
                 'Sus fondos son elegibles para el seguro de la FDIC. Sus fondos se mantendrán en o ' +
-                `transferido a ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, una institución asegurada por la FDIC. Una vez allí, sus fondos ` +
-                `están asegurados a $ 250,000 por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} quiebre. Ver`,
+                'transferido a The Bancorp Bank, una institución asegurada por la FDIC. Una vez allí, sus fondos ' +
+                'están asegurados a $ 250,000 por la FDIC en caso de que The Bancorp Bank quiebre. Ver',
             fdicInsuranceBancorp2: 'para detalles.',
-            contactExpensifyPayments: `Comuníquese con ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} llamando al + 1833-400-0904, por correoelectrónico a`,
+            contactExpensifyPayments: 'Comuníquese con Expensify Payments llamando al + 1833-400-0904, por correoelectrónico a',
             contactExpensifyPayments2: 'o inicie sesión en',
             generalInformation: 'Para obtener información general sobre cuentas prepagas, visite',
             generalInformation2: 'Si tiene una queja sobre una cuenta prepaga, llame al Consumer Financial Oficina de Protección al 1-855-411-2372 o visite',
@@ -1573,12 +1555,12 @@ export default {
         assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
-            completed: 'marcada como completa',
+            completed: 'tarea completada',
             canceled: 'tarea eliminado',
-            reopened: 'marcada como incompleta',
+            reopened: 'tarea reabrir',
             error: 'No tiene permiso para realizar la acción solicitada.',
         },
-        markAsComplete: 'Marcar como completada',
+        markAsDone: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
         assigneeError: 'Hubo un error al asignar esta tarea, inténtalo con otro usuario.',
     },

@@ -1,22 +1,24 @@
-import React, {useCallback, useRef} from 'react';
+import React from 'react';
 import {WebView} from 'react-native-webview';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import withLocalize from '../withLocalize';
+import ONYXKEYS from '../../ONYXKEYS';
+import compose from '../../libs/compose';
 import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import * as Report from '../../libs/actions/Report';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
 
-const IOU_ROUTES = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
-const renderLoading = () => <FullScreenLoadingIndicator />;
+class WalletStatementModal extends React.Component {
+    constructor(props) {
+        super(props);
 
-function WalletStatementModal({statementPageURL, session}) {
-    const webViewRef = useRef();
-    const authToken = lodashGet(session, 'authToken', null);
+        this.authToken = lodashGet(props, 'session.authToken', null);
+        this.navigate = this.navigate.bind(this);
+    }
 
     /**
      * Handles in-app navigation for webview links
@@ -24,53 +26,54 @@ function WalletStatementModal({statementPageURL, session}) {
      * @param {String} params.type
      * @param {String} params.url
      */
-    const handleNavigationStateChange = useCallback(
-        ({type, url}) => {
-            if (!webViewRef.current || (type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
-                return;
+    navigate({type, url}) {
+        if (!this.webview || (type !== 'STATEMENT_NAVIGATE' && type !== 'CONCIERGE_NAVIGATE')) {
+            return;
+        }
+
+        if (type === 'CONCIERGE_NAVIGATE') {
+            this.webview.stopLoading();
+            Report.navigateToConciergeChat();
+        }
+
+        if (type === 'STATEMENT_NAVIGATE' && url) {
+            const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
+            const navigateToIOURoute = _.find(iouRoutes, (iouRoute) => url.includes(iouRoute));
+            if (navigateToIOURoute) {
+                this.webview.stopLoading();
+                Navigation.navigate(navigateToIOURoute);
             }
+        }
+    }
 
-            if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-                webViewRef.current.stopLoading();
-                Report.navigateToConciergeChat();
-            }
-
-            if (type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && url) {
-                const iouRoute = _.find(IOU_ROUTES, (item) => url.includes(item));
-
-                if (iouRoute) {
-                    webViewRef.current.stopLoading();
-                    Navigation.navigate(iouRoute);
-                }
-            }
-        },
-        [webViewRef],
-    );
-
-    return (
-        <WebView
-            ref={webViewRef}
-            originWhitelist={['https://*']}
-            source={{
-                uri: statementPageURL,
-                headers: {
-                    Cookie: `authToken=${authToken}`,
-                },
-            }}
-            incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
-            startInLoadingState
-            renderLoading={renderLoading}
-            onNavigationStateChange={handleNavigationStateChange}
-        />
-    );
+    render() {
+        return (
+            <WebView
+                ref={(node) => (this.webview = node)}
+                originWhitelist={['https://*']}
+                source={{
+                    uri: this.props.statementPageURL,
+                    headers: {
+                        Cookie: `authToken=${this.authToken}`,
+                    },
+                }}
+                incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
+                startInLoadingState
+                renderLoading={() => <FullScreenLoadingIndicator />}
+                onNavigationStateChange={this.navigate}
+            />
+        );
+    }
 }
 
-WalletStatementModal.displayName = 'WalletStatementModal';
 WalletStatementModal.propTypes = walletStatementPropTypes;
 WalletStatementModal.defaultProps = walletStatementDefaultProps;
 
-export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(WalletStatementModal);
+export default compose(
+    withLocalize,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(WalletStatementModal);

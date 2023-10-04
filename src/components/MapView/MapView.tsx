@@ -39,17 +39,14 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                         centerCoordinate: waypoints[0].coordinate,
                     });
                 } else {
-                    const {southWest, northEast} = utils.getBounds(
-                        waypoints.map((waypoint) => waypoint.coordinate),
-                        directionCoordinates,
-                    );
+                    const {southWest, northEast} = utils.getBounds(waypoints.map((waypoint) => waypoint.coordinate));
                     cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
                 }
             }
             return () => {
                 setIsIdle(false);
             };
-        }, [mapPadding, waypoints, isIdle, directionCoordinates]),
+        }, [mapPadding, waypoints, isIdle]),
     );
 
     useEffect(() => {

@@ -48,9 +48,6 @@ const propTypes = {
 
     /** Used to apply styles to the Pressable */
     style: stylePropTypes,
-
-    /** Whether the view needs to be rendered offscreen (for Android only) */
-    needsOffscreenAlphaCompositing: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -62,7 +59,6 @@ const defaultProps = {
     withoutFocusOnSecondaryInteraction: false,
     activeOpacity: 1,
     enableLongPressWithHover: false,
-    needsOffscreenAlphaCompositing: false,
 };
 
 export {propTypes, defaultProps};

@@ -19,7 +19,6 @@ import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 import CONST from '../../CONST';
-import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -56,28 +55,17 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
     const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
     const privateNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
 
-    const getFallbackRoute = () => {
-        const privateNotes = lodashGet(report, 'privateNotes', {});
-
-        if (_.keys(privateNotes).length === 1) {
-            return ROUTES.HOME;
-        }
-
-        return ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID);
-    };
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={PrivateNotesViewPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || ReportUtils.isArchivedRoom(report)}
+                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note'])}
                 subtitleKey="privateNotes.notesUnavailable"
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
-                    onBackButtonPress={() => Navigation.goBack(getFallbackRoute())}
                     subtitle={isCurrentUserNote ? translate('privateNotes.myNote') : `${lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')} note`}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}

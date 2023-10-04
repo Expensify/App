@@ -99,6 +99,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
     const appState = useRef(AppState.currentState);
 
     const iouType = lodashGet(route, 'params.iouType', '');
+    const reportID = lodashGet(route, 'params.reportID', '');
     const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
@@ -222,13 +223,13 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     return;
                 }
 
-                IOU.navigateToNextPage(iou, iouType, report, route.path);
+                IOU.navigateToNextPage(iou, iouType, reportID, report, route.path);
             })
             .catch((error) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, iou, report, translate, transactionID, route.path]);
+    }, [flash, iouType, iou, report, reportID, translate, transactionID, route.path]);
 
     CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
@@ -245,14 +246,18 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     />
                     <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
                     <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
-                    <Button
-                        medium
-                        success
-                        text={translate('common.continue')}
-                        accessibilityLabel={translate('common.continue')}
-                        style={[styles.p9, styles.pt5]}
-                        onPress={askForPermissions}
-                    />
+                    <PressableWithFeedback
+                        accessibilityLabel={translate('receipt.givePermission')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    >
+                        <Button
+                            medium
+                            success
+                            text={translate('receipt.givePermission')}
+                            style={[styles.p9, styles.pt5]}
+                            onPress={askForPermissions}
+                        />
+                    </PressableWithFeedback>
                 </View>
             )}
             {permissions === RESULTS.GRANTED && device == null && (
@@ -293,7 +298,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                                     return;
                                 }
 
-                                IOU.navigateToNextPage(iou, iouType, report, route.path);
+                                IOU.navigateToNextPage(iou, iouType, reportID, report, route.path);
                             })
                             .catch(() => {
                                 Log.info('User did not select an image from gallery');

@@ -2,6 +2,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import OnyxTabNavigator, {TopTab} from '../libs/Navigation/OnyxTabNavigator';
 import TabSelector from '../components/TabSelector/TabSelector';
+import Navigation from '../libs/Navigation/Navigation';
 import Permissions from '../libs/Permissions';
 import NewChatPage from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
@@ -33,7 +34,10 @@ function NewChatSelectorPage(props) {
             shouldEnableMaxHeight
             testID={NewChatSelectorPage.displayName}
         >
-            <HeaderWithBackButton title={props.translate('sidebarScreen.fabNewChat')} />
+            <HeaderWithBackButton
+                title={props.translate('sidebarScreen.fabNewChat')}
+                onBackButtonPress={Navigation.dismissModal}
+            />
             {Permissions.canUsePolicyRooms(props.betas) ? (
                 <OnyxTabNavigator
                     id={CONST.TAB.NEW_CHAT_TAB_ID}

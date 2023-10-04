@@ -54,8 +54,17 @@ const defaultProps = {
  * @param {Object} translate The localize
  * @return {Array}
  */
-const getAllParticipants = (report, personalDetails, translate) =>
-    _.chain(ReportUtils.getParticipantsIDs(report))
+const getAllParticipants = (report, personalDetails, translate) => {
+    let participantAccountIDs = report.participantAccountIDs;
+
+    // Build participants list for IOU report - there is a possibility that participantAccountIDs may be undefined/empty
+    if (ReportUtils.isIOUReport(report)) {
+        const managerID = report.managerID || '';
+        const ownerAccountID = report.ownerAccountID || '';
+        participantAccountIDs = [managerID, ownerAccountID];
+    }
+
+    return _.chain(participantAccountIDs)
         .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
             const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
@@ -81,6 +90,7 @@ const getAllParticipants = (report, personalDetails, translate) =>
         })
         .sortBy((participant) => participant.displayName.toLowerCase())
         .value();
+};
 
 function ReportParticipantsPage(props) {
     const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => ({
@@ -100,8 +110,7 @@ function ReportParticipantsPage(props) {
                             ReportUtils.isChatRoom(props.report) ||
                                 ReportUtils.isPolicyExpenseChat(props.report) ||
                                 ReportUtils.isChatThread(props.report) ||
-                                ReportUtils.isTaskReport(props.report) ||
-                                ReportUtils.isMoneyRequestReport(props.report)
+                                ReportUtils.isTaskReport(props.report)
                                 ? 'common.members'
                                 : 'common.details',
                         )}

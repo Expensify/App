@@ -13,7 +13,7 @@ import EmojiReactionsPropTypes from './EmojiReactionsPropTypes';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 import * as EmojiUtils from '../../libs/EmojiUtils';
-import {ReactionListContext} from '../../pages/home/ReportScreenContext';
+import ReportScreenContext from '../../pages/home/ReportScreenContext';
 
 const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
@@ -41,9 +41,8 @@ const defaultProps = {
 };
 
 function ReportActionItemEmojiReactions(props) {
-    const reactionListRef = useContext(ReactionListContext);
+    const {reactionListRef} = useContext(ReportScreenContext);
     const popoverReactionListAnchors = useRef({});
-
     let totalReactionCount = 0;
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone

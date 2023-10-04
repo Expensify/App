@@ -13,6 +13,7 @@ type OriginalMessageIOU = {
         currency: string;
         lastModified?: string;
         participantAccountIDs?: number[];
+        participants?: string[];
         type: string;
     };
 };
@@ -136,4 +137,4 @@ type OriginalMessage =
     | OriginalMessagePolicyTask;
 
 export default OriginalMessage;
-export type {Reaction, ChronosOOOEvent};
+export type {Reaction};

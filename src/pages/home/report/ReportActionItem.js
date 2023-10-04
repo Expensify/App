@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useRef, useEffect, memo, useCallback, useContext, useMemo} from 'react';
+import React, {useState, useRef, useEffect, memo, useCallback, useContext} from 'react';
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -61,13 +61,12 @@ import * as Session from '../../../libs/actions/Session';
 import MoneyRequestView from '../../../components/ReportActionItem/MoneyRequestView';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
+import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
-import {ReactionListContext} from '../ReportScreenContext';
 import usePrevious from '../../../hooks/usePrevious';
+import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
-import themeColors from '../../../styles/themes/default';
-import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import RenderHTML from '../../../components/RenderHTML';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
 
@@ -131,7 +130,7 @@ function ReportActionItem(props) {
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
-    const reactionListRef = useContext(ReactionListContext);
+    const {reactionListRef} = useContext(ReportScreenContext);
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
@@ -139,9 +138,6 @@ function ReportActionItem(props) {
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
-    const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
-
-    const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}), [isReportActionLinked]);
 
     // When active action changes, we need to update the `isContextMenuActive` state
     const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID);
@@ -200,13 +196,6 @@ function ReportActionItem(props) {
         downloadedPreviews.current = urls;
         Report.expandURLPreview(props.report.reportID, props.action.reportActionID);
     }, [props.action, props.report.reportID]);
-
-    useEffect(() => {
-        if (!props.draftMessage || !ReportActionsUtils.isDeletedAction(props.action)) {
-            return;
-        }
-        Report.saveReportActionDraft(props.report.reportID, props.action, '');
-    }, [props.draftMessage, props.action, props.report.reportID]);
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
@@ -511,15 +500,9 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        let content = (
-            <ReportActionItemCreated
-                reportID={props.report.reportID}
-                policyID={props.report.policyID}
-            />
-        );
         const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            content = (
+            return (
                 <ShowContextMenuContext.Provider
                     value={{
                         anchor: popoverAnchorRef,
@@ -537,7 +520,7 @@ function ReportActionItem(props) {
         }
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
-                content = (
+                return (
                     <>
                         <ReportActionItemSingle
                             action={parentReportAction}
@@ -552,7 +535,7 @@ function ReportActionItem(props) {
                 );
             }
 
-            content = (
+            return (
                 <TaskView
                     report={props.report}
                     shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
@@ -560,7 +543,7 @@ function ReportActionItem(props) {
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
-            content = (
+            return (
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <MoneyReportView
                         report={props.report}
@@ -569,13 +552,12 @@ function ReportActionItem(props) {
                 </OfflineWithFeedback>
             );
         }
-
-        const isNormalCreatedAction =
-            !ReportActionsUtils.isTransactionThread(parentReportAction) &&
-            !ReportUtils.isTaskReport(props.report) &&
-            !ReportUtils.isExpenseReport(props.report) &&
-            !ReportUtils.isIOUReport(props.report);
-        return <View style={[props.shouldHideThreadDividerLine && !isNormalCreatedAction && styles.mb2]}>{content}</View>;
+        return (
+            <ReportActionItemCreated
+                reportID={props.report.reportID}
+                policyID={props.report.policyID}
+            />
+        );
     }
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return <RenameAction action={props.action} />;
@@ -612,7 +594,7 @@ function ReportActionItem(props) {
                 disabled={Boolean(props.draftMessage)}
             >
                 {(hovered) => (
-                    <View style={highlightedBackgroundColorIfNeeded}>
+                    <View>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
@@ -624,7 +606,12 @@ function ReportActionItem(props) {
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                         />
-                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || props.draftMessage)}>
+                        <View
+                            style={StyleUtils.getReportActionItemStyle(
+                                hovered || isWhisper || isContextMenuActive || props.draftMessage,
+                                (props.network.isOffline && props.action.isLoading) || props.action.error,
+                            )}
+                        >
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}
@@ -656,7 +643,7 @@ function ReportActionItem(props) {
                                         />
                                     </View>
                                 )}
-                                {renderReportActionItem(hovered || isReportActionLinked, isWhisper, hasErrors)}
+                                {renderReportActionItem(hovered, isWhisper, hasErrors)}
                             </OfflineWithFeedback>
                         </View>
                     </View>
@@ -681,15 +668,13 @@ export default compose(
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
-            const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${props.action.reportActionID}`;
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
         },
     }),
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-            initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
         },
         iouReport: {
             key: ({action}) => {
@@ -700,7 +685,6 @@ export default compose(
         },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
-            initialValue: {},
         },
     }),
 )(
@@ -715,7 +699,6 @@ export default compose(
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&
             _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
-            _.isEqual(prevProps.report.isDeletedParentAction, nextProps.report.isDeletedParentAction) &&
             _.isEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
@@ -729,7 +712,6 @@ export default compose(
             prevProps.report.managerID === nextProps.report.managerID &&
             prevProps.report.managerEmail === nextProps.report.managerEmail &&
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
-            lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0) &&
-            prevProps.linkedReportActionID === nextProps.linkedReportActionID,
+            lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0),
     ),
 );

@@ -2,13 +2,12 @@ import HttpUtils from './HttpUtils';
 import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkStore from './Network/NetworkStore';
 import Request from '../types/onyx/Request';
-import Response from '../types/onyx/Response';
 
-type Middleware = (response: Promise<Response>, request: Request, isFromSequentialQueue: boolean) => Promise<Response>;
+type Middleware = (response: unknown, request: Request, isFromSequentialQueue: boolean) => Promise<unknown>;
 
 let middlewares: Middleware[] = [];
 
-function makeXHR(request: Request): Promise<Response> {
+function makeXHR(request: Request): Promise<unknown> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return NetworkStore.hasReadRequiredDataFromStorage().then(() => {
         // If we're using the Supportal token and this is not a Supportal request
@@ -17,10 +16,10 @@ function makeXHR(request: Request): Promise<Response> {
             return new Promise<void>((resolve) => resolve());
         }
         return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
-    }) as Promise<Response>;
+    });
 }
 
-function processWithMiddleware(request: Request, isFromSequentialQueue = false): Promise<Response> {
+function processWithMiddleware(request: Request, isFromSequentialQueue = false): Promise<unknown> {
     return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
 }
 
@@ -33,4 +32,3 @@ function clearMiddlewares() {
 }
 
 export {clearMiddlewares, processWithMiddleware, use};
-export type {Middleware};

@@ -450,63 +450,43 @@ function reportActionsExist(reportID) {
  * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
 function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
-    const optimisticReportData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: reportActionsExist(reportID)
-                ? {}
-                : {
-                      reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
-                  },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: {
-                isLoadingReportActions: true,
-                isLoadingMoreReportActions: false,
+    const optimisticReportData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: reportActionsExist(reportID)
+            ? {}
+            : {
+                  isLoadingReportActions: true,
+                  isLoadingMoreReportActions: false,
+                  reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
+              },
+    };
+    const reportSuccessData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            isLoadingReportActions: false,
+            pendingFields: {
+                createChat: null,
             },
-        },
-    ];
-
-    const reportSuccessData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                pendingFields: {
-                    createChat: null,
-                },
-                errorFields: {
-                    createChat: null,
-                },
-                isOptimisticReport: false,
+            errorFields: {
+                createChat: null,
             },
+            isOptimisticReport: false,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: {
-                isLoadingReportActions: false,
-            },
+    };
+    const reportFailureData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            isLoadingReportActions: false,
         },
-    ];
-
-    const reportFailureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: {
-                isLoadingReportActions: false,
-            },
-        },
-    ];
+    };
 
     const onyxData = {
-        optimisticData: optimisticReportData,
-        successData: reportSuccessData,
-        failureData: reportFailureData,
+        optimisticData: [optimisticReportData],
+        successData: [reportSuccessData],
+        failureData: [reportFailureData],
     };
 
     const params = {
@@ -523,17 +503,17 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
     // If we open an exist report, but it is not present in Onyx yet, we should change the method to set for this report
     // and we need data to be available when we navigate to the chat page
     if (_.isEmpty(ReportUtils.getReport(reportID))) {
-        onyxData.optimisticData[0].onyxMethod = Onyx.METHOD.SET;
+        optimisticReportData.onyxMethod = Onyx.METHOD.SET;
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
-        onyxData.optimisticData[0].onyxMethod = Onyx.METHOD.SET;
-        onyxData.optimisticData[0].value = {
+        optimisticReportData.onyxMethod = Onyx.METHOD.SET;
+        optimisticReportData.value = {
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-            ...onyxData.optimisticData[0].value,
+            ...optimisticReportData.value,
             ...newReportObject,
             pendingFields: {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -689,7 +669,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             '',
             undefined,
             undefined,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             parentReportAction.reportActionID,
             parentReportID,
         );
@@ -717,22 +697,16 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                    value: {
                         isLoadingReportActions: true,
                         isLoadingMoreReportActions: false,
+                        reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
                     },
                 },
             ],
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         isLoadingReportActions: false,
                     },
@@ -741,7 +715,7 @@ function reconnect(reportID) {
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         isLoadingReportActions: false,
                     },
@@ -1275,12 +1249,11 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  * Saves the draft for a comment report action. This will put the comment into "edit mode"
  *
  * @param {String} reportID
- * @param {Object} reportAction
+ * @param {Number} reportActionID
  * @param {String} draftMessage
  */
-function saveReportActionDraft(reportID, reportAction, draftMessage) {
-    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${reportAction.reportActionID}`, draftMessage);
+function saveReportActionDraft(reportID, reportActionID, draftMessage) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
 }
 
 /**
@@ -1297,13 +1270,10 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {String} reportID
  * @param {String} previousValue
  * @param {String} newValue
- * @param {boolean} navigate
  */
-function updateNotificationPreference(reportID, previousValue, newValue, navigate) {
+function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
     if (previousValue === newValue) {
-        if (navigate) {
-            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
-        }
+        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1321,9 +1291,7 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
-    if (navigate) {
-        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
-    }
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
 /**
@@ -1410,9 +1378,8 @@ function navigateToConciergeChat() {
  * @param {String} visibility
  * @param {Array<Number>} policyMembersAccountIDs
  * @param {String} writeCapability
- * @param {String} welcomeMessage
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL, welcomeMessage = '') {
+function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL) {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
     const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);
@@ -1429,9 +1396,6 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
 
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-        '',
-        '',
-        welcomeMessage,
     );
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
 
@@ -1496,7 +1460,6 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
             writeCapability,
-            welcomeMessage,
         },
         {optimisticData, successData, failureData},
     );
@@ -1688,7 +1651,7 @@ function showReportActionNotification(reportID, reportAction) {
     const notificationParams = {
         report,
         reportAction,
-        onClick: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)),
+        onClick: () => Navigation.navigate(ROUTES.getReportRoute(reportID)),
     };
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         LocalNotification.showModifiedExpenseNotification(notificationParams);
@@ -2178,7 +2141,7 @@ export {
     reconnect,
     updateWelcomeMessage,
     updateWriteCapabilityAndNavigate,
-    updateNotificationPreference,
+    updateNotificationPreferenceAndNavigate,
     subscribeToReportTypingEvents,
     subscribeToReportLeavingEvents,
     unsubscribeFromReportChannel,

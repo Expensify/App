@@ -1,7 +1,6 @@
 ---
 title: Your Expensify Partner Manager
 description: Everything you need to know about your Expensify Partner Manager
-redirect_from: articles/other/Your-Expensify-Partner-Manager/
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 

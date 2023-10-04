@@ -54,7 +54,7 @@ function NotificationPreferencePage(props) {
                 />
                 <OptionsList
                     sections={[{data: notificationPreferenceOptions}]}
-                    onSelectRow={(option) => Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, option.value, true)}
+                    onSelectRow={(option) => Report.updateNotificationPreferenceAndNavigate(props.report.reportID, props.report.notificationPreference, option.value)}
                     hideSectionHeaders
                     optionHoveredStyle={{
                         ...styles.hoveredComponentBG,

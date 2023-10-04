@@ -7,17 +7,16 @@ const Logger = require('./logger');
  * It removes the app first if it already exists, so it's a clean installation.
  *
  * @param {String} platform
- * @param {String} packageName
  * @param {String} path
  * @returns {Promise<void>}
  */
-module.exports = function (platform = 'android', packageName = APP_PACKAGE, path) {
+module.exports = function (platform = 'android', path) {
     if (platform !== 'android') {
         throw new Error(`installApp() missing implementation for platform: ${platform}`);
     }
 
     // Uninstall first, then install
-    return execAsync(`adb uninstall ${packageName}`)
+    return execAsync(`adb uninstall ${APP_PACKAGE}`)
         .catch((e) => {
             // Ignore errors
             Logger.warn('Failed to uninstall app:', e);

@@ -1,5 +1,4 @@
 #!/bin/bash
-source ./scripts/shellUtils.sh
 
 ###
 # Takes an android app that has been built with the debug keystore,
@@ -42,7 +41,7 @@ if [ ! -f "$NEW_BUNDLE_FILE" ]; then
     echo "Bundle file not found: $NEW_BUNDLE_FILE"
     exit 1
 fi
-OUTPUT_APK=$(get_abs_path "$OUTPUT_APK")
+OUTPUT_APK=$(realpath "$OUTPUT_APK")
 # check if "apktool" command is available
 if ! command -v apktool &> /dev/null
 then

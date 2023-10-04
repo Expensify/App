@@ -86,14 +86,7 @@ function process() {
                 RequestThrottle.clear();
                 return process();
             }
-            return RequestThrottle.sleep()
-                .then(process)
-                .catch(() => {
-                    Onyx.update(requestToProcess.failureData);
-                    PersistedRequests.remove(requestToProcess);
-                    RequestThrottle.clear();
-                    return process();
-                });
+            return RequestThrottle.sleep().then(process);
         });
     return currentRequest;
 }

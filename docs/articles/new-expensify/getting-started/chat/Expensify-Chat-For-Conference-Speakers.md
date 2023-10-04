@@ -1,7 +1,6 @@
 ---
 title: Expensify Chat for Conference Speakers
 description: Best Practices for Conference Speakers
-redirect_from: articles/other/Expensify-Chat-For-Conference-Speakers/
 ---
 
 ## Overview

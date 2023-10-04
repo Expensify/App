@@ -6,7 +6,11 @@
  */
 
 import Performance from '../Performance';
-import * as Metrics from '../Metrics';
+
+// start the usual app
+Performance.markStart('regularAppStart');
+import '../../../index';
+Performance.markEnd('regularAppStart');
 
 import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
@@ -14,11 +18,6 @@ import E2EClient from './client';
 console.debug('==========================');
 console.debug('==== Running e2e test ====');
 console.debug('==========================');
-
-// Check if the performance module is available
-if (!Metrics.canCapturePerformanceMetrics()) {
-    throw new Error('Performance module not available! Please set CAPTURE_METRICS=true in your environment file!');
-}
 
 // import your test here, define its name and config first in e2e/config.js
 const tests = {
@@ -37,33 +36,20 @@ const appReady = new Promise((resolve) => {
     });
 });
 
-E2EClient.getTestConfig()
-    .then((config) => {
-        const test = tests[config.name];
-        if (!test) {
-            // instead of throwing, report the error to the server, which is better for DX
-            return E2EClient.submitTestResults({
-                name: config.name,
-                error: `Test '${config.name}' not found`,
-            });
-        }
+E2EClient.getTestConfig().then((config) => {
+    const test = tests[config.name];
+    if (!test) {
+        // instead of throwing, report the error to the server, which is better for DX
+        return E2EClient.submitTestResults({
+            name: config.name,
+            error: `Test '${config.name}' not found`,
+        });
+    }
+    console.debug(`[E2E] Configured for test ${config.name}. Waiting for app to become ready`);
 
-        console.debug(`[E2E] Configured for test ${config.name}. Waiting for app to become ready`);
-        appReady
-            .then(() => {
-                console.debug('[E2E] App is ready, running test…');
-                Performance.measureFailSafe('appStartedToReady', 'regularAppStart');
-                test();
-            })
-            .catch((error) => {
-                console.error('[E2E] Error while waiting for app to become ready', error);
-            });
-    })
-    .catch((error) => {
-        console.error("[E2E] Error while running test. Couldn't get test config!", error);
+    appReady.then(() => {
+        console.debug('[E2E] App is ready, running test…');
+        Performance.measureFailSafe('appStartedToReady', 'regularAppStart');
+        test();
     });
-
-// start the usual app
-Performance.markStart('regularAppStart');
-import '../../../index';
-Performance.markEnd('regularAppStart');
+});

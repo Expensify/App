@@ -74,7 +74,6 @@ export default compose(
     withOnyx({
         userTypingStatuses: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
-            initialValue: {},
         },
     }),
 )(ReportTypingIndicator);

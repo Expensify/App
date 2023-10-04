@@ -1,7 +1,6 @@
 ---
 title: Welcome to the Expensify Lounge!
 description: How to get the most out of the Expensify Lounge.
-redirect_from: articles/other/Expensify-Lounge/
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 

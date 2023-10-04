@@ -12,8 +12,6 @@ import responder from './responder';
 import utils from './utils';
 
 import CONST from '../../CONST';
-import * as StyleUtils from '../../styles/StyleUtils';
-import themeColors from '../../styles/themes/default';
 import Direction from './Direction';
 import {MapViewHandle, MapViewProps} from './MapViewTypes';
 
@@ -43,12 +41,9 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
 
             const map = mapRef.getMap();
 
-            const {northEast, southWest} = utils.getBounds(
-                waypoints.map((waypoint) => waypoint.coordinate),
-                directionCoordinates,
-            );
+            const {northEast, southWest} = utils.getBounds(waypoints.map((waypoint) => waypoint.coordinate));
             map.fitBounds([northEast, southWest], {padding: mapPadding});
-        }, [waypoints, mapRef, mapPadding, directionCoordinates]);
+        }, [waypoints, mapRef, mapPadding]);
 
         useEffect(() => {
             if (!mapRef) {
@@ -94,7 +89,6 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                         latitude: initialState.location[1],
                         zoom: initialState.zoom,
                     }}
-                    style={StyleUtils.getTextColorStyle(themeColors.mapAttributionText) as React.CSSProperties}
                     mapStyle={styleURL}
                 >
                     {waypoints?.map(({coordinate, markerComponent, id}) => {

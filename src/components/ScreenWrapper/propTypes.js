@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 import stylePropTypes from '../../styles/stylePropTypes';
+import {windowDimensionsPropTypes} from '../withWindowDimensions';
+import {environmentPropTypes} from '../withEnvironment';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -39,6 +41,10 @@ const propTypes = {
 
     /** Array of additional styles for header gap */
     headerGapStyles: PropTypes.arrayOf(PropTypes.object),
+
+    ...windowDimensionsPropTypes,
+
+    ...environmentPropTypes,
 
     /** Whether to show offline indicator */
     shouldShowOfflineIndicator: PropTypes.bool,

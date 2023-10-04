@@ -11,7 +11,6 @@ import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import useNetwork from '../../../hooks/useNetwork';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -25,6 +24,9 @@ const propTypes = {
 
     /** Report actions for the current report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** Offline status */
+    isOffline: PropTypes.bool.isRequired,
 
     /** Callback fired when the comment is submitted */
     onSubmitComment: PropTypes.func,
@@ -51,8 +53,7 @@ const defaultProps = {
 };
 
 function ReportFooter(props) {
-    const {isOffline} = useNetwork();
-    const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+    const chatFooterStyles = {...styles.chatFooter, minHeight: !props.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const isAnonymousUser = Session.isAnonymousUser();
 
@@ -101,6 +102,5 @@ export default compose(
     withWindowDimensions,
     withOnyx({
         shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
-        initialValue: false,
     }),
 )(ReportFooter);

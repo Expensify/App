@@ -4,7 +4,6 @@ import lodashClone from 'lodash/clone';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
-import CONST from '../../CONST';
 import {RecentWaypoint, Transaction} from '../../types/onyx';
 import {WaypointCollection} from '../../types/onyx/Transaction';
 import * as TransactionUtils from '../TransactionUtils';
@@ -31,8 +30,8 @@ function createInitialWaypoints(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
-                waypoint0: null,
-                waypoint1: null,
+                waypoint0: {},
+                waypoint1: {},
             },
         },
     });
@@ -55,11 +54,11 @@ function addStop(transactionID: string) {
     });
 }
 
-function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isEditingWaypoint = false) {
+/**
+ * Saves the selected waypoint to the transaction
+ */
+function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        pendingFields: {
-            comment: isEditingWaypoint ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        },
         comment: {
             waypoints: {
                 [`waypoint${index}`]: waypoint,
@@ -108,7 +107,7 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
 
     const waypointValues = Object.values(existingWaypoints);
     const removed = waypointValues.splice(index, 1);
-    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0] ?? null);
+    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0] ?? {});
 
     const reIndexedWaypoints: WaypointCollection = {};
     waypointValues.forEach((waypoint, idx) => {
@@ -201,34 +200,4 @@ function getRoute(transactionID: string, waypoints: WaypointCollection) {
     );
 }
 
-/**
- * Updates all waypoints stored in the transaction specified by the provided transactionID.
- *
- * @param transactionID - The ID of the transaction to be updated
- * @param waypoints - An object containing all the waypoints
- *                             which will replace the existing ones.
- */
-function updateWaypoints(transactionID: string, waypoints: WaypointCollection): Promise<void> {
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            waypoints,
-        },
-
-        // Empty out errors when we're saving new waypoints as this indicates the user is updating their input
-        errorFields: {
-            route: null,
-        },
-
-        // Clear the existing route so that we don't show an old route
-        routes: {
-            route0: {
-                distance: null,
-                geometry: {
-                    coordinates: null,
-                },
-            },
-        },
-    });
-}
-
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints};
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute};

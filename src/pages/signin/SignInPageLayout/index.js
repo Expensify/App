@@ -39,7 +39,7 @@ const propTypes = {
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
-    isInModal: PropTypes.bool,
+    isInModal: PropTypes.bool.isRequired,
 
     /** Override the green headline copy */
     customHeadline: PropTypes.string,
@@ -53,7 +53,6 @@ const propTypes = {
 
 const defaultProps = {
     innerRef: () => {},
-    isInModal: false,
     customHeadline: '',
     customHeroBody: '',
 };

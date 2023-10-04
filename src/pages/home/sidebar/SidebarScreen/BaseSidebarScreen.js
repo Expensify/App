@@ -6,8 +6,14 @@ import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Timing from '../../../../libs/actions/Timing';
 import CONST from '../../../../CONST';
 import Performance from '../../../../libs/Performance';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import sidebarPropTypes from './sidebarPropTypes';
 import * as Browser from '../../../../libs/Browser';
+
+const propTypes = {
+    ...sidebarPropTypes,
+    ...windowDimensionsPropTypes,
+};
 
 /**
  * Function called when a pinned chat is selected.
@@ -36,6 +42,7 @@ function BaseSidebarScreen(props) {
                         <SidebarLinksData
                             onLinkClick={startTimer}
                             insets={insets}
+                            isSmallScreenWidth={props.isSmallScreenWidth}
                             onLayout={props.onLayout}
                         />
                     </View>
@@ -46,7 +53,7 @@ function BaseSidebarScreen(props) {
     );
 }
 
-BaseSidebarScreen.propTypes = sidebarPropTypes;
+BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 
-export default BaseSidebarScreen;
+export default withWindowDimensions(BaseSidebarScreen);

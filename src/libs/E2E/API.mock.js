@@ -19,7 +19,6 @@ const mocks = {
     BeginSignIn: mockBeginSignin,
     SigninUser: mockSigninUser,
     OpenApp: mockOpenApp,
-    ReconnectApp: mockOpenApp,
     OpenReport: mockOpenReport,
     AuthenticatePusher: mockAuthenticatePusher,
 };

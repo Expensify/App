@@ -33,15 +33,11 @@ const propTypes = {
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: PropTypes.bool.isRequired,
-
-    /** Linked report action ID */
-    linkedReportActionID: PropTypes.string,
 };
 
 const defaultProps = {
     mostRecentIOUReportActionID: '',
     hasOutstandingIOU: false,
-    linkedReportActionID: '',
 };
 
 function ReportActionsListItemRenderer({
@@ -53,7 +49,6 @@ function ReportActionsListItemRenderer({
     mostRecentIOUReportActionID,
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
-    linkedReportActionID,
 }) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
@@ -72,7 +67,6 @@ function ReportActionsListItemRenderer({
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             report={report}
             action={reportAction}
-            linkedReportActionID={linkedReportActionID}
             displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={

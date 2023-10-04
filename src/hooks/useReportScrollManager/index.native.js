@@ -1,8 +1,8 @@
 import {useContext, useCallback} from 'react';
-import {ActionListContext} from '../../pages/home/ReportScreenContext';
+import ReportScreenContext from '../../pages/home/ReportScreenContext';
 
 function useReportScrollManager() {
-    const flatListRef = useContext(ActionListContext);
+    const {flatListRef} = useContext(ReportScreenContext);
 
     /**
      * Scroll to the provided index.
