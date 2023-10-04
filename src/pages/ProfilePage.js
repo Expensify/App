@@ -238,7 +238,7 @@ function ProfilePage(props) {
                                 shouldShowRightIcon
                                 title={notificationPreference}
                                 description={props.translate('notificationPreferencesPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(props.report.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(chatReportWithCurrentUser.reportID))}
                                 wrapperStyle={[styles.mtn6, styles.mb5]}
                             />
                         )}
