@@ -3632,12 +3632,6 @@ const styles = (theme) => ({
         maxWidth: 400,
     },
 
-    distanceRequestContainer: (maxHeight) => ({
-        ...flex.flexShrink2,
-        minHeight: variables.optionRowHeight * 2,
-        maxHeight,
-    }),
-
     mapViewContainer: {
         ...flex.flex1,
         ...spacing.p4,
