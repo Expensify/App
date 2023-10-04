@@ -1,5 +1,8 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 import Button from '../components/Button';
+import Text from '../components/Text';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -28,12 +31,29 @@ function PressOnEnter(props) {
     }, []);
     return (
         <Button
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             // eslint-disable-next-line react/prop-types
             text={text || props.text}
             onPress={onPress}
         />
+    );
+}
+
+function PressOnEnterWithBubbling(props) {
+    return (
+        <>
+            <Text>Both buttons will trigger on press of Enter as the Enter event will bubble across all instances of button.</Text>
+            <View style={{flexDirection: 'row', padding: 10}}>
+                <PressOnEnter
+                    {...props}
+                    text="Button A"
+                />
+                <PressOnEnter
+                    {...props}
+                    text="Button B"
+                />
+            </View>
+        </>
     );
 }
 
@@ -53,5 +73,12 @@ PressOnEnter.args = {
     success: true,
 };
 
+PressOnEnterWithBubbling.args = {
+    pressOnEnter: true,
+    success: true,
+    medium: true,
+    allowBubble: true,
+};
+
 export default story;
-export {Default, Loading, PressOnEnter};
+export {Default, Loading, PressOnEnter, PressOnEnterWithBubbling};

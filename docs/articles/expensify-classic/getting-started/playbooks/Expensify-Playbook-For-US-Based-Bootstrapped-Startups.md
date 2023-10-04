@@ -1,6 +1,7 @@
 ---
 title: Expensify Playbook for US-Based Bootstrapped Startups
 description: Best practices for how to deploy Expensify for your business
+redirect_from: articles/playbooks/Expensify-Playbook-for-US-Based-Bootstrapped-Startups/
 ---
 
 This playbook details best practices on how Bootstrapped Startups with less than 5 employees can use Expensify to prioritize product development while capturing business-related receipts for future reimbursement.

@@ -993,6 +993,11 @@ const CONST = {
             STATEMENT: 'STATEMENT_NAVIGATE',
             CONCIERGE: 'CONCIERGE_NAVIGATE',
         },
+        MTL_WALLET_PROGRAM_ID: '760',
+        PROGRAM_ISSUERS: {
+            EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
+            BANCORP_BANK: 'The Bancorp Bank',
+        },
     },
 
     PLAID: {
@@ -1264,6 +1269,8 @@ const CONST = {
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         ATTACHMENT_ROUTE: /\/r\/(\d*)\/attachment/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
+
+        ENCODE_PERCENT_CHARACTER: /%(25)+/g,
     },
 
     PRONOUNS: {
