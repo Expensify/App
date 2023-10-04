@@ -14,7 +14,7 @@ import CONST from '../../CONST';
 import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 import useLocalize from '../../hooks/useLocalize';
 
-function UserDetailsTooltip(props) {
+function BaseUserDetailsTooltip(props) {
     const {translate} = useLocalize();
 
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
@@ -74,12 +74,12 @@ function UserDetailsTooltip(props) {
     );
 }
 
-UserDetailsTooltip.propTypes = propTypes;
-UserDetailsTooltip.defaultProps = defaultProps;
-UserDetailsTooltip.displayName = 'UserDetailsTooltip';
+BaseUserDetailsTooltip.propTypes = propTypes;
+BaseUserDetailsTooltip.defaultProps = defaultProps;
+BaseUserDetailsTooltip.displayName = 'BaseUserDetailsTooltip';
 
 export default withOnyx({
     personalDetailsList: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
-})(UserDetailsTooltip);
+})(BaseUserDetailsTooltip);
