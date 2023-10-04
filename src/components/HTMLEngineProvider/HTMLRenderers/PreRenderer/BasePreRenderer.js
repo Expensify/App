@@ -18,14 +18,18 @@ const propTypes = {
     /** Press out handler for the code block */
     onPressOut: PropTypes.func,
 
+    /** The position of this React element relative to the parent React element, starting at 0 */
+    renderIndex: PropTypes.number.isRequired,
+
+    /** The total number of elements children of this React element parent */
+    renderLength: PropTypes.number.isRequired,
+
     ...htmlRendererPropTypes,
 };
 
 const defaultProps = {
     onPressIn: undefined,
     onPressOut: undefined,
-    renderIndex: 0,
-    renderLength: 0,
 };
 
 const BasePreRenderer = forwardRef((props, ref) => {
