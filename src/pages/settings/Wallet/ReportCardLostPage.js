@@ -134,6 +134,20 @@ function ReportCardLostPage({
         }
     };
 
+    const handleSubmitFirstStep = () => {
+        setIsReasonConfirmed(true);
+        setShouldShowAddressError(false);
+    };
+
+    const handleSubmitSecondStep = () => {
+        if (!formattedAddress) {
+            setShouldShowAddressError(true);
+            return;
+        }
+
+        CardActions.requestReplacementExpensifyCard(physicalCard.cardID, reason);
+    };
+
     const handleOptionSelect = (option) => {
         setReason(option);
     };
@@ -149,7 +163,7 @@ function ReportCardLostPage({
             />
             <Form
                 formID={ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM}
-                onSubmit={onSubmit}
+                onSubmit={isReasonConfirmed ? handleSubmitSecondStep : handleSubmitFirstStep}
                 submitButtonText={isReasonConfirmed ? translate('reportCardLostOrDamaged.deactivateCardButton') : translate('reportCardLostOrDamaged.nextButtonLabel')}
                 style={[styles.flexGrow1, styles.ph5]}
             >
