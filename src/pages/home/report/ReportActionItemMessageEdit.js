@@ -37,7 +37,6 @@ import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import focusWithDelay from '../../../libs/focusWithDelay';
 import * as Browser from '../../../libs/Browser';
-import willBlurTextInputOnTapOutsideFunc from '../../../libs/willBlurTextInputOnTapOutside';
 
 const propTypes = {
     /** All the data of the action */
@@ -78,7 +77,6 @@ const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 const isMobileSafari = Browser.isMobileSafari();
-const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function ReportActionItemMessageEdit(props) {
     const reportScrollManager = useReportScrollManager();
@@ -143,10 +141,6 @@ function ReportActionItemMessageEdit(props) {
 
     const setUpComposeFocusManager = useCallback(() => {
         ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!willBlurTextInputOnTapOutside) {
-                return;
-            }
-
             focus(true);
         });
     }, [focus]);
