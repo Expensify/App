@@ -1,6 +1,8 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -23,10 +25,12 @@ import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingInd
 const propTypes = {
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
+    isLoading: PropTypes.bool,
 };
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
+    isLoading: true,
 };
 
 /**
@@ -126,4 +130,12 @@ DisplayNamePage.propTypes = propTypes;
 DisplayNamePage.defaultProps = defaultProps;
 DisplayNamePage.displayName = 'DisplayNamePage';
 
-export default compose(withLocalize, withCurrentUserPersonalDetails)(DisplayNamePage);
+export default compose(
+    withLocalize,
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        isLoading: {
+            key: ONYXKEYS.IS_LOADING_APP,
+        },
+    }),
+)(DisplayNamePage);
