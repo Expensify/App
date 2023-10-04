@@ -1232,8 +1232,13 @@ const styles = (theme) => ({
     // Sidebar Styles
     sidebar: {
         backgroundColor: theme.sidebar,
-        borderTopLeftRadius: variables.componentBorderRadiusRounded,
         height: '100%',
+    },
+
+    subNavigationContainer: {
+        backgroundColor: theme.sidebar,
+        flex: 1,
+        borderTopLeftRadius: variables.componentBorderRadiusRounded,
     },
 
     sidebarAnimatedWrapperContainer: {
