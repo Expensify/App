@@ -14,6 +14,9 @@ import {propTypes, defaultProps} from './kycWallPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ReportUtils from '../../libs/ReportUtils';
 
+const POPOVER_MENU_ANCHOR_POSITION_VERTICAL_OFFSET = 2;
+const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
+
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
 // to render the AddPaymentMethodMenu in the correct location.
@@ -49,8 +52,8 @@ function KYCWall({
         (domRect) => {
             if (popoverPlacement === 'bottom') {
                 return {
-                    anchorPositionVertical: domRect.top + (domRect.height - CONST.MODAL.POPOVER_MENU_ANCHOR_POSITION_VERTICAL_OFFSET),
-                    anchorPositionHorizontal: domRect.left + CONST.MODAL.POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET,
+                    anchorPositionVertical: domRect.top + (domRect.height - POPOVER_MENU_ANCHOR_POSITION_VERTICAL_OFFSET),
+                    anchorPositionHorizontal: domRect.left + POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET,
                 };
             }
 
