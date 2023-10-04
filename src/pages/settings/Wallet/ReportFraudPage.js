@@ -85,7 +85,7 @@ function ReportFraudPage({
                 <Text style={[styles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
                 <FormAlertWithSubmitButton
                     isAlertVisible={Boolean(virtualCardError)}
-                    onSubmit={() => Card.reportDigitalExpensifyCardFraud(virtualCard.cardID)}
+                    onSubmit={() => Card.reportVirtualExpensifyCardFraud(virtualCard.cardID)}
                     message={virtualCardError}
                     isLoading={formData.isLoading}
                     buttonText={translate('reportFraudPage.deactivateCard')}

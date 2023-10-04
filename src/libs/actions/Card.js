@@ -5,9 +5,9 @@ import * as API from '../API';
 /**
  * @param {Number} cardID
  */
-function reportDigitalExpensifyCardFraud(cardID) {
+function reportVirtualExpensifyCardFraud(cardID) {
     API.write(
-        'ReportDigitalExpensifyCardFraud',
+        'ReportVirtualExpensifyCardFraud',
         {
             cardID,
         },
@@ -45,5 +45,5 @@ function reportDigitalExpensifyCardFraud(cardID) {
 
 export {
     // eslint-disable-next-line import/prefer-default-export
-    reportDigitalExpensifyCardFraud,
+    reportVirtualExpensifyCardFraud,
 };
