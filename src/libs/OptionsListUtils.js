@@ -386,6 +386,7 @@ function getLastMessageTextForReport(report) {
         (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     let lastMessageTextFromReport = '';
+    const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
@@ -393,9 +394,23 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
+        const lastIOUMoneyReport = _.find(
+            allSortedReportActions[iouReport.reportID],
+            (reportAction, key) =>
+                ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                ReportActionUtils.isMoneyRequestAction(reportAction),
+        );
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getModifiedExpenseMessage(lastReportAction);
+        const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
+        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
+    } else if (
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
+    ) {
+        lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
@@ -458,6 +473,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         isPolicyExpenseChat: false,
         isExpenseReport: false,
         policyID: null,
+        isOptimisticPersonalDetail: false,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -468,6 +484,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     let reportName;
 
     result.participantsList = personalDetailList;
+    result.isOptimisticPersonalDetail = personalDetail.isOptimisticPersonalDetail;
 
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
@@ -814,6 +831,24 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
     const numberOfTags = _.size(enabledTags);
     let indexOffset = 0;
 
+    // If all tags are disabled but there's a previously selected tag, show only the selected tag
+    if (numberOfTags === 0 && selectedOptions.length > 0) {
+        const selectedTagOptions = _.map(selectedOptions, (option) => ({
+            name: option.name,
+            // Should be marked as enabled to be able to be de-selected
+            enabled: true,
+        }));
+        tagSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTagsOptions(selectedTagOptions),
+        });
+
+        return tagSections;
+    }
+
     if (!_.isEmpty(searchInputValue)) {
         const searchTags = _.filter(enabledTags, (tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
@@ -1140,6 +1175,7 @@ function getOptions(
             if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
                 return;
             }
+
             personalDetailsOptions.push(personalDetailOption);
         });
     }
@@ -1151,7 +1187,10 @@ function getOptions(
 
     let userToInvite = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
-    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase());
+    const noOptionsMatchExactly = !_.find(
+        personalDetailsOptions.concat(recentReportOptions),
+        (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase() || option.login === searchValue.toLowerCase(),
+    );
 
     if (
         searchValue &&
@@ -1220,7 +1259,7 @@ function getOptions(
     }
 
     return {
-        personalDetails: personalDetailsOptions,
+        personalDetails: _.filter(personalDetailsOptions, (personalDetailsOption) => !personalDetailsOption.isOptimisticPersonalDetail),
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
@@ -1400,32 +1439,28 @@ function getShareDestinationOptions(
  * Format personalDetails or userToInvite to be shown in the list
  *
  * @param {Object} member - personalDetails or userToInvite
- * @param {Boolean} isSelected - whether the item is selected
+ * @param {Object} config - keys to overwrite the default values
  * @returns {Object}
  */
-function formatMemberForList(member, isSelected) {
+function formatMemberForList(member, config = {}) {
     if (!member) {
         return undefined;
     }
 
-    const avatarSource = lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'avatar', '');
     const accountID = lodashGet(member, 'accountID', '');
 
     return {
         text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
         alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
         keyForList: lodashGet(member, 'keyForList', '') || String(accountID),
-        isSelected,
+        isSelected: false,
         isDisabled: false,
         accountID,
         login: lodashGet(member, 'login', ''),
         rightElement: null,
-        avatar: {
-            source: UserUtils.getAvatar(avatarSource, accountID),
-            name: lodashGet(member, 'participantsList[0].login', '') || lodashGet(member, 'displayName', ''),
-            type: 'avatar',
-        },
+        icons: lodashGet(member, 'icons'),
         pendingAction: lodashGet(member, 'pendingAction'),
+        ...config,
     };
 }
 
