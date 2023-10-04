@@ -1,6 +1,6 @@
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -15,13 +15,13 @@ import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
-import DistanceRequestPage from './DistanceRequestPage';
+import NewDistanceRequestPage from './NewDistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
-import themeColors from '../../styles/themes/default';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** React Navigation route */
@@ -69,19 +69,23 @@ function MoneyRequestSelectorPage(props) {
         IOU.resetMoneyRequestInfo(moneyRequestID);
     };
 
+    const prevSelectedTab = usePrevious(props.selectedTab);
+
+    useEffect(() => {
+        if (prevSelectedTab === props.selectedTab) {
+            return;
+        }
+
+        resetMoneyRequestInfo();
+        // resetMoneyRequestInfo function is not added as dependencies since they don't change between renders
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.selectedTab, prevSelectedTab]);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            headerGapStyles={
-                isDraggingOver
-                    ? [
-                          {
-                              backgroundColor: themeColors.receiptDropUIBG,
-                          },
-                      ]
-                    : []
-            }
+            headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
             testID={MoneyRequestSelectorPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
@@ -103,7 +107,6 @@ function MoneyRequestSelectorPage(props) {
                                         <TabSelector
                                             state={state}
                                             navigation={navigation}
-                                            onTabPress={resetMoneyRequestInfo}
                                             position={position}
                                         />
                                     )}
@@ -121,7 +124,7 @@ function MoneyRequestSelectorPage(props) {
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}
-                                            component={DistanceRequestPage}
+                                            component={NewDistanceRequestPage}
                                             initialParams={{reportID, iouType}}
                                         />
                                     )}
