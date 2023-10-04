@@ -1550,7 +1550,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey = 'iou.paidElsewhereWithAmount';
         if (
-            _.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], reportAction.originalMessage.paymentType) ||
+            _.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], lodashGet(reportAction, 'originalMessage.paymentType')) ||
             reportActionMessage.match(/ (with Expensify|using Expensify)$/)
         ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
