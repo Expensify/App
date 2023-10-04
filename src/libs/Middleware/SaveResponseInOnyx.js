@@ -59,7 +59,9 @@ function SaveResponseInOnyx(requestResponse, request) {
                 shouldPauseQueue: true,
             });
         })
-        .catch(console.error);
+        .catch((err) => {
+            console.error('Got exception while saving response in Onyx', err);
+        });
 }
 
 export default SaveResponseInOnyx;
