@@ -485,7 +485,7 @@ function getMoneyRequestInformation(
         : [];
     const optimisticPolicyRecentlyUsedCategories = uniquePolicyRecentlyUsedCategories;
     if (category) {
-        optimisticPolicyRecentlyUsedCategories = optimisticPolicyRecentlyUsedCategories.unshift(category);
+        optimisticPolicyRecentlyUsedCategories.unshift(category);
     }
 
     const optimisticPolicyRecentlyUsedTags = {};
