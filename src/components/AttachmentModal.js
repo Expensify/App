@@ -31,17 +31,12 @@ import useWindowDimensions from '../hooks/useWindowDimensions';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import useNativeDriver from '../libs/useNativeDriver';
-<<<<<<< HEAD
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-=======
 import * as ReportUtils from '../libs/ReportUtils';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Policy from '../libs/actions/Policy';
->>>>>>> main
 import useNetwork from '../hooks/useNetwork';
 import * as IOU from '../libs/actions/IOU';
-import ONYXKEYS from '../ONYXKEYS';
 import transactionPropTypes from './transactionPropTypes';
 import * as TransactionUtils from '../libs/TransactionUtils';
 
