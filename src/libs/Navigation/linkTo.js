@@ -65,13 +65,11 @@ export default function linkTo(navigation, path, type) {
         // Make sure that we are pushing a screen that is not currently on top of the stack.
         const shouldPushIfCentralPane =
             action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR &&
-            (getTopmostReportId(root.getState()) !== getTopmostReportId(state) || getTopMostCentralPaneRouteName(root.getState()) !== getTopMostCentralPaneRouteName(state));
+            (getTopMostCentralPaneRouteName(root.getState()) !== getTopMostCentralPaneRouteName(state) || getTopmostReportId(root.getState()) !== getTopmostReportId(state));
 
         // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
-
-            // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
         } else if (shouldPushIfCentralPane) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
 

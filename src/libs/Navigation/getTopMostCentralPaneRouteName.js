@@ -22,8 +22,8 @@ function getTopMostCentralPaneRouteName(state) {
     }
 
     if (topmostCentralPane.params) {
-        // State may not have inner state in some cases (e.g generating actions from path). But in this case there will be params available.
-        return topmostCentralPane.screen;
+        // State may don't have inner state in some cases (e.g generating actions from path). But in this case there will be params available.
+        return topmostCentralPane.params.screen;
     }
 
     return undefined;

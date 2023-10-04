@@ -3727,12 +3727,15 @@ const styles = (theme) => ({
         backgroundColor: theme.highlightBG,
     },
 
-    globalNavigationSelectionIndicator: {
+    globalNavigationSelectionIndicator: (isFocused) => ({
         width: 4,
         height: 52,
         borderTopRightRadius: variables.componentBorderRadiusRounded,
         borderBottomRightRadius: variables.componentBorderRadiusRounded,
-    },
+        backgroundColor: isFocused ? defaultTheme.iconMenu : defaultTheme.transparent,
+    }),
+
+    globalNavigationMenuItem: (isFocused) => (isFocused ? {color: defaultTheme.textLight, fontWeight: fontWeightBold} : {color: defaultTheme.icon}),
 
     globalNavigationItemContainer: {
         width: variables.globalNavigationWidth,

@@ -1,5 +1,6 @@
 import React, {useMemo, useCallback, useState} from 'react';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import GLOBAL_NAVIGATION_MAPPING from '../../../GLOBAL_NAVIGATION_MAPPING';
@@ -15,32 +16,22 @@ const SidebarNavigationContext = React.createContext({
     updateFromNavigationState: () => {},
 });
 
-function mapSubNavigationOptionToGlobalNavigationOption(SubNavigationOption) {
-    // eslint-disable-next-line no-restricted-syntax
-    for (const [key] of Object.entries(GLOBAL_NAVIGATION_MAPPING)) {
-        if (GLOBAL_NAVIGATION_MAPPING[key].includes(SubNavigationOption)) {
-            return key;
-        }
-    }
-    return undefined;
-}
+const mapSubNavigationOptionToGlobalNavigationOption = (SubNavigationOption) =>
+    _.findKey(GLOBAL_NAVIGATION_MAPPING, (globalNavigationOptions) => globalNavigationOptions.includes(SubNavigationOption));
 
 function SidebarNavigationContextProvider({children}) {
     const [selectedGlobalNavigationOption, setSelectedGlobalNavigationOption] = useState(CONST.GLOBAL_NAVIGATION_OPTION.CHATS);
     const [selectedSubNavigationOption, setSelectedSubNavigationOption] = useState();
 
-    const updateFromNavigationState = useCallback(
-        (navigationState) => {
-            const topmostCentralPaneRouteName = Navigation.getTopMostCentralPaneRouteName(navigationState);
-            if (!topmostCentralPaneRouteName) {
-                return;
-            }
+    const updateFromNavigationState = useCallback((navigationState) => {
+        const topmostCentralPaneRouteName = Navigation.getTopMostCentralPaneRouteName(navigationState);
+        if (!topmostCentralPaneRouteName) {
+            return;
+        }
 
-            setSelectedSubNavigationOption(topmostCentralPaneRouteName);
-            setSelectedGlobalNavigationOption(mapSubNavigationOptionToGlobalNavigationOption(topmostCentralPaneRouteName));
-        },
-        [setSelectedGlobalNavigationOption, setSelectedSubNavigationOption],
-    );
+        setSelectedSubNavigationOption(topmostCentralPaneRouteName);
+        setSelectedGlobalNavigationOption(mapSubNavigationOptionToGlobalNavigationOption(topmostCentralPaneRouteName));
+    }, []);
 
     const contextValue = useMemo(
         () => ({
@@ -48,6 +39,7 @@ function SidebarNavigationContextProvider({children}) {
             selectedSubNavigationOption,
             updateFromNavigationState,
         }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [selectedGlobalNavigationOption, selectedSubNavigationOption, updateFromNavigationState],
     );
 

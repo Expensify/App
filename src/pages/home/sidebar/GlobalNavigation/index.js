@@ -38,11 +38,10 @@ function GlobalNavigation() {
                 {_.map(items, (item) => (
                     <GlobalNavigationMenuItem
                         key={item.text}
-                        iconFill={defaultTheme.icon}
                         icon={item.icon}
                         title={item.text}
                         onPress={() => item.onSelected(item.value)}
-                        focused={sidebarNavigation.selectedGlobalNavigationOption === item.value}
+                        isFocused={sidebarNavigation.selectedGlobalNavigationOption === item.value}
                     />
                 ))}
             </View>
