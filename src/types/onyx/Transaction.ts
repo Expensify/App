@@ -55,6 +55,7 @@ type Transaction = {
     reportID: string;
     routes?: Routes;
     transactionID: string;
+    parentTransactionID?: string;
     tag: string;
     pendingFields?: Partial<{[K in keyof Transaction]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
 
