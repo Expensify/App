@@ -464,6 +464,8 @@ function MoneyRequestConfirmationList(props) {
         );
     }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, translate, formError]);
 
+    const {image, thumbnail} = props.receiptPath && ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptSource);
+
     return (
         <OptionsSelector
             sections={optionSelectorSections}
@@ -491,7 +493,8 @@ function MoneyRequestConfirmationList(props) {
             {!_.isEmpty(props.receiptPath) ? (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptSource).image}}
+                    source={{uri: thumbnail ? thumbnail : image}}
+                    isAuthTokenRequired={!_.isEmpty(thumbnail)}
                 />
             ) : (
                 <MenuItemWithTopDescription

@@ -93,6 +93,8 @@ function SplitBillDetailsPage(props) {
                             iouMerchant={splitMerchant}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly
+                            receiptPath={transaction.receipt && transaction.receipt.source}
+                            receiptSource={transaction.filename}
                             shouldShowFooter={false}
                         />
                     )}
