@@ -24,4 +24,3 @@ If you have a Lyft for Business account for your company, setting up the Expensi
 When any employee completes a ride on a Lyft Business Profile, it will show up in the "Rides" section of your Lyft for Business portal.
 
 ![Setting up the Lyft Integration: Connecting your account](https://help.expensify.com/assets/images/ExpensifyHelp_Lyft_01.png){:width="100%"}
-(https://help.expensify.com/assets/images/ExpensifyHelp_Lyft_01.png){:width="100%"}
