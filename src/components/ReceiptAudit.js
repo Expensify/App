@@ -10,7 +10,6 @@ const defaultProps = {
 };
 
 function ReceiptAudit(notice) {
-    debugger;
     return (
         <>
             <Icon

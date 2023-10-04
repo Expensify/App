@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import * as CollectionUtils from './CollectionUtils';
 import * as Localize from './Localize';
 import * as Expensicons from '../components/Icon/Expensicons';
 import Navigation from './Navigation/Navigation';
@@ -78,6 +79,52 @@ Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
     callback: (val) => (loginList = val),
 });
+
+const transactionViolations = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    callback: (violations, key) => {
+        if (!key || !violations) {
+            return;
+        }
+
+        const transactionID = CollectionUtils.extractCollectionItemID(key);
+        transactionViolations[transactionID] = violations;
+    },
+});
+
+const reportActions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        reportActions[reportID] = actions;
+    },
+});
+
+function transactionThreadHasViolations(report) {
+    if (!report.parentReportActionID ?? 0) {
+        return false;
+    }
+    const parentReportAction = lodashGet(reportActions, `${report.parentReportID}.${report.parentReportActionID}`);
+    if (!parentReportAction) {
+        return false;
+    }
+    const transactionID = parentReportAction['originalMessage']['IOUTransactionID'] ?? 0;
+    if (!transactionID) {
+        return false;
+    }
+    const violations = lodashGet(transactionViolations, `${transactionID}.violation`, []);
+    if (_.isEmpty(violations)) {
+        return false;
+    }
+
+    return true;
+}
 
 function getChatType(report) {
     return report ? report.chatType : '';
@@ -3850,4 +3897,5 @@ export {
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
+    transactionThreadHasViolations,
 };
