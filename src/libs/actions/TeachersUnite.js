@@ -45,7 +45,7 @@ function referTeachersUniteVolunteer(partnerUserID, firstName, lastName) {
 
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 ...optimisticPublicRoom,
@@ -64,6 +64,7 @@ function referTeachersUniteVolunteer(partnerUserID, firstName, lastName) {
                     message: [
                         {
                             html: `Hey <mention-user>@${sessionEmail}</mention-user>! Thanks for referring your friend <mention-user>@${partnerUserID}</mention-user> to <a href=${CONST.FOOTER.ORG_URL} rel=\"noreferrer noopener\">Expensify.org</a> Teachers Unite. We have gone ahead and reached out to them! We'll continue to share any important announcements here to keep you in the loop about the campaign's impact. If you'd like to refer someone else, just click on Save The World in the app's main menu. Thanks for helping us to Save The World!`,
+                            text: `Hey @${sessionEmail}! Thanks for referring your friend @${partnerUserID} to Expensify.org Teachers Unite. We have gone ahead and reached out to them! We'll continue to share any important announcements here to keep you in the loop about the campaign's impact. If you'd like to refer someone else, just click on Save The World in the app's main menu. Thanks for helping us to Save The World!`,
                             isEdited: false,
                             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                         },
@@ -79,17 +80,6 @@ function referTeachersUniteVolunteer(partnerUserID, firstName, lastName) {
 
     const successData = [personalDetailsSuccessData];
     const failureData = [personalDetailsFailureData];
-
-    // eslint-disable-next-line no-console
-    console.group('ReferTeachersUniteVolunteer');
-    // eslint-disable-next-line no-console
-    console.log('optimisticData', optimisticData);
-    // eslint-disable-next-line no-console
-    console.log('successData', successData);
-    // eslint-disable-next-line no-console
-    console.log('failureData', failureData);
-    // eslint-disable-next-line no-console
-    console.groupEnd();
 
     API.write(
         'ReferTeachersUniteVolunteer',
