@@ -10,7 +10,6 @@ import Text from '../Text';
 import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import usePrevious from '../../hooks/usePrevious';
-import OptionsListSkeletonRow from '../OptionsListSkeletonRow';
 
 const propTypes = {
     /** Determines whether the keyboard gets dismissed in response to a drag */
