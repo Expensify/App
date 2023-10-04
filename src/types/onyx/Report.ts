@@ -24,8 +24,14 @@ type Report = {
     /** The text of the last message on the report */
     lastMessageText?: string;
 
+    /** The timestamp of the last message on the report */
+    lastMessageTimestamp?: number;
+
     /** The time of the last message on the report */
     lastVisibleActionCreated?: string;
+
+    /** The time of the last read of the report */
+    lastReadCreated?: string;
 
     /** The last time the report was visited */
     lastReadTime?: string;
@@ -39,6 +45,9 @@ type Report = {
     /** The email address of the report owner */
     ownerEmail?: string;
 
+    /** The email address of the manager */
+    managerEmail?: string;
+
     /** List of primarylogins of participants of the report */
     participants?: string[];
 
@@ -51,6 +60,15 @@ type Report = {
     /** ID of the report */
     reportID: string;
 
+    /** ID of the iou report */
+    iouReportID?: number;
+
+    /** ID of the chat report */
+    chatReportID?: string;
+
+    /** The state of the report */
+    state?: ValueOf<typeof CONST.REPORT.STATE>;
+
     /** The state that the report is currently in */
     stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
 
@@ -62,6 +80,12 @@ type Report = {
 
     /** The report type */
     type?: string;
+
+    /** The report visibility */
+    visibility?: string;
+
+    /** Report cached total */
+    cachedTotal?: string;
 
     parentReportID?: string;
     parentReportActionID?: string;

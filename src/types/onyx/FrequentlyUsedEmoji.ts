@@ -3,7 +3,7 @@ type FrequentlyUsedEmoji = {
     code: string;
 
     /** The name of the emoji */
-    name: string;
+    name?: string;
 
     /** The number of times the emoji has been used */
     count: number;
@@ -13,6 +13,9 @@ type FrequentlyUsedEmoji = {
 
     /** The emoji skin tone type */
     types?: string[];
+
+    /** The emoji keywords */
+    keywords?: string[];
 };
 
 export default FrequentlyUsedEmoji;

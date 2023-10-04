@@ -1,4 +1,6 @@
-export default () => ({
+import Response from '../../../types/onyx/Response';
+
+const openReport = (): Response => ({
     onyxData: [
         {
             onyxMethod: 'merge',
@@ -6,7 +8,7 @@ export default () => ({
             value: {
                 reportID: '98345625',
                 reportName: 'Chat Report',
-                chatType: '',
+                chatType: null,
                 ownerAccountID: 0,
                 policyID: '_FAKE_',
                 participantAccountIDs: [2, 1, 4, 3, 5, 16, 18, 19],
@@ -30,6 +32,7 @@ export default () => ({
             onyxMethod: 'merge',
             key: 'reportActions_98345625',
             value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 226245034: {
                     reportActionID: '226245034',
                     actionName: 'CREATED',
@@ -59,6 +62,7 @@ export default () => ({
                     automatic: false,
                     shouldShow: true,
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 1082059149: {
                     person: [
                         {
@@ -94,3 +98,5 @@ export default () => ({
     jsonCode: 200,
     requestID: '783ef80a3fc5969a-SJC',
 });
+
+export default openReport;

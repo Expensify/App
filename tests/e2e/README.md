@@ -85,7 +85,7 @@ components:
 
 - Client:
   - Client-side code (app) for communication with the test server.
-  - Located in `src/libs/E2E/client.js`.
+  - Located in `src/libs/E2E/client.ts`.
 
 
 ## How a test gets executed

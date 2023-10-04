@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import {PerformanceEntry} from 'react-native-performance';
 import E2ELogin from '../actions/e2eLogin';
 import Performance from '../../Performance';
 import E2EClient from '../client';
@@ -14,11 +14,11 @@ const test = () => {
         console.debug('[E2E] Logged in, getting metrics and submitting them…');
 
         // collect performance metrics and submit
-        const metrics = Performance.getPerformanceMetrics();
+        const metrics: PerformanceEntry[] = Performance.getPerformanceMetrics();
 
         // underscore promises in sequence without for-loop
         Promise.all(
-            _.map(metrics, (metric) =>
+            metrics.map((metric) =>
                 E2EClient.submitTestResults({
                     name: `App start ${metric.name}`,
                     duration: metric.duration,

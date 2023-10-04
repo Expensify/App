@@ -7,6 +7,9 @@ type Response = {
     onyxData?: OnyxUpdate[];
     requestID?: string;
     message?: string;
+    auth?: string;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    shared_secret?: string;
 };
 
 export default Response;

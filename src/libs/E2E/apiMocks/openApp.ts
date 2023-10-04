@@ -1,4 +1,7 @@
-export default () => ({
+/* eslint-disable @typescript-eslint/naming-convention */
+import Response from '../../../types/onyx/Response';
+
+const openApp = (): Response => ({
     onyxData: [
         {
             onyxMethod: 'merge',
@@ -1299,7 +1302,7 @@ export default () => ({
                     displayName: 'applausetester+pd1005@applause.expensifail.com',
                     pronouns: '',
                     timezone: {
-                        automatic: 'true',
+                        automatic: true,
                         selected: 'Europe/Lisbon',
                     },
                     firstName: '',
@@ -1375,7 +1378,7 @@ export default () => ({
                     displayName: 'Applause Main Account',
                     pronouns: '__predefined_coCos',
                     timezone: {
-                        automatic: 'true',
+                        automatic: true,
                         selected: 'Europe/Kiev',
                     },
                     firstName: 'Applause',
@@ -1572,7 +1575,7 @@ export default () => ({
                 report_98258097: {
                     reportID: '98258097',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [22],
@@ -1620,7 +1623,7 @@ export default () => ({
                 report_98344717: {
                     reportID: '98344717',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [14],
@@ -1642,7 +1645,7 @@ export default () => ({
                 report_98345050: {
                     reportID: '98345050',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [4],
@@ -1664,7 +1667,7 @@ export default () => ({
                 report_98345315: {
                     reportID: '98345315',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [4, 16, 18, 19],
@@ -1686,7 +1689,7 @@ export default () => ({
                 report_98345625: {
                     reportID: '98345625',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [2, 1, 4, 3, 5, 16, 18, 19],
@@ -1730,7 +1733,7 @@ export default () => ({
                 report_98414813: {
                     reportID: '98414813',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [14, 16],
@@ -1752,7 +1755,7 @@ export default () => ({
                 report_98817646: {
                     reportID: '98817646',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [16],
@@ -1841,7 +1844,7 @@ export default () => ({
                 report_2242399088152511: {
                     reportID: '2242399088152511',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [22, 10, 6, 8, 4],
@@ -1863,7 +1866,7 @@ export default () => ({
                 report_2576922422943214: {
                     reportID: '2576922422943214',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [12],
@@ -1885,7 +1888,7 @@ export default () => ({
                 report_2752461403207161: {
                     reportID: '2752461403207161',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [2],
@@ -1929,7 +1932,7 @@ export default () => ({
                 report_4867098979334014: {
                     reportID: '4867098979334014',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [21],
@@ -1998,7 +2001,7 @@ export default () => ({
                 report_5654270288238256: {
                     reportID: '5654270288238256',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [6, 2, 9, 4, 5, 7, 100, 11],
@@ -2042,7 +2045,7 @@ export default () => ({
                 report_6801643744224146: {
                     reportID: '6801643744224146',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [22, 6, 2, 23, 9, 4, 5, 7],
@@ -2065,7 +2068,7 @@ export default () => ({
                 report_7658708888047100: {
                     reportID: '7658708888047100',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [22, 6, 4, 5, 24, 101],
@@ -2109,7 +2112,7 @@ export default () => ({
                 report_7819732651025410: {
                     reportID: '7819732651025410',
                     reportName: 'Chat Report',
-                    chatType: '',
+                    chatType: null,
                     ownerAccountID: 0,
                     policyID: '_FAKE_',
                     participantAccountIDs: [5],
@@ -2158,3 +2161,5 @@ export default () => ({
     jsonCode: 200,
     requestID: '783ef7fac81f969a-SJC',
 });
+
+export default openApp;

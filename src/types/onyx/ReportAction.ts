@@ -8,6 +8,9 @@ type Message = {
     /** The text content of the fragment. */
     text: string;
 
+    /** The html content of the fragment. */
+    html?: string;
+
     /** Used to apply additional styling. Style refers to a predetermined constant and not a class name. e.g. 'normal'
      * or 'strong'
      */
@@ -29,11 +32,11 @@ type Message = {
     iconUrl?: string;
 
     /** Fragment edited flag */
-    isEdited: boolean;
+    isEdited?: boolean;
 
-    isDeletedParentAction: boolean;
-    whisperedTo: number[];
-    reactions: Reaction[];
+    isDeletedParentAction?: boolean;
+    whisperedTo?: number[];
+    reactions?: Reaction[];
 };
 
 type Person = {
@@ -79,6 +82,8 @@ type ReportActionBase = {
     childCommenterCount?: number;
     childLastVisibleActionCreated?: string;
     childVisibleActionCount?: number;
+    timestamp?: number;
+    reportActionTimestamp?: number;
 
     pendingAction?: OnyxCommon.PendingAction;
 };

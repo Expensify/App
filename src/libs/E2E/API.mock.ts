@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/no-api-in-views */
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
+import Response from '../../types/onyx/Response';
 
 // mock functions
 import mockBeginSignin from './apiMocks/beginSignin';
@@ -10,12 +10,16 @@ import mockAuthenticatePusher from './apiMocks/authenticatePusher';
 import mockOpenApp from './apiMocks/openApp';
 import mockOpenReport from './apiMocks/openReport';
 
+type ApiCommandParameters = Record<string, unknown>;
+
+type Mocks = Record<string, (params: ApiCommandParameters) => Response>;
+
 /**
  * A dictionary which has the name of a API command as key, and a function which
  * receives the api command parameters as value and is expected to return a response
  * object.
  */
-const mocks = {
+const mocks: Mocks = {
     BeginSignIn: mockBeginSignin,
     SigninUser: mockSigninUser,
     OpenApp: mockOpenApp,
@@ -24,9 +28,9 @@ const mocks = {
     AuthenticatePusher: mockAuthenticatePusher,
 };
 
-function mockCall(command, apiCommandParameters, tag) {
-    const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
-    if (!mockResponse || !_.isArray(mockResponse.onyxData)) {
+function mockCall(command: string, apiCommandParameters: ApiCommandParameters, tag: string): Promise<void> | undefined {
+    const mockResponse = mocks[command]?.(apiCommandParameters);
+    if (!mockResponse || !Array.isArray(mockResponse.onyxData)) {
         Log.warn(`[${tag}] for command ${command} is not mocked yet!`);
         return;
     }
@@ -38,12 +42,10 @@ function mockCall(command, apiCommandParameters, tag) {
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
  *
- * @param {String} command - Name of API command to call.
- * @param {Object} apiCommandParameters - Parameters to send to the API.
- *
- * @returns {Promise}
+ * @param command - Name of API command to call.
+ * @param apiCommandParameters - Parameters to send to the API.
  */
-function write(command, apiCommandParameters = {}) {
+function write(command: string, apiCommandParameters: ApiCommandParameters = {}): Promise<void> | undefined {
     return mockCall(command, apiCommandParameters, 'API.write');
 }
 
@@ -55,24 +57,20 @@ function write(command, apiCommandParameters = {}) {
  * Using this method is discouraged and will throw an ESLint error. Use it sparingly and only when all other alternatives have been exhausted.
  * It is best to discuss it in Slack anytime you are tempted to use this method.
  *
- * @param {String} command - Name of API command to call.
- * @param {Object} apiCommandParameters - Parameters to send to the API.
- *
- * @returns {Promise}
+ * @param command - Name of API command to call.
+ * @param apiCommandParameters - Parameters to send to the API.
  */
-function makeRequestWithSideEffects(command, apiCommandParameters = {}) {
+function makeRequestWithSideEffects(command: string, apiCommandParameters: ApiCommandParameters = {}): Promise<void> | undefined {
     return mockCall(command, apiCommandParameters, 'API.makeRequestWithSideEffects');
 }
 
 /**
  * Requests made with this method are not be persisted to disk. If there is no network connectivity, the request is ignored and discarded.
  *
- * @param {String} command - Name of API command to call.
- * @param {Object} apiCommandParameters - Parameters to send to the API.
- *
- * @returns {Promise}
+ * @param command - Name of API command to call.
+ * @param apiCommandParameters - Parameters to send to the API.
  */
-function read(command, apiCommandParameters) {
+function read(command: string, apiCommandParameters: ApiCommandParameters): Promise<void> | undefined {
     return mockCall(command, apiCommandParameters, 'API.read');
 }
 
