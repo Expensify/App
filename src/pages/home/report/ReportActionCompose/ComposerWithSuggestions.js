@@ -24,7 +24,6 @@ import * as User from '../../../../libs/actions/User';
 import * as ReportUtils from '../../../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
-import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
 import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
@@ -33,6 +32,7 @@ import compose from '../../../../libs/compose';
 import withKeyboardState from '../../../../components/withKeyboardState';
 import {propTypes, defaultProps} from './composerWithSuggestionsProps';
 import focusWithDelay from '../../../../libs/focusWithDelay';
+import useDebounce from '../../../../hooks/useDebounce';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -91,7 +91,6 @@ function ComposerWithSuggestions({
     setIsFullComposerAvailable,
     setIsCommentEmpty,
     submitForm,
-    shouldShowReportRecipientLocalTime,
     shouldShowComposeInput,
     measureParentContainer,
     // Refs
@@ -126,6 +125,9 @@ function ComposerWithSuggestions({
     const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
 
+    // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
+    const isScrollLikelyLayoutTriggered = useRef(false);
+
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
      * API is not called too often.
@@ -134,6 +136,23 @@ function ComposerWithSuggestions({
         User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
         insertedEmojisRef.current = [];
     }, []);
+
+    /**
+     * Reset isScrollLikelyLayoutTriggered to false.
+     *
+     * The function is debounced with a handpicked wait time to address 2 issues:
+     * 1. There is a slight delay between onChangeText and onScroll
+     * 2. Layout change will trigger onScroll multiple times
+     */
+    const debouncedLowerIsScrollLikelyLayoutTriggered = useDebounce(
+        useCallback(() => (isScrollLikelyLayoutTriggered.current = false), []),
+        500,
+    );
+
+    const raiseIsScrollLikelyLayoutTriggered = useCallback(() => {
+        isScrollLikelyLayoutTriggered.current = true;
+        debouncedLowerIsScrollLikelyLayoutTriggered();
+    }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
 
     const onInsertedEmoji = useCallback(
         (emojiObject) => {
@@ -167,6 +186,14 @@ function ComposerWithSuggestions({
         RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
     }, [textInputRef]);
 
+    const debouncedSaveReportComment = useMemo(
+        () =>
+            _.debounce((selectedReportID, newComment) => {
+                Report.saveReportComment(selectedReportID, newComment || '');
+            }, 1000),
+        [],
+    );
+
     /**
      * Update the value of the comment in Onyx
      *
@@ -175,6 +202,7 @@ function ComposerWithSuggestions({
      */
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
+            raiseIsScrollLikelyLayoutTriggered();
             const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
@@ -185,7 +213,12 @@ function ComposerWithSuggestions({
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
-                const remainder = ComposerUtils.getCommonSuffixLength(commentRef.current, newComment);
+                // Ensure emoji suggestions are hidden even when the selection is not changed (so calculateEmojiSuggestion would not be called).
+                if (suggestionsRef.current) {
+                    suggestionsRef.current.resetSuggestions();
+                }
+
+                const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
                 setSelection({
                     start: newComment.length - remainder,
                     end: newComment.length - remainder,
@@ -212,7 +245,16 @@ function ComposerWithSuggestions({
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty],
+        [
+            debouncedUpdateFrequentlyUsedEmojis,
+            preferredLocale,
+            preferredSkinTone,
+            reportID,
+            setIsCommentEmpty,
+            suggestionsRef,
+            raiseIsScrollLikelyLayoutTriggered,
+            debouncedSaveReportComment,
+        ],
     );
 
     /**
@@ -241,6 +283,11 @@ function ComposerWithSuggestions({
             return '';
         }
 
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        // We need to make sure an empty draft gets saved instead
+        debouncedSaveReportComment.cancel();
+
         updateComment('');
         setTextInputShouldClear(true);
         if (isComposerFullSize) {
@@ -248,7 +295,7 @@ function ComposerWithSuggestions({
         }
         setIsFullComposerAvailable(false);
         return trimmedComment;
-    }, [updateComment, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID]);
+    }, [updateComment, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID, debouncedSaveReportComment]);
 
     /**
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
@@ -296,7 +343,7 @@ function ComposerWithSuggestions({
                     (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
                 );
                 if (lastReportAction) {
-                    Report.saveReportActionDraft(reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
+                    Report.saveReportActionDraft(reportID, lastReportAction, _.last(lastReportAction.message).html);
                 }
             }
         },
@@ -305,7 +352,7 @@ function ComposerWithSuggestions({
 
     const onSelectionChange = useCallback(
         (e) => {
-            if (suggestionsRef.current.onSelectionChange(e)) {
+            if (textInputRef.current && textInputRef.current.isFocused() && suggestionsRef.current.onSelectionChange(e)) {
                 return;
             }
 
@@ -314,18 +361,18 @@ function ComposerWithSuggestions({
         [suggestionsRef],
     );
 
-    const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
-        if (!suggestionsRef.current) {
+    const hideSuggestionMenu = useCallback(() => {
+        if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
             return;
         }
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, [suggestionsRef]);
 
-    const setShouldBlockSuggestionCalc = useCallback(() => {
+    const setShouldBlockSuggestionCalcToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
             return false;
         }
-        return suggestionsRef.current.setShouldBlockSuggestionCalc(true);
+        return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
 
     /**
@@ -353,9 +400,10 @@ function ComposerWithSuggestions({
      * @returns {Boolean}
      */
     const checkComposerVisibility = useCallback(() => {
-        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || modal.isVisible;
+        // Checking whether the screen is focused or not, helps avoid `modal.isVisible` false when popups are closed, even if the modal is opened.
+        const isComposerCoveredUp = !isFocused || EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || modal.isVisible || modal.willAlertModalBecomeVisible;
         return !isComposerCoveredUp;
-    }, [isMenuVisible, modal.isVisible]);
+    }, [isMenuVisible, modal, isFocused]);
 
     const focusComposerOnKeyPress = useCallback(
         (e) => {
@@ -471,7 +519,7 @@ function ComposerWithSuggestions({
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
-                    onClick={setShouldBlockSuggestionCalc}
+                    onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
                     onClear={() => setTextInputShouldClear(false)}
@@ -493,7 +541,7 @@ function ComposerWithSuggestions({
                         }
                         setComposerHeight(composerLayoutHeight);
                     }}
-                    onScroll={updateShouldShowSuggestionMenuToFalse}
+                    onScroll={hideSuggestionMenu}
                 />
             </View>
 
@@ -502,7 +550,6 @@ function ComposerWithSuggestions({
                 isComposerFullSize={isComposerFullSize}
                 updateComment={updateComment}
                 composerHeight={composerHeight}
-                shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
                 onInsertedEmoji={onInsertedEmoji}
                 measureParentContainer={measureParentContainer}
                 // Input

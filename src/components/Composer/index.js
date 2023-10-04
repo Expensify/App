@@ -83,6 +83,9 @@ const propTypes = {
     /** Whether this is the report action compose */
     isReportActionCompose: PropTypes.bool,
 
+    /** Whether the sull composer is open */
+    isComposerFullSize: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -111,6 +114,7 @@ const defaultProps = {
     shouldCalculateCaretPosition: false,
     checkComposerVisibility: () => false,
     isReportActionCompose: false,
+    isComposerFullSize: false,
 };
 
 /**
@@ -161,6 +165,7 @@ function Composer({
     checkComposerVisibility,
     selection: selectionProp,
     isReportActionCompose,
+    isComposerFullSize,
     ...props
 }) {
     const textRef = useRef(null);
@@ -353,7 +358,7 @@ function Composer({
         const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
         setTextInputWidth(computedStyle.width);
 
-        const computedNumberOfLines = ComposerUtils.getNumberOfLines(maxLines, lineHeight, paddingTopAndBottom, textInput.current.scrollHeight);
+        const computedNumberOfLines = ComposerUtils.getNumberOfLines(lineHeight, paddingTopAndBottom, textInput.current.scrollHeight, maxLines);
         const generalNumberOfLines = computedNumberOfLines === 0 ? numberOfLinesProp : computedNumberOfLines;
 
         onNumberOfLinesChange(generalNumberOfLines);
@@ -413,7 +418,6 @@ function Composer({
         <View
             style={{
                 position: 'absolute',
-                bottom: -2000,
                 zIndex: -1,
                 opacity: 0,
             }}
@@ -440,9 +444,9 @@ function Composer({
             numberOfLines < maxLines ? styles.overflowHidden : {},
 
             StyleSheet.flatten([style, {outline: 'none'}]),
-            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp),
+            StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
         ],
-        [style, maxLines, numberOfLinesProp, numberOfLines],
+        [style, maxLines, numberOfLines, isComposerFullSize],
     );
 
     return (

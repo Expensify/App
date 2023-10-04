@@ -39,10 +39,13 @@ const propTypes = {
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
-    isInModal: PropTypes.bool.isRequired,
+    isInModal: PropTypes.bool,
 
     /** Override the green headline copy */
     customHeadline: PropTypes.string,
+
+    /** Override the smaller hero body copy below the headline */
+    customHeroBody: PropTypes.string,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -50,7 +53,9 @@ const propTypes = {
 
 const defaultProps = {
     innerRef: () => {},
+    isInModal: false,
     customHeadline: '',
+    customHeroBody: '',
 };
 
 function SignInPageLayout(props) {
@@ -133,7 +138,10 @@ function SignInPageLayout(props) {
                                         props.isLargeScreenWidth ? styles.ph25 : {},
                                     ]}
                                 >
-                                    <SignInPageHero customHeadline={props.customHeadline} />
+                                    <SignInPageHero
+                                        customHeadline={props.customHeadline}
+                                        customHeroBody={props.customHeroBody}
+                                    />
                                     <Footer scrollPageToTop={scrollPageToTop} />
                                 </View>
                             </View>

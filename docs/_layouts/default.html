@@ -27,11 +27,11 @@
     <div id="lhn">
 
         <div class="lhn-header">
-            <div id="header-button">
-                <img id="angle-up-icon" src="/assets/images/arrow-up.svg" class="base-icon hide"></img>
-                <img id="bars-icon" src="/assets/images/menu.svg" class="base-icon"></img>
-            </div>
             <div class="flex">
+                <div id="header-button">
+                    <img id="angle-up-icon" src="/assets/images/arrow-up.svg" class="base-icon hide"></img>
+                    <img id="bars-icon" src="/assets/images/menu.svg" class="base-icon"></img>
+                </div>
                 <div>
                     <a href="/">
                         <img src="/assets/images/expensify-help.svg" class="logo" />
@@ -96,12 +96,5 @@
             {% include footer.html %}
         </div>
     </div>
-
-    <!-- Use hidden input to pass hubs data to main.js -->
-    <input
-        id="hubs-data"
-        type="hidden"
-        value={{ site.data.routes.hubs | map: 'href' | jsonify }}
-    />
 </body>
 </html>
