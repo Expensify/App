@@ -57,8 +57,8 @@ const propTypes = {
         ownerAccountID: PropTypes.number,
     }),
 
-    /** chatReport associated with taskReport */
-    chatReport: reportPropTypes,
+    /** The chat report associated with taskReport */
+    chatReportID: PropTypes.string.isRequired,
 
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor: refPropTypes,
