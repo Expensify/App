@@ -340,7 +340,7 @@ function BaseTextInput(props) {
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
                                     // Add disabled color theme when field is not editable.
                                     props.disabled && styles.textInputDisabled,
-                                    styles.pointerEventsAuto
+                                    styles.pointerEventsAuto,
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={props.maxLength}
