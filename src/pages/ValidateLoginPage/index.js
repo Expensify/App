@@ -6,7 +6,6 @@ import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultP
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
-import useLocalize from '../../hooks/useLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
@@ -35,8 +34,6 @@ const defaultProps = {
 };
 
 function ValidateLoginPage(props) {
-    const {preferredLocale} = useLocalize();
-
     useEffect(() => {
         const accountID = lodashGet(props.route.params, 'accountID', '');
         const validateCode = lodashGet(props.route.params, 'validateCode', '');
@@ -46,7 +43,7 @@ function ValidateLoginPage(props) {
             // because we don't want to block the user with the interstitial page.
             Navigation.goBack(false);
         } else {
-            Session.signInWithValidateCodeAndNavigate(accountID, validateCode, preferredLocale);
+            Session.signInWithValidateCodeAndNavigate(accountID, validateCode);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

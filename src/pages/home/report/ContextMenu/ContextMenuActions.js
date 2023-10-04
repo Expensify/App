@@ -22,9 +22,6 @@ import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickE
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import * as Task from '../../../../libs/actions/Task';
-import * as Localize from '../../../../libs/Localize';
-import * as TransactionUtils from '../../../../libs/TransactionUtils';
-import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -98,10 +95,10 @@ export default [
         icon: Expensicons.Download,
         successTextTranslateKey: 'common.download',
         successIcon: Expensicons.Download,
-        shouldShow: (type, reportAction) => {
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline) => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             const messageHtml = lodashGet(reportAction, ['message', 0, 'html']);
-            return isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction);
+            return isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !isOffline;
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
@@ -147,7 +144,7 @@ export default [
         getDescription: () => {},
     },
     {
-        isAnonymousAction: false,
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -160,7 +157,7 @@ export default [
         getDescription: (selection) => selection,
     },
     {
-        isAnonymousAction: false,
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -203,15 +200,8 @@ export default [
                     const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                    const originalMessage = _.get(reportAction, 'originalMessage', {});
-                    const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
-                    const {amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
-                    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
-                    const displaymessage = Localize.translateLocal('iou.requestedAmount', {
-                        formattedAmount,
-                        comment,
-                    });
-                    Clipboard.setString(displaymessage);
+                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
+                    Clipboard.setString(displayMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
@@ -231,7 +221,7 @@ export default [
     },
 
     {
-        isAnonymousAction: false,
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
         successIcon: Expensicons.Checkmark,
@@ -305,7 +295,7 @@ export default [
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
             }
-            const editAction = () => Report.saveReportActionDraft(reportID, reportAction.reportActionID, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
+            const editAction = () => Report.saveReportActionDraft(reportID, reportAction, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
 
             if (closePopover) {
                 // Hide popover, then call editAction
