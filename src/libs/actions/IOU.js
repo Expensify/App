@@ -1436,8 +1436,8 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     );
 
     resetMoneyRequestInfo();
-    if (existingSplitChatReport) {
-        Navigation.dismissModal(existingSplitChatReport.reportID);
+    if (shouldCreateSplitChatReport) {
+        Navigation.dismissModal(splitChatReport.reportID);
     } else {
         Navigation.dismissModal();
     }
