@@ -2,11 +2,11 @@ import Onyx from 'react-native-onyx';
 import NetInfo from '@react-native-community/netinfo';
 import AppStateMonitor from './AppStateMonitor';
 import Log from './Log';
+import throttle from 'lodash/throttle';
 import * as NetworkActions from './actions/Network';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
-import throttle from './Throttle';
 
 let isOffline = false;
 let hasPendingNetworkCheck = false;
@@ -18,12 +18,16 @@ const reconnectionCallbacks: Record<string, () => Promise<void>> = {};
 /**
  * Loop over all reconnection callbacks and fire each one
  */
-const [triggerReconnectionCallbacks] = throttle((reason: string) => {
-    Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason?.toString()}`);
-    Object.values(reconnectionCallbacks).forEach((callback) => {
-        callback();
-    });
-}, 5000);
+const triggerReconnectionCallbacks = throttle(
+    (reason) => {
+        Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
+        Object.values(reconnectionCallbacks).forEach((callback) => {
+            callback();
+        });
+    },
+    5000,
+    {trailing: false},
+);
 
 /**
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
@@ -106,7 +110,7 @@ function subscribeToNetInfo(): void {
     });
 }
 
-function listenForReconnect(): void {
+function listenForReconnect() {
     Log.info('[NetworkConnection] listenForReconnect called');
 
     AppStateMonitor.addBecameActiveListener(() => {
@@ -128,14 +132,14 @@ function onReconnect(callback: () => Promise<void>): () => void {
 /**
  * Delete all queued reconnection callbacks
  */
-function clearReconnectionCallbacks(): void {
+function clearReconnectionCallbacks() {
     Object.keys(reconnectionCallbacks).forEach((key) => delete reconnectionCallbacks[key]);
 }
 
 /**
  * Refresh NetInfo state.
  */
-function recheckNetworkConnection(): void {
+function recheckNetworkConnection() {
     if (hasPendingNetworkCheck) {
         return;
     }
