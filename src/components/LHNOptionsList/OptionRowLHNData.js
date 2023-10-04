@@ -195,27 +195,21 @@ export default React.memo(
             preferredLocale: {
                 key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             },
-        }),
-        // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-        withOnyx({
             parentReportActions: {
-                key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
+                key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport ? fullReport.parentReportID : 0}`,
                 canEvict: false,
             },
             policy: {
-                key: ({fullReport}) => `${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`,
+                key: ({fullReport}) => `${ONYXKEYS.COLLECTION.POLICY}${fullReport ? fullReport.policyID : 0}`,
             },
             // Ideally, we aim to access only the last transaction for the current report by listening to changes in reportActions.
             // In some scenarios, a transaction might be created after reportActions have been modified.
             // This can lead to situations where `lastTransaction` doesn't update and retains the previous value.
             // However, performance overhead of this is minimized by using memos inside the component.
             receiptTransactions: {key: ONYXKEYS.COLLECTION.TRANSACTION},
-        }),
-        // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-        withOnyx({
             transaction: {
                 key: ({fullReport, parentReportActions}) =>
-                    `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportActions, [fullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '')}`,
+                    `${ONYXKEYS.COLLECTION.TRANSACTION}${fullReport ? lodashGet(parentReportActions, [fullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'], 0) : 0}`,
             },
         }),
     )(OptionRowLHNData),

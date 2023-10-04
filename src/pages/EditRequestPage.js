@@ -292,20 +292,20 @@ EditRequestPage.defaultProps = defaultProps;
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
         },
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+            key: (props) => {
+                console.log('[tim] props', props.report, props);
+                return `${ONYXKEYS.COLLECTION.POLICY}${props.report ? props.report.policyID : '0'}`;
+            },
         },
         policyCategories: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
