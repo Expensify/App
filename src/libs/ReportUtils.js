@@ -3072,7 +3072,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
  * @returns {Array|undefined}
  */
 function getChatByParticipants(newParticipantList) {
-    newParticipantList.sort();
+    const sortedNewParticipantList = _.sortBy(newParticipantList);
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
         if (
@@ -3088,7 +3088,7 @@ function getChatByParticipants(newParticipantList) {
         }
 
         // Only return the chat if it has all the participants
-        return _.isEqual(newParticipantList, _.sortBy(report.participantAccountIDs));
+        return _.isEqual(sortedNewParticipantList, _.sortBy(report.participantAccountIDs));
     });
 }
 
