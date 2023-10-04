@@ -456,7 +456,7 @@ function ComposerWithSuggestions({
         InteractionManager.runAfterInteractions(() => {
             // Using `shouldAutoFocus` check to determine whether the component should be focused or not.
             // Also handled Mobile Safari case, where the input should scroll to bottom and focus.
-            if (!shouldAutoFocus && !isMobileSafari) {
+            if (!shouldAutoFocus) {
                 return;
             }
 
@@ -538,7 +538,7 @@ function ComposerWithSuggestions({
             <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
-                    autoFocus={shouldAutoFocus}
+                    autoFocus={autoFocusCheck}
                     multiline
                     ref={setTextInputRef}
                     textAlignVertical="top"
