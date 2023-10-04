@@ -1673,7 +1673,7 @@ function showReportActionNotification(reportID, reportAction) {
     const notificationParams = {
         report,
         reportAction,
-        onClick: () => Navigation.navigate(ROUTES.getReportRoute(reportID)),
+        onClick: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)),
     };
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         LocalNotification.showModifiedExpenseNotification(notificationParams);

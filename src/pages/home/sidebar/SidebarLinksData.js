@@ -68,20 +68,7 @@ const defaultProps = {
     draftReportIDs: {},
 };
 
-function SidebarLinksData({
-    isFocused,
-    allReportActions,
-    draftReportIDs,
-    betas,
-    chatReports,
-    currentReportID,
-    insets,
-    isLoadingReportData,
-    isSmallScreenWidth,
-    onLinkClick,
-    policies,
-    priorityMode,
-}) {
+function SidebarLinksData({isFocused, draftReportIDs, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef(null);
@@ -125,7 +112,6 @@ function SidebarLinksData({
                 // Forwarded props:
                 onLinkClick={onLinkClick}
                 insets={insets}
-                isSmallScreenWidth={isSmallScreenWidth}
                 priorityMode={priorityMode}
                 // Data props:
                 isActiveReport={isActiveReport}
@@ -149,7 +135,6 @@ SidebarLinksData.displayName = 'SidebarLinksData';
 const chatReportSelector = (report) =>
     report && {
         reportID: report.reportID,
-        participants: report.participants,
         participantAccountIDs: report.participantAccountIDs,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
