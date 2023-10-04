@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {Dimensions} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -17,75 +17,92 @@ import * as ReportUtils from '../../libs/ReportUtils';
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
 // to render the AddPaymentMethodMenu in the correct location.
-class KYCWall extends React.Component {
-    constructor(props) {
-        super(props);
+function KYCWall({
+    shouldListenForResize,
+    chatReportID,
+    popoverPlacement,
+    iouReport,
+    fundList,
+    reimbursementAccount,
+    bankAccountList,
+    userWallet,
+    enablePaymentsRoute,
+    onSuccessfulKYC,
+    addBankAccountRoute,
+    addDebitCardRoute,
+    children,
+}) {
+    const anchorRef = useRef(null);
+    const transferBalanceButtonRef = useRef(null);
 
-        this.continue = this.continue.bind(this);
-        this.setMenuPosition = this.setMenuPosition.bind(this);
-        this.anchorRef = React.createRef(null);
-
-        this.state = {
-            shouldShowAddPaymentMenu: false,
-            anchorPositionVertical: 0,
-            anchorPositionHorizontal: 0,
-            transferBalanceButton: null,
-        };
-    }
-
-    componentDidMount() {
-        PaymentMethods.kycWallRef.current = this;
-        if (this.props.shouldListenForResize) {
-            this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
-        }
-        Wallet.setKYCWallSourceChatReportID(this.props.chatReportID);
-    }
-
-    componentWillUnmount() {
-        if (this.props.shouldListenForResize && this.dimensionsSubscription) {
-            this.dimensionsSubscription.remove();
-        }
-        PaymentMethods.kycWallRef.current = null;
-    }
-
-    setMenuPosition() {
-        if (!this.state.transferBalanceButton) {
-            return;
-        }
-        const buttonPosition = getClickedTargetLocation(this.state.transferBalanceButton);
-        const position = this.getAnchorPosition(buttonPosition);
-        this.setPositionAddPaymentMenu(position);
-    }
+    const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
+    const [anchorPosition, setAnchorPosition] = useState({
+        anchorPositionVertical: 0,
+        anchorPositionHorizontal: 0,
+    });
 
     /**
      * @param {DOMRect} domRect
      * @returns {Object}
      */
-    getAnchorPosition(domRect) {
-        if (this.props.popoverPlacement === 'bottom') {
-            return {
-                anchorPositionVertical: domRect.top + (domRect.height - 2),
-                anchorPositionHorizontal: domRect.left + 20,
-            };
-        }
+    const getAnchorPosition = useCallback(
+        (domRect) => {
+            if (popoverPlacement === 'bottom') {
+                return {
+                    anchorPositionVertical: domRect.top + (domRect.height - 2),
+                    anchorPositionHorizontal: domRect.left + 20,
+                };
+            }
 
-        return {
-            anchorPositionVertical: domRect.top - CONST.MODAL.POPOVER_MENU_PADDING,
-            anchorPositionHorizontal: domRect.left,
-        };
-    }
+            return {
+                anchorPositionVertical: domRect.top - CONST.MODAL.POPOVER_MENU_PADDING,
+                anchorPositionHorizontal: domRect.left,
+            };
+        },
+        [popoverPlacement],
+    );
 
     /**
      * Set position of the transfer payment menu
      *
      * @param {Object} position
      */
-    setPositionAddPaymentMenu(position) {
-        this.setState({
-            anchorPositionVertical: position.anchorPositionVertical,
-            anchorPositionHorizontal: position.anchorPositionHorizontal,
+    const setPositionAddPaymentMenu = ({anchorPositionVertical, anchorPositionHorizontal}) => {
+        setAnchorPosition({
+            anchorPositionVertical,
+            anchorPositionHorizontal,
         });
-    }
+    };
+
+    const setMenuPosition = useCallback(() => {
+        if (!transferBalanceButtonRef.current) {
+            return;
+        }
+        const buttonPosition = getClickedTargetLocation(transferBalanceButtonRef.current);
+        const position = getAnchorPosition(buttonPosition);
+
+        setPositionAddPaymentMenu(position);
+    }, [getAnchorPosition]);
+
+    useEffect(() => {
+        let dimensionsSubscription = null;
+
+        PaymentMethods.kycWallRef.current = this;
+
+        if (shouldListenForResize) {
+            dimensionsSubscription = Dimensions.addEventListener('change', setMenuPosition);
+        }
+
+        Wallet.setKYCWallSourceChatReportID(chatReportID);
+
+        return () => {
+            if (shouldListenForResize && dimensionsSubscription) {
+                dimensionsSubscription.remove();
+            }
+
+            PaymentMethods.kycWallRef.current = null;
+        };
+    }, [chatReportID, setMenuPosition, shouldListenForResize]);
 
     /**
      * Take the position of the button that calls this method and show the Add Payment method menu when the user has no valid payment method.
@@ -95,66 +112,75 @@ class KYCWall extends React.Component {
      * @param {Event} event
      * @param {String} iouPaymentType
      */
-    continue(event, iouPaymentType) {
-        if (this.state.shouldShowAddPaymentMenu) {
-            this.setState({shouldShowAddPaymentMenu: false});
+    const continueAction = (event, iouPaymentType) => {
+        if (shouldShowAddPaymentMenu) {
+            setShouldShowAddPaymentMenu(false);
+
             return;
         }
-        this.setState({transferBalanceButton: event.nativeEvent.target});
-        const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
-        const paymentCardList = this.props.fundList || {};
+
+        transferBalanceButtonRef(event.nativeEvent.target);
+
+        const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
+        const paymentCardList = fundList || {};
 
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (
-            (isExpenseReport && lodashGet(this.props.reimbursementAccount, 'achData.state', '') !== CONST.BANK_ACCOUNT.STATE.OPEN) ||
-            (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, this.props.bankAccountList))
+            (isExpenseReport && lodashGet(reimbursementAccount, 'achData.state', '') !== CONST.BANK_ACCOUNT.STATE.OPEN) ||
+            (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList))
         ) {
             Log.info('[KYC Wallet] User does not have valid payment method');
+
             const clickedElementLocation = getClickedTargetLocation(event.nativeEvent.target);
-            const position = this.getAnchorPosition(clickedElementLocation);
-            this.setPositionAddPaymentMenu(position);
-            this.setState({
-                shouldShowAddPaymentMenu: true,
-            });
+            const position = getAnchorPosition(clickedElementLocation);
+
+            setPositionAddPaymentMenu(position);
+            setShouldShowAddPaymentMenu(true);
+
             return;
         }
+
         if (!isExpenseReport) {
             // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
-            const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
+            const hasGoldWallet = userWallet.tierName && userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
+
             if (!hasGoldWallet) {
                 Log.info('[KYC Wallet] User does not have gold wallet');
-                Navigation.navigate(this.props.enablePaymentsRoute);
+                Navigation.navigate(enablePaymentsRoute);
+
                 return;
             }
         }
-        Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
-        this.props.onSuccessfulKYC(iouPaymentType);
-    }
 
-    render() {
-        return (
-            <>
-                <AddPaymentMethodMenu
-                    isVisible={this.state.shouldShowAddPaymentMenu}
-                    onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
-                    anchorRef={this.anchorRef}
-                    anchorPosition={{
-                        vertical: this.state.anchorPositionVertical,
-                        horizontal: this.state.anchorPositionHorizontal,
-                    }}
-                    onItemSelected={(item) => {
-                        this.setState({shouldShowAddPaymentMenu: false});
-                        if (item === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-                            Navigation.navigate(this.props.addBankAccountRoute);
-                        } else if (item === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-                            Navigation.navigate(this.props.addDebitCardRoute);
-                        }
-                    }}
-                />
-                {this.props.children(this.continue, this.anchorRef)}
-            </>
-        );
-    }
+        Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
+        onSuccessfulKYC(iouPaymentType);
+    };
+
+    const handleItemSelected = (item) => {
+        setShouldShowAddPaymentMenu(false);
+
+        if (item === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+            Navigation.navigate(addBankAccountRoute);
+        } else if (item === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+            Navigation.navigate(addDebitCardRoute);
+        }
+    };
+
+    return (
+        <>
+            <AddPaymentMethodMenu
+                isVisible={shouldShowAddPaymentMenu}
+                onClose={() => setShouldShowAddPaymentMenu(false)}
+                anchorRef={anchorRef}
+                anchorPosition={{
+                    vertical: anchorPosition.anchorPositionVertical,
+                    horizontal: anchorPosition.anchorPositionHorizontal,
+                }}
+                onItemSelected={handleItemSelected}
+            />
+            {children(continueAction, anchorRef)}
+        </>
+    );
 }
 
 KYCWall.propTypes = propTypes;
