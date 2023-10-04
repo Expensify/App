@@ -79,4 +79,13 @@ function getFormattedAddress(privatePersonalDetails: OnyxTypes.PrivatePersonalDe
     return formatted.trim().replace(/,$/, '');
 }
 
-export {getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getFormattedAddress};
+/**
+ * Finds physical card in a list of cards
+ *
+ * @returns a physical card object (or undefined if none is found)
+ */
+function findPhysicalCard(cards: Card[]) {
+    return cards.find((card) => !card.isVirtual);
+}
+
+export {getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getFormattedAddress, findPhysicalCard};

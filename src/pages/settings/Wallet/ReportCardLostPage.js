@@ -87,7 +87,7 @@ function ReportCardLostPage({
     usePrivatePersonalDetails();
 
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
-    const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
+    const physicalCard = CardUtils.findPhysicalCard(domainCards);
 
     const {translate} = useLocalize();
 
