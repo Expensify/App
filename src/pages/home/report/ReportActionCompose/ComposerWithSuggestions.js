@@ -449,19 +449,13 @@ function ComposerWithSuggestions({
     }, []);
 
     const focusWithScrolledToBottom = useCallback(() => {
-        if (!textInputRef.current || !willBlurTextInputOnTapOutside) {
+        // Using `shouldAutoFocus` check to determine whether the component should be focused or not.
+        if (!textInputRef.current || !willBlurTextInputOnTapOutside || !shouldAutoFocus) {
             return;
         }
 
         InteractionManager.runAfterInteractions(() => {
-            // Using `shouldAutoFocus` check to determine whether the component should be focused or not.
-            // Also handled Mobile Safari case, where the input should scroll to bottom and focus.
-            if (!shouldAutoFocus) {
-                return;
-            }
-
             updateMultilineInputRange(textInputRef.current);
-
             focus(); // This will focus the composer after its fully rendered.
         });
     }, [focus, shouldAutoFocus]);
