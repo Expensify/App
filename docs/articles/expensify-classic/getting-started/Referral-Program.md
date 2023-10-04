@@ -1,6 +1,7 @@
 ---
 title: Expensify Referral Program
 description: Send your joining link, submit a receipt or invoice, and we'll pay you if your referral adopts Expensify.
+redirect_from: articles/other/Referral-Program/
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 
