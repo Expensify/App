@@ -26,7 +26,6 @@ import personalDetailsPropType from '../../pages/personalDetailsPropType';
 import * as Session from '../../libs/actions/Session';
 import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
-import reportPropTypes from '../../pages/reportPropTypes';
 import refPropTypes from '../refPropTypes';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import ControlSelection from '../../libs/ControlSelection';
