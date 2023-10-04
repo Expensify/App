@@ -12,7 +12,6 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import RadioListItem from '../../../../components/SelectionList/RadioListItem';
 import useLocalize from '../../../../hooks/useLocalize';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
@@ -23,6 +22,7 @@ import compose from '../../../../libs/compose';
 import DateUtils from '../../../../libs/DateUtils';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import personalDetailsPropType from '../../../personalDetailsPropType';
+import BaseListItem from '../../../../components/SelectionList/BaseListItem';
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -160,7 +160,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const timePeriodOptions = useCallback(
         () =>
             _.map(statusType, (item, index) => (
-                <RadioListItem
+                <BaseListItem
                     item={item}
                     key={`${index}+${item.value}`}
                     onSelectRow={() => updateMode(item)}
