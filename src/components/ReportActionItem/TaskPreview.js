@@ -57,16 +57,17 @@ const propTypes = {
         ownerAccountID: PropTypes.number,
     }),
 
- /* Onyx Props */
     /** chatReport associated with taskReport */
     chatReport: reportPropTypes,
-    
+
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor: refPropTypes,
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
-        ...withLocalizePropTypes,
+
+    /* Onyx Props */
+    ...withLocalizePropTypes,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -87,8 +88,7 @@ function TaskPreview(props) {
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
-    const taskAssignee = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], ''));
-    const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
+    const assigneeLogin = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], '');
     const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
     const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
     const htmlForTaskPreview =
