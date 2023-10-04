@@ -21,10 +21,13 @@ type Nullable<T> = {[K in keyof T]: T[K] | null};
 type OriginalSelection = ComposerSelection | Partial<Nullable<AnchorSelection>>;
 
 /*
-* @param {this: void} object The object to query.
-*/
+ * @param {this: void} object The object to query.
+ */
 
-const canSetHtml = () => (...args: ClipboardItems) => navigator?.clipboard?.write([...args]);
+const canSetHtml =
+    () =>
+    (...args: ClipboardItems) =>
+        navigator?.clipboard?.write([...args]);
 
 /**
  * Deprecated method to write the content as HTML to clipboard.
