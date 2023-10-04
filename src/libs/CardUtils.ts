@@ -57,29 +57,6 @@ function maskCard(lastFour = ''): string {
 }
 
 /**
- * Formats an address object into an easily readable string
- *
- * @returns - formatted address
- */
-function getFormattedAddress(privatePersonalDetails: OnyxTypes.PrivatePersonalDetails): string | null {
-    const {address} = privatePersonalDetails;
-    const [street1, street2] = (address?.street ?? '').split('\n');
-    const addressItems = [street1, street2, address?.city, address?.state, address?.zip, address?.country];
-    // Filter empty values ('' or undefined) from the array
-    const filteredAddressItems = addressItems.filter((item) => item);
-    const areAllAddressItemsEmpty = !filteredAddressItems.length;
-
-    if (areAllAddressItemsEmpty) {
-        return null;
-    }
-
-    const formatted = addressItems.join(', ');
-
-    // Remove the last comma of the address
-    return formatted.trim().replace(/,$/, '');
-}
-
-/**
  * Finds physical card in a list of cards
  *
  * @returns a physical card object (or undefined if none is found)
@@ -88,4 +65,4 @@ function findPhysicalCard(cards: Card[]) {
     return cards.find((card) => !card.isVirtual);
 }
 
-export {getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getFormattedAddress, findPhysicalCard};
+export {getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, findPhysicalCard};

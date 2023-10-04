@@ -17,6 +17,7 @@ import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescr
 import usePrivatePersonalDetails from '../../../hooks/usePrivatePersonalDetails';
 import assignedCardPropTypes from './assignedCardPropTypes';
 import * as CardUtils from '../../../libs/CardUtils';
+import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import usePrevious from '../../../hooks/usePrevious';
 import * as FormActions from '../../../libs/actions/FormActions';
@@ -97,7 +98,7 @@ function ReportCardLostPage({
 
     const prevIsLoading = usePrevious(formData.isLoading);
 
-    const formattedAddress = CardUtils.getFormattedAddress(privatePersonalDetails);
+    const formattedAddress = PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails);
 
     useEffect(() => {
         if (prevIsLoading && !formData.isLoading && _.isEmpty(physicalCard.errors)) {
