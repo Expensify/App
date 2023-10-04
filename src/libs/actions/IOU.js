@@ -483,7 +483,10 @@ function getMoneyRequestInformation(
               (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory !== category,
           )
         : [];
-    const optimisticPolicyRecentlyUsedCategories = [category, ...uniquePolicyRecentlyUsedCategories];
+    const optimisticPolicyRecentlyUsedCategories = uniquePolicyRecentlyUsedCategories;
+    if (category) {
+        optimisticPolicyRecentlyUsedCategories = uniquePolicyRecentlyUsedCategories.unshift(category);
+    }
 
     const optimisticPolicyRecentlyUsedTags = {};
     const policyTags = allPolicyTags[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReport.policyID}`];
