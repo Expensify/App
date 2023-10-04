@@ -3,6 +3,7 @@ import {Clipboard as RNWClipboard} from 'react-native-web';
 import CONST from '../../CONST';
 import * as Browser from '../Browser';
 import {SetString, Clipboard} from './types';
+import Nullable from '../../types/utils/Nullable';
 
 type ComposerSelection = {
     start: number;
@@ -17,12 +18,7 @@ type AnchorSelection = {
     focusNode: Node;
 };
 
-type Nullable<T> = {[K in keyof T]: T[K] | null};
 type OriginalSelection = ComposerSelection | Partial<Nullable<AnchorSelection>>;
-
-/*
- * @param {this: void} object The object to query.
- */
 
 const canSetHtml =
     () =>
@@ -31,8 +27,6 @@ const canSetHtml =
 
 /**
  * Deprecated method to write the content as HTML to clipboard.
- * @param HTML representation
- * @param Plain text representation
  */
 function setHTMLSync(html: string, text: string) {
     const node = document.createElement('span');
@@ -84,9 +78,8 @@ function setHTMLSync(html: string, text: string) {
 
     selection?.removeAllRanges();
 
-    if (isComposer) {
-        const composerSelection = originalSelection as ComposerSelection;
-        firstAnchorChild.setSelectionRange(composerSelection.start, composerSelection.end, composerSelection.direction);
+    if (isComposer && 'start' in originalSelection) {
+        firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
     } else {
         const anchorSelection = originalSelection as AnchorSelection;
         selection?.setBaseAndExtent(anchorSelection.anchorNode, anchorSelection.anchorOffset, anchorSelection.focusNode, anchorSelection.focusOffset);
@@ -97,8 +90,6 @@ function setHTMLSync(html: string, text: string) {
 
 /**
  * Writes the content as HTML if the web client supports it.
- * @param HTML representation
- * @param Plain text representation
  */
 const setHtml = (html: string, text: string) => {
     if (!html || !text) {
