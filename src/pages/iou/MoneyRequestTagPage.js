@@ -3,7 +3,6 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
 import * as PolicyUtils from '../../libs/PolicyUtils';

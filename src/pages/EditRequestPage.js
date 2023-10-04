@@ -302,10 +302,7 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
         },
         policy: {
-            key: (props) => {
-                console.log('[tim] props', props.report, props);
-                return `${ONYXKEYS.COLLECTION.POLICY}${props.report ? props.report.policyID : '0'}`;
-            },
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${props.report ? props.report.policyID : '0'}`,
         },
         policyCategories: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
