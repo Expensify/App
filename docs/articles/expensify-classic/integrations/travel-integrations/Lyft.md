@@ -23,5 +23,5 @@ If you have a Lyft for Business account for your company, setting up the Expensi
 4. After they set up their profiles, employees can then switch into business profile mode each time they take a ride for work, and their receipts will automatically populate in Expensify.
 When any employee completes a ride on a Lyft Business Profile, it will show up in the "Rides" section of your Lyft for Business portal.
 
-![Alt text for accessibility]
+![Alt text for accessibility](https://help.expensify.com/assets/images/ExpensifyHelp_Lyft_01.png){:width="100%"}
 (https://help.expensify.com/assets/images/ExpensifyHelp_Lyft_01.png){:width="100%"}
