@@ -1089,8 +1089,15 @@ function getPersonalDetailsForAccountID(accountID) {
     );
 }
 
-function hasOnlyAvatarField(obj) {
-    const keys = _.keys(obj);
+/**
+ * Checks if the personalDetailsObject has only one key named `avatar` and returns a bool flag.
+ * This can be used to check if the user account is an "invite" one - is not a Expensify account yet.
+ *
+ * @param {Object} personalDetailsObject
+ * @returns {Boolean}
+ */
+function hasOnlyAvatarField(personalDetailsObject) {
+    const keys = _.keys(personalDetailsObject);
     return keys.length === 1 && keys[0] === 'avatar';
 }
 
@@ -1099,21 +1106,21 @@ function hasOnlyAvatarField(obj) {
  *
  * @param {Number} accountID
  * @param {Boolean} [shouldUseShortForm]
- * @param {Boolean} shouldNotFallbackToHidden
+ * @param {Boolean} shouldFallbackToHidden
  * @returns {String}
  */
-function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, shouldNotFallbackToHidden = false) {
+function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, shouldFallbackToHidden = true) {
     if (!accountID) {
         return '';
     }
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // check if it's invite account
+    // check if it's an invite account
     if (hasOnlyAvatarField(personalDetails)) {
         return '';
     }
     const longName = personalDetails.displayName;
     const shortName = personalDetails.firstName || longName;
-    if (!longName && !personalDetails.login && !shouldNotFallbackToHidden) {
+    if (!longName && !personalDetails.login && shouldFallbackToHidden) {
         return Localize.translateLocal('common.hidden');
     }
     return shouldUseShortForm ? shortName : longName;
@@ -1122,13 +1129,13 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, sho
 /**
  * @param {Object} personalDetailsList
  * @param {Boolean} isMultipleParticipantReport
- * @param {Boolean} shouldNotFallbackToHidden
+ * @param {Boolean} shouldFallbackToHidden
  * @returns {Array}
  */
-function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport, shouldNotFallbackToHidden) {
+function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport, shouldFallbackToHidden) {
     return _.map(personalDetailsList, (user) => {
         const accountID = Number(user.accountID);
-        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldNotFallbackToHidden) || user.login || '';
+        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user.login || '';
         const avatar = UserUtils.getDefaultAvatar(accountID);
 
         let pronouns = user.pronouns;
