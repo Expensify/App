@@ -208,14 +208,15 @@ function AddressSearch(props) {
 
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
-
+            // Make sure country is updated first, since city and state will be reset if the country changes
+            country: '',
             // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
             // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
             // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g.
             // Salagatan, Upssala, Sweden).
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
-            country: '',
+
             state: state || stateAutoCompleteFallback,
             lat: lodashGet(details, 'geometry.location.lat', 0),
             lng: lodashGet(details, 'geometry.location.lng', 0),
