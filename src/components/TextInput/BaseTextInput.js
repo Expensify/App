@@ -369,7 +369,11 @@ function BaseTextInput(props) {
                                 dataSet={{submitOnEnter: isMultiline && props.submitOnEnter}}
                             />
                             {props.isLoading && (
-                                <ActivityIndicator size="small" color={themeColors.greenHover} style={[ styles.mt4, styles.ml1]} />
+                                <ActivityIndicator
+                                    size="small"
+                                    color={themeColors.iconSuccessFill}
+                                    style={[styles.mt4, styles.ml1]}
+                                />
                             )}
                             {Boolean(props.secureTextEntry) && (
                                 <Checkbox
