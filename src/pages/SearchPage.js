@@ -171,7 +171,7 @@ class SearchPage extends Component {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID='SearchPage'
+                testID="SearchPage"
             >
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>

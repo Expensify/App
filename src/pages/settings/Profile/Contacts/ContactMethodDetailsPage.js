@@ -251,7 +251,7 @@ class ContactMethodDetailsPage extends Component {
         return (
             <ScreenWrapper
                 onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}
-                testID='ContactMethodDetailsPage'
+                testID="ContactMethodDetailsPage"
             >
                 <HeaderWithBackButton
                     title={formattedContactMethod}

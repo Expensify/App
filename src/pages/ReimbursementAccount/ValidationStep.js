@@ -131,7 +131,7 @@ class ValidationStep extends React.Component {
             <ScreenWrapper
                 style={[styles.flex1, styles.justifyContentBetween]}
                 includeSafeAreaPaddingBottom={false}
-                testID='ValidationStep'
+                testID="ValidationStep"
             >
                 <HeaderWithBackButton
                     title={isVerifying ? this.props.translate('validationStep.headerTitle') : this.props.translate('workspace.common.testTransactions')}

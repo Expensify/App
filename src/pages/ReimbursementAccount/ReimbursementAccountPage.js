@@ -339,7 +339,7 @@ class ReimbursementAccountPage extends React.Component {
 
         if (_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy)) {
             return (
-                <ScreenWrapper testID='ReimbursementAccountPage'>
+                <ScreenWrapper testID="ReimbursementAccountPage">
                     <FullPageNotFoundView
                         shouldShow
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
