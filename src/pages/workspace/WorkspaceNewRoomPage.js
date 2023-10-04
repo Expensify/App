@@ -155,8 +155,11 @@ function WorkspaceNewRoomPage(props) {
         [translate],
     );
 
+    // the delay to be used for delayed focus on the room name input field
+    const inputFocusDelay = 600;
+
     const roomNameInputRef = useRef(null);
-    useDelayedInputFocus(roomNameInputRef, CONST.INPUT_FOCUS_DELAY);
+    useDelayedInputFocus(roomNameInputRef, inputFocusDelay);
 
     return (
         <FullPageNotFoundView
