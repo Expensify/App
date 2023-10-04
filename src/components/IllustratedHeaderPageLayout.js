@@ -40,7 +40,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                 <>
                     <Lottie
                         source={illustration}
-                        style={styles.w100}
+                        style={[styles.w100, styles.aspectRatioLottie(illustration)]}
                         autoPlay
                         loop
                     />

@@ -3694,6 +3694,13 @@ const styles = (theme) => ({
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightLarge,
     },
+
+    aspectRatioLottie: (source) => {
+        if (typeof source === 'object' && !source.uri) {
+            return {aspectRatio: source.w / source.h};
+        }
+        return {aspectRatio: '1'};
+    },
 });
 
 // For now we need to export the styles function that takes the theme as an argument

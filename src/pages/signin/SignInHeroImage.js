@@ -33,7 +33,7 @@ function SignInHeroImage(props) {
             source={LottieAnimations.Hands}
             loop
             autoPlay
-            style={[styles.alignSelfCenter, imageSize]}
+            style={[styles.alignSelfCenter, imageSize, styles.aspectRatioLottie(LottieAnimations.Hands)]}
         />
     );
 }

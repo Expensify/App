@@ -46,7 +46,7 @@ function ConfirmationPage(props) {
                     source={props.animation}
                     autoPlay
                     loop
-                    style={styles.confirmationAnimation}
+                    style={[styles.confirmationAnimation, styles.aspectRatioLottie(props.animation)]}
                 />
                 <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{props.heading}</Text>
                 <Text style={styles.textAlignCenter}>{props.description}</Text>

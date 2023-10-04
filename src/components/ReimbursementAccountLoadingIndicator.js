@@ -38,7 +38,7 @@ function ReimbursementAccountLoadingIndicator(props) {
                             source={LottieAnimations.ReviewingBankInfo}
                             autoPlay
                             loop
-                            style={styles.loadingVBAAnimation}
+                            style={[styles.loadingVBAAnimation, styles.aspectRatioLottie(LottieAnimations.ReviewingBankInfo)]}
                         />
                         <View style={[styles.ph6]}>
                             <Text style={[styles.textAlignCenter]}>{translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
