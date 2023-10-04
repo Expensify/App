@@ -81,7 +81,7 @@ function getVBBADataForOnyx(currentStep = undefined) {
                     errors: null,
                     // The value of some fields of the currentStep are changed i.e. being trimmed or phone number is parsed when backend returns the data
                     // So we need to add this field in successData to update the current data from reimbursement account to the draft value of the form
-                    // if currentStep is undefined that means the step doesn't need update to the drafts
+                    // if currentStep is undefined that means the step doesn't need update to the draft
                     stepToUpdateToDraft: currentStep,
                 },
             },
