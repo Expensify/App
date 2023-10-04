@@ -2,6 +2,8 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
+import {useRoute} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import CONST from '../../../CONST';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
@@ -117,6 +119,7 @@ function ReportActionsList({
     const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
@@ -124,6 +127,7 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
     const firstRenderRef = useRef(true);
+    const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
     // This state is used to force a re-render when the user manually marks a message as unread
     // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
@@ -303,6 +307,7 @@ function ReportActionsList({
                     reportAction={reportAction}
                     index={index}
                     report={report}
+                    linkedReportActionID={linkedReportActionID}
                     hasOutstandingIOU={hasOutstandingIOU}
                     sortedReportActions={sortedReportActions}
                     mostRecentIOUReportActionID={mostRecentIOUReportActionID}
@@ -311,7 +316,7 @@ function ReportActionsList({
                 />
             );
         },
-        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarkedUnread, shouldHideThreadDividerLine, currentUnreadMarker],
+        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarkedUnread, shouldHideThreadDividerLine, currentUnreadMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
