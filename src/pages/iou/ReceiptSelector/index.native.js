@@ -103,7 +103,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
     const reportID = lodashGet(route, 'params.reportID', '');
     const pageIndex = lodashGet(route, 'params.pageIndex', 1);
     const {translate} = useLocalize();
-    const {resetValidation, validateReceipt, receiptValidation} = useReceiptValidation();
+    const {resetValidation, resetValidationErrors, validateReceipt, receiptValidation} = useReceiptValidation();
 
     const CameraComponent = isInTabNavigator ? TabNavigationAwareCamera : NavigationAwareCamera;
 
@@ -343,6 +343,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                 onConfirm={resetValidation}
                 onCancel={resetValidation}
                 isVisible={receiptValidation.isReceiptInvalid}
+                onModalHide={resetValidationErrors}
                 prompt={receiptValidation.reason ? translate(receiptValidation.reason) : ''}
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}

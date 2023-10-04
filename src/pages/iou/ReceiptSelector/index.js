@@ -64,7 +64,7 @@ function ReceiptSelector(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
-    const {resetValidation, validateReceipt, receiptValidation} = useReceiptValidation();
+    const {resetValidation, resetValidationErrors, validateReceipt, receiptValidation} = useReceiptValidation();
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
@@ -157,6 +157,7 @@ function ReceiptSelector(props) {
                 onConfirm={resetValidation}
                 onCancel={resetValidation}
                 isVisible={receiptValidation.isReceiptInvalid}
+                onModalHide={resetValidationErrors}
                 prompt={receiptValidation.reason ? translate(receiptValidation.reason) : ''}
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}

@@ -1,5 +1,5 @@
 import {useState, useCallback} from 'react';
-import {Alert, InteractionManager} from 'react-native';
+import {Alert, Platform} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import useLocalize from './useLocalize';
@@ -14,6 +14,14 @@ export default function useReceiptValidation() {
         reason: '',
     });
 
+    const resetValidationErrors = useCallback(() => {
+        setReceiptValidation({
+            ...receiptValidation,
+            title: '',
+            reason: '',
+        });
+    }, [receiptValidation]);
+
     const resetValidation = useCallback(() => {
         setReceiptValidation({
             ...receiptValidation,
@@ -26,13 +34,22 @@ export default function useReceiptValidation() {
     }, [translate]);
 
     const setUploadReceiptError = useCallback((isInvalid, title, reason) => {
-        InteractionManager.runAfterInteractions(() => {
+        if (Platform.OS !== 'ios') {
             setReceiptValidation({
                 isReceiptInvalid: isInvalid,
                 title,
                 reason,
             });
-        });
+            return;
+        }
+
+        setTimeout(() => {
+            setReceiptValidation({
+                isReceiptInvalid: isInvalid,
+                title,
+                reason,
+            });
+        }, CONST.ANIMATED_TRANSITION);
     }, []);
 
     const validateReceipt = useCallback(
@@ -68,5 +85,5 @@ export default function useReceiptValidation() {
         [setUploadReceiptError, showImageCorruptionAlert],
     );
 
-    return {resetValidation, validateReceipt, receiptValidation};
+    return {resetValidation, resetValidationErrors, validateReceipt, receiptValidation};
 }
