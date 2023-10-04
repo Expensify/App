@@ -175,7 +175,7 @@ function OptionRowLHN(props) {
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
                             styles.sidebarLinkLHN,
-                            styles.sidebarLinkInner,
+                            styles.sidebarLinkInnerLHN,
                             StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
                             (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
