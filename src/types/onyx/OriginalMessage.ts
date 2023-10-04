@@ -31,7 +31,6 @@ type OriginalMessageIOU = {
         currency: string;
         lastModified?: string;
         participantAccountIDs?: number[];
-        participants?: string[];
         type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     };
 };
