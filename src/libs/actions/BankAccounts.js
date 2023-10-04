@@ -57,7 +57,7 @@ function clearOnfidoToken() {
 
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
- * @param {String | undefined} currentStep
+ * @param {String | undefined} currentStep The step that we need to update the data from BE to draft value
  * @returns {Object}
  */
 function getVBBADataForOnyx(currentStep = undefined) {
