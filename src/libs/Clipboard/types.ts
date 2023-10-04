@@ -1,9 +1,5 @@
 type SetString = (text: string) => void;
+type SetHtml = (html: string, text: string) => void;
+type CanSetHtml = (() => (...args: ClipboardItems) => Promise<void>) | (() => boolean);
 
-type Clipboard = {
-    setString: SetString;
-    canSetHtml: () => void;
-    setHtml: (html: string, text: string) => void;
-};
-
-export type {SetString, Clipboard};
+export type {SetString, CanSetHtml, SetHtml};

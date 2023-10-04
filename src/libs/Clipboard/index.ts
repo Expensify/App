@@ -1,9 +1,8 @@
 // on Web/desktop this import will be replaced with `react-native-web`
-import {Clipboard as RNWClipboard} from 'react-native-web';
+import {Clipboard} from 'react-native-web';
 import CONST from '../../CONST';
 import * as Browser from '../Browser';
-import {SetString, Clipboard} from './types';
-import Nullable from '../../types/utils/Nullable';
+import {SetString, SetHtml, CanSetHtml} from './types';
 
 type ComposerSelection = {
     start: number;
@@ -18,9 +17,11 @@ type AnchorSelection = {
     focusNode: Node;
 };
 
-type OriginalSelection = ComposerSelection | Partial<Nullable<AnchorSelection>>;
+type NullableObject<T> = {[K in keyof T]: T[K] | null};
 
-const canSetHtml =
+type OriginalSelection = ComposerSelection | Partial<NullableObject<AnchorSelection>>;
+
+const canSetHtml: CanSetHtml =
     () =>
     (...args: ClipboardItems) =>
         navigator?.clipboard?.write([...args]);
@@ -91,7 +92,7 @@ function setHTMLSync(html: string, text: string) {
 /**
  * Writes the content as HTML if the web client supports it.
  */
-const setHtml = (html: string, text: string) => {
+const setHtml: SetHtml = (html: string, text: string) => {
     if (!html || !text) {
         return;
     }
@@ -122,13 +123,11 @@ const setHtml = (html: string, text: string) => {
  * Sets a string on the Clipboard object via react-native-web
  */
 const setString: SetString = (text) => {
-    RNWClipboard.setString(text);
+    Clipboard.setString(text);
 };
 
-const clipboard: Clipboard = {
+export default {
     setString,
     canSetHtml,
     setHtml,
 };
-
-export default clipboard;

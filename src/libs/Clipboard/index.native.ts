@@ -1,19 +1,19 @@
-import RNCClipboard from '@react-native-community/clipboard';
-import {SetString, Clipboard} from './types';
+import Clipboard from '@react-native-community/clipboard';
+import {SetString, CanSetHtml, SetHtml} from './types';
 
 /**
  * Sets a string on the Clipboard object via @react-native-community/clipboard
  */
 const setString: SetString = (text) => {
-    RNCClipboard.setString(text);
+    Clipboard.setString(text);
 };
 
-const clipboard: Clipboard = {
+// We don't want to set HTML on native platforms so noop them.
+const canSetHtml: CanSetHtml = () => false;
+const setHtml: SetHtml = () => {};
+
+export default {
     setString,
-
-    // We don't want to set HTML on native platforms so noop them.
-    canSetHtml: () => false,
-    setHtml: () => {},
+    canSetHtml,
+    setHtml,
 };
-
-export default clipboard;
