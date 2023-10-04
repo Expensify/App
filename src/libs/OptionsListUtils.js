@@ -1426,32 +1426,28 @@ function getShareDestinationOptions(
  * Format personalDetails or userToInvite to be shown in the list
  *
  * @param {Object} member - personalDetails or userToInvite
- * @param {Boolean} isSelected - whether the item is selected
+ * @param {Object} config - keys to overwrite the default values
  * @returns {Object}
  */
-function formatMemberForList(member, isSelected) {
+function formatMemberForList(member, config = {}) {
     if (!member) {
         return undefined;
     }
 
-    const avatarSource = lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'avatar', '');
     const accountID = lodashGet(member, 'accountID', '');
 
     return {
         text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
         alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
         keyForList: lodashGet(member, 'keyForList', '') || String(accountID),
-        isSelected,
+        isSelected: false,
         isDisabled: false,
         accountID,
         login: lodashGet(member, 'login', ''),
         rightElement: null,
-        avatar: {
-            source: UserUtils.getAvatar(avatarSource, accountID),
-            name: lodashGet(member, 'participantsList[0].login', '') || lodashGet(member, 'displayName', ''),
-            type: 'avatar',
-        },
+        icons: lodashGet(member, 'icons'),
         pendingAction: lodashGet(member, 'pendingAction'),
+        ...config,
     };
 }
 
