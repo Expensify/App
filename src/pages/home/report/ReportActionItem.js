@@ -550,14 +550,14 @@ function ReportActionItem(props) {
                         <View style={styles.reportHorizontalRule} />
                     </>
                 );
+            } else {
+                content = (
+                    <TaskView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                );
             }
-
-            content = (
-                <TaskView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
-            );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
             content = (
