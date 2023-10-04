@@ -79,6 +79,11 @@ function MoneyRequestConfirmPage(props) {
     const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     useEffect(() => {
+        IOU.resetMoneyRequestCategory();
+        IOU.resetMoneyRequestTag();
+    }, []);
+
+    useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
@@ -117,15 +122,11 @@ function MoneyRequestConfirmPage(props) {
 
     const navigateBack = () => {
         let fallback;
-
         if (reportID.current) {
             fallback = ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current);
         } else {
             fallback = ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType.current);
         }
-
-        IOU.resetMoneyRequestCategory();
-
         Navigation.goBack(fallback);
     };
 
