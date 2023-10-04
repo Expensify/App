@@ -122,7 +122,7 @@ function KYCWall({
             return;
         }
 
-        transferBalanceButtonRef(event.nativeEvent.target);
+        transferBalanceButtonRef.current = event.nativeEvent.target;
 
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const paymentCardList = fundList || {};
