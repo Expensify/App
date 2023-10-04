@@ -384,16 +384,19 @@ function ComposerWithSuggestions({
         focusWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
-    const setUpComposeFocusManager = useCallback(() => {
-        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!willBlurTextInputOnTapOutside || !isFocused) {
-                return;
-            }
+    const setUpComposeFocusManager = useCallback(
+        (isMainComposer = true) => {
+            // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
+            ReportActionComposeFocusManager.onComposerFocus(() => {
+                if (!willBlurTextInputOnTapOutside || !isFocused) {
+                    return;
+                }
 
-            focus(false);
-        }, true);
-    }, [focus, isFocused]);
+                focus(false);
+            }, isMainComposer);
+        },
+        [focus, isFocused],
+    );
 
     /**
      * Check if the composer is visible. Returns true if the composer is not covered up by emoji picker or menu. False otherwise.
@@ -517,7 +520,10 @@ function ComposerWithSuggestions({
                     onKeyPress={triggerHotkeyActions}
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                     maxLines={maxComposerLines}
-                    onFocus={onFocus}
+                    onFocus={() => {
+                        setUpComposeFocusManager(false);
+                        onFocus();
+                    }}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={displayFileInModal}

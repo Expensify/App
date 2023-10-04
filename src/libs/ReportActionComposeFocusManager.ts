@@ -11,24 +11,11 @@ let focusCallback: FocusCallback | null = null;
 let mainComposerFocusCallback: FocusCallback | null = null;
 
 /**
- * Exposes the current focus state of the report action composer.
- */
-function isFocused(): boolean {
-    return !!composerRef.current?.isFocused();
-}
-
-/**
- * Exposes the current focus state of the edit message composer.
- */
-function isEditFocused(): boolean {
-    return !!editComposerRef.current?.isFocused();
-}
-
-/**
  * Register a callback to be called when focus is requested.
  * Typical uses of this would be call the focus on the ReportActionComposer.
  *
  * @param callback callback to register
+ * @param isMainComposer
  */
 function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
     if (isMainComposer) {
@@ -46,11 +33,11 @@ function focus() {
         return;
     }
 
-    if (typeof focusCallback === 'function' && !isFocused()) {
+    if (typeof focusCallback === 'function') {
         focusCallback();
         return;
     }
-    if (typeof mainComposerFocusCallback === 'function' && !isEditFocused()) {
+    if (typeof mainComposerFocusCallback === 'function') {
         mainComposerFocusCallback();
     }
 }
@@ -64,6 +51,20 @@ function clear(isMainComposer = false) {
     } else {
         focusCallback = null;
     }
+}
+
+/**
+ * Exposes the current focus state of the report action composer.
+ */
+function isFocused(): boolean {
+    return !!composerRef.current?.isFocused();
+}
+
+/**
+ * Exposes the current focus state of the edit message composer.
+ */
+function isEditFocused(): boolean {
+    return !!editComposerRef.current?.isFocused();
 }
 
 export default {
