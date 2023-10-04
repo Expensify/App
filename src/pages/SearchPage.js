@@ -201,6 +201,8 @@ class SearchPage extends Component {
 
 SearchPage.propTypes = propTypes;
 SearchPage.defaultProps = defaultProps;
+// eslint-disable-next-line rulesdir/display-name-property
+SearchPage.displayName = 'SearchPage';
 
 export default compose(
     withLocalize,

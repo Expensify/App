@@ -147,6 +147,7 @@ class AddPersonalBankAccountPage extends React.Component {
 
 AddPersonalBankAccountPage.propTypes = propTypes;
 AddPersonalBankAccountPage.defaultProps = defaultProps;
+AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default compose(
     withLocalize,

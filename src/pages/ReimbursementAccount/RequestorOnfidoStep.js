@@ -80,6 +80,7 @@ class RequestorOnfidoStep extends React.Component {
 
 RequestorOnfidoStep.propTypes = propTypes;
 RequestorOnfidoStep.defaultProps = defaultProps;
+RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
 
 export default compose(
     withLocalize,
