@@ -3249,7 +3249,10 @@ const styles = (theme) => ({
     eReceiptMerchant: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeXLarge,
-        lineHeight: variables.lineHeightXLarge,
+
+        // Setting the line height caused the top of the text to be cut off. Here is an issue to investigate and fix this.
+        // https://github.com/Expensify/App/issues/28772
+        // lineHeight: variables.lineHeightXLarge,
         color: theme.text,
     },
 
