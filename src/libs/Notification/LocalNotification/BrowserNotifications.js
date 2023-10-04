@@ -120,7 +120,7 @@ export default {
         }
 
         push({
-            title: 'Title 1',
+            title,
             body,
             delay: 0,
             onClick,
