@@ -35,7 +35,7 @@ export default function enhanceParameters(command: string, parameters: Record<st
     finalParameters.api_setCookie = false;
 
     // Include current user's email in every request and the server logs
-    finalParameters.email = parameters?.email ?? NetworkStore.getCurrentUserEmail();
+    finalParameters.email = parameters.email ?? NetworkStore.getCurrentUserEmail();
 
     return finalParameters;
 }

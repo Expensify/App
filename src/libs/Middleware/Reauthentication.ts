@@ -10,7 +10,7 @@ import Middleware from './types';
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
 let isAuthenticating: Promise<void> | null = null;
 
-function reauthenticate(commandName?: string): Promise<void> {
+function reauthenticate(commandName: string): Promise<void> {
     if (isAuthenticating) {
         return isAuthenticating;
     }
@@ -30,7 +30,7 @@ function reauthenticate(commandName?: string): Promise<void> {
 
 const Reauthentication: Middleware = (response, request, isFromSequentialQueue) =>
     response
-        ?.then((data) => {
+        .then((data) => {
             // If there is no data for some reason then we cannot reauthenticate
             if (!data) {
                 Log.hmmm('Undefined data in Reauthentication');

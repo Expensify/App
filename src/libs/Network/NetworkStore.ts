@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import Credentials from '../../types/onyx/Credentials';
 
-let credentials: Credentials | null;
+let credentials: Credentials | null = null;
 let authToken: string | null = null;
 let supportAuthToken: string | null = null;
 let currentUserEmail: string | null = null;

@@ -36,7 +36,7 @@ function logRequestDetails(message: string, request: Request, response?: Respons
 const Logging: Middleware = (response, request) => {
     logRequestDetails('Making API request', request);
     return response
-        ?.then((data) => {
+        .then((data) => {
             logRequestDetails('Finished API request', request, data);
             return data;
         })
