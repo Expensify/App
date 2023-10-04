@@ -18,12 +18,13 @@ function clear() {
 }
 
 function save(requestsToPersist: Request[]) {
+    let requests = [];
     if (persistedRequests.length) {
-        persistedRequests = persistedRequests.concat(requestsToPersist);
+        requests = persistedRequests.concat(requestsToPersist);
     } else {
-        persistedRequests = requestsToPersist;
+        requests = requestsToPersist;
     }
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function remove(requestToRemove: Request) {
