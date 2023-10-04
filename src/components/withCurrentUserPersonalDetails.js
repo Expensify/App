@@ -35,7 +35,7 @@ export default function (WrappedComponent) {
         session: {
             accountID: 0,
         },
-        isLoading: true
+        isLoading: true,
     };
 
     function WithCurrentUserPersonalDetails(props) {
@@ -73,7 +73,7 @@ export default function (WrappedComponent) {
             key: ONYXKEYS.SESSION,
         },
         isLoading: {
-           key: ONYXKEYS.IS_LOADING_APP,
+            key: ONYXKEYS.IS_LOADING_APP,
         },
     })(withCurrentUserPersonalDetails);
 }
