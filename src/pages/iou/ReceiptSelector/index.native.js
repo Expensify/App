@@ -74,7 +74,6 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
     const appState = useRef(AppState.currentState);
 
     const iouType = lodashGet(route, 'params.iouType', '');
-    const reportID = lodashGet(route, 'params.reportID', '');
     const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
@@ -139,13 +138,13 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     return;
                 }
 
-                IOU.navigateToNextPage(iou, iouType, reportID, report, route.path);
+                IOU.navigateToNextPage(iou, iouType, report, route.path);
             })
             .catch((error) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, iou, report, reportID, translate, transactionID, route.path]);
+    }, [flash, iouType, iou, report, translate, transactionID, route.path]);
 
     CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
@@ -165,8 +164,8 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     <Button
                         medium
                         success
-                        text={translate('receipt.givePermission')}
-                        accessibilityLabel={translate('receipt.givePermission')}
+                        text={translate('common.continue')}
+                        accessibilityLabel={translate('common.continue')}
                         style={[styles.p9, styles.pt5]}
                         onPress={askForPermissions}
                     />
