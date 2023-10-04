@@ -85,6 +85,7 @@ function ExpensifyCardPage({
                             <>
                                 {shouldShowCardDetails ? (
                                     <CardDetails
+                                        // This is just a temporary mock, it will be replaced in this issue https://github.com/orgs/Expensify/projects/58?pane=issue&itemId=33286617
                                         pan="1234123412341234"
                                         expiration="11/02/2024"
                                         cvv="321"
