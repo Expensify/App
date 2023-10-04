@@ -47,6 +47,9 @@ const propTypes = {
         /** Whether or not a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
 
+        /** Form that is being loaded */
+        loadingForm: PropTypes.oneOf(_.values(CONST.FORMS)),
+
         /** Whether or not the user has SAML enabled on their account */
         isSAMLEnabled: PropTypes.bool,
 

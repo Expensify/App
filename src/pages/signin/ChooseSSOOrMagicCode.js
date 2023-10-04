@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import Text from '../../components/Text';
@@ -37,6 +38,9 @@ const propTypes = {
 
         /** Whether this account has 2FA enabled or not */
         requiresTwoFactorAuth: PropTypes.bool,
+
+        /** Server-side errors in the submitted authentication code */
+        errors: PropTypes.objectOf(PropTypes.string),
     }),
 
     /** Function that returns whether the user is using SAML or magic codes to log in */

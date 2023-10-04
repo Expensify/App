@@ -541,6 +541,10 @@ function clearAccountMessages() {
     });
 }
 
+function setAccountError(error) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errors: ErrorUtils.getMicroSecondOnyxError(error)});
+}
+
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
 // reconnect each time when we only need to reconnect once. This way, if an authToken is expired and we try to
 // subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
@@ -807,6 +811,7 @@ export {
     unlinkLogin,
     clearSignInData,
     clearAccountMessages,
+    setAccountError,
     authenticatePusher,
     reauthenticatePusher,
     invalidateCredentials,

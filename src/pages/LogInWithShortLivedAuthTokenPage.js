@@ -62,9 +62,10 @@ function LogInWithShortLivedAuthTokenPage(props) {
             return;
         }
 
+        // If an error is returned as part of the route, ensure we set it in the onyxData for the account
         const error = lodashGet(props, 'route.params.error', '');
         if (error) {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: ErrorUtils.getMicroSecondOnyxError(error)});
+            Session.setAccountError(error);
         }
 
         const exitTo = lodashGet(props, 'route.params.exitTo', '');
