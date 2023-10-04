@@ -112,7 +112,7 @@ function ComposerWithSuggestions({
 
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
-    const autoFocusCheck = shouldAutoFocus && !willBlurTextInputOnTapOutside;
+    const shouldAutoFocusWithLongText = shouldAutoFocus && !willBlurTextInputOnTapOutside;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -464,7 +464,7 @@ function ComposerWithSuggestions({
 
             focus(); // This will focus the composer after its fully rendered.
         });
-    }, [focus, value.length, autoFocusCheck]);
+    }, [focus, shouldAutoFocus]);
 
     useEffect(() => {
         // Added initial focus ref to remove unneccessary focus after first render.
@@ -538,7 +538,7 @@ function ComposerWithSuggestions({
             <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
-                    autoFocus={autoFocusCheck}
+                    autoFocus={shouldAutoFocusWithLongText}
                     multiline
                     ref={setTextInputRef}
                     textAlignVertical="top"
