@@ -18,6 +18,9 @@ import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import refPropTypes from '../refPropTypes';
 
 const propTypes = {
+    /** Should the press event bubble across multiple instances when Enter key triggers it. */
+    allowBubble: PropTypes.bool,
+
     /** The text for the button label */
     text: PropTypes.string,
 
@@ -126,6 +129,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    allowBubble: false,
     text: '',
     shouldShowRightIcon: false,
     icon: null,
@@ -187,7 +191,7 @@ class Button extends Component {
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,
             true,
-            false,
+            this.props.allowBubble,
             this.props.enterKeyEventListenerPriority,
             false,
         );

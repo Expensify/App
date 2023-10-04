@@ -1425,7 +1425,8 @@ const styles = (theme) => ({
     },
 
     sidebarLinkTextBold: {
-        fontWeight: '700',
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
         color: theme.heading,
     },
 
@@ -1495,7 +1496,8 @@ const styles = (theme) => ({
     },
 
     optionsListSectionHeader: {
-        height: variables.optionsListSectionHeaderHeight,
+        marginTop: 8,
+        marginBottom: 4,
     },
 
     overlayStyles: (current) => ({
@@ -1861,6 +1863,13 @@ const styles = (theme) => ({
         borderRadius: 18,
     },
 
+    singleAvatarMedium: {
+        height: 52,
+        width: 52,
+        backgroundColor: theme.icon,
+        borderRadius: 52,
+    },
+
     secondAvatar: {
         position: 'absolute',
         right: -18,
@@ -1876,6 +1885,15 @@ const styles = (theme) => ({
         bottom: -13,
         borderWidth: 3,
         borderRadius: 18,
+        borderColor: 'transparent',
+    },
+
+    secondAvatarMedium: {
+        position: 'absolute',
+        right: -36,
+        bottom: -36,
+        borderWidth: 3,
+        borderRadius: 52,
         borderColor: 'transparent',
     },
 
@@ -2445,13 +2463,6 @@ const styles = (theme) => ({
         width: 20,
         borderColor: theme.icon,
         borderWidth: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
-    checkboxPressable: {
-        borderRadius: 6,
-        padding: 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -3520,6 +3531,10 @@ const styles = (theme) => ({
         backgroundColor: theme.border,
     },
 
+    reportContainerBorderRadius: {
+        borderRadius: variables.componentBorderRadiusLarge,
+    },
+
     reportPreviewBoxBody: {
         padding: 16,
     },
@@ -3633,7 +3648,7 @@ const styles = (theme) => ({
 
     mapView: {
         flex: 1,
-        borderRadius: 20,
+        borderRadius: 16,
         overflow: 'hidden',
     },
 
@@ -3650,7 +3665,8 @@ const styles = (theme) => ({
     },
 
     confirmationListMapItem: {
-        ...spacing.m5,
+        ...spacing.mv2,
+        ...spacing.mh5,
         height: 200,
     },
 
@@ -3670,6 +3686,7 @@ const styles = (theme) => ({
         borderRadius: variables.componentBorderRadiusLarge,
     },
     userReportStatusEmoji: {
+        flexShrink: 0,
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
     },
@@ -3747,6 +3764,10 @@ const styles = (theme) => ({
         color: theme.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightLarge,
+    },
+
+    receiptDropHeaderGap: {
+        backgroundColor: theme.receiptDropUIBG,
     },
 });
 
