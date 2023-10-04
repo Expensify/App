@@ -111,7 +111,7 @@ export default {
         const plainTextMessage = (_.find(message, (f) => f.type === 'COMMENT') || {}).text;
 
         if (isChatRoom) {
-            const roomName = _.get(report, 'displayName', '');
+            const roomName = _.get(report, 'roomName', '');
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -120,7 +120,7 @@ export default {
         }
 
         push({
-            title,
+            title: 'Title 1',
             body,
             delay: 0,
             onClick,
