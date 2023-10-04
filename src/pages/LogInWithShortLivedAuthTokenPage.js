@@ -55,7 +55,9 @@ function LogInWithShortLivedAuthTokenPage(props) {
 
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
         const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '') || lodashGet(props, 'route.params.shortLivedToken', '');
-        if (shortLivedAuthToken) {
+
+        // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
+        if (shortLivedAuthToken && !props.account.isLoading) {
             Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             return;
         }
