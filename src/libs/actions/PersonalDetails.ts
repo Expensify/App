@@ -16,13 +16,13 @@ type FirstAndLastName = {
     lastName: string;
 };
 
-let currentUserEmail: string | undefined = '';
-let currentUserAccountID: number | undefined;
+let currentUserEmail = '';
+let currentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserEmail = val ? val.email : '';
-        currentUserAccountID = val ? val.accountID : -1;
+        currentUserEmail = val?.email ?? '';
+        currentUserAccountID = val?.accountID ?? -1;
     },
 });
 
@@ -41,7 +41,7 @@ Onyx.connect({
 /**
  * Returns the displayName for a user
  */
-function getDisplayName(login: string, personalDetail?: Pick<OnyxTypes.PersonalDetails, 'firstName' | 'lastName'>): string {
+function getDisplayName(login: string, personalDetail: Pick<OnyxTypes.PersonalDetails, 'firstName' | 'lastName'> | null): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
