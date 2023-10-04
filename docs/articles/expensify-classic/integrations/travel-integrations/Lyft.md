@@ -5,10 +5,7 @@ Setting up and using Expensify's Lyft integration
 <!-- The lines above are required by Jekyll to process the .md file -->
 
 # Overview
-<!--
 You can link Expensify directly to your Lyft account. This means that your receipts for work-related Lyft rides will populate automatically in Expensify. 
-
--->
 
 # How to connect a Lyft Business profile for individual use
 <!--
