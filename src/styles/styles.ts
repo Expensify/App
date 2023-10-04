@@ -1479,7 +1479,8 @@ const styles = (theme: ThemeDefault) =>
         },
 
         sidebarLinkTextBold: {
-            fontWeight: '700',
+            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontWeight: fontWeightBold,
             color: theme.heading,
         },
 
@@ -1917,6 +1918,13 @@ const styles = (theme: ThemeDefault) =>
             borderRadius: 18,
         },
 
+        singleAvatarMedium: {
+            height: 52,
+            width: 52,
+            backgroundColor: theme.icon,
+            borderRadius: 52,
+        },
+
         secondAvatar: {
             position: 'absolute',
             right: -18,
@@ -1932,6 +1940,15 @@ const styles = (theme: ThemeDefault) =>
             bottom: -13,
             borderWidth: 3,
             borderRadius: 18,
+            borderColor: 'transparent',
+        },
+
+        secondAvatarMedium: {
+            position: 'absolute',
+            right: -36,
+            bottom: -36,
+            borderWidth: 3,
+            borderRadius: 52,
             borderColor: 'transparent',
         },
 
@@ -3673,13 +3690,6 @@ const styles = (theme: ThemeDefault) =>
             height: 200,
             maxWidth: 400,
         },
-
-        distanceRequestContainer: (maxHeight: number) =>
-            ({
-                ...flex.flexShrink2,
-                minHeight: variables.optionRowHeight * 2,
-                maxHeight,
-            } satisfies ViewStyle),
 
         mapViewContainer: {
             ...flex.flex1,

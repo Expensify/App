@@ -847,7 +847,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): View
     if (isSmallScreenWidth) {
         return {
             height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '100%',
+            width: '200%',
             position: 'absolute',
         };
     }
