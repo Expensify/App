@@ -88,9 +88,6 @@ const propTypes = {
     /** A right-aligned subtitle for this menu option */
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
-    /** Style for the subtitle */
-    subtitleTextStyle: stylePropTypes,
-
     /** Flag to choose between avatar image or an icon */
     iconType: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_ICON, CONST.ICON_TYPE_WORKSPACE]),
 
@@ -144,6 +141,9 @@ const propTypes = {
 
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled: PropTypes.bool,
+
+    /** Error to display below the title */
+    error: PropTypes.string,
 
     /** Should render the content in HTML format */
     shouldRenderAsHTML: PropTypes.bool,

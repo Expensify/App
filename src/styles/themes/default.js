@@ -53,7 +53,6 @@ const darkTheme = {
     textMutedReversed: colors.darkIcons,
     textError: colors.red,
     offline: colors.darkIcons,
-    modalBackdrop: colors.darkHighlightBackground,
     modalBackground: colors.darkAppBackground,
     cardBG: colors.darkHighlightBackground,
     cardBorder: colors.darkHighlightBackground,
@@ -83,6 +82,8 @@ const darkTheme = {
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
+    selectionListIndicatorColor: colors.white,
+    mapAttributionText: colors.black,
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {

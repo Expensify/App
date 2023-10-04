@@ -27,6 +27,7 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
 
         // Pressing Enter on TEXTAREA element adds a new line. When `dataset.submitOnEnter` prop is passed, call the submit callback.
         if (tagName === 'TEXTAREA' && lodashGet(event, 'target.dataset.submitOnEnter', 'false') === 'true') {
+            event.preventDefault();
             onSubmit();
             return;
         }
