@@ -11,7 +11,7 @@ import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 import ONYXKEYS from '../../ONYXKEYS';
 
-let userEmail;
+let userEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     waitForCollectionCallback: true,
