@@ -18,6 +18,7 @@ function OptionRowLHNDataWithFocus({currentReportID, shouldDisableFocusOptions, 
 
     return (
         <OptionRowLHNData
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isFocused={isFocused}
         />
