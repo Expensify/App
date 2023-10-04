@@ -16,7 +16,6 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import TextLink from '../components/TextLink';
 import ONYXKEYS from '../ONYXKEYS';
-import * as ErrorUtils from '../libs/ErrorUtils';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short-lived token are in the URL */

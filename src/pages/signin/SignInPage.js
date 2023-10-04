@@ -195,10 +195,8 @@ function SignInPage({credentials, account, isInModal}) {
         if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
             welcomeText = '';
         }
-    } else {
-        if (!shouldInitiateSAMLLogin) {
-            Log.warn('SignInPage in unexpected state!');
-        }
+    } else if (!shouldInitiateSAMLLogin) {
+        Log.warn('SignInPage in unexpected state!');
     }
 
     return (
