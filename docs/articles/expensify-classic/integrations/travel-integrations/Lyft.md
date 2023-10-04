@@ -1,6 +1,6 @@
 ---
-Lyft & Expensify
-Setting up and using Expensify's Lyft integration
+title: Lyft & Expensify
+description: Setting up and using Expensify's Lyft integration
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 
