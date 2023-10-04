@@ -1747,6 +1747,7 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
             value: {
                 [emoji.name]: {
                     createdAt,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
@@ -1754,6 +1755,30 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
                             },
                         },
                     },
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
+            value: {
+                [emoji.name]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
+            value: {
+                [emoji.name]: {
+                    pendingAction: null,
                 },
             },
         },
@@ -1768,7 +1793,7 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
         // This will be removed as part of https://github.com/Expensify/App/issues/19535
         useEmojiReactions: true,
     };
-    API.write('AddEmojiReaction', parameters, {optimisticData});
+    API.write('AddEmojiReaction', parameters, {optimisticData, successData, failureData});
 }
 
 /**
