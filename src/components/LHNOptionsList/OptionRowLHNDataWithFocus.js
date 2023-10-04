@@ -13,6 +13,11 @@ const defaultProps = {
     shouldDisableFocusOptions: false,
 };
 
+/**
+ * Wrapper component for OptionRowLHNData that calculates isFocused prop based on currentReportID.
+ * This is extracted from OptionRowLHNData to prevent unnecessary re-renders when currentReportID changes.
+ * @returns {React.Component} OptionRowLHNData component with isFocused prop
+ */
 function OptionRowLHNDataWithFocus({currentReportID, shouldDisableFocusOptions, ...props}) {
     // We only want to pass a boolean to the memoized component,
     // instead of a changing number (so we prevent unnecessary re-renders).
