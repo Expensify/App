@@ -229,7 +229,6 @@ class ValidationStep extends React.Component {
 
 ValidationStep.propTypes = propTypes;
 ValidationStep.defaultProps = defaultProps;
-// ValidationStep.displayName = 'ValidationStep';
 
 export default compose(
     withLocalize,
