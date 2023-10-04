@@ -78,7 +78,6 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
                         )}
                         <ScrollView
                             contentContainerStyle={[safeAreaPaddingBottomStyle, style]}
-                            showsVerticalScrollIndicator={false}
                             offlineIndicatorStyle={[appBGColor]}
                         >
                             {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />}
