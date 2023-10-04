@@ -396,6 +396,7 @@ class EmojiPickerMenu extends Component {
                 filteredEmojis: this.emojis,
                 headerIndices: this.headerRowIndices,
                 highlightedIndex: -1,
+                searchTerm,
             });
             this.setFirstNonHeaderIndex(this.emojis);
             return;
