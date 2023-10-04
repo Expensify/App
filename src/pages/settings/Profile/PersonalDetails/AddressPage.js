@@ -88,6 +88,8 @@ function AddressPage({privatePersonalDetails, route}) {
         }
         setState(address.state);
         setCurrentCountry(address.country);
+        setCity(address.city);
+
     }, [address]);
 
     /**
