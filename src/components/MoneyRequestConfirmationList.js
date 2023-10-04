@@ -464,7 +464,7 @@ function MoneyRequestConfirmationList(props) {
         );
     }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, translate, formError]);
 
-    const {image, thumbnail} = props.receiptPath && ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptSource);
+    const {image: receiptImage, thumbnail: receiptThumbnail} = props.receiptPath && ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptSource);
 
     return (
         <OptionsSelector
@@ -490,11 +490,11 @@ function MoneyRequestConfirmationList(props) {
                     <ConfirmedRoute transactionID={props.transactionID} />
                 </View>
             )}
-            {!_.isEmpty(props.receiptPath) ? (
+            {receiptImage || receiptThumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: thumbnail ? thumbnail : image}}
-                    isAuthTokenRequired={!_.isEmpty(thumbnail)}
+                    source={{uri: receiptThumbnail ? receiptThumbnail : receiptImage}}
+                    isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
             ) : (
                 <MenuItemWithTopDescription
