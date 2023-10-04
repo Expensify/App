@@ -220,10 +220,14 @@ function getCurrency(transaction: Transaction): string {
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: Transaction): string {
+<<<<<<< HEAD
     if (transaction?.modifiedMerchant?.length) {
         return transaction.modifiedMerchant;
     }
     return transaction?.merchant ?? '';
+=======
+    return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant || '';
+>>>>>>> main
 }
 
 /**
