@@ -74,9 +74,7 @@ function DraggableList<T>(
             ref={ref}
             style={styles.flex1}
         >
-            <DragDropContext
-                onDragEnd={onDragEnd}
-            >
+            <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable
                     droppableId="droppable"
                     renderClone={renderClone}

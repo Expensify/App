@@ -30,14 +30,15 @@ export default function useDraggableInPortal({shouldUsePortal}: DraggableInPorta
         return (render) => render;
     }
 
-    return (render): DraggableChildrenFn => (provided, snapshot, rubric) => {
-        const result = render(provided, snapshot, rubric);
-        const style = provided.draggableProps.style;
-        if (style && 'position' in style && style.position === 'fixed') {
-            return createPortal(result, element);
-        }
-        return result;
-    };
+    return (render): DraggableChildrenFn =>
+        (provided, snapshot, rubric) => {
+            const result = render(provided, snapshot, rubric);
+            const style = provided.draggableProps.style;
+            if (style && 'position' in style && style.position === 'fixed') {
+                return createPortal(result, element);
+            }
+            return result;
+        };
 }
 
 export type {DraggableInPortal};
