@@ -4,29 +4,29 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import Text from '../../../../components/Text';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import styles from '../../../../styles/styles';
-import MagicCodeInput from '../../../../components/MagicCodeInput';
-import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
-import * as ErrorUtils from '../../../../libs/ErrorUtils';
-import * as CardSettings from '../../../../libs/actions/Card';
-import BigNumberPad from '../../../../components/BigNumberPad';
-import Button from '../../../../components/Button';
-import IllustratedHeaderPageLayout from '../../../../components/IllustratedHeaderPageLayout';
-import themeColors from '../../../../styles/themes/default';
-import SCREENS from '../../../../SCREENS';
-import * as LottieAnimations from '../../../../components/LottieAnimations';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import useLocalize from '../../../../hooks/useLocalize';
-import ROUTES from '../../../../ROUTES';
-import CONST from '../../../../CONST';
-import assignedCardPropTypes from '../assignedCardPropTypes';
-import * as CardUtils from '../../../../libs/CardUtils';
-import useNetwork from '../../../../hooks/useNetwork';
-import NotFoundPage from '../../../ErrorPage/NotFoundPage';
-import getFooterContainerStyles from './getFooterContainerStyles';
+import Text from '../../../components/Text';
+import Navigation from '../../../libs/Navigation/Navigation';
+import styles from '../../../styles/styles';
+import MagicCodeInput from '../../../components/MagicCodeInput';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
+import * as ErrorUtils from '../../../libs/ErrorUtils';
+import * as CardSettings from '../../../libs/actions/Card';
+import BigNumberPad from '../../../components/BigNumberPad';
+import Button from '../../../components/Button';
+import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
+import themeColors from '../../../styles/themes/default';
+import SCREENS from '../../../SCREENS';
+import * as LottieAnimations from '../../../components/LottieAnimations';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import ONYXKEYS from '../../../ONYXKEYS';
+import useLocalize from '../../../hooks/useLocalize';
+import ROUTES from '../../../ROUTES';
+import CONST from '../../../CONST';
+import assignedCardPropTypes from './assignedCardPropTypes';
+import * as CardUtils from '../../../libs/CardUtils';
+import useNetwork from '../../../hooks/useNetwork';
+import NotFoundPage from '../../ErrorPage/NotFoundPage';
+import getFooterContainerStyles from '../../../styles/getFooterContainerStyles';
 
 const propTypes = {
     /* Onyx Props */
@@ -79,6 +79,7 @@ function ActivatePhysicalCardPage({
         if (cardList[cardID].isLoading || lodashGet(cardList, `${cardID}.state`, 0) !== CONST.CARD_STATE.OPEN) {
             return;
         }
+
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
     }, [cardID, cardList, domain]);
 
@@ -159,9 +160,9 @@ function ActivatePhysicalCardPage({
                     value={lastFourDigits}
                     lastPressedDigit={lastPressedDigit}
                     onChangeText={onCodeInput}
+                    onFulfill={submitAndNavigateToNextPage}
                     errorText={formError || cardError}
                     ref={activateCardCodeInputRef}
-                    shouldSubmitOnComplete={false}
                 />
             </View>
             <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>
