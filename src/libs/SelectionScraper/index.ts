@@ -143,7 +143,7 @@ const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
         name: domName,
         attribs: domAttribs,
         children: domChildren,
-    } as unknown as Node;
+    } as Element & DataNode;
 };
 
 /**
