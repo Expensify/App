@@ -92,7 +92,15 @@ function LogInWithShortLivedAuthTokenPage(props) {
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{props.translate('deeplinkWrapper.launching')}</Text>
                 <View style={styles.mt2}>
                     <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                        {props.translate('deeplinkWrapper.expired')} <TextLink onPress={() => Navigation.navigate()}>{props.translate('deeplinkWrapper.signIn')}</TextLink>
+                        {props.translate('deeplinkWrapper.expired')}{' '}
+                        <TextLink
+                            onPress={() => {
+                                Session.clearSignInData();
+                                Navigation.navigate();
+                            }}
+                        >
+                            {props.translate('deeplinkWrapper.signIn')}
+                        </TextLink>
                     </Text>
                 </View>
             </View>
@@ -112,9 +120,4 @@ LogInWithShortLivedAuthTokenPage.propTypes = propTypes;
 LogInWithShortLivedAuthTokenPage.defaultProps = defaultProps;
 LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-    }),
-)(LogInWithShortLivedAuthTokenPage);
+export default compose(withLocalize, withOnyx({account: {key: ONYXKEYS.ACCOUNT}}), withOnyx({session: {key: ONYXKEYS.SESSION}}))(LogInWithShortLivedAuthTokenPage);

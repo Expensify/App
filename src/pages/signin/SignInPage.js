@@ -90,14 +90,15 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     const platform = getPlatform();
 
     // SAML is temporarily restricted to users on the beta or to users signing in on web and mweb
-    if (Permissions.canUseSAML() || platform === CONST.PLATFORM.WEB) {
+    if (Permissions.canUseSAML() || platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP) {
         shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
         shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired;
     }
 
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
-    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode;
+    const shouldShowValidateCodeForm =
+        hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin;
     const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode;
 
@@ -152,7 +153,7 @@ function SignInPage({credentials, account, isInModal}) {
 
     // If the user has SAML required and we're not already loading their account
     // bypass the rest of the sign in logic and open up their SSO provider login page
-    if (shouldInitiateSAMLLogin && !account.isLoading) {
+    if (shouldInitiateSAMLLogin && account.loadingForm === CONST.FORMS.LOGIN_FORM) {
         Navigation.navigate(ROUTES.SAML_SIGN_IN);
     }
 
@@ -192,7 +193,9 @@ function SignInPage({credentials, account, isInModal}) {
             welcomeText = '';
         }
     } else {
-        Log.warn('SignInPage in unexpected state!');
+        if (!shouldInitiateSAMLLogin) {
+            Log.warn('SignInPage in unexpected state!');
+        }
     }
 
     return (
