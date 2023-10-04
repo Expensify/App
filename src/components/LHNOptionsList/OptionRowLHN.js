@@ -25,6 +25,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
 import Permissions from '../../libs/Permissions';
 import Tooltip from '../Tooltip';
+import DomUtils from '../../libs/DomUtils';
 
 const propTypes = {
     /** Style for hovered state */
@@ -162,7 +163,10 @@ function OptionRowLHN(props) {
                             // Prevent losing Composer focus
                             e.preventDefault();
                         }}
-                        onSecondaryInteraction={(e) => showPopover(e)}
+                        onSecondaryInteraction={(e) => {
+                            showPopover(e);
+                            DomUtils.blurActiveElement();
+                        }}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
                         style={[
