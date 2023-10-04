@@ -18,13 +18,12 @@ function clear() {
 }
 
 function save(requestsToPersist: Request[]) {
-    let requests = [];
     if (persistedRequests.length) {
-        requests = persistedRequests.concat(requestsToPersist);
+        persistedRequests = persistedRequests.concat(requestsToPersist);
     } else {
-        requests = requestsToPersist;
+        persistedRequests = requestsToPersist;
     }
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
 function remove(requestToRemove: Request) {
@@ -38,12 +37,14 @@ function remove(requestToRemove: Request) {
     }
     const requests = [...persistedRequests];
     requests.splice(index, 1);
+    persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function update(oldRequestIndex: number, newRequest: Request) {
     const requests = [...persistedRequests];
     requests.splice(oldRequestIndex, 1, newRequest);
+    persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
