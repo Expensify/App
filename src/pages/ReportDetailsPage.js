@@ -139,7 +139,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, shouldDisableSettings, isThread, isMoneyRequestReport, props.report, isUserCreatedPolicyRoom, canLeaveRoom, isGroupDMChat]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isUserCreatedPolicyRoom, canLeaveRoom, isGroupDMChat]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;

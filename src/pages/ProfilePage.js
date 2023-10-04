@@ -136,7 +136,8 @@ function ProfilePage(props) {
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
 
-    const notificationPreference = !_.isEmpty(props.report) ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
+    const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : {};
+    const notificationPreference = lodashGet(chatReportWithCurrentUser, 'notificationPreference', '');
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -251,15 +252,15 @@ function ProfilePage(props) {
                                 shouldShowRightIcon
                             />
                         )}
-                        {!_.isEmpty(props.report) && (
+                        {!_.isEmpty(chatReportWithCurrentUser) && (
                             <MenuItem
                                 title={`${props.translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(chatReportWithCurrentUser.reportID))}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
-                                brickRoadIndicator={Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                                brickRoadIndicator={Report.hasErrorInPrivateNotes(chatReportWithCurrentUser) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             />
                         )}
                     </ScrollView>
@@ -298,21 +299,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        report: {
-            key: ({route, session}) => {
-                const accountID = Number(lodashGet(route.params, 'accountID', 0));
-                if (Number(session.accountID) === accountID || Session.isAnonymousUser()) {
-                    return null;
-                }
-                return `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(ReportUtils.getChatByParticipants([accountID]), 'reportID', '')}`;
-            },
         },
     }),
 )(ProfilePage);
