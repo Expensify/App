@@ -233,7 +233,7 @@ function ProfilePage(props) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
-                        {notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && !isCurrentUser && (
+                        {chatReportWithCurrentUser && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && !isCurrentUser && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 title={notificationPreference}
