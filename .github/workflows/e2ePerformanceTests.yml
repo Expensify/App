@@ -192,7 +192,6 @@ jobs:
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label
-        if: ${{ github.event_name == 'workflow_call' }}
         run: |
           if grep -q '🔴' ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; then
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
