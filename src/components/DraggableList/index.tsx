@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {DragDropContext, Droppable, Draggable, type OnDragEndResponder, type OnDragUpdateResponder} from 'react-beautiful-dnd';
+import {DragDropContext, Droppable, Draggable, type OnDragEndResponder} from 'react-beautiful-dnd';
 import {ScrollView} from 'react-native';
 import useDraggableInPortal from './useDraggableInPortal';
 import type {DraggableListProps} from './types';
@@ -31,8 +31,6 @@ function DraggableList<T>(
         renderItem,
         keyExtractor,
         onDragEnd: onDragEndCallback,
-        onDragBegin,
-        onPlaceholderIndexChange,
         renderClone,
         shouldUsePortal = false,
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -63,16 +61,6 @@ function DraggableList<T>(
         [data, onDragEndCallback],
     );
 
-    const onDragUpdate: OnDragUpdateResponder = useCallback(
-        (result) => {
-            if (!result.destination) {
-                return;
-            }
-            onPlaceholderIndexChange?.(result.destination.index);
-        },
-        [onPlaceholderIndexChange],
-    );
-
     /**
      * The `react-beautiful-dnd` library uses `position: fixed` to move the dragged item to the top of the screen.
      * But when the parent component uses the `transform` property, the `position: fixed` doesn't work as expected.
@@ -88,8 +76,6 @@ function DraggableList<T>(
         >
             <DragDropContext
                 onDragEnd={onDragEnd}
-                onDragStart={onDragBegin}
-                onDragUpdate={onDragUpdate}
             >
                 <Droppable
                     droppableId="droppable"
