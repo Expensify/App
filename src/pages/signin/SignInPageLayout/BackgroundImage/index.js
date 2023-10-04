@@ -3,15 +3,17 @@ import PropTypes from 'prop-types';
 import MobileBackgroundImage from '../../../../../assets/images/home-background--mobile.svg';
 import DesktopBackgroundImage from '../../../../../assets/images/home-background--desktop.svg';
 import styles from '../../../../styles/styles';
+import defaultPropTypes from './propTypes';
 
 const defaultProps = {
     isSmallScreen: false,
 };
 
 const propTypes = {
+    /** Is the window width narrow, like on a mobile device */
     isSmallScreen: PropTypes.bool,
-    pointerEvents: PropTypes.string.isRequired,
-    width: PropTypes.number.isRequired,
+
+    ...defaultPropTypes,
 };
 function BackgroundImage(props) {
     return props.isSmallScreen ? (
