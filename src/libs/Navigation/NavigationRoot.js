@@ -1,8 +1,8 @@
 import React, {useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
-import {useFlipper} from '@react-navigation/devtools';
 import {useSharedValue, useAnimatedReaction, interpolateColor, withTiming, withDelay, Easing, runOnJS} from 'react-native-reanimated';
+import useFlipper from '../../hooks/useFlipper';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
@@ -122,7 +122,10 @@ function NavigationRoot(props) {
         if (!state) {
             return;
         }
-        updateCurrentReportID(state);
+        // Performance optimization to avoid context consumers to delay first render
+        setTimeout(() => {
+            updateCurrentReportID(state);
+        }, 0);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
     };
