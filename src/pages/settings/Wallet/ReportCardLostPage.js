@@ -115,25 +115,6 @@ function ReportCardLostPage({
         return <NotFoundPage />;
     }
 
-    const onSubmit = () => {
-        if (!isReasonConfirmed) {
-            setIsReasonConfirmed(true);
-
-            setShouldShowAddressError(false);
-
-            return;
-        }
-
-        if (!formattedAddress) {
-            setShouldShowAddressError(true);
-            return;
-        }
-
-        if (formattedAddress) {
-            CardActions.requestReplacementExpensifyCard(physicalCard.cardID, reason);
-        }
-    };
-
     const handleSubmitFirstStep = () => {
         setIsReasonConfirmed(true);
         setShouldShowAddressError(false);
