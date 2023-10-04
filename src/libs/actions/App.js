@@ -359,6 +359,7 @@ function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
     const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
     if (isLoggingInAsNewUser && isTransitioning) {
         Session.signOut();
+        Onyx.clear();
     }
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
