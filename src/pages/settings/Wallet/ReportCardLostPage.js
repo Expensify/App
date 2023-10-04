@@ -103,13 +103,13 @@ function ReportCardLostPage({
         if (prevIsLoading && !formData.isLoading && _.isEmpty(physicalCard.errors)) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
         }
-
-        if (formData.isLoading && _.isEmpty(physicalCard.errors)) {
-            return;
-        }
-
-        FormActions.setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, physicalCard.errors);
     }, [domain, formData.isLoading, prevIsLoading, physicalCard.errors]);
+
+    useEffect(() => {
+        if (!(formData.isLoading && _.isEmpty(physicalCard.errors))) {
+            FormActions.setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, physicalCard.errors);
+        }
+    }, [formData.isLoading, physicalCard.errors]);
 
     if (_.isEmpty(physicalCard)) {
         return <NotFoundPage />;
