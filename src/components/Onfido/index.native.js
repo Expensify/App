@@ -64,7 +64,9 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
 
                 onError(errorMessage);
             });
-    }, [onError, onSuccess, onUserExit, sdkToken, translate]);
+        // Onfido should be initialized only once on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return <FullscreenLoadingIndicator />;
 }
