@@ -20,6 +20,9 @@ const propTypes = {
     /** Unique id for emoji picker */
     emojiPickerID: PropTypes.string,
 
+    /** A callback function when the button is pressed */
+    onPress: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -27,6 +30,7 @@ const defaultProps = {
     isDisabled: false,
     nativeID: '',
     emojiPickerID: '',
+    onPress: () => {},
 };
 
 function EmojiPickerButton(props) {
@@ -40,12 +44,13 @@ function EmojiPickerButton(props) {
                 ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
-                onPress={() => {
+                onPress={(e) => {
                     if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
                         EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor.current, undefined, () => {}, props.emojiPickerID);
                     } else {
                         EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
                     }
+                    props.onPress(e);
                 }}
                 nativeID={props.nativeID}
                 accessibilityLabel={props.translate('reportActionCompose.emoji')}

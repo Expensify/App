@@ -37,6 +37,7 @@ function focus() {
         focusCallback();
         return;
     }
+
     if (typeof mainComposerFocusCallback === 'function') {
         mainComposerFocusCallback();
     }
