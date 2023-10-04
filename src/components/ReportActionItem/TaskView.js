@@ -49,9 +49,8 @@ function TaskView(props) {
     const taskTitle = convertToLTR(props.report.reportName || '');
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
-    const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
-    const disableState = !canModifyTask || isCanceled;
+    const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     return (
         <View>
@@ -91,9 +90,9 @@ function TaskView(props) {
                                         <Checkbox
                                             onPress={Session.checkIfActionIsAllowed(() => {
                                                 if (isCompleted) {
-                                                    Task.reopenTask(props.report, taskTitle);
+                                                    Task.reopenTask(props.report);
                                                 } else {
-                                                    Task.completeTask(props.report, taskTitle);
+                                                    Task.completeTask(props.report);
                                                 }
                                             })}
                                             isChecked={isCompleted}
@@ -102,7 +101,7 @@ function TaskView(props) {
                                             containerBorderRadius={8}
                                             caretSize={16}
                                             accessibilityLabel={taskTitle || props.translate('task.task')}
-                                            disabled={isCanceled || !canModifyTask}
+                                            disabled={!canModifyTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
                                             <Text
