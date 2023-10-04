@@ -100,51 +100,50 @@ const getHTMLOfSelection = (): string => {
 
 /**
  * Clears all attributes from dom elements
+ * @param dom - dom htmlparser2 dom representation
  */
 const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
-    // Encoding HTML chars '< >' in the text, because any HTML will be removed in stripHTML method.
-    const domDataNode = dom as DataNode;
-    let data = '';
-    if (dom.type.toString() === 'text' && domDataNode.data) {
-        data = Str.htmlEncode(domDataNode.data);
-        return {
-            ...dom,
-            data,
-        } as DataNode;
-    }
-
-    const domElement = dom as Element;
-    let domName = domElement.name;
+    let domName;
     let domChildren: Node[] = [];
     const domAttribs: Element['attribs'] = {};
+    let data = '';
 
-    // We are skipping elements which has html and body in data-testid, since ExpensiMark can't parse it. Also this data
-    // has no meaning for us.
-    if (domElement.attribs?.[tagAttribute]) {
-        if (!elementsWillBeSkipped.includes(domElement.attribs[tagAttribute])) {
-            domName = domElement.attribs[tagAttribute];
+    // Encoding HTML chars '< >' in the text, because any HTML will be removed in stripHTML method.
+    if (dom.type.toString() === 'text' && dom instanceof DataNode) {
+        data = Str.htmlEncode(dom.data);
+    }
+
+    if (dom instanceof Element) {
+        domName = dom.name;
+        // We are skipping elements which has html and body in data-testid, since ExpensiMark can't parse it. Also this data
+        // has no meaning for us.
+        if (dom.attribs?.[tagAttribute]) {
+            if (!elementsWillBeSkipped.includes(dom.attribs[tagAttribute])) {
+                domName = dom.attribs[tagAttribute];
+            }
+        } else if (dom.name === 'div' && dom.children.length === 1 && isChildOfEditorElement) {
+            // We are excluding divs that are children of our editor element and have only one child to prevent
+            // additional newlines from being added in the HTML to Markdown conversion process.
+            return replaceNodes(dom.children[0], isChildOfEditorElement);
         }
-    } else if (domElement.name === 'div' && domElement.children.length === 1 && isChildOfEditorElement) {
-        // We are excluding divs that are children of our editor element and have only one child to prevent
-        // additional newlines from being added in the HTML to Markdown conversion process.
-        return replaceNodes(domElement.children[0], isChildOfEditorElement);
-    }
 
-    // We need to preserve href attribute in order to copy links.
-    if (domElement.attribs?.href) {
-        domAttribs.href = domElement.attribs.href;
-    }
+        // We need to preserve href attribute in order to copy links.
+        if (dom.attribs?.href) {
+            domAttribs.href = dom.attribs.href;
+        }
 
-    if (domElement.children) {
-        domChildren = domElement.children.map((c) => replaceNodes(c, isChildOfEditorElement || !!domElement.attribs?.[tagAttribute]));
+        if (dom.children) {
+            domChildren = dom.children.map((c) => replaceNodes(c, isChildOfEditorElement || !!dom.attribs?.[tagAttribute]));
+        }
     }
 
     return {
         ...dom,
+        data,
         name: domName,
         attribs: domAttribs,
         children: domChildren,
-    } as Element;
+    } as unknown as Node;
 };
 
 /**
