@@ -381,6 +381,7 @@ class BaseOptionsSelector extends Component {
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
                 spellCheck={false}
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
+                isLoading={this.props.isLoadingNewOptions}
             />
         );
         const optionsList = (
@@ -417,7 +418,7 @@ class BaseOptionsSelector extends Component {
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
                 isRowMultilineSupported={this.props.isRowMultilineSupported}
-                shouldShowHeaderMessage={this.props.shouldShowHeaderMessage}
+                isLoadingNewOptions={this.props.isLoadingNewOptions}
             />
         );
         return (

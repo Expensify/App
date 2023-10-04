@@ -104,16 +104,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             });
         }
 
-        if (isSearchingForReports) {
-            sectionsList.push({
-                data: [{loadingRow: true}],
-                shouldShow: true,
-                indexOffset,
-            });
-        }
-
         return sectionsList;
-    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions, isSearchingForReports]);
+    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -223,7 +215,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             onConfirmSelection={createGroup}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            shouldShowHeaderMessage={!isSearchingForReports}
+                            isLoadingNewOptions={isSearchingForReports}
                         />
                     </View>
                 </KeyboardAvoidingView>

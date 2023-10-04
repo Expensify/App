@@ -66,7 +66,7 @@ function BaseOptionsList({
     isDisabled,
     innerRef,
     isRowMultilineSupported,
-    shouldShowHeaderMessage,
+    isLoadingNewOptions,
 }) {
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
@@ -191,15 +191,6 @@ function BaseOptionsList({
             return option.name === item.searchText;
         });
 
-        if (item.loadingRow) {
-            return (
-                <OptionsListSkeletonRow
-                    lineWidth="100%"
-                    shouldAnimate
-                />
-            );
-        }
-
         return (
             <OptionRow
                 option={item}
@@ -254,7 +245,9 @@ function BaseOptionsList({
                 <OptionsListSkeletonView shouldAnimate />
             ) : (
                 <>
-                    {shouldShowHeaderMessage && headerMessage ? (
+                    {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
+                    {/* This is confusing because we might be in the process of loading fresh options from the server. */}
+                    {!isLoadingNewOptions && headerMessage ? (
                         <View style={[styles.ph5, styles.pb5]}>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                         </View>
