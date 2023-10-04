@@ -394,7 +394,14 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
+        const lastIOUMoneyReport = _.find(
+            allSortedReportActions[iouReport.reportID],
+            (reportAction, key) =>
+                ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                ReportActionUtils.isMoneyRequestAction(reportAction),
+        );
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = Localize.translate(preferredLocale, 'parentReportAction.deletedMessage');
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
@@ -468,6 +475,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         isPolicyExpenseChat: false,
         isExpenseReport: false,
         policyID: null,
+        isOptimisticPersonalDetail: false,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -478,6 +486,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     let reportName;
 
     result.participantsList = personalDetailList;
+    result.isOptimisticPersonalDetail = personalDetail.isOptimisticPersonalDetail;
 
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
@@ -1168,6 +1177,7 @@ function getOptions(
             if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
                 return;
             }
+
             personalDetailsOptions.push(personalDetailOption);
         });
     }
@@ -1179,7 +1189,10 @@ function getOptions(
 
     let userToInvite = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
-    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase());
+    const noOptionsMatchExactly = !_.find(
+        personalDetailsOptions.concat(recentReportOptions),
+        (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase() || option.login === searchValue.toLowerCase(),
+    );
 
     if (
         searchValue &&
@@ -1248,7 +1261,7 @@ function getOptions(
     }
 
     return {
-        personalDetails: personalDetailsOptions,
+        personalDetails: _.filter(personalDetailsOptions, (personalDetailsOption) => !personalDetailsOption.isOptimisticPersonalDetail),
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
