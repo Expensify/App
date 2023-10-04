@@ -1173,25 +1173,50 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
  * @returns {Array}
  */
 function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
-    return _.map(personalDetailsList, (user) => {
-        const accountID = Number(user.accountID);
-        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
-        const avatar = UserUtils.getDefaultAvatar(accountID);
+    return _.chain(personalDetailsList)
+        .map((user) => {
+            const accountID = Number(user.accountID);
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
+            const avatar = UserUtils.getDefaultAvatar(accountID);
 
-        let pronouns = user.pronouns;
-        if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
-            const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-            pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
-        }
+            let pronouns = user.pronouns;
+            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+                const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+            }
 
-        return {
-            displayName,
-            avatar,
-            login: user.login || '',
-            accountID,
-            pronouns,
-        };
-    });
+            return {
+                displayName,
+                avatar,
+                login: user.login || '',
+                accountID,
+                pronouns,
+            };
+        })
+        .sort((first, second) => {
+            // First sort by displayName/login
+            const displayNameLoginOrder = first.displayName.localeCompare(second.displayName);
+            if (displayNameLoginOrder !== 0) {
+                return displayNameLoginOrder;
+            }
+
+            // Then fallback on accountID as the final sorting criteria.
+            return first.accountID > second.accountID;
+        })
+        .value();
+}
+
+/**
+ * Gets a joined string of display names from the list of display name with tooltip objects.
+ *
+ * @param {Object} displayNamesWithTooltips
+ * @returns {String}
+ */
+function getDisplayNamesStringFromTooltips(displayNamesWithTooltips) {
+    return _.filter(
+        _.map(displayNamesWithTooltips, ({displayName}) => displayName),
+        (displayName) => !_.isEmpty(displayName),
+    ).join(', ');
 }
 
 /**
@@ -1666,7 +1691,7 @@ function getModifiedExpenseMessage(reportAction) {
  *
  * @param {Object} oldTransaction
  * @param {Object} transactionChanges
- * @param {Boolen} isFromExpenseReport
+ * @param {Boolean} isFromExpenseReport
  * @returns {Object}
  */
 function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport) {
@@ -1893,7 +1918,7 @@ function getParentNavigationSubtitle(report) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report) || isMoneyRequestReport(report)) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         return;
     }
@@ -2119,6 +2144,7 @@ function buildOptimisticIOUReport(payeeAccountID, payerAccountID, total, chatRep
 
         // We don't translate reportName because the server response is always in English
         reportName: `${payerEmail} owes ${formattedTotal}`,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         parentReportID: chatReportID,
     };
 }
@@ -2157,6 +2183,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
         total: storedTotal,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         parentReportID: chatReportID,
     };
 }
@@ -2520,6 +2547,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
  * @param {String} notificationPreference
  * @param {String} parentReportActionID
  * @param {String} parentReportID
+ * @param {String} welcomeMessage
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -2535,6 +2563,7 @@ function buildOptimisticChatReport(
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
+    welcomeMessage = '',
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
@@ -2561,7 +2590,7 @@ function buildOptimisticChatReport(
         stateNum: 0,
         statusNum: 0,
         visibility,
-        welcomeMessage: '',
+        welcomeMessage,
         writeCapability,
     };
 }
@@ -3535,7 +3564,7 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
  * @returns {Boolean}
  */
 function shouldDisableSettings(report) {
-    return !isPolicyExpenseChat(report) && !isChatRoom(report) && !isChatThread(report);
+    return !isMoneyRequestReport(report) && !isPolicyExpenseChat(report) && !isChatRoom(report) && !isChatThread(report);
 }
 
 /**
@@ -3544,7 +3573,7 @@ function shouldDisableSettings(report) {
  * @returns {Boolean}
  */
 function shouldDisableRename(report, policy) {
-    if (isDefaultRoom(report) || isArchivedRoom(report) || isChatThread(report)) {
+    if (isDefaultRoom(report) || isArchivedRoom(report) || isChatThread(report) || isMoneyRequestReport(report) || isPolicyExpenseChat(report)) {
         return true;
     }
 
@@ -3677,6 +3706,29 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
 }
 
 /**
+ * Returns an array of the participants Ids of a report
+ *
+ * @param {Object} report
+ * @returns {Array}
+ */
+function getParticipantsIDs(report) {
+    if (!report) {
+        return [];
+    }
+
+    const participants = report.participantAccountIDs || [];
+
+    // Build participants list for IOU/expense reports
+    if (isMoneyRequestReport(report)) {
+        return _.chain([report.managerID, report.ownerAccountID, ...participants])
+            .compact()
+            .uniq()
+            .value();
+    }
+    return participants;
+}
+
+/**
  * Get the last 3 transactions with receipts of an IOU report that will be displayed on the report preview
  *
  * @param {Object} reportPreviewAction
@@ -3780,6 +3832,7 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
+    getDisplayNamesStringFromTooltips,
     getReportName,
     getReport,
     getReportIDFromLink,
@@ -3871,6 +3924,7 @@ export {
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
+    getParticipantsIDs,
     canEditMoneyRequest,
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,

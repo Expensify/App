@@ -39,6 +39,7 @@ const BasePreRenderer = forwardRef((props, ref) => {
             horizontal
             style={[isLast ? styles.mt2 : styles.mv2, styles.overscrollBehaviorXNone]}
             bounces={false}
+            keyboardShouldPersistTaps="always"
         >
             <ShowContextMenuContext.Consumer>
                 {({anchor, report, action, checkIfContextMenuActive}) => (
