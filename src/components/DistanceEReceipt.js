@@ -48,8 +48,11 @@ function DistanceEReceipt({transaction}) {
         [waypoints],
     );
     return (
-        <View style={[styles.ph5, styles.pv5, styles.flex1, styles.alignItemsCenter]}>
-            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}>
+        <View style={[styles.flex1, styles.alignItemsCenter]}>
+            <ScrollView
+                style={styles.w100}
+                contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
+            >
                 <View style={styles.eReceiptPanel}>
                     <EReceiptBackground
                         style={styles.eReceiptBackground}
