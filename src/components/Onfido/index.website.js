@@ -1,34 +1,31 @@
-import React, {Component} from 'react';
+import React, {useEffect, useRef} from 'react';
 import lodashGet from 'lodash/get';
 import BaseOnfidoWeb from './BaseOnfidoWeb';
 import onfidoPropTypes from './onfidoPropTypes';
 
-class Onfido extends Component {
-    constructor(props) {
-        super(props);
-        this.baseOnfido = null;
-    }
+const Onfido = (props) => {
+    const baseOnfidoRef = useRef(null);
 
-    componentWillUnmount() {
-        const onfidoOut = lodashGet(this, 'baseOnfido.onfidoOut');
-        if (!onfidoOut) {
-            return;
-        }
+    useEffect(() => {
+        return () => {
+            const onfidoOut = lodashGet(baseOnfidoRef.current, 'onfidoOut');
+            if (!onfidoOut) {
+                return;
+            }
 
-        onfidoOut.tearDown();
-    }
+            onfidoOut.tearDown();
+        };
+    }, []);
 
-    render() {
-        return (
-            <BaseOnfidoWeb
-                ref={(e) => (this.baseOnfido = e)}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-            />
-        );
-    }
-}
+    return (
+        <BaseOnfidoWeb
+            ref={baseOnfidoRef}
+            {...props}
+        />
+    );
+};
 
 Onfido.propTypes = onfidoPropTypes;
+Onfido.displayName = 'Onfido';
 
 export default Onfido;
