@@ -93,7 +93,7 @@
     "date-fns-tz": "^2.0.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#1609f1848cc0c2528064519c3ea48b4953a708ee",
+    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#ab4895807dd9a26f64bfaee80db15ee2c48a5124",
     "fbjs": "^3.0.2",
     "htmlparser2": "^7.2.0",
     "idb-keyval": "^6.2.1",
