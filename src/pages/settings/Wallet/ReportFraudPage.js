@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import _ from 'underscore';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ROUTES from '../../../ROUTES';
@@ -14,9 +15,10 @@ import assignedCardPropTypes from './assignedCardPropTypes';
 import * as CardUtils from '../../../libs/CardUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import Form from '../../../components/Form';
 import usePrevious from '../../../hooks/usePrevious';
 import * as FormActions from '../../../libs/actions/FormActions';
+import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
+import * as ErrorUtils from '../../../libs/ErrorUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -50,6 +52,7 @@ function ReportFraudPage({
 
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
     const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
+    const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard) || '';
 
     const prevIsLoading = usePrevious(formData.isLoading);
 
@@ -71,21 +74,23 @@ function ReportFraudPage({
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={ReportFraudPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('reportFraudPage.title')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain))}
             />
-            <Form
-                formID={ONYXKEYS.FORMS.REPORT_FRAUD_FORM}
-                style={[styles.flexGrow1, styles.mh5]}
-                onSubmit={() => Card.reportDigitalExpensifyCardFraud(virtualCard.cardID)}
-                submitButtonText={translate('reportFraudPage.deactivateCard')}
-            >
-                <Text style={[styles.baseFontStyle]}>{translate('reportFraudPage.description')}</Text>
-            </Form>
+            <View style={[styles.flex1, styles.justifyContentBetween]}>
+                <Text style={[styles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
+                <FormAlertWithSubmitButton
+                    isAlertVisible={Boolean(virtualCardError)}
+                    onSubmit={() => Card.reportDigitalExpensifyCardFraud(virtualCard.cardID)}
+                    message={virtualCardError}
+                    isLoading={formData.isLoading}
+                    buttonText={translate('reportFraudPage.deactivateCard')}
+                />
+            </View>
         </ScreenWrapper>
     );
 }
