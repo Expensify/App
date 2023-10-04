@@ -44,7 +44,7 @@ class RequestorOnfidoStep extends React.Component {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldShowOfflineIndicator={false}
-                testID={RequestorOnfidoStep.displayName}
+                testID='RequestorOnfidoStep'
             >
                 <HeaderWithBackButton
                     title={this.props.translate('requestorStep.headerTitle')}
@@ -80,7 +80,6 @@ class RequestorOnfidoStep extends React.Component {
 
 RequestorOnfidoStep.propTypes = propTypes;
 RequestorOnfidoStep.defaultProps = defaultProps;
-RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
 
 export default compose(
     withLocalize,

@@ -251,7 +251,7 @@ class ContactMethodDetailsPage extends Component {
         return (
             <ScreenWrapper
                 onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}
-                testID={ContactMethodDetailsPage.displayName}
+                testID='ContactMethodDetailsPage'
             >
                 <HeaderWithBackButton
                     title={formattedContactMethod}
@@ -335,7 +335,6 @@ class ContactMethodDetailsPage extends Component {
 
 ContactMethodDetailsPage.propTypes = propTypes;
 ContactMethodDetailsPage.defaultProps = defaultProps;
-ContactMethodDetailsPage.displayName = 'ContactMethodDetailsPage';
 
 export default compose(
     withLocalize,

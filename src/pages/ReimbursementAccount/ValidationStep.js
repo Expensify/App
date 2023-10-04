@@ -131,7 +131,7 @@ class ValidationStep extends React.Component {
             <ScreenWrapper
                 style={[styles.flex1, styles.justifyContentBetween]}
                 includeSafeAreaPaddingBottom={false}
-                testID={ValidationStep.displayName}
+                testID='ValidationStep'
             >
                 <HeaderWithBackButton
                     title={isVerifying ? this.props.translate('validationStep.headerTitle') : this.props.translate('workspace.common.testTransactions')}
@@ -229,7 +229,7 @@ class ValidationStep extends React.Component {
 
 ValidationStep.propTypes = propTypes;
 ValidationStep.defaultProps = defaultProps;
-ValidationStep.displayName = 'ValidationStep';
+// ValidationStep.displayName = 'ValidationStep';
 
 export default compose(
     withLocalize,

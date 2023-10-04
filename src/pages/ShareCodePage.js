@@ -74,7 +74,7 @@ class ShareCodePage extends React.Component {
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
         return (
-            <ScreenWrapper testID={ShareCodePage.displayName}>
+            <ScreenWrapper testID='ShareCodePage'>
                 <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}
                     onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
@@ -122,6 +122,5 @@ class ShareCodePage extends React.Component {
 
 ShareCodePage.propTypes = propTypes;
 ShareCodePage.defaultProps = defaultProps;
-ShareCodePage.displayName = 'ShareCodePage';
 
 export default compose(withEnvironment, withLocalize, withCurrentUserPersonalDetails)(ShareCodePage);
