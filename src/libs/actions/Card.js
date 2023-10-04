@@ -27,7 +27,7 @@ function requestReplacementExpensifyCard(cardId, reason) {
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.FORMS.REPORT_FRAUD_FORM,
+                    key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
                     value: {
                         isLoading: false,
                     },
