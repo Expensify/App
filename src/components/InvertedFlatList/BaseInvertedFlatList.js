@@ -123,7 +123,7 @@ function BaseInvertedFlatList(props) {
         [shouldMeasureItems, measureItemLayout, renderItem],
     );
 
-      return (
+    return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
