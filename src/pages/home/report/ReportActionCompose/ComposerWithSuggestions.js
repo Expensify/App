@@ -1,5 +1,5 @@
 import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
-import {View, NativeModules, findNodeHandle} from 'react-native';
+import {View, NativeModules, findNodeHandle, InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -33,6 +33,7 @@ import withKeyboardState from '../../../../components/withKeyboardState';
 import {propTypes, defaultProps} from './composerWithSuggestionsProps';
 import focusWithDelay from '../../../../libs/focusWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
+import updateMultilineInputRange from '../../../../libs/UpdateMultilineInputRange';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -111,6 +112,7 @@ function ComposerWithSuggestions({
 
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
+    const autoFocusCheck = shouldAutoFocus && !willBlurTextInputOnTapOutside;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -124,6 +126,7 @@ function ComposerWithSuggestions({
 
     const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
+    const initialFocusedRef = useRef(false);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
@@ -444,6 +447,34 @@ function ComposerWithSuggestions({
         }
         textInputRef.current.blur();
     }, []);
+
+    const focusWithScrolledToBottom = useCallback(() => {
+        if (!textInputRef.current || !willBlurTextInputOnTapOutside) {
+            return;
+        }
+
+        InteractionManager.runAfterInteractions(() => {
+            // Using `shouldAutoFocus` check to determine whether the component should be focused or not.
+            // Also handled Mobile Safari case, where the input should scroll to bottom and focus.
+            if (!shouldAutoFocus && !isMobileSafari) {
+                return;
+            }
+
+            updateMultilineInputRange(textInputRef.current);
+
+            focus(); // This will focus the composer after its fully rendered.
+        });
+    }, [focus, value.length, autoFocusCheck]);
+
+    useEffect(() => {
+        // Added initial focus ref to remove unneccessary focus after first render.
+        if (initialFocusedRef.current) {
+            return;
+        }
+
+        initialFocusedRef.current = true;
+        focusWithScrolledToBottom();
+    }, [focusWithScrolledToBottom]);
 
     useEffect(() => {
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
