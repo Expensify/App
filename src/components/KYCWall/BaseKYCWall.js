@@ -49,8 +49,8 @@ function KYCWall({
         (domRect) => {
             if (popoverPlacement === 'bottom') {
                 return {
-                    anchorPositionVertical: domRect.top + (domRect.height - 2),
-                    anchorPositionHorizontal: domRect.left + 20,
+                    anchorPositionVertical: domRect.top + (domRect.height - CONST.MODAL.POPOVER_MENU_ANCHOR_POSITION_VERTICAL_OFFSET),
+                    anchorPositionHorizontal: domRect.left + CONST.MODAL.POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET,
                 };
             }
 

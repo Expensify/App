@@ -648,6 +648,8 @@ const CONST = {
             RIGHT: 'right',
         },
         POPOVER_MENU_PADDING: 8,
+        POPOVER_MENU_ANCHOR_POSITION_VERTICAL_OFFSET: 2,
+        POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET: 20,
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
