@@ -1,21 +1,21 @@
 import Str from 'expensify-common/lib/str';
+import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
-import { ValueOf } from "type-fest";
-import BankAccountJSON, {AdditionalData} from "../../types/onyx/BankAccount";
+import BankAccountJSON, {AdditionalData} from '../../types/onyx/BankAccount';
 
 type State = ValueOf<typeof BankAccount.STATE>;
 
-type BankAccountType = "withdrawal" | "direct-deposit";
+type BankAccountType = 'withdrawal' | 'direct-deposit';
 
 type ACHData = {
-    routingNumber: string,
-    accountNumber: string,
-    addressName: string,
-    isSavings: boolean,
-    bankAccountID: number,
-    state: State,
-    validateCodeExpectedDate: string,
-    needsToUpgrade: boolean,
+    routingNumber: string;
+    accountNumber: string;
+    addressName: string;
+    isSavings: boolean;
+    bankAccountID: number;
+    state: State;
+    validateCodeExpectedDate: string;
+    needsToUpgrade: boolean;
 };
 
 class BankAccount {
@@ -27,7 +27,9 @@ class BankAccount {
         SETUP: 'SETUP',
         VERIFYING: 'VERIFYING',
     };
+
     private readonly json: BankAccountJSON;
+
     constructor(accountJSON: BankAccountJSON) {
         this.json = accountJSON;
     }
@@ -146,7 +148,7 @@ class BankAccount {
      */
     getClientID() {
         // eslint-disable-next-line max-len
-        return `${Str.makeID(this.getMaskedAccountNumber() || "")}${Str.makeID(this.getAddressName() || "")}${Str.makeID(this.getRoutingNumber() || "")}${this.getType()}`;
+        return `${Str.makeID(this.getMaskedAccountNumber() ?? '')}${Str.makeID(this.getAddressName() ?? '')}${Str.makeID(this.getRoutingNumber() ?? '')}${this.getType()}`;
     }
 
     /**
@@ -175,7 +177,7 @@ class BankAccount {
      * @returns - date when the 3 micro amounts for validation were supposed to reach the bank account.
      */
     getValidateCodeExpectedDate(): string {
-        return this.json.validateCodeExpectedDate || '';
+        return this.json.validateCodeExpectedDate ?? '';
     }
 
     /**
@@ -189,14 +191,14 @@ class BankAccount {
      * @returns - currency of the bank account.
      */
     getCurrency(): string {
-        return this.json.accountData?.additionalData?.currency ?? "USD";
+        return this.json.accountData?.additionalData?.currency ?? 'USD';
     }
 
     /**
      * @returns - bank name of the bank account.
      */
     getBankName(): string {
-        return this.json.accountData?.additionalData?.bankName ?? "";
+        return this.json.accountData?.additionalData?.bankName ?? '';
     }
 
     /**
@@ -210,7 +212,7 @@ class BankAccount {
      * @returns - Additional data of a bankAccount.
      */
     getAdditionalData(): Partial<AdditionalData> {
-        return this.json.accountData?.additionalData || {};
+        return this.json.accountData?.additionalData ?? {};
     }
 
     /**

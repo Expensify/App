@@ -75,4 +75,4 @@ type BankAccount = {
 };
 
 export default BankAccount;
-export type { AdditionalData };
+export type {AdditionalData};
