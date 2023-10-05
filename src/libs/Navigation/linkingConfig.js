@@ -155,8 +155,24 @@ export default {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.route,
                                 exact: true,
                             },
-                            Settings_TwoFactorAuth: {
-                                path: ROUTES.SETTINGS_2FA,
+                            Settings_TwoFactorAuth_Codes: {
+                                path: ROUTES.SETTINGS_2FA.CODES,
+                                exact: true,
+                            },
+                            Settings_TwoFactorAuth_Verify: {
+                                path: ROUTES.SETTINGS_2FA.VERIFY,
+                                exact: true,
+                            },
+                            Settings_TwoFactorAuth_Success: {
+                                path: ROUTES.SETTINGS_2FA.SUCESS,
+                                exact: true,
+                            },
+                            Settings_TwoFactorAuth_Enabled: {
+                                path: ROUTES.SETTINGS_2FA.ENABLED,
+                                exact: true,
+                            },
+                            Settings_TwoFactorAuth_Disabled: {
+                                path: ROUTES.SETTINGS_2FA.DISABLED,
                                 exact: true,
                             },
                             Settings_Share_Code: {

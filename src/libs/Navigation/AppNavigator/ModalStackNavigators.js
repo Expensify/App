@@ -162,7 +162,11 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     Workspace_Invite_Message: () => require('../../../pages/workspace/WorkspaceInviteMessagePage').default,
     ReimbursementAccount: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
     GetAssistance: () => require('../../../pages/GetAssistancePage').default,
-    Settings_TwoFactorAuth: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default,
+    Settings_TwoFactorAuth_Codes: () => require('../../../pages/settings/Security/TwoFactorAuth/Steps/CodesStep').default,
+    Settings_TwoFactorAuth_Verify: () => require('../../../pages/settings/Security/TwoFactorAuth/Steps/VerifyStep').default,
+    Settings_TwoFactorAuth_Success: () => require('../../../pages/settings/Security/TwoFactorAuth/Steps/SuccessStep').default,
+    Settings_TwoFactorAuth_Enabled: () => require('../../../pages/settings/Security/TwoFactorAuth/Steps/EnabledStep').default,
+    Settings_TwoFactorAuth_Disabled: () => require('../../../pages/settings/Security/TwoFactorAuth/Steps/DisabledStep').default,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator({

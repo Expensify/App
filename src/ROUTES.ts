@@ -100,7 +100,13 @@ export default {
         getRoute: (contactMethod: string) => `settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`,
     },
     SETTINGS_NEW_CONTACT_METHOD: 'settings/profile/contact-methods/new',
-    SETTINGS_2FA: 'settings/security/two-factor-auth',
+    SETTINGS_2FA: {
+        CODES: 'settings/security/two-factor-auth/codes',
+        VERIFY: 'settings/security/two-factor-auth/verify',
+        SUCESS: 'settings/security/two-factor-auth/success',
+        ENABLED: 'settings/security/two-factor-auth/enabled',
+        DISABLED: 'settings/security/two-factor-auth/disabled',
+    },
     SETTINGS_STATUS: 'settings/profile/status',
     SETTINGS_STATUS_SET: 'settings/profile/status/set',
 
