@@ -10,7 +10,7 @@ To invite your employees to Expensify, simply add them as members to your Worksp
 
 ## Inviting Members Manually
 
-Navigate to **Settings > Workspace > Group > *Workspace Name* > People** - then click Invite and enter the invitee's email address.
+Navigate to **Settings > Workspace > Group > *Workspace Name* > People** - then click **Invite** and enter the invitee's email address.
 
 Indicate whether you want them to be an Employee, Admin, or Auditor on the Workspace.
 
