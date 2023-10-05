@@ -3,27 +3,31 @@ import lodashGet from 'lodash/get';
 import BaseOnfidoWeb from './BaseOnfidoWeb';
 import onfidoPropTypes from './onfidoPropTypes';
 
-const Onfido = (props) => {
+function Onfido({sdkToken, onSuccess, onError, onUserExit}) {
     const baseOnfidoRef = useRef(null);
 
-    useEffect(() => {
-        return () => {
+    useEffect(
+        () => () => {
             const onfidoOut = lodashGet(baseOnfidoRef.current, 'onfidoOut');
             if (!onfidoOut) {
                 return;
             }
 
             onfidoOut.tearDown();
-        };
-    }, []);
+        },
+        [],
+    );
 
     return (
         <BaseOnfidoWeb
             ref={baseOnfidoRef}
-            {...props}
+            sdkToken={sdkToken}
+            onSuccess={onSuccess}
+            onError={onError}
+            onUserExit={onUserExit}
         />
     );
-};
+}
 
 Onfido.propTypes = onfidoPropTypes;
 Onfido.displayName = 'Onfido';
