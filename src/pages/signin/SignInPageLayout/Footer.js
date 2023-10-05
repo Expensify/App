@@ -23,9 +23,12 @@ const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     scrollPageToTop: PropTypes.func.isRequired,
+    isInModal: PropTypes.bool,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    isInModal: false,
+};
 
 const navigateHome = (scrollPageToTop) => {
     scrollPageToTop();
@@ -150,7 +153,7 @@ const columns = ({scrollPageToTop}) => [
 ];
 
 function Footer(props) {
-    const isVertical = props.isSmallScreenWidth;
+    const isVertical = props.isSmallScreenWidth || props.isInModal;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
