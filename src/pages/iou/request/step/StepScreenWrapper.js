@@ -19,11 +19,18 @@ const propTypes = {
     /** Whether or not the not-found page should be shown (like when the request isn't a valid IOU) */
     shouldShowNotFound: PropTypes.bool.isRequired,
 
+    /** Whether or not the wrapper should be shown (sometimes screens can be embedded inside another screen that already is using a wrapper) */
+    shouldShowWrapper: PropTypes.bool.isRequired,
+
     /** An ID used for unit testing */
     testID: PropTypes.string.isRequired,
 };
 
-function StepScreenWrapper({testID, shouldShowNotFound, headerTitle, onBackButtonPress, children}) {
+function StepScreenWrapper({testID, shouldShowNotFound, headerTitle, onBackButtonPress, children, shouldShowWrapper}) {
+    if (!shouldShowWrapper) {
+        return children;
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}

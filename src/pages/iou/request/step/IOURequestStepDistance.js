@@ -16,14 +16,12 @@ import * as TransactionUtils from '../../../../libs/TransactionUtils';
 import * as IOUUtils from '../../../../libs/IOUUtils';
 import Button from '../../../../components/Button';
 import DraggableList from '../../../../components/DraggableList';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import FullPageNotFoundView from '../../../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import DistanceRequestFooter from '../../../../components/DistanceRequest/DistanceRequestFooter';
 import DistanceRequestRenderItem from '../../../../components/DistanceRequest/DistanceRequestRenderItem';
 import IOURouteContext from '../../IOURouteContext';
 import CONST from '../../../../CONST';
 import * as IOU from '../../../../libs/actions/IOU';
+import StepScreenWrapper from './StepScreenWrapper';
 
 const propTypes = {};
 
@@ -31,15 +29,13 @@ const defaultProps = {};
 
 function IOURequestStepDistance() {
     const {
-        route,
         route: {
-            params: {iouType, reportID, transactionID},
+            params: {iouType, reportID, step, transactionID},
         },
         report,
         transaction,
         transaction: {participants},
     } = useContext(IOURouteContext);
-    console.log('[tim]', route.params);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
@@ -50,6 +46,11 @@ function IOURequestStepDistance() {
     const numberOfWaypoints = _.size(waypoints);
     const numberOfPreviousWaypoints = _.size(previousWaypoints);
     const scrollViewRef = useRef(null);
+
+    // When this screen is accessed from the "start request flow" (ie. the manual/scan/distance tab selector) it is already embedded in a screen wrapper.
+    // When this screen is navigated to from the "confirmation step" it won't be embedded in a screen wrapper, so the StepScreenWrapper should be shown.
+    // In the "start request flow", the "step" param does not exist, but it does exist in the "confirmation step" flow.
+    const isUserComingFromConfirmationStep = !_.isUndefined(step);
 
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const isLoading = lodashGet(transaction, 'isLoading', false);
@@ -91,7 +92,17 @@ function IOURequestStepDistance() {
         scrollViewRef.current.scrollToEnd({animated: true});
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
+    const navigateToConfirmationStep = () => {
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+    };
+
     const navigateBack = () => {
+        if (isUserComingFromConfirmationStep) {
+            // Take the user back to the confirmation step
+            navigateToConfirmationStep();
+            return;
+        }
+
         Navigation.goBack(ROUTES.HOME);
     };
 
@@ -104,14 +115,14 @@ function IOURequestStepDistance() {
     };
 
     const goToNextStep = () => {
-        // If the transaction has participants already, the user came from the confirmation step so take them back to that step.
-        if (!_.isEmpty(participants)) {
-            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+        if (isUserComingFromConfirmationStep) {
+            // Take the user back to the confirmation step
+            navigateToConfirmationStep();
             return;
         }
 
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-        // inside a report. In this case, we know the participants already and can skip the participants step and go straight
+        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         if (report.reportID) {
             IOU.autoAssignParticipants(transactionID, report);
@@ -146,64 +157,57 @@ function IOURequestStepDistance() {
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
+        <StepScreenWrapper
+            headerTitle={translate('common.distance')}
+            onBackButtonPress={navigateBack}
             testID={IOURequestStepDistance.displayName}
+            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
+            shouldShowWrapper={isUserComingFromConfirmationStep}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={translate('common.distance')}
-                            onBackButtonPress={navigateBack}
-                        />
-
-                        <View style={styles.flex1}>
-                            <DraggableList
-                                data={waypointsList}
-                                keyExtractor={(item) => item}
-                                shouldUsePortal
-                                onDragEnd={updateWaypoints}
-                                scrollEventThrottle={variables.distanceScrollEventThrottle}
-                                ref={scrollViewRef}
-                                renderItem={({item, drag, isActive, getIndex}) => (
-                                    <DistanceRequestRenderItem
-                                        waypoints={waypoints}
-                                        item={item}
-                                        onSecondaryInteraction={drag}
-                                        isActive={isActive}
-                                        getIndex={getIndex}
-                                        onPress={navigateToWaypointEditPage}
-                                        disabled={isLoadingRoute}
-                                    />
-                                )}
-                                ListFooterComponent={
-                                    <DistanceRequestFooter
-                                        waypoints={waypoints}
-                                        hasRouteError={hasRouteError}
-                                        navigateToWaypointEditPage={navigateToWaypointEditPage}
-                                        transactionID={transactionID}
-                                    />
-                                }
+            <>
+                <View style={styles.flex1}>
+                    <DraggableList
+                        data={waypointsList}
+                        keyExtractor={(item) => item}
+                        shouldUsePortal
+                        onDragEnd={updateWaypoints}
+                        scrollEventThrottle={variables.distanceScrollEventThrottle}
+                        ref={scrollViewRef}
+                        renderItem={({item, drag, isActive, getIndex}) => (
+                            <DistanceRequestRenderItem
+                                waypoints={waypoints}
+                                item={item}
+                                onSecondaryInteraction={drag}
+                                isActive={isActive}
+                                getIndex={getIndex}
+                                onPress={navigateToWaypointEditPage}
+                                disabled={isLoadingRoute}
                             />
-                        </View>
-                        <View style={[styles.w100, styles.pt2]}>
-                            <Button
-                                success
-                                allowBubble
-                                pressOnEnter
-                                style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                                onPress={goToNextStep}
-                                isDisabled={_.size(validatedWaypoints) < 2 || (!isOffline && (hasRouteError || isLoadingRoute || isLoading))}
-                                text={translate('common.next')}
-                                isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
+                        )}
+                        ListFooterComponent={
+                            <DistanceRequestFooter
+                                waypoints={waypoints}
+                                hasRouteError={hasRouteError}
+                                navigateToWaypointEditPage={navigateToWaypointEditPage}
+                                transactionID={transactionID}
                             />
-                        </View>
-                    </View>
-                </FullPageNotFoundView>
-            )}
-        </ScreenWrapper>
+                        }
+                    />
+                </View>
+                <View style={[styles.w100, styles.pt2]}>
+                    <Button
+                        success
+                        allowBubble
+                        pressOnEnter
+                        style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
+                        onPress={goToNextStep}
+                        isDisabled={_.size(validatedWaypoints) < 2 || (!isOffline && (hasRouteError || isLoadingRoute || isLoading))}
+                        text={translate('common.next')}
+                        isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
+                    />
+                </View>
+            </>
+        </StepScreenWrapper>
     );
 }
 
