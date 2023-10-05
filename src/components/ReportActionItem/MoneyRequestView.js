@@ -114,7 +114,10 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const shouldShowTag = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
     const shouldShowBillable = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
-    let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
+    let description = `${translate('iou.amount')}`;
+    if (!isDistanceRequest) {
+        description += ` • ${translate('iou.cash')}`;
+    }
     if (isSettled) {
         description += ` • ${translate('iou.settledExpensify')}`;
     } else if (report.isWaitingOnBankAccount) {
