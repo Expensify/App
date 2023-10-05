@@ -169,13 +169,9 @@ class BaseOptionsSelector extends Component {
     }
 
     updateSearchValue(value) {
-        if (value.length > this.props.maxLength) {
-            this.setState({
-                errorMessage: this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}),
-            });
-        } else if (value.length <= this.props.maxLength && this.state.errorMessage) {
-            this.setState({errorMessage: ''});
-        }
+        this.setState({
+            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+        });
 
         this.props.onChangeText(value);
     }
