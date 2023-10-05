@@ -109,6 +109,7 @@ function IOURequestPage({
 
 IOURequestPage.displayName = 'IOURequestPage';
 IOURequestPage.propTypes = propTypes;
+IOURequestPage.defaultProps = defaultProps;
 
 export default withOnyx({
     report: {
