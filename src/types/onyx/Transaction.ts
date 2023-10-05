@@ -57,6 +57,13 @@ type Transaction = {
     transactionID: string;
     tag: string;
     pendingFields?: Partial<{[K in keyof Transaction]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
+    mcc: string;
+    modifiedMCC: string;
+    status: 'Pending' | 'Posted';
+    originalAmount: number;
+    originalCurrency: string;
+    parentTransactionID: string;
+    cardID: string;
 };
 
 export default Transaction;
