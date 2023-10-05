@@ -16,21 +16,20 @@ import Clipboard from '../../../../../libs/Clipboard';
 import themeColors from '../../../../../styles/themes/default';
 import localFileDownload from '../../../../../libs/localFileDownload';
 import * as Session from '../../../../../libs/actions/Session';
-import CONST from '../../../../../CONST';
-import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
 import useLocalize from '../../../../../hooks/useLocalize';
 import useWindowDimensions from '../../../../../hooks/useWindowDimensions';
 import StepWrapper from '../StepWrapper/StepWrapper';
 import {defaultAccount, TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes';
 import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
 import FormHelpMessage from '../../../../../components/FormHelpMessage';
+import Navigation from '../../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../../ROUTES';
+import AnimatedStepProvider from '../../../../../components/AnimatedStep/AnimatedStepProvider';
 
 function CodesStep({account = defaultAccount}) {
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const [error, setError] = useState('');
-
-    const {setStep} = useTwoFactorAuthContext();
 
     useEffect(() => {
         if (account.recoveryCodes) {
@@ -40,96 +39,98 @@ function CodesStep({account = defaultAccount}) {
     }, [account.recoveryCodes]);
 
     return (
-        <StepWrapper
-            title={translate('twoFactorAuth.headerTitle')}
-            shouldEnableKeyboardAvoidingView={false}
-            stepCounter={{
-                step: 1,
-                text: translate('twoFactorAuth.stepCodes'),
-                total: 3,
-            }}
-        >
-            <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <Section
-                    title={translate('twoFactorAuth.keepCodesSafe')}
-                    icon={Illustrations.ShieldYellow}
-                    containerStyles={[styles.twoFactorAuthSection]}
-                    iconContainerStyles={[styles.ml6]}
-                >
-                    <View style={styles.mv3}>
-                        <Text>{translate('twoFactorAuth.codesLoseAccess')}</Text>
-                    </View>
-                    <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
-                        {account.isLoading ? (
-                            <View style={styles.twoFactorLoadingContainer}>
-                                <ActivityIndicator color={themeColors.spinner} />
-                            </View>
-                        ) : (
-                            <>
-                                <View style={styles.twoFactorAuthCodesContainer}>
-                                    {Boolean(account.recoveryCodes) &&
-                                        _.map(account.recoveryCodes.split(', '), (code) => (
-                                            <Text
-                                                style={styles.twoFactorAuthCode}
-                                                key={code}
-                                            >
-                                                {code}
-                                            </Text>
-                                        ))}
+        <AnimatedStepProvider>
+            <StepWrapper
+                title={translate('twoFactorAuth.headerTitle')}
+                shouldEnableKeyboardAvoidingView={false}
+                stepCounter={{
+                    step: 1,
+                    text: translate('twoFactorAuth.stepCodes'),
+                    total: 3,
+                }}
+            >
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    <Section
+                        title={translate('twoFactorAuth.keepCodesSafe')}
+                        icon={Illustrations.ShieldYellow}
+                        containerStyles={[styles.twoFactorAuthSection]}
+                        iconContainerStyles={[styles.ml6]}
+                    >
+                        <View style={styles.mv3}>
+                            <Text>{translate('twoFactorAuth.codesLoseAccess')}</Text>
+                        </View>
+                        <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
+                            {account.isLoading ? (
+                                <View style={styles.twoFactorLoadingContainer}>
+                                    <ActivityIndicator color={themeColors.spinner} />
                                 </View>
-                                <View style={styles.twoFactorAuthCodesButtonsContainer}>
-                                    <PressableWithDelayToggle
-                                        text={translate('twoFactorAuth.copy')}
-                                        textChecked={translate('common.copied')}
-                                        icon={Expensicons.Copy}
-                                        inline={false}
-                                        onPress={() => {
-                                            Clipboard.setString(account.recoveryCodes);
-                                            setError('');
-                                            TwoFactorAuthActions.setCodesAreCopied();
-                                        }}
-                                        styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
-                                        textStyles={[styles.buttonMediumText]}
-                                    />
-                                    <PressableWithDelayToggle
-                                        text={translate('common.download')}
-                                        icon={Expensicons.Download}
-                                        onPress={() => {
-                                            localFileDownload('two-factor-auth-codes', account.recoveryCodes);
-                                            setError('');
-                                            TwoFactorAuthActions.setCodesAreCopied();
-                                        }}
-                                        inline={false}
-                                        styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
-                                        textStyles={[styles.buttonMediumText]}
-                                    />
-                                </View>
-                            </>
+                            ) : (
+                                <>
+                                    <View style={styles.twoFactorAuthCodesContainer}>
+                                        {Boolean(account.recoveryCodes) &&
+                                            _.map(account.recoveryCodes.split(', '), (code) => (
+                                                <Text
+                                                    style={styles.twoFactorAuthCode}
+                                                    key={code}
+                                                >
+                                                    {code}
+                                                </Text>
+                                            ))}
+                                    </View>
+                                    <View style={styles.twoFactorAuthCodesButtonsContainer}>
+                                        <PressableWithDelayToggle
+                                            text={translate('twoFactorAuth.copy')}
+                                            textChecked={translate('common.copied')}
+                                            icon={Expensicons.Copy}
+                                            inline={false}
+                                            onPress={() => {
+                                                Clipboard.setString(account.recoveryCodes);
+                                                setError('');
+                                                TwoFactorAuthActions.setCodesAreCopied();
+                                            }}
+                                            styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
+                                            textStyles={[styles.buttonMediumText]}
+                                        />
+                                        <PressableWithDelayToggle
+                                            text={translate('common.download')}
+                                            icon={Expensicons.Download}
+                                            onPress={() => {
+                                                localFileDownload('two-factor-auth-codes', account.recoveryCodes);
+                                                setError('');
+                                                TwoFactorAuthActions.setCodesAreCopied();
+                                            }}
+                                            inline={false}
+                                            styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
+                                            textStyles={[styles.buttonMediumText]}
+                                        />
+                                    </View>
+                                </>
+                            )}
+                        </View>
+                    </Section>
+                    <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                        {!_.isEmpty(error) && (
+                            <FormHelpMessage
+                                isError
+                                message={translate(error)}
+                                style={[styles.mb3]}
+                            />
                         )}
-                    </View>
-                </Section>
-                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                    {!_.isEmpty(error) && (
-                        <FormHelpMessage
-                            isError
-                            message={translate(error)}
-                            style={[styles.mb3]}
+                        <Button
+                            success
+                            text={translate('common.next')}
+                            onPress={() => {
+                                if (!account.codesAreCopied) {
+                                    setError('twoFactorAuth.errorStepCodes');
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.SETTINGS_2FA.VERIFY);
+                            }}
                         />
-                    )}
-                    <Button
-                        success
-                        text={translate('common.next')}
-                        onPress={() => {
-                            if (!account.codesAreCopied) {
-                                setError('twoFactorAuth.errorStepCodes');
-                                return;
-                            }
-                            setStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY);
-                        }}
-                    />
-                </FixedFooter>
-            </ScrollView>
-        </StepWrapper>
+                    </FixedFooter>
+                </ScrollView>
+            </StepWrapper>
+        </AnimatedStepProvider>
     );
 }
 

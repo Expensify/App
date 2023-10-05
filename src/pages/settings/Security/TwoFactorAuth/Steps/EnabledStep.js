@@ -8,58 +8,60 @@ import styles from '../../../../../styles/styles';
 import ConfirmModal from '../../../../../components/ConfirmModal';
 import * as Session from '../../../../../libs/actions/Session';
 import StepWrapper from '../StepWrapper/StepWrapper';
-import CONST from '../../../../../CONST';
 import useLocalize from '../../../../../hooks/useLocalize';
-import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
+import AnimatedStepProvider from '../../../../../components/AnimatedStep/AnimatedStepProvider';
+import Navigation from '../../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../../ROUTES';
+import CONST from '../../../../../CONST';
 
 function EnabledStep() {
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
-    const {setStep} = useTwoFactorAuthContext();
-
     const {translate} = useLocalize();
 
     return (
-        <StepWrapper title={translate('twoFactorAuth.headerTitle')}>
-            <ScrollView>
-                <Section
-                    title={translate('twoFactorAuth.twoFactorAuthEnabled')}
-                    icon={Illustrations.ShieldYellow}
-                    menuItems={[
-                        {
-                            title: translate('twoFactorAuth.disableTwoFactorAuth'),
-                            onPress: () => {
-                                setIsConfirmModalVisible(true);
+        <AnimatedStepProvider>
+            <StepWrapper title={translate('twoFactorAuth.headerTitle')}>
+                <ScrollView>
+                    <Section
+                        title={translate('twoFactorAuth.twoFactorAuthEnabled')}
+                        icon={Illustrations.ShieldYellow}
+                        menuItems={[
+                            {
+                                title: translate('twoFactorAuth.disableTwoFactorAuth'),
+                                onPress: () => {
+                                    setIsConfirmModalVisible(true);
+                                },
+                                icon: Expensicons.Close,
+                                iconFill: themeColors.danger,
+                                wrapperStyle: [styles.cardMenuItem],
                             },
-                            icon: Expensicons.Close,
-                            iconFill: themeColors.danger,
-                            wrapperStyle: [styles.cardMenuItem],
-                        },
-                    ]}
-                    containerStyles={[styles.twoFactorAuthSection]}
-                >
-                    <View style={styles.mv3}>
-                        <Text style={styles.textLabel}>{translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
-                    </View>
-                </Section>
-                <ConfirmModal
-                    title={translate('twoFactorAuth.disableTwoFactorAuth')}
-                    onConfirm={() => {
-                        setIsConfirmModalVisible(false);
-                        setStep(CONST.TWO_FACTOR_AUTH_STEPS.DISABLED);
-                        Session.toggleTwoFactorAuth(false);
-                    }}
-                    onCancel={() => setIsConfirmModalVisible(false)}
-                    onModalHide={() => setIsConfirmModalVisible(false)}
-                    isVisible={isConfirmModalVisible}
-                    prompt={translate('twoFactorAuth.disableTwoFactorAuthConfirmation')}
-                    confirmText={translate('twoFactorAuth.disable')}
-                    cancelText={translate('common.cancel')}
-                    shouldShowCancelButton
-                    danger
-                />
-            </ScrollView>
-        </StepWrapper>
+                        ]}
+                        containerStyles={[styles.twoFactorAuthSection]}
+                    >
+                        <View style={styles.mv3}>
+                            <Text style={styles.textLabel}>{translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
+                        </View>
+                    </Section>
+                    <ConfirmModal
+                        title={translate('twoFactorAuth.disableTwoFactorAuth')}
+                        onConfirm={() => {
+                            setIsConfirmModalVisible(false);
+                            Navigation.navigate(ROUTES.SETTINGS_2FA.DISABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
+                            Session.toggleTwoFactorAuth(false);
+                        }}
+                        onCancel={() => setIsConfirmModalVisible(false)}
+                        onModalHide={() => setIsConfirmModalVisible(false)}
+                        isVisible={isConfirmModalVisible}
+                        prompt={translate('twoFactorAuth.disableTwoFactorAuthConfirmation')}
+                        confirmText={translate('twoFactorAuth.disable')}
+                        cancelText={translate('common.cancel')}
+                        shouldShowCancelButton
+                        danger
+                    />
+                </ScrollView>
+            </StepWrapper>
+        </AnimatedStepProvider>
     );
 }
 

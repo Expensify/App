@@ -2,8 +2,6 @@ import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 import * as OnyxCommon from './OnyxCommon';
 
-type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
-
 type Account = {
     /** URL to the assigned guide's appointment booking calendar */
     guideCalendarLink?: string;
@@ -50,8 +48,6 @@ type Account = {
     errors?: OnyxCommon.Errors;
     success?: string;
     codesAreCopied?: boolean;
-    twoFactorAuthStep?: TwoFactorAuthStep;
 };
 
 export default Account;
-export type {TwoFactorAuthStep};

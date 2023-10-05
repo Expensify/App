@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
+import {useNavigation, CommonActions} from '@react-navigation/native';
 import * as Session from '../../../../../libs/actions/Session';
 import styles from '../../../../../styles/styles';
 import Button from '../../../../../components/Button';
@@ -17,9 +18,11 @@ import QRCode from '../../../../../components/QRCode';
 import expensifyLogo from '../../../../../../assets/images/expensify-logo-round-transparent.png';
 import CONST from '../../../../../CONST';
 import StepWrapper from '../StepWrapper/StepWrapper';
-import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
 import useLocalize from '../../../../../hooks/useLocalize';
 import {defaultAccount, TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes';
+import Navigation from '../../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../../ROUTES';
+import AnimatedStepProvider from '../../../../../components/AnimatedStep/AnimatedStepProvider';
 
 const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
@@ -32,10 +35,9 @@ const defaultProps = {
 
 function VerifyStep({account, session}) {
     const {translate} = useLocalize();
+    const navigation = useNavigation();
 
     const formRef = React.useRef(null);
-
-    const {setStep} = useTwoFactorAuthContext();
 
     useEffect(() => {
         Session.clearAccountMessages();
@@ -45,8 +47,12 @@ function VerifyStep({account, session}) {
         if (!account.requiresTwoFactorAuth) {
             return;
         }
-        setStep(CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS);
-    }, [account.requiresTwoFactorAuth, setStep]);
+        navigation.dispatch({
+            ...CommonActions.goBack(),
+            source: navigation.getState().key,
+        });
+        Navigation.navigate(ROUTES.SETTINGS_2FA.SUCESS, CONST.NAVIGATION.TYPE.FORCED_UP);
+    }, [account.requiresTwoFactorAuth, navigation]);
 
     /**
      * Splits the two-factor auth secret key in 4 chunks
@@ -73,66 +79,68 @@ function VerifyStep({account, session}) {
     }
 
     return (
-        <StepWrapper
-            title={translate('twoFactorAuth.headerTitle')}
-            stepCounter={{
-                step: 2,
-                text: translate('twoFactorAuth.stepVerify'),
-                total: 3,
-            }}
-            onBackButtonPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.CODES, CONST.ANIMATION_DIRECTION.OUT)}
-            onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
-        >
-            <ScrollView
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={styles.flexGrow1}
+        <AnimatedStepProvider>
+            <StepWrapper
+                title={translate('twoFactorAuth.headerTitle')}
+                stepCounter={{
+                    step: 2,
+                    text: translate('twoFactorAuth.stepVerify'),
+                    total: 3,
+                }}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA.CODES)}
+                onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
             >
-                <View style={[styles.ph5, styles.mt3]}>
-                    <Text>
-                        {translate('twoFactorAuth.scanCode')}
-                        <TextLink href={TROUBLESHOOTING_LINK}> {translate('twoFactorAuth.authenticatorApp')}</TextLink>.
-                    </Text>
-                    <View style={[styles.alignItemsCenter, styles.mt5]}>
-                        <QRCode
-                            url={buildAuthenticatorUrl()}
-                            logo={expensifyLogo}
-                            logoRatio={CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO}
-                            logoMarginRatio={CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO}
-                        />
+                <ScrollView
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={styles.flexGrow1}
+                >
+                    <View style={[styles.ph5, styles.mt3]}>
+                        <Text>
+                            {translate('twoFactorAuth.scanCode')}
+                            <TextLink href={TROUBLESHOOTING_LINK}> {translate('twoFactorAuth.authenticatorApp')}</TextLink>.
+                        </Text>
+                        <View style={[styles.alignItemsCenter, styles.mt5]}>
+                            <QRCode
+                                url={buildAuthenticatorUrl()}
+                                logo={expensifyLogo}
+                                logoRatio={CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO}
+                                logoMarginRatio={CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO}
+                            />
+                        </View>
+                        <Text style={styles.mt5}>{translate('twoFactorAuth.addKey')}</Text>
+                        <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            {Boolean(account.twoFactorAuthSecretKey) && <Text>{splitSecretInChunks(account.twoFactorAuthSecretKey)}</Text>}
+                            <PressableWithDelayToggle
+                                text={translate('twoFactorAuth.copy')}
+                                textChecked={translate('common.copied')}
+                                icon={Expensicons.Copy}
+                                inline={false}
+                                onPress={() => Clipboard.setString(account.twoFactorAuthSecretKey)}
+                                styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
+                                textStyles={[styles.buttonMediumText]}
+                            />
+                        </View>
+                        <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                     </View>
-                    <Text style={styles.mt5}>{translate('twoFactorAuth.addKey')}</Text>
-                    <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        {Boolean(account.twoFactorAuthSecretKey) && <Text>{splitSecretInChunks(account.twoFactorAuthSecretKey)}</Text>}
-                        <PressableWithDelayToggle
-                            text={translate('twoFactorAuth.copy')}
-                            textChecked={translate('common.copied')}
-                            icon={Expensicons.Copy}
-                            inline={false}
-                            onPress={() => Clipboard.setString(account.twoFactorAuthSecretKey)}
-                            styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
-                            textStyles={[styles.buttonMediumText]}
-                        />
+                    <View style={[styles.mt3, styles.mh5]}>
+                        <TwoFactorAuthForm innerRef={formRef} />
                     </View>
-                    <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
-                </View>
-                <View style={[styles.mt3, styles.mh5]}>
-                    <TwoFactorAuthForm innerRef={formRef} />
-                </View>
-                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                    <Button
-                        success
-                        text={translate('common.next')}
-                        isLoading={account.isLoading}
-                        onPress={() => {
-                            if (!formRef.current) {
-                                return;
-                            }
-                            formRef.current.validateAndSubmitForm();
-                        }}
-                    />
-                </FixedFooter>
-            </ScrollView>
-        </StepWrapper>
+                    <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                        <Button
+                            success
+                            text={translate('common.next')}
+                            isLoading={account.isLoading}
+                            onPress={() => {
+                                if (!formRef.current) {
+                                    return;
+                                }
+                                formRef.current.validateAndSubmitForm();
+                            }}
+                        />
+                    </FixedFooter>
+                </ScrollView>
+            </StepWrapper>
+        </AnimatedStepProvider>
     );
 }
 

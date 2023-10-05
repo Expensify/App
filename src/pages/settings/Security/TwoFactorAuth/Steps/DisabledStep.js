@@ -8,27 +8,30 @@ import variables from '../../../../../styles/variables';
 import StepWrapper from '../StepWrapper/StepWrapper';
 import useLocalize from '../../../../../hooks/useLocalize';
 import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
+import AnimatedStepProvider from '../../../../../components/AnimatedStep/AnimatedStepProvider';
 
 function DisabledStep() {
     const {translate} = useLocalize();
 
     return (
-        <StepWrapper title={translate('twoFactorAuth.disableTwoFactorAuth')}>
-            <BlockingView
-                icon={Illustrations.LockOpen}
-                iconWidth={variables.modalTopIconWidth}
-                iconHeight={variables.modalTopIconHeight}
-                title={translate('twoFactorAuth.disabled')}
-                subtitle={translate('twoFactorAuth.noAuthenticatorApp')}
-            />
-            <FixedFooter style={[styles.flexGrow0]}>
-                <Button
-                    success
-                    text={translate('common.buttonConfirm')}
-                    onPress={TwoFactorAuthActions.quitAndNavigateBackToSettings}
+        <AnimatedStepProvider>
+            <StepWrapper title={translate('twoFactorAuth.disableTwoFactorAuth')}>
+                <BlockingView
+                    icon={Illustrations.LockOpen}
+                    iconWidth={variables.modalTopIconWidth}
+                    iconHeight={variables.modalTopIconHeight}
+                    title={translate('twoFactorAuth.disabled')}
+                    subtitle={translate('twoFactorAuth.noAuthenticatorApp')}
                 />
-            </FixedFooter>
-        </StepWrapper>
+                <FixedFooter style={[styles.flexGrow0]}>
+                    <Button
+                        success
+                        text={translate('common.buttonConfirm')}
+                        onPress={TwoFactorAuthActions.quitAndNavigateBackToSettings}
+                    />
+                </FixedFooter>
+            </StepWrapper>
+        </AnimatedStepProvider>
     );
 }
 

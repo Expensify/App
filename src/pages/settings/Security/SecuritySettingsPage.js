@@ -37,7 +37,13 @@ function SecuritySettingsPage(props) {
         {
             translationKey: 'twoFactorAuth.headerTitle',
             icon: Expensicons.Shield,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_2FA),
+            action: () => {
+                if (props.account.requiresTwoFactorAuth) {
+                    Navigation.navigate(ROUTES.SETTINGS_2FA.ENABLED);
+                } else {
+                    Navigation.navigate(ROUTES.SETTINGS_2FA.CODES);
+                }
+            },
         },
         {
             translationKey: 'closeAccountPage.closeAccount',
