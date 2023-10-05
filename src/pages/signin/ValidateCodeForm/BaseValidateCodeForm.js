@@ -177,9 +177,8 @@ function BaseValidateCodeForm(props) {
      */
     const resendValidateCode = () => {
         User.resendValidateCode(props.credentials.login);
-        setValidateCode('');
         inputValidateCodeRef.current.clear();
-        inputValidateCodeRef.current.focus();
+        setValidateCode('');
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
         setTimeRemaining(30);
     };
