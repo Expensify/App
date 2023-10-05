@@ -397,7 +397,7 @@ describe('Migrations', () => {
                         key: DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS,
                         callback: (allPersonalDetails) => {
                             Onyx.disconnect(connectionID);
-                            expect(allPersonalDetails).toBeUndefined();
+                            expect(allPersonalDetails).toBeNull();
                         },
                     });
                 }));
