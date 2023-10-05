@@ -3796,6 +3796,14 @@ function getIOUReportActionDisplayMessage(reportAction) {
     return displayMessage;
 }
 
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isReportDraft(report) {
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.OPEN && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.OPEN;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3940,4 +3948,5 @@ export {
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
+    isReportDraft,
 };
