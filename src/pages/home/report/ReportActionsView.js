@@ -20,7 +20,6 @@ import reportPropTypes from '../../reportPropTypes';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 import {ReactionListContext} from '../ReportScreenContext';
-import useReportScrollManager from '../../../hooks/useReportScrollManager';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -83,7 +82,6 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute();
     const {reportActionID} = getReportActionID(route);
-    const testRef = useRef(false);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const [isFetchNewerWasCalled, setFetchNewerWasCalled] = useState(false);
@@ -97,22 +95,6 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     }, [allReportActions, reportActionID]);
 
     const reportActions = useMemo(() => {
-        console.log(
-            'get.reportActions.info|||',
-            '| reportActionID:',
-            reportActionID,
-            '| isFetchNewerWasCalled:',
-            isFetchNewerWasCalled,
-            '| isLinkingToMessage:',
-            isLinkingToMessage,
-            '| testRef.current:',
-            testRef.current,
-            '| reportActionsBeforeAndIncludingLinked:',
-            reportActionsBeforeAndIncludingLinked?.length,
-            '| allReportActions:',
-            allReportActions?.length,
-        );
-
         if (!reportActionID || (!isLinkingToMessage && !props.isLoadingInitialReportActions && isFetchNewerWasCalled)) {
             return allReportActions;
         }
@@ -124,13 +106,14 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
             return;
         }
         setFetchNewerWasCalled(false);
+        setFetchNewerWasCalled(false);
         setLinkingToMessageTrigger(true);
-        props.fetchReportIfNeeded();
+        props.fetchReport();
         setTimeout(() => {
             setLinkingToMessageTrigger(false);
-        }, 700);
+        }, 300);
         // setLinkingToMessageTrigger(true);
-    }, [route, props.fetchReportIfNeeded, reportActionID]);
+    }, [route, reportActionID]);
 
     const isReportActionArrayCatted = useMemo(() => {
         if (reportActions?.length !== allReportActions?.length && reportActionID) {
@@ -250,7 +233,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
         // This should be removed once the issue of frequent re-renders is resolved.
 
-        if (isReportActionArrayCatted || reportActionID) {
+        if (!isFetchNewerWasCalled) {
             setFetchNewerWasCalled(true);
             return;
         }
@@ -260,6 +243,9 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
 
         const newestReportAction = reportActions[0];
         Report.getNewerActions(reportID, newestReportAction.reportActionID);
+        // Report.getNewerActions(reportID, '2420805078232802130');
+        // Report.getNewerActions(reportID, '569204055949619736');
+        // Report.getNewerActions(reportID, '1134531619271003224');
     }, 500);
 
     /**

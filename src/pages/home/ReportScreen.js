@@ -149,7 +149,6 @@ function ReportScreen({
     route,
     report,
     reportMetadata,
-    // reportActions,
     sortedReportActions,
     accountManagerReportID,
     personalDetails,
@@ -176,46 +175,8 @@ function ReportScreen({
 
     const reportActions = useMemo(() => {
         const val = ReportActionsUtils.getRangeFromArrayByID(sortedReportActions, reportActionID);
-        console.log('get.ROOT.reportActions', reportActionID, sortedReportActions.length, val.length);
         return val;
     }, [sortedReportActions, reportActionID]);
-    // const isReportActionArrayCatted = useMemo(() => sortedReportActions.length !== withoutGaps.length, [withoutGaps, sortedReportActions]);
-
-    // const reportActions = useMemo(() => {
-    //     //TODO: OpenReport, it means that we clicked on the link in current chat and we need to get a proper range of reportActions
-    //     // console.log(
-    //     //     'get.reportActions.initialSorted',
-    //     //     // sortedReportActions.length,
-    //     //     sortedReportActions.length,
-    //     //     !!reportActionID,
-    //     //     sortedReportActions.map((item) => {
-    //     //         return {message: item.message[0].text, previousReportActionID: item?.previousReportActionID, reportActionID: item?.reportActionID};
-    //     //     }),
-    //     // );
-    //     // // // console.log('get.reportActions.initialSorted', sortedReportActions.map((item) =>item?.previousReportActionID));
-    //     // console.log(
-    //     //     'get.reportActions.withoutGaps',
-    //     //     // withoutGaps.length,
-    //     //     withoutGaps.length,
-    //     //     !!reportActionID,
-    //     //     withoutGaps.map((item) => {
-    //     //         return {message: item.message[0].text, previousReportActionID: item?.previousReportActionID, reportActionID: item?.reportActionID};
-    //     //     }),
-    //     // );
-    //     return withoutGaps;
-    //     // return sortedReportActions;
-    // }, [sortedReportActions, reportActionID]);
-
-    // const reportActionsBeforeAndIncludingLinked = useMemo(() => {
-    //     if (reportActionID) {
-    //         firstRenderRefI.current = false;
-    //         return ReportActionsUtils.getSlicedRangeFromArrayByID(reportActions, reportActionID);
-    //     }
-    //     return null;
-    // }, [reportActions, reportActionID]);
-
-    // const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(0);
-    // >>>>>>> Stashed changes
     const [isBannerVisible, setIsBannerVisible] = useState(true);
 
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
@@ -285,7 +246,9 @@ function ReportScreen({
         return reportIDFromPath !== '' && report.reportID && !isTransitioning;
     }, [route, report]);
 
-    // ReportUtils.useRouteChangeHandler(reportID, reportActionID,  () => Report.openReport({reportID: reportIDFromPath, reportActionID: reportActionID || ''}))
+    const fetchReport = useCallback(() => {
+        Report.openReport({reportID, reportActionID: reportActionID || ''});
+    }, [reportID, reportActionID]);
 
     const fetchReportIfNeeded = useCallback(() => {
         const reportIDFromPath = getReportID(route);
@@ -299,28 +262,12 @@ function ReportScreen({
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-
-        // useEffect(() => {
-        //     console.log('get.ROUTE.0', route);
-        //     const {reportActionID} = getReportActionID(route);
-        //     if (!reportActionID) return;
-        //     fetchReportIfNeeded();
-        //     console.log('get.ROUTE.+++++++++', route);
-        //     setLinkingToMessageTrigger(true);
-        // }, [route, fetchReportIfNeeded]);
-        // ReportUtils.useRouteChangeHandler(reportID, reportActionID, () => {
-        //     console.log('getChat.OPEN_REPORT.000', reportActionID);
-        //     fetchReportIfNeeded();
-        //     // updateCurrentReportID(getReportID(route));
-        // });
-
-        // if (report.reportID && report.reportID === getReportID(route) && !reportActionID) {
         if (report.reportID && report.reportID === getReportID(route) && !reportMetadata.isLoadingInitialReportActions) {
             return;
         }
 
-        Report.openReport({reportID: reportIDFromPath, reportActionID: reportActionID || ''});
-    }, [report.reportID, route, reportMetadata.isLoadingInitialReportActions]);
+        fetchReport();
+    }, [report.reportID, route, reportMetadata.isLoadingInitialReportActions, fetchReport]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -432,12 +379,7 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () => (!firstRenderRef.current &&
-                  !report.reportID &&
-                  !isOptimisticDelete &&
-                  !reportMetadata.isLoadingInitialReportActions &&
-                  !isLoading &&
-                  !userLeavingStatus) || shouldHideReport,
+        () => (!firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingInitialReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
         [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
 
@@ -496,7 +438,7 @@ function ReportScreen({
                                         report={report}
                                         isLinkingToMessage={isLinkingToMessage}
                                         setLinkingToMessageTrigger={setLinkingToMessageTrigger}
-                                        fetchReportIfNeeded={fetchReportIfNeeded}
+                                        fetchReport={fetchReport}
                                         reportActionID={reportActionID}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
