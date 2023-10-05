@@ -535,16 +535,18 @@ function MoneyRequestConfirmationList(props) {
             )}
             {shouldShowAllFields && (
                 <>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                        title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
-                        description={translate('common.date')}
-                        style={[styles.moneyRequestMenuItem]}
-                        titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID))}
-                        disabled={didConfirm || props.isReadOnly}
-                    />
-                    {props.isDistanceRequest ? (
+                    {!props.receiptPath && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                            title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                            description={translate('common.date')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID))}
+                            disabled={didConfirm || props.isReadOnly}
+                        />
+                    )}
+                    {props.isDistanceRequest && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouMerchant}
@@ -554,7 +556,8 @@ function MoneyRequestConfirmationList(props) {
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(props.iouType, props.reportID))}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
-                    ) : (
+                    )}
+                    {!props.isDistanceRequest && !props.receiptPath && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouMerchant}
