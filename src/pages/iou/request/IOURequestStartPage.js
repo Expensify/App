@@ -15,11 +15,14 @@ import styles from '../../../styles/styles';
 import DragAndDropProvider from '../../../components/DragAndDrop/Provider';
 import * as IOUUtils from '../../../libs/IOUUtils';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import CreateIOUStartTabManual from './create/tab/IOURequestCreateTabManual';
-import CreateIOUStartRequest from './create/IOURequestCreate';
+import OnyxTabNavigator, {TopTab} from '../../../libs/Navigation/OnyxTabNavigator';
+import TabSelector from '../../../components/TabSelector/TabSelector';
 import IOURouteContext from '../IOURouteContext';
 import reportPropTypes from '../../reportPropTypes';
 import transactionPropTypes from '../../../components/transactionPropTypes';
+import IOURequestStepAmount from './step/IOURequestStepAmount';
+import IOURequestStepDistance from './step/IOURequestStepDistance';
+import IOURequestCreateTabScan from './create/tab/IOURequestCreateTabScan';
 
 const propTypes = {
     /** Route from navigation */
@@ -38,21 +41,26 @@ const propTypes = {
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
+    /** The tab to select by default (whatever the user visited last) */
+    selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
+
     /** The transaction being modified */
     transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    selectedTab: CONST.TAB_REQUEST.MANUAL,
     transaction: {},
 };
 
-function IOURequestPage({
+function IOURequestStartPage({
     report,
     route,
     route: {
         params: {iouType, backTo},
     },
+    selectedTab,
     transaction,
 }) {
     const {translate} = useLocalize();
@@ -78,7 +86,7 @@ function IOURequestPage({
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableKeyboardAvoidingView={false}
                 headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
-                testID={IOURequestPage.displayName}
+                testID={IOURequestStartPage.displayName}
             >
                 {({safeAreaPaddingBottomStyle}) => (
                     <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
@@ -92,12 +100,31 @@ function IOURequestPage({
                                     onBackButtonPress={goBack}
                                 />
 
-                                {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
-                                    <CreateIOUStartRequest />
-                                ) : (
-                                    // TODO: see if this is necessary and if there are any routes using it
-                                    <CreateIOUStartTabManual />
-                                )}
+                                <OnyxTabNavigator
+                                    id={CONST.TAB.IOU_REQUEST_TYPE}
+                                    selectedTab={selectedTab}
+                                    tabBar={({state, navigation, position}) => (
+                                        <TabSelector
+                                            state={state}
+                                            navigation={navigation}
+                                            position={position}
+                                        />
+                                    )}
+                                >
+                                    <TopTab.Screen
+                                        name={CONST.TAB_REQUEST.MANUAL}
+                                        component={IOURequestStepAmount}
+                                    />
+                                    <TopTab.Screen
+                                        name={CONST.TAB_REQUEST.SCAN}
+                                        // TODO: get rid of this tab and do like amount and distance
+                                        component={IOURequestCreateTabScan}
+                                    />
+                                    <TopTab.Screen
+                                        name={CONST.TAB_REQUEST.DISTANCE}
+                                        component={IOURequestStepDistance}
+                                    />
+                                </OnyxTabNavigator>
                             </View>
                         </DragAndDropProvider>
                     </FullPageNotFoundView>
@@ -107,15 +134,18 @@ function IOURequestPage({
     );
 }
 
-IOURequestPage.displayName = 'IOURequestPage';
-IOURequestPage.propTypes = propTypes;
-IOURequestPage.defaultProps = defaultProps;
+IOURequestStartPage.displayName = 'IOURequestStartPage';
+IOURequestStartPage.propTypes = propTypes;
+IOURequestStartPage.defaultProps = defaultProps;
 
 export default withOnyx({
+    selectedTab: {
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
+    },
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
     },
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
     },
-})(IOURequestPage);
+})(IOURequestStartPage);
