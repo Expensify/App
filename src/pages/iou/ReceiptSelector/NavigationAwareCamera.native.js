@@ -19,9 +19,8 @@ function NavigationAwareCamera({cameraTabIndex, forwardedRef, ...props}) {
     const navigation = useNavigation();
     const [isCameraActive, setIsCameraActive] = useState(navigation.isFocused());
 
-    // Get the animation value from the tab navigator. Its a value between 0 and the
-    // number of pages we render in the tab navigator. When we even just slightly start to scroll to the camera page,
-    // (value is e.g. 0.001 on animation start) we want to activate the camera, so its as fast as possible active.
+    // Retrieve the animation value from the tab navigator, which ranges from 0 to the total number of pages displayed.
+    // Even a minimal scroll towards the camera page (e.g., a value of 0.001 at start) should activate the camera for immediate responsiveness.
     const tabPositionAnimation = useTabAnimation();
 
     useEffect(() => {
