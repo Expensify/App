@@ -4,7 +4,7 @@ description: Learn how add your employees to submit expenses in Expensify
 ---
 # Overview
 
-To invite your employees in Expensify, simply add them as members to your Workspace.
+To invite your employees to Expensify, simply add them as members to your Workspace.
 
 # How to Invite members to Expensify
 
