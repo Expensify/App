@@ -1,8 +1,8 @@
 import React, {useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
-import {useFlipper} from '@react-navigation/devtools';
 import {useSharedValue, useAnimatedReaction, interpolateColor, withTiming, withDelay, Easing, runOnJS} from 'react-native-reanimated';
+import useFlipper from '../../hooks/useFlipper';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
@@ -86,7 +86,12 @@ function NavigationRoot(props) {
     const updateStatusBarBackgroundColor = (color) => StatusBar.setBackgroundColor(color);
     useAnimatedReaction(
         () => statusBarAnimation.value,
-        () => {
+        (current, previous) => {
+            // Do not run if either of the animated value is null
+            // or previous animated value is greater than or equal to the current one
+            if ([current, previous].includes(null) || current <= previous) {
+                return;
+            }
             const color = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
             runOnJS(updateStatusBarBackgroundColor)(color);
         },
@@ -98,7 +103,8 @@ function NavigationRoot(props) {
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
-        if (prevStatusBarBackgroundColor.current === statusBarBackgroundColor.current) {
+
+        if (currentScreenBackgroundColor === themeColors.appBG && prevStatusBarBackgroundColor.current === themeColors.appBG) {
             return;
         }
 
@@ -116,7 +122,10 @@ function NavigationRoot(props) {
         if (!state) {
             return;
         }
-        updateCurrentReportID(state);
+        // Performance optimization to avoid context consumers to delay first render
+        setTimeout(() => {
+            updateCurrentReportID(state);
+        }, 0);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
     };

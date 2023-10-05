@@ -55,6 +55,10 @@ export default {
         marginHorizontal: -20,
     },
 
+    mv0: {
+        marginVertical: 0,
+    },
+
     mv1: {
         marginVertical: 4,
     },
@@ -371,6 +375,10 @@ export default {
 
     pr2: {
         paddingRight: 8,
+    },
+
+    pr3: {
+        paddingRight: 12,
     },
 
     pr4: {

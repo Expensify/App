@@ -109,7 +109,9 @@ class EmojiPickerMenu extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.frequentlyUsedEmojis === this.props.frequentlyUsedEmojis) return;
+        if (prevProps.frequentlyUsedEmojis === this.props.frequentlyUsedEmojis) {
+            return;
+        }
 
         const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
         this.emojis = filteredEmojis;
@@ -513,6 +515,7 @@ class EmojiPickerMenu extends Component {
                         onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
                         onBlur={() => this.setState({isFocused: false})}
                         autoCorrect={false}
+                        blurOnSubmit={this.state.filteredEmojis.length > 0}
                     />
                 </View>
                 {!isFiltered && (

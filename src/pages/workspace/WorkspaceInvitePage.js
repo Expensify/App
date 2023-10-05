@@ -87,7 +87,7 @@ function WorkspaceInvitePage(props) {
 
         // Update selectedOptions with the latest personalDetails and policyMembers information
         const detailsMap = {};
-        _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail, false)));
+        _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
         const newSelectedOptions = [];
         _.forEach(selectedOptions, (option) => {
             newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
@@ -114,7 +114,7 @@ function WorkspaceInvitePage(props) {
         // Filtering out selected users from the search results
         const selectedLogins = _.map(selectedOptions, ({login}) => login);
         const personalDetailsWithoutSelected = _.filter(personalDetails, ({login}) => !_.contains(selectedLogins, login));
-        const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, false));
+        const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, OptionsListUtils.formatMemberForList);
         const hasUnselectedUserToInvite = userToInvite && !_.contains(selectedLogins, userToInvite.login);
 
         sections.push({
@@ -128,7 +128,7 @@ function WorkspaceInvitePage(props) {
         if (hasUnselectedUserToInvite) {
             sections.push({
                 title: undefined,
-                data: [OptionsListUtils.formatMemberForList(userToInvite, false)],
+                data: [OptionsListUtils.formatMemberForList(userToInvite)],
                 shouldShow: true,
                 indexOffset,
             });
@@ -177,7 +177,7 @@ function WorkspaceInvitePage(props) {
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, invitedEmailsToAccountIDs);
-        Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(props.route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(props.route.params.policyID));
     };
 
     const [policyName, shouldShowAlertPrompt] = useMemo(
@@ -197,13 +197,16 @@ function WorkspaceInvitePage(props) {
     }, [excludedUsers, translate, searchTerm, policyName, userToInvite, personalDetails]);
 
     return (
-        <ScreenWrapper shouldEnableMaxHeight>
+        <ScreenWrapper
+            shouldEnableMaxHeight
+            testID={WorkspaceInvitePage.displayName}
+        >
             {({didScreenTransitionEnd}) => {
                 const sections = didScreenTransitionEnd ? getSections() : [];
 
                 return (
                     <FullPageNotFoundView
-                        shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}
+                        shouldShow={((_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                         subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     >
@@ -214,7 +217,7 @@ function WorkspaceInvitePage(props) {
                             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                             onBackButtonPress={() => {
                                 Policy.clearErrors(props.route.params.policyID);
-                                Navigation.goBack(ROUTES.getWorkspaceMembersRoute(props.route.params.policyID));
+                                Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(props.route.params.policyID));
                             }}
                         />
                         <SelectionList
@@ -227,7 +230,6 @@ function WorkspaceInvitePage(props) {
                             onSelectRow={toggleOption}
                             onConfirm={inviteUser}
                             showScrollIndicator
-                            shouldDelayFocus
                             showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
                         />
                         <View style={[styles.flexShrink0]}>

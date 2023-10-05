@@ -78,19 +78,22 @@ function TimezoneSelectPage(props) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={TimezoneSelectPage.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
             <SelectionList
+                headerMessage={timezoneInputText.trim() && !timezoneOptions.length ? translate('common.noResultsFound') : ''}
                 textInputLabel={translate('timezonePage.timezone')}
                 textInputValue={timezoneInputText}
                 onChangeText={filterShownTimezones}
                 onSelectRow={saveSelectedTimezone}
                 sections={[{data: timezoneOptions, indexOffset: 0, isDisabled: timezone.automatic}]}
                 initiallyFocusedOptionKey={_.get(_.filter(timezoneOptions, (tz) => tz.text === timezone.selected)[0], 'keyForList')}
-                shouldDelayFocus
                 showScrollIndicator
             />
         </ScreenWrapper>
@@ -99,5 +102,6 @@ function TimezoneSelectPage(props) {
 
 TimezoneSelectPage.propTypes = propTypes;
 TimezoneSelectPage.defaultProps = defaultProps;
+TimezoneSelectPage.displayName = 'TimezoneSelectPage';
 
 export default withCurrentUserPersonalDetails(TimezoneSelectPage);

@@ -23,6 +23,9 @@ const propTypes = {
 
     /** Whether disable the animations */
     disableAnimation: PropTypes.bool,
+
+    /** The ref of the popover */
+    withoutOverlayRef: refPropTypes,
 };
 
 const defaultProps = {
@@ -36,6 +39,7 @@ const defaultProps = {
     anchorPosition: {},
     anchorRef: () => {},
     disableAnimation: true,
+    withoutOverlayRef: () => {},
 };
 
 export {propTypes, defaultProps};
