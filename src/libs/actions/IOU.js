@@ -2173,6 +2173,7 @@ function autoAssignParticipants(transactionID, report) {
 }
 
 /**
+ * TODO: remove this in favor of startMoneeRequest()
  * Initialize money request info and navigate to the MoneyRequest page
  * @param {String} iouType
  * @param {String} reportID
@@ -2214,6 +2215,7 @@ function setMoneyRequestId(id) {
 }
 
 /**
+ * TODO: remove this in favor of setMoneeRequestAmount()
  * @param {Number} amount
  */
 function setMoneyRequestAmount(amount) {
@@ -2229,6 +2231,7 @@ function setMoneeRequestAmount(transactionID, amount) {
 }
 
 /**
+ * TODO: remove this in favor of setMoneeRequestCreated()
  * @param {String} created
  */
 function setMoneyRequestCreated(created) {
@@ -2251,6 +2254,7 @@ function setMoneyRequestCurrency(currency) {
 }
 
 /**
+ * TODO: remove this in favor of setMoneeRequestDescription()
  * @param {String} comment
  */
 function setMoneyRequestDescription(comment) {
@@ -2266,6 +2270,7 @@ function setMoneeRequestDescription(transactionID, comment) {
 }
 
 /**
+ * TODO: remove this in favor of setMoneeRequestMerchant()
  * @param {String} merchant
  */
 function setMoneyRequestMerchant(merchant) {
@@ -2289,6 +2294,7 @@ function setMoneeRequestCategory(transactionID, category) {
 }
 
 /**
+ * TODO: remove this in favor of setMoneeRequestCategory()
  * @param {String} category
  */
 function setMoneyRequestCategory(category) {
@@ -2300,6 +2306,7 @@ function resetMoneyRequestCategory() {
 }
 
 /*
+ * TODO: remove this in favor of setMoneeRequestTag()
  * @param {String} tag
  */
 function setMoneyRequestTag(tag) {
@@ -2326,7 +2333,7 @@ function setMoneyRequestBillable(billable) {
 }
 
 /**
- * TODO remove this in favor of setMoneeRequestParticipants()
+ * TODO: remove this in favor of setMoneeRequestParticipants()
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {

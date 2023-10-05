@@ -89,14 +89,10 @@ function IOURequestStepConfirmation({
     const isManualRequestDM = TransactionUtils.isManualRequest(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const headerTitle = translate(TransactionUtils.getHeaderTitle(transaction));
-    const participants = useMemo(
-        () =>
-            _.map(transaction.participants, (participant) => {
-                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
-            }),
-        [transaction.participants, personalDetails],
-    );
+    const participants = _.map(transaction.participants, (participant) => {
+        const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+        return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+    });
 
     const navigateBack = () => {
         // The previous step for distance requests was the participants page
@@ -371,16 +367,16 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
         },
         transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID', '0')}`,
         },
     }),
 )(IOURequestStepConfirmation);
