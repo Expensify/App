@@ -1,13 +1,8 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
-import _ from "lodash";
-import lodashHas from "lodash/has";
+import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Log from '../Log';
 import ONYXKEYS from '../../ONYXKEYS';
 import {ReportAction} from "../../types/onyx";
 
-/**
- * @returns
- */
 function getReportActionsFromOnyx(): Promise<OnyxCollection<ReportAction>> {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
@@ -24,31 +19,23 @@ function getReportActionsFromOnyx(): Promise<OnyxCollection<ReportAction>> {
 /**
  * This migration checks for the 'previousReportActionID' key in the first valid reportAction of a report in Onyx.
  * If the key is not found then all reportActions for all reports are removed from Onyx.
- *
- * @returns
  */
 export default function (): Promise<void> {
     return getReportActionsFromOnyx().then((allReportActions) => {
-        if (_.isEmpty(allReportActions)) {
+        if (!Array.isArray(allReportActions) || allReportActions.length === 0) {
             Log.info(`[Migrate Onyx] Skipped migration CheckForPreviousReportActionID because there were no reportActions`);
             return;
         }
 
-        let firstValidValue;
+        let firstValidValue: undefined | ReportAction;
 
-        const records = allReportActions as Record<string, ReportAction>;
+        Object.values(allReportActions as ReportAction[]).some((reportAction) => {
+            if (reportAction.reportActionID !== undefined) {
+                firstValidValue = reportAction;
+                return true;
+            }
 
-        Object.values(records).some((reportAction: ReportAction) => {
-            Object.values(reportAction).some((reportActionData: unknown) => {
-                if (lodashHas(reportActionData, 'reportActionID')) {
-                    firstValidValue = reportActionData;
-                    return true;
-                }
-
-                return false;
-            });
-
-            return true;
+            return false;
         });
 
         if (firstValidValue === undefined) {
@@ -56,7 +43,7 @@ export default function (): Promise<void> {
             return;
         }
 
-        if (_.has(firstValidValue, 'previousReportActionID')) {
+        if (Object.hasOwn(firstValidValue, 'previousReportActionID')) {
             Log.info(`[Migrate Onyx] CheckForPreviousReportActionID Migration: previousReportActionID found. Migration complete`);
             return;
         }
@@ -64,12 +51,12 @@ export default function (): Promise<void> {
         // If previousReportActionID not found:
         Log.info(`[Migrate Onyx] CheckForPreviousReportActionID Migration: removing all reportActions because previousReportActionID not found in the first valid reportAction`);
 
-        const onyxData: Record<string, ReportAction> = {};
+        const onyxData: Record<string, Partial<OnyxEntry<ReportAction>>> = {};
 
-        Object.entries(records).forEach(([onyxKey]) => {
-            onyxData[onyxKey] = {} as ReportAction;
+        Object.entries(allReportActions).forEach(([onyxKey]) => {
+            onyxData[onyxKey] = {};
         });
 
-        return Onyx.multiSet(onyxData as never);
+        return Onyx.multiSet(onyxData);
     });
 }
