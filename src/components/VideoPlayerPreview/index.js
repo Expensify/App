@@ -38,7 +38,9 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
     const videoStyles = useMemo(() => {
         const {width, height} = measuredDimenstions || videoDimensions;
         const aspectRatio = width / height;
-        if (width > height) return {width: 350, aspectRatio};
+        if (width > height) {
+            return {width: 350, aspectRatio};
+        }
         return {height: 350, aspectRatio};
     }, [videoDimensions, measuredDimenstions]);
 
@@ -54,12 +56,16 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
     };
 
     useEffect(() => {
-        if (videoUrl !== currentlyPlayingURL) return;
+        if (videoUrl !== currentlyPlayingURL) {
+            return;
+        }
         setIsThumbnail(false);
     }, [currentlyPlayingURL, videoUrl]);
 
     useEffect(() => {
-        if (isThumbnail || videoUrl !== currentlyPlayingURL) return;
+        if (isThumbnail || videoUrl !== currentlyPlayingURL) {
+            return;
+        }
         updateSharedElements(videoPlayerParentRef.current, videoPlayerRef.current);
     }, [currentlyPlayingURL, isThumbnail, updateSharedElements, videoUrl]);
 
@@ -72,31 +78,37 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                     accessibilityLabel={fileName}
                 />
             ) : (
-                <View
-                    ref={(el) => {
-                        if (!el) return;
-                        videoPlayerParentRef.current = el;
-                        if (el.childNodes[0]) videoPlayerRef.current = el.childNodes[0];
-                    }}
-                    style={styles.flex1}
-                >
-                    <View style={styles.flex1}>
-                        <IconButton
-                            src={Expensicons.Expand}
-                            fill="white"
-                            style={{position: 'absolute', top: 10, right: 10, backgroundColor: '#061B09CC', borderRadius: 5}}
-                            accessibilityLabel="open in modal"
-                            onPress={showModal}
-                        />
-                        <VideoPlayer
-                            url={videoUrl}
-                            videoPlayerStyles={{borderRadius: 10}}
-                            shouldPlay={false}
-                            onOpenInModalButtonPress={showModal}
-                            onVideoLoaded={onVideoLoaded}
-                        />
+                <>
+                    <View
+                        ref={(el) => {
+                            if (!el) {
+                                return;
+                            }
+                            videoPlayerParentRef.current = el;
+                            if (el.childNodes[0]) {
+                                videoPlayerRef.current = el.childNodes[0];
+                            }
+                        }}
+                        style={styles.flex1}
+                    >
+                        <View style={styles.flex1}>
+                            <VideoPlayer
+                                url={videoUrl}
+                                videoPlayerStyles={{borderRadius: 10}}
+                                shouldPlay={false}
+                                onOpenInModalButtonPress={showModal}
+                                onVideoLoaded={onVideoLoaded}
+                            />
+                        </View>
                     </View>
-                </View>
+                    <IconButton
+                        src={Expensicons.Expand}
+                        fill="white"
+                        style={{position: 'absolute', top: 10, right: 10, backgroundColor: '#061B09CC', borderRadius: 5}}
+                        accessibilityLabel="open in modal"
+                        onPress={showModal}
+                    />
+                </>
             )}
         </View>
     );

@@ -1,13 +1,7 @@
-import React, {forwardRef} from 'react';
-import {View, Text} from 'react-native';
+import React from 'react';
 import PropTypes from 'prop-types';
-import {Video, ResizeMode} from 'expo-av';
-import Slider from '../AvatarCropModal/Slider';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
 import CONST from '../../CONST';
 
 const propTypes = {

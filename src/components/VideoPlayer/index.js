@@ -4,8 +4,6 @@ import PropTypes from 'prop-types';
 import {Video, ResizeMode} from 'expo-av';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import IconButton from './IconButton';
-import * as Expensicons from '../Icon/Expensicons';
 import Hoverable from '../Hoverable';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import {usePlaybackContext} from '../PlaybackContext';
@@ -23,8 +21,6 @@ const propTypes = {
 
     isLooping: PropTypes.bool,
 
-    onOpenInModalButtonPress: PropTypes.func,
-
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
 
@@ -35,14 +31,13 @@ const propTypes = {
 const defaultProps = {
     shouldPlay: false,
     onVideoLoaded: () => {},
-    onOpenInModalButtonPress: () => {},
     resizeMode: ResizeMode.CONTAIN,
     isLooping: false,
     style: [styles.w100, styles.h100],
     videoStyle: [styles.w100, styles.h100],
 };
 
-function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, onOpenInModalButtonPress}) {
+function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const [isVideoPlaying, setIsVideoPlaying] = React.useState(false);
