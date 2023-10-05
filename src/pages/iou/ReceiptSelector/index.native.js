@@ -1,6 +1,6 @@
 import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {useCameraDevices} from 'react-native-vision-camera';
+import {useCameraDevice} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -89,8 +89,7 @@ function getImagePickerOptions(type) {
 }
 
 function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) {
-    const devices = useCameraDevices('wide-angle-camera');
-    const device = devices.back;
+    const device = useCameraDevice('back');
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
@@ -269,7 +268,6 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     ref={camera}
                     device={device}
                     style={[styles.cameraView]}
-                    zoom={device.neutralZoom}
                     photo
                     cameraTabIndex={pageIndex}
                 />
