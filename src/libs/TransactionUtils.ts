@@ -1,4 +1,4 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
+import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {format, parseISO, isValid} from 'date-fns';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
@@ -294,7 +294,7 @@ function hasRoute(transaction: Transaction): boolean {
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getLinkedTransaction(reportAction: ReportAction): Transaction | Record<string, never> {
+function getLinkedTransaction(reportAction?: OnyxEntry<ReportAction>): Transaction | Record<string, never> {
     let transactionID = '';
 
     if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {

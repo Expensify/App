@@ -78,6 +78,7 @@ type Report = {
     isWaitingOnBankAccount?: boolean;
     visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
     preexistingReportID?: string;
+    iouReportID?: number;
 };
 
 export default Report;
