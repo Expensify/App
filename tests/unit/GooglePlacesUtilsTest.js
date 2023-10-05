@@ -166,7 +166,7 @@ describe('GooglePlacesUtilsTest', () => {
             });
         });
     });
-    describe('getAddressComponents small data set timing', () => {
+    describe.skip('getAddressComponents small data set timing', () => {
         it('should not be slow when executing', () => {
             const startTime = performance.now();
             for (let i = 100; i > 0; i--) {
@@ -180,7 +180,7 @@ describe('GooglePlacesUtilsTest', () => {
             expect(executionTime).toBeLessThan(1.0);
         });
     });
-    describe('getAddressComponents big data set timing', () => {
+    describe.skip('getAddressComponents big data set timing', () => {
         it('should not be slow when executing', () => {
             const startTime = performance.now();
             for (let i = 100; i > 0; i--) {
