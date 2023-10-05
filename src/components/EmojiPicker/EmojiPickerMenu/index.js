@@ -515,6 +515,7 @@ class EmojiPickerMenu extends Component {
                         onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
                         onBlur={() => this.setState({isFocused: false})}
                         autoCorrect={false}
+                        blurOnSubmit={this.state.filteredEmojis.length > 0}
                     />
                 </View>
                 {!isFiltered && (

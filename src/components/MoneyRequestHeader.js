@@ -66,6 +66,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the request, admins can only edit it.
@@ -84,7 +85,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 <HeaderWithBackButton
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton={isActionOwner && !isSettled}
+                    shouldShowThreeDotsButton={isActionOwner && !isSettled && !isApproved}
                     threeDotsMenuItems={[
                         ...(TransactionUtils.hasReceipt(transaction)
                             ? []
