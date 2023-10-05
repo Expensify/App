@@ -232,12 +232,12 @@ function ProfilePage(props) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
-                        {!_.isEmpty(props.reportID) && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && (
+                        {!_.isEmpty(props.report) && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 title={notificationPreference}
                                 description={props.translate('notificationPreferencesPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(props.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(props.report.reportID))}
                                 wrapperStyle={[styles.mtn6, styles.mb5]}
                             />
                         )}
