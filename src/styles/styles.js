@@ -1551,10 +1551,7 @@ const styles = (theme) => ({
         paddingBottom: 16,
     },
     chatContentScrollViewWithHeaderLoader: {
-        // regular paddingBottom wouldn't work here
-        padding: CONST.CHAT_HEADER_LOADER_HEIGHT,
-        paddingLeft: 0,
-        paddingRight: 0,
+        paddingTop: CONST.CHAT_HEADER_LOADER_HEIGHT,
     },
 
     // Chat Item

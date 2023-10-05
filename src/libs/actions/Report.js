@@ -847,7 +847,7 @@ function getOlderActions(reportID, reportActionID) {
 
 /**
  * Gets the newer actions that have not been read yet.
- * Normally happens when you located not in the edge of the list and scroll down on a chat.
+ * Normally happens when you are not located at the bottom of the list and scroll down on a chat.
  *
  * @param {String} reportID
  * @param {String} reportActionID
