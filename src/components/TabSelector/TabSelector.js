@@ -1,5 +1,5 @@
 import {View} from 'react-native';
-import React from 'react';
+import React, {useReducer, useRef} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import * as Expensicons from '../Icon/Expensicons';
@@ -53,7 +53,7 @@ const getIconAndTitle = (route, translate) => {
     }
 };
 
-const getOpacity = (position, routesLength, tabIndex, active) => {
+const getOpacity = (position, routesLength, tabIndex, active, affectedTabs) => {
     const activeValue = active ? 1 : 0;
     const inactiveValue = active ? 0 : 1;
 
@@ -62,19 +62,19 @@ const getOpacity = (position, routesLength, tabIndex, active) => {
 
         return position.interpolate({
             inputRange,
-            outputRange: _.map(inputRange, (i) => (i === tabIndex ? activeValue : inactiveValue)),
+            outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? activeValue : inactiveValue))
         });
     }
     return activeValue;
 };
 
-const getBackgroundColor = (position, routesLength, tabIndex) => {
+const getBackgroundColor = (position, routesLength, tabIndex, affectedTabs) => {
     if (routesLength > 1) {
         const inputRange = Array.from({length: routesLength}, (v, i) => i);
 
         return position.interpolate({
             inputRange,
-            outputRange: _.map(inputRange, (i) => (i === tabIndex ? themeColors.border : themeColors.appBG)),
+            outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? themeColors.border : themeColors.appBG))
         });
     }
     return themeColors.border;
@@ -82,13 +82,27 @@ const getBackgroundColor = (position, routesLength, tabIndex) => {
 
 function TabSelector({state, navigation, onTabPress, position}) {
     const {translate} = useLocalize();
+    const [, reRender] = useReducer(x => !x, false);
+
+    const defaultAffectedAnimatedTabs = Array.from({length: state.routes.length}, (v, i) => i);
+    const affectedAnimatedTabs = useRef(defaultAffectedAnimatedTabs);
+
+
+    React.useEffect(() => {
+        setTimeout(() => {
+            affectedAnimatedTabs.current = defaultAffectedAnimatedTabs;
+            // re-render is important to re-define opacity and background base on new affected tabs
+            reRender();
+        }, CONST.ANIMATED_TRANSITION)
+    }, [state.index]);
+
 
     return (
         <View style={styles.tabSelector}>
             {_.map(state.routes, (route, index) => {
-                const activeOpacity = getOpacity(position, state.routes.length, index, true);
-                const inactiveOpacity = getOpacity(position, state.routes.length, index, false);
-                const backgroundColor = getBackgroundColor(position, state.routes.length, index);
+                const activeOpacity = getOpacity(position, state.routes.length, index, true, affectedAnimatedTabs.current);
+                const inactiveOpacity = getOpacity(position, state.routes.length, index, false, affectedAnimatedTabs.current);
+                const backgroundColor = getBackgroundColor(position, state.routes.length, index, affectedAnimatedTabs.current);
                 const isFocused = index === state.index;
                 const {icon, title} = getIconAndTitle(route.name, translate);
 
@@ -97,6 +111,7 @@ function TabSelector({state, navigation, onTabPress, position}) {
                         return;
                     }
 
+                    affectedAnimatedTabs.current = [state.index, index];
                     const event = navigation.emit({
                         type: 'tabPress',
                         target: route.key,
