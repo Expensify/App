@@ -127,6 +127,9 @@ const propTypes = {
 
     /** Initial focused index value */
     initialFocusedIndex: PropTypes.number,
+
+    /** Whether the text input should intercept swipes or not */
+    shouldTextInputInterceptSwipe: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -164,6 +167,7 @@ const defaultProps = {
     shouldUseStyleForChildren: true,
     isRowMultilineSupported: false,
     initialFocusedIndex: undefined,
+    shouldTextInputInterceptSwipe: false,
 };
 
 export {propTypes, defaultProps};
