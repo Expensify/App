@@ -92,15 +92,16 @@ class KYCWall extends React.Component {
      * If they do have a valid payment method they are navigated to the "enable payments" route to complete KYC checks.
      * If they are already KYC'd we will continue whatever action is gated behind the KYC wall.
      *
-     * @param {Event} _event
+     * @param {Event} event
      * @param {String} iouPaymentType
      */
-    continue(_event, iouPaymentType) {
+    continue(event, iouPaymentType) {
         if (this.state.shouldShowAddPaymentMenu) {
             this.setState({shouldShowAddPaymentMenu: false});
             return;
         }
-        this.setState({transferBalanceButton: this.anchorRef.current});
+        const targetElement = this.anchorRef.current || event.nativeEvent.target; // safety check - use target from event if anchorRef is null
+        this.setState({transferBalanceButton: targetElement});
         const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
         const paymentCardList = this.props.fundList || {};
 
@@ -110,7 +111,7 @@ class KYCWall extends React.Component {
             (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, this.props.bankAccountList))
         ) {
             Log.info('[KYC Wallet] User does not have valid payment method');
-            const clickedElementLocation = getClickedTargetLocation(this.anchorRef.current);
+            const clickedElementLocation = getClickedTargetLocation(targetElement);
             const position = this.getAnchorPosition(clickedElementLocation);
             this.setPositionAddPaymentMenu(position);
             this.setState({
