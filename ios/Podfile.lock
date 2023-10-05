@@ -585,7 +585,7 @@ PODS:
     - React
   - react-native-image-picker (5.1.0):
     - React-Core
-  - react-native-key-command (1.0.1):
+  - react-native-key-command (1.0.5):
     - React-Core
   - react-native-netinfo (9.3.10):
     - React-Core
@@ -825,7 +825,7 @@ PODS:
     - SDWebImage/Core (~> 5.10)
   - SocketRocket (0.6.1)
   - Turf (2.6.1)
-  - VisionCamera (2.15.4):
+  - VisionCamera (3.3.0):
     - React
     - React-callinvoker
     - React-Core
@@ -1251,7 +1251,7 @@ SPEC CHECKSUMS:
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
-  react-native-key-command: c2645ec01eb1fa664606c09480c05cb4220ef67b
+  react-native-key-command: 69bd8d59f2812eb3bd8ae1e23b93d40cd29bcde1
   react-native-netinfo: ccbe1085dffd16592791d550189772e13bf479e2
   react-native-pager-view: 0ccb8bf60e2ebd38b1f3669fa3650ecce81db2df
   react-native-pdf: 7c0e91ada997bac8bac3bb5bea5b6b81f5a3caae
@@ -1305,10 +1305,10 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 469ce2c3d22e5e8e4818d5a3b254699a5c89efa4
-  VisionCamera: d3ec8883417a6a4a0e3a6ba37d81d22db7611601
+  VisionCamera: abdb4db40dc363b19e28428f656b882eec45d9fa
   Yoga: 3efc43e0d48686ce2e8c60f99d4e6bd349aff981
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
 PODFILE CHECKSUM: 2daf34c870819a933f3fefe426801d54b2ff2a14
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.13.0
