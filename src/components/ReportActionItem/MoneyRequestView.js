@@ -36,7 +36,6 @@ import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import categoryPropTypes from '../categoryPropTypes';
 import SpacerView from '../SpacerView';
-import EmptyStateBackground from '../EmptyStateBackground';
 import tagPropTypes from '../tagPropTypes';
 
 const propTypes = {

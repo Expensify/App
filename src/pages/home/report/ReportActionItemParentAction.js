@@ -15,7 +15,7 @@ import withLocalize from '../../../components/withLocalize';
 import ReportActionItem from './ReportActionItem';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import EmptyStateBackground from '../../../components/EmptyStateBackground';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 const propTypes = {
     /** Flag to show, hide the thread divider line */
@@ -61,7 +61,7 @@ function ReportActionItemParentAction(props) {
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <EmptyStateBackground />
+                <AnimatedEmptyStateBackground />
                 <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
                 {parentReportAction && (
                     <ReportActionItem
