@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
-=======
-import React, {useState, useCallback, useMemo, useRef} from 'react';
->>>>>>> d420b0a (Merge pull request #28955 from Expensify/vit-revert27836)
+import React, {useState, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -29,11 +25,6 @@ import policyMemberPropType from '../policyMemberPropType';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
-<<<<<<< HEAD
-import ValuePicker from '../../components/ValuePicker';
-=======
-import useDelayedInputFocus from '../../hooks/useDelayedInputFocus';
->>>>>>> d420b0a (Merge pull request #28955 from Expensify/vit-revert27836)
 
 const propTypes = {
     /** All reports shared with the user */
