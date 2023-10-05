@@ -65,7 +65,6 @@ class BaseOptionsSelector extends Component {
             focusedIndex,
             shouldDisableRowSelection: false,
             errorMessage: '',
-            searchValue: this.props.value,
         };
     }
 
@@ -172,16 +171,11 @@ class BaseOptionsSelector extends Component {
     updateSearchValue(value) {
         if (value.length > this.props.maxLength) {
             this.setState({
-                searchValue: value,
                 errorMessage: this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}),
             });
-            return;
+        } else if (value.length <= this.props.maxLength && this.state.errorMessage) {
+            this.setState({errorMessage: ''});
         }
-
-        this.setState({
-            searchValue: value,
-            errorMessage: '',
-        });
 
         this.props.onChangeText(value);
     }
@@ -381,7 +375,7 @@ class BaseOptionsSelector extends Component {
         const textInput = (
             <TextInput
                 ref={(el) => (this.textInput = el)}
-                value={this.state.searchValue}
+                value={this.props.value}
                 label={this.props.textInputLabel}
                 accessibilityLabel={this.props.textInputLabel}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
