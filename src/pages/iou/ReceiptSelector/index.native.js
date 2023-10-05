@@ -1,6 +1,6 @@
 import {ActivityIndicator, Alert, AppState, Text, View} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {useCameraDevices} from 'react-native-vision-camera';
+import {useCameraDevice} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -63,8 +63,7 @@ const defaultProps = {
 };
 
 function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) {
-    const devices = useCameraDevices('wide-angle-camera');
-    const device = devices.back;
+    const device = useCameraDevice('back');
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
