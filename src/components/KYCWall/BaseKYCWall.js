@@ -100,7 +100,8 @@ class KYCWall extends React.Component {
             this.setState({shouldShowAddPaymentMenu: false});
             return;
         }
-        const targetElement = this.anchorRef.current || event.nativeEvent.target; // safety check - use target from event if anchorRef is null
+        // Use event target as fallback if anchorRef is null for safety
+        const targetElement = this.anchorRef.current || event.nativeEvent.target;
         this.setState({transferBalanceButton: targetElement});
         const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
         const paymentCardList = this.props.fundList || {};
