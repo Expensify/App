@@ -520,7 +520,7 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
                 managerID: assigneeAccountID || report.managerID,
                 managerEmail: assigneeEmail || report.managerEmail,
                 pendingFields: {
-                    ...(assigneeAccountID && {managerID: null}),
+                    ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
             },
         },
@@ -529,7 +529,7 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {pendingFields: {managerID: null}},
+            value: {pendingFields: {...(assigneeAccountID && {managerID: null})}},
         },
     ];
     const failureData = [
