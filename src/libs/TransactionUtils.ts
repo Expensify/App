@@ -75,6 +75,13 @@ function buildOptimisticTransaction(
         category,
         tag,
         billable,
+        mcc: '',
+        modifiedMCC: '',
+        status: CONST.TRANSACTION.STATUS.PENDING,
+        originalAmount: amount,
+        originalCurrency: currency,
+        parentTransactionID: '',
+        cardID: '',
     };
 }
 

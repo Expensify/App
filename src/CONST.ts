@@ -682,6 +682,10 @@ const CONST = {
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
         },
+        STATUS: {
+            POSTED: 'Posted',
+            PENDING: 'Pending',
+        }
     },
     JSON_CODE: {
         SUCCESS: 200,
