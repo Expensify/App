@@ -31,7 +31,7 @@ function GlobalNavigation() {
     return (
         <View style={[styles.ph5, styles.pv3, styles.alignItemsCenter, styles.h100, styles.globalNavigation]}>
             <SignInOrAvatarWithOptionalStatus />
-            <View style={styles.mt4}>
+            <View style={styles.globalNavigationMenuContainer}>
                 {_.map(items, (item) => (
                     <GlobalNavigationMenuItem
                         key={item.value}

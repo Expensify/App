@@ -143,7 +143,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     return (
         <View style={[styles.flex1, styles.h100]}>
             <View
-                style={[styles.flexRow, styles.ph5, styles.pb4, styles.pt6, styles.justifyContentBetween, styles.alignItemsCenter]}
+                style={styles.sidebarHeaderContainer}
                 dataSet={{dragArea: true}}
             >
                 <Header

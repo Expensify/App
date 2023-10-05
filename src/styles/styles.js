@@ -1235,6 +1235,14 @@ const styles = (theme) => ({
         height: '100%',
     },
 
+    sidebarHeaderContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingVertical: 19,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+
     subNavigationContainer: {
         backgroundColor: theme.sidebar,
         flex: 1,
@@ -3720,6 +3728,10 @@ const styles = (theme) => ({
     globalNavigation: {
         width: variables.globalNavigationWidth,
         backgroundColor: theme.highlightBG,
+    },
+
+    globalNavigationMenuContainer: {
+        marginTop: 13,
     },
 
     globalAndSubNavigationContainer: {
