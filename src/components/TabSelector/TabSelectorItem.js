@@ -57,13 +57,13 @@ function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, 
                     >
                         <TabIcon
                             icon={icon}
-                            activeOpacity={styles.tabActiveOpacity(hovered, isFocused, activeOpacity)}
-                            inactiveOpacity={styles.tabInactiveOpacity(hovered, isFocused, inactiveOpacity)}
+                            activeOpacity={styles.tabActiveOpacity(hovered, isFocused, activeOpacity, inactiveOpacity)}
+                            inactiveOpacity={styles.tabInactiveOpacity(hovered, isFocused, activeOpacity, inactiveOpacity)}
                         />
                         <TabLabel
                             title={title}
-                            activeOpacity={styles.tabActiveOpacity(hovered, isFocused, activeOpacity)}
-                            inactiveOpacity={styles.tabInactiveOpacity(hovered, isFocused, inactiveOpacity)}
+                            activeOpacity={styles.tabActiveOpacity(hovered, isFocused, activeOpacity, inactiveOpacity)}
+                            inactiveOpacity={styles.tabInactiveOpacity(hovered, isFocused, activeOpacity, inactiveOpacity)}
                         />
                     </AnimatedPressableWithFeedback>
                 )}

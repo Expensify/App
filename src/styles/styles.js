@@ -3454,9 +3454,9 @@ const styles = (theme) => ({
         backgroundColor: hovered && !isFocused ? theme.highlightBG : backgroundColor,
     }),
 
-    tabActiveOpacity: (hovered, isFocused, activeOpacity) => (hovered && !isFocused ? {opacity: 1} : {opacity: activeOpacity}),
+    tabActiveOpacity: (hovered, isFocused, activeOpacity, inactiveOpacity) => (hovered && !isFocused ? {opacity: inactiveOpacity} : {opacity: activeOpacity}),
 
-    tabInactiveOpacity: (hovered, isFocused, inactiveOpacity) => (hovered && !isFocused ? {opacity: 0} : {opacity: inactiveOpacity}),
+    tabInactiveOpacity: (hovered, isFocused,  activeOpacity, inactiveOpacity) => (hovered && !isFocused ? {opacity: activeOpacity} : {opacity: inactiveOpacity}),
 
     /**
      * @param {String} backgroundColor
