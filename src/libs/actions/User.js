@@ -471,8 +471,10 @@ function triggerNotifications(onyxUpdates) {
 
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = _.values(update.value);
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(reportActions);
-        Report.showReportActionNotification(reportID, _.last(sortedReportActions));
+
+        // eslint-disable-next-line rulesdir/no-negated-variables
+        const notifiableActions = _.filter(reportActions, (action) => ReportActionsUtils.isNotifiableReportAction(action));
+        _.each(notifiableActions, (action) => Report.showReportActionNotification(reportID, action));
     });
 }
 
@@ -785,7 +787,6 @@ function updateTheme(theme) {
  * @param {Object} status
  * @param {String} status.text
  * @param {String} status.emojiCode
- * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
  */
 function updateCustomStatus(status) {
     API.write('UpdateStatus', status, {
