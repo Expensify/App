@@ -76,7 +76,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
       - name: Setup git for OSBotify
-        uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        uses: ./.github/actions/composite/setupGitForOSBotify
         id: setupGitForOSBotify
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
