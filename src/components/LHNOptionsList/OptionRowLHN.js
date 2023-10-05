@@ -1,8 +1,9 @@
 import _ from 'underscore';
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
+import {useFocusEffect} from '@react-navigation/native';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -25,6 +26,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
 import Permissions from '../../libs/Permissions';
 import Tooltip from '../Tooltip';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Style for hovered state */
@@ -65,11 +67,22 @@ const defaultProps = {
 
 function OptionRowLHN(props) {
     const popoverAnchor = useRef(null);
+    const isFocusedRef = useRef(true);
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const {translate} = useLocalize();
 
     const optionItem = props.optionItem;
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            isFocusedRef.current = true;
+            return () => {
+                isFocusedRef.current = false;
+            };
+        }, []),
+    );
 
     if (!optionItem) {
         return null;
@@ -85,8 +98,8 @@ function OptionRowLHN(props) {
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
     const alternateTextStyle = StyleUtils.combineStyles(
         props.viewMode === CONST.OPTION_MODE.COMPACT
-            ? [textStyle, styles.optionAlternateText, styles.noWrap, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
-            : [textStyle, styles.optionAlternateText, styles.noWrap, styles.textLabelSupporting],
+            ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
+            : [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting],
         props.style,
     );
     const contentContainerStyles =
@@ -104,12 +117,20 @@ function OptionRowLHN(props) {
     const shouldShowGreenDotIndicator =
         !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
 
+    const fullTitle =
+        optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.isArchivedRoom && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 1
+            ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips)
+            : optionItem.text;
+
     /**
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
+        if (!isFocusedRef.current && isSmallScreenWidth) {
+            return;
+        }
         setIsContextMenuActive(true);
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
@@ -206,7 +227,7 @@ function OptionRowLHN(props) {
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
                                             accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={optionItem.text}
+                                            fullTitle={fullTitle}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
