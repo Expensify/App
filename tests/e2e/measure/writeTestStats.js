@@ -25,6 +25,7 @@ module.exports = (stats, path = OUTPUT_FILE_CURRENT) => {
     try {
         const content = JSON.parse(fs.readFileSync(path, 'utf8'));
         const line = `${JSON.stringify(content.concat([stats]))}\n`;
+        console.log(`ROPO writting results to ${path}`);
         fs.writeFileSync(path, line);
     } catch (error) {
         console.error(`Error writing ${path}`, error);

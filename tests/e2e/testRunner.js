@@ -13,7 +13,6 @@ const defaultConfig = require('./config');
 const compare = require('./compare/compare');
 const Logger = require('./utils/logger');
 const execAsync = require('./utils/execAsync');
-const killApp = require('./utils/killApp');
 const launchApp = require('./utils/launchApp');
 const createServerInstance = require('./server');
 const installApp = require('./utils/installApp');
@@ -22,6 +21,9 @@ const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
 const reversePort = require('./utils/androidReversePort');
 const getCurrentBranchName = require('./utils/getCurrentBranchName');
+const rebootEmulator = require('./utils/rebootEmulator');
+const sleep = require('./utils/sleep');
+const checkEmulatorIsBooted = require('./utils/checkEmulatorIsBooted');
 
 const args = process.argv.slice(2);
 
@@ -71,9 +73,18 @@ if (isDevMode) {
     Logger.note(`Running in development mode. Set baseline branch to same as current ${baselineBranch}`);
 }
 
-const restartApp = async () => {
-    Logger.log('Killing app …');
-    await killApp('android', config.APP_PACKAGE);
+const restartApp = async (appPath) => {
+    Logger.log('Rebooting Emulator …');
+    await rebootEmulator('android');
+    let emulatorIsBooted = await checkEmulatorIsBooted();
+    while (emulatorIsBooted.trim() !== '1') {
+        await sleep(1000);
+        emulatorIsBooted = await checkEmulatorIsBooted();
+    }
+    // Give it a bit more time to stabilize
+    await sleep(5000);
+    await installApp('android', config.APP_PACKAGE, appPath);
+    await reversePort();
     Logger.log('Launching app …');
     await launchApp('android', config.APP_PACKAGE);
 };
@@ -127,8 +138,8 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
 
     // Install app and reverse port
     let progressLog = Logger.progressInfo('Installing app and reversing port');
-    await installApp('android', config.APP_PACKAGE, appPath);
-    await reversePort();
+    // await installApp('android', config.APP_PACKAGE, appPath);
+    // await reversePort();
     progressLog.done();
 
     // Start the HTTP server
@@ -169,33 +180,13 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
 
         server.setTestConfig(testConfig);
 
-        const warmupLogs = Logger.progressInfo(`Running test '${testConfig.name}'`);
-        for (let warmUpRuns = 0; warmUpRuns < config.WARM_UP_RUNS; warmUpRuns++) {
-            const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${testConfig.name}' (iteration ${warmUpRuns + 1}/${config.WARM_UP_RUNS})`;
-            warmupLogs.updateText(progressText);
-
-            await restartApp();
-
-            await withFailTimeout(
-                new Promise((resolve) => {
-                    const cleanup = server.addTestDoneListener(() => {
-                        Logger.log(`Warmup ${warmUpRuns + 1} done!`);
-                        cleanup();
-                        resolve();
-                    });
-                }),
-                progressText,
-            );
-        }
-        warmupLogs.done();
-
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
         for (let i = 0; i < config.RUNS; i++) {
             const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${testConfig.name}' (iteration ${i + 1}/${config.RUNS})`;
             testLog.updateText(progressText);
 
-            await restartApp();
+            await restartApp(appPath);
 
             // Wait for a test to finish by waiting on its done call to the http server
             try {
