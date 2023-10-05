@@ -120,11 +120,11 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}
 
         // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
         // create menu right now. We should also stay on the workspace page if that is our destination.
-        const topRoute = routes[routes.length - 1];
-        const isWorkspaceRoute = topRoute.name === 'Settings' && topRoute.params?.path.includes('workspace');
+        const topRoute = routes.length > 0 ? routes[routes.length - 1] : undefined;
+        const isWorkspaceRoute = topRoute !== undefined && topRoute.name === 'Settings' && topRoute.params?.path.includes('workspace');
         const transitionRoute = routes.find((route) => route.name === SCREENS.TRANSITION_BETWEEN_APPS);
         const exitingToWorkspaceRoute = transitionRoute?.params?.exitTo === 'workspace/new';
-        const openOnAdminRoom = topRoute.params?.openOnAdminRoom ?? false;
+        const openOnAdminRoom = topRoute === undefined ? undefined : topRoute.params?.openOnAdminRoom ?? false;
         const isDisplayingWorkspaceRoute = isWorkspaceRoute ?? exitingToWorkspaceRoute;
 
         // If we already opened the workspace settings or want the admin room to stay open, do not
