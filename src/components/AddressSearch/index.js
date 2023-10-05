@@ -344,8 +344,8 @@ function AddressSearch(props) {
                                 props.onInputChange({street: text});
                             }
 
-                            // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
-                            if (_.isEmpty(text)) {
+                            // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
+                            if (_.isEmpty(text) && _.isEmpty(props.predefinedPlaces)) {
                                 setDisplayListViewBorder(false);
                             }
                         },
