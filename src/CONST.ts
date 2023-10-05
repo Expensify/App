@@ -685,7 +685,7 @@ const CONST = {
         STATUS: {
             POSTED: 'Posted',
             PENDING: 'Pending',
-        }
+        },
     },
     JSON_CODE: {
         SUCCESS: 200,
