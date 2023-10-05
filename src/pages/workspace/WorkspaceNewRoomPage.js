@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -9,12 +9,12 @@ import * as App from '../../libs/actions/App';
 import useLocalize from '../../hooks/useLocalize';
 import styles from '../../styles/styles';
 import RoomNameInput from '../../components/RoomNameInput';
-import Picker from '../../components/Picker';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Text from '../../components/Text';
+import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
@@ -25,6 +25,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
+import ValuePicker from '../../components/ValuePicker';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -72,6 +73,7 @@ function WorkspaceNewRoomPage(props) {
     const {translate} = useLocalize();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
+    const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
     const isPolicyAdmin = useMemo(() => {
         if (!policyID) {
@@ -86,8 +88,16 @@ function WorkspaceNewRoomPage(props) {
      */
     const submit = (values) => {
         const policyMembers = _.map(_.keys(props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
-        Report.addPolicyReport(values.policyID, values.roomName, values.visibility, policyMembers, values.writeCapability);
+        Report.addPolicyReport(policyID, values.roomName, visibility, policyMembers, writeCapability, values.welcomeMessage);
     };
+
+    useEffect(() => {
+        if (isPolicyAdmin) {
+            return;
+        }
+
+        setWriteCapability(CONST.REPORT.WRITE_CAPABILITIES.ALL);
+    }, [policyID, isPolicyAdmin]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -169,7 +179,6 @@ function WorkspaceNewRoomPage(props) {
                         <Form
                             formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                             submitButtonText={translate('newRoomPage.createRoom')}
-                            scrollContextEnabled
                             style={[styles.mh5, styles.flexGrow1]}
                             validate={validate}
                             onSubmit={submit}
@@ -183,32 +192,46 @@ function WorkspaceNewRoomPage(props) {
                                     autoFocus
                                 />
                             </View>
-                            <View style={styles.mb2}>
-                                <Picker
+                            <View style={styles.mb5}>
+                                <TextInput
+                                    inputID="welcomeMessage"
+                                    label={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                    accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    autoGrowHeight
+                                    maxLength={CONST.MAX_COMMENT_LENGTH}
+                                    autoCapitalize="none"
+                                    textAlignVertical="top"
+                                    containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                />
+                            </View>
+                            <View style={[styles.mhn5]}>
+                                <ValuePicker
                                     inputID="policyID"
                                     label={translate('workspace.common.workspace')}
-                                    placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
+                                    placeholder={translate('newRoomPage.selectAWorkspace')}
                                     items={workspaceOptions}
                                     onValueChange={setPolicyID}
                                 />
                             </View>
                             {isPolicyAdmin && (
-                                <View style={styles.mb2}>
-                                    <Picker
+                                <View style={styles.mhn5}>
+                                    <ValuePicker
                                         inputID="writeCapability"
                                         label={translate('writeCapabilityPage.label')}
                                         items={writeCapabilityOptions}
-                                        defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
+                                        value={writeCapability}
+                                        onValueChange={setWriteCapability}
                                     />
                                 </View>
                             )}
-                            <View style={styles.mb2}>
-                                <Picker
+                            <View style={[styles.mb1, styles.mhn5]}>
+                                <ValuePicker
                                     inputID="visibility"
                                     label={translate('newRoomPage.visibility')}
                                     items={visibilityOptions}
                                     onValueChange={setVisibility}
-                                    defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
+                                    value={visibility}
                                 />
                             </View>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>

@@ -18,9 +18,6 @@ type Report = {
     /** Indicates if the report is pinned to the LHN or not */
     isPinned?: boolean;
 
-    /** The email of the last message's actor */
-    lastActorEmail?: string;
-
     /** The text of the last message on the report */
     lastMessageText?: string;
 
@@ -47,9 +44,6 @@ type Report = {
 
     /** The email address of the manager */
     managerEmail?: string;
-
-    /** List of primarylogins of participants of the report */
-    participants?: string[];
 
     /** Linked policy's ID */
     policyID?: string;
