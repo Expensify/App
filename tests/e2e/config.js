@@ -21,7 +21,7 @@ const TEST_NAMES = {
  * ```
  */
 module.exports = {
-    APP_PACKAGE: 'com.expensify.chat',
+    APP_PACKAGE: 'com.expensify.chat.adhoc',
 
     APP_PATHS: {
         baseline: './app-e2eRelease-baseline.apk',
@@ -34,7 +34,7 @@ module.exports = {
     SERVER_PORT: 4723,
 
     // The amount of times a test should be executed for average performance metrics
-    RUNS: 30,
+    RUNS: 90,
 
     DEFAULT_BASELINE_BRANCH: 'main',
 
