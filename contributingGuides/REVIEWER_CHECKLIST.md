@@ -10,12 +10,12 @@
 - [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified tests pass on **all platforms** & I tested again on:
-    - [ ] Android / native
-    - [ ] Android / Chrome
-    - [ ] iOS / native
-    - [ ] iOS / Safari
-    - [ ] MacOS / Chrome / Safari
-    - [ ] MacOS / Desktop
+    - [ ] Android: Native
+    - [ ] Android: mWeb Chrome
+    - [ ] iOS: Native
+    - [ ] iOS: mWeb Safari
+    - [ ] MacOS: Chrome / Safari
+    - [ ] MacOS: Desktop
 - [ ] If there are any errors in the console that are unrelated to this PR, I either fixed them (preferred) or linked to where I reported them in Slack
 - [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`).
