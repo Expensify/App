@@ -212,7 +212,7 @@ function MoneyRequestPreview(props) {
 
     const getDisplayAmountText = () => {
         if (isDistanceRequest) {
-            return CurrencyUtils.convertToDisplayString(TransactionUtils.getAmount(props.transaction), props.transaction.currency);
+            return requestAmount ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : props.translate('common.tbd');
         }
 
         if (isScanning) {
