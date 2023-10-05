@@ -1,5 +1,5 @@
 import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
-import {View, NativeModules, findNodeHandle, InteractionManager} from 'react-native';
+import {View, NativeModules, findNodeHandle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -454,10 +454,8 @@ function ComposerWithSuggestions({
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            updateMultilineInputRange(textInputRef.current);
-            focus(); // This will focus the composer after its fully rendered.
-        });
+        updateMultilineInputRange(textInputRef.current);
+        focus(); // Manually focus the input - as we have disabled `autoFocus` flag in `Composer`.
     }, [focus, shouldAutoFocus]);
 
     useEffect(() => {
