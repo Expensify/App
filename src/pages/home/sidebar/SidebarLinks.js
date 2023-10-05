@@ -24,7 +24,6 @@ import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
 import Text from '../../../components/Text';
-import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 import useLocalize from '../../../hooks/useLocalize';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
@@ -162,7 +161,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                         <Icon src={Expensicons.MagnifyingGlass} />
                     </PressableWithoutFeedback>
                 </Tooltip>
-                <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
             </View>
 
             <LHNOptionsList

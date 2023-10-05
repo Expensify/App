@@ -34,7 +34,7 @@ function GlobalNavigation() {
             <View style={styles.mt4}>
                 {_.map(items, (item) => (
                     <GlobalNavigationMenuItem
-                        key={item.text}
+                        key={item.value}
                         icon={item.icon}
                         title={item.text}
                         onPress={() => item.onSelected(item.value)}

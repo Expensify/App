@@ -3731,10 +3731,10 @@ const styles = (theme) => ({
         height: 52,
         borderTopRightRadius: variables.componentBorderRadiusRounded,
         borderBottomRightRadius: variables.componentBorderRadiusRounded,
-        backgroundColor: isFocused ? defaultTheme.iconMenu : defaultTheme.transparent,
+        backgroundColor: isFocused ? theme.iconMenu : theme.transparent,
     }),
 
-    globalNavigationMenuItem: (isFocused) => (isFocused ? {color: defaultTheme.textLight, fontWeight: fontWeightBold} : {color: defaultTheme.icon}),
+    globalNavigationMenuItem: (isFocused) => (isFocused ? {color: theme.textLight, fontWeight: fontWeightBold, fontFamily: fontFamily.EXP_NEUE_BOLD} : {color: theme.icon}),
 
     globalNavigationItemContainer: {
         width: variables.globalNavigationWidth,

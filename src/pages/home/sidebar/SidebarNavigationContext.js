@@ -39,7 +39,6 @@ function SidebarNavigationContextProvider({children}) {
             selectedSubNavigationOption,
             updateFromNavigationState,
         }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [selectedGlobalNavigationOption, selectedSubNavigationOption, updateFromNavigationState],
     );
 
