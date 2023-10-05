@@ -92,7 +92,6 @@ function ExpensifyCardPage({
                                         cvv="321"
                                     />
                                 ) : (
-                                    <>
                                     <MenuItemWithTopDescription
                                         description={translate('cardPage.virtualCardNumber')}
                                         title={CardUtils.maskCard(virtualCard.lastFourPAN)}
@@ -108,15 +107,14 @@ function ExpensifyCardPage({
                                             />
                                         }
                                     />
-                                                                    <MenuItemWithTopDescription
+                                )}
+                                <MenuItemWithTopDescription
                                     title={translate('cardPage.reportFraud')}
                                     titleStyle={styles.walletCardMenuItem}
                                     icon={Expensicons.Flag}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain))}
                                 />
-                                    </>
-                                )}
                             </>
                         )}
                         {!_.isEmpty(physicalCard) && (
