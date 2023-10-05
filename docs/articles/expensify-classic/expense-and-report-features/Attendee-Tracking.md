@@ -1,6 +1,6 @@
 ---
 title: Attendee Tracking
-description: Attendee Tracking
+description: Attendee Tracking is an easy way to record meeting and event attendees, as well as showing the amount per employee for transparent group spending.
 ---
 
 Attendee Tracking is an easy way to record meeting and event attendees, as well as showing the amount per employee for transparent group spending.
