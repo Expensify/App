@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -67,6 +67,7 @@ function MoneyRequestConfirmPage(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const [receiptFile, setReceiptFile] = useState();
     const participants = useMemo(
         () =>
             _.map(props.iou.participants, (participant) => {
@@ -77,7 +78,27 @@ function MoneyRequestConfirmPage(props) {
     );
     const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
+    const navigateBack = () => {
+        let fallback;
+        if (reportID.current) {
+            fallback = ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current);
+        } else {
+            fallback = ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType.current);
+        }
+        Navigation.goBack(fallback);
+    };
+
     useEffect(() => {
+        if (props.iou.receiptPath && props.iou.receiptSource) {
+            FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
+                if (!receipt) {
+                    navigateBack();
+                } else {
+                    setReceiptFile(receipt);
+                }
+            });
+        }
+
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
@@ -86,7 +107,7 @@ function MoneyRequestConfirmPage(props) {
         if (typeof props.iou.billable !== 'boolean') {
             IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
         }
-    }, [isOffline, participants, props.iou.billable, props.policy]);
+    }, [isOffline, participants, props.iou.billable, props.iou.receiptPath, props.iou.receiptSource, props.policy]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
@@ -113,16 +134,6 @@ function MoneyRequestConfirmPage(props) {
             prevMoneyRequestId.current = props.iou.id;
         };
     }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath, isDistanceRequest]);
-
-    const navigateBack = () => {
-        let fallback;
-        if (reportID.current) {
-            fallback = ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current);
-        } else {
-            fallback = ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType.current);
-        }
-        Navigation.goBack(fallback);
-    };
 
     /**
      * @param {Array} selectedParticipants
@@ -216,12 +227,8 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            if (props.iou.receiptPath && props.iou.receiptSource) {
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
-                    const receipt = file;
-                    receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
-                    requestMoney(selectedParticipants, trimmedComment, receipt);
-                });
+            if (receiptFile) {
+                requestMoney(selectedParticipants, trimmedComment, receiptFile);
                 return;
             }
 
@@ -238,12 +245,10 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.login,
             props.currentUserPersonalDetails.accountID,
             props.iou.currency,
-            props.iou.receiptPath,
-            props.iou.receiptSource,
             isDistanceRequest,
             requestMoney,
             createDistanceRequest,
-            isManualRequestDM,
+            receiptFile,
         ],
     );
 
