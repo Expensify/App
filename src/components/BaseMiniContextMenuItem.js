@@ -61,6 +61,12 @@ function BaseMiniContextMenuItem(props) {
                         return;
                     }
 
+                    // Allow text input blur on right click
+                    if (!e || e.button === 2) {
+                        return;
+                    }
+
+                    // Prevent text input blur on left click
                     e.preventDefault();
                 }}
                 accessibilityLabel={props.tooltipText}

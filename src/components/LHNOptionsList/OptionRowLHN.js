@@ -171,11 +171,12 @@ function OptionRowLHN(props) {
                             props.onSelectRow(optionItem, popoverAnchor);
                         }}
                         onMouseDown={(e) => {
-                            if (!e) {
+                            // Allow composer blur on right click
+                            if (!e || e.button === 2) {
                                 return;
                             }
 
-                            // Prevent losing Composer focus
+                            // Prevent composer blur on left click
                             e.preventDefault();
                         }}
                         onSecondaryInteraction={(e) => showPopover(e)}
