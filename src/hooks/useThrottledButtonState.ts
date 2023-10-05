@@ -1,6 +1,8 @@
 import {useEffect, useState} from 'react';
 
-export default function useThrottledButtonState(): [boolean, () => void] {
+type ThrottledButtonState = [boolean, () => void];
+
+export default function useThrottledButtonState(): ThrottledButtonState {
     const [isButtonActive, setIsButtonActive] = useState(true);
 
     useEffect(() => {
