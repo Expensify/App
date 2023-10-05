@@ -1,7 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {Keyboard, InteractionManager, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {useNavigation} from '@react-navigation/native';
@@ -176,15 +176,6 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
 
-    const focusAddressInput = () => {
-        InteractionManager.runAfterInteractions(() => {
-            if (!textInput.current) {
-                return;
-            }
-            textInput.current.focus();
-        });
-    };
-
     /**
      * Sets user current location as a waypoint
      * @param {Object} geolocationData
@@ -228,14 +219,12 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                             onSelected: () => setIsDeleteStopModalOpen(true),
                         },
                     ]}
-                    onModalHide={focusAddressInput}
                 />
                 <ConfirmModal
                     title={translate('distance.deleteWaypoint')}
                     isVisible={isDeleteStopModalOpen}
                     onConfirm={deleteStopAndHideModal}
                     onCancel={() => setIsDeleteStopModalOpen(false)}
-                    onModalHide={focusAddressInput}
                     prompt={translate('distance.deleteWaypointConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
