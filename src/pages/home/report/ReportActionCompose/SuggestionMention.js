@@ -234,10 +234,7 @@ function SuggestionMention({
 
     useEffect(() => {
         calculateMentionSuggestion(selection.end);
-
-        // We want this hook to run only on selection change.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selection]);
+    }, [selection, calculateMentionSuggestion]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
