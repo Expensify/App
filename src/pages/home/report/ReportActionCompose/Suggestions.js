@@ -2,7 +2,6 @@ import React, {useRef, useCallback, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
 import SuggestionMention from './SuggestionMention';
 import SuggestionEmoji from './SuggestionEmoji';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as SuggestionProps from './suggestionProps';
 
 const propTypes = {
@@ -15,11 +14,15 @@ const propTypes = {
     /** Function to clear the input */
     resetKeyboardInput: PropTypes.func.isRequired,
 
+    /** Is auto suggestion picker large */
+    isAutoSuggestionPickerLarge: PropTypes.bool,
+
     ...SuggestionProps.baseProps,
 };
 
 const defaultProps = {
     forwardedRef: null,
+    isAutoSuggestionPickerLarge: true,
 };
 
 /**
@@ -40,6 +43,7 @@ function Suggestions({
     onInsertedEmoji,
     resetKeyboardInput,
     measureParentContainer,
+    isAutoSuggestionPickerLarge,
 }) {
     const suggestionEmojiRef = useRef(null);
     const suggestionMentionRef = useRef(null);
@@ -89,12 +93,6 @@ function Suggestions({
         }),
         [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
     );
-
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
-
-    // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
-    const hasEnoughSpaceForLargeSuggestion = windowHeight / composerHeight >= 6.8;
-    const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
     const baseProps = {
         value,

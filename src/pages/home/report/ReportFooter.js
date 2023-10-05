@@ -38,6 +38,9 @@ const propTypes = {
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
 
+    /** Height of the list which the composer is part of */
+    listHeight: PropTypes.number,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -48,6 +51,7 @@ const defaultProps = {
     pendingAction: null,
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
+    listHeight: 0,
 };
 
 function ReportFooter(props) {
@@ -86,6 +90,7 @@ function ReportFooter(props) {
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
                             disabled={props.shouldDisableCompose}
+                            listHeight={props.listHeight}
                         />
                     </SwipeableView>
                 </View>

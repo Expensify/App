@@ -93,6 +93,7 @@ function ComposerWithSuggestions({
     submitForm,
     shouldShowComposeInput,
     measureParentContainer,
+    listHeight,
     // Refs
     suggestionsRef,
     animatedRef,
@@ -127,6 +128,12 @@ function ComposerWithSuggestions({
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
+
+    const hasEnoughSpaceForLargeSuggestion =
+        listHeight - composerHeight - CONST.CHAT_FOOTER_SECONDARY_ROW_HEIGHT >
+        CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT +
+            CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING * 2;
+    const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
@@ -552,6 +559,7 @@ function ComposerWithSuggestions({
                 composerHeight={composerHeight}
                 onInsertedEmoji={onInsertedEmoji}
                 measureParentContainer={measureParentContainer}
+                isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
                 // Input
                 value={value}
                 setValue={setValue}
