@@ -16,6 +16,13 @@ function stripSpacesFromAmount(amount: string): string {
 }
 
 /**
+ * Strip decimals from the amount
+ */
+function stripDecimalsFromAmount(amount: string): string {
+    return amount.replace(/\.\d*$/, '');
+}
+
+/**
  * Adds a leading zero to the amount if user entered just the decimal separator
  *
  * @param amount - Changed amount from user input
@@ -42,8 +49,12 @@ function calculateAmountLength(amount: string): number {
 /**
  * Check if amount is a decimal up to 3 digits
  */
-function validateAmount(amount: string): boolean {
-    const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
+function validateAmount(amount: string, decimals: number): boolean {
+    const regexString =
+        decimals === 0
+            ? `^\\d+(,\\d*)*$` // Don't allow decimal point if decimals === 0
+            : `^\\d+(,\\d*)*(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
+    const decimalNumberRegex = new RegExp(regexString, 'i');
     return amount === '' || (decimalNumberRegex.test(amount) && calculateAmountLength(amount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
 }
 
@@ -78,4 +89,4 @@ function isScanRequest(selectedTab: ValueOf<typeof CONST.TAB>): boolean {
     return selectedTab === CONST.TAB.SCAN;
 }
 
-export {stripCommaFromAmount, stripSpacesFromAmount, addLeadingZero, validateAmount, replaceAllDigits, isDistanceRequest, isScanRequest};
+export {stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, addLeadingZero, validateAmount, replaceAllDigits, isDistanceRequest, isScanRequest};
