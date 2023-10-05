@@ -35,9 +35,9 @@ Check off any platforms that are affected by this issue
 --->
 Which of our officially supported platforms is this issue occurring on?
 - [ ] Android: Native
-- [ ] Android: Chrome
+- [ ] Android: mWeb Chrome
 - [ ] iOS: Native
-- [ ] iOS: Safari
+- [ ] iOS: mWeb Safari
 - [ ] MacOS: Chrome / Safari
 - [ ] MacOS: Desktop
 
@@ -50,7 +50,7 @@ Which of our officially supported platforms is this issue occurring on?
 </details>
 
 <details>
-<summary>Android: Chrome</summary>
+<summary>Android: mWeb Chrome</summary>
 
 <!-- add screenshots or videos here -->
 
@@ -64,7 +64,7 @@ Which of our officially supported platforms is this issue occurring on?
 </details>
 
 <details>
-<summary>iOS: Safari</summary>
+<summary>iOS: mWeb Safari</summary>
 
 <!-- add screenshots or videos here -->
 

@@ -71,9 +71,9 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I ran the tests on **all platforms** & verified they passed on:
     - [ ] Android: Native
-    - [ ] Android: Chrome
+    - [ ] Android: mWeb Chrome
     - [ ] iOS: Native
-    - [ ] iOS: Safari
+    - [ ] iOS: mWeb Safari
     - [ ] MacOS: Chrome / Safari
     - [ ] MacOS: Desktop
 - [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
@@ -127,7 +127,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 </details>
 
 <details>
-<summary>Android: Chrome</summary>
+<summary>Android: mWeb Chrome</summary>
 
 <!-- add screenshots or videos here -->
 
@@ -141,7 +141,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 </details>
 
 <details>
-<summary>iOS: Safari</summary>
+<summary>iOS: mWeb Safari</summary>
 
 <!-- add screenshots or videos here -->
 
