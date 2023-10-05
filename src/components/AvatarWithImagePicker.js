@@ -274,6 +274,42 @@ function AvatarWithImagePicker({
 
     const additionalStyles = _.isArray(style) ? style : [style];
 
+        /**
+     * Create menu items list for avatar menu
+     *
+     * @param {Function} openPicker
+     * @returns {Array}
+     */
+        const createMenuItems = (openPicker) => {
+            const menuItems = [
+                {
+                    icon: Expensicons.Upload,
+                    text: translate('avatarWithImagePicker.uploadPhoto'),
+                    onSelected: () => {
+                        if (Browser.isSafari()) {
+                            return;
+                        }
+                        openPicker({
+                            onPicked: showAvatarCropModal,
+                        });
+                    },
+                },
+            ];
+    
+            // If current avatar isn't a default avatar, allow Remove Photo option
+            if (!isUsingDefaultAvatar) {
+                menuItems.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate('avatarWithImagePicker.removePhoto'),
+                    onSelected: () => {
+                        setError(null, {});
+                        onImageRemoved();
+                    },
+                });
+            }
+            return menuItems;
+        };
+        
     return (
         <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                             <View style={[styles.pRelative, styles.avatarLarge]}>
@@ -323,64 +359,43 @@ function AvatarWithImagePicker({
                         fallbackSource={fallbackIcon}
                     >
                         {({show}) => (
-                            <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
-                                {({openPicker}) => {
-                                    const menuItems = [
-                                        {
-                                            icon: Expensicons.Upload,
-                                            text: translate('avatarWithImagePicker.uploadPhoto'),
-                                            onSelected: () => {
-                                                if (Browser.isSafari()) {
-                                                    return;
-                                                }
+                            <AttachmentPicker>
+                            {({openPicker}) => {
+                                const menuItems = createMenuItems(openPicker);
+                        
+                                // If the current avatar isn't a default avatar, allow the "View Photo" option
+                                if (!isUsingDefaultAvatar) {
+                                    menuItems.push({
+                                        icon: Expensicons.Eye,
+                                        text: translate('avatarWithImagePicker.viewPhoto'),
+                                        onSelected: show,
+                                    });
+                                }
+                        
+                                return (
+                                    <PopoverMenu
+                                        isVisible={isMenuVisible}
+                                        onClose={() => setIsMenuVisible(false)}
+                                        onItemSelected={(item, index) => {
+                                            setIsMenuVisible(false);
+                                            // In order for the file picker to open dynamically, the click
+                                            // function must be called from within an event handler that was initiated
+                                            // by the user on Safari.
+                                            if (index === 0 && Browser.isSafari()) {
                                                 openPicker({
                                                     onPicked: showAvatarCropModal,
                                                 });
-                                            },
-                                        },
-                                    ];
-
-                                    // If current avatar isn't a default avatar, allow Remove Photo option
-                                    if (!isUsingDefaultAvatar) {
-                                        menuItems.push({
-                                            icon: Expensicons.Trashcan,
-                                            text: translate('avatarWithImagePicker.removePhoto'),
-                                            onSelected: () => {
-                                                setError(null, {});
-                                                onImageRemoved();
-                                            },
-                                        });
-
-                                        menuItems.push({
-                                            icon: Expensicons.Eye,
-                                            text: translate('avatarWithImagePicker.viewPhoto'),
-                                            onSelected: () => show(),
-                                        });
-                                    }
-                                    return (
-                                        <PopoverMenu
-                                            isVisible={isMenuVisible}
-                                            onClose={() => setIsMenuVisible(false)}
-                                            onItemSelected={(item, index) => {
-                                                setIsMenuVisible(false);
-                                                // In order for the file picker to open dynamically, the click
-                                                // function must be called from within a event handler that was initiated
-                                                // by the user on Safari.
-                                                if (index === 0 && Browser.isSafari()) {
-                                                    openPicker({
-                                                        onPicked: showAvatarCropModal,
-                                                    });
-                                                }
-                                            }}
-                                            menuItems={menuItems}
-                                            anchorPosition={anchorPosition}
-                                            withoutOverlay
-                                            anchorRef={anchorRef}
-                                            anchorAlignment={anchorAlignment}
-                                        />
-                                    );
-                                }}
-                            </AttachmentPicker>
+                                            }
+                                        }}
+                                        menuItems={menuItems}
+                                        anchorPosition={anchorPosition}
+                                        withoutOverlay
+                                        anchorRef={anchorRef}
+                                        anchorAlignment={anchorAlignment}
+                                    />
+                                );
+                            }}
+                        </AttachmentPicker>
                         )}
                     </AttachmentModal>
                 </View>
