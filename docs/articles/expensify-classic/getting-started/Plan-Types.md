@@ -1,5 +1,5 @@
 ---
-title: Plan-Types
+title: Plan Types
 description: Learn which Expensify plan is the best fit for you
 ---
 # Overview
