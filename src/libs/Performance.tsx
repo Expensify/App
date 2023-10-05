@@ -17,9 +17,7 @@ type PerformanceEntriesCallback = (entry: PerformanceEntry) => void;
 
 type Phase = 'mount' | 'update';
 
-type WithRenderTraceHOC = <P extends Record<string, unknown>>(
-    WrappedComponent: React.ComponentType<P>,
-) => React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<unknown>>;
+type WithRenderTraceHOC = <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>) => React.ComponentType<P & React.RefAttributes<unknown>>;
 
 type BlankHOC = <P extends Record<string, unknown>>(Component: React.ComponentType<P>) => React.ComponentType<P>;
 
@@ -241,8 +239,8 @@ if (Metrics.canCapturePerformanceMetrics()) {
     Performance.withRenderTrace =
         ({id}: WrappedComponentConfig) =>
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<unknown>> => {
-            const WithRenderTrace = forwardRef((props: P, ref) => (
+        <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P & React.RefAttributes<unknown>> => {
+            const WithRenderTrace: React.ComponentType<P & React.RefAttributes<unknown>> = forwardRef((props: P, ref) => (
                 <Profiler
                     id={id}
                     onRender={Performance.traceRender}
