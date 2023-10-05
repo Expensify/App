@@ -186,6 +186,18 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
                         propsToParse.onTouched(event);
                     }
                 },
+                onPress: (event) => {
+                    setTouchedInput(inputID);
+                    if (_.isFunction(propsToParse.onPress)) {
+                        propsToParse.onPress(event);
+                    }
+                },
+                onPressIn: (event) => {
+                    setTouchedInput(inputID);
+                    if (_.isFunction(propsToParse.onPressIn)) {
+                        propsToParse.onPressIn(event);
+                    }
+                },
                 onBlur: (event) => {
                     // Only run validation when user proactively blurs the input.
                     if (Visibility.isVisible() && Visibility.hasFocus()) {

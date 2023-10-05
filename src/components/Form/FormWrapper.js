@@ -36,7 +36,7 @@ const propTypes = {
         isLoading: PropTypes.bool,
 
         /** Server side errors keyed by microtime */
-        errors: PropTypes.objectOf(PropTypes.oneOf([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])),
+        errors: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])),
 
         /** Field-specific server side errors keyed by microtime */
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
@@ -59,7 +59,7 @@ const propTypes = {
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
-    errors: PropTypes.objectOf(PropTypes.string).isRequired,
+    errors: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])),
 
     inputRefs: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.func, PropTypes.object])).isRequired,
 };
