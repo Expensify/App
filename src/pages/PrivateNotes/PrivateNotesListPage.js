@@ -64,10 +64,11 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
     const {translate} = useLocalize();
 
     useEffect(() => {
-        if (network.isOffline) {
+        if (network.isOffline && report.isLoadingPrivateNotes) {
             return;
         }
         Report.getReportPrivateNote(report.reportID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add isLoadingPrivateNotes to dependencies
     }, [report.reportID, network.isOffline]);
 
     /**
