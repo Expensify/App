@@ -172,7 +172,7 @@ function SignInPageLayout(props) {
                     <View style={[styles.flex0]}>
                         <Footer
                             scrollPageToTop={scrollPageToTop}
-                            isInModal={props.isInModal}
+                            shouldShowSmallScreen
                         />
                     </View>
                 </ScrollView>
