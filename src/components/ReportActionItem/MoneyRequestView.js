@@ -93,10 +93,15 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     } = ReportUtils.getTransactionDetails(transaction);
     const isEmptyMerchant =
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
+    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
+    if (isDistanceRequest && !formattedTransactionAmount) {
+        formattedTransactionAmount = translate('common.tbd');
+    }
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
 
@@ -130,7 +135,6 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
         hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
-    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const pendingAction = lodashGet(transaction, 'pendingAction');
     const getPendingFieldAction = (fieldPath) => lodashGet(transaction, fieldPath) || pendingAction;
 
