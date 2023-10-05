@@ -67,6 +67,12 @@ const propTypes = {
     /** Overrides the icon for shouldShowRightIcon */
     iconRight: PropTypes.elementType,
 
+    /** Function to fire when the right icon has been pressed */
+    onIconRightPress: PropTypes.func,
+
+    /** accessibilityLabel for the right icon when it's pressable */
+    iconRightAccessibilityLabel: PropTypes.string,
+
     /** A description text to show under the title */
     description: PropTypes.string,
 
@@ -147,6 +153,12 @@ const propTypes = {
 
     /** Should render the content in HTML format */
     shouldRenderAsHTML: PropTypes.bool,
+
+    /** Component to be displayed on the right */
+    rightComponent: PropTypes.node,
+
+    /** Should render component on the right */
+    shouldShowRightComponent: PropTypes.bool,
 };
 
 export default propTypes;
