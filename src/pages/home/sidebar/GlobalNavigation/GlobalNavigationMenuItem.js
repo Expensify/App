@@ -7,7 +7,6 @@ import * as StyleUtils from '../../../../styles/StyleUtils';
 import Icon from '../../../../components/Icon';
 import CONST from '../../../../CONST';
 import variables from '../../../../styles/variables';
-import defaultTheme from '../../../../styles/themes/default';
 import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
 import refPropTypes from '../../../../components/refPropTypes';
 
@@ -53,7 +52,7 @@ function GlobalNavigationMenuItem({icon, title, isFocused, onPress, forwardedRef
                             additionalStyles={[styles.popoverMenuIcon]}
                             pressed={pressed}
                             src={icon}
-                            fill={isFocused ? defaultTheme.iconMenu : defaultTheme.icon}
+                            fill={isFocused ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DEFAULT, true) : StyleUtils.getIconFillColor()}
                         />
                         <View style={[styles.mt1, styles.alignItemsCenter]}>
                             <Text style={[StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall), styles.globalNavigationMenuItem(isFocused)]}>{title}</Text>

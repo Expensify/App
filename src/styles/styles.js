@@ -3734,7 +3734,7 @@ const styles = (theme) => ({
         backgroundColor: isFocused ? theme.iconMenu : theme.transparent,
     }),
 
-    globalNavigationMenuItem: (isFocused) => (isFocused ? {color: theme.textLight, fontWeight: fontWeightBold, fontFamily: fontFamily.EXP_NEUE_BOLD} : {color: theme.icon}),
+    globalNavigationMenuItem: (isFocused) => (isFocused ? {color: theme.text, fontWeight: fontWeightBold, fontFamily: fontFamily.EXP_NEUE_BOLD} : {color: theme.icon}),
 
     globalNavigationItemContainer: {
         width: variables.globalNavigationWidth,
