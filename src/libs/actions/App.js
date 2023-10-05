@@ -209,6 +209,18 @@ function openApp() {
     });
 }
 
+let priorityMode;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: (nextPriorityMode) => {
+        // When someone switches their priority mode we need to fetch all their chats. This is only possible via the OpenApp command.
+        if (nextPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
+            openApp();
+        }
+        priorityMode = nextPriorityMode;
+    },
+});
+
 /**
  * Fetches data when the app reconnects to the network
  * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
