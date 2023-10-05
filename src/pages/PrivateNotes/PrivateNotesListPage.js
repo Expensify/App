@@ -68,7 +68,8 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
             return;
         }
         Report.getReportPrivateNote(report.reportID);
-    }, [report.reportID, network.isOffline, report.isLoadingPrivateNotes]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add isLoadingPrivateNotes to dependencies
+    }, [report.reportID, network.isOffline]);
 
     /**
      * Gets the menu item for each workspace
