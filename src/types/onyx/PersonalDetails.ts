@@ -37,6 +37,9 @@ type PersonalDetails = {
     /** Pronouns of the current user from their personal details */
     pronouns?: string;
 
+    /** User status */
+    status: {text: string; emojiCode: string; clearAfter?: string} | null;
+
     /** Local currency for the user */
     localCurrencyCode?: string;
 

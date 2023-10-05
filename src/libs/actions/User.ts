@@ -1,4 +1,4 @@
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
+import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
@@ -18,7 +18,9 @@ import * as OnyxUpdates from './OnyxUpdates';
 import redirectToSignIn from './SignInRedirect';
 import type Login from '../../types/onyx/Login';
 import type OnyxPersonalDetails from '../../types/onyx/PersonalDetails';
-import type {OnyxUpdatesFromServer} from '../../types/onyx';
+import type {FrequentlyUsedEmoji, OnyxUpdatesFromServer} from '../../types/onyx';
+import {OnyxServerUpdate} from '../../types/onyx/OnyxUpdatesFromServer';
+import ReportAction from '../../types/onyx/ReportAction';
 
 type CustomStatus = {text: string; emojiCode: string; clearAfter?: string};
 type BlockedFromConciergeNVP = {expiresAt: number};
@@ -27,21 +29,21 @@ let currentUserAccountID = -1;
 let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        currentUserAccountID = val?.accountID ?? -1;
-        currentEmail = val?.email ?? '';
+    callback: (value) => {
+        currentUserAccountID = value?.accountID ?? -1;
+        currentEmail = value?.email ?? '';
     },
 });
 
 let myPersonalDetails: Partial<OnyxPersonalDetails> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        if (!val || !currentUserAccountID) {
+    callback: (value) => {
+        if (!value || !currentUserAccountID) {
             return;
         }
 
-        myPersonalDetails = val[currentUserAccountID];
+        myPersonalDetails = value[currentUserAccountID];
     },
 });
 
@@ -53,32 +55,38 @@ Onyx.connect({
 function closeAccount(message: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
     // command succeeds, a Pusher response will clear all Onyx data.
-    API.write(
-        'CloseAccount',
-        {message},
+
+    type CloseAccountParam = {message: string};
+
+    const parameters: CloseAccountParam = {message};
+
+    const optimisticData: OnyxUpdate[] = [
         {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
-                    value: {isLoading: true},
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
-                    value: {isLoading: false},
-                },
-            ],
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
+            value: {isLoading: true},
         },
-    );
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
+    API.write('CloseAccount', parameters, {
+        optimisticData,
+        failureData,
+    });
     // Run cleanup actions to prevent reconnection callbacks from blocking logging in again
     redirectToSignIn();
 }
 
 /**
  * Resends a validation link to a given login
+ * @param login
+ * @param isPasswordless - temporary param to trigger passwordless flow in backend
  */
 function resendValidateCode(login: string) {
     Session.resendValidateCode(login);
@@ -90,7 +98,7 @@ function resendValidateCode(login: string) {
  * @param contactMethod - the new contact method that the user is trying to verify
  */
 function requestContactMethodValidateCode(contactMethod: string) {
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -108,7 +116,7 @@ function requestContactMethodValidateCode(contactMethod: string) {
             },
         },
     ];
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -122,7 +130,7 @@ function requestContactMethodValidateCode(contactMethod: string) {
             },
         },
     ];
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -140,52 +148,51 @@ function requestContactMethodValidateCode(contactMethod: string) {
         },
     ];
 
-    API.write(
-        'RequestContactMethodValidateCode',
-        {
-            email: contactMethod,
-        },
-        {optimisticData, successData, failureData},
-    );
+    type RequestContactMethodValidateCodeParam = {email: string};
+
+    const parameters: RequestContactMethodValidateCodeParam = {email: contactMethod};
+
+    API.write('RequestContactMethodValidateCode', parameters, {optimisticData, successData, failureData});
 }
 
 /**
  * Sets whether the user is subscribed to Expensify news
  */
 function updateNewsletterSubscription(isSubscribed: boolean) {
-    API.write(
-        'UpdateNewsletterSubscription',
+    type UpdateNewsletterSubscriptionParam = {isSubscribed: boolean};
+
+    const parameters: UpdateNewsletterSubscriptionParam = {isSubscribed};
+
+    const optimisticData: OnyxUpdate[] = [
         {
-            isSubscribed,
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER,
+            value: {isSubscribedToNewsletter: isSubscribed},
         },
+    ];
+    const failureData: OnyxUpdate[] = [
         {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.USER,
-                    value: {isSubscribedToNewsletter: isSubscribed},
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.USER,
-                    value: {isSubscribedToNewsletter: !isSubscribed},
-                },
-            ],
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER,
+            value: {isSubscribedToNewsletter: !isSubscribed},
         },
-    );
+    ];
+
+    API.write('UpdateNewsletterSubscription', parameters, {
+        optimisticData,
+        failureData,
+    });
 }
 
 /**
  * Delete a specific contact method
- *
  * @param contactMethod - the contact method being deleted
+ * @param loginList
  */
 function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>) {
     const oldLoginData = loginList[contactMethod];
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -202,7 +209,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
             },
         },
     ];
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -211,7 +218,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
             },
         },
     ];
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -229,13 +236,11 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
         },
     ];
 
-    API.write(
-        'DeleteContactMethod',
-        {
-            partnerUserID: contactMethod,
-        },
-        {optimisticData, successData, failureData},
-    );
+    type DeleteContactMethodParam = {partnerUserID: string};
+
+    const parameters: DeleteContactMethodParam = {partnerUserID: contactMethod};
+
+    API.write('DeleteContactMethod', parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
@@ -272,7 +277,7 @@ function resetContactMethodValidateCodeSentState(contactMethod: string) {
  * Adds a secondary login to a user's account
  */
 function addNewContactMethodAndNavigate(contactMethod: string) {
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -290,7 +295,7 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
             },
         },
     ];
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -303,7 +308,7 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
             },
         },
     ];
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -320,7 +325,11 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
         },
     ];
 
-    API.write('AddNewContactMethod', {partnerUserID: contactMethod}, {optimisticData, successData, failureData});
+    type AddNewContactMethodParam = {partnerUserID: string};
+
+    const parameters: AddNewContactMethodParam = {partnerUserID: contactMethod};
+
+    API.write('AddNewContactMethod', parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
@@ -330,7 +339,7 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
 function validateLogin(accountID: number, validateCode: string) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -339,14 +348,15 @@ function validateLogin(accountID: number, validateCode: string) {
             },
         },
     ];
-    API.write(
-        'ValidateLogin',
-        {
-            accountID,
-            validateCode,
-        },
-        {optimisticData},
-    );
+
+    type ValidateLoginParam = {
+        accountID: number;
+        validateCode: string;
+    };
+
+    const parameters: ValidateLoginParam = {accountID, validateCode};
+
+    API.write('ValidateLogin', parameters, {optimisticData});
     Navigation.navigate(ROUTES.HOME);
 }
 
@@ -354,9 +364,10 @@ function validateLogin(accountID: number, validateCode: string) {
  * Validates a secondary login / contact method
  *
  * @param contactMethod - The contact method the user is trying to verify
+ * @param validateCode
  */
 function validateSecondaryLogin(contactMethod: string, validateCode: string) {
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -380,7 +391,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             },
         },
     ];
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -401,7 +412,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             value: {isLoading: false},
         },
     ];
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -423,14 +434,11 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
         },
     ];
 
-    API.write(
-        'ValidateSecondaryLogin',
-        {
-            partnerUserID: contactMethod,
-            validateCode,
-        },
-        {optimisticData, successData, failureData},
-    );
+    type ValidateSecondaryLoginParam = {partnerUserID: string; validateCode: string};
+
+    const parameters: ValidateSecondaryLoginParam = {partnerUserID: contactMethod, validateCode};
+
+    API.write('ValidateSecondaryLogin', parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -450,17 +458,17 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: BlockedFromConciergeNVP
     return moment().isBefore(moment(blockedFromConciergeNVP.expiresAt), 'day');
 }
 
-function triggerNotifications(onyxUpdates: any) {
+function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
     onyxUpdates.forEach((update) => {
         if (!update.shouldNotify) {
             return;
         }
 
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-        const reportActions = Object.values(update.value);
+        const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
-        const notifiableActions = reportActions.filter((action) => ReportActionsUtils.isNotifiableReportAction(action));
-        notifiableActions.forEach((action) => Report.showReportActionNotification(reportID, action));
+        const actions = reportActions.filter((action) => ReportActionsUtils.isNotifiableReportAction(action)) as ReportAction[];
+        actions.forEach((action) => Report.showReportActionNotification(reportID, action));
     });
 }
 
@@ -498,7 +506,7 @@ function subscribeToUserEvents() {
             previousUpdateID: Number(pushJSON.previousUpdateID || 0),
         };
         if (!OnyxUpdates.doesClientNeedToBeUpdated(Number(pushJSON.previousUpdateID || 0))) {
-            OnyxUpdates.apply(updates as any);
+            OnyxUpdates.apply(updates);
             return;
         }
 
@@ -529,60 +537,62 @@ function subscribeToUserEvents() {
  * Sync preferredSkinTone with Onyx and Server
  */
 function updatePreferredSkinTone(skinTone: string) {
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             value: skinTone,
         },
     ];
-    API.write(
-        'UpdatePreferredEmojiSkinTone',
-        {
-            value: skinTone,
-        },
-        {optimisticData},
-    );
+
+    type UpdatePreferredEmojiSkinTone = {
+        value: string;
+    };
+
+    const parameters: UpdatePreferredEmojiSkinTone = {value: skinTone};
+
+    API.write('UpdatePreferredEmojiSkinTone', parameters, {optimisticData});
 }
 
 /**
  * Sync frequentlyUsedEmojis with Onyx and Server
  */
-function updateFrequentlyUsedEmojis(frequentlyUsedEmojis: string[]) {
-    const optimisticData = [
+function updateFrequentlyUsedEmojis(frequentlyUsedEmojis: FrequentlyUsedEmoji[]) {
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
             value: frequentlyUsedEmojis,
         },
     ];
-    API.write(
-        'UpdateFrequentlyUsedEmojis',
-        {
-            value: JSON.stringify(frequentlyUsedEmojis),
-        },
-        {optimisticData},
-    );
+    type UpdateFrequentlyUsedEmojisParam = {value: string};
+
+    const parameters: UpdateFrequentlyUsedEmojisParam = {value: JSON.stringify(frequentlyUsedEmojis)};
+
+    API.write('UpdateFrequentlyUsedEmojis', parameters, {optimisticData});
 }
 
 /**
  * Sync user chat priority mode with Onyx and Server
  */
 function updateChatPriorityMode(mode: string) {
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIORITY_MODE,
             value: mode,
         },
     ];
-    API.write(
-        'UpdateChatPriorityMode',
-        {
-            value: mode,
-        },
-        {optimisticData},
-    );
+
+    type UpdateChatPriorityModeParam = {
+        value: string;
+    };
+
+    const parameters: UpdateChatPriorityModeParam = {
+        value: mode,
+    };
+
+    API.write('UpdateChatPriorityMode', parameters, {optimisticData});
     Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
 
@@ -616,37 +626,40 @@ function joinScreenShare(accessToken: string, roomName: string) {
  * @param period YYYYMM format
  */
 function generateStatementPDF(period: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_STATEMENT,
+            value: {
+                isGenerating: true,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_STATEMENT,
+            value: {
+                isGenerating: false,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_STATEMENT,
+            value: {
+                isGenerating: false,
+            },
+        },
+    ];
     API.read(
         'GetStatementPDF',
         {period},
         {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_STATEMENT,
-                    value: {
-                        isGenerating: true,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_STATEMENT,
-                    value: {
-                        isGenerating: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_STATEMENT,
-                    value: {
-                        isGenerating: false,
-                    },
-                },
-            ],
+            optimisticData,
+            successData,
+            failureData,
         },
     );
 }
@@ -656,7 +669,7 @@ function generateStatementPDF(period: string) {
  */
 function setContactMethodAsDefault(newDefaultContactMethod: string) {
     const oldDefaultContactMethod = currentEmail;
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
@@ -689,7 +702,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
             },
         },
     ];
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -702,7 +715,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
             },
         },
     ];
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
@@ -732,20 +745,25 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
             },
         },
     ];
-    API.write(
-        'SetContactMethodAsDefault',
-        {partnerUserID: newDefaultContactMethod},
-        {
-            optimisticData,
-            successData,
-            failureData,
-        },
-    );
+
+    type SetContactMethodAsDefaultParam = {
+        partnerUserID: string;
+    };
+
+    const parameters: SetContactMethodAsDefaultParam = {
+        partnerUserID: newDefaultContactMethod,
+    };
+
+    API.write('SetContactMethodAsDefault', parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 function updateTheme(theme: string) {
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PREFERRED_THEME,
@@ -753,13 +771,15 @@ function updateTheme(theme: string) {
         },
     ];
 
-    API.write(
-        'UpdateTheme',
-        {
-            value: theme,
-        },
-        {optimisticData},
-    );
+    type UpdateThemeParam = {
+        value: string;
+    };
+
+    const parameters: UpdateThemeParam = {
+        value: theme,
+    };
+
+    API.write('UpdateTheme', parameters, {optimisticData});
 
     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
@@ -768,18 +788,19 @@ function updateTheme(theme: string) {
  * Sets a custom status
  */
 function updateCustomStatus(status: CustomStatus) {
-    API.write('UpdateStatus', status, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID]: {
-                        status,
-                    },
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [currentUserAccountID]: {
+                    status,
                 },
             },
-        ],
+        },
+    ];
+    API.write('UpdateStatus', status, {
+        optimisticData,
     });
 }
 
@@ -787,24 +808,27 @@ function updateCustomStatus(status: CustomStatus) {
  * Clears the custom status
  */
 function clearCustomStatus() {
-    API.write('ClearStatus', undefined, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID]: {
-                        status: null, // Clearing the field
-                    },
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [currentUserAccountID]: {
+                    status: null, // Clearing the field
                 },
             },
-        ],
+        },
+    ];
+    API.write('ClearStatus', undefined, {
+        optimisticData,
     });
 }
 
 /**
  * Sets a custom status
  *
+ * @param status.text
+ * @param status.emojiCode
  * @param status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
  */
 function updateDraftCustomStatus(status: CustomStatus) {
