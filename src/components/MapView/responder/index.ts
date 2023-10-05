@@ -1,8 +1,3 @@
-import {PanResponder} from 'react-native';
+import SwipeInterceptPanResponder from '../../SwipeInterceptPanResponder';
 
-const responder = PanResponder.create({
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderTerminationRequest: () => false,
-});
-
-export default responder;
+export default SwipeInterceptPanResponder;

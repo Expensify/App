@@ -24,7 +24,6 @@ import withReportOrNotFound from '../home/report/withReportOrNotFound';
 import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
-import themeColors from '../../styles/themes/default';
 import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
@@ -94,15 +93,7 @@ function MoneyRequestSelectorPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            headerGapStyles={
-                isDraggingOver
-                    ? [
-                          {
-                              backgroundColor: themeColors.receiptDropUIBG,
-                          },
-                      ]
-                    : []
-            }
+            headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
             testID={MoneyRequestSelectorPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (

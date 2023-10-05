@@ -82,6 +82,7 @@ const darkTheme = {
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
+    selectionListIndicatorColor: colors.white,
     mapAttributionText: colors.black,
 };
 
