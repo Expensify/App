@@ -30,13 +30,15 @@ const propTypes = {
     /* Onyx Props */
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.shape({
-        /** Date login was validated, used to show brickroad info status */
-        validatedDate: PropTypes.string,
+    loginList: PropTypes.objectOf(
+        PropTypes.shape({
+            /** Date login was validated, used to show brickroad info status */
+            validatedDate: PropTypes.string,
 
-        /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
-    }),
+            /** Field-specific server side errors keyed by microtime */
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        }),
+    ),
 
     user: userPropTypes,
 
@@ -132,6 +134,7 @@ function ProfilePage(props) {
                     originalFileName={currentUserDetails.originalFileName}
                     headerTitle={props.translate('profilePage.profileAvatar')}
                     style={[styles.mh5]}
+                    fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
                 />
                 <View style={[styles.mt4]}>
                     {_.map(profileSettingsOptions, (detail, index) => (
