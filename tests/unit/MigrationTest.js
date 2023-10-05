@@ -371,8 +371,8 @@ describe('Migrations', () => {
                         waitForCollectionCallback: true,
                         callback: (allPolicyMemberLists) => {
                             Onyx.disconnect(connectionID);
-                            expect(allPolicyMemberLists[`${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}1`]).toBeUndefined();
-                            expect(allPolicyMemberLists[`${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}2`]).toBeUndefined();
+
+                            expect(allPolicyMemberLists).toBeFalsy();
                         },
                     });
                 }));
