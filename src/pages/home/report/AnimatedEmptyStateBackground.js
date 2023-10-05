@@ -37,7 +37,7 @@ function AnimatedEmptyStateBackground() {
         return {
             transform: [{translateX: withSpring(-IMAGE_OFFSET_X - xOffset.value)}, {translateY: withSpring(yOffset.value)}],
         };
-    });
+    }, []);
 
     return (
         <Animated.Image
