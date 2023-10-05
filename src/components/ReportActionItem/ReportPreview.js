@@ -242,7 +242,7 @@ function ReportPreview(props) {
                                 success
                                 medium
                                 text={translate('common.submit')}
-                                style={[styles.requestPreviewBox]}
+                                style={styles.requestPreviewBox}
                                 onPress={() => IOU.submitReport(props.iouReport)}
                             />
                         )}
