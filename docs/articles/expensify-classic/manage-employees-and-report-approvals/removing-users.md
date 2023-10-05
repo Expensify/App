@@ -1,6 +1,6 @@
 ---
-title: Coming Soon
-description: Coming Soon
+title: Remove a Workspace Member
+description: How to remove a member from a Workspace in Expensify 
 ---
 
 Removing a member from a workspace disables their ability to use the workspace. Please note that it does not delete their account or deactivate the Expensify Card.
