@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -71,6 +71,7 @@ function SplitBillDetailsPage(props) {
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
     const {amount: splitAmount, currency: splitCurrency, comment: splitComment, merchant: splitMerchant, created: splitCreated} = ReportUtils.getTransactionDetails(transaction);
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
@@ -80,7 +81,7 @@ function SplitBillDetailsPage(props) {
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
                 >
-                    <MoneyRequestHeaderStatusBar />
+                    {isScanning && <MoneyRequestHeaderStatusBar />}
                     {Boolean(participants.length) && (
                         <MoneyRequestConfirmationList
                             hasMultipleParticipants
