@@ -520,7 +520,7 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
                 managerID: assigneeAccountID || report.managerID,
                 managerEmail: assigneeEmail || report.managerEmail,
                 pendingFields: {
-                    ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    ...(assigneeAccountID && {managerID: null}),
                 },
             },
         },
