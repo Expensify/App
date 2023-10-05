@@ -1,9 +1,12 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
 
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
 import IOURequestStepWaypoint from './step/IOURequestStepWaypoint';
 import IOURequestStepParticipants from './step/IOURequestStepParticipants';
 import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
@@ -11,6 +14,10 @@ import IOURequestStepDescription from './step/IOURequestStepDescription';
 import IOURequestStepDate from './step/IOURequestStepDate';
 import IOURequestStepCategory from './step/IOURequestStepCategory';
 import IOURequestStepTag from './step/IOURequestStepTag';
+import IOURequestStepDistance from './step/IOURequestStepDistance';
+import IOURouteContext from '../IOURouteContext';
+import reportPropTypes from '../../reportPropTypes';
+import transactionPropTypes from '../../../components/transactionPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -30,64 +37,55 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
+
+    /* Onyx Props */
+    /** The report that holds the transaction */
+    report: reportPropTypes,
+
+    /** The transaction being modified */
+    transaction: transactionPropTypes,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    report: {},
+    transaction: {},
+};
 
 function IOURequestStepPage({
+    report,
     route,
     route: {
         params: {step},
     },
+    transaction,
 }) {
-    if (step === CONST.IOU.REQUEST_STEPS.AMOUNT) {
-        return null;
-    }
-
-    if (step === 'participants') {
-        return <IOURequestStepParticipants route={route} />;
-    }
-
-    if (step === 'confirmation') {
-        return <IOURequestStepConfirmation route={route} />;
-    }
-
-    if (step === 'date') {
-        return <IOURequestStepDate route={route} />;
-    }
-
-    if (step === 'currency') {
-        return null;
-    }
-
-    if (step === 'description') {
-        return <IOURequestStepDescription route={route} />;
-    }
-
-    if (step === 'category') {
-        return <IOURequestStepCategory route={route} />;
-    }
-
-    if (step === 'tag') {
-        return <IOURequestStepTag route={route} />;
-    }
-
-    if (step === 'merchant') {
-        return null;
-    }
-
-    if (step === 'waypoint') {
-        return <IOURequestStepWaypoint route={route} />;
-    }
-
-    if (step === 'address') {
-        return null;
-    }
-
-    return <FullPageNotFoundView shouldShow />;
+    return (
+        <IOURouteContext.Provider value={{report, route, transaction}}>
+            {step === CONST.IOU.REQUEST_STEPS.AMOUNT && null}
+            {step === CONST.IOU.REQUEST_STEPS.PARTICIPANTS && <IOURequestStepParticipants route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.CONFIRMATION && <IOURequestStepConfirmation route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.DATE && <IOURequestStepDate route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.CURRENCY && null}
+            {step === CONST.IOU.REQUEST_STEPS.DESCRIPTION && <IOURequestStepDescription route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.CATEGORY && <IOURequestStepCategory route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.TAG && <IOURequestStepTag route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.MERCHANT && null}
+            {step === CONST.IOU.REQUEST_STEPS.WAYPOINT && <IOURequestStepWaypoint route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.DISTANCE && <IOURequestStepDistance route={route} />}
+            {_.contains(_.values(CONST.IOU.REQUEST_STEPS)) && <FullPageNotFoundView shouldShow />}
+        </IOURouteContext.Provider>
+    );
 }
 
 IOURequestStepPage.displayName = 'IOURequestStepPage';
 IOURequestStepPage.propTypes = propTypes;
 IOURequestStepPage.defaultProps = defaultProps;
-export default IOURequestStepPage;
+
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
+    },
+    transaction: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
+    },
+})(IOURequestStepPage);

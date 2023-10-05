@@ -472,7 +472,7 @@ function MoneyRequestConfirmationList(props) {
     }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, translate, formError]);
 
     const goToDistanceTab = () => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(props.iouType, props.transactionID, props.reportID, props.route.path));
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.DISTANCE, props.transactionID, props.reportID));
     };
 
     return (

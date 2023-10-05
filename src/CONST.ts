@@ -1085,7 +1085,7 @@ const CONST = {
             SCAN: 'scan',
         },
         REQUEST_STEPS: {
-            ADDRESS: 'address',
+            DISTANCE: 'distance',
             AMOUNT: 'amount',
             CATEGORY: 'category',
             CONFIRMATION: 'confirmation',

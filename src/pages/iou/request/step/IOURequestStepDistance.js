@@ -31,6 +31,7 @@ const defaultProps = {};
 
 function IOURequestStepDistance() {
     const {
+        route,
         route: {
             params: {iouType, reportID, transactionID},
         },
@@ -38,6 +39,7 @@ function IOURequestStepDistance() {
         transaction,
         transaction: {participants},
     } = useContext(IOURouteContext);
+    console.log('[tim]', route.params);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
