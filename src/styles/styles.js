@@ -2324,7 +2324,16 @@ const styles = (theme) => ({
         borderRadius: 88,
     },
 
-    rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
+    rootNavigatorContainerStyles: (isSmallScreenWidth, isHomeOdSelected) => {
+        if (isSmallScreenWidth) {
+            return {marginLeft: 0, flex: 1};
+        }
+        if (isHomeOdSelected) {
+            return {marginLeft: variables.globalNavigationWidth, flex: 1};
+        }
+        return {marginLeft: variables.sideBarWidth, flex: 1};
+    },
+
     RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
 
     avatarInnerTextChat: {

@@ -26,6 +26,15 @@ export default {
             [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
                 screens: {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+
+                    // Iframe screens from olddot
+                    [SCREENS.HOME_OLDDOT]: ROUTES.HOME_OLDDOT,
+                    [SCREENS.EXPENSES_OLDDOT]: ROUTES.EXPENSES_OLDDOT,
+                    [SCREENS.REPORTS_OLDDOT]: ROUTES.REPORTS_OLDDOT,
+                    [SCREENS.INSIGHTS_OLDDOT]: ROUTES.INSIGHTS_OLDDOT,
+                    [SCREENS.INDIVIDUALS_OLDDOT]: ROUTES.INDIVIDUALS_OLDDOT,
+                    [SCREENS.GROUPS_OLDDOT]: ROUTES.GROUPS_OLDDOT,
+                    [SCREENS.CARDS_AND_DOMAINS_OLDDOT]: ROUTES.CARDS_AND_DOMAINS_OLDDOT,
                 },
             },
             [SCREENS.NOT_FOUND]: '*',

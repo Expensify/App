@@ -35,6 +35,7 @@ import * as SessionUtils from '../../SessionUtils';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import DemoSetupPage from '../../../pages/DemoSetupPage';
+import {SidebarNavigationContext} from '../../../pages/home/sidebar/SidebarNavigationContext';
 
 let timezone;
 let currentAccountID;
@@ -229,10 +230,12 @@ class AuthScreens extends React.Component {
     }
 
     render() {
-        const screenOptions = getRootNavigatorScreenOptions(this.props.isSmallScreenWidth);
+        const isHomeOdSelected = this.context.selectedSubNavigationOption === SCREENS.HOME_OLDDOT;
+
+        const screenOptions = getRootNavigatorScreenOptions(this.props.isSmallScreenWidth, isHomeOdSelected);
 
         return (
-            <View style={styles.rootNavigatorContainerStyles(this.props.isSmallScreenWidth)}>
+            <View style={styles.rootNavigatorContainerStyles(this.props.isSmallScreenWidth, isHomeOdSelected)}>
                 <RootStack.Navigator
                     isSmallScreenWidth={this.props.isSmallScreenWidth}
                     mode="modal"
@@ -329,6 +332,8 @@ class AuthScreens extends React.Component {
 
 AuthScreens.propTypes = propTypes;
 AuthScreens.defaultProps = defaultProps;
+AuthScreens.contextType = SidebarNavigationContext;
+
 export default compose(
     withWindowDimensions,
     withOnyx({
