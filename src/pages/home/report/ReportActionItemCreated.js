@@ -18,7 +18,7 @@ import withLocalize from '../../../components/withLocalize';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import CONST from '../../../CONST';
-import EmptyStateBackground from '../../../components/EmptyStateBackground';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 const propTypes = {
     /** The id of the report */
@@ -64,7 +64,7 @@ function ReportActionItemCreated(props) {
             needsOffscreenAlphaCompositing
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <EmptyStateBackground />
+                <AnimatedEmptyStateBackground />
                 <View
                     accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}

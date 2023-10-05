@@ -25,6 +25,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import useLocalize from '../../hooks/useLocalize';
+import AnimatedEmptyStateBackground from '../../pages/home/report/AnimatedEmptyStateBackground';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import transactionPropTypes from '../transactionPropTypes';
@@ -137,7 +138,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
-                <EmptyStateBackground />
+                <AnimatedEmptyStateBackground />
             </View>
 
             {hasReceipt && (
@@ -211,8 +212,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
                         brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                        subtitle={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
-                        subtitleTextStyle={styles.textLabelError}
+                        error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                     />
                 </OfflineWithFeedback>
             )}

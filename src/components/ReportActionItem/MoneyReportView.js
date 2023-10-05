@@ -14,7 +14,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import variables from '../../styles/variables';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import useLocalize from '../../hooks/useLocalize';
-import EmptyStateBackground from '../EmptyStateBackground';
+import AnimatedEmptyStateBackground from '../../pages/home/report/AnimatedEmptyStateBackground';
 import SpacerView from '../SpacerView';
 
 const propTypes = {
@@ -35,7 +35,7 @@ function MoneyReportView(props) {
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
-                <EmptyStateBackground />
+                <AnimatedEmptyStateBackground />
             </View>
             <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
