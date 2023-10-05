@@ -101,7 +101,6 @@ function BaseValidateCodeForm(props) {
         if (!props.hasMagicCodeBeenSent) {
             return;
         }
-        setValidateCode('');
         inputValidateCodeRef.current.clear();
     }, [props.hasMagicCodeBeenSent]);
 
@@ -111,7 +110,6 @@ function BaseValidateCodeForm(props) {
     const resendValidateCode = () => {
         User.requestContactMethodValidateCode(props.contactMethod);
         inputValidateCodeRef.current.clear();
-        setValidateCode('');
     };
 
     /**
