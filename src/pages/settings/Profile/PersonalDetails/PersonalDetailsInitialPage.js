@@ -16,6 +16,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import {withNetwork} from '../../../../components/OnyxProvider';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -58,31 +59,8 @@ const defaultProps = {
 function PersonalDetailsInitialPage(props) {
     usePrivatePersonalDetails();
     const privateDetails = props.privatePersonalDetails || {};
-    const address = privateDetails.address || {};
     const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
     const isLoadingPersonalDetails = lodashGet(props.privatePersonalDetails, 'isLoading', true);
-
-    /**
-     * Applies common formatting to each piece of an address
-     *
-     * @param {String} piece
-     * @returns {String}
-     */
-    const formatPiece = (piece) => (piece ? `${piece}, ` : '');
-
-    /**
-     * Formats an address object into an easily readable string
-     *
-     * @returns {String}
-     */
-    const getFormattedAddress = () => {
-        const [street1, street2] = (address.street || '').split('\n');
-        const formattedAddress =
-            formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
-
-        // Remove the last comma of the address
-        return formattedAddress.trim().replace(/,$/, '');
-    };
 
     return (
         <ScreenWrapper testID={PersonalDetailsInitialPage.displayName}>
@@ -112,7 +90,7 @@ function PersonalDetailsInitialPage(props) {
                             titleStyle={[styles.flex1]}
                         />
                         <MenuItemWithTopDescription
-                            title={getFormattedAddress()}
+                            title={PersonalDetailsUtils.getFormattedAddress(props.privatePersonalDetails)}
                             description={props.translate('privatePersonalDetails.homeAddress')}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
