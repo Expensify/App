@@ -284,6 +284,11 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     />
                 </OfflineWithFeedback>
             )}
+            {shouldShowCategory && Boolean(getViolationForField(transactionViolation, 'category')) && (
+                <View>
+                <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transactionViolation, 'category')}</Text>
+                </View>
+            )}
             {shouldShowTag && (
                 <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.tag') || lodashGet(transaction, 'pendingAction')}>
                     <MenuItemWithTopDescription
