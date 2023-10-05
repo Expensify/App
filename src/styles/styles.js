@@ -80,7 +80,6 @@ const webViewStyles = (theme) => ({
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
-            flex: 1,
         },
 
         strong: {
@@ -3631,12 +3630,6 @@ const styles = (theme) => ({
         height: 200,
         maxWidth: 400,
     },
-
-    distanceRequestContainer: (maxHeight) => ({
-        ...flex.flexShrink2,
-        minHeight: variables.optionRowHeight * 2,
-        maxHeight,
-    }),
 
     mapViewContainer: {
         ...flex.flex1,

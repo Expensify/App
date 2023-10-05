@@ -1,10 +1,11 @@
-import React, {useState, useCallback, useRef} from 'react';
+import React, {useState, useCallback, useRef, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {View, Animated, Keyboard} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './Attachments/AttachmentView';
@@ -30,6 +31,10 @@ import useWindowDimensions from '../hooks/useWindowDimensions';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import useNativeDriver from '../libs/useNativeDriver';
+import * as ReportUtils from '../libs/ReportUtils';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import ONYXKEYS from '../ONYXKEYS';
+import * as Policy from '../libs/actions/Policy';
 import useNetwork from '../hooks/useNetwork';
 
 /**
@@ -326,6 +331,37 @@ function AttachmentModal(props) {
 
     const sourceForAttachmentView = props.source || source;
 
+    const threeDotsMenuItems = useMemo(() => {
+        if (!isAttachmentReceipt || !props.parentReport || !props.parentReportActions) {
+            return [];
+        }
+        const menuItems = [];
+        const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
+        const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
+        const isSettled = ReportUtils.isSettled(props.parentReport.reportID);
+
+        const isAdmin = Policy.isAdminOfFreePolicy([props.policy]) && ReportUtils.isExpenseReport(props.parentReport);
+        const isRequestor = ReportUtils.isMoneyRequestReport(props.parentReport) && lodashGet(props.session, 'accountID', null) === parentReportAction.actorAccountID;
+        const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
+        if (canEdit) {
+            menuItems.push({
+                icon: Expensicons.Camera,
+                text: props.translate('common.replace'),
+                onSelected: () => {
+                    onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
+                    closeModal();
+                },
+            });
+        }
+        menuItems.push({
+            icon: Expensicons.Download,
+            text: props.translate('common.download'),
+            onSelected: () => downloadAttachment(source),
+        });
+        return menuItems;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy]);
+
     return (
         <>
             <Modal
@@ -360,21 +396,7 @@ function AttachmentModal(props) {
                     onCloseButtonPress={closeModal}
                     shouldShowThreeDotsButton={isAttachmentReceipt}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Expensicons.Camera,
-                            text: props.translate('common.replace'),
-                            onSelected: () => {
-                                onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
-                                closeModal();
-                            },
-                        },
-                        {
-                            icon: Expensicons.Download,
-                            text: props.translate('common.download'),
-                            onSelected: () => downloadAttachment(source),
-                        },
-                    ]}
+                    threeDotsMenuItems={threeDotsMenuItems}
                     shouldOverlay
                 />
                 <View style={styles.imageModalImageCenterContainer}>
@@ -444,4 +466,22 @@ function AttachmentModal(props) {
 AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
 AttachmentModal.displayName = 'AttachmentModal';
-export default compose(withWindowDimensions, withLocalize)(AttachmentModal);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withOnyx({
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(AttachmentModal);
