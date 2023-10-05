@@ -16,7 +16,6 @@ import * as CardUtils from '../../../libs/CardUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import usePrevious from '../../../hooks/usePrevious';
-import * as FormActions from '../../../libs/actions/FormActions';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 
@@ -56,17 +55,12 @@ function ReportFraudPage({
 
     const prevIsLoading = usePrevious(formData.isLoading);
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (prevIsLoading && formData.isLoading === false && _.isEmpty(virtualCard.errors)) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
         }
-
-        if (formData.isLoading !== false && _.isEmpty(virtualCard.errors)) {
-            return;
-        }
-
-        FormActions.setErrors(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD, virtualCard.errors);
-    }, [domain, formData.isLoading, prevIsLoading, virtualCard.errors]);
+    }, [domain, formData, prevIsLoading, virtualCard.errors]);
 
     if (_.isEmpty(virtualCard)) {
         return <NotFoundPage />;
