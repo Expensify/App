@@ -128,7 +128,6 @@ const webViewStyles = (theme: ThemeDefault) =>
             del: {
                 textDecorationLine: 'line-through',
                 textDecorationStyle: 'solid',
-                flex: 1,
             },
 
             strong: {

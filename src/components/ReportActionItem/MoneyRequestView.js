@@ -211,8 +211,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
                         brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                        subtitle={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
-                        subtitleTextStyle={styles.textLabelError}
+                        error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                     />
                 </OfflineWithFeedback>
             )}
