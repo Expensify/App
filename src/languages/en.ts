@@ -822,6 +822,14 @@ export default {
         availableSpend: 'Remaining spending power',
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
+        cardDetails: {
+            cardNumber: 'Virtual card number',
+            expiration: 'Expiration',
+            cvv: 'CVV',
+            address: 'Address',
+            revealDetails: 'Reveal details',
+            copyCardNumber: 'Copy card number',
+        },
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,

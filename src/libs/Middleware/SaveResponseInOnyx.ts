@@ -10,12 +10,8 @@ const requestsToIgnoreLastUpdateID = ['OpenApp', 'ReconnectApp', 'GetMissingOnyx
 
 const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
     requestResponse
-        .then((response) => {
-            // Make sure we have response data (i.e. response isn't a promise being passed down to us by a failed retry request and response undefined)
-            if (!response) {
-                return;
-            }
-            const onyxUpdates = response.onyxData;
+        .then((response = {}) => {
+            const onyxUpdates = response?.onyxData ?? [];
 
             // Sometimes we call requests that are successfull but they don't have any response or any success/failure data to set. Let's return early since
             // we don't need to store anything here.
@@ -35,13 +31,13 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
 
             const responseToApply = {
                 type: CONST.ONYX_UPDATE_TYPES.HTTPS,
-                lastUpdateID: Number(response.lastUpdateID ?? 0),
-                previousUpdateID: Number(response.previousUpdateID ?? 0),
+                lastUpdateID: Number(response?.lastUpdateID ?? 0),
+                previousUpdateID: Number(response?.previousUpdateID ?? 0),
                 request,
-                response,
+                response: response ?? {},
             };
 
-            if (requestsToIgnoreLastUpdateID.includes(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response.previousUpdateID ?? 0))) {
+            if (requestsToIgnoreLastUpdateID.includes(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response?.previousUpdateID ?? 0))) {
                 return OnyxUpdates.apply(responseToApply);
             }
 
