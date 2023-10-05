@@ -55,7 +55,7 @@ const defaultProps = {
     onToggleKeyboard: () => {},
     containerStyles: [],
     isWorkspaceAvatar: false,
-    transactionID: 0,
+    transactionID: '',
 };
 
 function AttachmentView({
