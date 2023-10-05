@@ -2302,7 +2302,9 @@ function navigateToNextPage(iou, iouType, report, path = '') {
     Navigation.navigate(ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType));
 }
 
-function submitReport() {}
+function submitReport() {
+    // TODO: this will be done in the future, part of wave 6: drafts
+}
 
 export {
     createDistanceRequest,
