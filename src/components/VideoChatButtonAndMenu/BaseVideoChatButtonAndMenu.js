@@ -118,7 +118,6 @@ function BaseVideoChatButtonAndMenu(props) {
                     left: videoChatIconPosition.x - 150,
                     top: videoChatIconPosition.y + 40,
                 }}
-                shouldSetModalVisibility={false}
                 withoutOverlay
                 anchorRef={videoChatButtonRef}
             >

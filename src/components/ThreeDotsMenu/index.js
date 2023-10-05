@@ -48,6 +48,9 @@ const propTypes = {
 
     /** Whether the popover menu should overlay the current view */
     shouldOverlay: PropTypes.bool,
+
+    /** Should we announce the Modal visibility changes? */
+    shouldSetModalVisibility: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -61,9 +64,10 @@ const defaultProps = {
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
     shouldOverlay: false,
+    shouldSetModalVisibility: true,
 };
 
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility}) {
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();
@@ -111,6 +115,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                 onItemSelected={hidePopoverMenu}
                 menuItems={menuItems}
                 withoutOverlay={!shouldOverlay}
+                shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
             />
         </>
