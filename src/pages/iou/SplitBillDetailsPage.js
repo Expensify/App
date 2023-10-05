@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';

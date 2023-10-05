@@ -1250,13 +1250,12 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
 }
 
 /** Used exclusively for starting a split bill request that contains a receipt, the split request will be completed once the receipt is scanned
+ * or user enters details manually.
  *
  * @param {Array} participants
  * @param {String} currentUserLogin
  * @param {Number} currentUserAccountID
  * @param {String} comment
- * @param {String} created
- * @param {String} merchant
  * @param {Object} receipt
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
  */
