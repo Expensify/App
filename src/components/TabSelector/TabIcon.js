@@ -19,20 +19,20 @@ const propTypes = {
 
 const defaultProps = {
     icon: '',
-    inactiveOpacity: {opacity: 1},
-    activeOpacity: {opacity: 0},
+    inactiveOpacity: 1,
+    activeOpacity: 0,
 };
 
 function TabIcon({icon, activeOpacity, inactiveOpacity}) {
     return (
         <View>
-            <Animated.View style={inactiveOpacity}>
+            <Animated.View style={{opacity: inactiveOpacity}}>
                 <Icon
                     src={icon}
                     fill={themeColors.icon}
                 />
             </Animated.View>
-            <Animated.View style={[StyleSheet.absoluteFill, activeOpacity]}>
+            <Animated.View style={[StyleSheet.absoluteFill, {opacity: activeOpacity}]}>
                 <Icon
                     src={icon}
                     fill={themeColors.iconMenu}
