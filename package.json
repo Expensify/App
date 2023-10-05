@@ -177,8 +177,6 @@
     "@babel/runtime": "^7.20.0",
     "@electron/notarize": "^1.2.3",
     "@jest/globals": "^29.5.0",
-    "@kie/act-js": "^2.0.1",
-    "@kie/mock-github": "^1.0.0",
     "@octokit/core": "4.0.4",
     "@octokit/plugin-paginate-rest": "3.1.0",
     "@octokit/plugin-throttling": "4.1.0",
