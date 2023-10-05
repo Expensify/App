@@ -26,6 +26,9 @@ const propTypes = {
 
     /** Removes margin from around the avatar, used for the chat view */
     noMargin: PropTypes.bool,
+
+    /** Whether to show the tooltip */
+    showTooltip: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -34,41 +37,46 @@ const defaultProps = {
     mainAvatar: {},
     secondaryAvatar: {},
     noMargin: false,
+    showTooltip: true,
 };
 
-function SubscriptAvatar(props) {
-    const isSmall = props.size === CONST.AVATAR_SIZE.SMALL;
-    const subscriptStyle = props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
+function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, noMargin, showTooltip}) {
+    const isSmall = size === CONST.AVATAR_SIZE.SMALL;
+    const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
     const containerStyle = isSmall ? styles.emptyAvatarSmall : styles.emptyAvatar;
     // Default the margin style to what is normal for small or normal sized avatars
     let marginStyle = isSmall ? styles.emptyAvatarMarginSmall : styles.emptyAvatarMargin;
 
     // Some views like the chat view require that there be no margins
-    if (props.noMargin) {
+    if (noMargin) {
         marginStyle = {};
     }
+
     return (
         <View style={[containerStyle, marginStyle]}>
             <UserDetailsTooltip
-                accountID={lodashGet(props.mainAvatar, 'id', -1)}
-                icon={props.mainAvatar}
+                shouldRender={showTooltip}
+                accountID={lodashGet(mainAvatar, 'id', -1)}
+                icon={mainAvatar}
             >
                 <View>
                     <Avatar
-                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(props.size || CONST.AVATAR_SIZE.DEFAULT))}
-                        source={props.mainAvatar.source}
-                        size={props.size || CONST.AVATAR_SIZE.DEFAULT}
-                        name={props.mainAvatar.name}
-                        type={props.mainAvatar.type}
+                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
+                        source={mainAvatar.source}
+                        size={size || CONST.AVATAR_SIZE.DEFAULT}
+                        name={mainAvatar.name}
+                        type={mainAvatar.type}
+                        fallbackIcon={mainAvatar.fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
             <UserDetailsTooltip
-                accountID={lodashGet(props.secondaryAvatar, 'id', -1)}
-                icon={props.secondaryAvatar}
+                shouldRender={showTooltip}
+                accountID={lodashGet(secondaryAvatar, 'id', -1)}
+                icon={secondaryAvatar}
             >
                 <View
-                    style={[props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle]}
+                    style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, isSmall ? styles.secondAvatarSubscriptCompact : subscriptStyle]}
                     // Hover on overflowed part of icon will not work on Electron if dragArea is true
                     // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
                     dataSet={{dragArea: false}}
@@ -76,13 +84,14 @@ function SubscriptAvatar(props) {
                     <Avatar
                         iconAdditionalStyles={[
                             StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
-                            StyleUtils.getBorderColorStyle(props.backgroundColor),
+                            StyleUtils.getBorderColorStyle(backgroundColor),
                         ]}
-                        source={props.secondaryAvatar.source}
+                        source={secondaryAvatar.source}
                         size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
                         fill={themeColors.iconSuccessFill}
-                        name={props.secondaryAvatar.name}
-                        type={props.secondaryAvatar.type}
+                        name={secondaryAvatar.name}
+                        type={secondaryAvatar.type}
+                        fallbackIcon={secondaryAvatar.fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>

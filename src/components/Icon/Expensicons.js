@@ -19,6 +19,7 @@ import Camera from '../../../assets/images/camera.svg';
 import Car from '../../../assets/images/car.svg';
 import Cash from '../../../assets/images/cash.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
+import ChatBubbles from '../../../assets/images/chatbubbles.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
 import Chair from '../../../assets/images/chair.svg';
 import Close from '../../../assets/images/close.svg';
@@ -82,7 +83,6 @@ import NewWorkspace from '../../../assets/images/new-workspace.svg';
 import Offline from '../../../assets/images/offline.svg';
 import OfflineCloud from '../../../assets/images/offline-cloud.svg';
 import Paperclip from '../../../assets/images/paperclip.svg';
-import PayPal from '../../../assets/images/paypal.svg';
 import Paycheck from '../../../assets/images/paycheck.svg';
 import Pencil from '../../../assets/images/pencil.svg';
 import Phone from '../../../assets/images/phone.svg';
@@ -148,6 +148,7 @@ export {
     Car,
     Cash,
     ChatBubble,
+    ChatBubbles,
     Checkmark,
     Chair,
     Close,
@@ -216,7 +217,6 @@ export {
     Offline,
     OfflineCloud,
     Paperclip,
-    PayPal,
     Paycheck,
     Pencil,
     Phone,
