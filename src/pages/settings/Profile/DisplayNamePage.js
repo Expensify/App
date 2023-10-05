@@ -25,12 +25,12 @@ import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingInd
 const propTypes = {
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
-    isLoading: PropTypes.bool,
+    isLoadingApp: PropTypes.bool,
 };
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
-    isLoading: true,
+    isLoadingApp: true,
 };
 
 /**
@@ -80,7 +80,7 @@ function DisplayNamePage(props) {
                 title={props.translate('displayNamePage.headerTitle')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
-            {props.isLoading ? (
+            {props.isLoadingApp ? (
                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
                 <FormProvider
@@ -134,7 +134,7 @@ export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
     withOnyx({
-        isLoading: {
+        isLoadingApp: {
             key: ONYXKEYS.IS_LOADING_APP,
         },
     }),
