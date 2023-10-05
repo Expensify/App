@@ -5,11 +5,11 @@ import E2EClient from '../client';
 
 const test = () => {
     // check for login (if already logged in the action will simply resolve)
-    E2ELogin().then((neededLogin) => {
-        if (neededLogin) {
-            // we don't want to submit the first login to the results
-            return E2EClient.submitTestDone();
-        }
+    E2ELogin().then(() => {
+        // if (neededLogin) {
+        //     // we don't want to submit the first login to the results
+        //     return E2EClient.submitTestDone();
+        // }
 
         console.debug('[E2E] Logged in, getting metrics and submitting them…');
 

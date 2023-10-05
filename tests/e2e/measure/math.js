@@ -34,15 +34,18 @@ const std = (arr) => {
 };
 
 const getStats = (entries) => {
-    const cleanedEntries = filterOutliersViaIQR(entries);
-    const meanDuration = mean(cleanedEntries);
-    const stdevDuration = std(cleanedEntries);
+    // TBD I don't think outliers should be discarded. On certain data sets such as user collection it might make sense.
+    // But in theory the app is a defined system. Discarting outliers will effectively hide extreme cases where app might hang
+    // or be stuck in a race condition
+    // const cleanedEntries = filterOutliersViaIQR(entries);
+    const meanDuration = mean(entries);
+    const stdevDuration = std(entries);
 
     return {
         mean: meanDuration,
         stdev: stdevDuration,
-        runs: cleanedEntries.length,
-        entries: cleanedEntries,
+        runs: entries.length,
+        entries,
     };
 };
 
