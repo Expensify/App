@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -25,6 +25,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
+import useDelayedInputFocus from '../../hooks/useDelayedInputFocus';
 import ValuePicker from '../../components/ValuePicker';
 
 const propTypes = {
@@ -154,6 +155,11 @@ function WorkspaceNewRoomPage(props) {
         [translate],
     );
 
+    const roomNameInputRef = useRef(null);
+
+    // use a 600ms delay for delayed focus on the room name input field so that it works consistently on native iOS / Android
+    useDelayedInputFocus(roomNameInputRef, 600);
+
     return (
         <FullPageNotFoundView
             shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}
@@ -186,6 +192,7 @@ function WorkspaceNewRoomPage(props) {
                         >
                             <View style={styles.mb5}>
                                 <RoomNameInput
+                                    ref={(el) => (roomNameInputRef.current = el)}
                                     inputID="roomName"
                                     isFocused={props.isFocused}
                                     shouldDelayFocus

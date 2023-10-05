@@ -827,6 +827,8 @@ const CONST = {
         DEFAULT: 'default',
     },
 
+    YOUR_LOCATION_TEXT: 'Your Location',
+
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     // This is a placeholder for attachment which is uploading
     ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
