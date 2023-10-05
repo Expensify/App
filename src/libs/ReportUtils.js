@@ -134,6 +134,11 @@ function reportHasViolations(reportID) {
     });
 }
 
+function transactionHasViolation(transactionID) {
+    const violations = lodashGet(transactionViolations, `${transactionID}.violation`, []);
+    return !_.isEmpty(violations);
+}
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -3907,4 +3912,5 @@ export {
     isWaitingForTaskCompleteFromAssignee,
     transactionThreadHasViolations,
     reportHasViolations,
+    transactionHasViolation,
 };

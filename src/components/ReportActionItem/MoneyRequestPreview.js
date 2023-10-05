@@ -162,7 +162,7 @@ function MoneyRequestPreview(props) {
     const description = requestComment;
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
-    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction) || (_.isArray(props.transaction.violations) && !_.isEmpty(props.transaction.violations));
+    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction) || ReportUtils.transactionHasViolation(props.transaction.transactionID);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
     const isSettled = ReportUtils.isSettled(props.iouReport);
 
