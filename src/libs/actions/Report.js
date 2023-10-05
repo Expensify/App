@@ -773,13 +773,6 @@ function readOldestAction(reportID, reportActionID) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        isLoadingOlderReportActions: true,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingOlderReportActions: true,
@@ -789,13 +782,6 @@ function readOldestAction(reportID, reportActionID) {
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        isLoadingOlderReportActions: false,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingOlderReportActions: false,
@@ -803,13 +789,6 @@ function readOldestAction(reportID, reportActionID) {
                 },
             ],
             failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        isLoadingOlderReportActions: false,
-                    },
-                },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
@@ -840,13 +819,6 @@ function getOlderActions(reportID, reportActionID) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        isLoadingOlderReportActions: true,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingOlderReportActions: true,
@@ -856,13 +828,6 @@ function getOlderActions(reportID, reportActionID) {
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        isLoadingOlderReportActions: false,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingOlderReportActions: false,
@@ -870,13 +835,6 @@ function getOlderActions(reportID, reportActionID) {
                 },
             ],
             failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        isLoadingOlderReportActions: false,
-                    },
-                },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
@@ -891,7 +849,7 @@ function getOlderActions(reportID, reportActionID) {
 
 /**
  * Gets the newer actions that have not been read yet.
- * Normally happens when you located not in the edge of the list and scroll down on a chat.
+ * Normally happens when you are not located at the bottom of the list and scroll down on a chat.
  *
  * @param {String} reportID
  * @param {String} reportActionID
@@ -1906,6 +1864,7 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
             value: {
                 [emoji.name]: {
                     createdAt,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
@@ -1913,6 +1872,30 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
                             },
                         },
                     },
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
+            value: {
+                [emoji.name]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
+            value: {
+                [emoji.name]: {
+                    pendingAction: null,
                 },
             },
         },
@@ -1927,7 +1910,7 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
         // This will be removed as part of https://github.com/Expensify/App/issues/19535
         useEmojiReactions: true,
     };
-    API.write('AddEmojiReaction', parameters, {optimisticData});
+    API.write('AddEmojiReaction', parameters, {optimisticData, successData, failureData});
 }
 
 /**

@@ -432,15 +432,13 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () =>
-            (!firstRenderRef.current &&
-                !report.reportID &&
-                !isOptimisticDelete &&
-                !reportMetadata.isLoadingInitialReportActions &&
-                !isLoading &&
-                !userLeavingStatus) ||
-            shouldHideReport,
-        [report, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus, reportMetadata.isLoadingInitialReportActions],
+        () => (!firstRenderRef.current &&
+                  !report.reportID &&
+                  !isOptimisticDelete &&
+                  !reportMetadata.isLoadingInitialReportActions &&
+                  !isLoading &&
+                  !userLeavingStatus) || shouldHideReport,
+        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
 
     return (

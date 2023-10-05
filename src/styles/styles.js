@@ -80,7 +80,6 @@ const webViewStyles = (theme) => ({
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
-            flex: 1,
         },
 
         strong: {
@@ -1551,10 +1550,7 @@ const styles = (theme) => ({
         paddingBottom: 16,
     },
     chatContentScrollViewWithHeaderLoader: {
-        // regular paddingBottom wouldn't work here
-        padding: CONST.CHAT_HEADER_LOADER_HEIGHT,
-        paddingLeft: 0,
-        paddingRight: 0,
+        paddingTop: CONST.CHAT_HEADER_LOADER_HEIGHT,
     },
 
     // Chat Item
@@ -3637,12 +3633,6 @@ const styles = (theme) => ({
         height: 200,
         maxWidth: 400,
     },
-
-    distanceRequestContainer: (maxHeight) => ({
-        ...flex.flexShrink2,
-        minHeight: variables.optionRowHeight * 2,
-        maxHeight,
-    }),
 
     mapViewContainer: {
         ...flex.flex1,

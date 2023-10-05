@@ -42,12 +42,18 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
         // skeleton view above the created action in a newly generated optimistic chat or one with not
         // that many comments.
         if (isLoadingInitialReportActions && lastReportActionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return <ReportActionsSkeletonView shouldAnimate={!isOffline} />;
+            return (
+                <ReportActionsSkeletonView
+                    shouldAnimate={!isOffline}
+                    possibleVisibleContentItems={3}
+                />
+            );
         }
 
         return null;
     }
     if (type === CONST.LIST_COMPONENTS.HEADER && isLoadingNewerReportActions) {
+        // applied for a header of the list, i.e. when you scroll to the bottom of the list
         // the styles for android and the rest components are different that's why we use two different components
         return <ListHeaderComponentLoader />;
     }

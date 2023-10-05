@@ -13,15 +13,6 @@ export default PropTypes.shape({
     /** List of icons for report participants */
     icons: PropTypes.arrayOf(avatarPropTypes),
 
-    /** Are we loading more report actions? */
-    isLoadingOlderReportActions: PropTypes.bool,
-
-    /** Are we loading newer report actions? */
-    isLoadingNewerReportActions: PropTypes.bool,
-
-    /** Flag to check if the report actions data are loading */
-    isLoadingInitialReportActions: PropTypes.bool,
-
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat: PropTypes.bool,
 
