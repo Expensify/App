@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -16,6 +16,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import * as CardUtils from '../../../libs/CardUtils';
 import Button from '../../../components/Button';
+import CardDetails from './WalletPage/CardDetails';
 import CONST from '../../../CONST';
 import assignedCardPropTypes from './assignedCardPropTypes';
 
@@ -48,11 +49,17 @@ function ExpensifyCardPage({
     const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
     const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
 
+    const [shouldShowCardDetails, setShouldShowCardDetails] = useState(false);
+
     if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
         return <NotFoundPage />;
     }
 
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
+
+    const handleRevealDetails = () => {
+        setShouldShowCardDetails(true);
+    };
 
     return (
         <ScreenWrapper
@@ -76,13 +83,32 @@ function ExpensifyCardPage({
                             interactive={false}
                             titleStyle={styles.newKansasLarge}
                         />
-                        {!_.isEmpty(physicalCard) && (
-                            <MenuItemWithTopDescription
-                                description={translate('cardPage.virtualCardNumber')}
-                                title={CardUtils.maskCard(virtualCard.lastFourPAN)}
-                                interactive={false}
-                                titleStyle={styles.walletCardNumber}
-                            />
+                        {!_.isEmpty(virtualCard) && (
+                            <>
+                                {shouldShowCardDetails ? (
+                                    <CardDetails
+                                        // This is just a temporary mock, it will be replaced in this issue https://github.com/orgs/Expensify/projects/58?pane=issue&itemId=33286617
+                                        pan="1234123412341234"
+                                        expiration="11/02/2024"
+                                        cvv="321"
+                                    />
+                                ) : (
+                                    <MenuItemWithTopDescription
+                                        description={translate('cardPage.virtualCardNumber')}
+                                        title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                        interactive={false}
+                                        titleStyle={styles.walletCardNumber}
+                                        shouldShowRightComponent
+                                        rightComponent={
+                                            <Button
+                                                medium
+                                                text={translate('cardPage.cardDetails.revealDetails')}
+                                                onPress={handleRevealDetails}
+                                            />
+                                        }
+                                    />
+                                )}
+                            </>
                         )}
                         {!_.isEmpty(physicalCard) && (
                             <MenuItemWithTopDescription
