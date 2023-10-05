@@ -8,7 +8,6 @@ import Icon from '../../../../components/Icon';
 import CONST from '../../../../CONST';
 import variables from '../../../../styles/variables';
 import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
-import refPropTypes from '../../../../components/refPropTypes';
 
 const propTypes = {
     /** Icon to display */
@@ -20,9 +19,6 @@ const propTypes = {
     /** Function to fire when component is pressed */
     onPress: PropTypes.func,
 
-    /** A ref to forward to PressableWithFeedback */
-    forwardedRef: refPropTypes,
-
     /** Whether item is focused or active */
     isFocused: PropTypes.bool,
 };
@@ -32,46 +28,37 @@ const defaultProps = {
     isFocused: false,
     onPress: () => {},
     title: '',
-    forwardedRef: null,
 };
 
-function GlobalNavigationMenuItem({icon, title, isFocused, onPress, forwardedRef}) {
-    return (
-        <PressableWithFeedback
-            onPress={() => !isFocused && onPress()}
-            style={styles.globalNavigationItemContainer}
-            ref={forwardedRef}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
-            accessibilityLabel={title}
-        >
-            {({pressed}) => (
-                <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
-                    <View style={styles.globalNavigationSelectionIndicator(isFocused)} />
-                    <View style={[styles.flexColumn, styles.flex1, styles.alignItemsCenter, styles.mr1]}>
-                        <Icon
-                            additionalStyles={[styles.popoverMenuIcon]}
-                            pressed={pressed}
-                            src={icon}
-                            fill={isFocused ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DEFAULT, true) : StyleUtils.getIconFillColor()}
-                        />
-                        <View style={[styles.mt1, styles.alignItemsCenter]}>
-                            <Text style={[StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall), styles.globalNavigationMenuItem(isFocused)]}>{title}</Text>
-                        </View>
+const GlobalNavigationMenuItem = React.forwardRef(({icon, title, isFocused, onPress}, ref) => (
+    <PressableWithFeedback
+        onPress={() => !isFocused && onPress()}
+        style={styles.globalNavigationItemContainer}
+        ref={ref}
+        accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
+        accessibilityLabel={title}
+    >
+        {({pressed}) => (
+            <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1]}>
+                <View style={styles.globalNavigationSelectionIndicator(isFocused)} />
+                <View style={[styles.flexColumn, styles.flex1, styles.alignItemsCenter, styles.mr1]}>
+                    <Icon
+                        additionalStyles={[styles.popoverMenuIcon]}
+                        pressed={pressed}
+                        src={icon}
+                        fill={isFocused ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DEFAULT, true) : StyleUtils.getIconFillColor()}
+                    />
+                    <View style={[styles.mt1, styles.alignItemsCenter]}>
+                        <Text style={[StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall), styles.globalNavigationMenuItem(isFocused)]}>{title}</Text>
                     </View>
                 </View>
-            )}
-        </PressableWithFeedback>
-    );
-}
+            </View>
+        )}
+    </PressableWithFeedback>
+));
 
 GlobalNavigationMenuItem.propTypes = propTypes;
 GlobalNavigationMenuItem.defaultProps = defaultProps;
 GlobalNavigationMenuItem.displayName = 'GlobalNavigationMenuItem';
 
-export default React.forwardRef((props, ref) => (
-    <GlobalNavigationMenuItem
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
+export default GlobalNavigationMenuItem;
