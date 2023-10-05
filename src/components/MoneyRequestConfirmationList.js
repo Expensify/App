@@ -493,7 +493,7 @@ function MoneyRequestConfirmationList(props) {
             {receiptImage || receiptThumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: receiptThumbnail ? receiptThumbnail : receiptImage}}
+                    source={{uri: receiptThumbnail || receiptImage}}
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
             ) : (

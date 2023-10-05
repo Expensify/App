@@ -59,9 +59,6 @@ const propTypes = {
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
 
-    /** Whether the money request is a scan request or not */
-    isScanRequest: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
@@ -73,7 +70,6 @@ const defaultProps = {
     reports: {},
     betas: [],
     isDistanceRequest: false,
-    isScanRequest: false,
 };
 
 function MoneyRequestParticipantsSelector({
@@ -89,7 +85,6 @@ function MoneyRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
-    isScanRequest,
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({

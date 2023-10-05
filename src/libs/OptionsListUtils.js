@@ -1300,6 +1300,7 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
  *
  * @param {Object} personalDetail
  * @param {String} amountText
+ * @param {Boolean} shouldHideDescriptiveText
  * @returns {Object}
  */
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText, shouldHideDescriptiveText) {
@@ -1326,6 +1327,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
  *
  * @param {Array} participants
  * @param {String} amountText
+ * @param {Boolean} shouldHideDescriptiveText
  * @returns {Array}
  */
 function getIOUConfirmationOptionsFromParticipants(participants, amountText, shouldHideDescriptiveText) {
