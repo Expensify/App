@@ -18,17 +18,17 @@ const propTypes = {
 
 const defaultProps = {
     title: '',
-    inactiveOpacity: 1,
-    activeOpacity: 0,
+    inactiveOpacity: {opacity: 1},
+    activeOpacity: {opacity: 0},
 };
 
 function TabLabel({title, activeOpacity, inactiveOpacity}) {
     return (
         <View>
-            <Animated.View style={[{opacity: activeOpacity}]}>
+            <Animated.View style={[activeOpacity]}>
                 <Text style={styles.tabText(true)}>{title}</Text>
             </Animated.View>
-            <Animated.View style={[StyleSheet.absoluteFill, {opacity: inactiveOpacity}]}>
+            <Animated.View style={[StyleSheet.absoluteFill, inactiveOpacity]}>
                 <Text style={styles.tabText(false)}>{title}</Text>
             </Animated.View>
         </View>
