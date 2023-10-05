@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -49,6 +50,8 @@ const defaultProps = {
     iconHeight: undefined,
     description: undefined,
     iconRight: Expensicons.ArrowRight,
+    onIconRightPress: undefined,
+    iconRightAccessibilityLabel: undefined,
     iconStyles: [],
     iconFill: undefined,
     secondaryIconFill: undefined,
@@ -77,6 +80,8 @@ const defaultProps = {
     shouldGreyOutWhenDisabled: true,
     error: '',
     shouldRenderAsHTML: false,
+    rightComponent: undefined,
+    shouldShowRightComponent: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -130,6 +135,8 @@ const MenuItem = React.forwardRef((props, ref) => {
 
         return '';
     }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
+
+    const hasPressableRightComponent = props.onIconRightPress || props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
 
     return (
         <Hoverable>
@@ -300,7 +307,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     </View>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
+                            <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
                                 {Boolean(props.badgeText) && (
                                     <Badge
                                         text={props.badgeText}
@@ -338,13 +345,21 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     </View>
                                 )}
                                 {Boolean(props.shouldShowRightIcon) && (
-                                    <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
+                                    <PressableWithFeedback
+                                        wrapperStyle={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        accessibilityLabel={props.iconRightAccessibilityLabel ? props.iconRightAccessibilityLabel : ''}
+                                        accessible={!props.onIconRightPress}
+                                        disabled={!props.onIconRightPress}
+                                        onPress={props.onIconRightPress}
+                                    >
                                         <Icon
                                             src={props.iconRight}
                                             fill={StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive))}
                                         />
-                                    </View>
+                                    </PressableWithFeedback>
                                 )}
+                                {props.shouldShowRightComponent && props.rightComponent}
                                 {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                             </View>
                         </>
