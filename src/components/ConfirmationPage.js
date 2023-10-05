@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Lottie from 'lottie-react-native';
+import Lottie from "./Lottie"
 import * as LottieAnimations from './LottieAnimations';
 import Text from './Text';
 import styles from '../styles/styles';
@@ -46,7 +46,7 @@ function ConfirmationPage(props) {
                     source={props.animation}
                     autoPlay
                     loop
-                    style={[styles.confirmationAnimation, styles.aspectRatioLottie(props.animation)]}
+                    style={styles.confirmationAnimation}
                 />
                 <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{props.heading}</Text>
                 <Text style={styles.textAlignCenter}>{props.description}</Text>

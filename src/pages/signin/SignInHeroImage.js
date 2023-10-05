@@ -1,5 +1,5 @@
 import React from 'react';
-import Lottie from 'lottie-react-native';
+import Lottie from "../../components/Lottie"
 import * as LottieAnimations from '../../components/LottieAnimations';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import styles from '../../styles/styles';
@@ -33,7 +33,7 @@ function SignInHeroImage(props) {
             source={LottieAnimations.Hands}
             loop
             autoPlay
-            style={[styles.alignSelfCenter, imageSize, styles.aspectRatioLottie(LottieAnimations.Hands)]}
+            style={[styles.alignSelfCenter, imageSize]}
         />
     );
 }

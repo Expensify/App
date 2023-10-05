@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
-import Lottie from 'lottie-react-native';
+import Lottie from "./Lottie"
 import * as LottieAnimations from './LottieAnimations';
 import styles from '../styles/styles';
 import useLocalize from '../hooks/useLocalize';
@@ -38,7 +38,7 @@ function ReimbursementAccountLoadingIndicator(props) {
                             source={LottieAnimations.ReviewingBankInfo}
                             autoPlay
                             loop
-                            style={[styles.loadingVBAAnimation, styles.aspectRatioLottie(LottieAnimations.ReviewingBankInfo)]}
+                            style={styles.loadingVBAAnimation}
                         />
                         <View style={[styles.ph6]}>
                             <Text style={[styles.textAlignCenter]}>{translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
