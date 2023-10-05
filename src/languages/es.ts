@@ -252,6 +252,14 @@ export default {
         all: 'Todo',
         tbd: 'Por determinar',
     },
+    location: {
+        useCurrent: 'Usar ubicación actual',
+        notFound: 'No pudimos encontrar tu ubicación, inténtalo de nuevo o introduce una dirección manualmente.',
+        permissionDenied: 'Parece que has denegado el permiso a tu ubicación.',
+        please: 'Por favor,',
+        allowPermission: 'habilita el permiso de ubicación en la configuración',
+        tryAgain: 'e inténtalo de nuevo.',
+    },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
     },
@@ -818,6 +826,14 @@ export default {
         availableSpend: 'Capacidad de gasto restante',
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
+        cardDetails: {
+            cardNumber: 'Número de tarjeta virtual',
+            expiration: 'Expiración',
+            cvv: 'CVV',
+            address: 'Dirección',
+            revealDetails: 'Revelar detalles',
+            copyCardNumber: 'Copiar número de la tarjeta',
+        },
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,
@@ -866,6 +882,7 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Mensaje de bienvenida',
+        welcomeMessageOptional: 'Mensaje de bienvenida (opcional)',
         explainerText: 'Configura un mensaje de bienvenida privado y personalizado que se enviará cuando los usuarios se unan a esta sala de chat.',
     },
     languagePage: {
@@ -2273,7 +2290,7 @@ export default {
             onlineSubtitle: 'Un momento mientras configuramos el mapa',
         },
         errors: {
-            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
+            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
     },
     eReceipt: {
