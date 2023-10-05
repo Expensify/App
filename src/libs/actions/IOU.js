@@ -2147,7 +2147,7 @@ function submitReport(expenseReport) {
         },
     ];
 
-    API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID}, {optimisticData, successData, failureData});
+    API.write('SubmitReport', {reportID: expenseReport.reportID, submittedReportActionID: optimisticSubmittedReportAction.reportActionID}, {optimisticData, successData, failureData});
 }
 
 /**
