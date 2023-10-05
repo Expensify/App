@@ -1,5 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import GenerateDeviceID from "./types";
+import GenerateDeviceID from './types';
 
 const uniqueID = Str.guid();
 
@@ -16,6 +16,6 @@ const uniqueID = Str.guid();
  * which is also different/reset under the same circumstances
  */
 
-const generateDeviceID: GenerateDeviceID = () => Promise.resolve(uniqueID)
+const generateDeviceID: GenerateDeviceID = () => Promise.resolve(uniqueID);
 
 export default generateDeviceID;
