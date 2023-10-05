@@ -43,15 +43,18 @@ function NotificationPreferencePage(props) {
     );
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={NotificationPreferencePage.displayName}
+        >
             <FullPageNotFoundView shouldShow={shouldDisableNotificationPreferences}>
                 <HeaderWithBackButton
                     title={props.translate('notificationPreferencesPage.header')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
                 />
                 <OptionsList
                     sections={[{data: notificationPreferenceOptions}]}
-                    onSelectRow={(option) => Report.updateNotificationPreferenceAndNavigate(props.report.reportID, props.report.notificationPreference, option.value)}
+                    onSelectRow={(option) => Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, option.value, true)}
                     hideSectionHeaders
                     optionHoveredStyle={{
                         ...styles.hoveredComponentBG,

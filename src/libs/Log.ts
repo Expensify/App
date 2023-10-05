@@ -1,49 +1,45 @@
 // Making an exception to this rule here since we don't need an "action" for Log and Log should just be used directly. Creating a Log
 // action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
 /* eslint-disable rulesdir/no-api-in-views */
+import {Merge} from 'type-fest';
 import Logger from 'expensify-common/lib/Logger';
 import getPlatform from './getPlatform';
 import pkg from '../../package.json';
 import requireParameters from './requireParameters';
 import * as Network from './Network';
 
-let timeout: NodeJS.Timeout | null = null;
+let timeout: NodeJS.Timeout;
 
-/**
- * @param parameters
- * @param parameters.expensifyCashAppVersion
- * @param parameters.logPacket
- * @returns Promise<unknown>
- */
-function LogCommand(parameters: Record<string, unknown>) {
+type LogCommandParameters = {
+    expensifyCashAppVersion: string;
+    logPacket: string;
+};
+
+function LogCommand(parameters: LogCommandParameters): Promise<{requestID: string}> {
     const commandName = 'Log';
     requireParameters(['logPacket', 'expensifyCashAppVersion'], parameters, commandName);
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
     // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs
-    return Network.post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false});
+    return Network.post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
 }
+
+// eslint-disable-next-line
+type ServerLoggingCallbackOptions = {api_setCookie: boolean; logPacket: string};
+type RequestParams = Merge<ServerLoggingCallbackOptions, {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters: string}>;
 
 /**
  * Network interface for logger.
- *
- * @param logger
- * @param params
- * @param params.parameters
- * @param params.message
- * @return
  */
-function serverLoggingCallback(logger: Logger, params: Record<string, unknown>) {
-    const requestParams = params;
+function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOptions): Promise<{requestID: string}> {
+    const requestParams = params as RequestParams;
     requestParams.shouldProcessImmediately = false;
     requestParams.shouldRetry = false;
     requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${pkg.version}`;
     if (requestParams.parameters) {
-        requestParams.parameters = JSON.stringify(params.parameters);
+        requestParams.parameters = JSON.stringify(requestParams.parameters);
     }
-    if(timeout) {
-        clearTimeout(timeout);
-    }
+    clearTimeout(timeout);
     timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
     return LogCommand(requestParams);
 }
