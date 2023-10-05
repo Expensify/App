@@ -79,7 +79,7 @@ function WorkspaceMembersPage(props) {
     const accountIDs = useMemo(() => _.keys(props.policyMembers), [props.policyMembers]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef(null);
-    const isOfflineAndNeedGetData = _.isEmpty(props.policyMembers) && props.network.isOffline
+    const isOfflineAndNeedGetData = _.isEmpty(props.policyMembers) && props.network.isOffline;
 
     /**
      * Get members for the current workspace
@@ -348,9 +348,11 @@ function WorkspaceMembersPage(props) {
     const data = getMemberOptions();
 
     const getHeaderMessage = () => {
-        if(isOfflineAndNeedGetData) {return props.translate('workspace.common.mustBeOnlineToViewMembers');}
-        return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : ''
-    }
+        if (isOfflineAndNeedGetData) {
+            return props.translate('workspace.common.mustBeOnlineToViewMembers');
+        }
+        return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
+    };
 
     return (
         <ScreenWrapper
