@@ -15,7 +15,6 @@ function PlaybackContextProvider({children}) {
     const updateSharedElements = (parent, child) => {
         setOriginalParent(parent);
         setSharedElement(child);
-        console.log(parent, child);
     };
 
     const contextValue = useMemo(
