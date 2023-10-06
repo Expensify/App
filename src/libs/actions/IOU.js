@@ -1037,7 +1037,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
         // In case the participant is a worskapce, email & accountID should remain undefined and won't be used in the rest of this code
-        const email = isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
+        const email = isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || participant.text).toLowerCase();
         const accountID = isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
@@ -1408,10 +1408,11 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             return;
         }
 
-        // When splitting with a workspace chat, we only need to supply the policyID
+        // When splitting with a workspace chat, we only need to supply the policyID and the workspace reportID as it's needed so we can update the report preview
         if (participant.isOwnPolicyExpenseChat) {
             splits.push({
                 policyID: participant.policyID,
+                chatReportID: splitChatReport.reportID,
             });
             return;
         }
