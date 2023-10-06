@@ -1660,8 +1660,8 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
     }
 
     // Only show notifications for supported types of report actions
-    if (action && !ReportActionsUtils.isNotifiableReportAction(action)) {
-        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: action.actionName});
+    if (!ReportActionsUtils.isNotifiableReportAction(action)) {
+        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: lodashGet(action, 'actionName')});
         return false;
     }
 
