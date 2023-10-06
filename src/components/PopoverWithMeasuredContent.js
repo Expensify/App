@@ -134,7 +134,7 @@ function PopoverWithMeasuredContent(props) {
             ...horizontalConstraint,
             ...verticalConstraint,
         };
-    }, [props.anchorPosition, props.anchorAlignment, props.shouldUseTargetLocation, props.anchorRef, popoverWidth, popoverHeight]);
+    }, [props.anchorPosition, props.anchorAlignment, clickedTargetLocation.vertical, clickedTargetLocation.horizontal, popoverWidth, popoverHeight]);
 
     const horizontalShift = computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
     const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight);
