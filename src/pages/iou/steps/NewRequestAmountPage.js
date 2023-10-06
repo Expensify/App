@@ -151,7 +151,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
     const content = (
         <MoneyRequestAmountForm
-            isEditing={isEditing}
+            buttonTranslationText={isEditing ? 'common.save' : undefined}
             currency={currency}
             amount={iou.amount}
             ref={(e) => (textInput.current = e)}

@@ -26,7 +26,7 @@ const propTypes = {
     currency: PropTypes.string,
 
     /** Whether the amount is being edited or not */
-    isEditing: PropTypes.bool,
+    buttonTranslationText: PropTypes.string,
 
     /** Refs forwarded to the TextInputWithCurrencySymbol */
     forwardedRef: refPropTypes,
@@ -42,7 +42,7 @@ const defaultProps = {
     amount: 0,
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
-    isEditing: false,
+    buttonTranslationText: 'common.next',
 };
 
 /**
@@ -64,7 +64,7 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
+function MoneyRequestAmountForm({amount, currency, buttonTranslationText, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
 
@@ -227,7 +227,6 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     };
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
-    const buttonText = isEditing ? translate('common.save') : translate('common.next');
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     return (
@@ -288,7 +287,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     medium={isExtraSmallScreenHeight}
                     style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt2]}
                     onPress={submitAndNavigateToNextPage}
-                    text={buttonText}
+                    text={translate(buttonTranslationText)}
                 />
             </View>
         </ScrollView>

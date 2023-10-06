@@ -69,8 +69,18 @@ function IOURequestStepAmount() {
         Navigation.dismissModal(reportID);
     }, [report, reportID]);
 
+    const navigateToConfirmationStep = () => {
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+    };
+
     const navigateBack = () => {
-        Navigation.goBack(isUserComingFromConfirmationStep ? ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID) : ROUTES.HOME);
+        if (isUserComingFromConfirmationStep) {
+            // Take the user back to the confirmation step
+            navigateToConfirmationStep();
+            return;
+        }
+
+        Navigation.goBack(ROUTES.HOME);
     };
 
     const navigateToCurrencySelectionPage = () => {
@@ -80,16 +90,25 @@ function IOURequestStepAmount() {
 
     const navigateToNextPage = (currentAmount) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
-        IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
-        IOU.setMoneyRequestCurrency(currency);
+        IOU.setMoneeRequestAmount(transactionID, amountInSmallestCurrencyUnits);
 
-        // TODO: Figure out navigation
-        // if (isEditing) {
-        //     Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
-        //     return;
-        // }
+        if (isUserComingFromConfirmationStep) {
+            navigateToConfirmationStep();
+            return;
+        }
 
-        // IOU.navigateToNextPage(iou, iouType, report);
+        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
+        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+        // to the confirm step.
+        if (report.reportID) {
+            IOU.autoAssignParticipants(transactionID, report);
+            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+            return;
+        }
+
+        // If there was no reportID, then that means the user started this flow from the global + menu
+        // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
     };
 
     return (
@@ -101,8 +120,7 @@ function IOURequestStepAmount() {
             shouldShowWrapper={isUserComingFromConfirmationStep}
         >
             <MoneyRequestAmountForm
-                // TODO: Figure out this setting
-                // isEditing={isEditing}
+                buttonTranslationText={isUserComingFromConfirmationStep ? 'common.save' : undefined}
                 currency={currency}
                 amount={transaction.amount}
                 ref={(e) => (textInput.current = e)}
