@@ -71,6 +71,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
     const isPayer = Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID);
     const shouldShowPayButtonForFreePlan = !isSettled && isPayer && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0;
     const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || nextStepButtons.approve || nextStepButtons.reimburse;
+    const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || nextStepButtons.reimburse;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
 
@@ -97,7 +98,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
-                            shouldShowPaymentOptions
+                            shouldShowPaymentOptions={shouldShowPaymentOptions}
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
                             nextStepButtons={nextStepButtons}
@@ -119,7 +120,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                         onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                         addBankAccountRoute={bankAccountRoute}
-                        shouldShowPaymentOptions
+                        shouldShowPaymentOptions={shouldShowPaymentOptions}
                         formattedAmount={formattedAmount}
                         nextStepButtons={nextStepButtons}
                     />

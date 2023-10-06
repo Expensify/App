@@ -157,6 +157,17 @@ function SettlementButton({
         // if user already paid for some request or expense, let's use the last payment method or use default.
         let paymentMethod = nvp_lastPaymentMethod[policyID] || '';
         if (!shouldShowPaymentOptions) {
+            // Only show the Approve button if the user cannot pay the request
+            if (nextStepButtons.approve) {
+                return [
+                    {
+                        text: translate('iou.approve'),
+                        icon: Expensicons.Key,
+                        value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+                    },
+                ];
+            }
+
             if (!paymentMethod) {
                 // In case the user hasn't paid a request yet, let's default to VBBA payment type in case of expense reports
                 if (isExpenseReport) {
