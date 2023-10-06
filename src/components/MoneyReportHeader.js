@@ -132,8 +132,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                 {shouldShowSubmitButton && !isSmallScreenWidth && (
                     <View style={styles.pv2}>
                         <Button
-                            success
                             medium
+                            success={moneyRequestReport.isOwnPolicyExpenseChat}
                             text={translate('common.submit')}
                             style={[styles.mnw120, styles.pv2, styles.pr0]}
                             onPress={() => IOU.submitReport(moneyRequestReport)}
@@ -170,8 +170,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
             {shouldShowSubmitButton && isSmallScreenWidth && (
                 <View style={[styles.ph5, styles.pb2, isSmallScreenWidth && styles.borderBottom]}>
                     <Button
-                        success
                         medium
+                        success={moneyRequestReport.isOwnPolicyExpenseChat}
                         text={translate('common.submit')}
                         style={[styles.w100, styles.pr0]}
                         onPress={() => IOU.submitReport(moneyRequestReport)}
