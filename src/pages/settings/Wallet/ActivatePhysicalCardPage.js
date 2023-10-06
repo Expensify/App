@@ -66,7 +66,7 @@ function ActivatePhysicalCardPage({
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
     const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
     const cardID = lodashGet(physicalCard, 'cardID', 0);
-    const cardError = ErrorUtils.getLatestErrorMessage(cardList[cardID]);
+    const cardError = ErrorUtils.getLatestErrorMessage(physicalCard);
 
     const activateCardCodeInputRef = useRef(null);
 
@@ -74,12 +74,12 @@ function ActivatePhysicalCardPage({
      * If state of the card is CONST.CARD_STATE.OPEN, navigate to card details screen.
      */
     useEffect(() => {
-        if (cardList[cardID].isLoading || lodashGet(cardList, `${cardID}.state`, 0) !== CONST.CARD_STATE.OPEN) {
+        if (physicalCard.isLoading || lodashGet(cardList, `${cardID}.state`, 0) !== CONST.CARD_STATE.OPEN) {
             return;
         }
 
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
-    }, [cardID, cardList, domain]);
+    }, [cardID, cardList, domain, physicalCard.isLoading]);
 
     useEffect(
         () => () => {
@@ -158,7 +158,7 @@ function ActivatePhysicalCardPage({
             <Button
                 success
                 isDisabled={isOffline}
-                isLoading={cardList[cardID].isLoading}
+                isLoading={physicalCard.isLoading}
                 medium={isExtraSmallScreenHeight}
                 style={[styles.w100, styles.p5, styles.mtAuto]}
                 onPress={submitAndNavigateToNextPage}

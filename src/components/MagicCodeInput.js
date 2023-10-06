@@ -206,13 +206,9 @@ function MagicCodeInput(props) {
             if (props.isDisableKeyboard && focusedIndex === undefined) {
                 const indexBeforeLastEditIndex = editIndex === 0 ? editIndex : editIndex - 1;
 
-                if (numbers[editIndex] === CONST.MAGIC_CODE_EMPTY_CHAR) {
-                    inputRefs.current[indexBeforeLastEditIndex].focus();
-                    props.onChangeText(props.value.substring(0, indexBeforeLastEditIndex));
-                } else {
-                    inputRefs.current[editIndex].focus();
-                    props.onChangeText(props.value.substring(0, editIndex));
-                }
+                const indexToFocus = numbers[editIndex] === CONST.MAGIC_CODE_EMPTY_CHAR ? indexBeforeLastEditIndex : editIndex;
+                inputRefs.current[indexToFocus].focus();
+                props.onChangeText(props.value.substring(0, indexToFocus));
 
                 return;
             }
@@ -288,7 +284,7 @@ function MagicCodeInput(props) {
                 {_.map(getInputPlaceholderSlots(props.maxLength), (index) => (
                     <View
                         key={index}
-                        style={[styles.w15]}
+                        style={props.maxLength === CONST.MAGIC_CODE_LENGTH ? [styles.w15] : [styles.flex1, index !== 0 && styles.ml3]}
                     >
                         <View
                             style={[
