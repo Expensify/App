@@ -26,7 +26,6 @@ import assignedCardPropTypes from './assignedCardPropTypes';
 import * as CardUtils from '../../../libs/CardUtils';
 import useNetwork from '../../../hooks/useNetwork';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import getFooterContainerStyles from '../../../styles/getFooterContainerStyles';
 
 const propTypes = {
     /* Onyx Props */
@@ -70,7 +69,6 @@ function ActivatePhysicalCardPage({
     const cardError = ErrorUtils.getLatestErrorMessage(cardList[cardID]);
 
     const activateCardCodeInputRef = useRef(null);
-    const footerContainerStyles = [styles.mt2, ...getFooterContainerStyles()];
 
     /**
      * If state of the card is CONST.CARD_STATE.OPEN, navigate to card details screen.
@@ -136,19 +134,8 @@ function ActivatePhysicalCardPage({
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain))}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.Magician}
-            footerContainerStyles={footerContainerStyles}
-            footer={
-                <Button
-                    success
-                    isDisabled={isOffline}
-                    isLoading={cardList[cardID].isLoading}
-                    medium={isExtraSmallScreenHeight}
-                    style={[styles.w100, styles.p0]}
-                    onPress={submitAndNavigateToNextPage}
-                    pressOnEnter
-                    text={translate('activateCardPage.activatePhysicalCard')}
-                />
-            }
+            scrollViewContainerStyles={[styles.mnh100]}
+            childrenContainerStyles={[styles.flex1]}
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
             <View style={[styles.mh5, {minHeight: MAGIC_INPUT_MIN_HEIGHT}]}>
@@ -168,6 +155,16 @@ function ActivatePhysicalCardPage({
             <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>
                 {DeviceCapabilities.canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}
             </View>
+            <Button
+                success
+                isDisabled={isOffline}
+                isLoading={cardList[cardID].isLoading}
+                medium={isExtraSmallScreenHeight}
+                style={[styles.w100, styles.p5, styles.mtAuto]}
+                onPress={submitAndNavigateToNextPage}
+                pressOnEnter
+                text={translate('activateCardPage.activatePhysicalCard')}
+            />
         </IllustratedHeaderPageLayout>
     );
 }
