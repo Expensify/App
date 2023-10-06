@@ -4,14 +4,14 @@ import EReceiptBGImage from '../../../assets/images/eReceipt-BGImage.svg';
 
 const propTypes = {
     /* Background color */
-    primaryColor: PropTypes.string.isRequired,
+    backgroundColor: PropTypes.string.isRequired,
 
     /* Building overlay color */
-    secondaryColor: PropTypes.string.isRequired,
+    fill: PropTypes.string.isRequired,
 };
 
-function EReceiptBackgroundImage({primaryColor, secondaryColor}) {
-    return <EReceiptBGImage style={{backgroundColor: primaryColor, color: secondaryColor}} />;
+function EReceiptBackgroundImage({backgroundColor, fill}) {
+    return <EReceiptBGImage style={{backgroundColor, color: fill}} />;
 }
 
 EReceiptBackgroundImage.displayName = 'EReceiptBackgroundImage';
