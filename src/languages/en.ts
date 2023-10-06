@@ -1797,5 +1797,6 @@ export default {
         address: 'Address',
         deactivateCardButton: 'Deactivate card',
         addressError: 'Address is required',
+        reasonError: 'Reason is required',
     },
 } satisfies TranslationBase;

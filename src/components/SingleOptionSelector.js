@@ -28,7 +28,7 @@ const propTypes = {
 
 const defaultProps = {
     options: [],
-    selectedOptionKey: '',
+    selectedOptionKey: undefined,
     onSelectOption: () => {},
 };
 
@@ -46,7 +46,7 @@ function SingleOptionSelector({options, selectedOptionKey, onSelectOption, trans
                     accessibilityLabel={option.label}
                 >
                     <SelectCircle
-                        isChecked={selectedOptionKey === option.key}
+                        isChecked={selectedOptionKey ? selectedOptionKey === option.key : false}
                         styles={[styles.ml0]}
                     />
                     <Text>{translate(option.label)}</Text>

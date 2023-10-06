@@ -92,9 +92,10 @@ function ReportCardLostPage({
 
     const {translate} = useLocalize();
 
-    const [reason, setReason] = useState(OPTIONS[0]);
+    const [reason, setReason] = useState();
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
+    const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
     const prevIsLoading = usePrevious(formData.isLoading);
 
@@ -121,8 +122,14 @@ function ReportCardLostPage({
     }
 
     const handleSubmitFirstStep = () => {
+        if (!reason) {
+            setShouldShowReasonError(true);
+            return;
+        }
+
         setIsReasonConfirmed(true);
         setShouldShowAddressError(false);
+        setShouldShowReasonError(false);
     };
 
     const handleSubmitSecondStep = () => {
@@ -136,6 +143,7 @@ function ReportCardLostPage({
 
     const handleOptionSelect = (option) => {
         setReason(option);
+        setShouldShowReasonError(false);
     };
 
     return (
@@ -173,9 +181,10 @@ function ReportCardLostPage({
                         <Text style={[styles.textHeadline, styles.pre]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
                         <SingleOptionSelector
                             options={OPTIONS}
-                            selectedOptionKey={reason.key}
+                            selectedOptionKey={reason && reason.key}
                             onSelectOption={handleOptionSelect}
                         />
+                        {shouldShowReasonError && <Text style={styles.formError}>{translate('reportCardLostOrDamaged.reasonError')}</Text>}
                     </View>
                 )}
             </Form>

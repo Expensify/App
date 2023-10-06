@@ -2280,5 +2280,6 @@ export default {
         address: 'Dirección',
         deactivateCardButton: 'Desactivar tarjeta',
         addressError: 'La dirección es obligatoria',
+        reasonError: 'Se requiere justificación',
     },
 } satisfies EnglishTranslation;
