@@ -2,8 +2,6 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
@@ -14,6 +12,8 @@ import NewDatePicker from '../../../../components/NewDatePicker';
 import useLocalize from '../../../../hooks/useLocalize';
 import CONST from '../../../../CONST';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
+import StepScreenWrapper from './StepScreenWrapper';
+import * as IOUUtils from '../../../../libs/IOUUtils';
 
 const propTypes = {
     /** Route from navigation */
@@ -48,7 +48,7 @@ function IOURequestStepDate({
 }) {
     const {translate} = useLocalize();
 
-    const goBack = () => {
+    const navigateBack = () => {
         Navigation.goBack(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID), true);
     };
 
@@ -60,19 +60,17 @@ function IOURequestStepDate({
      */
     const updateDate = (value) => {
         IOU.setMoneeRequestCreated(transactionID, value.moneyRequestCreated);
-        goBack();
+        navigateBack();
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
+        <StepScreenWrapper
+            headerTitle={translate('common.date')}
+            onBackButtonPress={navigateBack}
+            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
+            shouldShowWrapper
             testID={IOURequestStepDate.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('common.date')}
-                onBackButtonPress={goBack}
-            />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
@@ -87,7 +85,7 @@ function IOURequestStepDate({
                     maxDate={new Date()}
                 />
             </Form>
-        </ScreenWrapper>
+        </StepScreenWrapper>
     );
 }
 

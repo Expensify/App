@@ -5,6 +5,7 @@ import styles from '../../../../styles/styles';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import FullPageNotFoundView from '../../../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
+import DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 
 const propTypes = {
     /** The things to display inside the screenwrapper */
@@ -44,6 +45,7 @@ function StepScreenWrapper({testID, shouldShowNotFound, headerTitle, onBackButto
             shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
+            shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={shouldShowNotFound}>

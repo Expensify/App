@@ -6,14 +6,14 @@ import {withOnyx} from 'react-native-onyx';
 import ROUTES from '../../../../ROUTES';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import useLocalize from '../../../../hooks/useLocalize';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import CategoryPicker from '../../../../components/CategoryPicker';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as IOU from '../../../../libs/actions/IOU';
 import CONST from '../../../../CONST';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
 import reportPropTypes from '../../../reportPropTypes';
+import StepScreenWrapper from './StepScreenWrapper';
+import * as IOUUtils from '../../../../libs/IOUUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -53,7 +53,7 @@ function IOURequestStepCategory({
 }) {
     const {translate} = useLocalize();
 
-    const goBack = () => {
+    const navigateBack = () => {
         Navigation.goBack(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID), true);
     };
 
@@ -63,26 +63,23 @@ function IOURequestStepCategory({
      */
     const updateCategory = (category) => {
         IOU.setMoneeRequestCategory(transactionID, category.searchText);
-        goBack();
+        navigateBack();
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
+        <StepScreenWrapper
+            headerTitle={translate('common.category')}
+            onBackButtonPress={navigateBack}
+            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
+            shouldShowWrapper
             testID={IOURequestStepCategory.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('common.category')}
-                onBackButtonPress={goBack}
-            />
-
             <CategoryPicker
                 selectedCategory={transaction.category}
                 policyID={report.policyID}
                 onSubmit={updateCategory}
             />
-        </ScreenWrapper>
+        </StepScreenWrapper>
     );
 }
 
