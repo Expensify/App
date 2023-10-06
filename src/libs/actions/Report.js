@@ -1334,7 +1334,7 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
 function updateWelcomeMessage(reportID, previousValue, newValue) {
     // No change needed, navigate back
     if (previousValue === newValue) {
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
         return;
     }
 
@@ -1354,7 +1354,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateWelcomeMessage', {reportID, welcomeMessage: parsedWelcomeMessage}, {optimisticData, failureData});
-    Navigation.goBack(ROUTES.HOME);
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
 /**
@@ -1852,11 +1852,11 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
     const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
     if (existingReactionObject && hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
-        removeEmojiReaction(reportID, reportAction.reportActionID, emoji);
+        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
         return;
     }
 
-    addEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone);
+    addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone);
 }
 
 /**
