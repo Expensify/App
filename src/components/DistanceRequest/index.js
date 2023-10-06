@@ -229,7 +229,4 @@ export default withOnyx({
     transaction: {
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID || 0}`,
     },
-    mapboxAccessToken: {
-        key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-    },
 })(DistanceRequest);
