@@ -1,7 +1,22 @@
 import lodash from 'lodash';
+import Onyx from 'react-native-onyx';
 import {Card} from '../types/onyx';
 import CONST from '../CONST';
 import * as OnyxTypes from '../types/onyx';
+import ONYXKEYS, {OnyxValues} from '../ONYXKEYS';
+
+
+let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
+Onyx.connect({
+    key: ONYXKEYS.CARD_LIST,
+    callback: (val) => {
+        if (!val || Object.keys(val).length === 0) {
+            return;
+        }
+
+        allCards = val;
+    },
+});
 
 /**
  * @returns string with a month in MM format
@@ -10,7 +25,12 @@ function getMonthFromExpirationDateString(expirationDateString: string) {
     return expirationDateString.substring(0, 2);
 }
 
-function isExpensifyCard(card: Card) {
+/**
+ * @param cardID
+ * @returns boolean
+ */
+function isExpensifyCard(cardID: string) {
+    const card = allCards[cardID];
     if (!card){
         return false;
     }
