@@ -108,6 +108,7 @@ export default {
         resend: 'Resend',
         save: 'Save',
         saveChanges: 'Save changes',
+        submit: 'Submit',
         rotate: 'Rotate',
         zoom: 'Zoom',
         password: 'Password',
