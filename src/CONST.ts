@@ -1219,6 +1219,13 @@ const CONST = {
             INDIVIDUAL: 'individal',
             NONE: 'none',
         },
+        STATE: {
+            OPEN: 3,
+            NOT_ACTIVATED: 4,
+            STATE_DEACTIVATED: 5, 
+            CLOSED: 6,
+            STATE_SUSPENDED: 7,
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,

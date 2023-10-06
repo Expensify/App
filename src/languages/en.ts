@@ -1789,6 +1789,9 @@ export default {
             tryDifferentEmail: 'Please try a different email',
         },
     },
+    cardTransactions: {
+        notActivated: 'Not activated',
+    },
     distance: {
         addStop: 'Add stop',
         deleteWaypoint: 'Delete waypoint',

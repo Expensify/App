@@ -2,6 +2,7 @@ import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
 import {Card} from '../types/onyx';
 import CONST from '../CONST';
+import * as Localize from './Localize';
 import * as OnyxTypes from '../types/onyx';
 import ONYXKEYS, {OnyxValues} from '../ONYXKEYS';
 
@@ -35,6 +36,20 @@ function isExpensifyCard(cardID: string) {
         return false;
     }
     return card.bank === CONST.EXPENSIFY_CARD.BANK;
+}
+
+
+/**
+ * @param cardID
+ * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
+ */
+function getCardDescription(cardID: string) {
+    const card = allCards[cardID];
+    if (!card){
+        return '';
+    }
+    const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? Localize.translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
+    return `${card.bank} - ${cardDescriptor}`;
 }
 
 /**
@@ -83,4 +98,4 @@ function maskCard(lastFour = ''): string {
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
-export {isExpensifyCard, getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard};
+export {isExpensifyCard, getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription};
