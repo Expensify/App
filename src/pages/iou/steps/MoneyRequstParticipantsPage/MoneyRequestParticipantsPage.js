@@ -40,7 +40,7 @@ const propTypes = {
 
 const defaultProps = {
     iou: iouDefaultProps,
-    selectedTab: '',
+    selectedTab: undefined,
 };
 
 function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
