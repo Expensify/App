@@ -227,7 +227,7 @@ function getMerchant(transaction: Transaction): string {
  * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
  */
 function getMCCGroup(transaction: Transaction): string {
-    return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup || '';
+    return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup ?? '';
 }
 
 /**
