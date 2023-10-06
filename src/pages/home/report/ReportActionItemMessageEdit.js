@@ -146,6 +146,7 @@ function ReportActionItemMessageEdit(props) {
     }, [focus]);
 
     useEffect(
+        // Remove focus callback on unmount to avoid stale callbacks
         () => () => {
             ReportActionComposeFocusManager.clear();
         },
@@ -413,7 +414,7 @@ function ReportActionItemMessageEdit(props) {
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
                             emojiPickerID={props.action.reportActionID}
-                            // Let the pressed composer re-gain focus on modal hide
+                            // Set this composer the focus target when its Emoji Picker is opened
                             onPress={setUpComposeFocusManager}
                         />
                     </View>
