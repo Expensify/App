@@ -4,7 +4,7 @@ import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import moment from 'moment';
+import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
@@ -1734,7 +1734,7 @@ function hasAccountIDEmojiReacted(accountID, users, skinTone) {
  * @param {Number} [skinTone]
  */
 function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredSkinTone) {
-    const createdAt = moment().utc().format(CONST.DATE.SQL_DATE_TIME);
+    const createdAt = timezoneFormat(utcToZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
