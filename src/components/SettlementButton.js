@@ -11,6 +11,7 @@ import useLocalize from '../hooks/useLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import * as IOU from '../libs/actions/IOU';
 import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
 import * as Expensicons from './Icon/Expensicons';
@@ -70,6 +71,12 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    /** Next steps buttons to take action for an expense report */
+    nextStepButtons: PropTypes.objectOf({
+        /** Text of the next step button */
+        text: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
@@ -94,6 +101,7 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
+    nextStepButtons: {},
 };
 
 function SettlementButton({
@@ -109,6 +117,7 @@ function SettlementButton({
     isDisabled,
     isLoading,
     formattedAmount,
+    nextStepButtons,
     nvp_lastPaymentMethod,
     onPress,
     policyID,
@@ -176,6 +185,14 @@ function SettlementButton({
         }
         buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
 
+        if (nextStepButtons.approve) {
+            buttonOptions.push({
+                text: translate('iou.approve'),
+                icon: Expensicons.Key,
+                value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+            })
+        }
+
         // Put the preferred payment method to the front of the array so its shown as default
         if (paymentMethod) {
             return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
@@ -186,6 +203,11 @@ function SettlementButton({
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
+            return;
+        }
+
+        if (iouPaymentType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+            IOU.approveMoneyRequest(iouReport);
             return;
         }
 

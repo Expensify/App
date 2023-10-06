@@ -1,9 +1,8 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import useLocalize from '../hooks/useLocalize';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -16,10 +15,10 @@ import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import SettlementButton from './SettlementButton';
-import Button from './Button';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import reportPropTypes from '../pages/reportPropTypes';
+import * as Policy from '../libs/actions/Policy';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -49,6 +48,12 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** Next steps buttons to take action for an expense report */
+    nextStepButtons: PropTypes.objectOf({
+        /** Text of the next step button */
+        text: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -57,27 +62,15 @@ const defaultProps = {
     session: {
         email: null,
     },
+    nextStepButtons: {},
 };
 
-function MoneyReportHeader({session, personalDetails, policy, chatReport, report: moneyRequestReport, isSmallScreenWidth}) {
-    const {translate} = useLocalize();
+function MoneyReportHeader({session, personalDetails, policy, chatReport, report: moneyRequestReport, isSmallScreenWidth, nextStepButtons}) {
     const reportTotal = ReportUtils.getMoneyRequestTotal(moneyRequestReport);
-    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const policyType = lodashGet(policy, 'type');
-    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
-    const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
-    const isPayer = policyType === CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
-    const shouldShowSettlementButton = useMemo(
-        () => isPayer && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
-        [isPayer, isSettled, moneyRequestReport, reportTotal, chatReport],
-    );
-    const shouldShowApproveButton = useMemo(() => {
-        if (policyType !== CONST.POLICY.TYPE.CORPORATE) {
-            return false;
-        }
-        return isManager && !isApproved && !isSettled;
-    }, [policyType, isManager, isApproved, isSettled]);
+    const isPayer = Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID);
+    const shouldShowPayButtonForFreePlan = !isSettled && isPayer && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0;
+    const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || nextStepButtons.approve || nextStepButtons.reimburse;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
 
@@ -107,21 +100,11 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                             shouldShowPaymentOptions
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
+                            nextStepButtons={nextStepButtons}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                             }}
-                        />
-                    </View>
-                )}
-                {shouldShowApproveButton && !isSmallScreenWidth && (
-                    <View style={[styles.pv2]}>
-                        <Button
-                            success
-                            medium
-                            text={translate('iou.approve')}
-                            style={[styles.mnw120, styles.pv2, styles.pr0]}
-                            onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
                         />
                     </View>
                 )}
@@ -138,17 +121,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
                         formattedAmount={formattedAmount}
-                    />
-                </View>
-            )}
-            {shouldShowApproveButton && isSmallScreenWidth && (
-                <View style={[styles.ph5, styles.pb2, isSmallScreenWidth && styles.borderBottom]}>
-                    <Button
-                        success
-                        medium
-                        text={translate('iou.approve')}
-                        style={[styles.w100, styles.pr0]}
-                        onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
+                        nextStepButtons={nextStepButtons}
                     />
                 </View>
             )}
@@ -169,5 +142,9 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
+        nextStepButtons: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_NEXT_STEP}${report.reportID}`,
+            selector: (nextStep) => lodashGet(nextStep, 'buttons'),
+        }
     }),
 )(MoneyReportHeader);
