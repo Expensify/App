@@ -1,5 +1,6 @@
 import React, {useRef, useContext} from 'react';
 import lodashGet from 'lodash/get';
+import lodashMin from 'lodash/min';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -53,38 +54,37 @@ function ReportActionItemEmojiReactions(props) {
     const reportActionID = reportAction.reportActionID;
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
-    const sortedReactions = _.sortBy(props.emojiReactions, (emojiReaction, emojiName) => {
-        // Since the emojiName is only stored as the object key, when _.sortBy() runs, the object is converted to an array and the
-        // keys are lost. To keep from losing the emojiName, it's copied to the emojiReaction object.
-        // eslint-disable-next-line no-param-reassign
-        emojiReaction.emojiName = emojiName;
-        const oldestUserReactionTimestamp = _.chain(emojiReaction.users)
-            .reduce((allTimestampsArray, userData) => {
-                if (!userData) {
-                    return allTimestampsArray;
-                }
-                _.each(userData.skinTones, (createdAt) => {
-                    allTimestampsArray.push(createdAt);
-                });
-                return allTimestampsArray;
-            }, [])
-            .sort()
-            .first()
-            .value();
+    const sortedReactions = _.chain(props.emojiReactions)
+        .map((emojiReaction, emojiName) => {
+            const sortedUsers = _.chain(emojiReaction.users)
+                .pick(_.identity)
+                .map((user, id) => ({
+                    id,
+                    ...user,
+                    oldestTimestamp: lodashMin(_.values(user.skinTones))
+                }))
+                .sortBy('oldestTimestamp')
+                .value();
 
-        // Just in case two emojis have the same timestamp, also combine the timestamp with the
-        // emojiName so that the order will always be the same. Without this, the order can be pretty random
-        // and shift around a little bit.
-        return (oldestUserReactionTimestamp || emojiReaction.createdAt) + emojiName;
-    });
+            return {
+                ...emojiReaction,
+                emojiName,
+                users: sortedUsers,
+                // Just in case two emojis have the same timestamp, also combine the timestamp with the
+                // emojiName so that the order will always be the same. Without this, the order can be pretty random
+                // and shift around a little bit.
+                oldestTimestamp: lodashGet(sortedUsers, ['0', 'oldestTimestamp'], emojiReaction.createdAt) + emojiName
+            };
+        })
+        .sortBy('oldestTimestamp')
+        .value();
 
     const formattedReactions = _.map(sortedReactions, (reaction) => {
         const reactionEmojiName = reaction.emojiName;
-        const usersWithReactions = _.pick(reaction.users, _.identity);
         let reactionCount = 0;
 
         // Loop through the users who have reacted and see how many skintones they reacted with so that we get the total count
-        _.forEach(usersWithReactions, (user) => {
+        _.forEach(reaction.users, (user) => {
             reactionCount += _.size(user.skinTones);
         });
         if (!reactionCount) {
@@ -94,7 +94,7 @@ function ReportActionItemEmojiReactions(props) {
         const emojiAsset = EmojiUtils.findEmojiByName(reactionEmojiName);
         const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emojiAsset, reaction.users);
         const hasUserReacted = Report.hasAccountIDEmojiReacted(props.currentUserPersonalDetails.accountID, reaction.users);
-        const reactionUsers = _.keys(usersWithReactions);
+        const reactionUsers = _.map(reaction.users, 'id');
         const reactionUserAccountIDs = _.map(reactionUsers, Number);
 
         const onPress = () => {
