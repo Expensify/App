@@ -74,6 +74,8 @@ type Report = {
     preexistingReportID?: string;
     /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
     nonReimbursableTotal?: number;
+    lastMessageTranslationKey?: string;
+    isLastMessageDeletedParentAction?: boolean;
 };
 
 export default Report;

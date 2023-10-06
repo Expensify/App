@@ -2,7 +2,7 @@ import {InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -30,6 +30,7 @@ import * as Session from './Session';
 import ReportAction from '../../types/onyx/ReportAction';
 import Report from '../../types/onyx/Report';
 import PersonalDetails from '../../types/onyx/PersonalDetails';
+import {type} from 'os';
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({
@@ -52,7 +53,7 @@ Onyx.connect({
     },
 });
 
-const allReportActions: Record<string, ReportAction> = {};
+const allReportActions: OnyxCollection<ReportAction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (action, key) => {
@@ -64,7 +65,7 @@ Onyx.connect({
     },
 });
 
-const currentReportData: Record<string, Report> = {};
+const currentReportData: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
@@ -84,7 +85,7 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: Record<string, PersonalDetails> = {};
+let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
@@ -231,31 +232,32 @@ function unsubscribeFromLeavingRoomReportChannel(reportID: string) {
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM);
 }
 
+type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string) => void;
+
+type ActionSubscriber = {
+    reportID: string;
+    callback: SubscriberCallback;
+};
+
 // New action subscriber array for report pages
-let newActionSubscribers = [];
+let newActionSubscribers: ActionSubscriber[] = [];
 
 /**
  * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
  * Add subscriber for report id
- * @param reportID
- * @param callback
  * @returns Remove subscriber for report id
  */
-function subscribeToNewActionEvent(reportID, callback) {
+function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallback): () => void {
     newActionSubscribers.push({callback, reportID});
     return () => {
-        newActionSubscribers = _.filter(newActionSubscribers, (subscriber) => subscriber.reportID !== reportID);
+        newActionSubscribers = newActionSubscribers.filter((subscriber) => subscriber.reportID !== reportID);
     };
 }
 
 /**
  * Notify the ReportActionsView that a new comment has arrived
- *
- * @param reportID
- * @param accountID
- * @param reportActionID
  */
-function notifyNewAction(reportID, accountID, reportActionID) {
+function notifyNewAction(reportID: string, accountID: number, reportActionID: string) {
     const actionSubscriber = _.find(newActionSubscribers, (subscriber) => subscriber.reportID === reportID);
     if (!actionSubscriber) {
         return;
@@ -270,12 +272,8 @@ function notifyNewAction(reportID, accountID, reportActionID) {
  * - Adding one comment
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
- *
- * @param reportID
- * @param [text]
- * @param [file]
  */
-function addActions(reportID, text = '', file) {
+function addActions(reportID: string, text = '', file?: File) {
     let reportCommentText = '';
     let reportCommentAction;
     let attachmentAction;
@@ -417,7 +415,7 @@ function addActions(reportID, text = '', file) {
  * @param file
  * @param [text]
  */
-function addAttachment(reportID, file, text = '') {
+function addAttachment(reportID: string, file: File, text = '') {
     addActions(reportID, text, file);
 }
 
@@ -427,12 +425,12 @@ function addAttachment(reportID, file, text = '') {
  * @param reportID
  * @param text
  */
-function addComment(reportID, text) {
+function addComment(reportID: string, text: string) {
     addActions(reportID, text);
 }
 
-function reportActionsExist(reportID) {
-    return allReportActions[reportID] !== undefined;
+function reportActionsExist(reportID: string): boolean {
+    return allReportActions?.[reportID] !== undefined;
 }
 
 /**
@@ -446,8 +444,8 @@ function reportActionsExist(reportID) {
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
-function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
-    const optimisticReportData = [
+function openReport(reportID: string, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
+    const optimisticReportData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -467,7 +465,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         },
     ];
 
-    const reportSuccessData = [
+    const reportSuccessData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -490,7 +488,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         },
     ];
 
-    const reportFailureData = [
+    const reportFailureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
@@ -623,7 +621,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
  * @param userLogins list of user logins to start a chat report with.
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
+function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true) {
     let newChat = {};
 
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
@@ -648,7 +646,7 @@ function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
  *
  * @param participantAccountIDs of user logins to start a chat report with.
  */
-function navigateToAndOpenReportWithAccountIDs(participantAccountIDs) {
+function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) {
     let newChat = {};
     const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     if (!chat) {
@@ -667,7 +665,6 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs) {
  * @param childReportID The reportID we are trying to open
  * @param parentReportAction the parent comment of a thread
  * @param parentReportID The reportID of the parent
- *
  */
 function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0') {
     if (childReportID !== '0') {
@@ -699,10 +696,8 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
 
 /**
  * Get the latest report history without marking the report as read.
- *
- * @param reportID
  */
-function reconnect(reportID) {
+function reconnect(reportID: string) {
     API.write(
         'ReconnectToReport',
         {
@@ -751,11 +746,8 @@ function reconnect(reportID) {
 /**
  * Gets the older actions that have not been read yet.
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
- *
- * @param reportID
- * @param reportActionID
  */
-function readOldestAction(reportID, reportActionID) {
+function readOldestAction(reportID: string, reportActionID: string) {
     API.read(
         'ReadOldestAction',
         {
@@ -796,11 +788,8 @@ function readOldestAction(reportID, reportActionID) {
 
 /**
  * Gets metadata info about links in the provided report action
- *
- * @param reportID
- * @param reportActionID
  */
-function expandURLPreview(reportID, reportActionID) {
+function expandURLPreview(reportID: string, reportActionID: string) {
     API.read('ExpandURLPreview', {
         reportID,
         reportActionID,
@@ -809,10 +798,8 @@ function expandURLPreview(reportID, reportActionID) {
 
 /**
  * Marks the new report actions as read
- *
- * @param reportID
  */
-function readNewestAction(reportID) {
+function readNewestAction(reportID: string) {
     const lastReadTime = DateUtils.getDBTime();
     API.write(
         'ReadNewestAction',
@@ -836,11 +823,8 @@ function readNewestAction(reportID) {
 
 /**
  * Sets the last read time on a report
- *
- * @param reportID
- * @param reportActionCreated
  */
-function markCommentAsUnread(reportID, reportActionCreated) {
+function markCommentAsUnread(reportID: string, reportActionCreated: boolean) {
     // If no action created date is provided, use the last action's
     const actionCreationTime = reportActionCreated || lodashGet(allReports, [reportID, 'lastVisibleActionCreated'], DateUtils.getDBTime(new Date(0)));
 
@@ -870,11 +854,8 @@ function markCommentAsUnread(reportID, reportActionCreated) {
 
 /**
  * Toggles the pinned state of the report.
- *
- * @param reportID
- * @param isPinnedChat
  */
-function togglePinnedState(reportID, isPinnedChat) {
+function togglePinnedState(reportID: string, isPinnedChat: boolean) {
     const pinnedValue = !isPinnedChat;
 
     // Optimistically pin/unpin the report before we send out the command
@@ -899,63 +880,55 @@ function togglePinnedState(reportID, isPinnedChat) {
 /**
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
- *
- * @param reportID
- * @param comment
  */
-function saveReportComment(reportID, comment) {
+function saveReportComment(reportID: string, comment: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
 }
 
 /**
  * Saves the number of lines for the comment
- * @param reportID
- * @param numberOfLines
  */
-function saveReportCommentNumberOfLines(reportID, numberOfLines) {
+function saveReportCommentNumberOfLines(reportID: string, numberOfLines: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`, numberOfLines);
 }
 
 /**
  * Immediate indication whether the report has a draft comment.
- *
- * @param reportID
- * @param hasDraft
- * @returns
  */
-function setReportWithDraft(reportID, hasDraft) {
+function setReportWithDraft(reportID: string, hasDraft: boolean) {
     return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
 }
 
 /**
  * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
- *
- * @param reportID
  */
-function broadcastUserIsTyping(reportID) {
+function broadcastUserIsTyping(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
-    const typingStatus = {};
-    typingStatus[currentUserAccountID] = true;
+    const typingStatus: Record<number, boolean> = currentUserAccountID
+        ? {
+              [currentUserAccountID]: true,
+          }
+        : {};
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
+
 /**
  * Broadcasts to the report's private pusher channel whether a user is leaving a report
- *
- * @param reportID
  */
-function broadcastUserIsLeavingRoom(reportID) {
+function broadcastUserIsLeavingRoom(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
-    const leavingStatus = {};
-    leavingStatus[currentUserAccountID] = true;
+    const leavingStatus: Record<number, boolean> = currentUserAccountID
+        ? {
+              [currentUserAccountID]: true,
+          }
+        : {};
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
 
 /**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
- *
- * @param report
  */
-function handleReportChanged(report) {
+function handleReportChanged(report: OnyxEntry<Report>) {
     if (!report) {
         return;
     }
@@ -996,13 +969,15 @@ Onyx.connect({
 
 /**
  * Deletes a comment from the report, basically sets it as empty string
- *
- * @param reportID
- * @param reportAction
  */
-function deleteReportComment(reportID, reportAction) {
+function deleteReportComment(reportID: string, reportAction: ReportAction) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
+
+    if (!reportActionID) {
+        return;
+    }
+
     const deletedMessage = [
         {
             translationKey: '',
@@ -1025,7 +1000,7 @@ function deleteReportComment(reportID, reportAction) {
 
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
-    let optimisticReport = {
+    let optimisticReport: Partial<Report> = {
         lastMessageTranslationKey: '',
         lastMessageText: '',
         lastVisibleActionCreated: '',
@@ -1053,7 +1028,7 @@ function deleteReportComment(reportID, reportAction) {
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
     // and and remove the pendingAction so the strike-through clears
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -1067,7 +1042,7 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -1080,7 +1055,7 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -1103,16 +1078,6 @@ function deleteReportComment(reportID, reportAction) {
         optimisticData.push(optimisticParentReportData);
     }
 
-    // Check to see if the report action we are deleting is the first comment on a thread report. In this case, we need to trigger
-    // an update to let the LHN know that the parentReportAction is now deleted.
-    if (ReportUtils.isThreadFirstChat(reportAction, reportID)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {updateReportInLHN: true},
-        });
-    }
-
     const parameters = {
         reportID: originalReportID,
         reportActionID,
@@ -1126,10 +1091,6 @@ function deleteReportComment(reportID, reportAction) {
  *      html="test <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">https://www.google.com</a> test"
  *      links=["https://www.google.com"]
  * returns: "test https://www.google.com test"
- *
- * @param html
- * @param links
- * @returns
  */
 const removeLinksFromHtml = (html, links) => {
     let htmlCopy = html.slice();

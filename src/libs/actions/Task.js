@@ -766,7 +766,6 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
-                updateReportInLHN: true,
                 isDeletedParentAction: true,
             },
         },
