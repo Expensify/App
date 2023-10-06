@@ -1,5 +1,5 @@
 // TODO: cleanup - file was made from MoneyRequestSelectorPage
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -88,6 +88,14 @@ function IOURequestStartPage({
         transactionRequestType.current = newIouType;
     };
 
+    // Clear out the temporary money request when this component is unmounted
+    useEffect(
+        () => () => {
+            IOU.startMoneeRequest('');
+        },
+        [],
+    );
+
     return (
         <IOURouteContext.Provider value={{report, route, transaction}}>
             <ScreenWrapper
@@ -120,10 +128,7 @@ function IOURequestStartPage({
                                         />
                                     )}
                                 >
-                                    <TopTab.Screen
-                                        name={CONST.TAB_REQUEST.MANUAL}
-                                        component={IOURequestStepAmount}
-                                    />
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
                                     <TopTab.Screen
                                         name={CONST.TAB_REQUEST.SCAN}
                                         // TODO: get rid of this tab and do like amount and distance
