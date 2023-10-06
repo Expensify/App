@@ -3450,8 +3450,8 @@ const styles = (theme) => ({
         color: isSelected ? theme.textLight : theme.textSupporting,
     }),
 
-    tabBackground: (hovered, isFocused, backgroundColor) => ({
-        backgroundColor: hovered && !isFocused ? theme.highlightBG : backgroundColor,
+    tabBackground: (hovered, isFocused) => ({
+        backgroundColor: hovered && !isFocused ? theme.highlightBG : undefined,
     }),
 
     tabOpacity: (hovered, isFocused, activeOpacityValue, inactiveOpacityValue) => (hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue),
