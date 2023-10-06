@@ -1,6 +1,5 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -14,22 +13,11 @@ import CONST from '../../../../CONST';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import * as IOUUtils from '../../../../libs/IOUUtils';
+import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of iou (eg. scan/manual/distance) */
-            iouType: PropTypes.string,
-
-            /** The report ID of the IOU's report */
-            reportID: PropTypes.string,
-
-            /** The transaction ID of the IOU */
-            transactionID: PropTypes.string,
-        }),
-    }).isRequired,
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */

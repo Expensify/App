@@ -25,24 +25,11 @@ import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
+import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
-    /** Route params */
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            /** IOU type */
-            iouType: PropTypes.string,
-
-            /** Thread reportID */
-            reportID: PropTypes.string,
-
-            /** ID of the transaction being edited */
-            transactionID: PropTypes.string,
-
-            /** Index of the waypoint being edited */
-            pageIndex: PropTypes.string,
-        }),
-    }),
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /* Onyx props */
     /** The optimistic transaction for this request */
@@ -70,7 +57,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    route: {},
     recentWaypoints: [],
     transaction: {},
 };

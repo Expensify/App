@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import lodashIsEmpty from 'lodash/isEmpty';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
@@ -26,25 +25,11 @@ import CONST from '../../../../CONST';
 import * as IOU from '../../../../libs/actions/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
 import reportPropTypes from '../../../reportPropTypes';
+import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
-    /** React Navigation route */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
-
-            /** The ID of the transaction being configured */
-            transactionID: PropTypes.string,
-
-            /** The current step the user is on */
-            step: PropTypes.string,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /* Onyx Props */
     /** The report that the transaction belongs to */

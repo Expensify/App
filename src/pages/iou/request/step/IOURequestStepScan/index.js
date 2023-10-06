@@ -22,22 +22,11 @@ import * as FileUtils from '../../../../../libs/fileDownload/FileUtils';
 import Navigation from '../../../../../libs/Navigation/Navigation';
 import reportPropTypes from '../../../../reportPropTypes';
 import ONYXKEYS from '../../../../../ONYXKEYS';
+import IOURequestStepRoutePropTypes from '../IOURequestStepRoutePropTypes';
 
 const propTypes = {
-    /** React Navigation route */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
-
-            /** The ID of the transaction being configured */
-            transactionID: PropTypes.string,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /** Whether or not the receipt selector is in a tab navigator for tab animations */
     // eslint-disable-next-line react/no-unused-prop-types

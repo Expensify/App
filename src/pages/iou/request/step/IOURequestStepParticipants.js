@@ -1,6 +1,5 @@
 // TODO: This file came from MoneyRequestParticipantsPage.js and we need to be sure any recent changes are copied to this file
 import React, {useRef, useCallback} from 'react';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import CONST from '../../../../CONST';
@@ -14,22 +13,11 @@ import transactionPropTypes from '../../../../components/transactionPropTypes';
 import * as TransactionUtils from '../../../../libs/TransactionUtils';
 import StepScreenWrapper from './StepScreenWrapper';
 import * as IOUUtils from '../../../../libs/IOUUtils';
+import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
-    /** React Navigation route */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
-
-            /** The ID of the transaction being configured */
-            transactionID: PropTypes.string,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /* Onyx Props */
     /** The transaction object being modified in Onyx */

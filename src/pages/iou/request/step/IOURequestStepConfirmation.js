@@ -1,9 +1,8 @@
 // TODO: This file came from MoneyRequestConfirmPage.js and we need to be sure any recent changes are copied to this file
-import React, {useMemo, useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 import useLocalize from '../../../../hooks/useLocalize';
 import CONST from '../../../../CONST';
@@ -31,22 +30,11 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import {policyPropTypes} from '../../../workspace/withPolicy';
 import useNetwork from '../../../../hooks/useNetwork';
 import * as Policy from '../../../../libs/actions/Policy';
+import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
-    /** React Navigation route */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string.isRequired,
-
-            /** The ID of the transaction being configured */
-            transactionID: PropTypes.string.isRequired,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-        }).isRequired,
-    }).isRequired,
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /* Onyx Props */
     /** The personal details of the current user */

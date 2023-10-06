@@ -17,6 +17,7 @@ import useLocalize from '../../../../hooks/useLocalize';
 import * as IOU from '../../../../libs/actions/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
 import * as IOUUtils from '../../../../libs/IOUUtils';
+import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -24,23 +25,8 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
  * IOU Currency selection for selecting currency
  */
 const propTypes = {
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of iou (eg. scan/manual/distance) */
-            iouType: PropTypes.string,
-
-            /** The report ID of the IOU's report */
-            reportID: PropTypes.string,
-
-            /** The transaction ID of the IOU */
-            transactionID: PropTypes.string,
-
-            /** A path to go to when the user presses the back button */
-            backTo: PropTypes.string,
-        }),
-    }).isRequired,
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /** The currency list constant object from Onyx */
     currencyList: PropTypes.objectOf(

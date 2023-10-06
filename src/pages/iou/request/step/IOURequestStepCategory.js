@@ -1,6 +1,5 @@
 // TODO: This file came from MoneyRequestCategoryPage - verify it's still the same when ready to merge and clean up the old file
 import React from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import ROUTES from '../../../../ROUTES';
@@ -14,22 +13,11 @@ import transactionPropTypes from '../../../../components/transactionPropTypes';
 import reportPropTypes from '../../../reportPropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import * as IOUUtils from '../../../../libs/IOUUtils';
+import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
-    route: PropTypes.shape({
-        /** Route specific parameters used on this screen via route :iouType/new/category/:reportID? */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
-
-            /** The ID of the transaction being configured */
-            transactionID: PropTypes.string,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /* Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */

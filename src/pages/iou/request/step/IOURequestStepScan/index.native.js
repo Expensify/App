@@ -3,7 +3,6 @@ import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-nat
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useCameraDevices} from 'react-native-vision-camera';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {RESULTS} from 'react-native-permissions';
 import PressableWithFeedback from '../../../../../components/Pressable/PressableWithFeedback';
@@ -24,26 +23,11 @@ import Navigation from '../../../../../libs/Navigation/Navigation';
 import TabNavigationAwareCamera from './TabNavigationAwareCamera';
 import ROUTES from '../../../../../ROUTES';
 import reportPropTypes from '../../../../reportPropTypes';
-import ONYXKEYS from '../../../../../ONYXKEYS';
+import IOURequestStepRoutePropTypes from '../IOURequestStepRoutePropTypes';
 
 const propTypes = {
-    /** React Navigation route */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
-
-            /** The ID of the transaction being configured */
-            transactionID: PropTypes.string,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-
-            /** The index of the current part of the process */
-            pageIndex: PropTypes.string,
-        }),
-    }).isRequired,
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /** Whether or not the receipt selector is in a tab navigator for tab animations */
     // eslint-disable-next-line react/no-unused-prop-types
