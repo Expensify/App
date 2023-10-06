@@ -34,7 +34,6 @@ function IOURequestStepDistance() {
         },
         report,
         transaction,
-        transaction: {participants},
     } = useContext(IOURouteContext);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();

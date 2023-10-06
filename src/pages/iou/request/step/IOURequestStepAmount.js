@@ -25,24 +25,33 @@ import CONST from '../../../../CONST';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
 import * as TransactionUtils from '../../../../libs/TransactionUtils';
 import IOURouteContext from '../../IOURouteContext';
+import StepScreenWrapper from './StepScreenWrapper';
 
 const propTypes = {};
 
 const defaultProps = {};
 
 function IOURequestStepAmount() {
-    const {route, report, transaction} = useContext(IOURouteContext);
     const {
-        params: {iouType, reportID},
-    } = route;
+        route: {
+            params: {iouType, reportID, step, transactionID},
+        },
+        report,
+        transaction,
+        transaction: {currency},
+    } = useContext(IOURouteContext);
     const {translate} = useLocalize();
     const textInput = useRef(null);
-
-    const currentCurrency = lodashGet(route, 'params.currency', '');
-
-    const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : transaction.currency;
-
     const focusTimeoutRef = useRef(null);
+
+    // console.log(transaction);
+    // const currentCurrency = lodashGet(route, 'params.currency', '');
+    // const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : transaction.currency;
+
+    // When this screen is accessed from the "start request flow" (ie. the manual/scan/distance tab selector) it is already embedded in a screen wrapper.
+    // When this screen is navigated to from the "confirmation step" it won't be embedded in a screen wrapper, so the StepScreenWrapper should be shown.
+    // In the "start request flow", the "step" param does not exist, but it does exist in the "confirmation step" flow.
+    const isUserComingFromConfirmationStep = !_.isUndefined(step);
 
     useFocusEffect(
         useCallback(() => {
@@ -70,16 +79,11 @@ function IOURequestStepAmount() {
     };
 
     const navigateToCurrencySelectionPage = () => {
-        // If the money request being created is a distance request, don't allow the user to choose the currency.
-        // Only USD is allowed for distance requests.
-        if (TransactionUtils.isDistanceRequest(transaction)) {
-            return;
-        }
-
         // TODO: Figure out navigation
         // // Remove query from the route and encode it.
         // const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
         // Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CURRENCY, transactionID, reportID));
     };
 
     const navigateToNextPage = (currentAmount) => {
@@ -97,31 +101,23 @@ function IOURequestStepAmount() {
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
+        <StepScreenWrapper
+            headerTitle={translate('iou.amount')}
+            onBackButtonPress={navigateBack}
             testID={IOURequestStepAmount.displayName}
+            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
+            shouldShowWrapper={isUserComingFromConfirmationStep}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={translate('iou.amount')}
-                            onBackButtonPress={navigateBack}
-                        />
-                        <MoneyRequestAmountForm
-                            // TODO: Figure out this setting
-                            // isEditing={isEditing}
-                            currency={currency}
-                            amount={transaction.amount}
-                            ref={(e) => (textInput.current = e)}
-                            onCurrencyButtonPress={navigateToCurrencySelectionPage}
-                            onSubmitButtonPress={navigateToNextPage}
-                        />
-                    </View>
-                </FullPageNotFoundView>
-            )}
-        </ScreenWrapper>
+            <MoneyRequestAmountForm
+                // TODO: Figure out this setting
+                // isEditing={isEditing}
+                currency={currency}
+                amount={transaction.amount}
+                ref={(e) => (textInput.current = e)}
+                onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                onSubmitButtonPress={navigateToNextPage}
+            />
+        </StepScreenWrapper>
     );
 }
 
