@@ -14,6 +14,7 @@ import IOURequestStepTag from './step/IOURequestStepTag';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepCurrency from './step/IOURequestStepCurrency';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
+import IOURequestStepMerchant from './step/IOURequestStepMerchant';
 
 const propTypes = {
     /** Route from navigation */
@@ -51,7 +52,7 @@ function IOURequestStepPage({
             {step === CONST.IOU.REQUEST_STEPS.DESCRIPTION && <IOURequestStepDescription route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.CATEGORY && <IOURequestStepCategory route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.TAG && <IOURequestStepTag route={route} />}
-            {step === CONST.IOU.REQUEST_STEPS.MERCHANT && null}
+            {step === CONST.IOU.REQUEST_STEPS.MERCHANT && <IOURequestStepMerchant route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.WAYPOINT && <IOURequestStepWaypoint route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.DISTANCE && <IOURequestStepDistance route={route} />}
             {!_.contains(_.values(CONST.IOU.REQUEST_STEPS), step) && <FullPageNotFoundView shouldShow />}

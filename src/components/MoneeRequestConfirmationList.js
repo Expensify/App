@@ -570,7 +570,7 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.merchant')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(props.iouType, props.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.MERCHANT, props.transactionID, props.reportID))}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}

@@ -6,7 +6,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
@@ -37,6 +36,9 @@ const propTypes = {
 
             /** The transaction ID of the IOU */
             transactionID: PropTypes.string,
+
+            /** A path to go to when the user presses the back button */
+            backTo: PropTypes.string,
         }),
     }).isRequired,
 
@@ -66,7 +68,7 @@ const defaultProps = {
 
 function IOURequestStepCurrency({
     route: {
-        params: {iouType, reportID, transactionID, backTo},
+        params: {iouType, transactionID, backTo},
     },
     currencyList,
     transaction: {currency},
