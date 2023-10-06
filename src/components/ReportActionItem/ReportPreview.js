@@ -117,7 +117,8 @@ function ReportPreview(props) {
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
-    const isReportDraft = ReportUtils.isPolicyExpenseChat(props.chatReport) && ReportUtils.isReportDraft(props.iouReport);
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
+    const isReportDraft = isPolicyExpenseChat && ReportUtils.isReportDraft(props.iouReport);
 
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
@@ -162,7 +163,7 @@ function ReportPreview(props) {
         if (ReportUtils.isControlPolicyExpenseChat(props.chatReport) && ReportUtils.isReportApproved(props.iouReport)) {
             return props.translate('iou.managerApproved', {manager: ReportUtils.getDisplayNameForParticipant(managerID, true)});
         }
-        const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+        const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
         return props.translate(iouSettled || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
     };
 
@@ -240,7 +241,7 @@ function ReportPreview(props) {
                         {isReportDraft && (
                             <Button
                                 medium
-                                success={props.iouReport.isOwnPolicyExpenseChat}
+                                success={props.chatReport.isOwnPolicyExpenseChat}
                                 text={translate('common.submit')}
                                 style={styles.requestPreviewBox}
                                 onPress={() => IOU.submitReport(props.iouReport)}
