@@ -44,10 +44,6 @@ function IOURequestStepAmount() {
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
 
-    // console.log(transaction);
-    // const currentCurrency = lodashGet(route, 'params.currency', '');
-    // const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : transaction.currency;
-
     // When this screen is accessed from the "start request flow" (ie. the manual/scan/distance tab selector) it is already embedded in a screen wrapper.
     // When this screen is navigated to from the "confirmation step" it won't be embedded in a screen wrapper, so the StepScreenWrapper should be shown.
     // In the "start request flow", the "step" param does not exist, but it does exist in the "confirmation step" flow.
@@ -74,17 +70,12 @@ function IOURequestStepAmount() {
     }, [report, reportID]);
 
     const navigateBack = () => {
-        // TODO: Figure out navigating back to the confirmation step
-        // Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
+        Navigation.goBack(isUserComingFromConfirmationStep ? ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID) : ROUTES.HOME);
     };
 
     const navigateToCurrencySelectionPage = () => {
-        // TODO: Figure out navigation
-        // // Remove query from the route and encode it.
-        // const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
-        // Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
-        const backTo = ROUTES.MONEE_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID);
-        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CURRENCY, transactionID, reportID, '', backTo));
+        const currentPath = Navigation.getActiveRoute().replace(/\?.*/, '');
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CURRENCY, transactionID, reportID, '', currentPath));
     };
 
     const navigateToNextPage = (currentAmount) => {
