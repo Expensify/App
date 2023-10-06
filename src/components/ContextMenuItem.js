@@ -100,6 +100,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             style={getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
+            interactive={isThrottledButtonActive}
         />
     );
 }
