@@ -526,7 +526,7 @@ export default {
         payElsewhere: 'Pagar de otra forma',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
-        splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
+        splitAmount: ({amount, comment}: SplitAmountParams) => `dividir ${amount}${comment ? ` para ${comment}` : ''}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} debe ${amount}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} debe: `,

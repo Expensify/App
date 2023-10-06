@@ -104,7 +104,7 @@ type RequestAmountParams = {amount: number};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment: string};
 
-type SplitAmountParams = {amount: number};
+type SplitAmountParams = {amount: number; comment: string};
 
 type AmountEachParams = {amount: number};
 

@@ -1512,6 +1512,13 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         return reportActionMessage;
     }
 
+    if (!isIOUReport(report) && ReportActionsUtils.isSplitBillAction(reportAction)) {
+        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+        const {amount, currency, comment} = getTransactionDetails(linkedTransaction);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency)
+        return Localize.translateLocal('iou.splitAmount', {amount: formattedAmount, comment});
+    }
+
     const totalAmount = getMoneyRequestTotal(report);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);

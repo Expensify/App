@@ -534,7 +534,7 @@ export default {
         payElsewhere: 'Pay elsewhere',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
-        splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
+        splitAmount: ({amount, comment}: SplitAmountParams) => `split ${amount}${comment ? ` for ${comment}` : ''}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} each`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} owes ${amount}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} owes: `,
