@@ -17,6 +17,21 @@ function mapChildren(children, callbackParam) {
     return children;
 }
 
+function assignRef(ref, el) {
+    if (!ref) {
+        return;
+    }
+
+    if (_.has(ref, 'current')) {
+        // eslint-disable-next-line no-param-reassign
+        ref.current = el;
+    }
+
+    if (_.isFunction(ref)) {
+        ref(el);
+    }
+}
+
 /**
  * It is necessary to create a Hoverable component instead of relying solely on Pressable support for hover state,
  * because nesting Pressables causes issues where the hovered state of the child cannot be easily propagated to the
@@ -166,7 +181,10 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
     }
 
     return React.cloneElement(child, {
-        ref,
+        ref: (el) => {
+            ref.current = el;
+            assignRef(child.ref, el);
+        },
         onMouseEnter,
         onMouseLeave,
         onBlur,
