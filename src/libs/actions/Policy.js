@@ -201,7 +201,8 @@ function removeMembers(accountIDs, policyID) {
     const policy = ReportUtils.getPolicy(policyID);
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
     const optimisticClosedReportActions = _.map(workspaceChats, () =>
-        ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY));
+        ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY),
+    );
 
     const optimisticData = [
         {
@@ -217,14 +218,13 @@ function removeMembers(accountIDs, policyID) {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 oldPolicyName: policy.name,
                 hasDraft: false,
-            }
+            },
         })),
         ..._.map(optimisticClosedReportActions, (reportAction, index) => ({
-              onyxMethod: Onyx.METHOD.MERGE,
-              key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats[index].reportID}`,
-              value: {[reportAction.reportActionID]: reportAction},
-            }
-        )),
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats[index].reportID}`,
+            value: {[reportAction.reportActionID]: reportAction},
+        })),
     ];
 
     const successData = [

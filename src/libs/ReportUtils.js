@@ -3545,11 +3545,7 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
  * @returns {Array}
  */
 function getWorkspaceChats(policyID, accountIDs) {
-    return _.filter(allReports, (report) =>
-        isPolicyExpenseChat(report) &&
-        lodashGet(report, 'policyID', '') === policyID &&
-        _.contains(accountIDs, lodashGet(report, 'ownerAccountID', ''))
-    )
+    return _.filter(allReports, (report) => isPolicyExpenseChat(report) && lodashGet(report, 'policyID', '') === policyID && _.contains(accountIDs, lodashGet(report, 'ownerAccountID', '')));
 }
 
 /*
