@@ -1334,7 +1334,7 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
 function updateWelcomeMessage(reportID, previousValue, newValue) {
     // No change needed, navigate back
     if (previousValue === newValue) {
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
         return;
     }
 
@@ -1354,7 +1354,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateWelcomeMessage', {reportID, welcomeMessage: parsedWelcomeMessage}, {optimisticData, failureData});
-    Navigation.goBack(ROUTES.HOME);
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
 /**
@@ -1410,9 +1410,8 @@ function navigateToConciergeChat() {
  * @param {String} visibility
  * @param {Array<Number>} policyMembersAccountIDs
  * @param {String} writeCapability
- * @param {String} welcomeMessage
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL, welcomeMessage = '') {
+function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL) {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
     const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);
@@ -1429,9 +1428,6 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
 
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-        '',
-        '',
-        welcomeMessage,
     );
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
 
@@ -1496,7 +1492,6 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
             writeCapability,
-            welcomeMessage,
         },
         {optimisticData, successData, failureData},
     );
@@ -1747,6 +1742,7 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
             value: {
                 [emoji.name]: {
                     createdAt,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
@@ -1754,6 +1750,30 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
                             },
                         },
                     },
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
+            value: {
+                [emoji.name]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
+            value: {
+                [emoji.name]: {
+                    pendingAction: null,
                 },
             },
         },
@@ -1768,7 +1788,7 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
         // This will be removed as part of https://github.com/Expensify/App/issues/19535
         useEmojiReactions: true,
     };
-    API.write('AddEmojiReaction', parameters, {optimisticData});
+    API.write('AddEmojiReaction', parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1832,11 +1852,11 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
     const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
     if (existingReactionObject && hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
-        removeEmojiReaction(reportID, reportAction.reportActionID, emoji);
+        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
         return;
     }
 
-    addEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone);
+    addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone);
 }
 
 /**
@@ -1927,15 +1947,6 @@ function leaveRoom(reportID) {
             ],
         },
     );
-    Navigation.dismissModal();
-    if (Navigation.getTopmostReportId() === reportID) {
-        Navigation.goBack(ROUTES.HOME);
-    }
-    if (report.parentReportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
-        return;
-    }
-    navigateToConciergeChat();
 }
 
 /**
