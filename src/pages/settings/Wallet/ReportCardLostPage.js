@@ -176,7 +176,6 @@ function ReportCardLostPage({
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
                                 numberOfLinesTitle={2}
-                                // wrapperStyle={styles.ph0}
                             />
                             <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.currentCardInfo')}</Text>
                         </View>
