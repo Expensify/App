@@ -41,7 +41,7 @@ type AvatarSize = {width: number};
 type ParsableStyle = ViewStyle | CSSProperties | ((state: PressableStateCallbackType) => ViewStyle | CSSProperties);
 
 type WorkspaceColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
-type EreceiptColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
+type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue};
 
 type ModalPaddingStylesArgs = {
     shouldAddBottomSafeAreaMargin: boolean;
@@ -88,12 +88,12 @@ const workspaceColorOptions: WorkspaceColorStyle[] = [
 ];
 
 const eReceiptColorOptions: EreceiptColorStyle[] = [
-    {backgroundColor: colors.yellow600, fill: colors.yellow100},
-    {backgroundColor: colors.blue800, fill: colors.ice400},
-    {backgroundColor: colors.blue400, fill: colors.blue100},
-    {backgroundColor: colors.green800, fill: colors.green400},
-    {backgroundColor: colors.tangerine800, fill: colors.tangerine400},
-    {backgroundColor: colors.pink800, fill: colors.pink400},
+    {backgroundColor: colors.yellow600, color: colors.yellow100},
+    {backgroundColor: colors.blue800, color: colors.ice400},
+    {backgroundColor: colors.blue400, color: colors.blue100},
+    {backgroundColor: colors.green800, color: colors.green400},
+    {backgroundColor: colors.tangerine800, color: colors.tangerine400},
+    {backgroundColor: colors.pink800, color: colors.pink400},
 ];
 
 const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
