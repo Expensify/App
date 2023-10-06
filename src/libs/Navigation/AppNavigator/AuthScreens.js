@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import Str from "expensify-common/lib/str";
+import Str from 'expensify-common/lib/str';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -36,7 +36,7 @@ import * as SessionUtils from '../../SessionUtils';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import DemoSetupPage from '../../../pages/DemoSetupPage';
-import getCurrentUrl from "../currentUrl";
+import getCurrentUrl from '../currentUrl';
 
 let timezone;
 let currentAccountID;

@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Session from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
@@ -23,6 +23,10 @@ const defaultProps = {
 function LogOutPreviousUserPage(props) {
     useEffect(
         () => {
+            // We need to signin and fetch a new authToken, if a user was already authenticated in NewDot, and was redirected to OldDot
+            // and their authToken stored in Onyx becomes invalid.
+            // This workflow is triggered while setting up VBBA. User is redirected from NewDot to OldDot to set up 2FA, and then redirected back to NewDot
+            // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
             const shouldForceLogin = lodashGet(props, 'route.params.shouldForceLogin', '') === 'true';
             if (shouldForceLogin) {
                 const email = lodashGet(props, 'route.params.email', '');
@@ -34,7 +38,7 @@ function LogOutPreviousUserPage(props) {
         [],
     );
 
-    return <FullScreenLoadingIndicator/>;
+    return <FullScreenLoadingIndicator />;
 }
 
 LogOutPreviousUserPage.propTypes = propTypes;
