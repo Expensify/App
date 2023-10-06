@@ -140,10 +140,10 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         const currentUrl = getCurrentUrl();
-        const url = new URL(currentUrl);
+
         const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, this.props.session.email);
         // Sign out the current user if we're transitioning with a different user
-        const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
+        const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS)
         if (isLoggingInAsNewUser && isTransitioning) {
             Session.signOutAndRedirectToSignIn();
             return;
@@ -166,7 +166,7 @@ class AuthScreens extends React.Component {
             User.subscribeToUserEvents();
         });
 
-        // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+        // // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
         // Note: If a Guide has enabled the memory only key mode then we do want to run OpenApp as their app will not be rehydrated with
         // the correct state on refresh. They are explicitly opting out of storing data they would need (i.e. reports_) to take advantage of
