@@ -727,6 +727,9 @@ export default {
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
+        hasSharedPoliciesTitle: 'You still own policies that are shared with other users.',
+        hasSharedPoliciesSubTitle: 'Please delete the policy or have another user take ownership before you try again.',
+        goToWorkspacesSettings: 'Go to workspaces settings',
     },
     passwordPage: {
         changePassword: 'Change password',

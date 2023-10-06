@@ -261,6 +261,27 @@ function isPendingDeletePolicy(policy) {
     return policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ * @param {Object} policies
+ * @param {Object} allPolicyMembers
+ * @returns {Boolean}
+ */
+function hasSharedPolicies(policies, allPolicyMembers) {
+    let found = false;
+
+    _.each(policies, (policy) => {
+        if (!isPolicyAdmin(policy)) {
+            return;
+        }
+        const policyMembers = lodashGet(allPolicyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`, {});
+        if (_.keys(policyMembers).length > 1) {
+            found = true;
+            return false;
+        }
+    });
+    return found;
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -280,4 +301,5 @@ export {
     getTagListName,
     getTagList,
     isPendingDeletePolicy,
+    hasSharedPolicies,
 };

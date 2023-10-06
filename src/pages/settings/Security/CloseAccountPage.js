@@ -20,6 +20,12 @@ import Form from '../../../components/Form';
 import CONST from '../../../CONST';
 import ConfirmModal from '../../../components/ConfirmModal';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
+import * as PolicyUtils from '../../../libs/PolicyUtils';
+import policyMemberPropType from '../../policyMemberPropType';
+import {policyPropTypes} from '../../workspace/withPolicy';
+import BlockingView from '../../../components/BlockingViews/BlockingView';
+import * as Illustrations from '../../../components/Icon/Illustrations';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     /** Session of currently logged in user */
@@ -27,6 +33,12 @@ const propTypes = {
         /** Email address */
         email: PropTypes.string.isRequired,
     }),
+
+    /** The employee list of all policies (coming from Onyx) */
+    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
+
+    /** All the user's policies (coming from Onyx) */
+    policies: PropTypes.objectOf(policyPropTypes.policy),
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -36,6 +48,8 @@ const defaultProps = {
     session: {
         email: null,
     },
+    allPolicyMembers: {},
+    policies: {},
 };
 
 function CloseAccountPage(props) {
@@ -91,52 +105,65 @@ function CloseAccountPage(props) {
                 title={props.translate('closeAccountPage.closeAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
             />
-            <Form
-                formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
-                validate={validate}
-                onSubmit={showConfirmModal}
-                submitButtonText={props.translate('closeAccountPage.closeAccount')}
-                style={[styles.flexGrow1, styles.mh5]}
-                isSubmitActionDangerous
-            >
-                <View style={[styles.flexGrow1]}>
-                    <Text>{props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
-                    <TextInput
-                        inputID="reasonForLeaving"
-                        autoGrowHeight
-                        textAlignVertical="top"
-                        label={props.translate('closeAccountPage.enterMessageHere')}
-                        accessibilityLabel={props.translate('closeAccountPage.enterMessageHere')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
-                    />
-                    <Text style={[styles.mt5]}>
-                        {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
-                    </Text>
-                    <TextInput
-                        inputID="phoneOrEmail"
-                        autoCapitalize="none"
-                        label={props.translate('closeAccountPage.enterDefaultContact')}
-                        accessibilityLabel={props.translate('closeAccountPage.enterDefaultContact')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        containerStyles={[styles.mt5]}
-                        autoCorrect={false}
-                        keyboardType={Str.isValidEmail(userEmailOrPhone) ? CONST.KEYBOARD_TYPE.EMAIL_ADDRESS : CONST.KEYBOARD_TYPE.DEFAULT}
-                    />
-                    <ConfirmModal
-                        danger
-                        title={props.translate('closeAccountPage.closeAccountWarning')}
-                        onConfirm={onConfirm}
-                        onCancel={hideConfirmModal}
-                        isVisible={isConfirmModalVisible}
-                        prompt={props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                        confirmText={props.translate('common.yesContinue')}
-                        cancelText={props.translate('common.cancel')}
-                        shouldDisableConfirmButtonWhenOffline
-                        shouldShowCancelButton
-                    />
-                </View>
-            </Form>
+            {PolicyUtils.hasSharedPolicies(props.policies, props.allPolicyMembers) ? (
+                <BlockingView
+                    icon={Illustrations.ToddBehindCloud}
+                    iconWidth={variables.modalTopIconWidth}
+                    iconHeight={variables.modalTopIconHeight}
+                    title={props.translate('closeAccountPage.hasSharedPoliciesTitle')}
+                    subtitle={props.translate('closeAccountPage.hasSharedPoliciesSubTitle')}
+                    linkKey="closeAccountPage.goToWorkspacesSettings"
+                    shouldShowLink
+                    onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                />
+            ) : (
+                <Form
+                    formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
+                    validate={validate}
+                    onSubmit={showConfirmModal}
+                    submitButtonText={props.translate('closeAccountPage.closeAccount')}
+                    style={[styles.flexGrow1, styles.mh5]}
+                    isSubmitActionDangerous
+                >
+                    <View style={[styles.flexGrow1]}>
+                        <Text>{props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
+                        <TextInput
+                            inputID="reasonForLeaving"
+                            autoGrowHeight
+                            textAlignVertical="top"
+                            label={props.translate('closeAccountPage.enterMessageHere')}
+                            accessibilityLabel={props.translate('closeAccountPage.enterMessageHere')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
+                        />
+                        <Text style={[styles.mt5]}>
+                            {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
+                        </Text>
+                        <TextInput
+                            inputID="phoneOrEmail"
+                            autoCapitalize="none"
+                            label={props.translate('closeAccountPage.enterDefaultContact')}
+                            accessibilityLabel={props.translate('closeAccountPage.enterDefaultContact')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            containerStyles={[styles.mt5]}
+                            autoCorrect={false}
+                            keyboardType={Str.isValidEmail(userEmailOrPhone) ? CONST.KEYBOARD_TYPE.EMAIL_ADDRESS : CONST.KEYBOARD_TYPE.DEFAULT}
+                        />
+                        <ConfirmModal
+                            danger
+                            title={props.translate('closeAccountPage.closeAccountWarning')}
+                            onConfirm={onConfirm}
+                            onCancel={hideConfirmModal}
+                            isVisible={isConfirmModalVisible}
+                            prompt={props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
+                            confirmText={props.translate('common.yesContinue')}
+                            cancelText={props.translate('common.cancel')}
+                            shouldDisableConfirmButtonWhenOffline
+                            shouldShowCancelButton
+                        />
+                    </View>
+                </Form>
+            )}
         </ScreenWrapper>
     );
 }
@@ -151,6 +178,12 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        allPolicyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
     }),
 )(CloseAccountPage);

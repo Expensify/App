@@ -722,6 +722,9 @@ export default {
         enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
         enterYourDefaultContactMethod: 'Por favor, introduce tu método de contacto predeterminado para cerrar tu cuenta.',
+        hasSharedPoliciesTitle: 'You still own policies that are shared with other users.',
+        hasSharedPoliciesSubTitle: 'Please delete the policy or have another user take ownership before you try again.',
+        goToWorkspacesSettings: 'Go to workspaces settings',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
