@@ -164,7 +164,7 @@ function ReportCardLostPage({
                 title={translate('reportCardLostOrDamaged.screenTitle')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <View style={[styles.flex1, styles.justifyContentBetween]}>
+            <View style={[styles.flex1, styles.justifyContentBetween, styles.pt3]}>
                 {isReasonConfirmed ? (
                     <>
                         <View>
