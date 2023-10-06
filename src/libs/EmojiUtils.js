@@ -7,6 +7,9 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
 import * as Emojis from '../../assets/emojis';
+import lodashMin from "lodash/min";
+import lodashSum from "lodash/sum";
+import * as Report from "./actions/Report";
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({
@@ -80,7 +83,7 @@ const getEmojiUnicode = _.memoize((input) => {
 
     const pairs = [];
 
-    // Some Emojis in UTF-16 are stored as pair of 2 Unicode characters (eg Flags)
+    // Some Emojis in UTF-16 are stored as a pair of 2 Unicode characters (e.g. Flags)
     // The first char is generally between the range U+D800 to U+DBFF called High surrogate
     // & the second char between the range U+DC00 to U+DFFF called low surrogate
     // More info in the following links:
@@ -446,7 +449,7 @@ const getPreferredEmojiCode = (emoji, preferredSkinTone) => {
 /**
  * Given an emoji object and a list of senders it will return an
  * array of emoji codes, that represents all used variations of the
- * emoji.
+ * emoji, sorted by the reaction timestamp.
  * @param {Object} emojiAsset
  * @param {String} emojiAsset.name
  * @param {String} emojiAsset.code
@@ -455,17 +458,87 @@ const getPreferredEmojiCode = (emoji, preferredSkinTone) => {
  * @return {string[]}
  * */
 const getUniqueEmojiCodes = (emojiAsset, users) => {
-    const uniqueEmojiCodes = [];
-    _.each(users, (userSkinTones) => {
+    const emojiCodes = _.reduce(users, (result, userSkinTones) => {
         _.each(lodashGet(userSkinTones, 'skinTones'), (createdAt, skinTone) => {
             const emojiCode = getPreferredEmojiCode(emojiAsset, skinTone);
-            if (emojiCode && !uniqueEmojiCodes.includes(emojiCode)) {
-                uniqueEmojiCodes.push(emojiCode);
+            if (!!emojiCode && (!result[emojiCode] || createdAt < result[emojiCode])) {
+                result[emojiCode] = createdAt;
             }
         });
-    });
-    return uniqueEmojiCodes;
+        return result;
+    }, {});
+
+    return _.chain(emojiCodes)
+        .pairs()
+        .sortBy((entry) => new Date(entry[1])) // Sort by values (timestamps)
+        .map((entry) => entry[0]) // Extract keys (emoji codes)
+        .value();
 };
+
+/**
+ * Given an emoji reaction object and its name, it populates it with the oldest reaction timestamps.
+ * @param {Object} emoji
+ * @param {String} emojiName
+ * @returns {Object}
+ */
+const enrichEmojiReactionWithTimestamps = (emoji, emojiName) => {
+    let oldestEmojiTimestamp = null;
+
+    let usersWithTimestamps = _.chain(emoji.users)
+        .pick(_.identity)
+        .mapObject((user, id) => {
+            const oldestUserTimestamp = lodashMin(_.values(user.skinTones));
+
+            if (!oldestEmojiTimestamp || oldestUserTimestamp < oldestEmojiTimestamp) {
+                oldestEmojiTimestamp = oldestUserTimestamp;
+            }
+
+            return {
+                ...user,
+                id,
+                oldestTimestamp: oldestUserTimestamp
+            }
+        })
+        .value();
+
+    return {
+        ...emoji,
+        users: usersWithTimestamps,
+        // Just in case two emojis have the same timestamp, also combine the timestamp with the
+        // emojiName so that the order will always be the same. Without this, the order can be pretty random
+        // and shift around a little bit.
+        oldestTimestamp: (oldestEmojiTimestamp || emoji.createdAt) + emojiName
+    };
+};
+
+/**
+ * Given an emoji reaction and current user's account ID, it returns the reusable details of the emoji reaction.
+ * @param {String} emojiName
+ * @param {Object} reaction
+ * @param {String} currentUserAccountID
+ * @returns {Object}
+ */
+const getEmojiReactionDetails = (emojiName, reaction, currentUserAccountID) => {
+    const { users, oldestTimestamp } = enrichEmojiReactionWithTimestamps(reaction, emojiName);
+
+    const emoji = findEmojiByName(emojiName);
+    const emojiCodes = getUniqueEmojiCodes(emoji, users);
+    const reactionCount = lodashSum(_.map(users, (user) => _.size(user.skinTones)));
+    const hasUserReacted = Report.hasAccountIDEmojiReacted(currentUserAccountID, users);
+    const userAccountIDs = _.chain(users)
+        .sortBy('oldestTimestamp')
+        .map((user) => Number(user.id))
+        .value();
+
+    return {
+        emoji,
+        emojiCodes,
+        reactionCount,
+        hasUserReacted,
+        userAccountIDs,
+        oldestTimestamp,
+    }
+}
 
 export {
     findEmojiByName,
@@ -483,5 +556,6 @@ export {
     getPreferredSkinToneIndex,
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
+    getEmojiReactionDetails,
     replaceAndExtractEmojis,
 };
