@@ -914,31 +914,19 @@ function clearEditTaskErrors(reportID) {
 
 /**
  * @param {string} actionName
- * @param {string} reportID
- * @param {boolean} isCreateTaskAction
  * @returns {string}
  */
-function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
-    const report = ReportUtils.getReport(reportID);
-    if (isCreateTaskAction) {
-        return `task for ${report.reportName}`;
-    }
-    let taskStatusText = '';
+function getTaskReportActionMessage(actionName) {
     switch (actionName) {
         case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
-            taskStatusText = Localize.translateLocal('task.messages.completed');
-            break;
+            return Localize.translateLocal('task.messages.completed');
         case CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED:
-            taskStatusText = Localize.translateLocal('task.messages.canceled');
-            break;
+            return Localize.translateLocal('task.messages.canceled');
         case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
-            taskStatusText = Localize.translateLocal('task.messages.reopened');
-            break;
+            return Localize.translateLocal('task.messages.reopened');
         default:
-            taskStatusText = Localize.translateLocal('task.task');
+            return Localize.translateLocal('task.task');
     }
-
-    return `${taskStatusText}`;
 }
 
 export {
