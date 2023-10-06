@@ -35,7 +35,7 @@ const propTypes = {
 
         /** The role of the current user in the policy */
         role: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** The chat report this report is linked to */
     chatReport: reportPropTypes,
@@ -57,6 +57,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    policy: {},
 };
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, report: moneyRequestReport, isSmallScreenWidth}) {
