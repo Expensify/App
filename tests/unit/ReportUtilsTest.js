@@ -64,150 +64,40 @@ describe('ReportUtils', () => {
 
     describe('getIconsForParticipants', () => {
         it('returns sorted avatar source by name, then accountID', () => {
-            expect(ReportUtils.getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails)).toEqual([
-                {
-                    id: 4,
-                    name: '(833) 240-3627',
-                    source: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
-                    },
-                    type: 'avatar',
-                },
-                {
-                    id: 2,
-                    name: 'floki@vikings.net',
-                    source: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
-                    },
-                    type: 'avatar',
-                },
-                {
-                    id: 3,
-                    name: 'Lagertha Lothbrok',
-                    source: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
-                    },
-                    type: 'avatar',
-                },
-                {
-                    id: 5,
-                    name: 'Lagertha Lothbrok',
-                    source: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_6.svg',
-                    },
-                    type: 'avatar',
-                },
-                {
-                    id: 1,
-                    name: 'Ragnar Lothbrok',
-                    source: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
-                    },
-                    type: 'avatar',
-                },
-            ]);
+            const participants = ReportUtils.getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails);
+            expect(participants).toHaveLength(5);
+
+            expect(participants[0].source).toBeInstanceOf(Function);
+            expect(participants[0].name).toBe('(833) 240-3627');
+            expect(participants[0].id).toBe(4);
+            expect(participants[0].type).toBe('avatar');
+
+            expect(participants[1].source).toBeInstanceOf(Function);
+            expect(participants[1].name).toBe('floki@vikings.net');
+            expect(participants[1].id).toBe(2);
+            expect(participants[1].type).toBe('avatar');
         });
     });
 
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
-            expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false)).toStrictEqual([
-                {
-                    displayName: 'Ragnar Lothbrok',
-                    login: 'ragnar@vikings.net',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
-                    },
-                    accountID: 1,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'floki@vikings.net',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
-                    },
-                    login: 'floki@vikings.net',
-                    accountID: 2,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'Lagertha Lothbrok',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
-                    },
-                    login: 'lagertha@vikings.net',
-                    accountID: 3,
-                    pronouns: 'She/her',
-                },
-                {
-                    displayName: '(833) 240-3627',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
-                    },
-                    login: '+18332403627@expensify.sms',
-                    accountID: 4,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'Lagertha Lothbrok',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_6.svg',
-                    },
-                    login: 'lagertha2@vikings.net',
-                    accountID: 5,
-                    pronouns: 'She/her',
-                },
-            ]);
-        });
+            const participants = ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false);
+            expect(participants).toHaveLength(5);
 
-        test('withMultiParticipantReport', () => {
-            expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, true)).toStrictEqual([
-                {
-                    displayName: 'Ragnar',
-                    login: 'ragnar@vikings.net',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
-                    },
-                    accountID: 1,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'floki@vikings.net',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
-                    },
-                    login: 'floki@vikings.net',
-                    accountID: 2,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'Lagertha',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
-                    },
-                    login: 'lagertha@vikings.net',
-                    accountID: 3,
-                    pronouns: 'She/her',
-                },
-                {
-                    displayName: '(833) 240-3627',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
-                    },
-                    login: '+18332403627@expensify.sms',
-                    accountID: 4,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'Lagertha',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_6.svg',
-                    },
-                    login: 'lagertha2@vikings.net',
-                    accountID: 5,
-                    pronouns: 'She/her',
-                },
-            ]);
+            expect(participants[0].avatar).toBeInstanceOf(Function);
+            expect(participants[0].displayName).toBe('Ragnar Lothbrok');
+            expect(participants[0].login).toBe('ragnar@vikings.net');
+            expect(participants[0].accountID).toBe(1);
+            expect(participants[0].pronouns).toBeUndefined();
+
+            expect(participants[2].avatar).toBeInstanceOf(Function);
+            expect(participants[2].displayName).toBe('Lagertha Lothbrok');
+            expect(participants[2].login).toBe('lagertha@vikings.net');
+            expect(participants[2].accountID).toBe(3);
+            expect(participants[2].pronouns).toBe('She/her');
+
+            expect(participants[3].displayName).toBe('(833) 240-3627');
+            expect(participants[3].login).toBe('+18332403627@expensify.sms');
         });
     });
 

@@ -22,7 +22,7 @@ beforeAll(() =>
 // Initialize the network key for OfflineWithFeedback
 beforeEach(() => {
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
-    return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false})
+    return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
 });
 
 // Clear out Onyx after each test so that each test starts with a clean slate
@@ -39,18 +39,18 @@ const getMockedReportsMap = (length = 100) => {
 
         return {[reportKey]: report};
     });
-    
+
     return _.assign({}, ...mockReports);
-}
+};
 
 test('should render Sidebar with 500 reports stored', () => {
     const scenario = async () => {
         /**
-         * Query for display names of participants [1, 2]. 
+         * Query for display names of participants [1, 2].
          * This will ensure that the sidebar renders a list of items.
          */
         await screen.findAllByText('One, Two');
-    }
+    };
 
     return waitForBatchedUpdates()
         .then(() =>
