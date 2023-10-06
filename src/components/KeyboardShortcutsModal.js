@@ -41,7 +41,7 @@ const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
 function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidth, translate}) {
     const subscribedOpenModalShortcuts = useRef([]);
     const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE;
-    const [shortcuts, setShortcurts] = useState([]);
+    const [shortcuts, setShortcuts] = useState(KeyboardShortcut.getDocumentedShortcuts());
 
     /*
      * Subscribe shortcuts that only are used when the modal is open
@@ -79,7 +79,6 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
             KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {}, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true),
             KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {}, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true),
         ];
-        setShortcurts(KeyboardShortcut.getDocumentedShortcuts());
     };
 
     /*
@@ -142,9 +141,14 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
     }, []);
 
     useEffect(() => {
+        // remove this line if trying hook approach
+        const removeShortcutUpdateListener = KeyboardShortcut.onShortcutsUpdate(setShortcuts);
+
         if (isShortcutsModalOpen) {
             subscribeOpenModalShortcuts();
         } else {
+            removeShortcutUpdateListener();
+
             // Modal is closing, remove keyboard shortcuts
             unsubscribeOpenModalShortcuts();
         }

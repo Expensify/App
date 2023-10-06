@@ -12,13 +12,37 @@ const operatingSystem = getOperatingSystem();
 const eventHandlers = {};
 
 // Documentation information for keyboard shortcuts that are displayed in the keyboard shortcuts informational modal
-const documentedShortcuts = {};
+let documentedShortcuts = {};
 
 /**
  * @returns {Array}
  */
 function getDocumentedShortcuts() {
     return _.sortBy(_.values(documentedShortcuts), 'displayName');
+}
+
+let shortcutsUpdateCallback = () => {};
+
+const updateDocumentedShortcuts = (displayName, value) => {
+    if (!value) {
+        documentedShortcuts = _.omit(documentedShortcuts, displayName)
+    } else {
+        documentedShortcuts = {
+            ...documentedShortcuts,
+            [displayName]: value
+        }
+    }
+
+    shortcutsUpdateCallback(_.sortBy(_.values(documentedShortcuts), 'displayName'));
+};
+
+// this is for listener approach, either one is working well
+const onShortcutsUpdate = (callback) => {
+    shortcutsUpdateCallback = callback;
+
+    return () => {
+        shortcutsUpdateCallback = () => {};
+    }
 }
 
 /**
@@ -83,9 +107,7 @@ _.each(CONST.KEYBOARD_SHORTCUTS, (shortcut) => {
  */
 function unsubscribe(displayName, callbackID) {
     eventHandlers[displayName] = _.reject(eventHandlers[displayName], (callback) => callback.id === callbackID);
-    if (_.has(documentedShortcuts, displayName) && _.size(eventHandlers[displayName]) === 0) {
-        delete documentedShortcuts[displayName];
-    }
+    updateDocumentedShortcuts(displayName, undefined);
 }
 
 /**
@@ -136,12 +158,12 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
     });
 
     if (descriptionKey) {
-        documentedShortcuts[displayName] = {
+        updateDocumentedShortcuts(displayName, {
             shortcutKey: key,
             descriptionKey,
             displayName,
             modifiers,
-        };
+        })
     }
 
     return () => unsubscribe(displayName, callbackID);
@@ -165,6 +187,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
 const KeyboardShortcut = {
     subscribe,
     getDocumentedShortcuts,
+    onShortcutsUpdate
 };
 
 export default KeyboardShortcut;
