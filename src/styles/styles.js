@@ -2780,6 +2780,11 @@ const styles = (theme) => ({
         alignItems: 'center',
     },
 
+    locationErrorLinkText: {
+        textAlignVertical: 'center',
+        fontSize: variables.fontSizeLabel,
+    },
+
     sidebarPopover: {
         width: variables.sideBarWidth - 68,
     },
@@ -3712,6 +3717,10 @@ const styles = (theme) => ({
 
     receiptDropHeaderGap: {
         backgroundColor: theme.receiptDropUIBG,
+    },
+
+    checkboxWithLabelCheckboxStyle: {
+        marginLeft: -2,
     },
 });
 
