@@ -1791,6 +1791,8 @@ export default {
     },
     cardTransactions: {
         notActivated: 'Not activated',
+        outOfPocketSpend: 'Out-of-pocket spend',
+        companySpend: 'Company spend',
     },
     distance: {
         addStop: 'Add stop',

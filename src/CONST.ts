@@ -688,6 +688,7 @@ const CONST = {
         },
     },
     MCC_GROUPS: {
+        AIRLINES: 'Airlines',
         COMMUTER: 'Commuter',
         GAS: 'Gas',
         GOODS: 'Goods',
