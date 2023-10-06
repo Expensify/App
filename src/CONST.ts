@@ -232,7 +232,6 @@ const CONST = {
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         BETA_COMMENT_LINKING: 'commentLinking',
         INTERNATIONALIZATION: 'internationalization',
-        IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',

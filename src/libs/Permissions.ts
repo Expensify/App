@@ -17,10 +17,6 @@ function canUseDefaultRooms(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
 
-function canUseIOUSend(betas: Beta[]): boolean {
-    return betas?.includes(CONST.BETAS.IOU_SEND) || canUseAllBetas(betas);
-}
-
 function canUseWallet(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.BETA_EXPENSIFY_WALLET) || canUseAllBetas(betas);
 }
@@ -65,7 +61,6 @@ export default {
     canUseChronos,
     canUsePayWithExpensify,
     canUseDefaultRooms,
-    canUseIOUSend,
     canUseWallet,
     canUseCommentLinking,
     canUsePolicyRooms,
