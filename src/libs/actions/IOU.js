@@ -23,6 +23,14 @@ import * as NumberUtils from '../NumberUtils';
 import ReceiptGeneric from '../../../assets/images/receipt-generic.png';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
 
+let allPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => {
+        allPersonalDetails = val || {};
+    },
+});
+
 let allReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -1268,7 +1276,6 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             : ReportUtils.getChatByParticipants(participantAccountIDs);
     const splitChatReport = existingSplitChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     const isOwnPolicyExpenseChat = splitChatReport.isOwnPolicyExpenseChat;
-    const shouldCreateSplitChatReport = _.isEmpty(existingSplitChatReportID);
 
     const receiptObject = {};
     let filename;
@@ -1279,7 +1286,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     }
 
     // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
-    const splitTransaction = TransactionUtils.buildOptimisticTransaction(0, undefined, CONST.REPORT.SPLIT_REPORTID, comment, '', '', '', '', receiptObject, filename);
+    const splitTransaction = TransactionUtils.buildOptimisticTransaction(0, CONST.CURRENCY.USD, CONST.REPORT.SPLIT_REPORTID, comment, '', '', '', '', receiptObject, filename);
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const splitChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
@@ -1303,7 +1310,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     splitChatReport.lastMessageHtml = splitIOUReportAction.message[0].html;
 
     // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
-    if (shouldCreateSplitChatReport) {
+    if (!existingSplitChatReport) {
         splitChatReport.pendingFields = {
             createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
@@ -1313,15 +1320,15 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         {
             // Use set for new reports because it doesn't exist yet, is faster,
             // and we need the data to be available when we navigate to the chat page
-            onyxMethod: shouldCreateSplitChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
             value: splitChatReport,
         },
         {
-            onyxMethod: shouldCreateSplitChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
-                ...(shouldCreateSplitChatReport ? {[splitChatCreatedReportAction.reportActionID]: splitChatCreatedReportAction} : {}),
+                ...(!existingSplitChatReport ? {} : {[splitChatCreatedReportAction.reportActionID]: splitChatCreatedReportAction}),
                 [splitIOUReportAction.reportActionID]: splitIOUReportAction,
             },
         },
@@ -1337,7 +1344,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
-                ...(shouldCreateSplitChatReport ? {[splitChatCreatedReportAction.reportActionID]: {pendingAction: null}} : {}),
+                ...(!existingSplitChatReport ? {} : {[splitChatCreatedReportAction.reportActionID]: {pendingAction: null}}),
                 [splitIOUReportAction.reportActionID]: {pendingAction: null},
             },
         },
@@ -1348,7 +1355,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         },
     ];
 
-    if (shouldCreateSplitChatReport) {
+    if (!existingSplitChatReport) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
@@ -1392,7 +1399,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
                 value: {
                     [splitIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError(null),
+                        errors: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                     },
                 },
             },
@@ -1417,8 +1424,8 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             return;
         }
 
-        // Add optimistic personal details for new participants
-        if (shouldCreateSplitChatReport) {
+        const participantPersonalDetails = allPersonalDetails[participant.accountID];
+        if (!participantPersonalDetails) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -1427,7 +1434,8 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                         accountID,
                         avatar: UserUtils.getDefaultAvatarURL(accountID),
                         displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
-                        login: participant.login || participant.text,
+                        login: participant.login,
+                        isOptimisticPersonalDetail: true,
                     },
                 },
             });
@@ -1448,17 +1456,17 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             splits: JSON.stringify(splits),
             receipt,
             comment,
-            shouldCreateSplitChatReport,
-            ...(shouldCreateSplitChatReport ? {createdReportActionID: splitChatCreatedReportAction.reportActionID} : {}),
+            isFromGroupDM: !existingSplitChatReport,
+            ...(!existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
         },
         {optimisticData, successData, failureData},
     );
 
     resetMoneyRequestInfo();
-    if (shouldCreateSplitChatReport) {
-        Navigation.dismissModal(splitChatReport.reportID);
-    } else {
+    if (existingSplitChatReport) {
         Navigation.dismissModal();
+    } else {
+        Navigation.dismissModal(splitChatReport.reportID);
     }
     Report.notifyNewAction(splitChatReport.chatReportID, currentUserAccountID);
 }
