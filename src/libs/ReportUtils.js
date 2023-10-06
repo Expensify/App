@@ -1191,50 +1191,25 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
  * @returns {Array}
  */
 function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
-    return _.chain(personalDetailsList)
-        .map((user) => {
-            const accountID = Number(user.accountID);
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
-            const avatar = UserUtils.getDefaultAvatar(accountID);
+    return _.map(personalDetailsList, (user) => {
+        const accountID = Number(user.accountID);
+        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
+        const avatar = UserUtils.getDefaultAvatar(accountID);
 
-            let pronouns = user.pronouns;
-            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
-                const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
-            }
+        let pronouns = user.pronouns;
+        if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+            const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+            pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+        }
 
-            return {
-                displayName,
-                avatar,
-                login: user.login || '',
-                accountID,
-                pronouns,
-            };
-        })
-        .sort((first, second) => {
-            // First sort by displayName/login
-            const displayNameLoginOrder = first.displayName.localeCompare(second.displayName);
-            if (displayNameLoginOrder !== 0) {
-                return displayNameLoginOrder;
-            }
-
-            // Then fallback on accountID as the final sorting criteria.
-            return first.accountID > second.accountID;
-        })
-        .value();
-}
-
-/**
- * Gets a joined string of display names from the list of display name with tooltip objects.
- *
- * @param {Object} displayNamesWithTooltips
- * @returns {String}
- */
-function getDisplayNamesStringFromTooltips(displayNamesWithTooltips) {
-    return _.filter(
-        _.map(displayNamesWithTooltips, ({displayName}) => displayName),
-        (displayName) => !_.isEmpty(displayName),
-    ).join(', ');
+        return {
+            displayName,
+            avatar,
+            login: user.login || '',
+            accountID,
+            pronouns,
+        };
+    });
 }
 
 /**
@@ -2554,7 +2529,6 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
  * @param {String} notificationPreference
  * @param {String} parentReportActionID
  * @param {String} parentReportID
- * @param {String} welcomeMessage
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -2570,7 +2544,6 @@ function buildOptimisticChatReport(
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
-    welcomeMessage = '',
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
@@ -2597,7 +2570,7 @@ function buildOptimisticChatReport(
         stateNum: 0,
         statusNum: 0,
         visibility,
-        welcomeMessage,
+        welcomeMessage: '',
         writeCapability,
     };
 }
@@ -3839,7 +3812,6 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
-    getDisplayNamesStringFromTooltips,
     getReportName,
     getReport,
     getReportIDFromLink,
