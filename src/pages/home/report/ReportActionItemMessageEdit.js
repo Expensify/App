@@ -142,7 +142,7 @@ function ReportActionItemMessageEdit(props) {
     const setUpComposeFocusManager = useCallback(() => {
         ReportActionComposeFocusManager.onComposerFocus(() => {
             focus(true);
-        });
+        }, false);
     }, [focus]);
 
     useEffect(
@@ -413,9 +413,8 @@ function ReportActionItemMessageEdit(props) {
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
                             emojiPickerID={props.action.reportActionID}
-                            onPress={() => {
-                                setUpComposeFocusManager();
-                            }}
+                            // Let the pressed composer re-gain focus on modal hide
+                            onPress={setUpComposeFocusManager}
                         />
                     </View>
 
