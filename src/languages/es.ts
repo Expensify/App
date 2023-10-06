@@ -2273,6 +2273,11 @@ export default {
             tryDifferentEmail: 'Por favor intenta con un e-mail diferente',
         },
     },
+    cardTransactions: {
+        notActivated: 'No activado',
+        outOfPocketSpend: 'Gastos por cuenta propia',
+        companySpend: 'Gastos de empresa',
+    },
     distance: {
         addStop: 'Agregar parada',
         deleteWaypoint: 'Eliminar punto de ruta',

@@ -690,6 +690,7 @@ const CONST = {
         },
     },
     MCC_GROUPS: {
+        AIRLINES: 'Airlines',
         COMMUTER: 'Commuter',
         GAS: 'Gas',
         GOODS: 'Goods',
@@ -1220,6 +1221,13 @@ const CONST = {
             DOMAIN: 'domain',
             INDIVIDUAL: 'individal',
             NONE: 'none',
+        },
+        STATE: {
+            OPEN: 3,
+            NOT_ACTIVATED: 4,
+            STATE_DEACTIVATED: 5,
+            CLOSED: 6,
+            STATE_SUSPENDED: 7,
         },
     },
     AVATAR_ROW_SIZE: {
