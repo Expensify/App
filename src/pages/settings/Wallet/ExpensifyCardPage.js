@@ -19,6 +19,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as CardUtils from '../../../libs/CardUtils';
 import Button from '../../../components/Button';
 import CardDetails from './WalletPage/CardDetails';
+import MenuItem from '../../../components/MenuItem';
 
 const propTypes = {
     /* Onyx Props */
@@ -117,9 +118,8 @@ function ExpensifyCardPage({
                                     interactive={false}
                                     titleStyle={styles.walletCardNumber}
                                 />
-                                <MenuItemWithTopDescription
+                                <MenuItem
                                     title={translate('reportCardLostOrDamaged.report')}
-                                    titleStyle={styles.walletCardMenuItem}
                                     icon={Expensicons.Flag}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain))}
