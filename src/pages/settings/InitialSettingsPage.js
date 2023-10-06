@@ -1,11 +1,11 @@
 import lodashGet from 'lodash/get';
-import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
-import {View} from 'react-native';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { View } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
 import CurrentUserPersonalDetailsSkeletonView from '../../components/CurrentUserPersonalDetailsSkeletonView';
-import {withNetwork} from '../../components/OnyxProvider';
+import { withNetwork } from '../../components/OnyxProvider';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -18,11 +18,11 @@ import MenuItem from '../../components/MenuItem';
 import themeColors from '../../styles/themes/default';
 import SCREENS from '../../SCREENS';
 import ROUTES from '../../ROUTES';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, { withLocalizePropTypes } from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes } from '../../components/withCurrentUserPersonalDetails';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
@@ -37,7 +37,7 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import * as UserUtils from '../../libs/UserUtils';
 import policyMemberPropType from '../policyMemberPropType';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
+import { CONTEXT_MENU_TYPES } from '../home/report/ContextMenu/ContextMenuActions';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import useLocalize from '../../hooks/useLocalize';
@@ -128,12 +128,13 @@ const defaultProps = {
     allPolicyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
+window._navigate = () => Navigation.navigate('/settings/wallet/card/Expensify');
 
 function InitialSettingsPage(props) {
-    const {isExecuting, singleExecution} = useSingleExecution();
+    const { isExecuting, singleExecution } = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -179,10 +180,10 @@ function InitialSettingsPage(props) {
 
         const policyBrickRoadIndicator =
             !_.isEmpty(props.reimbursementAccount.errors) ||
-            _.chain(props.policies)
-                .filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-                .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, props.allPolicyMembers))
-                .value()
+                _.chain(props.policies)
+                    .filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+                    .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, props.allPolicyMembers))
+                    .value()
                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                 : null;
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
