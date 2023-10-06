@@ -83,3 +83,5 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
 }
 
 export {hasExpensifyPaymentMethod, getPaymentMethodDescription, formatPaymentMethods, calculateWalletTransferBalanceFee};
+
+export type {PaymentMethod};

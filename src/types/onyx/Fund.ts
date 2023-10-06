@@ -1,4 +1,5 @@
 import CONST from '../../CONST';
+import * as OnyxCommon from './OnyxCommon';
 
 type AdditionalData = {
     isBillingCard?: boolean;
@@ -30,6 +31,7 @@ type Fund = {
     key?: string;
     methodID?: number;
     title?: string;
+    errors?: OnyxCommon.Errors;
 };
 
 export default Fund;
