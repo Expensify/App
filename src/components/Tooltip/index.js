@@ -47,10 +47,7 @@ function Tooltip(props) {
      * Display the tooltip in an animation.
      */
     const showTooltip = useCallback(() => {
-        if (!isRendered) {
-            setIsRendered(true);
-        }
-
+        setIsRendered(true);
         setIsVisible(true);
 
         animation.current.stopAnimation();
@@ -70,7 +67,7 @@ function Tooltip(props) {
             });
         }
         TooltipSense.activate();
-    }, [isRendered]);
+    }, []);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -100,7 +97,7 @@ function Tooltip(props) {
     /**
      * Hide the tooltip in an animation.
      */
-    const hideTooltip = () => {
+    const hideTooltip = useCallback(() => {
         animation.current.stopAnimation();
 
         if (TooltipSense.isActive() && !isTooltipSenseInitiator.current) {
@@ -118,7 +115,7 @@ function Tooltip(props) {
         TooltipSense.deactivate();
 
         setIsVisible(false);
-    };
+    }, []);
 
     // Skip the tooltip and return the children if the text is empty,
     // we don't have a render function or the device does not support hovering
