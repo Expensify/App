@@ -79,6 +79,13 @@ type Report = {
     visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
     preexistingReportID?: string;
     iouReportID?: number;
+    lastMentionedTime?: string | null;
+    parentReportActionIDs?: number[];
+    errorFields?: OnyxCommon.ErrorFields;
+    pendingFields?: {
+        createChat: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
+        addWorkspaceRoom: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
+    };
 };
 
 export default Report;

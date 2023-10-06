@@ -45,6 +45,8 @@ type PersonalDetails = {
 
     /** If trying to get PersonalDetails from the server and user is offling */
     isOptimisticPersonalDetail?: boolean;
+
+    fallBackIcon?: string;
 };
 
 export type {Timezone};

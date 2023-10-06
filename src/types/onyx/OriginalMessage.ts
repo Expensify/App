@@ -1,20 +1,27 @@
 import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 
+type IOUDetails = {
+    amount?: number;
+    comment?: string;
+    currency?: string;
+};
+type IOUMessage = {
+    /** The ID of the iou transaction */
+    IOUTransactionID?: string;
+    IOUReportID?: number;
+    amount: number;
+    comment?: string;
+    currency: string;
+    lastModified?: string;
+    participantAccountIDs?: number[];
+    type: string;
+    paymentType?: string;
+    IOUDetails?: IOUDetails;
+};
 type OriginalMessageIOU = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.IOU;
-    originalMessage: {
-        /** The ID of the iou transaction */
-        IOUTransactionID?: string;
-
-        IOUReportID?: number;
-        amount: number;
-        comment?: string;
-        currency: string;
-        lastModified?: string;
-        participantAccountIDs?: number[];
-        type: string;
-    };
+    originalMessage: IOUMessage;
 };
 
 type FlagSeverityName = 'spam' | 'inconsiderate' | 'bullying' | 'intimidation' | 'harassment' | 'assault';
@@ -136,4 +143,4 @@ type OriginalMessage =
     | OriginalMessagePolicyTask;
 
 export default OriginalMessage;
-export type {Reaction, ChronosOOOEvent};
+export type {Reaction, ChronosOOOEvent, IOUMessage};

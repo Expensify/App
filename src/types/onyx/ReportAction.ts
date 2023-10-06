@@ -1,5 +1,7 @@
+import {ValueOf} from 'type-fest';
 import OriginalMessage, {Reaction} from './OriginalMessage';
 import * as OnyxCommon from './OnyxCommon';
+import CONST from '../../CONST';
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -34,6 +36,7 @@ type Message = {
     isDeletedParentAction: boolean;
     whisperedTo: number[];
     reactions: Reaction[];
+    taskReportID?: string;
 };
 
 type Person = {
@@ -79,8 +82,15 @@ type ReportActionBase = {
     childCommenterCount?: number;
     childLastVisibleActionCreated?: string;
     childVisibleActionCount?: number;
-
+    parentReportID?: string;
+    childReportName?: string;
+    childManagerAccountID?: number;
+    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
+    childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
     pendingAction?: OnyxCommon.PendingAction;
+    childLastReceiptTransactionIDs?: string;
+    childLastMoneyRequestComment?: string;
+    childMoneyRequestCount?: number;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
