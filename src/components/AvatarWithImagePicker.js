@@ -15,7 +15,6 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import useLocalize from '../hooks/useLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
-import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
@@ -113,7 +112,6 @@ const defaultProps = {
     headerTitle: '',
     previewSource: '',
     originalFileName: '',
-    displayName: `AvatarWithImagePicker`,
 };
 
 function AvatarWithImagePicker({ 
@@ -140,7 +138,6 @@ function AvatarWithImagePicker({
     editorMaskImage,
 }) {
 
-    const animation = useRef(new SpinningIndicatorAnimation()).current;
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState({
         validationError: null,
@@ -154,16 +151,6 @@ function AvatarWithImagePicker({
     });
     const anchorRef = useRef();
     const {translate} = useLocalize();
-
-    useEffect(() => {
-        if (isUploading) {
-            animation.start();
-        }
-        
-        return () => {
-            animation.stop();
-        };
-    }, [isUploading]);
 
     useEffect(() => {
         // check if the component is no longer focused, then reset the error.
@@ -190,7 +177,7 @@ function AvatarWithImagePicker({
      * @returns {Boolean}
      */
     const isValidExtension = (image) => {
-        const { fileExtension } = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
         return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension.toLowerCase());
     };
 
@@ -223,9 +210,18 @@ function AvatarWithImagePicker({
      *
      * @param {Object} image
      */
-    function showAvatarCropModal(image) {
-        const handleResolutionValidation = (isValidRes) => {
-            if (!isValidRes) {
+    const showAvatarCropModal = (image) => {
+        if (!isValidExtension(image)) {
+            setError('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS});
+            return;
+        }
+        if (!isValidSize(image)) {
+            setError('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)});
+            return;
+        }
+
+        isValidResolution(image).then((isValid) => {
+            if (!isValid) {
                 setError('avatarWithImagePicker.resolutionConstraints', {
                     minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
                     minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
@@ -234,7 +230,7 @@ function AvatarWithImagePicker({
                 });
                 return;
             }
-    
+
             setIsAvatarCropModalOpen(true);
             setError(null, {});
             setIsMenuVisible(false);
@@ -243,31 +239,8 @@ function AvatarWithImagePicker({
                 name: image.name,
                 type: image.type
             });
-        };
-    
-        return new Promise((resolve, reject) => {
-            if (!isValidExtension(image)) {
-                setError('avatarWithImagePicker.notAllowedExtension', {
-                    allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS
-                });
-                reject(new Error('Invalid extension'));
-            }
-    
-            if (!isValidSize(image)) {
-                setError('avatarWithImagePicker.sizeExceeded', {
-                    maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)
-                });
-                reject(new Error('Invalid size'));
-            }
-    
-            resolve(image);
-        })
-        .then(isValidResolution)
-        .then(handleResolutionValidation)
-        .catch(err => {
-            console.error("Error in showAvatarCropModal:", err);
         });
-    }
+    };
 
     const hideAvatarCropModal = () => {
         setIsAvatarCropModalOpen(false);
@@ -422,5 +395,6 @@ function AvatarWithImagePicker({
 
 AvatarWithImagePicker.propTypes = propTypes;
 AvatarWithImagePicker.defaultProps = defaultProps;
+AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
 
 export default withNavigationFocus(AvatarWithImagePicker);
