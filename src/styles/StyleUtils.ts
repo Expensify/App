@@ -242,7 +242,7 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle | C
 }
 
 /**
- * Helper method to return old dot default avatar associated with login
+ * Helper method to return workspace avatar color styles
  */
 function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle | CSSProperties {
     const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
@@ -251,7 +251,7 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle | CSSP
 }
 
 /**
- * Helper method to return old dot default avatar associated with login
+ * Helper method to return eReceipt color styles
  */
 function getEReceiptColor(transactionID: string): ViewStyle | CSSProperties {
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColorOptions.length);
