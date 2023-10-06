@@ -21,6 +21,7 @@ function requestReplacementExpensifyCard(cardId, reason) {
                     key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
                     value: {
                         isLoading: true,
+                        errors: null,
                     },
                 },
             ],

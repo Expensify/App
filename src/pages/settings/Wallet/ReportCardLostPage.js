@@ -101,13 +101,11 @@ function ReportCardLostPage({
     const formattedAddress = PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails);
 
     useEffect(() => {
-        if (!_.isEmpty(physicalCard.errors)) {
+        if (!_.isEmpty(physicalCard.errors) || !(prevIsLoading && !formData.isLoading)) {
             return;
         }
 
-        if (prevIsLoading && !formData.isLoading) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
-        }
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
     }, [domain, formData.isLoading, prevIsLoading, physicalCard.errors]);
 
     useEffect(() => {
