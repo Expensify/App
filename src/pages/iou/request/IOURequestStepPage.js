@@ -18,6 +18,7 @@ import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURouteContext from '../IOURouteContext';
 import reportPropTypes from '../../reportPropTypes';
 import transactionPropTypes from '../../../components/transactionPropTypes';
+import IOURequestStepCurrency from './step/IOURequestStepCurrency';
 
 const propTypes = {
     /** Route from navigation */
@@ -65,7 +66,7 @@ function IOURequestStepPage({
             {step === CONST.IOU.REQUEST_STEPS.PARTICIPANTS && <IOURequestStepParticipants route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.CONFIRMATION && <IOURequestStepConfirmation route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.DATE && <IOURequestStepDate route={route} />}
-            {step === CONST.IOU.REQUEST_STEPS.CURRENCY && null}
+            {step === CONST.IOU.REQUEST_STEPS.CURRENCY && <IOURequestStepCurrency route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.DESCRIPTION && <IOURequestStepDescription route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.CATEGORY && <IOURequestStepCategory route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.TAG && <IOURequestStepTag route={route} />}

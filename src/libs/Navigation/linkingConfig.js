@@ -314,7 +314,7 @@ export default {
                                         exact: true,
                                     },
                                     manual: {
-                                        path: ROUTES.MONEE_REQUEST_CREATE_TAB_MANUAL,
+                                        path: ROUTES.MONEE_REQUEST_CREATE_TAB_MANUAL.route,
                                         exact: true,
                                     },
                                     scan: {

@@ -1,5 +1,5 @@
 // TODO: This file came from IOURequestStepCurrency.js and that file needs to be removed and cleaned up to ensure any additinal functionality is included here
-import React, {useState, useMemo, useCallback, useRef} from 'react';
+import React, {useState, useMemo, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -9,11 +9,6 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import Navigation from '../../../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import compose from '../../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import {withNetwork} from '../../../../components/OnyxProvider';
 import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
 import ROUTES from '../../../../ROUTES';
 import themeColors from '../../../../styles/themes/default';
@@ -22,6 +17,7 @@ import transactionPropTypes from '../../../../components/transactionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import * as IOU from '../../../../libs/actions/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
+import * as IOUUtils from '../../../../libs/IOUUtils';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -70,7 +66,7 @@ const defaultProps = {
 
 function IOURequestStepCurrency({
     route: {
-        params: {iouType, reportID},
+        params: {iouType, reportID, transactionID},
     },
     currencyList,
     transaction: {currency},
@@ -81,16 +77,14 @@ function IOURequestStepCurrency({
 
     const navigateBack = () => {
         // Always go back to the amount step because there was no other way to get here
-        Navigation.goBack(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.AMOUNT, transactionID, reportID));
+        // TODO: Get this working with getting to here from the confirmation step
+        Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID));
     };
 
-    const confirmCurrencySelection = useCallback(
-        (option) => {
-            IOU.setMoneeRequestCurrency(transactionID, option.currencyCode);
-            navigateBack();
-        },
-        [props.route, props.navigation],
-    );
+    const confirmCurrencySelection = (option) => {
+        IOU.setMoneeRequestCurrency(transactionID, option.currencyCode);
+        navigateBack();
+    };
 
     const {sections, headerMessage, initiallyFocusedOptionKey} = useMemo(() => {
         const currencyOptions = _.map(currencyList, (currencyInfo, currencyCode) => {
@@ -111,7 +105,7 @@ function IOURequestStepCurrency({
 
         return {
             initiallyFocusedOptionKey: _.get(
-                _.find(filteredCurrencies, (currency) => currency.currencyCode === currency.toUpperCase()),
+                _.find(filteredCurrencies, (filteredCurrency) => filteredCurrency.currencyCode === currency.toUpperCase()),
                 'keyForList',
             ),
             sections: isEmpty
@@ -134,7 +128,7 @@ function IOURequestStepCurrency({
             onBackButtonPress={navigateBack}
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
-            shouldShowWrapper={isUserComingFromConfirmationStep}
+            shouldShowWrapper
             testID={IOURequestStepCurrency.displayName}
         >
             <OptionsSelector
@@ -144,7 +138,6 @@ function IOURequestStepCurrency({
                 onChangeText={setSearchValue}
                 textInputLabel={translate('common.search')}
                 headerMessage={headerMessage}
-                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                 shouldHaveOptionSeparator
                 autoFocus={false}
