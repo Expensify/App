@@ -139,7 +139,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     );
 }
 
-MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
+MoneyRequestParticipantsPage.displayName = 'MoneyRequestParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
