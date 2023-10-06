@@ -250,7 +250,6 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle | CSSP
     return workspaceColorOptions[colorHash];
 }
 
-
 /**
  * Helper method to return old dot default avatar associated with login
  */

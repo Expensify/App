@@ -6,7 +6,6 @@ import * as Localize from './Localize';
 import * as OnyxTypes from '../types/onyx';
 import ONYXKEYS, {OnyxValues} from '../ONYXKEYS';
 
-
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
     key: ONYXKEYS.CARD_LIST,
@@ -32,12 +31,11 @@ function getMonthFromExpirationDateString(expirationDateString: string) {
  */
 function isExpensifyCard(cardID: string) {
     const card = allCards[cardID];
-    if (!card){
+    if (!card) {
         return false;
     }
     return card.bank === CONST.EXPENSIFY_CARD.BANK;
 }
-
 
 /**
  * @param cardID
@@ -45,7 +43,7 @@ function isExpensifyCard(cardID: string) {
  */
 function getCardDescription(cardID: string) {
     const card = allCards[cardID];
-    if (!card){
+    if (!card) {
         return '';
     }
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? Localize.translateLocal('cardTransactions.notActivated') : card.lastFourPAN;

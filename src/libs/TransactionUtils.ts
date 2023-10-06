@@ -295,7 +295,6 @@ function hasRoute(transaction: Transaction): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
 }
 
-
 /**
  * Check if the transaction has an Ereceipt
  */

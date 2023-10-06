@@ -1222,7 +1222,7 @@ const CONST = {
         STATE: {
             OPEN: 3,
             NOT_ACTIVATED: 4,
-            STATE_DEACTIVATED: 5, 
+            STATE_DEACTIVATED: 5,
             CLOSED: 6,
             STATE_SUSPENDED: 7,
         },
