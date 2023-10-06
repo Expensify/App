@@ -97,6 +97,7 @@ function SplitBillDetailsPage(props) {
                             receiptPath={transaction.receipt && transaction.receipt.source}
                             receiptSource={transaction.filename}
                             shouldShowFooter={false}
+                            isScanning={isScanning}
                         />
                     )}
                 </View>

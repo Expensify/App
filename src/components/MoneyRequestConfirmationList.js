@@ -141,6 +141,9 @@ const propTypes = {
     /** Whether the money request is a distance request */
     isDistanceRequest: PropTypes.bool,
 
+    /** Whether the receipt associated with this report is being scanned */
+    isScanning: PropTypes.bool,
+
     /* Onyx Props */
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
@@ -176,6 +179,7 @@ const defaultProps = {
     transaction: {},
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
     isDistanceRequest: false,
+    isScanning: false,
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -199,7 +203,9 @@ function MoneyRequestConfirmationList(props) {
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories));
 
-    const shouldShowAmount = !props.receiptPath || props.isReadOnly;
+    // A flag for showing SS fields: date, merchant, and amount, only when we don't have a receiptPath (e.g. manual request)
+    // or in the split details page when it's ReadOnly
+    const shouldShowSmartScanFields = (!props.receiptPath || props.isReadOnly) && !props.isScanning;
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(props.policyTags);
@@ -499,7 +505,7 @@ function MoneyRequestConfirmationList(props) {
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
             )}
-            {shouldShowAmount && (
+            {shouldShowSmartScanFields && (
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!props.isReadOnly && !props.isDistanceRequest}
                     title={formattedAmount}
@@ -538,7 +544,7 @@ function MoneyRequestConfirmationList(props) {
             )}
             {shouldShowAllFields && (
                 <>
-                    {(!props.receiptPath || props.isReadOnly) && (
+                    {shouldShowSmartScanFields && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
@@ -560,7 +566,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}
-                    {(!props.isDistanceRequest || props.isReadOnly) && (
+                    {shouldShowSmartScanFields && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouMerchant}
