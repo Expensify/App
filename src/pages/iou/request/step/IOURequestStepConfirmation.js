@@ -319,8 +319,8 @@ function IOURequestStepConfirmation({
                                 onConfirm={createTransaction}
                                 onSendMoney={sendMoney}
                                 onSelectParticipant={addNewParticipant}
-                                receiptPath={transaction.receipt.path}
-                                receiptSource={transaction.receipt.source}
+                                receiptPath={lodashGet(transaction, 'receipt.path')}
+                                receiptSource={lodashGet(transaction, 'receipt.source')}
                                 iouType={iouType}
                                 reportID={reportID}
                                 // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.

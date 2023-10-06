@@ -5,7 +5,7 @@ import styles from '../../../../styles/styles';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import FullPageNotFoundView from '../../../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import DeviceCapabilities from '../../../../libs/DeviceCapabilities';
+import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 
 const propTypes = {
     /** The things to display inside the screenwrapper */
