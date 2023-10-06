@@ -12,18 +12,4 @@ import Taxi from '../../../assets/images/mccGroupIcons/MCC-Taxi.svg';
 import Miscellaneous from '../../../assets/images/mccGroupIcons/MCC-Misc.svg';
 import Utilities from '../../../assets/images/mccGroupIcons/MCC-Utilities.svg';
 
-export {
-    Airlines,
-    Commuter,
-    Gas,
-    Goods,
-    Groceries,
-    Hotel,
-    Mail,
-    Meals,
-    Rental,
-    Services,
-    Taxi,
-    Miscellaneous,
-    Utilities,
-};
+export {Airlines, Commuter, Gas, Goods, Groceries, Hotel, Mail, Meals, Rental, Services, Taxi, Miscellaneous, Utilities};
