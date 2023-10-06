@@ -2,6 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import * as KeyCommand from 'react-native-key-command';
+import {useState} from 'react';
 import bindHandlerToKeydownEvent from './bindHandlerToKeydownEvent';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
@@ -23,27 +24,36 @@ function getDocumentedShortcuts() {
 
 let shortcutsUpdateCallback = () => {};
 
+/**
+ * Updates the shortcut with new value by display name
+ *
+ * @param {String} displayName The display name for the key combo to update
+ * @param {Object|undefined} value
+ * @private
+ */
 const updateDocumentedShortcuts = (displayName, value) => {
     if (!value) {
-        documentedShortcuts = _.omit(documentedShortcuts, displayName)
+        documentedShortcuts = _.omit(documentedShortcuts, displayName);
     } else {
         documentedShortcuts = {
             ...documentedShortcuts,
-            [displayName]: value
-        }
+            [displayName]: value,
+        };
     }
 
-    shortcutsUpdateCallback(_.sortBy(_.values(documentedShortcuts), 'displayName'));
+    shortcutsUpdateCallback(getDocumentedShortcuts());
 };
 
-// this is for listener approach, either one is working well
-const onShortcutsUpdate = (callback) => {
-    shortcutsUpdateCallback = callback;
-
-    return () => {
-        shortcutsUpdateCallback = () => {};
-    }
-}
+/**
+ * Return the latest dynamic list of shortcuts
+ *
+ * @returns {Array}
+ */
+const useDocumentedShortcuts = () => {
+    const [shortcuts, setShortcuts] = useState(documentedShortcuts);
+    shortcutsUpdateCallback = setShortcuts;
+    return shortcuts;
+};
 
 /**
  * Generates the normalized display name for keyboard shortcuts.
@@ -163,7 +173,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
             descriptionKey,
             displayName,
             modifiers,
-        })
+        });
     }
 
     return () => unsubscribe(displayName, callbackID);
@@ -187,7 +197,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
 const KeyboardShortcut = {
     subscribe,
     getDocumentedShortcuts,
-    onShortcutsUpdate
+    useDocumentedShortcuts,
 };
 
 export default KeyboardShortcut;
