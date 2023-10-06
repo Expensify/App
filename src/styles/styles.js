@@ -2652,15 +2652,6 @@ const styles = (theme) => ({
         transform: [{translateY: y}],
     }),
 
-    makeSlideInTranslation: (translationType, fromValue) => ({
-        from: {
-            [translationType]: fromValue,
-        },
-        to: {
-            [translationType]: 0,
-        },
-    }),
-
     growlNotificationBox: {
         backgroundColor: theme.inverse,
         borderRadius: variables.componentBorderRadiusNormal,

@@ -17,9 +17,6 @@ export default {
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress: PropTypes.func,
 
-    /** Called when navigated Screen's transition is finished. It does not fire when user exits the page. */
-    onEntryTransitionEnd: PropTypes.func,
-
     /** Children components */
     children: PropTypes.node,
 

@@ -4,7 +4,6 @@ import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuth
 import * as LottieAnimations from '../../../../../components/LottieAnimations';
 import StepWrapper from '../StepWrapper/StepWrapper';
 import useLocalize from '../../../../../hooks/useLocalize';
-import AnimatedStepProvider from '../../../../../components/AnimatedStep/AnimatedStepProvider';
 import Navigation from '../../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../../ROUTES';
 import CONST from '../../../../../CONST';
@@ -13,27 +12,25 @@ function SuccessStep() {
     const {translate} = useLocalize();
 
     return (
-        <AnimatedStepProvider>
-            <StepWrapper
-                title={translate('twoFactorAuth.headerTitle')}
-                stepCounter={{
-                    step: 3,
-                    text: translate('twoFactorAuth.stepSuccess'),
+        <StepWrapper
+            title={translate('twoFactorAuth.headerTitle')}
+            stepCounter={{
+                step: 3,
+                text: translate('twoFactorAuth.stepSuccess'),
+            }}
+        >
+            <ConfirmationPage
+                animation={LottieAnimations.Fireworks}
+                heading={translate('twoFactorAuth.enabled')}
+                description={translate('twoFactorAuth.congrats')}
+                shouldShowButton
+                buttonText={translate('common.buttonConfirm')}
+                onButtonPress={() => {
+                    TwoFactorAuthActions.clearTwoFactorAuthData();
+                    Navigation.navigate(ROUTES.SETTINGS_2FA.ENABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
                 }}
-            >
-                <ConfirmationPage
-                    animation={LottieAnimations.Fireworks}
-                    heading={translate('twoFactorAuth.enabled')}
-                    description={translate('twoFactorAuth.congrats')}
-                    shouldShowButton
-                    buttonText={translate('common.buttonConfirm')}
-                    onButtonPress={() => {
-                        TwoFactorAuthActions.clearTwoFactorAuthData();
-                        Navigation.navigate(ROUTES.SETTINGS_2FA.ENABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
-                    }}
-                />
-            </StepWrapper>
-        </AnimatedStepProvider>
+            />
+        </StepWrapper>
     );
 }
 
