@@ -201,6 +201,7 @@ function SettlementButton({
             isDisabled={isOffline}
             chatReportID={chatReportID}
             iouReport={iouReport}
+            anchorAlignment={anchorAlignment}
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
