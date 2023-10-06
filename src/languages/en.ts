@@ -886,7 +886,6 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Welcome message',
-        welcomeMessageOptional: 'Welcome message (optional)',
         explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
     },
     languagePage: {
