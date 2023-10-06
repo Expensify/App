@@ -201,7 +201,7 @@ function TaskAssigneeSelectorModal(props) {
         }
     };
 
-    const isOpen = ReportUtils.isOpenTaskReport(props.task.report);
+    const isOpen = report && ReportUtils.isOpenTaskReport(report);
     const canModifyTask = Task.canModifyTask(props.task.report, props.currentUserPersonalDetails.accountID);
     const isTaskNonEditable = report && ReportUtils.isTaskReport(props.task.report) && (!canModifyTask || !isOpen);
 
