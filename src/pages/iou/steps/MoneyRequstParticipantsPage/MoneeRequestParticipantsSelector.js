@@ -152,7 +152,7 @@ function MoneeRequestParticipantsSelector({
     const addSingleParticipant = (option) => {
         onParticipantsAdded([
             {
-                ...option,
+                ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
                 selected: true,
             },
         ]);
