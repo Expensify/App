@@ -4,27 +4,24 @@
  * This file ensures exactly that by tracking all the clientIDs connected, storing the most recent one last and it considers that last clientID the "leader".
  */
 
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClients from '../actions/ActiveClients';
+import {Init, IsReady, IsClientTheLeader} from './types';
 
 const clientID = Str.guid();
 const maxClients = 20;
-let activeClients = [];
-let resolveSavedSelfPromise;
-const savedSelfPromise = new Promise((resolve) => {
+let activeClients: string[] = [];
+let resolveSavedSelfPromise: () => void;
+const savedSelfPromise = new Promise<void>((resolve) => {
     resolveSavedSelfPromise = resolve;
 });
 
 /**
  * Determines when the client is ready. We need to wait both till we saved our ID in onyx AND the init method was called
- * @returns {Promise}
  */
-function isReady() {
-    return savedSelfPromise;
-}
+const isReady: IsReady = () => savedSelfPromise;
 
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
@@ -53,19 +50,19 @@ Onyx.connect({
  * Add our client ID to the list of active IDs.
  * We want to ensure we have no duplicates and that the activeClient gets added at the end of the array (see isClientTheLeader)
  */
-function init() {
-    activeClients = _.without(activeClients, clientID);
+const init: Init = () => {
+    activeClients = activeClients.filter((id) => id !== clientID);
     activeClients.push(clientID);
     ActiveClients.setActiveClients(activeClients).then(resolveSavedSelfPromise);
-}
+};
 
 /**
  * The last GUID is the most recent GUID, so that should be the leader
- *
- * @returns {Boolean}
  */
-function isClientTheLeader() {
-    return _.last(activeClients) === clientID;
-}
+const isClientTheLeader: IsClientTheLeader = () => {
+    const lastActiveClient = activeClients.length && activeClients[activeClients.length - 1];
+
+    return lastActiveClient === clientID;
+};
 
 export {init, isClientTheLeader, isReady};
