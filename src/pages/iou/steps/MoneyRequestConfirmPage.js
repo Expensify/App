@@ -90,10 +90,12 @@ function MoneyRequestConfirmPage(props) {
 
     useEffect(() => {
         if (props.iou.receiptPath && props.iou.receiptSource) {
-            FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
-                if (!receipt) {
+            FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
+                if (!file) {
                     navigateBack();
                 } else {
+                    const receipt = file;
+                    receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
                     setReceiptFile(receipt);
                 }
             });
@@ -107,7 +109,7 @@ function MoneyRequestConfirmPage(props) {
         if (typeof props.iou.billable !== 'boolean') {
             IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
         }
-    }, [isOffline, participants, props.iou.billable, props.iou.receiptPath, props.iou.receiptSource, props.policy]);
+    }, [isOffline, participants, props.iou.billable, props.iou.receiptPath, props.iou.receiptSource, props.policy, isManualRequestDM]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
