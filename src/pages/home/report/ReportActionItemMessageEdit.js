@@ -313,30 +313,6 @@ function ReportActionItemMessageEdit(props) {
     return (
         <>
             <View style={[styles.chatItemMessage, styles.flexRow]}>
-                <View style={[styles.justifyContentEnd]}>
-                    <Tooltip text={translate('common.cancel')}>
-                        <PressableWithFeedback
-                            onPress={deleteDraft}
-                            style={styles.chatItemSubmitButton}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            accessibilityLabel={translate('common.close')}
-                            // disable dimming
-                            hoverDimmingValue={1}
-                            pressDimmingValue={1}
-                            hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
-                            pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
-                            // Keep focus on the composer when cancel button is clicked.
-                            onMouseDown={(e) => e.preventDefault()}
-                        >
-                            {({hovered, pressed}) => (
-                                <Icon
-                                    src={Expensicons.Close}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                />
-                            )}
-                        </PressableWithFeedback>
-                    </Tooltip>
-                </View>
                 <View
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
@@ -346,6 +322,30 @@ function ReportActionItemMessageEdit(props) {
                         hasExceededMaxCommentLength && styles.borderColorDanger,
                     ]}
                 >
+                    <View style={[styles.justifyContentEnd]}>
+                        <Tooltip text={translate('common.cancel')}>
+                            <PressableWithFeedback
+                                onPress={deleteDraft}
+                                style={styles.chatItemSubmitButton}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                accessibilityLabel={translate('common.close')}
+                                // disable dimming
+                                hoverDimmingValue={1}
+                                pressDimmingValue={1}
+                                hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
+                                pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
+                                // Keep focus on the composer when cancel button is clicked.
+                                onMouseDown={(e) => e.preventDefault()}
+                            >
+                                {({hovered, pressed}) => (
+                                    <Icon
+                                        src={Expensicons.Close}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                    />
+                                )}
+                            </PressableWithFeedback>
+                        </Tooltip>
+                    </View>
                     <View style={containerComposeStyles}>
                         <Composer
                             multiline
