@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import {useCallback} from 'react';
 
 /**
  * This hook was specifically written for native issue
@@ -16,5 +16,5 @@ export default function useSingleExecution() {
         [],
     );
 
-    return { isExecuting: false, singleExecution };
+    return {isExecuting: false, singleExecution};
 }
