@@ -94,6 +94,9 @@ function PopoverWithMeasuredContent(props) {
         setIsContentMeasured(true);
     };
 
+    const { x: horizontal, y: vertical } = props.anchorRef.current ? getClickedTargetLocation(props.anchorRef.current) : {};
+    const clickedTargetLocation = (props.anchorRef.current && props.shouldUseTargetLocation) ? { horizontal, vertical } : props.anchorPosition;
+
     const adjustedAnchorPosition = useMemo(() => {
         let horizontalConstraint;
         switch (props.anchorAlignment.horizontal) {
@@ -107,11 +110,11 @@ function PopoverWithMeasuredContent(props) {
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT:
             default:
-                horizontalConstraint = {left: props.anchorPosition.horizontal};
+                horizontalConstraint = {left: clickedTargetLocation.horizontal};
         }
 
         let verticalConstraint;
-        const anchorLocationVertical = (props.anchorRef.current && props.shouldUseTargetLocation && getClickedTargetLocation(props.anchorRef.current).y) || props.anchorPosition.vertical;
+        const anchorLocationVertical = clickedTargetLocation.vertical;
 
         switch (props.anchorAlignment.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
