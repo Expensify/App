@@ -1238,17 +1238,6 @@ function getDisplayNamesStringFromTooltips(displayNamesWithTooltips) {
 }
 
 /**
- * Get the report given a reportID
- *
- * @param {String} reportID
- * @returns {Object}
- */
-function getReport(reportID) {
-    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
-}
-
-/**
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
@@ -3805,6 +3794,32 @@ function getIOUReportActionDisplayMessage(reportAction) {
     return displayMessage;
 }
 
+/**
+ * Checks if a report is a group chat.
+ *
+ * A report is a group chat if it meets the following conditions:
+ * - Not a chat thread.
+ * - Not a task report.
+ * - Not a money request / IOU report.
+ * - Not an archived room.
+ * - Not a public / admin / announce chat room (chat type doesn't match any of the specified types).
+ * - More than 1 participant.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isGroupChat(report) {
+    return (
+        report &&
+        !isChatThread(report) &&
+        !isTaskReport(report) &&
+        !isMoneyRequestReport(report) &&
+        !isArchivedRoom(report) &&
+        !Object.values(CONST.REPORT.CHAT_TYPE).includes(getChatType(report)) &&
+        lodashGet(report, 'participantAccountIDs.length', 0) > 1
+    );
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3949,4 +3964,5 @@ export {
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
+    isGroupChat,
 };

@@ -117,11 +117,6 @@ function OptionRowLHN(props) {
     const shouldShowGreenDotIndicator =
         !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
 
-    const fullTitle =
-        optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.isArchivedRoom && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 1
-            ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips)
-            : optionItem.text;
-
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -156,6 +151,25 @@ function OptionRowLHN(props) {
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
     const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(optionItem);
+
+    /**
+     * Checks if the current optionItem is a group chat based on certain conditions.
+     *
+     * @returns {Boolean}
+     */
+    const isGroupChat = function () {
+        return (
+            optionItem.type === CONST.REPORT.TYPE.CHAT &&
+            !optionItem.isThread &&
+            !optionItem.isChatRoom &&
+            !optionItem.isMoneyRequestReport &&
+            !optionItem.isExpenseRequest &&
+            !optionItem.isArchivedRoom &&
+            lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 1
+        );
+    };
+
+    const fullTitle = isGroupChat() ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips) : optionItem.text;
 
     return (
         <OfflineWithFeedback
