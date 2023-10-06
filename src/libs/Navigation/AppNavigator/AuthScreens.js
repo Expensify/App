@@ -142,7 +142,7 @@ class AuthScreens extends React.Component {
 
         const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, this.props.session.email);
         // Sign out the current user if we're transitioning with a different user
-        const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS)
+        const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         if (isLoggingInAsNewUser && isTransitioning) {
             Session.signOutAndRedirectToSignIn();
             return;
