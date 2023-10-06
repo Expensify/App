@@ -210,41 +210,41 @@ function ReportPreview(props) {
                                 )}
                             </View>
                             <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
-                                {ReportUtils.isSettled(props.iouReportID) && (
-                                    <View style={styles.defaultCheckmarkWrapper}>
-                                        <Icon
-                                            src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
-                                        />
-                                    </View>
-                                )}
-                            </View>
-                        </View>
-                        {!isScanning && (numberOfRequests > 1 || hasReceipts) && (
-                            <View style={styles.flexRow}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                    <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
+                                    {ReportUtils.isSettled(props.iouReportID) && (
+                                        <View style={styles.defaultCheckmarkWrapper}>
+                                            <Icon
+                                                src={Expensicons.Checkmark}
+                                                fill={themeColors.iconSuccessFill}
+                                            />
+                                        </View>
+                                    )}
                                 </View>
                             </View>
-                        )}
-                        {shouldShowSettlementButton && (
-                            <SettlementButton
-                                currency={props.iouReport.currency}
-                                policyID={props.policyID}
-                                chatReportID={props.chatReportID}
-                                iouReport={props.iouReport}
-                                onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
-                                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                                addBankAccountRoute={bankAccountRoute}
-                                style={[styles.requestPreviewBox]}
-                                anchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                }}
-                            />
-                        )}
+                            {!isScanning && (numberOfRequests > 1 || hasReceipts) && (
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                    </View>
+                                </View>
+                            )}
+                            {shouldShowSettlementButton && (
+                                <SettlementButton
+                                    currency={props.iouReport.currency}
+                                    policyID={props.policyID}
+                                    chatReportID={props.chatReportID}
+                                    iouReport={props.iouReport}
+                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
+                                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                    addBankAccountRoute={bankAccountRoute}
+                                    style={[styles.requestPreviewBox]}
+                                    anchorAlignment={{
+                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                    }}
+                                />
+                            )}
                         </View>
                     </View>
                 </PressableWithoutFeedback>
