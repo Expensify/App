@@ -17,8 +17,6 @@ import * as IOUUtils from '../../../libs/IOUUtils';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import OnyxTabNavigator, {TopTab} from '../../../libs/Navigation/OnyxTabNavigator';
 import TabSelector from '../../../components/TabSelector/TabSelector';
-import IOURouteContext from '../IOURouteContext';
-import reportPropTypes from '../../reportPropTypes';
 import transactionPropTypes from '../../../components/transactionPropTypes';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
@@ -40,10 +38,6 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /* Onyx Props */
-    /** The report on which the request is initiated on */
-    report: reportPropTypes,
-
     /** The tab to select by default (whatever the user visited last) */
     selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
 
@@ -52,13 +46,11 @@ const propTypes = {
 };
 
 const defaultProps = {
-    report: {},
     selectedTab: CONST.TAB_REQUEST.MANUAL,
     transaction: {},
 };
 
 function IOURequestStartPage({
-    report,
     route,
     route: {
         params: {iouType, reportID},
@@ -97,51 +89,49 @@ function IOURequestStartPage({
     );
 
     return (
-        <IOURouteContext.Provider value={{report, route, transaction}}>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableKeyboardAvoidingView={false}
-                headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
-                testID={IOURequestStartPage.displayName}
-            >
-                {({safeAreaPaddingBottomStyle}) => (
-                    <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                        <DragAndDropProvider
-                            isDisabled={iouType !== CONST.TAB_REQUEST.SCAN}
-                            setIsDraggingOver={setIsDraggingOver}
-                        >
-                            <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                                <HeaderWithBackButton
-                                    title={tabTitles[iouType]}
-                                    onBackButtonPress={goBack}
-                                />
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableKeyboardAvoidingView={false}
+            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
+            testID={IOURequestStartPage.displayName}
+        >
+            {({safeAreaPaddingBottomStyle}) => (
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
+                    <DragAndDropProvider
+                        isDisabled={iouType !== CONST.TAB_REQUEST.SCAN}
+                        setIsDraggingOver={setIsDraggingOver}
+                    >
+                        <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                            <HeaderWithBackButton
+                                title={tabTitles[iouType]}
+                                onBackButtonPress={goBack}
+                            />
 
-                                <OnyxTabNavigator
-                                    id={CONST.TAB.IOU_REQUEST_TYPE}
-                                    selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.MANUAL}
-                                    onTabSelected={resetIouTypeIfChanged}
-                                    tabBar={({state, navigation, position}) => (
-                                        <TabSelector
-                                            state={state}
-                                            navigation={navigation}
-                                            position={position}
-                                        />
-                                    )}
-                                >
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
-                                    <TopTab.Screen
-                                        name={CONST.TAB_REQUEST.SCAN}
-                                        // TODO: get rid of this tab and do like amount and distance
-                                        component={IOURequestCreateTabScan}
+                            <OnyxTabNavigator
+                                id={CONST.TAB.IOU_REQUEST_TYPE}
+                                selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.MANUAL}
+                                onTabSelected={resetIouTypeIfChanged}
+                                tabBar={({state, navigation, position}) => (
+                                    <TabSelector
+                                        state={state}
+                                        navigation={navigation}
+                                        position={position}
                                     />
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>
-                                </OnyxTabNavigator>
-                            </View>
-                        </DragAndDropProvider>
-                    </FullPageNotFoundView>
-                )}
-            </ScreenWrapper>
-        </IOURouteContext.Provider>
+                                )}
+                            >
+                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
+                                <TopTab.Screen
+                                    name={CONST.TAB_REQUEST.SCAN}
+                                    // TODO: get rid of this tab and do like amount and distance
+                                    component={IOURequestCreateTabScan}
+                                />
+                                <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>
+                            </OnyxTabNavigator>
+                        </View>
+                    </DragAndDropProvider>
+                </FullPageNotFoundView>
+            )}
+        </ScreenWrapper>
     );
 }
 
@@ -152,9 +142,6 @@ IOURequestStartPage.defaultProps = defaultProps;
 export default withOnyx({
     selectedTab: {
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
-    },
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
     },
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
