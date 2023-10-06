@@ -117,7 +117,7 @@ function ReportPreview(props) {
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
-    const isReportDraft = ReportUtils.isReportDraft(props.iouReport);
+    const isReportDraft = ReportUtils.isPolicyExpenseChat(props.chatReport) && ReportUtils.isReportDraft(props.iouReport);
 
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
@@ -239,8 +239,8 @@ function ReportPreview(props) {
                         )}
                         {isReportDraft && (
                             <Button
-                                success
                                 medium
+                                success={props.iouReport.isOwnPolicyExpenseChat}
                                 text={translate('common.submit')}
                                 style={styles.requestPreviewBox}
                                 onPress={() => IOU.submitReport(props.iouReport)}

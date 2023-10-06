@@ -2303,7 +2303,7 @@ function navigateToNextPage(iou, iouType, report, path = '') {
 }
 
 function submitReport() {
-    // TODO: this will be done in the future, part of wave 6: drafts
+    // Will be implemented in https://github.com/Expensify/App/issues/28763
 }
 
 export {
