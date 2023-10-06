@@ -2205,12 +2205,17 @@ function searchForReports(searchInput) {
  * @private
  * @param {string} searchInput
  */
-const debouncedSearchInServer = lodashDebounce(searchForReports, 300, {leading: false});
+const debouncedSearchInServer = lodashDebounce(searchForReports, CONST.TIMING.SEARCH_FOR_REPORTS_DEBOUNCE_TIME, {leading: false});
 
 /**
  * @param {string} searchInput
  */
 function searchInServer(searchInput) {
+    if (isNetworkOffline) {
+        Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
+        return;
+    }
+
     // Why not set this in optimistic data? It won't run until the API request happens and while the API request is debounced
     // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
     // tell the user there are no options, then we start searching, and tell them there are no options again.

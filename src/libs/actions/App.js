@@ -41,6 +41,19 @@ Onyx.connect({
     callback: (val) => (preferredLocale = val),
 });
 
+let priorityMode;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: (nextPriorityMode) => {
+        // When someone switches their priority mode we need to fetch all their chats. This is only possible via the OpenApp command.
+        if (nextPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
+            // eslint-disable-next-line no-use-before-define
+            openApp();
+        }
+        priorityMode = nextPriorityMode;
+    },
+});
+
 let resolveIsReadyPromise;
 const isReadyToOpenApp = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
@@ -208,18 +221,6 @@ function openApp() {
         API.read('OpenApp', params, getOnyxDataForOpenOrReconnect(true));
     });
 }
-
-let priorityMode;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: (nextPriorityMode) => {
-        // When someone switches their priority mode we need to fetch all their chats. This is only possible via the OpenApp command.
-        if (nextPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
-            openApp();
-        }
-        priorityMode = nextPriorityMode;
-    },
-});
 
 /**
  * Fetches data when the app reconnects to the network
