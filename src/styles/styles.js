@@ -80,7 +80,6 @@ const webViewStyles = (theme) => ({
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
-            flex: 1,
         },
 
         strong: {
@@ -2779,6 +2778,11 @@ const styles = (theme) => ({
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
+    },
+
+    locationErrorLinkText: {
+        textAlignVertical: 'center',
+        fontSize: variables.fontSizeLabel,
     },
 
     sidebarPopover: {
