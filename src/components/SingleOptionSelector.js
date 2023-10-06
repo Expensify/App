@@ -36,21 +36,25 @@ function SingleOptionSelector({options, selectedOptionKey, onSelectOption, trans
     return (
         <View style={styles.pt4}>
             {_.map(options, (option) => (
-                <PressableWithoutFeedback
+                <View
+                    style={styles.flexRow}
                     key={option.key}
-                    style={styles.singleOptionSelectorRow}
-                    onPress={() => onSelectOption(option)}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    accessibilityState={{checked: selectedOptionKey === option.key}}
-                    aria-checked={selectedOptionKey === option.key}
-                    accessibilityLabel={option.label}
                 >
-                    <SelectCircle
-                        isChecked={selectedOptionKey ? selectedOptionKey === option.key : false}
-                        styles={[styles.ml0]}
-                    />
-                    <Text>{translate(option.label)}</Text>
-                </PressableWithoutFeedback>
+                    <PressableWithoutFeedback
+                        style={styles.singleOptionSelectorRow}
+                        onPress={() => onSelectOption(option)}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityState={{checked: selectedOptionKey === option.key}}
+                        aria-checked={selectedOptionKey === option.key}
+                        accessibilityLabel={option.label}
+                    >
+                        <SelectCircle
+                            isChecked={selectedOptionKey ? selectedOptionKey === option.key : false}
+                            styles={[styles.ml0]}
+                        />
+                        <Text>{translate(option.label)}</Text>
+                    </PressableWithoutFeedback>
+                </View>
             ))}
         </View>
     );
