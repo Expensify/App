@@ -32,6 +32,7 @@ type Message = {
     isEdited: boolean;
 
     isDeletedParentAction: boolean;
+    isReversedTransaction?: boolean;
     whisperedTo: number[];
     reactions: Reaction[];
 };
