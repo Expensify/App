@@ -16,10 +16,11 @@ import PressableWithFeedback from '../../../../components/Pressable/PressableWit
 import useLocalize from '../../../../hooks/useLocalize';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as ReportUtils from '../../../../libs/ReportUtils';
-import * as IOU from '../../../../libs/actions/IOU';
 import * as Task from '../../../../libs/actions/Task';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import Permissions from '../../../../libs/Permissions';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /** Beta features list */
@@ -144,7 +145,7 @@ function AttachmentPickerWithMenuItems({
             ...options[option],
             onSelected: () => {
                 // TODO: IOU.startMoneyRequest(option, report.reportID);
-                IOU.startMoneeRequest(option, report.reportID);
+                Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID));
             },
         }));
     }, [betas, report, reportParticipantIDs, translate]);

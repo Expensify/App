@@ -3,6 +3,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {format} from 'date-fns';
+import moment from 'moment';
 import CONST from '../../CONST';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -2185,26 +2186,33 @@ function startMoneyRequest(iouType, reportID = '') {
 
 /**
  * Initialize money request info and navigate to the MoneyRequest page
- * @param {String} iouType
- * @param {String} [reportID] to attach the transaction to
+ * @param {String} reportID to attach the transaction to
+ * @param {String} [iouRequestType] one of manual/scan/distance
  */
-function startMoneeRequest(iouType, reportID = '') {
+function startMoneeRequest(reportID, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const created = currentDate || moment().format('YYYY-MM-DD');
+    const comment = {};
+
+    // Add initial empty waypoints when starting a distance request
+    if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
+        comment.waypoints = {
+            waypoint0: null,
+            waypoint1: null,
+        };
+    }
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {
         amount: 0,
+        comment,
         created,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         reportID,
         transactionID: newTransactionID,
     });
-
-    // Navigate to it
-    Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(iouType, newTransactionID, reportID));
 }
 
 /**

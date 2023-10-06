@@ -6,17 +6,21 @@ import Tab from '../actions/Tab';
 import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
-    /* ID of the tab component to be saved in onyx */
+    /** ID of the tab component to be saved in onyx */
     id: PropTypes.string.isRequired,
 
-    /* Name of the selected tab */
+    /** Name of the selected tab */
     selectedTab: PropTypes.string,
 
-    /* Children nodes */
+    /** Children nodes */
     children: PropTypes.node.isRequired,
+
+    /** A function triggered when a tab has been selected */
+    onTabSelected: PropTypes.func,
 };
 
 const defaultProps = {
+    onTabSelected: () => {},
     selectedTab: '',
 };
 
@@ -25,7 +29,7 @@ export const TopTab = createMaterialTopTabNavigator();
 
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
-function OnyxTabNavigator({id, selectedTab, children, ...rest}) {
+function OnyxTabNavigator({id, selectedTab, children, onTabSelected, ...rest}) {
     return (
         <TopTab.Navigator
             /* eslint-disable-next-line react/jsx-props-no-spreading */
@@ -40,6 +44,7 @@ function OnyxTabNavigator({id, selectedTab, children, ...rest}) {
                     const index = state.index;
                     const routeNames = state.routeNames;
                     Tab.setSelectedTab(id, routeNames[index]);
+                    onTabSelected(routeNames[index]);
                 },
                 ...(rest.screenListeners || {}),
             }}

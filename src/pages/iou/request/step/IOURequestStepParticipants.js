@@ -45,7 +45,7 @@ const defaultProps = {
 
 function IOURequestStepParticipants({
     route: {
-        params: {transactionID, reportID},
+        params: {iouType, reportID, transactionID},
     },
     transaction,
     transaction: {participants},
@@ -67,7 +67,7 @@ function IOURequestStepParticipants({
     );
 
     const goToNextStep = () => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current), true);
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current), true);
     };
 
     const goBack = () => {
@@ -93,7 +93,7 @@ function IOURequestStepParticipants({
                         onParticipantsAdded={addParticipant}
                         onFinish={goToNextStep}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                        iouType={CONST.IOU.TYPE.REQUEST}
+                        iouType={iouType}
                         iouRequestType={iouRequestType}
                     />
                 </View>

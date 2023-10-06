@@ -67,16 +67,6 @@ function IOURequestStepDistance() {
     }, []);
 
     useEffect(() => {
-        const transactionWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-        if (!lodashGet(transaction, 'transactionID') || !_.isEmpty(transactionWaypoints)) {
-            return;
-        }
-
-        // Create the initial start and stop waypoints
-        Transaction.createInitialWaypoints(transactionID);
-    }, [transaction, transactionID]);
-
-    useEffect(() => {
         if (isOffline || !shouldFetchRoute) {
             return;
         }

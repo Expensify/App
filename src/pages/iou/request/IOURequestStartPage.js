@@ -1,5 +1,5 @@
 // TODO: cleanup - file was made from MoneyRequestSelectorPage
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -23,6 +23,9 @@ import transactionPropTypes from '../../../components/transactionPropTypes';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestCreateTabScan from './create/tab/IOURequestCreateTabScan';
+import * as IOU from '../../../libs/actions/IOU';
+import usePrevious from '../../../hooks/usePrevious';
+import * as TransactionUtils from '../../../libs/TransactionUtils';
 
 const propTypes = {
     /** Route from navigation */
@@ -32,8 +35,8 @@ const propTypes = {
             /** The type of IOU being created */
             iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)).isRequired,
 
-            /** An optional path to take the user to when the back button is pressed in the header */
-            backTo: PropTypes.string,
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
         }),
     }).isRequired,
 
@@ -58,7 +61,7 @@ function IOURequestStartPage({
     report,
     route,
     route: {
-        params: {iouType, backTo},
+        params: {iouType, reportID},
     },
     selectedTab,
     transaction,
@@ -70,14 +73,19 @@ function IOURequestStartPage({
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
+    const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
+    const previousIOURequestType = usePrevious(transactionRequestType.current);
 
     const goBack = () => {
-        // TODO: get this working
-        if (backTo) {
-            Navigation.goBack(backTo, true);
+        Navigation.dismissModal();
+    };
+
+    const resetIouTypeIfChanged = (newIouType) => {
+        if (newIouType === previousIOURequestType) {
             return;
         }
-        Navigation.dismissModal();
+        IOU.startMoneeRequest(reportID, newIouType);
+        transactionRequestType.current = newIouType;
     };
 
     return (
@@ -102,7 +110,8 @@ function IOURequestStartPage({
 
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
-                                    selectedTab={selectedTab}
+                                    selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.MANUAL}
+                                    onTabSelected={resetIouTypeIfChanged}
                                     tabBar={({state, navigation, position}) => (
                                         <TabSelector
                                             state={state}
