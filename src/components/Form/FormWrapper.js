@@ -84,7 +84,6 @@ function FormWrapper(props) {
         const latestErrorMessage = ErrorUtils.getLatestErrorMessage(formState);
         return typeof latestErrorMessage === 'string' ? latestErrorMessage : '';
     }, [formState]);
-    console.log({errors})
 
     const scrollViewContent = useCallback(
         (safeAreaPaddingBottomStyle) => (
