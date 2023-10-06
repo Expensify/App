@@ -97,7 +97,6 @@ function ExpensifyCardPage({
                                         title={CardUtils.maskCard(virtualCard.lastFourPAN)}
                                         interactive={false}
                                         titleStyle={styles.walletCardNumber}
-                                        // titleStyle={styles.walletCardMenuItem}
                                         shouldShowRightComponent
                                         rightComponent={
                                             <Button

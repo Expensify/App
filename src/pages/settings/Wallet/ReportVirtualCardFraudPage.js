@@ -40,7 +40,7 @@ const defaultProps = {
     formData: {},
 };
 
-function ReportFraudPage({
+function ReportVirtualCardFraudPage({
     route: {
         params: {domain},
     },
@@ -69,7 +69,7 @@ function ReportFraudPage({
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={ReportFraudPage.displayName}
+            testID={ReportVirtualCardFraudPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('reportFraudPage.title')}
@@ -89,9 +89,9 @@ function ReportFraudPage({
     );
 }
 
-ReportFraudPage.propTypes = propTypes;
-ReportFraudPage.defaultProps = defaultProps;
-ReportFraudPage.displayName = 'ReportFraudPage';
+ReportVirtualCardFraudPage.propTypes = propTypes;
+ReportVirtualCardFraudPage.defaultProps = defaultProps;
+ReportVirtualCardFraudPage.displayName = 'ReportVirtualCardFraudPage';
 
 export default withOnyx({
     cardList: {
@@ -100,4 +100,4 @@ export default withOnyx({
     formData: {
         key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
     },
-})(ReportFraudPage);
+})(ReportVirtualCardFraudPage);
