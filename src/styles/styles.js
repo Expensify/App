@@ -3718,6 +3718,10 @@ const styles = (theme) => ({
     receiptDropHeaderGap: {
         backgroundColor: theme.receiptDropUIBG,
     },
+
+    checkboxWithLabelCheckboxStyle: {
+        marginLeft: -2,
+    },
 });
 
 // For now we need to export the styles function that takes the theme as an argument
