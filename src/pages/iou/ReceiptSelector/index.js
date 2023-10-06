@@ -81,7 +81,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
     const {isDraggingOver} = useContext(DragAndDropContext);
 
     const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
-    const [isFlashLightOn, toggleFlashlight] = useReducer((s) => !s, false);
+    const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(true);
     const cameraRef = useRef(null);
 
