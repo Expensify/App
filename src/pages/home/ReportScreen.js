@@ -39,6 +39,7 @@ import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
+import useNetwork from '../../hooks/useNetwork';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -156,6 +157,7 @@ function ReportScreen({
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
+    const {isOffline} = useNetwork();
 
     const reportID = getReportID(route);
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
@@ -362,8 +364,8 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () => (!firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
-        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
+        () => (!firstRenderRef.current && !report.reportID && (isOffline || (!reportMetadata.isLoadingReportActions && !isOptimisticDelete)) && !isLoading && !userLeavingStatus) || shouldHideReport,
+        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus, isOffline],
     );
 
     return (
