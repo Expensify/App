@@ -262,6 +262,14 @@ export default {
         all: 'All',
         tbd: 'TBD',
     },
+    location: {
+        useCurrent: 'Use current location',
+        notFound: 'We were unable to find your location, please try again or enter an address manually.',
+        permissionDenied: 'It looks like you have denied permission to your location.',
+        please: 'Please',
+        allowPermission: 'allow location permission in settings',
+        tryAgain: 'and then try again.',
+    },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
     },
@@ -877,7 +885,6 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Welcome message',
-        welcomeMessageOptional: 'Welcome message (optional)',
         explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
     },
     languagePage: {
@@ -1798,7 +1805,7 @@ export default {
             onlineSubtitle: 'One moment while we set up the map',
         },
         errors: {
-            selectSuggestedAddress: 'Please select a suggested address',
+            selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
     },
 } satisfies TranslationBase;
