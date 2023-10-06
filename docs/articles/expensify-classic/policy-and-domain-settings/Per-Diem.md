@@ -6,7 +6,7 @@ description: Expensify Per Diems support simple, pre-determined, tax-free allowa
 
 Per Diems are a flat rate given based on a timed range traveled for business purposes regardless of actual expenses incurred. A Per Diem is only based on the time you travel for work: it starts when you leave your home and ends when you arrive home.
 
-Per Diems themselves are created to alleviate much of the heavy lifting that Expense Reporting is well known for. Per Diem claims generally remove the hassle of saving multiple receipts and allow you to claim back a simple, pre-determined, tax-free allowance set by your jurisdiction or company.
+Per Diems themselves are created to alleviate much of the heavy lifting that expense reporting is well known for. Per Diem claims generally remove the hassle of saving multiple receipts and allow you to claim back a simple, pre-determined, tax-free allowance set by your jurisdiction or company.
 
 # How to set up Per Diems in Expensify
 
@@ -75,11 +75,10 @@ Most companies will also set a Description Hint, which allows admins to take the
 
 **Cons:**
 
-- Sometimes, jurisdiction-set amounts can be deemed incorrect or too low. In these cases, it can be challenging to establish a fair and realistic per diem for different costs in different locations. Additionally, allowing more than a tax-free amount adds undue labor for admins teams to split out taxable and tax-free expense reimbursements.
+- Sometimes, jurisdiction-set amounts can be deemed incorrect or too low. In these cases, it can be challenging to establish a fair and realistic per diem for different costs in different locations. Additionally, allowing more than a tax-free amount adds undue labor for admin teams to split out taxable and tax-free expense reimbursements.
 - Set Per Diems might restrict employee choices that could have benefitted the company, i.e., a sales team member not picking up a full dinner tab or pushing split bill reclamation back onto employees after an individual picks up the tab and each user submits their own Per Diem claims.
 - It does not eliminate employee expense fraud, and reduced receipt requirements may make it easier.
-
-As a business, you can never be sure that your expenses bill matches what employees have had to spend. Because you're reimbursing pre-determined amounts, there may be substantial hidden savings you're not taking advantage of. 
+- As a business, you can never be sure that your expenses bill matches what employees have had to spend. Because you're reimbursing pre-determined amounts, there may be substantial hidden savings you're not taking advantage of. 
 
 ## How to manage existing rates and avoid duplicates
 
