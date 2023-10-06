@@ -122,7 +122,7 @@ function ProfilePage(props) {
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
     const isCurrentUser = _.keys(props.loginList).includes(login);
-    const hasMinimumDetails = !_.isEmpty(details.avatar);
+    const hasMinimumDetails = !_.isEmpty(details.avatar) && !_.isUndefined(details.displayName);
     const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details) || props.isLoadingReportData;
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen

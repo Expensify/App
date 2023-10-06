@@ -113,42 +113,6 @@ describe('ReportUtils', () => {
         test('withSingleParticipantReport', () => {
             expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false)).toStrictEqual([
                 {
-                    displayName: '(833) 240-3627',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
-                    },
-                    login: '+18332403627@expensify.sms',
-                    accountID: 4,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'floki@vikings.net',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
-                    },
-                    login: 'floki@vikings.net',
-                    accountID: 2,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'Lagertha Lothbrok',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
-                    },
-                    login: 'lagertha@vikings.net',
-                    accountID: 3,
-                    pronouns: 'She/her',
-                },
-                {
-                    displayName: 'Lagertha Lothbrok',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_6.svg',
-                    },
-                    login: 'lagertha2@vikings.net',
-                    accountID: 5,
-                    pronouns: 'She/her',
-                },
-                {
                     displayName: 'Ragnar Lothbrok',
                     login: 'ragnar@vikings.net',
                     avatar: {
@@ -157,11 +121,24 @@ describe('ReportUtils', () => {
                     accountID: 1,
                     pronouns: undefined,
                 },
-            ]);
-        });
-
-        test('withMultiParticipantReport', () => {
-            expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, true)).toStrictEqual([
+                {
+                    displayName: 'floki@vikings.net',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
+                    },
+                    login: 'floki@vikings.net',
+                    accountID: 2,
+                    pronouns: undefined,
+                },
+                {
+                    displayName: 'Lagertha Lothbrok',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
+                    },
+                    login: 'lagertha@vikings.net',
+                    accountID: 3,
+                    pronouns: 'She/her',
+                },
                 {
                     displayName: '(833) 240-3627',
                     avatar: {
@@ -169,6 +146,29 @@ describe('ReportUtils', () => {
                     },
                     login: '+18332403627@expensify.sms',
                     accountID: 4,
+                    pronouns: undefined,
+                },
+                {
+                    displayName: 'Lagertha Lothbrok',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_6.svg',
+                    },
+                    login: 'lagertha2@vikings.net',
+                    accountID: 5,
+                    pronouns: 'She/her',
+                },
+            ]);
+        });
+
+        test('withMultiParticipantReport', () => {
+            expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, true)).toStrictEqual([
+                {
+                    displayName: 'Ragnar',
+                    login: 'ragnar@vikings.net',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
+                    },
+                    accountID: 1,
                     pronouns: undefined,
                 },
                 {
@@ -190,6 +190,15 @@ describe('ReportUtils', () => {
                     pronouns: 'She/her',
                 },
                 {
+                    displayName: '(833) 240-3627',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
+                    },
+                    login: '+18332403627@expensify.sms',
+                    accountID: 4,
+                    pronouns: undefined,
+                },
+                {
                     displayName: 'Lagertha',
                     avatar: {
                         testUri: '../../../assets/images/avatars/user/default-avatar_6.svg',
@@ -197,15 +206,6 @@ describe('ReportUtils', () => {
                     login: 'lagertha2@vikings.net',
                     accountID: 5,
                     pronouns: 'She/her',
-                },
-                {
-                    displayName: 'Ragnar',
-                    login: 'ragnar@vikings.net',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
-                    },
-                    accountID: 1,
-                    pronouns: undefined,
                 },
             ]);
         });
