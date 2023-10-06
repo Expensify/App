@@ -54,6 +54,7 @@ function BaseOptionsList({
     showScrollIndicator,
     listContainerStyles,
     shouldDisableRowInnerPadding,
+    shouldTakeFocus,
     disableFocusOptions,
     canSelectMultipleOptions,
     shouldShowMultipleOptionSelectorAsButton,
@@ -206,6 +207,7 @@ function BaseOptionsList({
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
+                shouldTakeFocus={shouldTakeFocus}
                 isMultilineSupported={isRowMultilineSupported}
             />
         );
