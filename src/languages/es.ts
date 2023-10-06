@@ -2275,8 +2275,8 @@ export default {
     },
     cardTransactions: {
         notActivated: 'No activado',
-        outOfPocketSpend: 'Gasto de bolsillo',
-        companySpend: 'Gasto de la empresa',
+        outOfPocketSpend: 'Gastos por cuenta propia',
+        companySpend: 'Gastos de empresa',
     },
     distance: {
         addStop: 'Agregar parada',
