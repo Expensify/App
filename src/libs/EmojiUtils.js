@@ -7,9 +7,9 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
 import * as Emojis from '../../assets/emojis';
-import lodashMin from "lodash/min";
-import lodashSum from "lodash/sum";
-import * as Report from "./actions/Report";
+import lodashMin from 'lodash/min';
+import lodashSum from 'lodash/sum';
+import * as Report from './actions/Report';
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({
@@ -458,15 +458,19 @@ const getPreferredEmojiCode = (emoji, preferredSkinTone) => {
  * @return {string[]}
  * */
 const getUniqueEmojiCodes = (emojiAsset, users) => {
-    const emojiCodes = _.reduce(users, (result, userSkinTones) => {
-        _.each(lodashGet(userSkinTones, 'skinTones'), (createdAt, skinTone) => {
-            const emojiCode = getPreferredEmojiCode(emojiAsset, skinTone);
-            if (!!emojiCode && (!result[emojiCode] || createdAt < result[emojiCode])) {
-                result[emojiCode] = createdAt;
-            }
-        });
-        return result;
-    }, {});
+    const emojiCodes = _.reduce(
+        users,
+        (result, userSkinTones) => {
+            _.each(lodashGet(userSkinTones, 'skinTones'), (createdAt, skinTone) => {
+                const emojiCode = getPreferredEmojiCode(emojiAsset, skinTone);
+                if (!!emojiCode && (!result[emojiCode] || createdAt < result[emojiCode])) {
+                    result[emojiCode] = createdAt;
+                }
+            });
+            return result;
+        },
+        {},
+    );
 
     return _.chain(emojiCodes)
         .pairs()
@@ -496,8 +500,8 @@ const enrichEmojiReactionWithTimestamps = (emoji, emojiName) => {
             return {
                 ...user,
                 id,
-                oldestTimestamp: oldestUserTimestamp
-            }
+                oldestTimestamp: oldestUserTimestamp,
+            };
         })
         .value();
 
@@ -507,7 +511,7 @@ const enrichEmojiReactionWithTimestamps = (emoji, emojiName) => {
         // Just in case two emojis have the same timestamp, also combine the timestamp with the
         // emojiName so that the order will always be the same. Without this, the order can be pretty random
         // and shift around a little bit.
-        oldestTimestamp: (oldestEmojiTimestamp || emoji.createdAt) + emojiName
+        oldestTimestamp: (oldestEmojiTimestamp || emoji.createdAt) + emojiName,
     };
 };
 
@@ -519,7 +523,7 @@ const enrichEmojiReactionWithTimestamps = (emoji, emojiName) => {
  * @returns {Object}
  */
 const getEmojiReactionDetails = (emojiName, reaction, currentUserAccountID) => {
-    const { users, oldestTimestamp } = enrichEmojiReactionWithTimestamps(reaction, emojiName);
+    const {users, oldestTimestamp} = enrichEmojiReactionWithTimestamps(reaction, emojiName);
 
     const emoji = findEmojiByName(emojiName);
     const emojiCodes = getUniqueEmojiCodes(emoji, users);
@@ -537,8 +541,8 @@ const getEmojiReactionDetails = (emojiName, reaction, currentUserAccountID) => {
         hasUserReacted,
         userAccountIDs,
         oldestTimestamp,
-    }
-}
+    };
+};
 
 export {
     findEmojiByName,

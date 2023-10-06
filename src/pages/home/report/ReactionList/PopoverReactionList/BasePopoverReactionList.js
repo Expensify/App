@@ -134,12 +134,7 @@ class BasePopoverReactionList extends React.Component {
             };
         }
 
-        const {
-            emojiCodes,
-            reactionCount,
-            hasUserReacted,
-            userAccountIDs
-        } = EmojiUtils.getEmojiReactionDetails(emojiName, selectedReaction, this.props.currentUserPersonalDetails.accountID);
+        const {emojiCodes, reactionCount, hasUserReacted, userAccountIDs} = EmojiUtils.getEmojiReactionDetails(emojiName, selectedReaction, this.props.currentUserPersonalDetails.accountID);
 
         const users = PersonalDetailsUtils.getPersonalDetailsByIDs(userAccountIDs, this.props.currentUserPersonalDetails.accountID, true);
         return {
@@ -206,13 +201,7 @@ class BasePopoverReactionList extends React.Component {
 
     render() {
         const selectedReaction = this.state.isPopoverVisible ? lodashGet(this.props.emojiReactions, [this.props.emojiName]) : null;
-        const {
-            emojiName,
-            emojiCodes,
-            reactionCount,
-            hasUserReacted,
-            users
-        } = this.getReactionInformation(selectedReaction, this.props.emojiName);
+        const {emojiName, emojiCodes, reactionCount, hasUserReacted, users} = this.getReactionInformation(selectedReaction, this.props.emojiName);
 
         return (
             <PopoverWithMeasuredContent

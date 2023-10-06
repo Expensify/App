@@ -53,14 +53,11 @@ function ReportActionItemEmojiReactions(props) {
 
     const formattedReactions = _.chain(props.emojiReactions)
         .map((emojiReaction, emojiName) => {
-            const {
-                emoji,
-                emojiCodes,
-                reactionCount,
-                hasUserReacted,
-                userAccountIDs,
-                oldestTimestamp,
-            } = EmojiUtils.getEmojiReactionDetails(emojiName, emojiReaction, props.currentUserPersonalDetails.accountID);
+            const {emoji, emojiCodes, reactionCount, hasUserReacted, userAccountIDs, oldestTimestamp} = EmojiUtils.getEmojiReactionDetails(
+                emojiName,
+                emojiReaction,
+                props.currentUserPersonalDetails.accountID,
+            );
 
             if (reactionCount === 0) {
                 return null;
@@ -90,7 +87,6 @@ function ReportActionItemEmojiReactions(props) {
         // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
         .sortBy('oldestTimestamp')
         .value();
-
 
     return (
         totalReactionCount > 0 && (
