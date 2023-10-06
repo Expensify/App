@@ -43,6 +43,15 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
     const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE;
     const shortcuts = KeyboardShortcut.useDocumentedShortcuts();
 
+    /**
+     * Unsubscribe all shortcuts that were subscribed when the modal opened
+     * Call only when modal DID close
+     */
+    const unsubscribeOpenModalShortcuts = () => {
+        _.each(subscribedOpenModalShortcuts.current, (unsubscribe) => unsubscribe());
+        subscribedOpenModalShortcuts.current = [];
+    };
+
     /*
      * Subscribe shortcuts that only are used when the modal is open
      */
@@ -55,7 +64,7 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
             KeyboardShortcut.subscribe(
                 closeShortcutEscapeModalConfig.shortcutKey,
                 () => {
-                    ModalActions.close();
+                    ModalActions.close(unsubscribeOpenModalShortcuts);
                     KeyboardShortcutsActions.hideKeyboardShortcutModal();
                 },
                 closeShortcutEscapeModalConfig.descriptionKey,
@@ -67,7 +76,7 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
             KeyboardShortcut.subscribe(
                 closeShortcutEnterModalConfig.shortcutKey,
                 () => {
-                    ModalActions.close();
+                    ModalActions.close(unsubscribeOpenModalShortcuts);
                     KeyboardShortcutsActions.hideKeyboardShortcutModal();
                 },
                 closeShortcutEnterModalConfig.descriptionKey,
@@ -79,14 +88,6 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
             KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {}, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true),
             KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {}, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true),
         ];
-    };
-
-    /*
-     * Unsubscribe all shortcuts that were subscribed when the modal opened
-     */
-    const unsubscribeOpenModalShortcuts = () => {
-        _.each(subscribedOpenModalShortcuts.current, (unsubscribe) => unsubscribe());
-        subscribedOpenModalShortcuts.current = [];
     };
 
     /**
@@ -117,7 +118,7 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
                     return;
                 }
 
-                ModalActions.close();
+                ModalActions.close(unsubscribeOpenModalShortcuts);
                 KeyboardShortcutsActions.showKeyboardShortcutModal();
             },
             openShortcutModalConfig.descriptionKey,
@@ -141,13 +142,11 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
     }, []);
 
     useEffect(() => {
-        if (isShortcutsModalOpen) {
-            subscribeOpenModalShortcuts();
-        } else {
-            // Modal is closing, remove keyboard shortcuts
-            unsubscribeOpenModalShortcuts();
+        if (!isShortcutsModalOpen) {
+            return;
         }
-        // subscribeOpenModalShortcuts and unsubscribeOpenModalShortcuts functions are not added as dependencies since they don't change between renders
+        subscribeOpenModalShortcuts();
+        // subscribeOpenModalShortcuts function is not added as dependency since it doesn't change between renders
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isShortcutsModalOpen]);
 
