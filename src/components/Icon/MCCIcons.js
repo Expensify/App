@@ -10,8 +10,7 @@ import Rental from '../../../assets/images/mccGroupIcons/MCC-RentalCar.svg';
 import Services from '../../../assets/images/mccGroupIcons/MCC-Services.svg';
 import Taxi from '../../../assets/images/mccGroupIcons/MCC-Taxi.svg';
 import Miscellaneous from '../../../assets/images/mccGroupIcons/MCC-Misc.svg';
-// import Utilities from '../../../assets/images/mccGroupIcons/MCC-Misc.svg';
-
+import Utilities from '../../../assets/images/mccGroupIcons/MCC-Utilities.svg';
 
 export {
     Airlines,
@@ -26,4 +25,5 @@ export {
     Services,
     Taxi,
     Miscellaneous,
+    Utilities,
 };
