@@ -98,6 +98,7 @@ export default {
         resend: 'Reenviar',
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
+        submit: 'Enviar',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
