@@ -146,6 +146,15 @@ function ReportCardLostPage({
         setShouldShowReasonError(false);
     };
 
+    const handleBackButtonPress = () => {
+        if (isReasonConfirmed) {
+            setIsReasonConfirmed(false);
+            return;
+        }
+
+        Navigation.goBack(ROUTES.SETTINGS_WALLET);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -153,7 +162,7 @@ function ReportCardLostPage({
         >
             <HeaderWithBackButton
                 title={translate('reportCardLostOrDamaged.screenTitle')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
+                onBackButtonPress={handleBackButtonPress}
             />
             <Form
                 formID={ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM}
