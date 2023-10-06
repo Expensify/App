@@ -46,7 +46,7 @@ const propTypes = {
         twoFactorAuthCode: PropTypes.string,
         validateCode: PropTypes.string,
     }),
-    
+
     /** Active Clients connected to ONYX Database */
     activeClients: PropTypes.arrayOf(PropTypes.string),
 
@@ -58,7 +58,7 @@ const defaultProps = {
     account: {},
     credentials: {},
     isInModal: false,
-    activeClients: []
+    activeClients: [],
 };
 
 /**
@@ -97,9 +97,9 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
     useEffect(() => {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
-    
+
     const isClientTheLeader = activeClients && ActiveClientManager.isClientTheLeader();
-    
+
     const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions(
         {
             hasLogin: Boolean(credentials.login),
@@ -108,7 +108,7 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
             isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
             isAccountValidated: Boolean(account.validated),
             hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
-            isClientTheLeader
+            isClientTheLeader,
         },
     );
 
@@ -196,5 +196,5 @@ export default withOnyx({
     everytime the leader client changes.
     We use that function to prevent repeating code that checks which client is the leader.
     */
-    activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS}
+    activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS},
 })(SignInPage);
