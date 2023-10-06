@@ -6,6 +6,7 @@ import IconButton from './IconButton';
 import * as Expensicons from '../Icon/Expensicons';
 import ProgressBar from './ProgressBar';
 import convertMillisecondsToTime from './utils';
+import VolumeButton from '../VolumeButton';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
@@ -19,6 +20,8 @@ const propTypes = {
 
     enterFullScreenMode: PropTypes.func.isRequired,
 
+    updateVolume: PropTypes.func.isRequired,
+
     isPlaying: PropTypes.bool,
 };
 
@@ -26,7 +29,7 @@ const defaultProps = {
     isPlaying: false,
 };
 
-function VideoPlayerControls({duration, position, updatePostiion, togglePlay, enterFullScreenMode, isPlaying}) {
+function VideoPlayerControls({duration, position, updatePostiion, togglePlay, enterFullScreenMode, updateVolume, isPlaying}) {
     const [durationFormatted, setDurationFormatted] = React.useState('0:00');
 
     useEffect(() => {
@@ -44,7 +47,7 @@ function VideoPlayerControls({duration, position, updatePostiion, togglePlay, en
                 height: 60,
                 borderRadius: 10,
                 flexDirection: 'column',
-                overflow: 'hidden',
+                overflow: 'visible',
                 padding: 10,
             }}
             entering={FadeIn.duration(3000)}
@@ -63,13 +66,7 @@ function VideoPlayerControls({duration, position, updatePostiion, togglePlay, en
                     <Text style={{color: 'white', width: 35, textAlign: 'center'}}>{durationFormatted}</Text>
                 </View>
                 <View style={{flexDirection: 'row'}}>
-                    <IconButton
-                        src={Expensicons.VolumeHigh}
-                        fill="white"
-                        accessibilityLabel="fullsreen"
-                        onPress={enterFullScreenMode}
-                        style={{marginRight: 10}}
-                    />
+                    <VolumeButton updateVolume={updateVolume} />
                     <IconButton
                         src={Expensicons.Fullscreen}
                         fill="white"

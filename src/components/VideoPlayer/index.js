@@ -61,6 +61,10 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         ref.current.presentFullscreenPlayer();
     };
 
+    const updateVolume = (volume) => {
+        ref.current.setStatusAsync({volume});
+    };
+
     return (
         <Hoverable>
             {(isHovered) => (
@@ -100,6 +104,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             updatePostiion={updatePostiion}
                             enterFullScreenMode={enterFullScreenMode}
                             isPlaying={isVideoPlaying}
+                            updateVolume={updateVolume}
                         />
                     )}
                 </View>
