@@ -297,7 +297,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 },
             };
         },
-        [errors, formState, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
+        [errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 
