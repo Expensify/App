@@ -2254,6 +2254,14 @@ function setMoneyRequestCurrency(currency) {
 }
 
 /**
+ * @param {String} transactionID
+ * @param {String} currency
+ */
+function setMoneeRequestCurrency(transactionID, currency) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {currency});
+}
+
+/**
  * TODO: remove this in favor of setMoneeRequestDescription()
  * @param {String} comment
  */
@@ -2422,27 +2430,32 @@ export {
     sendMoneyWithWallet,
     startMoneyRequest,
     startMoneeRequest,
+    resetMoneyRequestCategory,
     resetMoneyRequestInfo,
-    setMoneyRequestId,
-    setMoneyRequestAmount,
-    setMoneyRequestCreated,
+    resetMoneyRequestTag,
+
+    // TODO: Rename these methods to "money"
+    setMoneeRequestAmount,
+    setMoneeRequestCategory,
     setMoneeRequestCreated,
+    setMoneeRequestCurrency,
+    setMoneeRequestDescription,
+    setMoneeRequestMerchant,
+    setMoneeRequestParticipants,
+    setMoneeRequestTag,
+
+    // TODO: remove these methods
+    setMoneyRequestAmount,
+    setMoneyRequestBillable,
+    setMoneyRequestCategory,
+    setMoneyRequestCreated,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
-    setMoneeRequestDescription,
+    setMoneyRequestId,
     setMoneyRequestMerchant,
-    setMoneeRequestMerchant,
-    setMoneyRequestCategory,
-    setMoneeRequestCategory,
-    resetMoneyRequestCategory,
-    setMoneyRequestTag,
-    setMoneeRequestTag,
-    resetMoneyRequestTag,
-    setMoneeRequestParticipants,
-    setMoneeRequestAmount,
-    setMoneyRequestBillable,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
+    setMoneyRequestTag,
     createEmptyTransaction,
     navigateToNextPage,
     updateDistanceRequest,

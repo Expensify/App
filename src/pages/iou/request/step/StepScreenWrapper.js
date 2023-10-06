@@ -16,6 +16,9 @@ const propTypes = {
     /** A function triggered when the back button is pressed */
     onBackButtonPress: PropTypes.func.isRequired,
 
+    /** A function triggered when the entry transition is ended. Useful for auto-focusing elements. */
+    onEntryTransitionEnd: PropTypes.func,
+
     /** Whether or not the not-found page should be shown (like when the request isn't a valid IOU) */
     shouldShowNotFound: PropTypes.bool.isRequired,
 
@@ -26,7 +29,11 @@ const propTypes = {
     testID: PropTypes.string.isRequired,
 };
 
-function StepScreenWrapper({testID, shouldShowNotFound, headerTitle, onBackButtonPress, children, shouldShowWrapper}) {
+const defaultProps = {
+    onEntryTransitionEnd: () => {},
+};
+
+function StepScreenWrapper({testID, shouldShowNotFound, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper}) {
     if (!shouldShowWrapper) {
         return children;
     }
@@ -35,6 +42,7 @@ function StepScreenWrapper({testID, shouldShowNotFound, headerTitle, onBackButto
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
+            onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
         >
             {({safeAreaPaddingBottomStyle}) => (
@@ -54,5 +62,6 @@ function StepScreenWrapper({testID, shouldShowNotFound, headerTitle, onBackButto
 
 StepScreenWrapper.displayName = 'StepScreenWrapper';
 StepScreenWrapper.propTypes = propTypes;
+StepScreenWrapper.defaultProps = defaultProps;
 
 export default StepScreenWrapper;

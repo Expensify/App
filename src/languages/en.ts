@@ -261,6 +261,8 @@ export default {
         recent: 'Recent',
         all: 'All',
         tbd: 'TBD',
+        selectCurrency: 'Select a currency',
+        allCurrencies: 'All currencies',
     },
     location: {
         useCurrent: 'Use current location',
@@ -333,10 +335,6 @@ export default {
         paidBy: 'Paid by',
         splitWith: 'Split with',
         whatsItFor: "What's it for?",
-    },
-    iOUCurrencySelection: {
-        selectCurrency: 'Select a currency',
-        allCurrencies: 'All currencies',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
