@@ -157,6 +157,8 @@ function ReportScreen({
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
 
+    const wasReportAccessibleRef = useRef(false);
+
     const reportID = getReportID(route);
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
@@ -178,6 +180,12 @@ function ReportScreen({
 
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
+
+    useEffect(() => {
+        if (report && report.reportID && !shouldHideReport) {
+            wasReportAccessibleRef.current = true;
+        }
+    }, [shouldHideReport, report]);
 
     let headerView = (
         <HeaderView
@@ -362,7 +370,7 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () => (!firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
+        () => (!wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
         [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
 
