@@ -1,6 +1,5 @@
 import React, {forwardRef} from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
@@ -18,6 +17,12 @@ const propTypes = {
     /** Press out handler for the code block */
     onPressOut: PropTypes.func,
 
+    /** The position of this React element relative to the parent React element, starting at 0 */
+    renderIndex: PropTypes.number.isRequired,
+
+    /** The total number of elements children of this React element parent */
+    renderLength: PropTypes.number.isRequired,
+
     ...htmlRendererPropTypes,
 };
 
@@ -29,12 +34,13 @@ const defaultProps = {
 const BasePreRenderer = forwardRef((props, ref) => {
     const TDefaultRenderer = props.TDefaultRenderer;
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'onPressIn', 'onPressOut', 'onLongPress']);
+    const isLast = props.renderIndex === props.renderLength - 1;
 
     return (
         <ScrollView
             ref={ref}
             horizontal
-            style={[styles.mv2, styles.overscrollBehaviorXNone]}
+            style={[isLast ? styles.mt2 : styles.mv2, styles.overscrollBehaviorXNone]}
             bounces={false}
             keyboardShouldPersistTaps="always"
         >
