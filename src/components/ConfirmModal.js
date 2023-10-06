@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import CONST from '@src/CONST';
 import ConfirmContent from './ConfirmContent';
+import {imagePropTypes} from './Image/imagePropTypes';
 import Modal from './Modal';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
@@ -46,7 +47,7 @@ const propTypes = {
     shouldSetModalVisibility: PropTypes.bool,
 
     /** Icon to display above the title */
-    iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
 
     /** Styles for title */
     // eslint-disable-next-line react/forbid-prop-types

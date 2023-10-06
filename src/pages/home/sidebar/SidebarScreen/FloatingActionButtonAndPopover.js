@@ -223,6 +223,8 @@ function FloatingActionButtonAndPopover(props) {
                     ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
                         ? [
                               {
+                                  fill: null,
+                                  contentFit: 'contain',
                                   icon: Expensicons.NewWorkspace,
                                   iconWidth: 46,
                                   iconHeight: 40,

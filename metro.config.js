@@ -22,8 +22,8 @@ if (isUsingMockAPI) {
  */
 const config = {
     resolver: {
-        assetExts: _.filter(defaultAssetExts, (ext) => ext !== 'svg'),
-        sourceExts: [...defaultSourceExts, 'jsx', 'svg'],
+        assetExts: defaultAssetExts,
+        sourceExts: [...defaultSourceExts, 'jsx'],
         resolveRequest: (context, moduleName, platform) => {
             const resolution = context.resolveRequest(context, moduleName, platform);
             if (isUsingMockAPI && moduleName.includes('/API')) {
@@ -39,9 +39,6 @@ const config = {
             }
             return resolution;
         },
-    },
-    transformer: {
-        babelTransformerPath: require.resolve('react-native-svg-transformer'),
     },
 };
 

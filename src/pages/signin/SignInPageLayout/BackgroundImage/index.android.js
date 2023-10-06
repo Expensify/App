@@ -1,3 +1,4 @@
+import {Image} from 'expo-image';
 import React from 'react';
 import AndroidBackgroundImage from '@assets/images/home-background--android.svg';
 import styles from '@styles/styles';
@@ -5,10 +6,10 @@ import defaultPropTypes from './propTypes';
 
 function BackgroundImage(props) {
     return (
-        <AndroidBackgroundImage
+        <Image
+            source={AndroidBackgroundImage}
             pointerEvents={props.pointerEvents}
-            width={props.width}
-            style={styles.signInBackground}
+            style={[styles.signInBackground, {width: props.width}]}
         />
     );
 }

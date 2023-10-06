@@ -15,7 +15,7 @@ const propTypes = {
     menuItems: PropTypes.arrayOf(
         PropTypes.shape({
             /** An icon element displayed on the left side */
-            icon: PropTypes.elementType,
+            icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.node]),
 
             /** Text label */
             text: PropTypes.string.isRequired,

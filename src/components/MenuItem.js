@@ -215,6 +215,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize)]}>
                                             {props.iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
+                                                    contentFit={props.contentFit}
                                                     hovered={isHovered}
                                                     pressed={pressed}
                                                     src={props.icon}
@@ -252,6 +253,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     {Boolean(props.secondaryIcon) && (
                                         <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
                                             <Icon
+                                                contentFit={props.contentFit}
                                                 src={props.secondaryIcon}
                                                 width={props.iconWidth}
                                                 height={props.iconHeight}

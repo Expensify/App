@@ -1,3 +1,4 @@
+import {Image} from 'expo-image';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {Text, View} from 'react-native';
@@ -25,7 +26,8 @@ function ReceiptDropUI({onDrop, receiptImageTopPosition}) {
         <DragAndDropConsumer onDrop={onDrop}>
             <View style={[styles.receiptDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <View style={styles.receiptImageWrapper(receiptImageTopPosition)}>
-                    <ReceiptUpload
+                    <Image
+                        source={ReceiptUpload}
                         width={CONST.RECEIPT.ICON_SIZE}
                         height={CONST.RECEIPT.ICON_SIZE}
                     />

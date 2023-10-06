@@ -164,10 +164,11 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
         <View style={styles.flex1}>
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
-                    <Hand
+                    <Image
+                        source={Hand}
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
                         height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                        style={[styles.pb5]}
+                        style={[styles.pb5, {width: CONST.RECEIPT.HAND_ICON_WIDTH, height: CONST.RECEIPT.HAND_ICON_HEIGHT}]}
                     />
                     <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
                     <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
@@ -241,9 +242,9 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                     style={[styles.alignItemsCenter]}
                     onPress={takePhoto}
                 >
-                    <Shutter
-                        width={CONST.RECEIPT.SHUTTER_SIZE}
-                        height={CONST.RECEIPT.SHUTTER_SIZE}
+                    <Image
+                        source={Shutter}
+                        style={{width: CONST.RECEIPT.SHUTTER_SIZE, height: CONST.RECEIPT.SHUTTER_SIZE}}
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback

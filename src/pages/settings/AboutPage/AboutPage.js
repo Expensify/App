@@ -108,10 +108,10 @@ function AboutPage(props) {
                         <View style={[styles.flex1]}>
                             <View style={styles.pageWrapper}>
                                 <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
-                                    <Logo
-                                        height={80}
-                                        width={80}
-                                    />
+                                    {/* <Image
+                                        source={Logo}
+                                        style={{height, width}}
+                                    /> */}
                                     <Text
                                         selectable
                                         style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted]}

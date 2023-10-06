@@ -12,6 +12,7 @@ import avatarPropTypes from './avatarPropTypes';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import UserDetailsTooltip from './UserDetailsTooltip';
+import {imagePropTypes} from './Image/imagePropTypes';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
@@ -25,7 +26,7 @@ const propTypes = {
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string, imagePropTypes.source]),
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,

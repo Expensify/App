@@ -20,7 +20,7 @@ const propTypes = {
     login: PropTypes.string,
 
     /** The avatar for the tooltip fallback */
-    avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.node]),
 
     /** Arbitrary styles of the displayName text */
     // eslint-disable-next-line react/forbid-prop-types

@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import {imagePropTypes} from '../Image/imagePropTypes';
 
 const propTypes = {
     /** The full title of the DisplayNames component (not split up) */
@@ -17,7 +18,7 @@ const propTypes = {
             login: PropTypes.string,
 
             /** The avatar for the tooltip fallback */
-            avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+            avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
         }),
     ),
 

@@ -1,15 +1,16 @@
-import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
-import variables from '@styles/variables';
+import PropTypes from 'prop-types';
+import themeColors from '../../styles/themes/default';
+import variables from '../../styles/variables';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import IconWrapperStyles from './IconWrapperStyles';
+import {Image} from 'expo-image';
 
 const propTypes = {
     /** The asset to render. */
-    src: PropTypes.func.isRequired,
+    src: PropTypes.node.isRequired,
 
     /** The width of the icon. */
     width: PropTypes.number,
@@ -45,6 +46,7 @@ const defaultProps = {
     additionalStyles: [],
     hovered: false,
     pressed: false,
+    contentFit: 'cover',
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -61,12 +63,11 @@ class Icon extends PureComponent {
                     style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
                 >
                     <View style={iconStyles}>
-                        <this.props.src
-                            width={width}
-                            height={height}
-                            fill={this.props.fill}
-                            hovered={this.props.hovered.toString()}
-                            pressed={this.props.pressed.toString()}
+                        <Image
+                            contentFit={this.props.contentFit}
+                            source={this.props.src}
+                            style={{width, height}}
+                            tintColor={this.props.fill}
                         />
                     </View>
                 </View>
@@ -78,12 +79,11 @@ class Icon extends PureComponent {
                 testID={`${this.props.src.name} Icon`}
                 style={this.props.additionalStyles}
             >
-                <this.props.src
-                    width={width}
-                    height={height}
-                    fill={this.props.fill}
-                    hovered={this.props.hovered.toString()}
-                    pressed={this.props.pressed.toString()}
+                <Image
+                    contentFit={this.props.contentFit}
+                    source={this.props.src}
+                    style={{width, height}}
+                    tintColor={this.props.fill}
                 />
             </View>
         );

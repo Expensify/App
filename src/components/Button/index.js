@@ -3,6 +3,7 @@ import React, {Component} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {imagePropTypes} from '@components/Image/imagePropTypes';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
@@ -31,7 +32,7 @@ const propTypes = {
     icon: PropTypes.func,
 
     /** The icon asset to display to the right of the text */
-    iconRight: PropTypes.func,
+    iconRight: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
 
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,

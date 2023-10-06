@@ -1,3 +1,4 @@
+import {Image} from 'expo-image';
 import {useCallback, useRef} from 'react';
 import {StyleSheet, ViewStyle} from 'react-native';
 import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -61,10 +62,10 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps) {
             ]}
         >
             <Reanimated.View style={scaleStyle}>
-                <Logo
-                    viewBox="0 0 80 80"
-                    width={100 * logoSizeRatio}
-                    height={100 * logoSizeRatio}
+                <Image
+                    contentFit="fill"
+                    style={{width: 100 * logoSizeRatio, height: 100 * logoSizeRatio}}
+                    source={Logo}
                 />
             </Reanimated.View>
         </Reanimated.View>

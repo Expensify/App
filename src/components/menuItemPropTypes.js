@@ -4,6 +4,7 @@ import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import avatarPropTypes from './avatarPropTypes';
 import refPropTypes from './refPropTypes';
+import {imagePropTypes} from './Image/imagePropTypes';
 
 const propTypes = {
     /** Text to be shown as badge near the right end. */
@@ -23,10 +24,10 @@ const propTypes = {
     onPress: PropTypes.func,
 
     /** Icon to display on the left side of component */
-    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, PropTypes.arrayOf(avatarPropTypes)]),
+    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, imagePropTypes.source, PropTypes.arrayOf(avatarPropTypes)]),
 
     /** Secondary icon to display on the left side of component, right of the icon */
-    secondaryIcon: PropTypes.elementType,
+    secondaryIcon: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]),
 
     /** Icon Width */
     iconWidth: PropTypes.number,
@@ -65,7 +66,7 @@ const propTypes = {
     success: PropTypes.bool,
 
     /** Overrides the icon for shouldShowRightIcon */
-    iconRight: PropTypes.elementType,
+    iconRight: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]),
 
     /** A description text to show under the title */
     description: PropTypes.string,
@@ -95,7 +96,7 @@ const propTypes = {
     interactive: PropTypes.bool,
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string, imagePropTypes.source]),
 
     /** Avatars to show on the right of the menu item */
     floatRightAvatars: PropTypes.arrayOf(avatarPropTypes),

@@ -1,3 +1,4 @@
+import {Image} from 'expo-image';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
@@ -154,13 +155,16 @@ function Footer(props) {
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
     const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(themeColors.signInPage), styles.overflowHidden] : [];
-
     return (
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>
                 {isVertical ? (
                     <View style={[styles.signInPageGradientMobile]}>
-                        <SignInGradient height="100%" />
+                        <Image
+                            contentFit="contain"
+                            source={SignInGradient}
+                            style={{height: '100%'}}
+                        />
                     </View>
                 ) : null}
                 <View style={pageFooterWrapper}>
@@ -203,11 +207,13 @@ function Footer(props) {
                     </View>
                     <View style={[!isVertical && styles.footerBottomLogo]}>
                         {!isVertical ? (
-                            <Expensicons.ExpensifyFooterLogo />
+                            //here add width and height
+                            <Image source={Expensicons.ExpensifyFooterLogo} />
                         ) : (
-                            <Expensicons.ExpensifyFooterLogoVertical
-                                height={variables.verticalLogoHeight}
-                                width={variables.verticalLogoWidth}
+                            <Image
+                                contentFit="contain"
+                                source={Expensicons.ExpensifyFooterLogoVertical}
+                                style={{height: variables.verticalLogoHeight, width: variables.verticalLogoWidth}}
                             />
                         )}
                     </View>
