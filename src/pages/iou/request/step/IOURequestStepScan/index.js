@@ -4,6 +4,7 @@ import React, {useContext, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import ROUTES from '../../../../../ROUTES';
 import * as IOU from '../../../../../libs/actions/IOU';
 import CONST from '../../../../../CONST';
@@ -19,6 +20,8 @@ import useLocalize from '../../../../../hooks/useLocalize';
 import {DragAndDropContext} from '../../../../../components/DragAndDrop/Provider';
 import * as FileUtils from '../../../../../libs/fileDownload/FileUtils';
 import Navigation from '../../../../../libs/Navigation/Navigation';
+import reportPropTypes from '../../../../reportPropTypes';
+import ONYXKEYS from '../../../../../ONYXKEYS';
 
 const propTypes = {
     /** React Navigation route */
@@ -39,13 +42,19 @@ const propTypes = {
     /** Whether or not the receipt selector is in a tab navigator for tab animations */
     // eslint-disable-next-line react/no-unused-prop-types
     isInTabNavigator: PropTypes.bool,
+
+    /* Onyx Props */
+    /** The report that the transaction belongs to */
+    report: reportPropTypes,
 };
 
 const defaultProps = {
+    report: {},
     isInTabNavigator: true,
 };
 
 function ReceiptSelector({
+    report,
     route: {
         params: {iouType, reportID, transactionID},
     },
@@ -113,7 +122,16 @@ function ReceiptSelector({
         //     return;
         // }
 
-        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
+        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+        // to the confirm step.
+        if (report.reportID) {
+            IOU.autoAssignParticipants(transactionID, report);
+            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+            return;
+        }
+
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
     };
 
     const panResponder = useRef(
@@ -194,4 +212,8 @@ ReceiptSelector.defaultProps = defaultProps;
 ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default ReceiptSelector;
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
+    },
+})(ReceiptSelector);

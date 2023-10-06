@@ -3,6 +3,7 @@ import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-nat
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useCameraDevices} from 'react-native-vision-camera';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {RESULTS} from 'react-native-permissions';
 import PressableWithFeedback from '../../../../../components/Pressable/PressableWithFeedback';
@@ -22,6 +23,8 @@ import NavigationAwareCamera from './NavigationAwareCamera';
 import Navigation from '../../../../../libs/Navigation/Navigation';
 import TabNavigationAwareCamera from './TabNavigationAwareCamera';
 import ROUTES from '../../../../../ROUTES';
+import reportPropTypes from '../../../../reportPropTypes';
+import ONYXKEYS from '../../../../../ONYXKEYS';
 
 const propTypes = {
     /** React Navigation route */
@@ -45,9 +48,14 @@ const propTypes = {
     /** Whether or not the receipt selector is in a tab navigator for tab animations */
     // eslint-disable-next-line react/no-unused-prop-types
     isInTabNavigator: PropTypes.bool,
+
+    /* Onyx Props */
+    /** The report that the transaction belongs to */
+    report: reportPropTypes,
 };
 
 const defaultProps = {
+    report: {},
     isInTabNavigator: true,
 };
 
@@ -77,6 +85,7 @@ function getImagePickerOptions(type) {
 }
 
 function ReceiptSelector({
+    report,
     route: {
         params: {iouType, reportID, transactionID, pageIndex},
     },
@@ -198,9 +207,18 @@ function ReceiptSelector({
             //     return;
             // }
 
-            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+            // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
+            // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+            // to the confirm step.
+            if (report.reportID) {
+                IOU.autoAssignParticipants(transactionID, report);
+                Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+                return;
+            }
+
+            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
         },
-        [iouType, reportID, transactionID],
+        [iouType, reportID, transactionID, report],
     );
 
     const takePhoto = useCallback(() => {
