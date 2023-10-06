@@ -99,7 +99,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                 shouldShowBorderBottom={!shouldShowAnyButton || !isSmallScreenWidth}
             >
                 {shouldShowSettlementButton && !isSmallScreenWidth && (
-                    <View style={[styles.pv2]}>
+                    <View style={styles.pv2}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
@@ -119,7 +119,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                     </View>
                 )}
                 {shouldShowApproveButton && !isSmallScreenWidth && (
-                    <View style={[styles.pv2]}>
+                    <View style={styles.pv2}>
                         <Button
                             success
                             medium
@@ -130,7 +130,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                     </View>
                 )}
                 {shouldShowSubmitButton && !isSmallScreenWidth && (
-                    <View style={[styles.pv2]}>
+                    <View style={styles.pv2}>
                         <Button
                             success
                             medium
