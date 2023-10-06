@@ -45,7 +45,10 @@ function SingleOptionSelector({options, selectedOptionKey, onSelectOption, trans
                     aria-checked={selectedOptionKey === option.key}
                     accessibilityLabel={option.label}
                 >
-                    <SelectCircle isChecked={selectedOptionKey === option.key} />
+                    <SelectCircle
+                        isChecked={selectedOptionKey === option.key}
+                        styles={[styles.ml0]}
+                    />
                     <Text>{translate(option.label)}</Text>
                 </PressableWithoutFeedback>
             ))}
