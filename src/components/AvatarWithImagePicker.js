@@ -137,7 +137,8 @@ function AvatarWithImagePicker({
     anchorPosition, 
     anchorAlignment, 
     onImageSelected, 
-    editorMaskImage  }) {
+    editorMaskImage,
+}) {
 
     const animation = useRef(new SpinningIndicatorAnimation()).current;
     const [isMenuVisible, setIsMenuVisible] = useState(false);
