@@ -61,6 +61,11 @@ const CONST = {
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
+    EMPTY_STATE_DESKTOP_IMAGE_DIMENSIONS: {
+        HEIGHT: 400,
+        WIDTH: '100%',
+    },
+
     AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
 
     // Minimum width and height size in px for a selected image

@@ -44,6 +44,7 @@ import useLocalize from '../../hooks/useLocalize';
 import useSingleExecution from '../../hooks/useSingleExecution';
 import useWaitForNavigation from '../../hooks/useWaitForNavigation';
 import HeaderPageLayout from '../../components/HeaderPageLayout';
+import TempPlaceHolder from '../../components/Temp/Temp';
 
 const propTypes = {
     /* Onyx Props */
@@ -384,26 +385,28 @@ function InitialSettingsPage(props) {
     );
 
     return (
-        <HeaderPageLayout
-            title={translate('common.settings')}
-            headerContent={headerContent}
-            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}
-        >
-            <View style={styles.w100}>
-                {getMenuItems}
-                <ConfirmModal
-                    danger
-                    title={translate('common.areYouSure')}
-                    prompt={translate('initialSettingsPage.signOutConfirmationText')}
-                    confirmText={translate('initialSettingsPage.signOut')}
-                    cancelText={translate('common.cancel')}
-                    isVisible={shouldShowSignoutConfirmModal}
-                    onConfirm={() => signOut(true)}
-                    onCancel={() => toggleSignoutConfirmModal(false)}
-                />
-            </View>
-        </HeaderPageLayout>
+        <TempPlaceHolder>
+            <HeaderPageLayout
+                title={translate('common.settings')}
+                headerContent={headerContent}
+                headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
+                backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}
+            >
+                <View style={styles.w100}>
+                    {getMenuItems}
+                    <ConfirmModal
+                        danger
+                        title={translate('common.areYouSure')}
+                        prompt={translate('initialSettingsPage.signOutConfirmationText')}
+                        confirmText={translate('initialSettingsPage.signOut')}
+                        cancelText={translate('common.cancel')}
+                        isVisible={shouldShowSignoutConfirmModal}
+                        onConfirm={() => signOut(true)}
+                        onCancel={() => toggleSignoutConfirmModal(false)}
+                    />
+                </View>
+            </HeaderPageLayout>
+        </TempPlaceHolder>
     );
 }
 

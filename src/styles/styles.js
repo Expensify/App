@@ -2115,6 +2115,16 @@ const styles = (theme) => ({
         textAlign: 'center',
     },
 
+    needBiggerScreenTitle: {
+        ...headlineFont,
+        color: theme.heading,
+        fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
+        marginTop: 20,
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+
     blockingViewContainer: {
         paddingBottom: variables.contentHeaderHeight,
     },

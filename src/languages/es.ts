@@ -1040,6 +1040,11 @@ export default {
         noAccess: 'No tienes acceso a este chat',
         goBackHome: 'Volver a la página principal',
     },
+    mobilePlacerHolder: {
+        goBackHome: 'Go back home',
+        title: "You're gonna need a bigger screen",
+        subTitle: 'This page is only available on wider browsers, like your laptop or desktop computer. Please try again over there.',
+    },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
         setPassword: 'Configura tu contraseña',
