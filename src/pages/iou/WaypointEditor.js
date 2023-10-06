@@ -1,7 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {useNavigation} from '@react-navigation/native';
@@ -23,6 +23,8 @@ import * as Transaction from '../../libs/actions/Transaction';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
 import transactionPropTypes from '../../components/transactionPropTypes';
+import UserCurrentLocationButton from '../../components/UserCurrentLocationButton';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
@@ -76,6 +78,7 @@ const defaultProps = {
 function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
+    const [isFetchingLocation, setIsFetchingLocation] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
@@ -173,6 +176,26 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
 
+    /**
+     * Sets user current location as a waypoint
+     * @param {Object} geolocationData
+     * @param {Object} geolocationData.coords
+     * @param {Number} geolocationData.coords.latitude
+     * @param {Number} geolocationData.coords.longitude
+     * @param {Number} geolocationData.timestamp
+     */
+    const selectWaypointFromCurrentLocation = (geolocationData) => {
+        setIsFetchingLocation(false);
+
+        const waypoint = {
+            lat: geolocationData.coords.latitude,
+            lng: geolocationData.coords.longitude,
+            address: CONST.YOUR_LOCATION_TEXT,
+        };
+
+        selectWaypoint(waypoint);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -239,8 +262,20 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                                 state: null,
                             }}
                             predefinedPlaces={recentWaypoints}
+                            resultTypes=""
                         />
                     </View>
+                    <UserCurrentLocationButton
+                        isDisabled={isOffline}
+                        onClick={() => {
+                            Keyboard.dismiss();
+
+                            setIsFetchingLocation(true);
+                        }}
+                        onLocationError={() => setIsFetchingLocation(false)}
+                        onLocationFetched={selectWaypointFromCurrentLocation}
+                    />
+                    {isFetchingLocation && <FullScreenLoadingIndicator />}
                 </Form>
             </FullPageNotFoundView>
         </ScreenWrapper>
