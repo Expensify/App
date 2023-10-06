@@ -51,6 +51,7 @@ const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
 }, 100);
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
+const isNativeApp = !willBlurTextInputOnTapOutside;
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus on existing chat for mobile device
@@ -112,7 +113,10 @@ function ComposerWithSuggestions({
 
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
-    const shouldAutoFocusWithLongText = shouldAutoFocus && !willBlurTextInputOnTapOutside;
+
+    // Disabled auto-focus for `web platforms`.
+    // Focus for `web platforms` with `focusWithScrolledToBottom` method.
+    const autoFocusOnMount = shouldAutoFocus && isNativeApp;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -449,17 +453,21 @@ function ComposerWithSuggestions({
     }, []);
 
     const focusWithScrolledToBottom = useCallback(() => {
-        // Using `shouldAutoFocus` check to determine whether the component should be focused or not.
-        if (!textInputRef.current || !willBlurTextInputOnTapOutside || !shouldAutoFocus) {
+        // `shouldAutoFocus` determines if component should focus or not.
+        if (isNativeApp || !shouldAutoFocus) {
             return;
         }
 
+        // Set the `selection at end` and `scrolls input to bottom` for `Web Platforms`.
         updateMultilineInputRange(textInputRef.current);
-        focus(); // Manually focus the input - as we have disabled `autoFocus` flag in `Composer`.
+
+        // `autoFocusOnMount` has disabled auto-focus for `Native Platforms`.
+        // So we Focus input programmatically here.
+        focus();
     }, [focus, shouldAutoFocus]);
 
     useEffect(() => {
-        // Added initial focus ref to remove unneccessary focus after first render.
+        // Initial focus ref to prevent unneccessary focus after first render.
         if (initialFocusedRef.current) {
             return;
         }
@@ -530,7 +538,7 @@ function ComposerWithSuggestions({
             <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
-                    autoFocus={shouldAutoFocusWithLongText}
+                    autoFocus={autoFocusOnMount}
                     multiline
                     ref={setTextInputRef}
                     textAlignVertical="top"
