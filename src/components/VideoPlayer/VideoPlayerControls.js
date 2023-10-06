@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {View, Text} from 'react-native';
-import Animated, {FadeIn} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
 import IconButton from './IconButton';
 import * as Expensicons from '../Icon/Expensicons';
@@ -18,11 +18,15 @@ const propTypes = {
     togglePlay: PropTypes.func.isRequired,
 
     enterFullScreenMode: PropTypes.func.isRequired,
+
+    isPlaying: PropTypes.bool,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    isPlaying: false,
+};
 
-function VideoPlayerControls({duration, position, updatePostiion, togglePlay, enterFullScreenMode}) {
+function VideoPlayerControls({duration, position, updatePostiion, togglePlay, enterFullScreenMode, isPlaying}) {
     const [durationFormatted, setDurationFormatted] = React.useState('0:00');
 
     useEffect(() => {
@@ -43,13 +47,13 @@ function VideoPlayerControls({duration, position, updatePostiion, togglePlay, en
                 overflow: 'hidden',
                 padding: 10,
             }}
-            entering={FadeIn.duration(300)}
-            exiting={FadeIn.duration(300)}
+            entering={FadeIn.duration(3000)}
+            exiting={FadeOut.duration(3000)}
         >
             <View style={{flex: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                     <IconButton
-                        src={Expensicons.Expand}
+                        src={isPlaying ? Expensicons.Pause : Expensicons.Play}
                         fill="white"
                         accessibilityLabel="play/pause"
                         onPress={togglePlay}
@@ -60,10 +64,18 @@ function VideoPlayerControls({duration, position, updatePostiion, togglePlay, en
                 </View>
                 <View style={{flexDirection: 'row'}}>
                     <IconButton
-                        src={Expensicons.Expand}
+                        src={Expensicons.VolumeHigh}
                         fill="white"
                         accessibilityLabel="fullsreen"
                         onPress={enterFullScreenMode}
+                        style={{marginRight: 10}}
+                    />
+                    <IconButton
+                        src={Expensicons.Fullscreen}
+                        fill="white"
+                        accessibilityLabel="fullsreen"
+                        onPress={enterFullScreenMode}
+                        style={{marginRight: 10}}
                     />
                     <IconButton
                         src={Expensicons.ThreeDots}

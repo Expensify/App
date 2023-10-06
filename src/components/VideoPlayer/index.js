@@ -70,7 +70,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                         style={style}
                         videoStyle={videoStyle}
                         source={{
-                            uri: url || 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
+                            uri: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
                         }}
                         shouldPlay={shouldPlay}
                         useNativeControls={false}
@@ -99,6 +99,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             togglePlay={togglePlay}
                             updatePostiion={updatePostiion}
                             enterFullScreenMode={enterFullScreenMode}
+                            isPlaying={isVideoPlaying}
                         />
                     )}
                 </View>
