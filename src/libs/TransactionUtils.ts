@@ -295,6 +295,14 @@ function hasRoute(transaction: Transaction): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
 }
 
+
+/**
+ * Check if the transaction has an Ereceipt
+ */
+function hasEreceipt(transaction: Transaction): boolean {
+    return !!transaction?.hasEReceipt;
+}
+
 /**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
@@ -383,6 +391,7 @@ export {
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
+    hasEreceipt,
     hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,
