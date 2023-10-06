@@ -1,29 +1,16 @@
 // TODO: This file came from IOURequestStepAmount.js and we need to make sure all the changes to that page have been encorporated
 import React, {useCallback, useContext, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
+import {useFocusEffect} from '@react-navigation/native';
 import _ from 'underscore';
-import ONYXKEYS from '../../../../ONYXKEYS';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import * as ReportUtils from '../../../../libs/ReportUtils';
 import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
-import reportPropTypes from '../../../reportPropTypes';
 import * as IOU from '../../../../libs/actions/IOU';
 import useLocalize from '../../../../hooks/useLocalize';
 import MoneyRequestAmountForm from '../../steps/MoneyRequestAmountForm';
 import * as IOUUtils from '../../../../libs/IOUUtils';
-import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
-import FullPageNotFoundView from '../../../../components/BlockingViews/FullPageNotFoundView';
-import styles from '../../../../styles/styles';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
 import CONST from '../../../../CONST';
-import transactionPropTypes from '../../../../components/transactionPropTypes';
-import * as TransactionUtils from '../../../../libs/TransactionUtils';
 import IOURouteContext from '../../IOURouteContext';
 import StepScreenWrapper from './StepScreenWrapper';
 
