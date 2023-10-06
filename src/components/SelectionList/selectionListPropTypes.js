@@ -90,6 +90,7 @@ const radioListItemPropTypes = {
 const baseListItemPropTypes = {
     ...commonListItemPropTypes,
     item: PropTypes.oneOfType([PropTypes.shape(userListItemPropTypes.item), PropTypes.shape(radioListItemPropTypes.item)]),
+    shouldTakeFocus: PropTypes.bool,
 };
 
 const propTypes = {
