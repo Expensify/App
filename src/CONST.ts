@@ -682,6 +682,24 @@ const CONST = {
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
         },
+        STATUS: {
+            PENDING: 'Pending',
+            POSTED: 'Posted',
+        },
+    },
+    MCC_GROUPS: {
+        COMMUTER: 'Commuter',
+        GAS: 'Gas',
+        GOODS: 'Goods',
+        GROCERIES: 'Groceries',
+        HOTEL: 'Hotel',
+        MAIL: 'Mail',
+        MEALS: 'Meals',
+        RENTAL: 'Rental',
+        SERVICES: 'Services',
+        TAXI: 'Taxi',
+        MISCELLANEOUS: 'Miscellaneous',
+        UTILITIES: 'Utilities',
     },
     JSON_CODE: {
         SUCCESS: 200,
