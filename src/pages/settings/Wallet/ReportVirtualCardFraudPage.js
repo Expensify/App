@@ -55,22 +55,23 @@ function ReportVirtualCardFraudPage({
 
     const prevIsLoading = usePrevious(formData.isLoading);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (prevIsLoading && formData.isLoading === false && _.isEmpty(virtualCard.errors)) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
+        if (!prevIsLoading || formData.isLoading) {
+            return;
         }
-    }, [domain, formData, prevIsLoading, virtualCard.errors]);
+        if (!_.isEmpty(virtualCard.errors)) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
+    }, [domain, formData.isLoading, prevIsLoading, virtualCard.errors]);
 
     if (_.isEmpty(virtualCard)) {
         return <NotFoundPage />;
     }
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            testID={ReportVirtualCardFraudPage.displayName}
-        >
+        <ScreenWrapper testID={ReportVirtualCardFraudPage.displayName}>
             <HeaderWithBackButton
                 title={translate('reportFraudPage.title')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain))}
