@@ -41,6 +41,7 @@ type AvatarSize = {width: number};
 type ParsableStyle = ViewStyle | CSSProperties | ((state: PressableStateCallbackType) => ViewStyle | CSSProperties);
 
 type WorkspaceColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
+type EreceiptColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
 
 type ModalPaddingStylesArgs = {
     shouldAddBottomSafeAreaMargin: boolean;
@@ -84,6 +85,15 @@ const workspaceColorOptions: WorkspaceColorStyle[] = [
     {backgroundColor: colors.ice200, fill: colors.ice700},
     {backgroundColor: colors.ice400, fill: colors.ice800},
     {backgroundColor: colors.ice700, fill: colors.ice200},
+];
+
+const eReceiptColorOptions: EreceiptColorStyle[] = [
+    {backgroundColor: colors.yellow600, fill: colors.yellow100},
+    {backgroundColor: colors.blue800, fill: colors.ice400},
+    {backgroundColor: colors.blue400, fill: colors.blue100},
+    {backgroundColor: colors.green800, fill: colors.green400},
+    {backgroundColor: colors.tangerine800, fill: colors.tangerine400},
+    {backgroundColor: colors.pink800, fill: colors.pink400},
 ];
 
 const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
@@ -238,6 +248,16 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle | CSSP
     const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
+}
+
+
+/**
+ * Helper method to return old dot default avatar associated with login
+ */
+function getEReceiptColor(transactionID: string): ViewStyle | CSSProperties {
+    const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColorOptions.length);
+
+    return eReceiptColorOptions[colorHash];
 }
 
 /**
@@ -1305,4 +1325,5 @@ export {
     getDropDownButtonHeight,
     getAmountFontSizeAndLineHeight,
     getTransparentColor,
+    getEReceiptColor,
 };
