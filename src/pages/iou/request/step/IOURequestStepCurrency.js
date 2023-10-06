@@ -66,7 +66,7 @@ const defaultProps = {
 
 function IOURequestStepCurrency({
     route: {
-        params: {iouType, reportID, transactionID},
+        params: {iouType, reportID, transactionID, backTo},
     },
     currencyList,
     transaction: {currency},
@@ -76,9 +76,7 @@ function IOURequestStepCurrency({
     const optionsSelectorRef = useRef();
 
     const navigateBack = () => {
-        // Always go back to the amount step because there was no other way to get here
-        // TODO: Get this working with getting to here from the confirmation step
-        Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(backTo || ROUTES.HOME, true);
     };
 
     const confirmCurrencySelection = (option) => {

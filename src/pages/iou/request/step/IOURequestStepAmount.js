@@ -83,7 +83,8 @@ function IOURequestStepAmount() {
         // // Remove query from the route and encode it.
         // const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
         // Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
-        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CURRENCY, transactionID, reportID));
+        const backTo = ROUTES.MONEE_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID);
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CURRENCY, transactionID, reportID, '', backTo));
     };
 
     const navigateToNextPage = (currentAmount) => {
