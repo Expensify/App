@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
-import { ScrollView, View } from 'react-native';
-import { withOnyx } from 'react-native-onyx';
+import React, {useReducer} from 'react';
+import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
@@ -20,6 +20,8 @@ import Button from '../../../components/Button';
 import CardDetails from './WalletPage/CardDetails';
 // eslint-disable-next-line rulesdir/no-api-in-views
 import * as API from '../../../libs/API';
+import CONST from '../../../CONST';
+import * as revealCardDetailsUtils from './revealCardDetailsUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -41,17 +43,15 @@ const defaultProps = {
 function ExpensifyCardPage({
     cardList,
     route: {
-        params: { domain },
+        params: {domain},
     },
 }) {
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
     const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
     const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
 
-    const [shouldShowCardDetails, setShouldShowCardDetails] = useState(false);
-    const [details, setDetails] = useState({});
-    const [loading, setLoading] = useState(false);
+    const [{loading, details, error}, dispatch] = useReducer(revealCardDetailsUtils.reducer, revealCardDetailsUtils.initialState);
 
     if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
         return <NotFoundPage />;
@@ -60,15 +60,19 @@ function ExpensifyCardPage({
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
 
     const handleRevealDetails = () => {
-        setShouldShowCardDetails(true);
-        setLoading(true);
+        dispatch({type: 'START'});
         // eslint-disable-next-line
         API.makeRequestWithSideEffects('RevealVirtualCardDetails')
-            .then((val) => {
-                setDetails(val);
-                setLoading(false);
+            .then((response) => {
+                if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    dispatch({type: 'FAIL', payload: response.message});
+                    return;
+                }
+                dispatch({type: 'SUCCESS', payload: response});
             })
-            .catch(console.log);
+            .catch((err) => {
+                dispatch({type: 'FAIL', payload: err.message});
+            });
     };
 
     return (
@@ -76,7 +80,7 @@ function ExpensifyCardPage({
             includeSafeAreaPaddingBottom={false}
             testID={ExpensifyCardPage.displayName}
         >
-            {({ safeAreaPaddingBottomStyle }) => (
+            {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
                         title={translate('cardPage.expensifyCard')}
@@ -95,13 +99,12 @@ function ExpensifyCardPage({
                         />
                         {!_.isEmpty(virtualCard) && (
                             <>
-                                {shouldShowCardDetails ? (
+                                {details.pan ? (
                                     <CardDetails
-                                        // This is just a temporary mock, it will be replaced in this issue https://github.com/orgs/Expensify/projects/58?pane=issue&itemId=33286617
                                         pan={details.pan}
                                         expiration={details.expiration}
                                         cvv={details.cvv}
-                                        loading={loading}
+                                        privatePersonalDetails={details.privatePersonalDetails}
                                     />
                                 ) : (
                                     <MenuItemWithTopDescription
@@ -110,11 +113,14 @@ function ExpensifyCardPage({
                                         interactive={false}
                                         titleStyle={styles.walletCardNumber}
                                         shouldShowRightComponent
+                                        error={error}
                                         rightComponent={
                                             <Button
                                                 medium
                                                 text={translate('cardPage.cardDetails.revealDetails')}
                                                 onPress={handleRevealDetails}
+                                                isDisabled={loading}
+                                                isLoading={loading}
                                             />
                                         }
                                     />
