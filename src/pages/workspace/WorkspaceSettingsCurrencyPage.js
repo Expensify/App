@@ -12,6 +12,8 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import * as Policy from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /** Constant, list of available currencies */
@@ -71,26 +73,36 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy}) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithBackButton
-                title={translate('workspace.editor.currencyInputLabel')}
-                onBackButtonPress={onBackButtonPress}
-            />
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={WorkspaceSettingsCurrencyPage.displayName}
+        >
+            <FullPageNotFoundView
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.editor.currencyInputLabel')}
+                    onBackButtonPress={onBackButtonPress}
+                />
 
-            <SelectionList
-                sections={sections}
-                textInputLabel={translate('workspace.editor.currencyInputLabel')}
-                textInputValue={searchText}
-                onChangeText={setSearchText}
-                onSelectRow={onSelectCurrency}
-                headerMessage={headerMessage}
-                initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                showScrollIndicator
-            />
+                <SelectionList
+                    sections={sections}
+                    textInputLabel={translate('workspace.editor.currencyInputLabel')}
+                    textInputValue={searchText}
+                    onChangeText={setSearchText}
+                    onSelectRow={onSelectCurrency}
+                    headerMessage={headerMessage}
+                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    showScrollIndicator
+                />
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
 
+WorkspaceSettingsCurrencyPage.displayName = 'WorkspaceSettingsCurrencyPage';
 WorkspaceSettingsCurrencyPage.propTypes = propTypes;
 WorkspaceSettingsCurrencyPage.defaultProps = defaultProps;
 

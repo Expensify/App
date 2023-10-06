@@ -57,7 +57,7 @@ const defaultProps = {
 function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
     const {translate} = useLocalize();
 
-    const formattedCurrency = policy && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
+    const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
 
     const submit = useCallback(
         (values) => {
