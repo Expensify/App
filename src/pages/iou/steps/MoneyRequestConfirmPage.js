@@ -191,7 +191,7 @@ function MoneyRequestConfirmPage(props) {
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && props.iou.receiptPath) {
                 const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID.current) ? reportID.current : '';
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((receipt) => {
                     IOU.startSplitBill(
                         selectedParticipants,
                         props.currentUserPersonalDetails.login,
@@ -232,8 +232,8 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            if (props.iou.receiptPath && props.iou.receiptSource) {
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
+            if (props.iou.receiptPath && props.iou.receiptFilename) {
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((file) => {
                     const receipt = file;
                     receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
                     requestMoney(selectedParticipants, trimmedComment, receipt);
@@ -255,7 +255,7 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.accountID,
             props.iou.currency,
             props.iou.receiptPath,
-            props.iou.receiptSource,
+            props.iou.receiptFilename,
             isDistanceRequest,
             requestMoney,
             createDistanceRequest,
@@ -351,7 +351,7 @@ function MoneyRequestConfirmPage(props) {
                                     IOU.setMoneyRequestParticipants(newParticipants);
                                 }}
                                 receiptPath={props.iou.receiptPath}
-                                receiptSource={props.iou.receiptSource}
+                                receiptFilename={props.iou.receiptFilename}
                                 iouType={iouType.current}
                                 reportID={reportID.current}
                                 // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.

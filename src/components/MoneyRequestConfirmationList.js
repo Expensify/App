@@ -114,8 +114,8 @@ const propTypes = {
     /** File path of the receipt */
     receiptPath: PropTypes.string,
 
-    /** File source of the receipt */
-    receiptSource: PropTypes.string,
+    /** File name of the receipt */
+    receiptFilename: PropTypes.string,
 
     /** List styles for OptionsSelector */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -171,7 +171,7 @@ const defaultProps = {
     reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
     receiptPath: '',
-    receiptSource: '',
+    receiptFilename: '',
     listStyles: [],
     policyCategories: {},
     policyTags: {},
@@ -472,7 +472,7 @@ function MoneyRequestConfirmationList(props) {
         );
     }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, translate, formError]);
 
-    const {image: receiptImage, thumbnail: receiptThumbnail} = props.receiptPath && ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptSource);
+    const {image: receiptImage, thumbnail: receiptThumbnail} = props.receiptPath && ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptFilename);
 
     return (
         <OptionsSelector

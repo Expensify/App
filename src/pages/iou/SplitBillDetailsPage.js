@@ -95,7 +95,7 @@ function SplitBillDetailsPage(props) {
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly
                             receiptPath={transaction.receipt && transaction.receipt.source}
-                            receiptSource={transaction.filename}
+                            receiptFilename={transaction.filename}
                             shouldShowFooter={false}
                             isScanning={isScanning}
                         />

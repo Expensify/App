@@ -130,7 +130,7 @@ function resetMoneyRequestInfo(id = '') {
         tag: '',
         created,
         receiptPath: '',
-        receiptSource: '',
+        receiptFilename: '',
         transactionID: '',
         billable: null,
     });
@@ -2466,10 +2466,10 @@ function setMoneyRequestParticipants(participants) {
 
 /**
  * @param {String} receiptPath
- * @param {String} receiptSource
+ * @param {String} receiptFilename
  */
-function setMoneyRequestReceipt(receiptPath, receiptSource) {
-    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource, merchant: ''});
+function setMoneyRequestReceipt(receiptPath, receiptFilename) {
+    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptFilename, merchant: ''});
 }
 
 function createEmptyTransaction() {
