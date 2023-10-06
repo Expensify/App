@@ -40,7 +40,7 @@ const propTypes = {
             transactionID: PropTypes.string,
 
             /** Index of the waypoint being edited */
-            waypointIndex: PropTypes.string,
+            pageIndex: PropTypes.string,
         }),
     }),
 
@@ -75,7 +75,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestStepWaypoint({route: {params: {iouType = '', transactionID = '', waypointIndex = '', reportID = ''}} = {}, transaction, recentWaypoints}) {
+function IOURequestStepWaypoint({route: {params: {iouType = '', transactionID = '', pageIndex = '', reportID = ''}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
@@ -83,10 +83,10 @@ function IOURequestStepWaypoint({route: {params: {iouType = '', transactionID = 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const textInput = useRef(null);
-    const parsedWaypointIndex = parseInt(waypointIndex, 10);
+    const parsedWaypointIndex = parseInt(pageIndex, 10);
     const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
     const waypointCount = _.keys(allWaypoints).length;
-    const currentWaypoint = lodashGet(allWaypoints, `waypoint${waypointIndex}`, {});
+    const currentWaypoint = lodashGet(allWaypoints, `waypoint${pageIndex}`, {});
 
     const wayPointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
@@ -106,15 +106,15 @@ function IOURequestStepWaypoint({route: {params: {iouType = '', transactionID = 
 
     const validate = (values) => {
         const errors = {};
-        const waypointValue = values[`waypoint${waypointIndex}`] || '';
+        const waypointValue = values[`waypoint${pageIndex}`] || '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
-            ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'bankAccount.error.address');
+            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'bankAccount.error.address');
         }
 
         // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
-            ErrorUtils.addErrorMessage(errors, `waypoint${waypointIndex}`, 'distance.errors.selectSuggestedAddress');
+            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'distance.errors.selectSuggestedAddress');
         }
 
         return errors;
@@ -122,20 +122,20 @@ function IOURequestStepWaypoint({route: {params: {iouType = '', transactionID = 
 
     const saveWaypoint = (waypoint) => {
         if (parsedWaypointIndex < _.size(allWaypoints)) {
-            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+            Transaction.saveWaypoint(transactionID, pageIndex, waypoint);
         } else {
             const finishWaypoint = lodashGet(allWaypoints, `waypoint${_.size(allWaypoints) - 1}`, {});
-            Transaction.saveWaypoint(transactionID, waypointIndex, finishWaypoint);
-            Transaction.saveWaypoint(transactionID, waypointIndex - 1, waypoint);
+            Transaction.saveWaypoint(transactionID, pageIndex, finishWaypoint);
+            Transaction.saveWaypoint(transactionID, pageIndex - 1, waypoint);
         }
     };
 
     const submit = (values) => {
-        const waypointValue = values[`waypoint${waypointIndex}`] || '';
+        const waypointValue = values[`waypoint${pageIndex}`] || '';
 
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            Transaction.removeWaypoint(transactionID, waypointIndex);
+            Transaction.removeWaypoint(transactionID, pageIndex);
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -154,7 +154,7 @@ function IOURequestStepWaypoint({route: {params: {iouType = '', transactionID = 
     };
 
     const deleteStopAndHideModal = () => {
-        Transaction.removeWaypoint(transactionID, waypointIndex);
+        Transaction.removeWaypoint(transactionID, pageIndex);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
@@ -171,7 +171,7 @@ function IOURequestStepWaypoint({route: {params: {iouType = '', transactionID = 
             lng: values.lng,
             address: values.address,
         };
-        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, false);
+        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, false);
         Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
     };
 
@@ -232,7 +232,7 @@ function IOURequestStepWaypoint({route: {params: {iouType = '', transactionID = 
                 >
                     <View>
                         <AddressSearch
-                            inputID={`waypoint${waypointIndex}`}
+                            inputID={`waypoint${pageIndex}`}
                             ref={(e) => (textInput.current = e)}
                             hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
                             containerStyles={[styles.mt4]}
@@ -241,7 +241,7 @@ function IOURequestStepWaypoint({route: {params: {iouType = '', transactionID = 
                             onPress={selectWaypoint}
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             renamedInputKeys={{
-                                address: `waypoint${waypointIndex}`,
+                                address: `waypoint${pageIndex}`,
                                 city: null,
                                 country: null,
                                 street: null,

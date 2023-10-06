@@ -38,7 +38,7 @@ const propTypes = {
             reportID: PropTypes.string,
 
             /** The index of the current part of the process */
-            waypointIndex: PropTypes.string,
+            pageIndex: PropTypes.string,
         }),
     }).isRequired,
 
@@ -78,7 +78,7 @@ function getImagePickerOptions(type) {
 
 function ReceiptSelector({
     route: {
-        params: {iouType, reportID, transactionID, waypointIndex},
+        params: {iouType, reportID, transactionID, pageIndex},
     },
     isInTabNavigator,
 }) {
@@ -90,9 +90,6 @@ function ReceiptSelector({
     const [permissions, setPermissions] = useState('granted');
     const isAndroidBlockedPermissionRef = useRef(false);
     const appState = useRef(AppState.currentState);
-
-    // TODO: Rename waypointIndex to pageIndex in the routes
-    const pageIndex = waypointIndex;
 
     const {translate} = useLocalize();
 

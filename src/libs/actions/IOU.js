@@ -2365,6 +2365,7 @@ function setMoneeRequestParticipants(transactionID, participants) {
 }
 
 /**
+ * TODO: remove this in favor of setMoneeRequestReceipt()
  * @param {String} receiptPath
  * @param {String} receiptSource
  */
@@ -2374,11 +2375,11 @@ function setMoneyRequestReceipt(receiptPath, receiptSource) {
 
 /**
  * @param {String} transactionID
- * @param {String} receiptPath
- * @param {String} receiptSource
+ * @param {String} path
+ * @param {String} source
  */
-function setMoneeRequestReceipt(transactionID, receiptPath, receiptSource) {
-    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource, merchant: ''});
+function setMoneeRequestReceipt(transactionID, path, source) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {receipt: {path, source}});
 }
 
 function createEmptyTransaction() {
