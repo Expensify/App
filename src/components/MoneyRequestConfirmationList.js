@@ -199,6 +199,8 @@ function MoneyRequestConfirmationList(props) {
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories));
 
+    const shouldShowAmount = !props.receiptPath || props.isReadOnly;
+
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(props.policyTags);
     const policyTagList = lodashGet(policyTag, 'tags', {});
@@ -490,13 +492,14 @@ function MoneyRequestConfirmationList(props) {
                     <ConfirmedRoute transactionID={props.transactionID} />
                 </View>
             )}
-            {receiptImage || receiptThumbnail ? (
+            {(receiptImage || receiptThumbnail) && (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: receiptThumbnail || receiptImage}}
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
-            ) : (
+            )}
+            {shouldShowAmount && (
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!props.isReadOnly && !props.isDistanceRequest}
                     title={formattedAmount}
@@ -535,7 +538,7 @@ function MoneyRequestConfirmationList(props) {
             )}
             {shouldShowAllFields && (
                 <>
-                    {!props.receiptPath && (
+                    {(!props.receiptPath || props.isReadOnly) && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
@@ -557,7 +560,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}
-                    {!props.isDistanceRequest && !props.receiptPath && (
+                    {(!props.isDistanceRequest || props.isReadOnly) && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouMerchant}
