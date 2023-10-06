@@ -20,7 +20,7 @@ import TabSelector from '../../../components/TabSelector/TabSelector';
 import transactionPropTypes from '../../../components/transactionPropTypes';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
-import IOURequestCreateTabScan from './create/tab/IOURequestCreateTabScan';
+import IOURequestStepScan from './step/IOURequestStepScan';
 import * as IOU from '../../../libs/actions/IOU';
 import usePrevious from '../../../hooks/usePrevious';
 import * as TransactionUtils from '../../../libs/TransactionUtils';
@@ -120,11 +120,7 @@ function IOURequestStartPage({
                                 )}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
-                                <TopTab.Screen
-                                    name={CONST.TAB_REQUEST.SCAN}
-                                    // TODO: get rid of this tab and do like amount and distance
-                                    component={IOURequestCreateTabScan}
-                                />
+                                <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
                                 <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>
                             </OnyxTabNavigator>
                         </View>
