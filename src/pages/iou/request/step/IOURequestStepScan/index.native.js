@@ -1,31 +1,27 @@
+// TODO: This file came from iou/ReceiptSelector/index.native.js and it needs cleaned up and have everything use this new file
 import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useCameraDevices} from 'react-native-vision-camera';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {withOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
-import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
-import Icon from '../../../components/Icon';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import styles from '../../../styles/styles';
-import Shutter from '../../../../assets/images/shutter.svg';
-import Hand from '../../../../assets/images/hand.svg';
-import * as IOU from '../../../libs/actions/IOU';
-import themeColors from '../../../styles/themes/default';
-import reportPropTypes from '../../reportPropTypes';
-import CONST from '../../../CONST';
-import Button from '../../../components/Button';
-import useLocalize from '../../../hooks/useLocalize';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Log from '../../../libs/Log';
+import PressableWithFeedback from '../../../../../components/Pressable/PressableWithFeedback';
+import Icon from '../../../../../components/Icon';
+import * as Expensicons from '../../../../../components/Icon/Expensicons';
+import styles from '../../../../../styles/styles';
+import Shutter from '../../../../../../assets/images/shutter.svg';
+import Hand from '../../../../../../assets/images/hand.svg';
+import * as IOU from '../../../../../libs/actions/IOU';
+import themeColors from '../../../../../styles/themes/default';
+import CONST from '../../../../../CONST';
+import Button from '../../../../../components/Button';
+import useLocalize from '../../../../../hooks/useLocalize';
+import Log from '../../../../../libs/Log';
 import * as CameraPermission from './CameraPermission';
-import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import Navigation from '../../../libs/Navigation/Navigation';
-import * as FileUtils from '../../../libs/fileDownload/FileUtils';
+import Navigation from '../../../../../libs/Navigation/Navigation';
 import TabNavigationAwareCamera from './TabNavigationAwareCamera';
+import ROUTES from '../../../../../ROUTES';
 
 const propTypes = {
     /** React Navigation route */
@@ -35,31 +31,23 @@ const propTypes = {
             /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string,
 
+            /** The ID of the transaction being configured */
+            transactionID: PropTypes.string,
+
             /** The report ID of the IOU */
             reportID: PropTypes.string,
-        }),
 
-        /** The current route path */
-        path: PropTypes.string,
+            /** The index of the current part of the process */
+            waypointIndex: PropTypes.string,
+        }),
     }).isRequired,
 
-    /** The report on which the request is initiated on */
-    report: reportPropTypes,
-
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: iouPropTypes,
-
-    /** The id of the transaction we're editing */
-    transactionID: PropTypes.string,
-
     /** Whether or not the receipt selector is in a tab navigator for tab animations */
+    // eslint-disable-next-line react/no-unused-prop-types
     isInTabNavigator: PropTypes.bool,
 };
 
 const defaultProps = {
-    report: {},
-    iou: iouDefaultProps,
-    transactionID: '',
     isInTabNavigator: true,
 };
 
@@ -88,7 +76,12 @@ function getImagePickerOptions(type) {
     };
 }
 
-function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) {
+function ReceiptSelector({
+    route: {
+        params: {iouType, reportID, transactionID, waypointIndex},
+    },
+    isInTabNavigator,
+}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -98,8 +91,8 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
     const isAndroidBlockedPermissionRef = useRef(false);
     const appState = useRef(AppState.currentState);
 
-    const iouType = lodashGet(route, 'params.iouType', '');
-    const pageIndex = lodashGet(route, 'params.pageIndex', 1);
+    // TODO: Rename waypointIndex to pageIndex in the routes
+    const pageIndex = waypointIndex;
 
     const {translate} = useLocalize();
 
@@ -194,6 +187,25 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
             });
         });
 
+    const saveFileAndNavigateToNextStep = useCallback(
+        (filePath, fileSource) => {
+            IOU.setMoneeRequestReceipt(transactionID, filePath, fileSource);
+
+            // TODO: Figure out what this does and if we need to account for it
+            // if (transactionID) {
+            //     FileUtils.readFileAsync(filePath, photo.path).then((receipt) => {
+            //         IOU.replaceReceipt(transactionID, receipt, filePath);
+            //     });
+
+            //     Navigation.dismissModal();
+            //     return;
+            // }
+
+            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+        },
+        [iouType, reportID, transactionID],
+    );
+
     const takePhoto = useCallback(() => {
         const showCameraAlert = () => {
             Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
@@ -211,24 +223,13 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
             })
             .then((photo) => {
                 const filePath = `file://${photo.path}`;
-                IOU.setMoneyRequestReceipt(filePath, photo.path);
-
-                if (transactionID) {
-                    FileUtils.readFileAsync(filePath, photo.path).then((receipt) => {
-                        IOU.replaceReceipt(transactionID, receipt, filePath);
-                    });
-
-                    Navigation.dismissModal();
-                    return;
-                }
-
-                IOU.navigateToNextPage(iou, iouType, report, route.path);
+                saveFileAndNavigateToNextStep(filePath, photo.path);
             })
             .catch((error) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, iou, report, translate, transactionID, route.path]);
+    }, [flash, translate, saveFileAndNavigateToNextStep]);
 
     CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
@@ -283,17 +284,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                         showImagePicker(launchImageLibrary)
                             .then((receiptImage) => {
                                 const filePath = receiptImage[0].uri;
-                                IOU.setMoneyRequestReceipt(filePath, receiptImage[0].fileName);
-
-                                if (transactionID) {
-                                    FileUtils.readFileAsync(filePath, receiptImage[0].fileName).then((receipt) => {
-                                        IOU.replaceReceipt(transactionID, receipt, filePath);
-                                    });
-                                    Navigation.dismissModal();
-                                    return;
-                                }
-
-                                IOU.navigateToNextPage(iou, iouType, report, route.path);
+                                saveFileAndNavigateToNextStep(filePath, receiptImage[0].fileName);
                             })
                             .catch(() => {
                                 Log.info('User did not select an image from gallery');
@@ -341,11 +332,4 @@ ReceiptSelector.defaultProps = defaultProps;
 ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default withOnyx({
-    iou: {
-        key: ONYXKEYS.IOU,
-    },
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-    },
-})(ReceiptSelector);
+export default ReceiptSelector;

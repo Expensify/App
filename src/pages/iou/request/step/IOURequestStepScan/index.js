@@ -4,7 +4,6 @@ import React, {useContext, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import ROUTES from '../../../../../ROUTES';
 import * as IOU from '../../../../../libs/actions/IOU';
 import CONST from '../../../../../CONST';
@@ -15,13 +14,11 @@ import CopyTextToClipboard from '../../../../../components/CopyTextToClipboard';
 import ReceiptDropUI from '../../../ReceiptDropUI';
 import AttachmentPicker from '../../../../../components/AttachmentPicker';
 import ConfirmModal from '../../../../../components/ConfirmModal';
-import ONYXKEYS from '../../../../../ONYXKEYS';
 import useWindowDimensions from '../../../../../hooks/useWindowDimensions';
 import useLocalize from '../../../../../hooks/useLocalize';
 import {DragAndDropContext} from '../../../../../components/DragAndDrop/Provider';
 import * as FileUtils from '../../../../../libs/fileDownload/FileUtils';
 import Navigation from '../../../../../libs/Navigation/Navigation';
-import reportPropTypes from '../../../../reportPropTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -37,18 +34,15 @@ const propTypes = {
             /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
-
-        /** The current route path */
-        path: PropTypes.string,
     }).isRequired,
 
-    /* Onyx Props */
-    /** The report on which the request is initiated on */
-    report: reportPropTypes,
+    /** Whether or not the receipt selector is in a tab navigator for tab animations */
+    // eslint-disable-next-line react/no-unused-prop-types
+    isInTabNavigator: PropTypes.bool,
 };
 
 const defaultProps = {
-    report: {},
+    isInTabNavigator: true,
 };
 
 function ReceiptSelector({
@@ -200,8 +194,4 @@ ReceiptSelector.defaultProps = defaultProps;
 ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
-    },
-})(ReceiptSelector);
+export default ReceiptSelector;
