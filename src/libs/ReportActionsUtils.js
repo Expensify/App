@@ -331,6 +331,12 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
+    if (isModifiedExpenseAction(reportAction)) {
+        if (reportAction.isDeletedTransaction) {
+            return false;
+        }
+    }
+
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED) {
         return false;
     }
@@ -632,6 +638,10 @@ function getAllReportActions(reportID) {
     return lodashGet(allReportActions, reportID, []);
 }
 
+function getAllModifiedExpenseAction(reportID) {
+    return _.map(_.filter(lodashGet(allReportActions, reportID, []), isModifiedExpenseAction), (action) => action.reportActionID);
+}
+
 /**
  * Check whether a report action is an attachment (a file, such as an image or a zip).
  *
@@ -686,4 +696,5 @@ export {
     getAllReportActions,
     isReportActionAttachment,
     isNotifiableReportAction,
+    getAllModifiedExpenseAction,
 };

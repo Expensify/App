@@ -1463,7 +1463,9 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     // STEP 2: Decide if we need to:
     // 1. Delete the transactionThread - delete if there are no visible comments in the thread
     // 2. Update the moneyRequestPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted
-    const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessage(transactionThreadID).lastMessageText.length === 0 : false;
+    const shouldDeleteTransactionThread = transactionThreadID
+        ? ReportActionsUtils.getLastVisibleMessage(transactionThreadID, {}, ReportActionsUtils.isModifiedExpenseAction).lastMessageText.length === 0
+        : false;
     const shouldShowDeletedRequestMessage = transactionThreadID && !shouldDeleteTransactionThread;
 
     // STEP 3: Update the IOU reportAction and decide if the iouReport should be deleted. We delete the iouReport if there are no visible comments left in the report.
@@ -1526,6 +1528,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         }
     }
 
+    const modifiedExpenseActionIDs = ReportActionsUtils.getAllModifiedExpenseAction(transactionThreadID);
     // STEP 5: Build Onyx data
     const optimisticData = [
         {
@@ -1546,7 +1549,20 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                       value: null,
                   },
               ]
-            : []),
+            : [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
+                      value: _.object(modifiedExpenseActionIDs, Array(modifiedExpenseActionIDs.length).fill({isDeletedTransaction: true})),
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+                      value: {
+                          isDeletedTransaction: true,
+                      },
+                  },
+              ]),
         {
             onyxMethod: shouldDeleteIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
@@ -1604,7 +1620,20 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                       value: transactionThread,
                   },
               ]
-            : []),
+            : [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
+                      value: _.object(modifiedExpenseActionIDs, Array(modifiedExpenseActionIDs.length).fill({isDeletedTransaction: false})),
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+                      value: {
+                          isDeletedTransaction: false,
+                      },
+                  },
+              ]),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
