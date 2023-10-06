@@ -336,14 +336,24 @@ function createWorkspaceAndNavigateToIt(
             if (shouldNavigateToAdminChat) {
                 if (isThereModalToDismiss) {
                     Navigation.dismissModal(adminsChatReportID);
+                    setTimeout(() => {
+                        Navigation.navigate(ROUTES.SETTINGS);
+                        setTimeout(() => {
+                            Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+                            setTimeout(() => {
+                                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+                            }, 50);
+                        }, 50);
+                    }, 50);
                 } else {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
+                    setTimeout(() => {
+                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+                    }, 50);
                 }
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
             }
-            return Navigation.isNavigationReady();
-        })
-        .then(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
         })
         .then(endSignOnTransition);
 }
