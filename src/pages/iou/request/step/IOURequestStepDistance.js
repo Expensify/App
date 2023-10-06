@@ -1,8 +1,11 @@
-import React, {useCallback, useEffect, useMemo, useState, useRef, useContext} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useRef} from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import lodashIsEmpty from 'lodash/isEmpty';
 import _ from 'underscore';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
 import variables from '../../../../styles/variables';
@@ -18,23 +21,51 @@ import Button from '../../../../components/Button';
 import DraggableList from '../../../../components/DraggableList';
 import DistanceRequestFooter from '../../../../components/DistanceRequest/DistanceRequestFooter';
 import DistanceRequestRenderItem from '../../../../components/DistanceRequest/DistanceRequestRenderItem';
-import IOURouteContext from '../../IOURouteContext';
+import transactionPropTypes from '../../../../components/transactionPropTypes';
 import CONST from '../../../../CONST';
 import * as IOU from '../../../../libs/actions/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
+import reportPropTypes from '../../../reportPropTypes';
 
-const propTypes = {};
+const propTypes = {
+    /** React Navigation route */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
 
-const defaultProps = {};
+            /** The ID of the transaction being configured */
+            transactionID: PropTypes.string,
 
-function IOURequestStepDistance() {
-    const {
-        route: {
-            params: {iouType, reportID, step, transactionID},
-        },
-        report,
-        transaction,
-    } = useContext(IOURouteContext);
+            /** The current step the user is on */
+            step: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+        }),
+    }).isRequired,
+
+    /* Onyx Props */
+    /** The report that the transaction belongs to */
+    report: reportPropTypes,
+
+    /** The transaction object being modified in Onyx */
+    transaction: transactionPropTypes,
+};
+
+const defaultProps = {
+    report: {},
+    transaction: {},
+};
+
+function IOURequestStepDistance({
+    route: {
+        params: {iouType, reportID, step, transactionID},
+    },
+    report,
+    transaction,
+}) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
@@ -204,4 +235,11 @@ IOURequestStepDistance.displayName = 'IOURequestStepDistance';
 IOURequestStepDistance.propTypes = propTypes;
 IOURequestStepDistance.defaultProps = defaultProps;
 
-export default IOURequestStepDistance;
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
+    },
+    transaction: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
+    },
+})(IOURequestStepDistance);

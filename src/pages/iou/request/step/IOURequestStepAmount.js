@@ -1,7 +1,11 @@
 // TODO: This file came from IOURequestStepAmount.js and we need to make sure all the changes to that page have been encorporated
-import React, {useCallback, useContext, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../../ONYXKEYS';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import * as ReportUtils from '../../../../libs/ReportUtils';
@@ -11,22 +15,50 @@ import useLocalize from '../../../../hooks/useLocalize';
 import MoneyRequestAmountForm from '../../steps/MoneyRequestAmountForm';
 import * as IOUUtils from '../../../../libs/IOUUtils';
 import CONST from '../../../../CONST';
-import IOURouteContext from '../../IOURouteContext';
 import StepScreenWrapper from './StepScreenWrapper';
+import reportPropTypes from '../../../reportPropTypes';
+import transactionPropTypes from '../../../../components/transactionPropTypes';
 
-const propTypes = {};
+const propTypes = {
+    /** React Navigation route */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
 
-const defaultProps = {};
+            /** The ID of the transaction being configured */
+            transactionID: PropTypes.string,
 
-function IOURequestStepAmount() {
-    const {
-        route: {
-            params: {iouType, reportID, step, transactionID},
-        },
-        report,
-        transaction,
-        transaction: {currency},
-    } = useContext(IOURouteContext);
+            /** The current step the user is on */
+            step: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+        }),
+    }).isRequired,
+
+    /* Onyx Props */
+    /** The report that the transaction belongs to */
+    report: reportPropTypes,
+
+    /** The transaction object being modified in Onyx */
+    transaction: transactionPropTypes,
+};
+
+const defaultProps = {
+    report: {},
+    transaction: {},
+};
+
+function IOURequestStepAmount({
+    route: {
+        params: {iouType, reportID, step, transactionID},
+    },
+    report,
+    transaction,
+    transaction: {currency},
+}) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -122,4 +154,11 @@ IOURequestStepAmount.propTypes = propTypes;
 IOURequestStepAmount.defaultProps = defaultProps;
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
-export default IOURequestStepAmount;
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
+    },
+    transaction: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
+    },
+})(IOURequestStepAmount);

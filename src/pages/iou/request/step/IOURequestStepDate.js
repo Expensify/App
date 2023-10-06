@@ -16,10 +16,6 @@ import CONST from '../../../../CONST';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
 
 const propTypes = {
-    /** Onyx Props */
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    transaction: transactionPropTypes,
-
     /** Route from navigation */
     route: PropTypes.shape({
         /** Params from the route */
@@ -34,6 +30,10 @@ const propTypes = {
             transactionID: PropTypes.string,
         }),
     }).isRequired,
+
+    /** Onyx Props */
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {

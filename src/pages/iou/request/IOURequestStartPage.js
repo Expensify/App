@@ -134,10 +134,7 @@ function IOURequestStartPage({
                                         // TODO: get rid of this tab and do like amount and distance
                                         component={IOURequestCreateTabScan}
                                     />
-                                    <TopTab.Screen
-                                        name={CONST.TAB_REQUEST.DISTANCE}
-                                        component={IOURequestStepDistance}
-                                    />
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>
                                 </OnyxTabNavigator>
                             </View>
                         </DragAndDropProvider>
