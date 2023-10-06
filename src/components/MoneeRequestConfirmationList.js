@@ -510,7 +510,7 @@ function MoneyRequestConfirmationList(props) {
                     title={formattedAmount}
                     description={translate('iou.amount')}
                     interactive={!props.isDistanceRequest}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_AMOUNT.getRoute(props.iouType, props.reportID))}
+                    onPress={() => Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.AMOUNT, props.transactionID, props.reportID))}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm || props.isReadOnly}
