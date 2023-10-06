@@ -158,9 +158,9 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         // Update the data that is returned from back-end to draft value
-        const stepToUpdateToDraft = this.props.reimbursementAccount.stepToUpdateToDraft;
-        if (stepToUpdateToDraft) {
-            BankAccounts.updateReimbursementAccountDraft(this.getBankAccountFields(this.getFieldsOfCurrentStep(stepToUpdateToDraft)));
+        const draftStep = this.props.reimbursementAccount.draftStep;
+        if (draftStep) {
+            BankAccounts.updateReimbursementAccountDraft(this.getBankAccountFields(this.getFieldsOfCurrentStep(draftStep)));
         }
 
         const currentStepRouteParam = this.getStepToOpenFromRouteParams();
