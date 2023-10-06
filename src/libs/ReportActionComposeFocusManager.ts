@@ -15,7 +15,6 @@ let mainComposerFocusCallback: FocusCallback | null = null;
  * Typical uses of this would be call the focus on the ReportActionComposer.
  *
  * @param callback callback to register
- * @param isMainComposer
  */
 function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
     if (isMainComposer) {
