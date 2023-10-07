@@ -2300,4 +2300,7 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
     },
+    globalNavigationOptions: {
+        chats: 'Chats',
+    },
 } satisfies EnglishTranslation;
