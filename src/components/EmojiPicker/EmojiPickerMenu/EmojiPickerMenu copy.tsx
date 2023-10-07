@@ -50,6 +50,8 @@ const defaultProps = {
 };
 
 const EmojiPickerMenu = (props) => {
+    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, isSmallScreenWidth, windowWidth, windowHeight, translate} = props;
+
     // Ref for the emoji search input
     this.searchInput = undefined;
 
@@ -97,15 +99,15 @@ const EmojiPickerMenu = (props) => {
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
-        if (this.shouldFocusInputOnScreenFocus && this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
-            this.props.forwardedRef(this.searchInput);
+        if (this.shouldFocusInputOnScreenFocus && forwardedRef && _.isFunction(forwardedRef)) {
+            forwardedRef(this.searchInput);
         }
         this.setupEventHandlers();
         this.setFirstNonHeaderIndex(this.emojis);
     }
 
     function componentDidUpdate(prevProps) {
-        if (prevProps.frequentlyUsedEmojis === this.props.frequentlyUsedEmojis) {
+        if (prevProps.frequentlyUsedEmojis === frequentlyUsedEmojis) {
             return;
         }
 
@@ -190,7 +192,7 @@ const EmojiPickerMenu = (props) => {
                 if (!item) {
                     return;
                 }
-                const emoji = lodashGet(item, ['types', this.props.preferredSkinTone], item.code);
+                const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
                 this.addToFrequentAndSelectEmoji(emoji, item);
                 return;
             }
@@ -261,7 +263,7 @@ const EmojiPickerMenu = (props) => {
     function addToFrequentAndSelectEmoji(emoji, emojiObject) {
         const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
         User.updateFrequentlyUsedEmojis(frequentEmojiList);
-        this.props.onEmojiSelected(emoji, emojiObject);
+        onEmojiSelected(emoji, emojiObject);
     }
 
     /**
@@ -395,7 +397,7 @@ const EmojiPickerMenu = (props) => {
             this.setFirstNonHeaderIndex(this.emojis);
             return;
         }
-        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.props.preferredLocale, this.emojis.length);
+        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, this.emojis.length);
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
@@ -408,14 +410,14 @@ const EmojiPickerMenu = (props) => {
      * @returns {Boolean}
      */
     function isMobileLandscape() {
-        return this.props.isSmallScreenWidth && this.props.windowWidth >= this.props.windowHeight;
+        return isSmallScreenWidth && windowWidth >= windowHeight;
     }
 
     /**
      * @param {Number} skinTone
      */
     function updatePreferredSkinTone(skinTone) {
-        if (this.props.preferredSkinTone === skinTone) {
+        if (preferredSkinTone === skinTone) {
             return;
         }
 
@@ -451,12 +453,12 @@ const EmojiPickerMenu = (props) => {
         if (header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.textLabelSupporting}>{this.props.translate(`emojiPicker.headers.${code}`)}</Text>
+                    <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
                 </View>
             );
         }
 
-        const emojiCode = types && types[this.props.preferredSkinTone] ? types[this.props.preferredSkinTone] : code;
+        const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
 
         const isEmojiFocused = index === this.state.highlightedIndex && this.state.isUsingKeyboardMovement;
 
@@ -487,19 +489,19 @@ const EmojiPickerMenu = (props) => {
     }
 
     const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
-    const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, this.props.windowHeight);
+    const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, windowHeight);
     const height = !listStyle.maxHeight || listStyle.height < listStyle.maxHeight ? listStyle.height : listStyle.maxHeight;
     const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
     return (
         <View
-            style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
+            style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(isSmallScreenWidth)]}
             // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
             pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
         >
             <View style={[styles.ph4, styles.pb3, styles.pt2]}>
                 <TextInput
-                    label={this.props.translate('common.search')}
-                    accessibilityLabel={this.props.translate('common.search')}
+                    label={translate('common.search')}
+                    accessibilityLabel={translate('common.search')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     onChangeText={this.filterEmojis}
                     defaultValue=""
@@ -534,15 +536,15 @@ const EmojiPickerMenu = (props) => {
                     // Set scrollPaddingTop to consider sticky headers while scrolling
                     {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
                 ]}
-                extraData={[this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]}
+                extraData={[this.state.filteredEmojis, this.state.highlightedIndex, preferredSkinTone]}
                 stickyHeaderIndices={this.state.headerIndices}
                 getItemLayout={this.getItemLayout}
                 contentContainerStyle={styles.flexGrow1}
-                ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{this.props.translate('common.noResultsFound')}</Text>}
+                ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
             />
             <EmojiSkinToneList
                 updatePreferredSkinTone={this.updatePreferredSkinTone}
-                preferredSkinTone={this.props.preferredSkinTone}
+                preferredSkinTone={preferredSkinTone}
             />
         </View>
     );
