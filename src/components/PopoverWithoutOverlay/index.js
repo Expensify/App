@@ -41,6 +41,8 @@ function Popover(props) {
             Modal.onModalDidClose();
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
+
+        // We prevent setting closeModal function to null when the first time the component is rendered
         if (prevIsVisible === props.isVisible) {
             return;
         }
