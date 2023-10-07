@@ -89,6 +89,12 @@ const propTypes = {
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
 
+    /** Next steps buttons to take action for an expense report */
+    nextStepButtons: PropTypes.objectOf({
+        /** Text of the next step button */
+        text: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -102,6 +108,7 @@ const defaultProps = {
         accountID: null,
     },
     isWhisper: false,
+    nextStepButtons: {},
 };
 
 function ReportPreview(props) {
@@ -162,10 +169,8 @@ function ReportPreview(props) {
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
-        ? props.policy.role === CONST.POLICY.ROLE.ADMIN && ReportUtils.isReportApproved(props.iouReport) && !iouSettled && !iouCanceled
-        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
-
+    const shouldShowPayButtonForFreePlan = !_.isEmpty(props.iouReport) && isCurrentUserManager && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
+    const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || props.nextStepButtons.approve || props.nextStepButtons.reimburse;
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
@@ -230,6 +235,7 @@ function ReportPreview(props) {
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
                                 style={[styles.requestPreviewBox]}
+                                nextStepButtons={props.nextStepButtons}
                                 anchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -262,5 +268,9 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
+        nextStepButtons: {
+            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_NEXT_STEP}${iouReportID}`,
+            selector: (nextStep) => lodashGet(nextStep, 'buttons'),
+        }
     }),
 )(ReportPreview);
