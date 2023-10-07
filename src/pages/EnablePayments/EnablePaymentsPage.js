@@ -29,7 +29,7 @@ const defaultProps = {
     userWallet: {},
 };
 
-function EnablePaymentsPage({userWallet}) {
+function EnablePaymentsPage({userWallet, route}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -72,7 +72,7 @@ function EnablePaymentsPage({userWallet}) {
                 switch (currentStep) {
                     case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
                     case CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA:
-                        return <AdditionalDetailsStep />;
+                        return <AdditionalDetailsStep route={route} />;
                     case CONST.WALLET.STEP.ONFIDO:
                         return <OnfidoStep />;
                     case CONST.WALLET.STEP.TERMS:

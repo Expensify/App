@@ -37,8 +37,8 @@ const propTypes = {
     route: PropTypes.shape({
         /** Params from the route */
         params: PropTypes.shape({
-            /** Currently selected country */
-            country: PropTypes.string,
+            /** Currently selected state */
+            state: PropTypes.string,
         }),
     }).isRequired,
 };

@@ -18,6 +18,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import useLocalize from '../../hooks/useLocalize';
 import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
 import ReimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
+import getStateFromRoute from '../../libs/getStateFromRoute';
 
 const propTypes = {
     onBackButtonPress: PropTypes.func.isRequired,
@@ -27,6 +28,15 @@ const propTypes = {
 
     /** If we should show Onfido flow */
     shouldShowOnfido: PropTypes.bool.isRequired,
+
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Currently selected state */
+            state: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const REQUIRED_FIELDS = ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
@@ -72,7 +82,7 @@ const validate = (values) => {
     return errors;
 };
 
-function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}) {
+function RequestorStep({reimbursementAccount, route, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}) {
     const {translate} = useLocalize();
 
     const defaultValues = useMemo(
@@ -118,6 +128,8 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
         );
     }
 
+    const state = getStateFromRoute(route);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -159,6 +171,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
                     defaultValues={defaultValues}
                     inputKeys={INPUT_KEYS}
                     shouldSaveDraft
+                    values={state ? {state} : {}}
                 />
                 <CheckboxWithLabel
                     accessibilityLabel={translate('requestorStep.isControllingOfficer')}

@@ -19,12 +19,22 @@ import Form from '../../components/Form';
 import * as FormActions from '../../libs/actions/FormActions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
+import getStateFromRoute from '../../libs/getStateFromRoute';
 
 const propTypes = {
     ...StepPropTypes,
 
     /** Name of the company */
     companyName: PropTypes.string.isRequired,
+
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Currently selected state */
+            state: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 function ACHContractStep(props) {
@@ -144,6 +154,8 @@ function ACHContractStep(props) {
         });
     };
 
+    const state = getStateFromRoute(props.route);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -229,6 +241,7 @@ function ACHContractStep(props) {
                                                 dob: props.getDefaultStateForField(`beneficialOwner_${ownerKey}_dob`, ''),
                                                 ssnLast4: props.getDefaultStateForField(`beneficialOwner_${ownerKey}_ssnLast4`, ''),
                                             }}
+                                            values={state ? {state} : {}}
                                             inputKeys={{
                                                 firstName: `beneficialOwner_${ownerKey}_firstName`,
                                                 lastName: `beneficialOwner_${ownerKey}_lastName`,

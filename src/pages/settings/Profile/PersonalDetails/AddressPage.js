@@ -45,6 +45,9 @@ const propTypes = {
         params: PropTypes.shape({
             /** Currently selected country */
             country: PropTypes.string,
+
+            /** Currently selected state */
+            state: PropTypes.string,
         }),
     }).isRequired,
 };

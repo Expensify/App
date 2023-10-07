@@ -24,6 +24,7 @@ import Form from '../../components/Form';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
+import getStateFromRoute from '../../libs/getStateFromRoute';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -55,6 +56,15 @@ const propTypes = {
         /** Error code to determine additional behavior */
         errorCode: PropTypes.string,
     }),
+
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Currently selected state */
+            state: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -79,7 +89,7 @@ const fieldNameTranslationKeys = {
     ssnFull9: 'common.ssnFull9',
 };
 
-function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserPersonalDetails}) {
+function AdditionalDetailsStep({walletAdditionalDetails, translate, route, currentUserPersonalDetails}) {
     const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
     const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'Y').toDate();
     const shouldAskForFullSSN = walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
@@ -163,6 +173,8 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
         );
     }
 
+    const state = getStateFromRoute(route);
+
     return (
         <>
             <HeaderWithBackButton title={translate('additionalDetailsStep.headerTitle')} />
@@ -209,6 +221,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                             state: 'addressState',
                             zipCode: 'addressZipCode',
                         }}
+                        values={state ? {state} : {}}
                         translate={translate}
                         streetTranslationKey={fieldNameTranslationKeys.addressStreet}
                         shouldSaveDraft
