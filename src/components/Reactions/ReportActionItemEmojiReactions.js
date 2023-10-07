@@ -122,7 +122,7 @@ function ReportActionItemEmojiReactions(props) {
         totalReactionCount > 0 && (
             <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
                 {_.map(formattedReactions, (reaction) => {
-                    if (reaction === null) {
+                    if (reaction === null || reaction === undefined) {
                         return;
                     }
                     return (
