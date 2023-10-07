@@ -247,9 +247,8 @@ function getCategory(transaction: Transaction): string {
 /**
  * Return the cardID from the transaction.
  */
-function getCardID(transaction: Transaction): string {
-    console.log('...',{transaction});
-    return transaction?.cardID ?? '';
+function getCardID(transaction: Transaction): number {
+    return transaction?.cardID ?? 0;
 }
 
 /**

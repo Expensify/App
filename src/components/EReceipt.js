@@ -56,12 +56,14 @@ function EReceipt({transaction}) {
                             fill={secondaryColor}
                             additionalStyles={[styles.eReceiptBackground]}
                         />
-                        <Icon
-                            src={MCCIcon}
-                            height={variables.eReceiptMCCHeightWidth}
-                            width={variables.eReceiptMCCHeightWidth}
-                            fill={primaryColor}
-                        />
+                        {MCCIcon ? (
+                            <Icon
+                                src={MCCIcon}
+                                height={variables.eReceiptMCCHeightWidth}
+                                width={variables.eReceiptMCCHeightWidth}
+                                fill={primaryColor}
+                            />
+                        ) : null}
                     </View>
                 </View>
                 <View style={[styles.flexColumn, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph9, styles.flex1]}>

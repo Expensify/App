@@ -19,7 +19,7 @@ function Template(args) {
 const Default = Template.bind({});
 Default.args = {
     transactionID: '1',
-    transaction: {},
+    transaction: {amount: 1000, currency: 'USD', cardID: 4, merchant: "United Airlines", mccGroup: "Airlines", created: "2023-07-24 13:46:20"},
 };
 
 export default story;
