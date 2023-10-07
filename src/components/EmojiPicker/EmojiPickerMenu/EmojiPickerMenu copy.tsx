@@ -1,4 +1,4 @@
-import React, {Component, useCallback, useRef, useState} from 'react';
+import React, {Component, useCallback, useEffect, useRef, useState} from 'react';
 import {View, FlatList, TextInputSelectionChangeEventData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -88,7 +88,8 @@ const EmojiPickerMenu = (props) => {
     const [isFocused, setIsFocused] = useState(false);
     const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
     const [selectTextOnFocus, setSelectTextOnFocus] = useState(false);
-    function componentDidMount() {
+
+    useEffect(() => {
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
@@ -96,9 +97,14 @@ const EmojiPickerMenu = (props) => {
         if (shouldFocusInputOnScreenFocus && forwardedRef && _.isFunction(forwardedRef)) {
             forwardedRef(searchInputRef.current);
         }
+
         setupEventHandlers();
         updateFirstNonHeaderIndex(emojis.current);
-    }
+
+        return () => {
+            cleanupEventHandlers();
+        };
+    }, []);
 
     function componentDidUpdate(prevProps) {
         if (prevProps.frequentlyUsedEmojis === frequentlyUsedEmojis) {
@@ -111,10 +117,6 @@ const EmojiPickerMenu = (props) => {
         headerEmojis.current = emojisAndHeaderRowIndices.headerEmojis;
         setFilteredEmojis(emojis.current);
         setHeaderIndices(headerRowIndices.current);
-    }
-
-    function componentWillUnmount() {
-        cleanupEventHandlers();
     }
 
     /**
