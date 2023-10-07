@@ -11,7 +11,6 @@ import withWindowDimensions from '../withWindowDimensions';
 import usePrevious from '../../hooks/usePrevious';
 
 function Popover(props) {
-    const ref = React.useRef(null);
     const {onOpen, close} = React.useContext(PopoverContext);
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
         'popover',
@@ -31,7 +30,7 @@ function Popover(props) {
         if (props.isVisible) {
             props.onModalShow();
             onOpen({
-                ref,
+                ref: props.withoutOverlayRef,
                 close: props.onClose,
                 anchorRef: props.anchorRef,
             });
@@ -59,7 +58,7 @@ function Popover(props) {
     return (
         <View
             style={[modalStyle, {zIndex: 1}]}
-            ref={ref}
+            ref={props.withoutOverlayRef}
         >
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {

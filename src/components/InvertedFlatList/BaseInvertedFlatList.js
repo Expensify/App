@@ -1,8 +1,7 @@
-/* eslint-disable react/jsx-props-no-multi-spaces */
-import _ from 'underscore';
-import React, {forwardRef, Component} from 'react';
-import PropTypes from 'prop-types';
+import React, {forwardRef, useCallback, useRef} from 'react';
 import {View, FlatList as NativeFlatlist} from 'react-native';
+import _ from 'underscore';
+import PropTypes from 'prop-types';
 import * as CollectionUtils from '../../libs/CollectionUtils';
 import FlatList from '../FlatList';
 
@@ -29,19 +28,14 @@ const defaultProps = {
     shouldMeasureItems: false,
 };
 
-class BaseInvertedFlatList extends Component {
-    constructor(props) {
-        super(props);
+function BaseInvertedFlatList(props) {
+    const {initialRowHeight, shouldMeasureItems, innerRef, renderItem} = props;
 
-        this.renderItem = this.renderItem.bind(this);
-        this.getItemLayout = this.getItemLayout.bind(this);
-
-        // Stores each item's computed height after it renders
-        // once and is then referenced for the life of this component.
-        // This is essential to getting FlatList inverted to work on web
-        // and also enables more predictable scrolling on native platforms.
-        this.sizeMap = {};
-    }
+    // Stores each item's computed height after it renders
+    // once and is then referenced for the life of this component.
+    // This is essential to getting FlatList inverted to work on web
+    // and also enables more predictable scrolling on native platforms.
+    const sizeMap = useRef({});
 
     /**
      * Return default or previously cached height for
@@ -52,8 +46,8 @@ class BaseInvertedFlatList extends Component {
      *
      * @return {Object}
      */
-    getItemLayout(data, index) {
-        const size = this.sizeMap[index];
+    const getItemLayout = (data, index) => {
+        const size = sizeMap.current[index];
 
         if (size) {
             return {
@@ -66,19 +60,19 @@ class BaseInvertedFlatList extends Component {
         // If we don't have a size yet means we haven't measured this
         // item yet. However, we can still calculate the offset by looking
         // at the last size we have recorded (if any)
-        const lastMeasuredItem = CollectionUtils.lastItem(this.sizeMap);
+        const lastMeasuredItem = CollectionUtils.lastItem(sizeMap.current);
 
         return {
             // We haven't measured this so we must return the minimum row height
-            length: this.props.initialRowHeight,
+            length: initialRowHeight,
 
             // Offset will either be based on the lastMeasuredItem or the index +
             // initialRowHeight since we can only assume that all previous items
             // have not yet been measured
-            offset: _.isUndefined(lastMeasuredItem) ? this.props.initialRowHeight * index : lastMeasuredItem.offset + this.props.initialRowHeight,
+            offset: _.isUndefined(lastMeasuredItem) ? initialRowHeight * index : lastMeasuredItem.offset + initialRowHeight,
             index,
         };
-    }
+    };
 
     /**
      * Measure item and cache the returned length (a.k.a. height)
@@ -86,26 +80,26 @@ class BaseInvertedFlatList extends Component {
      * @param {React.NativeSyntheticEvent} nativeEvent
      * @param {Number} index
      */
-    measureItemLayout(nativeEvent, index) {
+    const measureItemLayout = useCallback((nativeEvent, index) => {
         const computedHeight = nativeEvent.layout.height;
 
         // We've already measured this item so we don't need to
         // measure it again.
-        if (this.sizeMap[index]) {
+        if (sizeMap.current[index]) {
             return;
         }
 
-        const previousItem = this.sizeMap[index - 1] || {};
+        const previousItem = sizeMap.current[index - 1] || {};
 
         // If there is no previousItem this can mean we haven't yet measured
         // the previous item or that we are at index 0 and there is no previousItem
         const previousLength = previousItem.length || 0;
         const previousOffset = previousItem.offset || 0;
-        this.sizeMap[index] = {
+        sizeMap.current[index] = {
             length: computedHeight,
             offset: previousLength + previousOffset,
         };
-    }
+    }, []);
 
     /**
      * Render item method wraps the prop renderItem to render in a
@@ -118,36 +112,34 @@ class BaseInvertedFlatList extends Component {
      *
      * @return {React.Component}
      */
-    renderItem({item, index}) {
-        if (this.props.shouldMeasureItems) {
-            return <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>{this.props.renderItem({item, index})}</View>;
-        }
+    const renderItemFromProp = useCallback(
+        ({item, index}) => {
+            if (shouldMeasureItems) {
+                return <View onLayout={({nativeEvent}) => measureItemLayout(nativeEvent, index)}>{renderItem({item, index})}</View>;
+            }
 
-        return this.props.renderItem({item, index});
-    }
+            return renderItem({item, index});
+        },
+        [shouldMeasureItems, measureItemLayout, renderItem],
+    );
 
-    render() {
-        return (
-            <FlatList
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                ref={this.props.innerRef}
-                renderItem={this.renderItem}
-                // Native platforms do not need to measure items and work fine without this.
-                // Web requires that items be measured or else crazy things happen when scrolling.
-                getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
-                windowSize={15}
-
-                // Commenting the line below as it breaks the unread indicator test
-                // we will look at fixing/reusing this after RN v0.72
-                // maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
-            />
-        );
-    }
+    return (
+        <FlatList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            ref={innerRef}
+            renderItem={renderItemFromProp}
+            // Native platforms do not need to measure items and work fine without this.
+            // Web requires that items be measured or else crazy things happen when scrolling.
+            getItemLayout={shouldMeasureItems ? getItemLayout : undefined}
+            windowSize={15}
+        />
+    );
 }
 
 BaseInvertedFlatList.propTypes = propTypes;
 BaseInvertedFlatList.defaultProps = defaultProps;
+BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
 
 export default forwardRef((props, ref) => (
     <BaseInvertedFlatList
