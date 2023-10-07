@@ -262,7 +262,7 @@ function CompanyStep({reimbursementAccount, route, reimbursementAccountDraft, ge
                         label={translate('companyStep.incorporationState')}
                         shouldSaveDraft
                         paramName="incorporationState"
-                        value={incorporationState}
+                        {...(incorporationState ? {value: incorporationState} : {})}
                     />
                 </View>
                 <CheckboxWithLabel
