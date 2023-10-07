@@ -80,7 +80,6 @@ const webViewStyles = (theme) => ({
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
-            flex: 1,
         },
 
         strong: {
@@ -767,10 +766,15 @@ const styles = (theme) => ({
         marginRight: 20,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 40,
+        paddingVertical: 40,
         gap: 4,
         flex: 1,
     }),
+
+    receiptViewTextContainer: {
+        paddingHorizontal: 40,
+        ...sizing.w100,
+    },
 
     cameraView: {
         flex: 1,
@@ -1230,6 +1234,20 @@ const styles = (theme) => ({
         height: '100%',
     },
 
+    sidebarHeaderContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingVertical: 19,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+
+    subNavigationContainer: {
+        backgroundColor: theme.sidebar,
+        flex: 1,
+        borderTopLeftRadius: variables.componentBorderRadiusRounded,
+    },
+
     sidebarAnimatedWrapperContainer: {
         height: '100%',
         position: 'absolute',
@@ -1265,8 +1283,7 @@ const styles = (theme) => ({
 
     floatingActionButtonContainer: {
         position: 'absolute',
-        right: 20,
-
+        left: 16,
         // The bottom of the floating action button should align with the bottom of the compose box.
         // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
         bottom: 25,
@@ -1274,8 +1291,8 @@ const styles = (theme) => ({
 
     floatingActionButton: {
         backgroundColor: theme.success,
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
@@ -1327,7 +1344,7 @@ const styles = (theme) => ({
 
     createMenuPositionSidebar: (windowHeight) => ({
         horizontal: 18,
-        vertical: windowHeight - 100,
+        vertical: windowHeight - 75,
     }),
 
     createMenuPositionProfile: (windowWidth) => ({
@@ -1395,11 +1412,25 @@ const styles = (theme) => ({
         textDecorationLine: 'none',
     },
 
+    sidebarLinkLHN: {
+        textDecorationLine: 'none',
+        marginLeft: 12,
+        marginRight: 12,
+        borderRadius: 8,
+    },
+
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
         paddingLeft: 20,
         paddingRight: 20,
+    },
+
+    sidebarLinkInnerLHN: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        paddingLeft: 8,
+        paddingRight: 8,
     },
 
     sidebarLinkText: {
@@ -1413,13 +1444,23 @@ const styles = (theme) => ({
         backgroundColor: theme.sidebarHover,
     },
 
+    sidebarLinkHoverLHN: {
+        backgroundColor: theme.highlightBG,
+    },
+
     sidebarLinkActive: {
         backgroundColor: theme.border,
         textDecorationLine: 'none',
     },
 
+    sidebarLinkActiveLHN: {
+        backgroundColor: theme.highlightBG,
+        textDecorationLine: 'none',
+    },
+
     sidebarLinkTextBold: {
-        fontWeight: '700',
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
         color: theme.heading,
     },
 
@@ -1489,7 +1530,8 @@ const styles = (theme) => ({
     },
 
     optionsListSectionHeader: {
-        height: variables.optionsListSectionHeaderHeight,
+        marginTop: 8,
+        marginBottom: 4,
     },
 
     overlayStyles: (current) => ({
@@ -1500,7 +1542,7 @@ const styles = (theme) => ({
         top: 0,
         bottom: 0,
         right: 0,
-        backgroundColor: theme.shadow,
+        backgroundColor: theme.overlay,
         opacity: current.progress.interpolate({
             inputRange: [0, 1],
             outputRange: [0, variables.overlayOpacity],
@@ -1855,6 +1897,13 @@ const styles = (theme) => ({
         borderRadius: 18,
     },
 
+    singleAvatarMedium: {
+        height: 52,
+        width: 52,
+        backgroundColor: theme.icon,
+        borderRadius: 52,
+    },
+
     secondAvatar: {
         position: 'absolute',
         right: -18,
@@ -1870,6 +1919,15 @@ const styles = (theme) => ({
         bottom: -13,
         borderWidth: 3,
         borderRadius: 18,
+        borderColor: 'transparent',
+    },
+
+    secondAvatarMedium: {
+        position: 'absolute',
+        right: -36,
+        bottom: -36,
+        borderWidth: 3,
+        borderRadius: 52,
         borderColor: 'transparent',
     },
 
@@ -2443,13 +2501,6 @@ const styles = (theme) => ({
         alignItems: 'center',
     },
 
-    checkboxPressable: {
-        borderRadius: 6,
-        padding: 2,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
     checkedContainer: {
         backgroundColor: theme.checkBox,
     },
@@ -2763,6 +2814,11 @@ const styles = (theme) => ({
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
+    },
+
+    locationErrorLinkText: {
+        textAlignVertical: 'center',
+        fontSize: variables.fontSizeLabel,
     },
 
     sidebarPopover: {
@@ -3390,7 +3446,7 @@ const styles = (theme) => ({
     },
 
     signInIconButton: {
-        padding: 2,
+        paddingVertical: 2,
     },
 
     googleButtonContainer: {
@@ -3515,6 +3571,10 @@ const styles = (theme) => ({
         backgroundColor: theme.border,
     },
 
+    reportContainerBorderRadius: {
+        borderRadius: variables.componentBorderRadiusLarge,
+    },
+
     reportPreviewBoxBody: {
         padding: 16,
     },
@@ -3612,12 +3672,6 @@ const styles = (theme) => ({
         maxWidth: 400,
     },
 
-    distanceRequestContainer: (maxHeight) => ({
-        ...flex.flexShrink2,
-        minHeight: variables.optionRowHeight * 2,
-        maxHeight,
-    }),
-
     mapViewContainer: {
         ...flex.flex1,
         ...spacing.p4,
@@ -3628,7 +3682,7 @@ const styles = (theme) => ({
 
     mapView: {
         flex: 1,
-        borderRadius: 20,
+        borderRadius: 16,
         overflow: 'hidden',
     },
 
@@ -3645,7 +3699,8 @@ const styles = (theme) => ({
     },
 
     confirmationListMapItem: {
-        ...spacing.m5,
+        ...spacing.mv2,
+        ...spacing.mh5,
         height: 200,
     },
 
@@ -3665,12 +3720,71 @@ const styles = (theme) => ({
         borderRadius: variables.componentBorderRadiusLarge,
     },
     userReportStatusEmoji: {
+        flexShrink: 0,
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
     },
     draggableTopBar: {
         height: 30,
         width: '100%',
+    },
+
+    globalNavigation: {
+        width: variables.globalNavigationWidth,
+        backgroundColor: theme.highlightBG,
+    },
+
+    globalNavigationMenuContainer: {
+        marginTop: 13,
+    },
+
+    globalAndSubNavigationContainer: {
+        backgroundColor: theme.highlightBG,
+    },
+
+    globalNavigationSelectionIndicator: (isFocused) => ({
+        width: 4,
+        height: 52,
+        borderTopRightRadius: variables.componentBorderRadiusRounded,
+        borderBottomRightRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: isFocused ? theme.iconMenu : theme.transparent,
+    }),
+
+    globalNavigationMenuItem: (isFocused) => (isFocused ? {color: theme.text, fontWeight: fontWeightBold, fontFamily: fontFamily.EXP_NEUE_BOLD} : {color: theme.icon}),
+
+    globalNavigationItemContainer: {
+        width: variables.globalNavigationWidth,
+        height: variables.globalNavigationWidth,
+    },
+
+    walletCard: {
+        borderRadius: variables.componentBorderRadiusLarge,
+        position: 'relative',
+        alignSelf: 'center',
+        overflow: 'hidden',
+    },
+
+    walletCardNumber: {
+        color: theme.text,
+        fontSize: variables.fontSizeNormal,
+    },
+
+    walletCardHolder: {
+        position: 'absolute',
+        left: 16,
+        bottom: 16,
+        width: variables.cardNameWidth,
+        color: theme.text,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightLarge,
+    },
+
+    receiptDropHeaderGap: {
+        backgroundColor: theme.receiptDropUIBG,
+    },
+
+    checkboxWithLabelCheckboxStyle: {
+        marginLeft: -2,
     },
 });
 

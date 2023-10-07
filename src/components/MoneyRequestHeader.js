@@ -11,6 +11,7 @@ import participantPropTypes from './participantPropTypes';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
 import ConfirmModal from './ConfirmModal';
@@ -29,7 +30,7 @@ const propTypes = {
     policy: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
@@ -58,6 +59,7 @@ const defaultProps = {
     parentReport: {},
     parentReportAction: {},
     transaction: {},
+    policy: {},
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}) {
@@ -65,6 +67,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the request, admins can only edit it.
@@ -83,8 +86,17 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 <HeaderWithBackButton
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton={isActionOwner && !isSettled}
+                    shouldShowThreeDotsButton={isActionOwner && !isSettled && !isApproved}
                     threeDotsMenuItems={[
+                        ...(TransactionUtils.hasReceipt(transaction)
+                            ? []
+                            : [
+                                  {
+                                      icon: Expensicons.Receipt,
+                                      text: translate('receipt.addReceipt'),
+                                      onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+                                  },
+                              ]),
                         {
                             icon: Expensicons.Trashcan,
                             text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),

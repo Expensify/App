@@ -125,6 +125,7 @@ function TaskDescriptionPage(props) {
 
 TaskDescriptionPage.propTypes = propTypes;
 TaskDescriptionPage.defaultProps = defaultProps;
+TaskDescriptionPage.displayName = 'TaskDescriptionPage';
 
 export default compose(
     withLocalize,
