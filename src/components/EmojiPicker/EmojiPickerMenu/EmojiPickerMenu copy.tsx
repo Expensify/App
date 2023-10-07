@@ -1,5 +1,5 @@
 import React, {Component, useCallback, useRef} from 'react';
-import {View, FlatList} from 'react-native';
+import {View, FlatList, TextInputSelectionChangeEventData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -23,6 +23,7 @@ import TextInput from '../../TextInput';
 import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import {TextInput as RNTextInput} from 'react-native';
+import {NativeSyntheticEvent} from 'react-native';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -63,9 +64,6 @@ const EmojiPickerMenu = (props) => {
     // prevent auto focus when open picker for mobile device
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-    this.renderItem = this.renderItem.bind(this);
-    this.isMobileLandscape = this.isMobileLandscape.bind(this);
-    this.onSelectionChange = this.onSelectionChange.bind(this);
     this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
     this.setFirstNonHeaderIndex = this.setFirstNonHeaderIndex.bind(this);
     this.getItemLayout = this.getItemLayout.bind(this);
@@ -127,7 +125,7 @@ const EmojiPickerMenu = (props) => {
      *
      * @param {Event} event
      */
-    function onSelectionChange(event) {
+    function onSelectionChange(event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) {
         this.setState({selection: event.nativeEvent.selection});
     }
 
@@ -404,6 +402,7 @@ const EmojiPickerMenu = (props) => {
      * @returns {Boolean}
      */
     function isMobileLandscape() {
+        // TODO: This isnt used anywhere
         return isSmallScreenWidth && windowWidth >= windowHeight;
     }
 
@@ -438,7 +437,8 @@ const EmojiPickerMenu = (props) => {
      * @param {Number} index
      * @returns {*}
      */
-    function renderItem({item, index}) {
+    function renderItem({item, index}: {item: {}; index: number}) {
+        // TODO: TS types for item
         const {code, header, types} = item;
         if (item.spacer) {
             return null;
@@ -502,7 +502,7 @@ const EmojiPickerMenu = (props) => {
                     ref={searchInputRef}
                     autoFocus={shouldFocusInputOnScreenFocus}
                     selectTextOnFocus={this.state.selectTextOnFocus}
-                    onSelectionChange={this.onSelectionChange}
+                    onSelectionChange={onSelectionChange}
                     onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
                     onBlur={() => this.setState({isFocused: false})}
                     autoCorrect={false}
@@ -518,7 +518,7 @@ const EmojiPickerMenu = (props) => {
             <FlatList
                 ref={emojiListRef}
                 data={this.state.filteredEmojis}
-                renderItem={this.renderItem}
+                renderItem={renderItem}
                 keyExtractor={this.keyExtractor}
                 numColumns={CONST.EMOJI_NUM_PER_ROW}
                 style={[
