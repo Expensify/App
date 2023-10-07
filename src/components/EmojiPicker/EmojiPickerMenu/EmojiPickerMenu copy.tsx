@@ -65,19 +65,21 @@ const EmojiPickerMenu = (props) => {
 
     const firstNonHeaderIndex = useRef(0);
 
-    const { headerEmojis, headerRowIndices} = getEmojisAndHeaderRowIndices();
+    const {headerEmojis} = getEmojisAndHeaderRowIndices();
     const emojis = useRef<Object[]>([]); // TODO: find TS type
     if (emojis.current.length === 0) {
         emojis.current = getEmojisAndHeaderRowIndices().filteredEmojis;
     }
-    this.headerRowIndices = headerRowIndices;
+    const headerRowIndices = useRef<number[]>([]); // TODO: Maybe this ref is not needed. headerIndices state might suffice
+    if (headerRowIndices.current.length === 0) {
+        headerRowIndices.current = getEmojisAndHeaderRowIndices().headerRowIndices;
+    }
     this.headerEmojis = headerEmojis;
 
     // TODO: Group releated states in objects
     const [filteredEmojis, setFilteredEmojis] = useState(emojis.current);
-
+    const [headerIndices, setHeaderIndices] = useState(headerRowIndices.current);
     this.state = {
-        headerIndices: this.headerRowIndices,
         highlightedIndex: -1,
         arePointerEventsDisabled: false,
         selection: {
@@ -105,14 +107,12 @@ const EmojiPickerMenu = (props) => {
             return;
         }
 
-        const {filteredEmojis, headerEmojis, headerRowIndices} = getEmojisAndHeaderRowIndices();
-        emojis.current = filteredEmojis;
-        this.headerEmojis = headerEmojis;
-        this.headerRowIndices = headerRowIndices;
+        const emojisAndHeaderRowIndices = getEmojisAndHeaderRowIndices();
+        emojis.current = emojisAndHeaderRowIndices.filteredEmojis;
+        headerRowIndices.current = emojisAndHeaderRowIndices.headerRowIndices;
+        this.headerEmojis = emojisAndHeaderRowIndices.headerEmojis;
         setFilteredEmojis(emojis.current);
-        this.setState({
-            headerIndices: this.headerRowIndices,
-        });
+        setHeaderIndices(headerRowIndices.current);
     }
 
     function componentWillUnmount() {
@@ -381,8 +381,8 @@ const EmojiPickerMenu = (props) => {
             if (normalizedSearchTerm === '') {
                 // There are no headers when searching, so we need to re-make them sticky when there is no search term
                 setFilteredEmojis(emojis.current);
+                setHeaderIndices(headerRowIndices.current);
                 this.setState({
-                    headerIndices: this.headerRowIndices,
                     highlightedIndex: -1,
                 });
                 updateFirstNonHeaderIndex(emojis.current);
@@ -392,7 +392,8 @@ const EmojiPickerMenu = (props) => {
 
             // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
             setFilteredEmojis(newFilteredEmojiList);
-            this.setState({headerIndices: [], highlightedIndex: 0});
+            setHeaderIndices([]);
+            this.setState({highlightedIndex: 0});
             updateFirstNonHeaderIndex(newFilteredEmojiList);
         }, 300),
         [],
@@ -535,7 +536,7 @@ const EmojiPickerMenu = (props) => {
                     {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
                 ]}
                 extraData={[this.state.filteredEmojis, this.state.highlightedIndex, preferredSkinTone]}
-                stickyHeaderIndices={this.state.headerIndices}
+                stickyHeaderIndices={headerIndices}
                 getItemLayout={getItemLayout}
                 contentContainerStyle={styles.flexGrow1}
                 ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
