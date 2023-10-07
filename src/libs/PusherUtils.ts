@@ -1,26 +1,23 @@
+import {OnyxUpdate} from 'react-native-onyx';
 import CONFIG from '../CONFIG';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
 import * as Pusher from './Pusher/pusher';
 import CONST from '../CONST';
+import {OnyxUpdateEvent, OnyxUpdatesFromServer} from '../types/onyx';
+
+type PushJSON = OnyxUpdateEvent[] | OnyxUpdatesFromServer;
+
+type Callback = (data: OnyxUpdate[]) => Promise<void>;
 
 // Keeps track of all the callbacks that need triggered for each event type
-const multiEventCallbackMapping = {};
+const multiEventCallbackMapping: Record<string, Callback> = {};
 
-/**
- * @param {String} eventType
- * @param {Function} callback
- */
-function subscribeToMultiEvent(eventType, callback) {
+function subscribeToMultiEvent(eventType: string, callback: Callback) {
     multiEventCallbackMapping[eventType] = callback;
 }
 
-/**
- * @param {String} eventType
- * @param {Mixed} data
- * @returns {Promise}
- */
-function triggerMultiEventHandler(eventType, data) {
+function triggerMultiEventHandler(eventType: string, data: OnyxUpdate[]): Promise<void> {
     if (!multiEventCallbackMapping[eventType]) {
         return Promise.resolve();
     }
@@ -29,18 +26,11 @@ function triggerMultiEventHandler(eventType, data) {
 
 /**
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
- *
- * @param {String} eventName
- * @param {String} accountID
- * @param {Function} onEvent
  */
-function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent) {
+function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: PushJSON) => void) {
     const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
 
-    /**
-     * @param {Object} pushJSON
-     */
-    function logPusherEvent(pushJSON) {
+    function logPusherEvent(pushJSON: PushJSON) {
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
     }
 
@@ -48,19 +38,13 @@ function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent) {
         NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
     }
 
-    /**
-     * @param {*} pushJSON
-     */
-    function onEventPush(pushJSON) {
+    function onEventPush(pushJSON: PushJSON) {
         logPusherEvent(pushJSON);
         onEvent(pushJSON);
     }
 
-    /**
-     * @param {*} error
-     */
-    function onSubscriptionFailed(error) {
-        Log.hmmm('Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
+    function onSubscriptionFailed(error: Error) {
+        Log.hmmm('Failed to subscribe to Pusher channel', {error, pusherChannelName, eventName});
     }
     Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel).catch(onSubscriptionFailed);
 }

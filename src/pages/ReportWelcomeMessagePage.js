@@ -20,6 +20,8 @@ import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundVi
 import Form from '../components/Form';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import {policyPropTypes, policyDefaultProps} from './workspace/withPolicy';
+import ROUTES from '../ROUTES';
+import Navigation from '../libs/Navigation/Navigation';
 import updateMultilineInputRange from '../libs/UpdateMultilineInputRange';
 
 const propTypes = {
@@ -75,7 +77,10 @@ function ReportWelcomeMessagePage(props) {
     return (
         <ScreenWrapper testID={ReportWelcomeMessagePage.displayName}>
             <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
-                <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
+                <HeaderWithBackButton
+                    title={props.translate('welcomeMessagePage.welcomeMessage')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
+                />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
