@@ -252,6 +252,7 @@ export default {
         recent: 'Reciente',
         all: 'Todo',
         tbd: 'Por determinar',
+        card: 'Tarjeta',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -2302,5 +2303,9 @@ export default {
     },
     globalNavigationOptions: {
         chats: 'Chats',
+    },
+    eReceipt: {
+        guaranteed: 'eRecibo garantizado',
+        transactionDate: 'Fecha de transacción',
     },
 } satisfies EnglishTranslation;

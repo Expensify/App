@@ -1362,6 +1362,7 @@ function getTransactionDetails(transaction) {
     const report = getReport(transaction.reportID);
     return {
         created: TransactionUtils.getCreated(transaction),
+        createdMMDYYYY: TransactionUtils.getCreated(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT),
         amount: TransactionUtils.getAmount(transaction, isExpenseReport(report)),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),

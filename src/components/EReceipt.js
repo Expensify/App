@@ -15,6 +15,7 @@ import * as ReportUtils from '../libs/ReportUtils';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import * as CardUtils from '../libs/CardUtils';
 import variables from '../styles/variables';
+import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
         /* Onyx Props */
@@ -29,18 +30,17 @@ const defaultProps = {
 }
 
 function EReceipt({transaction}) {
+    const {translate} = useLocalize();
     const colorStyles = StyleUtils.getEReceiptColor(transaction.parentTransactionID || transaction.transactionID || '');
     const primaryColor = colorStyles.backgroundColor;
     const secondaryColor = colorStyles.color;
 
-    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate, mccGroup: transactionMCCGroup, cardID: transactionCardID} = ReportUtils.getTransactionDetails(transaction);
+    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, createdMMDYYYY: transactionDate, mccGroup: transactionMCCGroup, cardID: transactionCardID} = ReportUtils.getTransactionDetails(transaction);
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency);
     const amount = formattedAmount.replace(currency, '');
-
+    const MCCIcon = MCCIcons[`${transactionMCCGroup}`];
     const cardDescription = CardUtils.getCardDescription(transactionCardID);
-    // eslint-disable-next-line no-console
-    console.log('...', {formattedAmount, currency, amount, strip: formattedAmount.replace(currency, ''), cardDescription});
     
     return (
         <View style={[styles.eReceiptContainer, StyleUtils.getBackgroundColorStyle(primaryColor)]}>
@@ -57,7 +57,7 @@ function EReceipt({transaction}) {
                             additionalStyles={[styles.eReceiptBackground]}
                         />
                         <Icon
-                            src={MCCIcons.Airlines}
+                            src={MCCIcon}
                             height={variables.eReceiptMCCHeightWidth}
                             width={variables.eReceiptMCCHeightWidth}
                             fill={primaryColor}
@@ -69,32 +69,32 @@ function EReceipt({transaction}) {
                         <View style={[styles.flexRow, styles.justifyContentCenter]}>
                             <View style={[styles.flexColumn, styles.pt1]}>
                                 <Text style={[styles.eReceiptCurrency, StyleUtils.getColorStyle(secondaryColor)]}>
-                                    $
+                                {currency}
                                 </Text>
                             </View>
                             <Text adjustsFontSizeToFit style={[styles.eReceiptAmountLarge, StyleUtils.getColorStyle(secondaryColor)]}>
-                            1,245.93
+                            {amount}
                             </Text>
                         </View>
                         <Text style={[styles.eReceiptMerchant, styles.breakAll, styles.textAlignCenter]}>
-                            United
+                            {transactionMerchant}
                         </Text>
                     </View>
                     <View style={[styles.alignSelfStretch, styles.flexColumn, styles.mb8, styles.gap4]}>
                         <View style={[styles.flexColumn, styles.gap1]}>
                             <Text style={[styles.eReceiptWaypointTitle, StyleUtils.getColorStyle(secondaryColor)]}>
-                            Transaction date
+                            {translate('eReceipt.transactionDate')}
                             </Text>
                             <Text style={[styles.eReceiptWaypointAddress]}>
-                            January 12, 2022
+                            {transactionDate}
                             </Text>
                         </View>
                         <View style={[styles.flexColumn, styles.gap1]}>
                             <Text style={[styles.eReceiptWaypointTitle, StyleUtils.getColorStyle(secondaryColor)]}>
-                            Card
+                            {translate('common.card')}
                             </Text>
                             <Text style={[styles.eReceiptWaypointAddress]}>
-                            Expensify Card - 1234
+                            {cardDescription}
                             </Text>
                         </View>
                     </View>
@@ -105,7 +105,7 @@ function EReceipt({transaction}) {
                             fill={secondaryColor}
                             src={Expensicons.ExpensifyWordmark}
                         />
-                        <Text style={styles.eReceiptGuaranteed}>Guaranteed eReceipt</Text>
+                        <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
                     </View>
                 </View>
         </View>
