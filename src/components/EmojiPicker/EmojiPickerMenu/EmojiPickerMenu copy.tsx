@@ -83,8 +83,8 @@ const EmojiPickerMenu = (props) => {
     const [filteredEmojis, setFilteredEmojis] = useState(emojis.current);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices.current);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
+    const [arePointerEventsDisabled, setArePointerEventsDisabled] = useState(false);
     this.state = {
-        arePointerEventsDisabled: false,
         selection: {
             start: 0,
             end: 0,
@@ -219,11 +219,10 @@ const EmojiPickerMenu = (props) => {
 
         // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
         this.mouseMoveHandler = () => {
-            if (!this.state.arePointerEventsDisabled) {
+            if (!arePointerEventsDisabled) {
                 return;
             }
-
-            this.setState({arePointerEventsDisabled: false});
+            setArePointerEventsDisabled(false);
         };
         document.addEventListener('mousemove', this.mouseMoveHandler);
     }
@@ -294,7 +293,8 @@ const EmojiPickerMenu = (props) => {
 
             // Blur the input, change the highlight type to keyboard, and disable pointer events
             searchInputRef.current.blur();
-            this.setState({isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
+            setArePointerEventsDisabled(true);
+            this.setState({isUsingKeyboardMovement: true});
 
             // We only want to hightlight the Emoji if none was highlighted already
             // If we already have a highlighted Emoji, lets just skip the first navigation
@@ -307,7 +307,8 @@ const EmojiPickerMenu = (props) => {
         // select the first emoji, apply keyboard movement styles, and disable pointer events
         if (highlightedIndex === -1) {
             setHighlightedIndex(firstNonHeaderIndex.current);
-            this.setState({isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
+            setArePointerEventsDisabled(true);
+            this.setState({isUsingKeyboardMovement: true});
             return;
         }
 
@@ -364,7 +365,8 @@ const EmojiPickerMenu = (props) => {
         // Actually highlight the new emoji, apply keyboard movement styles, and disable pointer events
         if (newIndex !== highlightedIndex) {
             setHighlightedIndex(newIndex);
-            this.setState({isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
+            setArePointerEventsDisabled(true);
+            this.setState({isUsingKeyboardMovement: true});
         }
     }
 
@@ -472,7 +474,7 @@ const EmojiPickerMenu = (props) => {
                     this.setState({isUsingKeyboardMovement: false});
                 }}
                 onHoverOut={() => {
-                    if (this.state.arePointerEventsDisabled) {
+                    if (arePointerEventsDisabled) {
                         return;
                     }
                     setHighlightedIndex(-1);
@@ -499,7 +501,7 @@ const EmojiPickerMenu = (props) => {
         <View
             style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(isSmallScreenWidth)]}
             // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
-            pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
+            pointerEvents={arePointerEventsDisabled ? 'none' : 'auto'}
         >
             <View style={[styles.ph4, styles.pb3, styles.pt2]}>
                 <TextInput
