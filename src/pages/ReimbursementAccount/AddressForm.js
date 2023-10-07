@@ -5,7 +5,7 @@ import TextInput from '../../components/TextInput';
 import AddressSearch from '../../components/AddressSearch';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
-import StatePicker from '../../components/StatePicker';
+import StateSelector from '../../components/StateSelector';
 
 const propTypes = {
     /** Translate key for Street name */
@@ -123,7 +123,7 @@ function AddressForm(props) {
             />
 
             <View style={[styles.mt4, styles.mhn5]}>
-                <StatePicker
+                <StateSelector
                     inputID={props.inputKeys.state}
                     shouldSaveDraft={props.shouldSaveDraft}
                     value={props.values.state}

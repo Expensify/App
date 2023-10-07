@@ -7,7 +7,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import StatePicker from '../../components/StatePicker';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Text from '../../components/Text';
@@ -25,6 +24,8 @@ import AddressForm from './AddressForm';
 import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
+import StateSelector from '../../components/StateSelector';
+import getStateFromRoute from '../../libs/getStateFromRoute';
 
 const propTypes = {
     ...StepPropTypes,
@@ -43,6 +44,15 @@ const propTypes = {
 
     /* The workspace policyID */
     policyID: PropTypes.string,
+
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Currently selected country */
+            country: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -53,7 +63,7 @@ const defaultProps = {
     policyID: '',
 };
 
-function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
+function CompanyStep({reimbursementAccount, route, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
     /**
      * @param {Array} fieldNames
      *
@@ -139,6 +149,9 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
     const shouldDisableCompanyName = Boolean(bankAccountID && getDefaultStateForField('companyName'));
     const shouldDisableCompanyTaxID = Boolean(bankAccountID && getDefaultStateForField('companyTaxID'));
 
+    const incorporationState = getStateFromRoute(route, 'incorporationState') || getDefaultStateForField('incorporationState');
+    const state = getStateFromRoute(route);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -179,6 +192,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                         state: getDefaultStateForField('addressState'),
                         zipCode: getDefaultStateForField('addressZipCode'),
                     }}
+                    values={state ? {state} : {}}
                     inputKeys={{
                         street: 'addressStreet',
                         city: 'addressCity',
@@ -243,11 +257,12 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     />
                 </View>
                 <View style={[styles.mt4, styles.mhn5]}>
-                    <StatePicker
+                    <StateSelector
                         inputID="incorporationState"
                         label={translate('companyStep.incorporationState')}
-                        defaultValue={getDefaultStateForField('incorporationState')}
                         shouldSaveDraft
+                        paramName="incorporationState"
+                        value={incorporationState}
                     />
                 </View>
                 <CheckboxWithLabel

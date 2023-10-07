@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import TextInput from '../components/TextInput';
 import Picker from '../components/Picker';
-import StatePicker from '../components/StatePicker';
 import AddressSearch from '../components/AddressSearch';
 import DatePicker from '../components/DatePicker';
 import * as FormActions from '../libs/actions/FormActions';
@@ -13,6 +12,7 @@ import NetworkConnection from '../libs/NetworkConnection';
 import CONST from '../CONST';
 import InputWrapper from '../components/Form/InputWrapper';
 import FormProvider from '../components/Form/FormProvider';
+import StateSelector from '../components/StateSelector';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -28,7 +28,7 @@ const story = {
         AddressSearch,
         CheckboxWithLabel,
         Picker,
-        StatePicker,
+        StateSelector,
         DatePicker,
     },
 };
@@ -119,7 +119,7 @@ function Template(args) {
             />
             <View style={styles.mt4}>
                 <InputWrapper
-                    InputComponent={StatePicker}
+                    InputComponent={StateSelector}
                     inputID="state"
                     shouldSaveDraft
                 />

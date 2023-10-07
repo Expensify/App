@@ -429,6 +429,7 @@ class ReimbursementAccountPage extends React.Component {
         if (currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY) {
             return (
                 <CompanyStep
+                    route={this.props.route}
                     reimbursementAccount={this.props.reimbursementAccount}
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}

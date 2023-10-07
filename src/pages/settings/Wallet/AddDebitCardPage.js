@@ -11,7 +11,6 @@ import useLocalize from '../../../hooks/useLocalize';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
-import StatePicker from '../../../components/StatePicker';
 import TextInput from '../../../components/TextInput';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -22,6 +21,8 @@ import ROUTES from '../../../ROUTES';
 import usePrevious from '../../../hooks/usePrevious';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import Permissions from '../../../libs/Permissions';
+import StateSelector from '../../../components/StateSelector';
+import getStateFromRoute from '../../../libs/getStateFromRoute';
 
 const propTypes = {
     /* Onyx Props */
@@ -31,6 +32,15 @@ const propTypes = {
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Currently selected country */
+            country: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -103,6 +113,8 @@ function DebitCardPage(props) {
     if (!Permissions.canUseWallet(props.betas)) {
         return <NotFoundPage />;
     }
+
+    const stateFromUrl = getStateFromRoute(props.route);
 
     return (
         <ScreenWrapper
@@ -182,7 +194,10 @@ function DebitCardPage(props) {
                     containerStyles={[styles.mt4]}
                 />
                 <View style={[styles.mt4, styles.mhn5]}>
-                    <StatePicker inputID="addressState" />
+                    <StateSelector
+                        value={stateFromUrl}
+                        inputID="addressState"
+                    />
                 </View>
                 <CheckboxWithLabel
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}

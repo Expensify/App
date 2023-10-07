@@ -127,6 +127,7 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     Settings_PersonalDetails_DateOfBirth: () => require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default,
     Settings_PersonalDetails_Address: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default,
     Settings_PersonalDetails_Address_Country: () => require('../../../pages/settings/Profile/PersonalDetails/CountrySelectionPage').default,
+    Settings_PersonalDetails_Address_State: () => require('../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default,
     Settings_ContactMethods: () => require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default,
     Settings_ContactMethodDetails: () => require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default,
     Settings_NewContactMethod: () => require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default,

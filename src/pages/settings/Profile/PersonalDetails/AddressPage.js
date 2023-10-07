@@ -15,13 +15,14 @@ import styles from '../../../../styles/styles';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import AddressSearch from '../../../../components/AddressSearch';
-import StatePicker from '../../../../components/StatePicker';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import useLocalize from '../../../../hooks/useLocalize';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 import CountrySelector from '../../../../components/CountrySelector';
+import StateSelector from '../../../../components/StateSelector';
+import getStateFromRoute from '../../../../libs/getStateFromRoute';
 
 const propTypes = {
     /* Onyx Props */
@@ -72,7 +73,12 @@ function AddressPage({privatePersonalDetails, route}) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
     const address = useMemo(() => lodashGet(privatePersonalDetails, 'address') || {}, [privatePersonalDetails]);
-    const countryFromUrl = lodashGet(route, 'params.country');
+
+    const countryFromUrlTemp = lodashGet(route, 'params.country');
+    // check if country is valid
+    const countryFromUrl = lodashGet(CONST.ALL_COUNTRIES, countryFromUrlTemp) ? countryFromUrlTemp : '';
+
+    const stateFromUrl = getStateFromRoute(route);
     const [currentCountry, setCurrentCountry] = useState(address.country);
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
@@ -160,6 +166,13 @@ function AddressPage({privatePersonalDetails, route}) {
         handleAddressChange(countryFromUrl, 'country');
     }, [countryFromUrl, handleAddressChange, currentCountry]);
 
+    useEffect(() => {
+        if (!stateFromUrl || stateFromUrl === state) {
+            return;
+        }
+        handleAddressChange(stateFromUrl, 'state');
+    }, [state, handleAddressChange, stateFromUrl]);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -218,10 +231,9 @@ function AddressPage({privatePersonalDetails, route}) {
                     <View style={styles.formSpaceVertical} />
                     {isUSAForm ? (
                         <View style={styles.mhn5}>
-                            <StatePicker
+                            <StateSelector
                                 inputID="state"
-                                defaultValue={state}
-                                onValueChange={handleAddressChange}
+                                value={state}
                             />
                         </View>
                     ) : (

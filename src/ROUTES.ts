@@ -94,6 +94,22 @@ export default {
             return route;
         },
     },
+    SETTINGS_PERSONAL_DETAILS_ADDRESS_STATE: {
+        route: 'settings/profile/personal-details/address/state',
+        getRoute: (state: string, backTo?: string, label?: string, stateParamName = 'state') => {
+            let route = `settings/profile/personal-details/address/state?state=${state}`;
+            if (backTo) {
+                route += `&backTo=${encodeURIComponent(backTo)}`;
+            }
+            if (label) {
+                route += `&label=${encodeURIComponent(label)}`;
+            }
+            if (stateParamName) {
+                route += `&stateParamName=${encodeURIComponent(stateParamName)}`;
+            }
+            return route;
+        },
+    },
     SETTINGS_CONTACT_METHODS: 'settings/profile/contact-methods',
     SETTINGS_CONTACT_METHOD_DETAILS: {
         route: 'settings/profile/contact-methods/:contactMethod/details',
