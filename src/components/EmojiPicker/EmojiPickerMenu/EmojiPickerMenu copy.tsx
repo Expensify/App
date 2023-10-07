@@ -33,8 +33,7 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]), // TODO: preferredSkinTone must be number (always)
     /** Stores user's frequently used emojis */
     // eslint-disable-next-line react/forbid-prop-types
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.object),
@@ -64,7 +63,6 @@ const EmojiPickerMenu = (props) => {
     // prevent auto focus when open picker for mobile device
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-    this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
     this.setFirstNonHeaderIndex = this.setFirstNonHeaderIndex.bind(this);
     this.getItemLayout = this.getItemLayout.bind(this);
     this.scrollToHeader = this.scrollToHeader.bind(this);
@@ -409,11 +407,12 @@ const EmojiPickerMenu = (props) => {
     /**
      * @param {Number} skinTone
      */
-    function updatePreferredSkinTone(skinTone) {
-        if (preferredSkinTone === skinTone) {
+    function updatePreferredSkinTone(skinTone: number) {
+        if (Number(preferredSkinTone) === skinTone) { // TODO: temp Number() for safety
             return;
         }
 
+        // TODO: Change JS Doc in User.js (type string => number)
         User.updatePreferredSkinTone(skinTone);
     }
 
@@ -537,7 +536,7 @@ const EmojiPickerMenu = (props) => {
                 ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
             />
             <EmojiSkinToneList
-                updatePreferredSkinTone={this.updatePreferredSkinTone}
+                updatePreferredSkinTone={updatePreferredSkinTone}
                 preferredSkinTone={preferredSkinTone}
             />
         </View>
