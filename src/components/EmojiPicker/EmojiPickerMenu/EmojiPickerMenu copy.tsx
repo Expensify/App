@@ -63,10 +63,6 @@ const EmojiPickerMenu = (props) => {
     // prevent auto focus when open picker for mobile device
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-    this.setFirstNonHeaderIndex = this.setFirstNonHeaderIndex.bind(this);
-    this.getItemLayout = this.getItemLayout.bind(this);
-    this.scrollToHeader = this.scrollToHeader.bind(this);
-
     this.firstNonHeaderIndex = 0;
 
     const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
@@ -96,7 +92,7 @@ const EmojiPickerMenu = (props) => {
             forwardedRef(searchInputRef.current);
         }
         setupEventHandlers();
-        this.setFirstNonHeaderIndex(this.emojis);
+        setFirstNonHeaderIndex(this.emojis);
     }
 
     function componentDidUpdate(prevProps) {
@@ -156,7 +152,8 @@ const EmojiPickerMenu = (props) => {
      * Find and store index of the first emoji item
      * @param {Array} filteredEmojis
      */
-    function setFirstNonHeaderIndex(filteredEmojis) {
+    function setFirstNonHeaderIndex(filteredEmojis: any[]) {
+        // TODO: Emoji Object type
         this.firstNonHeaderIndex = _.findIndex(filteredEmojis, (item) => !item.spacer && !item.header);
     }
 
@@ -233,7 +230,8 @@ const EmojiPickerMenu = (props) => {
      * @param {Number} index row index
      * @returns {Object}
      */
-    function getItemLayout(data, index) {
+    function getItemLayout(data: any, index: number) {
+        // TODO: data param is unused. Still find its type
         return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
     }
 
@@ -360,7 +358,7 @@ const EmojiPickerMenu = (props) => {
         }
     }
 
-    function scrollToHeader(headerIndex) {
+    function scrollToHeader(headerIndex: number) {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
         emojiListRef.current?.flashScrollIndicators();
         emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
@@ -382,14 +380,14 @@ const EmojiPickerMenu = (props) => {
                     headerIndices: this.headerRowIndices,
                     highlightedIndex: -1,
                 });
-                this.setFirstNonHeaderIndex(this.emojis);
+                setFirstNonHeaderIndex(this.emojis);
                 return;
             }
             const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, this.emojis.length);
 
             // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
             this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
-            this.setFirstNonHeaderIndex(newFilteredEmojiList);
+            setFirstNonHeaderIndex(newFilteredEmojiList);
         }, 300),
         [],
     );
@@ -511,7 +509,7 @@ const EmojiPickerMenu = (props) => {
             {!isFiltered && (
                 <CategoryShortcutBar
                     headerEmojis={this.headerEmojis}
-                    onPress={this.scrollToHeader}
+                    onPress={scrollToHeader}
                 />
             )}
             <FlatList
@@ -531,7 +529,7 @@ const EmojiPickerMenu = (props) => {
                 ]}
                 extraData={[this.state.filteredEmojis, this.state.highlightedIndex, preferredSkinTone]}
                 stickyHeaderIndices={this.state.headerIndices}
-                getItemLayout={this.getItemLayout}
+                getItemLayout={getItemLayout}
                 contentContainerStyle={styles.flexGrow1}
                 ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
             />
