@@ -106,18 +106,14 @@ const EmojiPickerMenu = (props) => {
         };
     }, []);
 
-    function componentDidUpdate(prevProps) {
-        if (prevProps.frequentlyUsedEmojis === frequentlyUsedEmojis) {
-            return;
-        }
-
+    useEffect(() => {
         const emojisAndHeaderRowIndices = getEmojisAndHeaderRowIndices();
         emojis.current = emojisAndHeaderRowIndices.filteredEmojis;
         headerRowIndices.current = emojisAndHeaderRowIndices.headerRowIndices;
         headerEmojis.current = emojisAndHeaderRowIndices.headerEmojis;
         setFilteredEmojis(emojis.current);
         setHeaderIndices(headerRowIndices.current);
-    }
+    }, [frequentlyUsedEmojis]);
 
     /**
      * On text input selection change
