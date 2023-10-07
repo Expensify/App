@@ -57,7 +57,7 @@ const EmojiPickerMenu = (props) => {
     const searchInputRef = useRef<RNTextInput>(null); // TODO: is RNTextInput correct?
 
     // Ref for emoji FlatList
-    this.emojiList = undefined;
+    const emojiListRef = useRef<FlatList>(null);
 
     // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
     // prevent auto focus when open picker for mobile device
@@ -374,8 +374,8 @@ const EmojiPickerMenu = (props) => {
 
     function scrollToHeader(headerIndex) {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        this.emojiList.flashScrollIndicators();
-        this.emojiList.scrollToOffset({offset: calculatedOffset, animated: true});
+        emojiListRef.current?.flashScrollIndicators();
+        emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
     }
 
     /**
@@ -385,9 +385,7 @@ const EmojiPickerMenu = (props) => {
      */
     function filterEmojis(searchTerm) {
         const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
-        if (this.emojiList) {
-            this.emojiList.scrollToOffset({offset: 0, animated: false});
-        }
+        emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
         if (normalizedSearchTerm === '') {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
             this.setState({
@@ -523,7 +521,7 @@ const EmojiPickerMenu = (props) => {
                 />
             )}
             <FlatList
-                ref={(el) => (this.emojiList = el)}
+                ref={emojiListRef}
                 data={this.state.filteredEmojis}
                 renderItem={this.renderItem}
                 keyExtractor={this.keyExtractor}
