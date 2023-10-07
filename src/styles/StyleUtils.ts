@@ -1167,6 +1167,13 @@ function getDisabledLinkStyles(isDisabled = false): ViewStyle | CSSProperties {
 }
 
 /**
+ * Returns color style
+ */
+function getColorStyle(color: string): ViewStyle | CSSProperties {
+    return {color};
+}
+
+/**
  * Returns the checkbox pressable style
  */
 function getCheckboxPressableStyle(borderRadius = 6): ViewStyle | CSSProperties {
@@ -1299,6 +1306,7 @@ export {
     getAutoCompleteSuggestionItemStyle,
     getAutoCompleteSuggestionContainerStyle,
     getColoredBackgroundStyle,
+    getColorStyle,
     getDefaultWorkspaceAvatarColor,
     getAvatarBorderRadius,
     getEmojiReactionBubbleStyle,

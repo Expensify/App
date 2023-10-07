@@ -245,6 +245,14 @@ function getCategory(transaction: Transaction): string {
 }
 
 /**
+ * Return the cardID from the transaction.
+ */
+function getCardID(transaction: Transaction): string {
+    console.log('...',{transaction});
+    return transaction?.cardID ?? '';
+}
+
+/**
  * Return the billable field from the transaction. This "billable" field has no "modified" complement.
  */
 function getBillable(transaction: Transaction): boolean {
@@ -381,6 +389,7 @@ export {
     getDescription,
     getAmount,
     getCurrency,
+    getCardID,
     getMerchant,
     getMCCGroup,
     getCreated,

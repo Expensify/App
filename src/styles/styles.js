@@ -3295,6 +3295,20 @@ const styles = (theme) => ({
         lineHeight: variables.lineHeightXXXLarge,
     },
 
+    eReceiptAmountLarge: {
+        ...headlineFont,
+        fontSize: variables.fontSizeEReceiptLarge,
+        lineHeight: 'normal',
+        wordBreak: 'break-all',
+    },
+
+    eReceiptCurrency: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXXLarge,
+        lineHeight: 'normal',
+        wordBreak: 'break-all',
+    },
+
     eReceiptMerchant: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeXLarge,
@@ -3329,6 +3343,13 @@ const styles = (theme) => ({
         top: 0,
         left: 0,
         height: 540,
+    },
+
+    eReceiptContainer: {
+        width: 335,
+        minHeight: 540,
+        borderRadius: 20,
+        overflow: 'hidden',
     },
 
     eReceiptPanel: {

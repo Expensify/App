@@ -11,6 +11,10 @@ import * as Expensicons from './Icon/Expensicons';
 import * as MCCIcons from './Icon/MCCIcons';
 import Icon from './Icon';
 import Text from './Text';
+import * as ReportUtils from '../libs/ReportUtils';
+import * as CurrencyUtils from '../libs/CurrencyUtils';
+import * as CardUtils from '../libs/CardUtils';
+import variables from '../styles/variables';
 
 const propTypes = {
         /* Onyx Props */
@@ -28,56 +32,65 @@ function EReceipt({transaction}) {
     const colorStyles = StyleUtils.getEReceiptColor(transaction.parentTransactionID || transaction.transactionID || '');
     const primaryColor = colorStyles.backgroundColor;
     const secondaryColor = colorStyles.color;
+
+    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate, mccGroup: transactionMCCGroup, cardID: transactionCardID} = ReportUtils.getTransactionDetails(transaction);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
+    const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency);
+    const amount = formattedAmount.replace(currency, '');
+
+    const cardDescription = CardUtils.getCardDescription(transactionCardID);
+    // eslint-disable-next-line no-console
+    console.log('...', {formattedAmount, currency, amount, strip: formattedAmount.replace(currency, ''), cardDescription});
     
     return (
-        <View style={{width: 335, minHeight: 540, backgroundColor: primaryColor}}>
-                <View style={{position: 'absolute', top: 0, left: 0, width: '100%', aspectRatio: 335 / 540}}>
-                    <EReceiptBG height={540} style={colorStyles} />
+        <View style={[styles.eReceiptContainer, StyleUtils.getBackgroundColorStyle(primaryColor)]}>
+                <View style={styles.eReceiptBackground}>
+                    <EReceiptBG style={colorStyles} />
                 </View>
-                <View style={{alignItems: 'center', paddingHorizontal: 32, paddingBottom: 56, paddingTop: 32}}>
-                    <View style={[{height: 100, width: 72, alignItems: 'center', justifyContent: 'center', flexShrink: 0}]}>
+                <View style={[styles.alignItemsCenter, styles.ph8, styles.pb14, styles.pt8]}>
+                    <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.eReceiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <Icon
                             src={Expensicons.EReceiptIcon}
-                            height={100}
-                            width={72}
+                            height={variables.eReceiptIconHeight}
+                            width={variables.eReceiptIconWidth}
                             fill={secondaryColor}
-                            additionalStyles={[{position: 'absolute', top: 0}]}
+                            additionalStyles={[styles.eReceiptBackground]}
                         />
                         <Icon
                             src={MCCIcons.Airlines}
-                            height={40}
-                            width={40}
+                            height={variables.eReceiptMCCHeightWidth}
+                            width={variables.eReceiptMCCHeightWidth}
                             fill={primaryColor}
                         />
                     </View>
                 </View>
-                <View style={[{width: 335, flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, paddingHorizontal: 36, flex: 1}]}>
+                <View style={[styles.flexColumn, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph9, styles.flex1]}>
                 <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2, {marginBottom: 32}]}>
-                        <View style={[{justifyContent: 'center', gap: 1, flexDirection: 'row'}]}>
-                            <View style={[{flexDirection: 'column', paddingTop: 3, gap: 10}]}>
-                                <Text style={[styles.eReceiptAmount, {fontSize: 28, lineHeight: 'normal'}, {color: secondaryColor}]}>
+                        <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                            <View style={[styles.flexColumn, styles.pt1]}>
+                                <Text style={[styles.eReceiptCurrency, StyleUtils.getColorStyle(secondaryColor)]}>
                                     $
                                 </Text>
                             </View>
-                            <Text adjustsFontSizeToFit style={[styles.eReceiptAmount, {fontSize: 44, lineHeight: 'normal'}, {color: secondaryColor}, {wordBreak: 'break-all'}]}>
+                            <Text adjustsFontSizeToFit style={[styles.eReceiptAmountLarge, StyleUtils.getColorStyle(secondaryColor)]}>
                             1,245.93
                             </Text>
                         </View>
-                        <Text style={[styles.eReceiptMerchant, {textAlign: 'center', wordBreak: 'break-all'}]}>
+                        <Text style={[styles.eReceiptMerchant, styles.breakAll, styles.textAlignCenter]}>
                             United
                         </Text>
                     </View>
-                    <View style={[styles.alignSelfStretch, styles.flexColumn, {marginBottom: 32}, {gap: 16}]}>
-                        <View style={[{flexDirection: 'column'}, {gap: 4}]}>
-                            <Text style={[styles.eReceiptWaypointTitle, {color: secondaryColor}]}>
+                    <View style={[styles.alignSelfStretch, styles.flexColumn, styles.mb8, styles.gap4]}>
+                        <View style={[styles.flexColumn, styles.gap1]}>
+                            <Text style={[styles.eReceiptWaypointTitle, StyleUtils.getColorStyle(secondaryColor)]}>
                             Transaction date
                             </Text>
                             <Text style={[styles.eReceiptWaypointAddress]}>
                             January 12, 2022
                             </Text>
                         </View>
-                        <View style={[{flexDirection: 'column'}, {gap: 4}]}>
-                            <Text style={[styles.eReceiptWaypointTitle, {color: secondaryColor}]}>
+                        <View style={[styles.flexColumn, styles.gap1]}>
+                            <Text style={[styles.eReceiptWaypointTitle, StyleUtils.getColorStyle(secondaryColor)]}>
                             Card
                             </Text>
                             <Text style={[styles.eReceiptWaypointAddress]}>
@@ -85,10 +98,10 @@ function EReceipt({transaction}) {
                             </Text>
                         </View>
                     </View>
-                    <View style={[{marginBottom: 32, height: 20, paddingLeft: 0, justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, alignSelf: 'stretch', flexDirection: 'row'}]}>
+                    <View style={[styles.justifyContentBetween, styles.alignItemsCenter, styles.alignSelfStretch, styles.flexRow, styles.mb8]}>
                         <Icon
-                            width={86}
-                            height={19.25}
+                            width={variables.eReceiptWordmarkWidth}
+                            height={variables.eReceiptWordmarkHeight}
                             fill={secondaryColor}
                             src={Expensicons.ExpensifyWordmark}
                         />
