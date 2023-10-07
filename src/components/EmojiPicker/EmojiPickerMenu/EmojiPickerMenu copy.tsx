@@ -84,11 +84,8 @@ const EmojiPickerMenu = (props) => {
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices.current);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const [arePointerEventsDisabled, setArePointerEventsDisabled] = useState(false);
+    const [selection, setSelection] = useState({start: 0, end: 0});
     this.state = {
-        selection: {
-            start: 0,
-            end: 0,
-        },
         isFocused: false,
         isUsingKeyboardMovement: false,
     };
@@ -128,7 +125,7 @@ const EmojiPickerMenu = (props) => {
      * @param {Event} event
      */
     function onSelectionChange(event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) {
-        this.setState({selection: event.nativeEvent.selection});
+        setSelection(event.nativeEvent.selection);
     }
 
     /**
@@ -287,7 +284,7 @@ const EmojiPickerMenu = (props) => {
                 return;
             }
 
-            if (arrowKey === 'ArrowRight' && !(searchInputRef.current.value.length === this.state.selection.start && this.state.selection.start === this.state.selection.end)) {
+            if (arrowKey === 'ArrowRight' && !(searchInputRef.current.value.length === selection.start && selection.start === selection.end)) {
                 return;
             }
 
