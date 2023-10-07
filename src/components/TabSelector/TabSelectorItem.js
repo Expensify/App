@@ -50,7 +50,7 @@ function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, 
             wrapperStyle={[styles.flex1]}
             onPress={onPress}
         >
-            {({ hovered }) => (
+            {({hovered}) => (
                 <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, styles.tabBackground(hovered, isFocused, backgroundColor)]}>
                     <TabIcon
                         icon={icon}
