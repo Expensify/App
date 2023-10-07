@@ -158,7 +158,7 @@ function SettlementButton({
         let paymentMethod = nvp_lastPaymentMethod[policyID] || '';
         if (!shouldShowPaymentOptions) {
             // Only show the Approve button if the user cannot pay the request
-            if (nextStepButtons.approve) {
+            if (nextStepButtons.approve && !nextStepButtons.reimburse) {
                 return [
                     {
                         text: translate('iou.approve'),
