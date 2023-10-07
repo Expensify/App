@@ -87,7 +87,7 @@ const EmojiPickerMenu = (props) => {
     const [selection, setSelection] = useState({start: 0, end: 0});
     const [isFocused, setIsFocused] = useState(false);
     const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
-    const [selectTextOnFocus, setSelectTextOnFocus] = useState(false)
+    const [selectTextOnFocus, setSelectTextOnFocus] = useState(false);
     function componentDidMount() {
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
@@ -160,6 +160,46 @@ const EmojiPickerMenu = (props) => {
         firstNonHeaderIndex.current = _.findIndex(filteredEmojis, (item) => !item.spacer && !item.header);
     }
 
+    const keyDownHandler = (keyBoardEvent: KeyboardEvent) => {
+        if (keyBoardEvent.key.startsWith('Arrow')) {
+            if (!isFocused || keyBoardEvent.key === 'ArrowUp' || keyBoardEvent.key === 'ArrowDown') {
+                keyBoardEvent.preventDefault();
+            }
+
+            // Move the highlight when arrow keys are pressed
+            highlightAdjacentEmoji(keyBoardEvent.key);
+            return;
+        }
+
+        // Select the currently highlighted emoji if enter is pressed
+        if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && highlightedIndex !== -1) {
+            const item = filteredEmojis[highlightedIndex];
+            if (!item) {
+                return;
+            }
+            const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
+            this.addToFrequentAndSelectEmoji(emoji, item);
+            return;
+        }
+
+        // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
+        // is not focused, so that the navigation and tab cycling can be done using the keyboard without
+        // interfering with the input behaviour.
+        if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && !searchInputRef.current?.isFocused())) {
+            setIsUsingKeyboardMovement(true);
+            return;
+        }
+
+        // We allow typing in the search box if any key is pressed apart from Arrow keys.
+        if (!searchInputRef.current?.isFocused()) {
+            setSelectTextOnFocus(false);
+            searchInputRef.current?.focus();
+
+            // Re-enable selection on the searchInput
+            setSelectTextOnFocus(true);
+        }
+    };
+
     /**
      * Setup and attach keypress/mouse handlers for highlight navigation.
      */
@@ -168,49 +208,9 @@ const EmojiPickerMenu = (props) => {
             return;
         }
 
-        this.keyDownHandler = (keyBoardEvent) => {
-            if (keyBoardEvent.key.startsWith('Arrow')) {
-                if (!isFocused || keyBoardEvent.key === 'ArrowUp' || keyBoardEvent.key === 'ArrowDown') {
-                    keyBoardEvent.preventDefault();
-                }
-
-                // Move the highlight when arrow keys are pressed
-                highlightAdjacentEmoji(keyBoardEvent.key);
-                return;
-            }
-
-            // Select the currently highlighted emoji if enter is pressed
-            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && highlightedIndex !== -1) {
-                const item = filteredEmojis[highlightedIndex];
-                if (!item) {
-                    return;
-                }
-                const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
-                this.addToFrequentAndSelectEmoji(emoji, item);
-                return;
-            }
-
-            // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
-            // is not focused, so that the navigation and tab cycling can be done using the keyboard without
-            // interfering with the input behaviour.
-            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && !searchInputRef.current?.isFocused())) {
-                setIsUsingKeyboardMovement(true);
-                return;
-            }
-
-            // We allow typing in the search box if any key is pressed apart from Arrow keys.
-            if (!searchInputRef.current?.isFocused()) {
-                setSelectTextOnFocus(false)
-                searchInputRef.current?.focus();
-
-                // Re-enable selection on the searchInput
-                setSelectTextOnFocus(true);
-            }
-        };
-
         // Keyboard events are not bubbling on TextInput in RN-Web, Bubbling was needed for this event to trigger
         // event handler attached to document root. To fix this, trigger event handler in Capture phase.
-        document.addEventListener('keydown', this.keyDownHandler, true);
+        document.addEventListener('keydown', keyDownHandler, true);
 
         // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
         this.mouseMoveHandler = () => {
@@ -241,7 +241,7 @@ const EmojiPickerMenu = (props) => {
      * Cleanup all mouse/keydown event listeners that we've set up
      */
     function cleanupEventHandlers() {
-        document?.removeEventListener('keydown', this.keyDownHandler, true);
+        document?.removeEventListener('keydown', keyDownHandler, true);
         document?.removeEventListener('mousemove', this.mouseMoveHandler);
     }
 
@@ -429,7 +429,8 @@ const EmojiPickerMenu = (props) => {
      * @param {Number} index
      * @returns {String}
      */
-    function keyExtractor(item, index) {
+    function keyExtractor(item, index: number) {
+        // TODO: find type of item
         return `emoji_picker_${item.code}_${index}`;
     }
 
@@ -529,7 +530,7 @@ const EmojiPickerMenu = (props) => {
                 ref={emojiListRef}
                 data={filteredEmojis}
                 renderItem={renderItem}
-                keyExtractor={this.keyExtractor}
+                keyExtractor={keyExtractor}
                 numColumns={CONST.EMOJI_NUM_PER_ROW}
                 style={[
                     listStyle,
