@@ -1,4 +1,4 @@
-import React, {Component, useRef} from 'react';
+import React, {Component, useCallback, useRef} from 'react';
 import {View, FlatList} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -61,9 +61,8 @@ const EmojiPickerMenu = (props) => {
 
     // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
     // prevent auto focus when open picker for mobile device
-    this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+    const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-    this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
     this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
     this.setupEventHandlers = this.setupEventHandlers.bind(this);
     this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
@@ -100,7 +99,7 @@ const EmojiPickerMenu = (props) => {
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
-        if (this.shouldFocusInputOnScreenFocus && forwardedRef && _.isFunction(forwardedRef)) {
+        if (shouldFocusInputOnScreenFocus && forwardedRef && _.isFunction(forwardedRef)) {
             forwardedRef(searchInputRef.current);
         }
         this.setupEventHandlers();
@@ -383,25 +382,28 @@ const EmojiPickerMenu = (props) => {
      *
      * @param {String} searchTerm
      */
-    function filterEmojis(searchTerm) {
-        const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
-        emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
-        if (normalizedSearchTerm === '') {
-            // There are no headers when searching, so we need to re-make them sticky when there is no search term
-            this.setState({
-                filteredEmojis: this.emojis,
-                headerIndices: this.headerRowIndices,
-                highlightedIndex: -1,
-            });
-            this.setFirstNonHeaderIndex(this.emojis);
-            return;
-        }
-        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, this.emojis.length);
+    const filterEmojis = useCallback(
+        _.debounce((searchTerm: string) => {
+            const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
+            emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
+            if (normalizedSearchTerm === '') {
+                // There are no headers when searching, so we need to re-make them sticky when there is no search term
+                this.setState({
+                    filteredEmojis: this.emojis,
+                    headerIndices: this.headerRowIndices,
+                    highlightedIndex: -1,
+                });
+                this.setFirstNonHeaderIndex(this.emojis);
+                return;
+            }
+            const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, this.emojis.length);
 
-        // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
-        this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
-        this.setFirstNonHeaderIndex(newFilteredEmojiList);
-    }
+            // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
+            this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
+            this.setFirstNonHeaderIndex(newFilteredEmojiList);
+        }, 300),
+        [],
+    );
 
     /**
      * Check if its a landscape mode of mobile device
@@ -502,10 +504,10 @@ const EmojiPickerMenu = (props) => {
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    onChangeText={this.filterEmojis}
+                    onChangeText={filterEmojis}
                     defaultValue=""
                     ref={searchInputRef}
-                    autoFocus={this.shouldFocusInputOnScreenFocus}
+                    autoFocus={shouldFocusInputOnScreenFocus}
                     selectTextOnFocus={this.state.selectTextOnFocus}
                     onSelectionChange={this.onSelectionChange}
                     onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
