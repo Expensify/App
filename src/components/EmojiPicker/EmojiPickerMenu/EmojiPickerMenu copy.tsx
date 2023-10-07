@@ -63,9 +63,6 @@ const EmojiPickerMenu = (props) => {
     // prevent auto focus when open picker for mobile device
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-    this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
-    this.setupEventHandlers = this.setupEventHandlers.bind(this);
-    this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
     this.renderItem = this.renderItem.bind(this);
     this.isMobileLandscape = this.isMobileLandscape.bind(this);
     this.onSelectionChange = this.onSelectionChange.bind(this);
@@ -102,7 +99,7 @@ const EmojiPickerMenu = (props) => {
         if (shouldFocusInputOnScreenFocus && forwardedRef && _.isFunction(forwardedRef)) {
             forwardedRef(searchInputRef.current);
         }
-        this.setupEventHandlers();
+        setupEventHandlers();
         this.setFirstNonHeaderIndex(this.emojis);
     }
 
@@ -122,7 +119,7 @@ const EmojiPickerMenu = (props) => {
     }
 
     function componentWillUnmount() {
-        this.cleanupEventHandlers();
+        cleanupEventHandlers();
     }
 
     /**
@@ -182,7 +179,7 @@ const EmojiPickerMenu = (props) => {
                 }
 
                 // Move the highlight when arrow keys are pressed
-                this.highlightAdjacentEmoji(keyBoardEvent.key);
+                highlightAdjacentEmoji(keyBoardEvent.key);
                 return;
             }
 
@@ -248,12 +245,8 @@ const EmojiPickerMenu = (props) => {
      * Cleanup all mouse/keydown event listeners that we've set up
      */
     function cleanupEventHandlers() {
-        if (!document) {
-            return;
-        }
-
-        document.removeEventListener('keydown', this.keyDownHandler, true);
-        document.removeEventListener('mousemove', this.mouseMoveHandler);
+        document?.removeEventListener('keydown', this.keyDownHandler, true);
+        document?.removeEventListener('mousemove', this.mouseMoveHandler);
     }
 
     /**
@@ -282,7 +275,7 @@ const EmojiPickerMenu = (props) => {
      * Highlights emojis adjacent to the currently highlighted emoji depending on the arrowKey
      * @param {String} arrowKey
      */
-    function highlightAdjacentEmoji(arrowKey) {
+    function highlightAdjacentEmoji(arrowKey: KeyboardEvent['key']) {
         if (this.state.filteredEmojis.length === 0) {
             return;
         }
