@@ -87,7 +87,7 @@ const EmojiPickerMenu = (props) => {
     const [selection, setSelection] = useState({start: 0, end: 0});
     const [isFocused, setIsFocused] = useState(false);
     const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
-
+    const [selectTextOnFocus, setSelectTextOnFocus] = useState(false)
     function componentDidMount() {
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
@@ -200,11 +200,11 @@ const EmojiPickerMenu = (props) => {
 
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
             if (!searchInputRef.current?.isFocused()) {
-                this.setState({selectTextOnFocus: false});
-                searchInputRef.current.focus();
+                setSelectTextOnFocus(false)
+                searchInputRef.current?.focus();
 
                 // Re-enable selection on the searchInput
-                this.setState({selectTextOnFocus: true});
+                setSelectTextOnFocus(true);
             }
         };
 
@@ -263,7 +263,7 @@ const EmojiPickerMenu = (props) => {
             return;
         }
 
-        this.setState({selectTextOnFocus: true});
+        setSelectTextOnFocus(true);
         searchInputRef.current.focus();
     }
 
@@ -507,7 +507,7 @@ const EmojiPickerMenu = (props) => {
                     defaultValue=""
                     ref={searchInputRef}
                     autoFocus={shouldFocusInputOnScreenFocus}
-                    selectTextOnFocus={this.state.selectTextOnFocus}
+                    selectTextOnFocus={selectTextOnFocus}
                     onSelectionChange={onSelectionChange}
                     onFocus={() => {
                         setHighlightedIndex(-1);
