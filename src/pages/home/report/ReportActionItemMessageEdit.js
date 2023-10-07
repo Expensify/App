@@ -322,11 +322,11 @@ function ReportActionItemMessageEdit(props) {
                         hasExceededMaxCommentLength && styles.borderColorDanger,
                     ]}
                 >
-                    <View style={[styles.justifyContentEnd]}>
+                    <View style={[styles.justifyContentEnd, styles.mb1]}>
                         <Tooltip text={translate('common.cancel')}>
                             <PressableWithFeedback
                                 onPress={deleteDraft}
-                                style={styles.chatItemSubmitButton}
+                                style={styles.composerSizeButton}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                                 // disable dimming
