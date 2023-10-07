@@ -3289,6 +3289,56 @@ const styles = (theme) => ({
         lineHeight: variables.lineHeightXXLarge,
     },
 
+    eReceiptAmount: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXXXLarge,
+        lineHeight: variables.lineHeightXXXLarge,
+    },
+
+    eReceiptMerchant: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
+        color: theme.text,
+    },
+
+    eReceiptWaypointTitle: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
+    },
+
+    eReceiptWaypointAddress: {
+        fontFamily: fontFamily.MONOSPACE,
+        fontSize: variables.fontSizeNormal,
+        lineHeight: variables.lineHeightNormal,
+        color: theme.textColorfulBackground,
+    },
+
+    eReceiptGuaranteed: {
+        fontFamily: fontFamily.MONOSPACE,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
+        color: theme.textColorfulBackground,
+    },
+
+    eReceiptBackground: {
+        ...sizing.w100,
+        borderRadius: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: 540,
+    },
+
+    eReceiptPanel: {
+        ...spacing.p5,
+        ...spacing.pb8,
+        ...spacing.m5,
+        borderRadius: 20,
+        width: 500,
+    },
+
     loginHeroBody: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSignInHeroBody,
