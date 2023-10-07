@@ -65,7 +65,7 @@ const EmojiPickerMenu = (props) => {
 
     const firstNonHeaderIndex = useRef(0);
 
-    const {headerEmojis} = getEmojisAndHeaderRowIndices();
+    // TODO: Group the 3 refs into 1?? Adv:- code would look cleaner + there will be only 1 getEmojisAndHeaderRowIndices() call.
     const emojis = useRef<Object[]>([]); // TODO: find TS type
     if (emojis.current.length === 0) {
         emojis.current = getEmojisAndHeaderRowIndices().filteredEmojis;
@@ -74,7 +74,10 @@ const EmojiPickerMenu = (props) => {
     if (headerRowIndices.current.length === 0) {
         headerRowIndices.current = getEmojisAndHeaderRowIndices().headerRowIndices;
     }
-    this.headerEmojis = headerEmojis;
+    const headerEmojis = useRef<Object[]>([]); // TODO: find TS type
+    if (headerEmojis.current.length === 0) {
+        headerEmojis.current = getEmojisAndHeaderRowIndices().headerEmojis;
+    }
 
     // TODO: Group releated states in objects
     const [filteredEmojis, setFilteredEmojis] = useState(emojis.current);
@@ -110,7 +113,7 @@ const EmojiPickerMenu = (props) => {
         const emojisAndHeaderRowIndices = getEmojisAndHeaderRowIndices();
         emojis.current = emojisAndHeaderRowIndices.filteredEmojis;
         headerRowIndices.current = emojisAndHeaderRowIndices.headerRowIndices;
-        this.headerEmojis = emojisAndHeaderRowIndices.headerEmojis;
+        headerEmojis.current = emojisAndHeaderRowIndices.headerEmojis;
         setFilteredEmojis(emojis.current);
         setHeaderIndices(headerRowIndices.current);
     }
@@ -516,7 +519,7 @@ const EmojiPickerMenu = (props) => {
             </View>
             {!isFiltered && (
                 <CategoryShortcutBar
-                    headerEmojis={this.headerEmojis}
+                    headerEmojis={headerEmojis.current} // TODO: BAD PRACTICE: Do not write or read ref.current during rendering, except for initialization. This makes your component’s behavior unpredictable.
                     onPress={scrollToHeader}
                 />
             )}
