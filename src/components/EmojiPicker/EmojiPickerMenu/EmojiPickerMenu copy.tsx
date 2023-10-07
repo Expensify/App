@@ -440,7 +440,7 @@ const EmojiPickerMenu = (props) => {
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
      *
-     * @param {Object} item
+     * @param {Object} item // TODO: Find Type
      * @param {Number} index
      * @returns {*}
      */
