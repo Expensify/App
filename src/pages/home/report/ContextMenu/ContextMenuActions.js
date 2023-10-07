@@ -22,6 +22,7 @@ import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickE
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import * as Task from '../../../../libs/actions/Task';
+import * as TaskUtils from '../../../../libs/TaskUtils';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -183,7 +184,6 @@ export default [
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
-            const isCreateTaskAction = ReportActionsUtils.isCreatedTaskReportAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const messageHtml = isTaskAction ? Task.getTaskReportActionMessage(reportAction) : lodashGet(message, 'html', '');
@@ -201,8 +201,9 @@ export default [
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
-                } else if (isCreateTaskAction) {
-                    Clipboard.setString(`task for ${reportAction.childReportName}`);
+                } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
+                    const taskTitle = TaskUtils.getTaskTitle(reportAction.childReportID, reportAction.childReportName);
+                    Clipboard.setString(`task for ${taskTitle}`);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {

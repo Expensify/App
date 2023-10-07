@@ -13,7 +13,6 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
-import * as Localize from '../Localize';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -912,23 +911,6 @@ function clearEditTaskErrors(reportID) {
     });
 }
 
-/**
- * @param {string} actionName
- * @returns {string}
- */
-function getTaskReportActionMessage(actionName) {
-    switch (actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
-            return Localize.translateLocal('task.messages.completed');
-        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED:
-            return Localize.translateLocal('task.messages.canceled');
-        case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
-            return Localize.translateLocal('task.messages.reopened');
-        default:
-            return Localize.translateLocal('task.task');
-    }
-}
-
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -950,5 +932,4 @@ export {
     getTaskAssigneeAccountID,
     clearEditTaskErrors,
     canModifyTask,
-    getTaskReportActionMessage,
 };
