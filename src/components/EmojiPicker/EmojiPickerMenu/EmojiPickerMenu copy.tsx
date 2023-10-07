@@ -82,8 +82,8 @@ const EmojiPickerMenu = (props) => {
     // TODO: Group releated states in objects
     const [filteredEmojis, setFilteredEmojis] = useState(emojis.current);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices.current);
+    const [highlightedIndex, setHighlightedIndex] = useState(-1);
     this.state = {
-        highlightedIndex: -1,
         arePointerEventsDisabled: false,
         selection: {
             start: 0,
@@ -185,8 +185,8 @@ const EmojiPickerMenu = (props) => {
             }
 
             // Select the currently highlighted emoji if enter is pressed
-            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && this.state.highlightedIndex !== -1) {
-                const item = this.state.filteredEmojis[this.state.highlightedIndex];
+            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && highlightedIndex !== -1) {
+                const item = this.state.filteredEmojis[highlightedIndex];
                 if (!item) {
                     return;
                 }
@@ -298,19 +298,20 @@ const EmojiPickerMenu = (props) => {
 
             // We only want to hightlight the Emoji if none was highlighted already
             // If we already have a highlighted Emoji, lets just skip the first navigation
-            if (this.state.highlightedIndex !== -1) {
+            if (highlightedIndex !== -1) {
                 return;
             }
         }
 
         // If nothing is highlighted and an arrow key is pressed
         // select the first emoji, apply keyboard movement styles, and disable pointer events
-        if (this.state.highlightedIndex === -1) {
-            this.setState({highlightedIndex: firstNonHeaderIndex.current, isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
+        if (highlightedIndex === -1) {
+            setHighlightedIndex(firstNonHeaderIndex.current);
+            this.setState({isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
             return;
         }
 
-        let newIndex = this.state.highlightedIndex;
+        let newIndex = highlightedIndex;
         const move = (steps, boundsCheck, onBoundReached = () => {}) => {
             if (boundsCheck()) {
                 onBoundReached();
@@ -329,12 +330,12 @@ const EmojiPickerMenu = (props) => {
 
         switch (arrowKey) {
             case 'ArrowDown':
-                move(CONST.EMOJI_NUM_PER_ROW, () => this.state.highlightedIndex + CONST.EMOJI_NUM_PER_ROW > filteredEmojis.length - 1);
+                move(CONST.EMOJI_NUM_PER_ROW, () => highlightedIndex + CONST.EMOJI_NUM_PER_ROW > filteredEmojis.length - 1);
                 break;
             case 'ArrowLeft':
                 move(
                     -1,
-                    () => this.state.highlightedIndex - 1 < firstNonHeaderIndex.current,
+                    () => highlightedIndex - 1 < firstNonHeaderIndex.current,
                     () => {
                         // Reaching start of the list, arrow left set the focus to searchInput.
                         this.focusInputWithTextSelect();
@@ -343,12 +344,12 @@ const EmojiPickerMenu = (props) => {
                 );
                 break;
             case 'ArrowRight':
-                move(1, () => this.state.highlightedIndex + 1 > filteredEmojis.length - 1);
+                move(1, () => highlightedIndex + 1 > filteredEmojis.length - 1);
                 break;
             case 'ArrowUp':
                 move(
                     -CONST.EMOJI_NUM_PER_ROW,
-                    () => this.state.highlightedIndex - CONST.EMOJI_NUM_PER_ROW < firstNonHeaderIndex.current,
+                    () => highlightedIndex - CONST.EMOJI_NUM_PER_ROW < firstNonHeaderIndex.current,
                     () => {
                         // Reaching start of the list, arrow up set the focus to searchInput.
                         this.focusInputWithTextSelect();
@@ -361,8 +362,9 @@ const EmojiPickerMenu = (props) => {
         }
 
         // Actually highlight the new emoji, apply keyboard movement styles, and disable pointer events
-        if (newIndex !== this.state.highlightedIndex) {
-            this.setState({highlightedIndex: newIndex, isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
+        if (newIndex !== highlightedIndex) {
+            setHighlightedIndex(newIndex);
+            this.setState({isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
         }
     }
 
@@ -385,9 +387,7 @@ const EmojiPickerMenu = (props) => {
                 // There are no headers when searching, so we need to re-make them sticky when there is no search term
                 setFilteredEmojis(emojis.current);
                 setHeaderIndices(headerRowIndices.current);
-                this.setState({
-                    highlightedIndex: -1,
-                });
+                setHighlightedIndex(-1);
                 updateFirstNonHeaderIndex(emojis.current);
                 return;
             }
@@ -396,7 +396,7 @@ const EmojiPickerMenu = (props) => {
             // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
             setFilteredEmojis(newFilteredEmojiList);
             setHeaderIndices([]);
-            this.setState({highlightedIndex: 0});
+            setHighlightedIndex(0);
             updateFirstNonHeaderIndex(newFilteredEmojiList);
         }, 300),
         [],
@@ -462,29 +462,30 @@ const EmojiPickerMenu = (props) => {
 
         const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
 
-        const isEmojiFocused = index === this.state.highlightedIndex && this.state.isUsingKeyboardMovement;
+        const isEmojiFocused = index === highlightedIndex && this.state.isUsingKeyboardMovement;
 
         return (
             <EmojiPickerMenuItem
                 onPress={(emoji) => this.addToFrequentAndSelectEmoji(emoji, item)}
-                onHoverIn={() => this.setState({highlightedIndex: index, isUsingKeyboardMovement: false})}
+                onHoverIn={() => {
+                    setHighlightedIndex(index);
+                    this.setState({isUsingKeyboardMovement: false});
+                }}
                 onHoverOut={() => {
                     if (this.state.arePointerEventsDisabled) {
                         return;
                     }
-                    this.setState({highlightedIndex: -1});
+                    setHighlightedIndex(-1);
                 }}
                 emoji={emojiCode}
-                onFocus={() => this.setState({highlightedIndex: index})}
+                onFocus={() => void setHighlightedIndex(index)}
                 onBlur={() =>
-                    this.setState((prevState) => ({
-                        // Only clear the highlighted index if the highlighted index is the same,
-                        // meaning that the focus changed to an element that is not an emoji item.
-                        highlightedIndex: prevState.highlightedIndex === index ? -1 : prevState.highlightedIndex,
-                    }))
+                    // Only clear the highlighted index if the highlighted index is the same,
+                    // meaning that the focus changed to an element that is not an emoji item.
+                    setHighlightedIndex((prevState) => (prevState === index ? -1 : prevState))
                 }
                 isFocused={isEmojiFocused}
-                isHighlighted={index === this.state.highlightedIndex}
+                isHighlighted={index === highlightedIndex}
                 isUsingKeyboardMovement={this.state.isUsingKeyboardMovement}
             />
         );
@@ -511,7 +512,10 @@ const EmojiPickerMenu = (props) => {
                     autoFocus={shouldFocusInputOnScreenFocus}
                     selectTextOnFocus={this.state.selectTextOnFocus}
                     onSelectionChange={onSelectionChange}
-                    onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
+                    onFocus={() => {
+                        setHighlightedIndex(-1);
+                        this.setState({isFocused: true, isUsingKeyboardMovement: false});
+                    }}
                     onBlur={() => this.setState({isFocused: false})}
                     autoCorrect={false}
                     blurOnSubmit={filteredEmojis.length > 0}
@@ -538,7 +542,7 @@ const EmojiPickerMenu = (props) => {
                     // Set scrollPaddingTop to consider sticky headers while scrolling
                     {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
                 ]}
-                extraData={[this.state.filteredEmojis, this.state.highlightedIndex, preferredSkinTone]}
+                extraData={[this.state.filteredEmojis, highlightedIndex, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
                 getItemLayout={getItemLayout}
                 contentContainerStyle={styles.flexGrow1}
