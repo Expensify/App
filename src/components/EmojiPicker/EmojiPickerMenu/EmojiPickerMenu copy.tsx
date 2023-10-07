@@ -178,7 +178,7 @@ const EmojiPickerMenu = (props) => {
                 return;
             }
             const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
-            this.addToFrequentAndSelectEmoji(emoji, item);
+            addToFrequentAndSelectEmoji(emoji, item);
             return;
         }
 
@@ -249,7 +249,8 @@ const EmojiPickerMenu = (props) => {
      * @param {String} emoji
      * @param {Object} emojiObject
      */
-    function addToFrequentAndSelectEmoji(emoji, emojiObject) {
+    function addToFrequentAndSelectEmoji(emoji: string, emojiObject: {}) {
+        // TODO: type of emojiObject
         const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
         User.updateFrequentlyUsedEmojis(frequentEmojiList);
         onEmojiSelected(emoji, emojiObject);
@@ -334,7 +335,7 @@ const EmojiPickerMenu = (props) => {
                     () => highlightedIndex - 1 < firstNonHeaderIndex.current,
                     () => {
                         // Reaching start of the list, arrow left set the focus to searchInput.
-                        this.focusInputWithTextSelect();
+                        focusInputWithTextSelect();
                         newIndex = -1;
                     },
                 );
@@ -348,7 +349,7 @@ const EmojiPickerMenu = (props) => {
                     () => highlightedIndex - CONST.EMOJI_NUM_PER_ROW < firstNonHeaderIndex.current,
                     () => {
                         // Reaching start of the list, arrow up set the focus to searchInput.
-                        this.focusInputWithTextSelect();
+                        focusInputWithTextSelect();
                         newIndex = -1;
                     },
                 );
@@ -464,7 +465,7 @@ const EmojiPickerMenu = (props) => {
 
         return (
             <EmojiPickerMenuItem
-                onPress={(emoji) => this.addToFrequentAndSelectEmoji(emoji, item)}
+                onPress={(emoji) => addToFrequentAndSelectEmoji(emoji, item)}
                 onHoverIn={() => {
                     setHighlightedIndex(index);
                     setIsUsingKeyboardMovement(false);
