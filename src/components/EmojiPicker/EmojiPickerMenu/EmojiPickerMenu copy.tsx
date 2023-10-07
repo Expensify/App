@@ -199,6 +199,12 @@ const EmojiPickerMenu = (props) => {
             setSelectTextOnFocus(true);
         }
     };
+    const mouseMoveHandler = () => {
+        if (!arePointerEventsDisabled) {
+            return;
+        }
+        setArePointerEventsDisabled(false);
+    };
 
     /**
      * Setup and attach keypress/mouse handlers for highlight navigation.
@@ -213,13 +219,7 @@ const EmojiPickerMenu = (props) => {
         document.addEventListener('keydown', keyDownHandler, true);
 
         // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
-        this.mouseMoveHandler = () => {
-            if (!arePointerEventsDisabled) {
-                return;
-            }
-            setArePointerEventsDisabled(false);
-        };
-        document.addEventListener('mousemove', this.mouseMoveHandler);
+        document.addEventListener('mousemove', mouseMoveHandler);
     }
 
     /**
@@ -242,7 +242,7 @@ const EmojiPickerMenu = (props) => {
      */
     function cleanupEventHandlers() {
         document?.removeEventListener('keydown', keyDownHandler, true);
-        document?.removeEventListener('mousemove', this.mouseMoveHandler);
+        document?.removeEventListener('mousemove', mouseMoveHandler);
     }
 
     /**
