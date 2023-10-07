@@ -38,7 +38,7 @@ function assignRef(ref, el) {
  * parent. https://github.com/necolas/react-native-web/issues/1875
  */
 
-function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandleScroll}, outerRef) {
+const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, children, shouldHandleScroll}, outerRef) => {
     const [isHovered, setIsHovered] = useState(false);
 
     const isScrolling = useRef(false);
@@ -189,9 +189,7 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
         onMouseLeave,
         onBlur,
     });
-}
-
-const Hoverable = React.forwardRef(InnerHoverable);
+});
 
 Hoverable.propTypes = propTypes;
 Hoverable.defaultProps = defaultProps;
