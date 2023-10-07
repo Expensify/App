@@ -30,7 +30,7 @@ function EReceipt({transaction}) {
     const secondaryColor = colorStyles.color;
     
     return (
-        <View style={{width: 335, backgroundColor: primaryColor}}>
+        <View style={{width: 335, minHeight: 540, backgroundColor: primaryColor}}>
                 <View style={{position: 'absolute', top: 0, left: 0, width: '100%', aspectRatio: 335 / 540}}>
                     <EReceiptBG height={540} style={colorStyles} />
                 </View>
@@ -51,8 +51,8 @@ function EReceipt({transaction}) {
                         />
                     </View>
                 </View>
-                <View style={[{width: 335, flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, paddingHorizontal: 36, gap: 36}]}>
-                    <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2]}>
+                <View style={[{width: 335, flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, paddingHorizontal: 36, flex: 1}]}>
+                <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2, {marginBottom: 32}]}>
                         <View style={[{justifyContent: 'center', gap: 1, flexDirection: 'row'}]}>
                             <View style={[{flexDirection: 'column', paddingTop: 3, gap: 10}]}>
                                 <Text style={[styles.eReceiptAmount, {fontSize: 28, lineHeight: 'normal'}, {color: secondaryColor}]}>
@@ -67,8 +67,8 @@ function EReceipt({transaction}) {
                             United
                         </Text>
                     </View>
-                    <View style={[styles.alignSelfStretch, styles.flexColumn, styles.gap4]}>
-                        <View style={[{flexDirection: 'column', gap: 2}]}>
+                    <View style={[styles.alignSelfStretch, styles.flexColumn, {marginBottom: 32}, {gap: 16}]}>
+                        <View style={[{flexDirection: 'column'}, {gap: 4}]}>
                             <Text style={[styles.eReceiptWaypointTitle, {color: secondaryColor}]}>
                             Transaction date
                             </Text>
@@ -76,7 +76,7 @@ function EReceipt({transaction}) {
                             January 12, 2022
                             </Text>
                         </View>
-                        <View style={[{flexDirection: 'column', gap: 2}]}>
+                        <View style={[{flexDirection: 'column'}, {gap: 4}]}>
                             <Text style={[styles.eReceiptWaypointTitle, {color: secondaryColor}]}>
                             Card
                             </Text>
@@ -85,7 +85,7 @@ function EReceipt({transaction}) {
                             </Text>
                         </View>
                     </View>
-                    <View style={[{paddingTop: 36, height: 20, paddingLeft: 0, justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, alignSelf: 'stretch', flexDirection: 'row'}]}>
+                    <View style={[{marginBottom: 32, height: 20, paddingLeft: 0, justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, alignSelf: 'stretch', flexDirection: 'row'}]}>
                         <Icon
                             width={86}
                             height={19.25}
