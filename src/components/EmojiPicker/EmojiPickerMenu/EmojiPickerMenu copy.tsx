@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, useRef} from 'react';
 import {View, FlatList} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -22,6 +22,7 @@ import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
 import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
+import {TextInput as RNTextInput} from 'react-native';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -53,7 +54,7 @@ const EmojiPickerMenu = (props) => {
     const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, isSmallScreenWidth, windowWidth, windowHeight, translate} = props;
 
     // Ref for the emoji search input
-    this.searchInput = undefined;
+    const searchInputRef = useRef<RNTextInput>(null); // TODO: is RNTextInput correct?
 
     // Ref for emoji FlatList
     this.emojiList = undefined;
@@ -100,7 +101,7 @@ const EmojiPickerMenu = (props) => {
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
         if (this.shouldFocusInputOnScreenFocus && forwardedRef && _.isFunction(forwardedRef)) {
-            forwardedRef(this.searchInput);
+            forwardedRef(searchInputRef.current);
         }
         this.setupEventHandlers();
         this.setFirstNonHeaderIndex(this.emojis);
@@ -200,15 +201,15 @@ const EmojiPickerMenu = (props) => {
             // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
             // is not focused, so that the navigation and tab cycling can be done using the keyboard without
             // interfering with the input behaviour.
-            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && this.searchInput && !this.searchInput.isFocused())) {
+            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && !searchInputRef.current?.isFocused())) {
                 this.setState({isUsingKeyboardMovement: true});
                 return;
             }
 
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
-            if (this.searchInput && !this.searchInput.isFocused()) {
+            if (!searchInputRef.current?.isFocused()) {
                 this.setState({selectTextOnFocus: false});
-                this.searchInput.focus();
+                searchInputRef.current.focus();
 
                 // Re-enable selection on the searchInput
                 this.setState({selectTextOnFocus: true});
@@ -270,12 +271,12 @@ const EmojiPickerMenu = (props) => {
      * Focuses the search Input and has the text selected
      */
     function focusInputWithTextSelect() {
-        if (!this.searchInput) {
+        if (!searchInputRef.current) {
             return;
         }
 
         this.setState({selectTextOnFocus: true});
-        this.searchInput.focus();
+        searchInputRef.current.focus();
     }
 
     /**
@@ -288,17 +289,17 @@ const EmojiPickerMenu = (props) => {
         }
 
         // Arrow Down and Arrow Right enable arrow navigation when search is focused
-        if (this.searchInput && this.searchInput.isFocused()) {
+        if (searchInputRef.current?.isFocused()) {
             if (arrowKey !== 'ArrowDown' && arrowKey !== 'ArrowRight') {
                 return;
             }
 
-            if (arrowKey === 'ArrowRight' && !(this.searchInput.value.length === this.state.selection.start && this.state.selection.start === this.state.selection.end)) {
+            if (arrowKey === 'ArrowRight' && !(searchInputRef.current.value.length === this.state.selection.start && this.state.selection.start === this.state.selection.end)) {
                 return;
             }
 
             // Blur the input, change the highlight type to keyboard, and disable pointer events
-            this.searchInput.blur();
+            searchInputRef.current.blur();
             this.setState({isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
 
             // We only want to hightlight the Emoji if none was highlighted already
@@ -505,7 +506,7 @@ const EmojiPickerMenu = (props) => {
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     onChangeText={this.filterEmojis}
                     defaultValue=""
-                    ref={(el) => (this.searchInput = el)}
+                    ref={searchInputRef}
                     autoFocus={this.shouldFocusInputOnScreenFocus}
                     selectTextOnFocus={this.state.selectTextOnFocus}
                     onSelectionChange={this.onSelectionChange}
