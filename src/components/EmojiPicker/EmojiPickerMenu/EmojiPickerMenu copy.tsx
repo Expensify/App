@@ -63,7 +63,7 @@ const EmojiPickerMenu = (props) => {
     // prevent auto focus when open picker for mobile device
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-    this.firstNonHeaderIndex = 0;
+    const firstNonHeaderIndex = useRef(0);
 
     const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
     this.emojis = filteredEmojis;
@@ -92,7 +92,7 @@ const EmojiPickerMenu = (props) => {
             forwardedRef(searchInputRef.current);
         }
         setupEventHandlers();
-        setFirstNonHeaderIndex(this.emojis);
+        updateFirstNonHeaderIndex(this.emojis);
     }
 
     function componentDidUpdate(prevProps) {
@@ -152,9 +152,9 @@ const EmojiPickerMenu = (props) => {
      * Find and store index of the first emoji item
      * @param {Array} filteredEmojis
      */
-    function setFirstNonHeaderIndex(filteredEmojis: any[]) {
+    function updateFirstNonHeaderIndex(filteredEmojis: any[]) {
         // TODO: Emoji Object type
-        this.firstNonHeaderIndex = _.findIndex(filteredEmojis, (item) => !item.spacer && !item.header);
+        firstNonHeaderIndex.current = _.findIndex(filteredEmojis, (item) => !item.spacer && !item.header);
     }
 
     /**
@@ -298,7 +298,7 @@ const EmojiPickerMenu = (props) => {
         // If nothing is highlighted and an arrow key is pressed
         // select the first emoji, apply keyboard movement styles, and disable pointer events
         if (this.state.highlightedIndex === -1) {
-            this.setState({highlightedIndex: this.firstNonHeaderIndex, isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
+            this.setState({highlightedIndex: firstNonHeaderIndex.current, isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
             return;
         }
 
@@ -326,7 +326,7 @@ const EmojiPickerMenu = (props) => {
             case 'ArrowLeft':
                 move(
                     -1,
-                    () => this.state.highlightedIndex - 1 < this.firstNonHeaderIndex,
+                    () => this.state.highlightedIndex - 1 < firstNonHeaderIndex.current,
                     () => {
                         // Reaching start of the list, arrow left set the focus to searchInput.
                         this.focusInputWithTextSelect();
@@ -340,7 +340,7 @@ const EmojiPickerMenu = (props) => {
             case 'ArrowUp':
                 move(
                     -CONST.EMOJI_NUM_PER_ROW,
-                    () => this.state.highlightedIndex - CONST.EMOJI_NUM_PER_ROW < this.firstNonHeaderIndex,
+                    () => this.state.highlightedIndex - CONST.EMOJI_NUM_PER_ROW < firstNonHeaderIndex.current,
                     () => {
                         // Reaching start of the list, arrow up set the focus to searchInput.
                         this.focusInputWithTextSelect();
@@ -380,14 +380,14 @@ const EmojiPickerMenu = (props) => {
                     headerIndices: this.headerRowIndices,
                     highlightedIndex: -1,
                 });
-                setFirstNonHeaderIndex(this.emojis);
+                updateFirstNonHeaderIndex(this.emojis);
                 return;
             }
             const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, this.emojis.length);
 
             // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
             this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
-            setFirstNonHeaderIndex(newFilteredEmojiList);
+            updateFirstNonHeaderIndex(newFilteredEmojiList);
         }, 300),
         [],
     );
@@ -406,7 +406,8 @@ const EmojiPickerMenu = (props) => {
      * @param {Number} skinTone
      */
     function updatePreferredSkinTone(skinTone: number) {
-        if (Number(preferredSkinTone) === skinTone) { // TODO: temp Number() for safety
+        if (Number(preferredSkinTone) === skinTone) {
+            // TODO: temp Number() for safety
             return;
         }
 
