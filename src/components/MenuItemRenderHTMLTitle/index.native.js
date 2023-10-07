@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import RenderHTML from '../RenderHTML';
 import menuItemRenderHTMLTitlePropTypes from './propTypes';
 
@@ -7,7 +8,11 @@ const propTypes = menuItemRenderHTMLTitlePropTypes;
 const defaultProps = {};
 
 function MenuItemRenderHTMLTitle(props) {
-    return <RenderHTML html={props.title} />;
+    return (
+        <View>
+            <RenderHTML html={props.title} />
+        </View>
+    );
 }
 
 MenuItemRenderHTMLTitle.propTypes = propTypes;
