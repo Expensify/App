@@ -91,9 +91,12 @@ function EditRequestDistancePage({report, route, transaction, transactionBackup}
      * @param {Object} waypoints
      */
     const saveTransaction = (waypoints) => {
-        // If nothing was changed, simply go back
-        const backupWaypoints = lodashGet(transactionBackup, 'comment.waypoints', {});
-        if (_.isEqual(backupWaypoints, waypoints)) {
+        // If nothing was changed, simply go to transaction thread
+        // We compare only addresses because numbers are rounded while backup
+        const oldWaypoints = lodashGet(transactionBackup, 'comment.waypoints', {});
+        const oldAddresses = _.mapObject(oldWaypoints, (waypoint) => _.pick(waypoint, 'address'));
+        const addresses = _.mapObject(waypoints, (waypoint) => _.pick(waypoint, 'address'));
+        if (_.isEqual(oldAddresses, addresses)) {
             Navigation.dismissModal(report.reportID);
             return;
         }
