@@ -26,6 +26,7 @@ import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsCo
 import * as Session from './libs/actions/Session';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
+import {SidebarNavigationContextProvider} from './pages/home/sidebar/SidebarNavigationContext';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -64,6 +65,7 @@ function App() {
                     EnvironmentProvider,
                     ThemeProvider,
                     ThemeStylesProvider,
+                    SidebarNavigationContextProvider,
                 ]}
             >
                 <CustomStatusBar />
