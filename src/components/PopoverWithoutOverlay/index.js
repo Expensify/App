@@ -26,7 +26,7 @@ function Popover(props) {
     );
 
     const prevIsVisible = usePrevious(props.isVisible);
-    
+
     React.useEffect(() => {
         if (props.isVisible) {
             props.onModalShow();
