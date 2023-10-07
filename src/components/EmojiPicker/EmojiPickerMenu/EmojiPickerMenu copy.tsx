@@ -181,7 +181,7 @@ const EmojiPickerMenu = (props) => {
 
             // Select the currently highlighted emoji if enter is pressed
             if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && highlightedIndex !== -1) {
-                const item = this.state.filteredEmojis[highlightedIndex];
+                const item = filteredEmojis[highlightedIndex];
                 if (!item) {
                     return;
                 }
@@ -321,7 +321,7 @@ const EmojiPickerMenu = (props) => {
                 if (newIndex < 0) {
                     break;
                 }
-            } while (isHeader(this.state.filteredEmojis[newIndex]));
+            } while (isHeader(filteredEmojis[newIndex]));
         };
 
         switch (arrowKey) {
@@ -527,7 +527,7 @@ const EmojiPickerMenu = (props) => {
             )}
             <FlatList
                 ref={emojiListRef}
-                data={this.state.filteredEmojis}
+                data={filteredEmojis}
                 renderItem={renderItem}
                 keyExtractor={this.keyExtractor}
                 numColumns={CONST.EMOJI_NUM_PER_ROW}
@@ -540,7 +540,7 @@ const EmojiPickerMenu = (props) => {
                     // Set scrollPaddingTop to consider sticky headers while scrolling
                     {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
                 ]}
-                extraData={[this.state.filteredEmojis, highlightedIndex, preferredSkinTone]}
+                extraData={[filteredEmojis, highlightedIndex, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
                 getItemLayout={getItemLayout}
                 contentContainerStyle={styles.flexGrow1}
