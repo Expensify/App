@@ -1,4 +1,4 @@
-import React, {Component, useCallback, useRef} from 'react';
+import React, {Component, useCallback, useRef, useState} from 'react';
 import {View, FlatList, TextInputSelectionChangeEventData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -65,13 +65,18 @@ const EmojiPickerMenu = (props) => {
 
     const firstNonHeaderIndex = useRef(0);
 
-    const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
-    this.emojis = filteredEmojis;
-    this.headerEmojis = headerEmojis;
+    const { headerEmojis, headerRowIndices} = getEmojisAndHeaderRowIndices();
+    const emojis = useRef<Object[]>([]); // TODO: find TS type
+    if (emojis.current.length === 0) {
+        emojis.current = getEmojisAndHeaderRowIndices().filteredEmojis;
+    }
     this.headerRowIndices = headerRowIndices;
+    this.headerEmojis = headerEmojis;
+
+    // TODO: Group releated states in objects
+    const [filteredEmojis, setFilteredEmojis] = useState(emojis.current);
 
     this.state = {
-        filteredEmojis: this.emojis,
         headerIndices: this.headerRowIndices,
         highlightedIndex: -1,
         arePointerEventsDisabled: false,
@@ -92,7 +97,7 @@ const EmojiPickerMenu = (props) => {
             forwardedRef(searchInputRef.current);
         }
         setupEventHandlers();
-        updateFirstNonHeaderIndex(this.emojis);
+        updateFirstNonHeaderIndex(emojis.current);
     }
 
     function componentDidUpdate(prevProps) {
@@ -100,12 +105,12 @@ const EmojiPickerMenu = (props) => {
             return;
         }
 
-        const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
-        this.emojis = filteredEmojis;
+        const {filteredEmojis, headerEmojis, headerRowIndices} = getEmojisAndHeaderRowIndices();
+        emojis.current = filteredEmojis;
         this.headerEmojis = headerEmojis;
         this.headerRowIndices = headerRowIndices;
+        setFilteredEmojis(emojis.current);
         this.setState({
-            filteredEmojis: this.emojis,
             headerIndices: this.headerRowIndices,
         });
     }
@@ -152,7 +157,7 @@ const EmojiPickerMenu = (props) => {
      * Find and store index of the first emoji item
      * @param {Array} filteredEmojis
      */
-    function updateFirstNonHeaderIndex(filteredEmojis: any[]) {
+    function updateFirstNonHeaderIndex(filteredEmojis: Object[]) {
         // TODO: Emoji Object type
         firstNonHeaderIndex.current = _.findIndex(filteredEmojis, (item) => !item.spacer && !item.header);
     }
@@ -270,7 +275,7 @@ const EmojiPickerMenu = (props) => {
      * @param {String} arrowKey
      */
     function highlightAdjacentEmoji(arrowKey: KeyboardEvent['key']) {
-        if (this.state.filteredEmojis.length === 0) {
+        if (filteredEmojis.length === 0) {
             return;
         }
 
@@ -321,7 +326,7 @@ const EmojiPickerMenu = (props) => {
 
         switch (arrowKey) {
             case 'ArrowDown':
-                move(CONST.EMOJI_NUM_PER_ROW, () => this.state.highlightedIndex + CONST.EMOJI_NUM_PER_ROW > this.state.filteredEmojis.length - 1);
+                move(CONST.EMOJI_NUM_PER_ROW, () => this.state.highlightedIndex + CONST.EMOJI_NUM_PER_ROW > filteredEmojis.length - 1);
                 break;
             case 'ArrowLeft':
                 move(
@@ -335,7 +340,7 @@ const EmojiPickerMenu = (props) => {
                 );
                 break;
             case 'ArrowRight':
-                move(1, () => this.state.highlightedIndex + 1 > this.state.filteredEmojis.length - 1);
+                move(1, () => this.state.highlightedIndex + 1 > filteredEmojis.length - 1);
                 break;
             case 'ArrowUp':
                 move(
@@ -375,18 +380,19 @@ const EmojiPickerMenu = (props) => {
             emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
             if (normalizedSearchTerm === '') {
                 // There are no headers when searching, so we need to re-make them sticky when there is no search term
+                setFilteredEmojis(emojis.current);
                 this.setState({
-                    filteredEmojis: this.emojis,
                     headerIndices: this.headerRowIndices,
                     highlightedIndex: -1,
                 });
-                updateFirstNonHeaderIndex(this.emojis);
+                updateFirstNonHeaderIndex(emojis.current);
                 return;
             }
-            const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, this.emojis.length);
+            const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, emojis.current.length);
 
             // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
-            this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
+            setFilteredEmojis(newFilteredEmojiList);
+            this.setState({headerIndices: [], highlightedIndex: 0});
             updateFirstNonHeaderIndex(newFilteredEmojiList);
         }, 300),
         [],
@@ -480,7 +486,7 @@ const EmojiPickerMenu = (props) => {
         );
     }
 
-    const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
+    const isFiltered = emojis.current.length !== filteredEmojis.length;
     const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, windowHeight);
     const height = !listStyle.maxHeight || listStyle.height < listStyle.maxHeight ? listStyle.height : listStyle.maxHeight;
     const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
@@ -504,7 +510,7 @@ const EmojiPickerMenu = (props) => {
                     onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
                     onBlur={() => this.setState({isFocused: false})}
                     autoCorrect={false}
-                    blurOnSubmit={this.state.filteredEmojis.length > 0}
+                    blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
             {!isFiltered && (
@@ -524,7 +530,7 @@ const EmojiPickerMenu = (props) => {
                     // This prevents elastic scrolling when scroll reaches the start or end
                     {overscrollBehaviorY: 'contain'},
                     // Set overflow to hidden to prevent elastic scrolling when there are not enough contents to scroll in FlatList
-                    {overflowY: this.state.filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
+                    {overflowY: filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
                     // Set scrollPaddingTop to consider sticky headers while scrolling
                     {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
                 ]}
