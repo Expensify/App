@@ -332,17 +332,10 @@ function ReportActionItemMessageEdit(props) {
                                 // disable dimming
                                 hoverDimmingValue={1}
                                 pressDimmingValue={1}
-                                hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
-                                pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
                                 // Keep focus on the composer when cancel button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
                             >
-                                {({hovered, pressed}) => (
-                                    <Icon
-                                        src={Expensicons.Close}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                    />
-                                )}
+                                <Icon src={Expensicons.Close} />
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>
