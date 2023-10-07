@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import moment from 'moment/moment';
+import {subYears} from 'date-fns';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -89,9 +89,10 @@ const fieldNameTranslationKeys = {
     ssnFull9: 'common.ssnFull9',
 };
 
-function AdditionalDetailsStep({walletAdditionalDetails, translate, route, currentUserPersonalDetails}) {
-    const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
-    const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'Y').toDate();
+function AdditionalDetailsStep({walletAdditionalDetails, route, translate, currentUserPersonalDetails}) {
+    const currentDate = new Date();
+    const minDate = subYears(currentDate, CONST.DATE_BIRTH.MAX_AGE);
+    const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     const shouldAskForFullSSN = walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
 
     /**
