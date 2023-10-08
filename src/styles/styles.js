@@ -3780,10 +3780,10 @@ const styles = (theme) => ({
     },
 
     aspectRatioLottie: (source) => {
-        if (typeof source === 'object' && !source.uri) {
+        if (!source.uri && typeof source === 'object' && source.w && source.h) {
             return {aspectRatio: source.w / source.h};
         }
-        return {aspectRatio: '1'};
+        return {};
     },
 
     receiptDropHeaderGap: {
