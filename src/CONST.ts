@@ -304,7 +304,7 @@ const CONST = {
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
-        SHORTCUT_MODAL: {
+        SHORTCUTS: {
             descriptionKey: 'openShortcutDialog',
             shortcutKey: 'J',
             modifiers: ['CTRL'],

@@ -1,9 +1,10 @@
 import {AppRegistry} from 'react-native';
 import Config from '../../CONFIG';
 import LocalNotification from '../../libs/Notification/LocalNotification';
-import * as KeyboardShortcuts from '../../libs/actions/KeyboardShortcuts';
 import DateUtils from '../../libs/DateUtils';
 import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
+import ROUTES from '../../ROUTES';
+import Navigation from '../../libs/Navigation/Navigation';
 
 export default function () {
     AppRegistry.runApplication(Config.APP_NAME, {
@@ -16,7 +17,9 @@ export default function () {
     });
 
     // Trigger action to show keyboard shortcuts
-    window.electron.on(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL, KeyboardShortcuts.showKeyboardShortcutModal);
+    window.electron.on(ELECTRON_EVENTS.KEYBOARD_SHORTCUTS_PAGE, () => {
+        Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+    });
 
     // Start current date updater
     DateUtils.startCurrentDateUpdater();

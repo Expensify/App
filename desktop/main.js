@@ -174,11 +174,11 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
  * Trigger event to show keyboard shortcuts
  * @param {BrowserWindow} browserWindow
  */
-const showKeyboardShortcutsModal = (browserWindow) => {
+const showKeyboardShortcutsPage = (browserWindow) => {
     if (!browserWindow.isVisible()) {
         return;
     }
-    browserWindow.webContents.send(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL);
+    browserWindow.webContents.send(ELECTRON_EVENTS.KEYBOARD_SHORTCUTS_PAGE);
 };
 
 // Actual auto-update listeners
@@ -332,7 +332,7 @@ const mainWindow = () => {
                                 label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
                                 accelerator: 'CmdOrCtrl+I',
                                 click: () => {
-                                    showKeyboardShortcutsModal(browserWindow);
+                                    showKeyboardShortcutsPage(browserWindow);
                                 },
                             },
                             {type: 'separator'},
