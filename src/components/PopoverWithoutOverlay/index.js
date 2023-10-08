@@ -47,9 +47,7 @@ function Popover(props) {
                 firstRenderRef.current = false;
             return;
         }
-        if (firstRenderRef.current) {
             firstRenderRef.current = false;
-        }
         Modal.setCloseModal(props.isVisible ? () => props.onClose(props.anchorRef) : null);
 
         // We want this effect to run strictly ONLY when isVisible prop changes
