@@ -1472,6 +1472,23 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
 }
 
 /**
+ * @param {Number} reportID
+ * @param {Number} reportActionID
+ * @param {String} transactionID
+ * @param {Object} transactionChanges
+ */
+function setSpliBillTransaction(reportID, reportActionID, transactionID, transactionChanges) {
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, updatedTransaction);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [reportActionID]: {
+            lastModified: DateUtils.getDBTime(),
+        },
+    });
+}
+
+/**
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
  * @param {Object} transactionChanges
@@ -2535,6 +2552,7 @@ export {
     splitBill,
     splitBillAndOpenReport,
     startSplitBill,
+    setSpliBillTransaction,
     requestMoney,
     sendMoneyElsewhere,
     approveMoneyRequest,
