@@ -262,6 +262,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                                 state: null,
                             }}
                             predefinedPlaces={recentWaypoints}
+                            resultTypes=""
                         />
                     </View>
                     <UserCurrentLocationButton
