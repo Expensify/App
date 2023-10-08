@@ -19,22 +19,13 @@ import Form from '../../components/Form';
 import * as FormActions from '../../libs/actions/FormActions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
-import getStateFromRoute from '../../libs/getStateFromRoute';
+import useGeographicalStateFromRoute from '../../hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     ...StepPropTypes,
 
     /** Name of the company */
     companyName: PropTypes.string.isRequired,
-
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** Currently selected state */
-            state: PropTypes.string,
-        }),
-    }).isRequired,
 };
 
 function ACHContractStep(props) {
@@ -154,7 +145,7 @@ function ACHContractStep(props) {
         });
     };
 
-    const state = getStateFromRoute(props.route);
+    const state = useGeographicalStateFromRoute();
 
     return (
         <ScreenWrapper

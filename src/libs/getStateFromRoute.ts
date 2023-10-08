@@ -3,7 +3,8 @@ import lodashGet from 'lodash/get';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 
 type RouteProps = {
-    params?: Record<string, string>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    params?: Record<string, any>;
 };
 
 export default function getStateFromRoute(route: RouteProps, stateParamName = 'state'): string {

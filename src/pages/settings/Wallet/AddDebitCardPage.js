@@ -22,7 +22,7 @@ import usePrevious from '../../../hooks/usePrevious';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import Permissions from '../../../libs/Permissions';
 import StateSelector from '../../../components/StateSelector';
-import getStateFromRoute from '../../../libs/getStateFromRoute';
+import useGeographicalStateFromRoute from '../../../hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     /* Onyx Props */
@@ -32,15 +32,6 @@ const propTypes = {
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** Currently selected state */
-            state: PropTypes.string,
-        }),
-    }).isRequired,
 };
 
 const defaultProps = {
@@ -110,11 +101,11 @@ function DebitCardPage(props) {
         return errors;
     };
 
+    const stateFromUrl = useGeographicalStateFromRoute();
+
     if (!Permissions.canUseWallet(props.betas)) {
         return <NotFoundPage />;
     }
-
-    const stateFromUrl = getStateFromRoute(props.route);
 
     return (
         <ScreenWrapper

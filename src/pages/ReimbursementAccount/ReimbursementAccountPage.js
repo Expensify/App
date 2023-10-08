@@ -429,7 +429,6 @@ class ReimbursementAccountPage extends React.Component {
         if (currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY) {
             return (
                 <CompanyStep
-                    route={this.props.route}
                     reimbursementAccount={this.props.reimbursementAccount}
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}
@@ -443,7 +442,6 @@ class ReimbursementAccountPage extends React.Component {
             const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
             return (
                 <RequestorStep
-                    route={this.props.route}
                     ref={this.requestorStepRef}
                     reimbursementAccount={this.props.reimbursementAccount}
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
@@ -457,7 +455,6 @@ class ReimbursementAccountPage extends React.Component {
         if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
             return (
                 <ACHContractStep
-                    route={this.props.route}
                     reimbursementAccount={this.props.reimbursementAccount}
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}

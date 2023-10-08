@@ -25,7 +25,7 @@ import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
 import StateSelector from '../../components/StateSelector';
-import getStateFromRoute from '../../libs/getStateFromRoute';
+import useGeographicalStateFromRoute from '../../hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     ...StepPropTypes,
@@ -44,15 +44,6 @@ const propTypes = {
 
     /* The workspace policyID */
     policyID: PropTypes.string,
-
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** Currently selected state */
-            state: PropTypes.string,
-        }),
-    }).isRequired,
 };
 
 const defaultProps = {
@@ -63,7 +54,7 @@ const defaultProps = {
     policyID: '',
 };
 
-function CompanyStep({reimbursementAccount, route, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
+function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
     /**
      * @param {Array} fieldNames
      *
@@ -149,8 +140,8 @@ function CompanyStep({reimbursementAccount, route, reimbursementAccountDraft, ge
     const shouldDisableCompanyName = Boolean(bankAccountID && getDefaultStateForField('companyName'));
     const shouldDisableCompanyTaxID = Boolean(bankAccountID && getDefaultStateForField('companyTaxID'));
 
-    const incorporationState = getStateFromRoute(route, 'incorporationState') || getDefaultStateForField('incorporationState');
-    const state = getStateFromRoute(route);
+    const incorporationState = useGeographicalStateFromRoute('incorporationState') || getDefaultStateForField('incorporationState');
+    const state = useGeographicalStateFromRoute();
 
     return (
         <ScreenWrapper
@@ -262,6 +253,7 @@ function CompanyStep({reimbursementAccount, route, reimbursementAccountDraft, ge
                         label={translate('companyStep.incorporationState')}
                         shouldSaveDraft
                         paramName="incorporationState"
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(incorporationState ? {value: incorporationState} : {})}
                     />
                 </View>

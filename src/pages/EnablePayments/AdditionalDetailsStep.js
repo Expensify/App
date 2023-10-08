@@ -24,7 +24,7 @@ import Form from '../../components/Form';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
-import getStateFromRoute from '../../libs/getStateFromRoute';
+import useGeographicalStateFromRoute from '../../hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -56,15 +56,6 @@ const propTypes = {
         /** Error code to determine additional behavior */
         errorCode: PropTypes.string,
     }),
-
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** Currently selected state */
-            state: PropTypes.string,
-        }),
-    }).isRequired,
 };
 
 const defaultProps = {
@@ -89,7 +80,7 @@ const fieldNameTranslationKeys = {
     ssnFull9: 'common.ssnFull9',
 };
 
-function AdditionalDetailsStep({walletAdditionalDetails, route, translate, currentUserPersonalDetails}) {
+function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserPersonalDetails}) {
     const currentDate = new Date();
     const minDate = subYears(currentDate, CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
@@ -155,6 +146,8 @@ function AdditionalDetailsStep({walletAdditionalDetails, route, translate, curre
         Wallet.updatePersonalDetails(personalDetails);
     };
 
+    const state = useGeographicalStateFromRoute();
+
     if (!_.isEmpty(walletAdditionalDetails.questions)) {
         return (
             <ScreenWrapper
@@ -173,8 +166,6 @@ function AdditionalDetailsStep({walletAdditionalDetails, route, translate, curre
             </ScreenWrapper>
         );
     }
-
-    const state = getStateFromRoute(route);
 
     return (
         <>

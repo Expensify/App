@@ -22,7 +22,7 @@ import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetai
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 import CountrySelector from '../../../../components/CountrySelector';
 import StateSelector from '../../../../components/StateSelector';
-import getStateFromRoute from '../../../../libs/getStateFromRoute';
+import useGeographicalStateFromRoute from '../../../../hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     /* Onyx Props */
@@ -45,9 +45,6 @@ const propTypes = {
         params: PropTypes.shape({
             /** Currently selected country */
             country: PropTypes.string,
-
-            /** Currently selected state */
-            state: PropTypes.string,
         }),
     }).isRequired,
 };
@@ -81,7 +78,7 @@ function AddressPage({privatePersonalDetails, route}) {
     // check if country is valid
     const countryFromUrl = lodashGet(CONST.ALL_COUNTRIES, countryFromUrlTemp) ? countryFromUrlTemp : '';
 
-    const stateFromUrl = getStateFromRoute(route);
+    const stateFromUrl = useGeographicalStateFromRoute();
     const [currentCountry, setCurrentCountry] = useState(address.country);
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
