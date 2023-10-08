@@ -18,7 +18,7 @@ import * as User from '../../src/libs/actions/User';
 import PusherHelper from '../utils/PusherHelper';
 import Navigation from '../../src/libs/Navigation/Navigation';
 import ROUTES from '../../src/ROUTES';
-import { createWorkspace } from '../../src/libs/actions/Policy';
+import {createWorkspace} from '../../src/libs/actions/Policy';
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -1493,7 +1493,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
                                     const updatedAction = _.find(allActions, (reportAction) => !_.isEmpty(reportAction));
-                                    expect(updatedAction.actionName).toEqual("MODIFIEDEXPENSE");
+                                    expect(updatedAction.actionName).toEqual('MODIFIEDEXPENSE');
                                     expect(updatedAction.originalMessage).toEqual(
                                         expect.objectContaining({amount: 20000, newComment: 'Double the amount!', oldAmount: amount, oldComment: comment}),
                                     );
@@ -1629,7 +1629,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
                                     const updatedAction = _.find(allActions, (reportAction) => !_.isEmpty(reportAction));
-                                    expect(updatedAction.actionName).toEqual("MODIFIEDEXPENSE");
+                                    expect(updatedAction.actionName).toEqual('MODIFIEDEXPENSE');
                                     expect(_.values(updatedAction.errors)).toEqual(expect.arrayContaining(['iou.error.genericEditFailureMessage']));
                                     resolve();
                                 },
@@ -1687,19 +1687,20 @@ describe('actions/IOU', () => {
                     createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
                     return waitForBatchedUpdates();
                 })
-                .then(() => 
-                    new Promise((resolve) => {
-                        const connectionID = Onyx.connect({
-                            key: ONYXKEYS.COLLECTION.REPORT,
-                            waitForCollectionCallback: true,
-                            callback: (allReports) => {
-                                Onyx.disconnect(connectionID);
-                                chatReport = _.find(allReports, (report) => report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    chatReport = _.find(allReports, (report) => report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
-                                resolve();
-                            },
-                        });
-                    }),
+                                    resolve();
+                                },
+                            });
+                        }),
                 )
                 .then(() => {
                     IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
@@ -1796,19 +1797,20 @@ describe('actions/IOU', () => {
                     createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
                     return waitForBatchedUpdates();
                 })
-                .then(() => 
-                    new Promise((resolve) => {
-                        const connectionID = Onyx.connect({
-                            key: ONYXKEYS.COLLECTION.REPORT,
-                            waitForCollectionCallback: true,
-                            callback: (allReports) => {
-                                Onyx.disconnect(connectionID);
-                                chatReport = _.find(allReports, (report) => report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    chatReport = _.find(allReports, (report) => report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
-                                resolve();
-                            },
-                        });
-                    }),
+                                    resolve();
+                                },
+                            });
+                        }),
                 )
                 .then(() => {
                     IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
