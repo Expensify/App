@@ -1395,6 +1395,10 @@ describe('actions/IOU', () => {
         const comment = '💸💸💸💸';
         const merchant = 'NASDAQ';
 
+        afterEach(() => {
+            fetch.resume();
+        });
+
         it('updates the IOU request and IOU report when offline', () => {
             let thread = {};
             let iouReport = {};
@@ -1403,10 +1407,10 @@ describe('actions/IOU', () => {
 
             fetch.pause();
             IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
-            return waitForPromisesToResolve()
+            return waitForBatchedUpdates()
                 .then(() => {
                     Onyx.set(ONYXKEYS.SESSION, {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID});
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
@@ -1456,11 +1460,11 @@ describe('actions/IOU', () => {
                 .then(() => {
                     thread = ReportUtils.buildTransactionThread(iouAction, iouReport.reportID);
                     Onyx.set(`report_${thread.reportID}`, thread);
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     IOU.editMoneyRequest(transaction.transactionID, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
@@ -1537,10 +1541,10 @@ describe('actions/IOU', () => {
             let transaction = {};
 
             IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
-            return waitForPromisesToResolve()
+            return waitForBatchedUpdates()
                 .then(() => {
                     Onyx.set(ONYXKEYS.SESSION, {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID});
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
@@ -1589,12 +1593,12 @@ describe('actions/IOU', () => {
                 .then(() => {
                     thread = ReportUtils.buildTransactionThread(iouAction, iouReport.reportID);
                     Onyx.set(`report_${thread.reportID}`, thread);
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     fetch.fail();
                     IOU.editMoneyRequest(transaction.transactionID, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
@@ -1665,16 +1669,20 @@ describe('actions/IOU', () => {
         const comment = '💸💸💸💸';
         const merchant = 'NASDAQ';
 
+        afterEach(() => {
+            fetch.resume();
+        });
+
         it('updates the IOU request and IOU report when paid while offline', () => {
             let iouReport = {};
             let chatReport = {};
 
             fetch.pause();
             IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
-            return waitForPromisesToResolve()
+            return waitForBatchedUpdates()
                 .then(() => {
                     Onyx.set(ONYXKEYS.SESSION, {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID});
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
@@ -1694,7 +1702,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, iouReport);
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
@@ -1756,9 +1764,6 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(() => {
-                    fetch.resume();
-                });
         });
 
         it('shows an error when paying results in an error', () => {
@@ -1766,10 +1771,10 @@ describe('actions/IOU', () => {
             let chatReport = {};
 
             IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
-            return waitForPromisesToResolve()
+            return waitForBatchedUpdates()
                 .then(() => {
                     Onyx.set(ONYXKEYS.SESSION, {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID});
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
@@ -1790,7 +1795,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     fetch.fail();
                     IOU.payMoneyRequest('ACH', chatReport, iouReport);
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
@@ -1809,8 +1814,6 @@ describe('actions/IOU', () => {
                 );
         });
     });
-
-
 
     describe('deleteMoneyRequest', () => {
         const amount = 10000;
