@@ -35,7 +35,7 @@ const propTypes = {
 
         /** The role of the current user in the policy */
         role: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** The chat report this report is linked to */
     chatReport: reportPropTypes,
@@ -57,6 +57,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    policy: {},
 };
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, report: moneyRequestReport, isSmallScreenWidth}) {
@@ -79,13 +80,13 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
         return isManager && !isApproved && !isSettled;
     }, [policyType, isManager, isApproved, isSettled]);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
-    const shouldShowPaypal = Boolean(lodashGet(personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
 
     return (
         <View style={[styles.pt0]}>
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
+                shouldEnableDetailPageNavigation
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
@@ -99,15 +100,18 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                         <SettlementButton
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
-                            shouldShowPaypal={shouldShowPaypal}
                             chatReportID={chatReport.reportID}
                             iouReport={moneyRequestReport}
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
-                            enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldShowPaymentOptions
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
                         />
                     </View>
                 )}
@@ -128,11 +132,10 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                     <SettlementButton
                         currency={moneyRequestReport.currency}
                         policyID={moneyRequestReport.policyID}
-                        shouldShowPaypal={shouldShowPaypal}
                         chatReportID={moneyRequestReport.chatReportID}
                         iouReport={moneyRequestReport}
                         onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
-                        enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
                         formattedAmount={formattedAmount}

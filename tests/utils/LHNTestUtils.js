@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {render} from '@testing-library/react-native';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import OnyxProvider from '../../src/components/OnyxProvider';
-import {LocaleContextProvider} from '../../src/components/withLocalize';
+import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
 import SidebarLinksData from '../../src/pages/home/sidebar/SidebarLinksData';
 import {EnvironmentProvider} from '../../src/components/withEnvironment';
 import CONST from '../../src/CONST';
@@ -15,6 +15,7 @@ jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
+        useFocusEffect: jest.fn(),
         useIsFocused: () => ({
             navigate: mockedNavigate,
         }),
@@ -194,7 +195,6 @@ function MockedSidebarLinks({currentReportID}) {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider]}>
             <SidebarLinksData
-                onLinkClick={() => {}}
                 insets={{
                     top: 0,
                     left: 0,

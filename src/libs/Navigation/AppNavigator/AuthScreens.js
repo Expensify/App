@@ -38,6 +38,8 @@ import DemoSetupPage from '../../../pages/DemoSetupPage';
 
 let timezone;
 let currentAccountID;
+let isLoadingApp;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -70,8 +72,18 @@ Onyx.connect({
         // then update their timezone.
         if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
             timezone.selected = currentTimezone;
-            PersonalDetails.updateAutomaticTimezone(timezone);
+            PersonalDetails.updateAutomaticTimezone({
+                automatic: true,
+                selected: currentTimezone,
+            });
         }
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (val) => {
+        isLoadingApp = val;
     },
 });
 
@@ -126,7 +138,13 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => App.reconnectApp(this.props.lastUpdateIDAppliedToClient));
+        NetworkConnection.onReconnect(() => {
+            if (isLoadingApp) {
+                App.openApp();
+            } else {
+                App.reconnectApp(this.props.lastUpdateIDAppliedToClient);
+            }
+        });
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -182,10 +200,10 @@ class AuthScreens extends React.Component {
             chatShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.NEW_CHAT)) {
+                    if (Navigation.isActiveRoute(ROUTES.NEW)) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.NEW_CHAT);
+                    Navigation.navigate(ROUTES.NEW);
                 });
             },
             chatShortcutConfig.descriptionKey,
