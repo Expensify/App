@@ -1390,7 +1390,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('edit requestMoney', () => {
+    describe('edit money request', () => {
         const amount = 10000;
         const comment = '💸💸💸💸';
         const merchant = 'NASDAQ';
@@ -1763,7 +1763,7 @@ describe('actions/IOU', () => {
                                 },
                             });
                         }),
-                )
+                );
         });
 
         it('shows an error when paying results in an error', () => {
