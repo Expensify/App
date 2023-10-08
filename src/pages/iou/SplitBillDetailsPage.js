@@ -72,6 +72,7 @@ function SplitBillDetailsPage(props) {
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
     const {amount: splitAmount, currency: splitCurrency, comment: splitComment, merchant: splitMerchant, created: splitCreated} = ReportUtils.getTransactionDetails(transaction);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isEditable = isScanning || (TransactionUtils.hasReceipt && transaction.receipt.state === CONST.IOU.RECEIPT_STATE.FAILED);
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
@@ -93,11 +94,11 @@ function SplitBillDetailsPage(props) {
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
-                            isReadOnly
+                            isReadOnly={!isEditable}
                             receiptPath={transaction.receipt && transaction.receipt.source}
                             receiptFilename={transaction.filename}
-                            shouldShowFooter={false}
                             isScanning={isScanning}
+                            shouldShowFooter={false}
                         />
                     )}
                 </View>
