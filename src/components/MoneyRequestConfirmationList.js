@@ -203,10 +203,6 @@ function MoneyRequestConfirmationList(props) {
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories));
 
-    // A flag for showing SS fields: date, merchant, and amount, only when we don't have a receiptPath (e.g. manual request)
-    // or in the split details page when it's ReadOnly
-    const shouldShowSmartScanFields = (!props.receiptPath || props.isReadOnly) && !props.isScanning;
-
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(props.policyTags);
     const policyTagList = lodashGet(policyTag, 'tags', {});
@@ -506,7 +502,7 @@ function MoneyRequestConfirmationList(props) {
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
             )}
-            {shouldShowSmartScanFields && (
+            {props.shouldShowSmartScanFields && (
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!props.isReadOnly && !props.isDistanceRequest}
                     title={formattedAmount}
@@ -545,7 +541,7 @@ function MoneyRequestConfirmationList(props) {
             )}
             {shouldShowAllFields && (
                 <>
-                    {shouldShowSmartScanFields && (
+                    {props.shouldShowSmartScanFields && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
@@ -567,7 +563,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}
-                    {shouldShowSmartScanFields && (
+                    {props.shouldShowSmartScanFields && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouMerchant}

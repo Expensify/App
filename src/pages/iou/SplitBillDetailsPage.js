@@ -44,6 +44,12 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+    }).isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -72,7 +78,8 @@ function SplitBillDetailsPage(props) {
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
     const {amount: splitAmount, currency: splitCurrency, comment: splitComment, merchant: splitMerchant, created: splitCreated} = ReportUtils.getTransactionDetails(transaction);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    const isEditable = isScanning || (TransactionUtils.hasReceipt && transaction.receipt.state === CONST.IOU.RECEIPT_STATE.FAILED);
+    const canEditSplit =
+        props.session.accountID === reportAction.actorAccountID && (isScanning || (TransactionUtils.hasReceipt && transaction.receipt.state === CONST.IOU.RECEIPT_STATE.FAILED));
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
@@ -94,7 +101,8 @@ function SplitBillDetailsPage(props) {
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
-                            isReadOnly={!isEditable}
+                            isReadOnly={!canEditSplit}
+                            shouldShowSmartScanFields
                             receiptPath={transaction.receipt && transaction.receipt.source}
                             receiptFilename={transaction.filename}
                             isScanning={isScanning}
@@ -117,6 +125,9 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(SplitBillDetailsPage);
