@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import Animated, {useSharedValue, useAnimatedProps, withTiming, interpolateColor, Easing} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import themeColors from '../../styles/themes/default';
-import variables from '../../styles/variables';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -32,8 +31,8 @@ function FabPlusIcon({isActive}) {
 
     return (
         <Svg
-            width={variables.iconSizeSmall}
-            height={variables.iconSizeSmall}
+            width={20}
+            height={20}
         >
             <AnimatedPath
                 d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
