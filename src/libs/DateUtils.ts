@@ -258,10 +258,9 @@ function getCurrentTimezone(): Required<Timezone> {
 }
 
 /**
- * @param {String} preferredLocale
- * @returns {Array}
+ * @returns [January, Fabruary, March, April, May, June, July, August, ...]
  */
-function getMonthNames(preferredLocale) {
+function getMonthNames(preferredLocale: string): string[] {
     if (preferredLocale) {
         setLocale(preferredLocale);
     }
@@ -276,10 +275,9 @@ function getMonthNames(preferredLocale) {
 }
 
 /**
- * @param {String} preferredLocale
- * @returns {Object}
+ * @returns [Monday, Thuesday, Wednesday, ...]
  */
-function getDaysOfWeek(preferredLocale) {
+function getDaysOfWeek(preferredLocale: string): string[] {
     if (preferredLocale) {
         setLocale(preferredLocale);
     }
