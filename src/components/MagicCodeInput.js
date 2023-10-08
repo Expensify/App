@@ -95,6 +95,7 @@ function MagicCodeInput(props) {
     const [input, setInput] = useState('');
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
+    const [firstSubmit, setFirstSubmit] = useState(true);
 
     const blurMagicCodeInput = () => {
         inputRefs.current[editIndex].blur();
@@ -116,8 +117,11 @@ function MagicCodeInput(props) {
 
     const validateAndSubmit = () => {
         const numbers = decomposeString(props.value, props.maxLength);
-        if (!props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== props.maxLength || props.network.isOffline) {
+        if (!firstSubmit || !props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== props.maxLength || props.network.isOffline) {
             return;
+        }
+        if (firstSubmit) {
+            setFirstSubmit(false);
         }
         // Blurs the input and removes focus from the last input and, if it should submit
         // on complete, it will call the onFulfill callback.
