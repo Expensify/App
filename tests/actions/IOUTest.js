@@ -18,7 +18,7 @@ import * as User from '../../src/libs/actions/User';
 import PusherHelper from '../utils/PusherHelper';
 import Navigation from '../../src/libs/Navigation/Navigation';
 import ROUTES from '../../src/ROUTES';
-import {createWorkspace} from '../../src/libs/actions/Policy';
+import * as PolicyActions from '../../src/libs/actions/Policy';
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -1684,7 +1684,7 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -1794,7 +1794,7 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
                     return waitForBatchedUpdates();
                 })
                 .then(
