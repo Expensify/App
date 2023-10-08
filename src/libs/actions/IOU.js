@@ -1328,7 +1328,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
-                ...(!existingSplitChatReport ? {} : {[splitChatCreatedReportAction.reportActionID]: splitChatCreatedReportAction}),
+                ...(existingSplitChatReport ? {} : {[splitChatCreatedReportAction.reportActionID]: splitChatCreatedReportAction}),
                 [splitIOUReportAction.reportActionID]: splitIOUReportAction,
             },
         },
@@ -1344,7 +1344,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
-                ...(!existingSplitChatReport ? {} : {[splitChatCreatedReportAction.reportActionID]: {pendingAction: null}}),
+                ...(existingSplitChatReport ? {} : {[splitChatCreatedReportAction.reportActionID]: {pendingAction: null}}),
                 [splitIOUReportAction.reportActionID]: {pendingAction: null},
             },
         },
@@ -1457,7 +1457,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             receipt,
             comment,
             isFromGroupDM: !existingSplitChatReport,
-            ...(!existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
+            ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
         },
         {optimisticData, successData, failureData},
     );
