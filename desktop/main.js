@@ -330,7 +330,7 @@ const mainWindow = () => {
                             {
                                 id: 'viewShortcuts',
                                 label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
-                                accelerator: 'CmdOrCtrl+I',
+                                accelerator: 'CmdOrCtrl+J',
                                 click: () => {
                                     showKeyboardShortcutsPage(browserWindow);
                                 },
