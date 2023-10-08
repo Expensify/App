@@ -164,7 +164,9 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
  */
 const KeyboardShortcut = {
     subscribe,
+    getDisplayName,
     getDocumentedShortcuts,
+    getPlatformEquivalentForKeys,
 };
 
 export default KeyboardShortcut;

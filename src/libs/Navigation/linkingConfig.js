@@ -211,6 +211,9 @@ export default {
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE.route,
                             },
+                            KeyboardShortcuts: {
+                                path: ROUTES.KEYBOARD_SHORTCUTS,
+                            },
                         },
                     },
                     Private_Notes: {
