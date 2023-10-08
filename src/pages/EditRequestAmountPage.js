@@ -23,7 +23,7 @@ const propTypes = {
     reportID: PropTypes.string.isRequired,
 };
 
-function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, reportID}) {
+function EditRequestAmountPage({defaultAmount, defaultCurrency, reportID, reportActionID, onSubmit}) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
 
@@ -35,7 +35,6 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, report
             if (!textInput.current) {
                 return;
             }
-
             textInput.current.focus();
         });
     };

@@ -96,7 +96,7 @@ function areRequiredFieldsEmpty(transaction: Transaction): boolean {
 /**
  * Given the edit made to the money request, return an updated transaction object.
  */
-function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean): Transaction {
+function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean, shouldUpdateReceiptState: boolean = true): Transaction {
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = {...transaction};
     let shouldStopSmartscan = false;
@@ -143,7 +143,13 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         updatedTransaction.tag = transactionChanges.tag;
     }
 
-    if (shouldStopSmartscan && transaction?.receipt && Object.keys(transaction.receipt).length > 0 && transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.OPEN) {
+    if (
+        shouldUpdateReceiptState &&
+        shouldStopSmartscan &&
+        transaction?.receipt &&
+        Object.keys(transaction.receipt).length > 0 &&
+        transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.OPEN
+    ) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
 

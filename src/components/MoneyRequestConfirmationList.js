@@ -507,7 +507,15 @@ function MoneyRequestConfirmationList(props) {
                     shouldShowRightIcon={!props.isReadOnly && !props.isDistanceRequest}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    onPress={() => !props.isDistanceRequest && Navigation.navigate(ROUTES.MONEY_REQUEST_AMOUNT.getRoute(props.iouType, props.reportID))}
+                    onPress={() => {
+                        if (props.isDistanceRequest) {
+                            return;
+                        }
+                        if (props.canEditSplit) {
+                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
+                            return;
+                        }
+                    }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm || props.isReadOnly}
@@ -518,7 +526,13 @@ function MoneyRequestConfirmationList(props) {
                 shouldParseTitle
                 title={props.iouComment}
                 description={translate('common.description')}
-                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION.getRoute(props.iouType, props.reportID))}
+                onPress={() => {
+                    if (props.canEditSplit) {
+                        Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION.getRoute(props.iouType, props.reportID));
+                }}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
@@ -548,7 +562,13 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.date')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID))}
+                            onPress={() => {
+                                if (props.canEditSplit) {
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID));
+                            }}
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
@@ -570,7 +590,13 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.merchant')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(props.iouType, props.reportID))}
+                            onPress={() => {
+                                if (props.canEditSplit) {
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(props.iouType, props.reportID));
+                            }}
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}

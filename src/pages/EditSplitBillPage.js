@@ -67,18 +67,19 @@ const defaultProps = {
     },
 };
 
-function EditSplitBillRequestPage({report, reportActions, route}) {
+function EditSplitBillRequestPage({report, route}) {
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
-    const reportAction = reportActions[route.params.reportActionID];
+    const reportAction = ReportActionsUtils.getReportAction(report.reportID, lodashGet(route, ['params', 'reportActionID'], ''));
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
 
     const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription, merchant: transactionMerchant} = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
 
-    function updateSplitBillTransaction(transactionChanges) {
-        IOU.updateSplitBillTransaction(report.reportID, reportAction.reportActionID, transaction.transactionID, transactionChanges);
-        Navigation.goBack(ROUTES.SPLIT_BILL_DETAILS.getRoute(report.reportID, reportAction.reportActionID));
+    function setSplitBillTransaction(transactionChanges) {
+        console.log(reportAction.reportActionID);
+        IOU.setSplitBillTransaction(report.reportID, reportAction.reportActionID, transaction.transactionID, transactionChanges);
+        Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(report.reportID, reportAction.reportActionID));
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
@@ -90,7 +91,7 @@ function EditSplitBillRequestPage({report, reportActions, route}) {
                         Navigation.dismissModal();
                         return;
                     }
-                    updateSplitBillTransaction({
+                    setSplitBillTransaction({
                         comment: transactionChanges.comment,
                     });
                 }}
@@ -102,12 +103,14 @@ function EditSplitBillRequestPage({report, reportActions, route}) {
         return (
             <EditRequestCreatedPage
                 defaultCreated={transactionCreated}
+                defaultAmount={transactionAmount}
+                reportID={report.reportID}
                 onSubmit={(transactionChanges) => {
                     if (transactionChanges.created === transactionCreated) {
                         Navigation.dismissModal();
                         return;
                     }
-                    updateSplitBillTransaction({
+                    setSplitBillTransaction({
                         created: transactionChanges.created,
                     });
                 }}
@@ -119,10 +122,8 @@ function EditSplitBillRequestPage({report, reportActions, route}) {
         return (
             <EditRequestAmountPage
                 defaultAmount={transactionAmount}
-                defaultCurrency={defaultCurrency || CONST.CURRENCY.USD}
-                reportID={report.reportID}
-                reportActionID={reportAction.reportActionID}
-                isSplitRequest
+                defaultCurrency={defaultCurrency}
+                isEdittingSplitBill
                 onSubmit={(transactionChanges) => {
                     const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
 
@@ -131,7 +132,7 @@ function EditSplitBillRequestPage({report, reportActions, route}) {
                         return;
                     }
 
-                    updateSplitBillTransaction({
+                    setSplitBillTransaction({
                         amount,
                         currency: defaultCurrency,
                     });
@@ -149,7 +150,7 @@ function EditSplitBillRequestPage({report, reportActions, route}) {
                         Navigation.goBack();
                         return;
                     }
-                    updateSplitBillTransaction({merchant: transactionChanges.merchant});
+                    setSplitBillTransaction({merchant: transactionChanges.merchant});
                 }}
             />
         );
@@ -162,17 +163,9 @@ EditSplitBillRequestPage.displayName = 'EditSplitBillRequestPage';
 EditSplitBillRequestPage.propTypes = propTypes;
 EditSplitBillRequestPage.defaultProps = defaultProps;
 export default compose(
-    withCurrentUserPersonalDetails,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
-            canEvict: false,
-        },
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
     }),
 )(EditSplitBillRequestPage);

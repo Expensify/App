@@ -79,7 +79,7 @@ function SplitBillDetailsPage(props) {
     const {amount: splitAmount, currency: splitCurrency, comment: splitComment, merchant: splitMerchant, created: splitCreated} = ReportUtils.getTransactionDetails(transaction);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const canEditSplit =
-        props.session.accountID === reportAction.actorAccountID && (isScanning || (TransactionUtils.hasReceipt && transaction.receipt.state === CONST.IOU.RECEIPT_STATE.FAILED));
+        props.session.accountID === reportAction.actorAccountID && (isScanning || (TransactionUtils.hasReceipt(transaction) && transaction.receipt.state === CONST.IOU.RECEIPT_STATE.FAILED));
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
@@ -105,8 +105,11 @@ function SplitBillDetailsPage(props) {
                             shouldShowSmartScanFields
                             receiptPath={transaction.receipt && transaction.receipt.source}
                             receiptFilename={transaction.filename}
-                            isScanning={isScanning}
                             shouldShowFooter={false}
+                            isScanning={isScanning}
+                            canEditSplit={canEditSplit}
+                            reportActionID={reportAction.reportActionID}
+                            reportID={props.report.reportID}
                         />
                     )}
                 </View>
