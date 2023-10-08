@@ -53,6 +53,8 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator({
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator({
     SplitDetails_Root: () => require('../../../pages/iou/SplitBillDetailsPage').default,
+    SplitDetails_Edit_Request: () => require('../../../pages/EditSplitBillPage').default,
+    SplitDetails_Edit_Currency: () => require('../../../pages/iou/IOUCurrencySelection').default,
 });
 
 const DetailsModalStackNavigator = createModalStackNavigator({
