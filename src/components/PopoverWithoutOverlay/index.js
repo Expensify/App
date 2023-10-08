@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {PopoverContext} from '../PopoverProvider';
@@ -43,11 +43,11 @@ function Popover(props) {
         Modal.willAlertModalBecomeVisible(props.isVisible);
 
         // We prevent setting closeModal function to null when the component is invisible the first time it is rendered
-        if ((prevIsVisible === props.isVisible) && (!firstRenderRef.current || !props.isVisible)) {
-                firstRenderRef.current = false;
+        if (prevIsVisible === props.isVisible && (!firstRenderRef.current || !props.isVisible)) {
+            firstRenderRef.current = false;
             return;
         }
-            firstRenderRef.current = false;
+        firstRenderRef.current = false;
         Modal.setCloseModal(props.isVisible ? () => props.onClose(props.anchorRef) : null);
 
         // We want this effect to run strictly ONLY when isVisible prop changes
