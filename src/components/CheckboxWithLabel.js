@@ -102,6 +102,7 @@ function CheckboxWithLabel(props) {
                     isChecked={isChecked}
                     onPress={toggleCheckbox}
                     label={props.label}
+                    style={[styles.checkboxWithLabelCheckboxStyle]}
                     hasError={Boolean(props.errorText)}
                     forwardedRef={props.forwardedRef}
                     accessibilityLabel={props.accessibilityLabel || props.label}

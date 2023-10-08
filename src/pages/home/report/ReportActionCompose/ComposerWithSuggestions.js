@@ -90,7 +90,7 @@ function ComposerWithSuggestions({
     isFullComposerAvailable,
     setIsFullComposerAvailable,
     setIsCommentEmpty,
-    submitForm,
+    handleSendMessage,
     shouldShowComposeInput,
     measureParentContainer,
     listHeight,
@@ -335,7 +335,7 @@ function ComposerWithSuggestions({
             // Submit the form when Enter is pressed
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
                 e.preventDefault();
-                submitForm();
+                handleSendMessage();
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
@@ -354,7 +354,7 @@ function ComposerWithSuggestions({
                 }
             }
         },
-        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, submitForm, suggestionsRef, valueRef],
+        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
     );
 
     const onSelectionChange = useCallback(
