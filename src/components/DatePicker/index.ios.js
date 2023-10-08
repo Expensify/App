@@ -2,7 +2,7 @@ import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Button, View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
-import moment from 'moment';
+import {format} from 'date-fns';
 import _ from 'underscore';
 import compose from '../../libs/compose';
 import TextInput from '../TextInput';
@@ -26,7 +26,7 @@ class DatePicker extends React.Component {
 
         this.state = {
             isPickerVisible: false,
-            selectedDate: props.value || props.defaultValue ? moment(props.value || props.defaultValue).toDate() : new Date(),
+            selectedDate: props.value || props.defaultValue ? new Date(props.value || props.defaultValue) : new Date(),
         };
 
         this.showPicker = this.showPicker.bind(this);
@@ -64,8 +64,7 @@ class DatePicker extends React.Component {
      */
     selectDate() {
         this.setState({isPickerVisible: false});
-        const asMoment = moment(this.state.selectedDate, true);
-        this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+        this.props.onInputChange(format(this.state.selectedDate, CONST.DATE.FNS_FORMAT_STRING));
     }
 
     /**
@@ -77,7 +76,7 @@ class DatePicker extends React.Component {
     }
 
     render() {
-        const dateAsText = this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+        const dateAsText = this.props.value || this.props.defaultValue ? format(new Date(this.props.value || this.props.defaultValue), CONST.DATE.FNS_FORMAT_STRING) : '';
         return (
             <>
                 <TextInput
