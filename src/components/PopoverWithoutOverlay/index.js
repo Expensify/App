@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {PopoverContext} from '../PopoverProvider';
@@ -12,6 +12,7 @@ import usePrevious from '../../hooks/usePrevious';
 
 function Popover(props) {
     const {onOpen, close} = React.useContext(PopoverContext);
+    const firstRenderRef = useRef(true);
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
         'popover',
         {
@@ -42,8 +43,14 @@ function Popover(props) {
         Modal.willAlertModalBecomeVisible(props.isVisible);
 
         // We prevent setting closeModal function to null when the first time the component is rendered
-        if (prevIsVisible === props.isVisible) {
+        if ((prevIsVisible === props.isVisible) && (!firstRenderRef.current || !props.isVisible)) {
+            if (firstRenderRef.current) {
+                firstRenderRef.current = false;
+            }
             return;
+        }
+        if (firstRenderRef.current) {
+            firstRenderRef.current = false;
         }
         Modal.setCloseModal(props.isVisible ? () => props.onClose(props.anchorRef) : null);
 
