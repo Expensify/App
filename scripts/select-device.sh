@@ -5,6 +5,7 @@ source scripts/shellUtils.sh
 
 select_device_ios()
 {
+  # shellcheck disable=SC2124
   IFS="$@" arr=$(xcrun xctrace list devices | grep -E "iPhone|iPad")
 
   # Create arrays to store device names and identifiers
@@ -21,9 +22,9 @@ select_device_ios()
       device_names+=("$device Version: $version")
     else
       info "Input does not match the expected pattern."
-      echo $line
+      echo "$line"
     fi
-  done <<< $arr
+  done <<< "$arr"
   if [ ${#device_names[@]} -eq 0 ]; then
     error "No devices detected, please create one."
     exit 1
@@ -31,7 +32,7 @@ select_device_ios()
   if [ ${#device_names[@]} -eq 1 ]; then
     device_identifier="${device_identifiers[0]}"
     success "Single device detected, launching ${device_names[0]}"
-    open -a Simulator --args -CurrentDeviceUDID $device_identifier
+    open -a Simulator --args -CurrentDeviceUDID "$device_identifier"
     return
   fi
   info "Multiple devices detected, please select one from the list."
@@ -47,11 +48,12 @@ select_device_ios()
   fi
   done
   success "Launching $device_name_for_display"
-  open -a Simulator --args -CurrentDeviceUDID $device_identifier
+  open -a Simulator --args -CurrentDeviceUDID "$device_identifier"
 }
 
 select_device_android()
 {
+  # shellcheck disable=SC2124
   IFS="$@" arr=$(emulator -list-avds)
 
   # Create arrays to store device names
@@ -60,7 +62,7 @@ select_device_android()
   # Parse the device list and populate the arrays
   while IFS= read -r line; do
     device_names+=("$line")
-  done <<< $arr
+  done <<< "$arr"
   if [ ${#device_names[@]} -eq 0 ]; then
     error "No devices detected, please create one."
     exit 1
@@ -68,7 +70,7 @@ select_device_android()
   if [ ${#device_names[@]} -eq 1 ]; then
     device_identifier="${device_names[0]}"
     success "Single device detected, launching $device_identifier"
-    emulator -avd $device_names -writable-system > /dev/null 2>&1 &
+    emulator -avd "$device_identifier" -writable-system > /dev/null 2>&1 &
     return
   fi
   info "Multiple devices detected, please select one from the list."
@@ -83,5 +85,5 @@ select_device_android()
   fi
   done
   success "Launching $device_identifier"
-  emulator -avd $device_identifier -writable-system > /dev/null 2>&1 &
+  emulator -avd "$device_identifier" -writable-system > /dev/null 2>&1 &
 }

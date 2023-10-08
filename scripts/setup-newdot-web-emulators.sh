@@ -62,11 +62,9 @@ restart_adb_server() {
 ensure_device_available() {
   # Must turn off exit on error temporarily
   set +e
-  adb devices | grep -q offline
-  if [ $? -eq 0 ]; then
+  if adb devices | grep -q offline; then
     restart_adb_server
-    adb devices | grep -q offline
-    if [ $? -eq 0 ]; then
+    if adb devices | grep -q offline; then
       error "Device remains 'offline'.  Please investigate!"
       exit 1
     fi
