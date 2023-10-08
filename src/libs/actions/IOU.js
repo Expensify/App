@@ -2096,6 +2096,9 @@ function approveMoneyRequest(expenseReport) {
     API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID}, {optimisticData, successData, failureData});
 }
 
+/**
+ * @param {Object} expenseReport
+ */
 function submitReport(expenseReport) {
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
 
@@ -2147,7 +2150,16 @@ function submitReport(expenseReport) {
         },
     ];
 
-    API.write('SubmitReport', {reportID: expenseReport.reportID, submittedReportActionID: optimisticSubmittedReportAction.reportActionID}, {optimisticData, successData, failureData});
+    API.write(
+        'SubmitReport',
+        {
+            reportID: expenseReport.reportID,
+            managerEmail: expenseReport.managerEmail,
+            managerAccountID: expenseReport.managerID,
+            reportActionID: optimisticSubmittedReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
