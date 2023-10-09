@@ -49,24 +49,31 @@ function ReportActionItemMessage(props) {
 
     return (
         <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
-            {!props.isHidden ? (
-                _.map(messages, (fragment, index) => (
-                    <ReportActionItemFragment
-                        key={`actionFragment-${props.action.reportActionID}-${index}`}
-                        fragment={fragment}
-                        iouMessage={iouMessage}
-                        isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
-                        attachmentInfo={props.action.attachmentInfo}
-                        pendingAction={props.action.pendingAction}
-                        source={lodashGet(props.action, 'originalMessage.source')}
-                        accountID={props.action.actorAccountID}
-                        style={props.style}
+            {/* 
+                Wrapping ReportActionItemFragment inside 'Text' so that text isn't broken up into separate lines when  
+                there are multiple messages of type 'TEXT', as seen when approving a report from a policy on Old 
+                Dot and then viewing the report on New Dot. 
+            */}
+            <Text>
+                {!props.isHidden ? (
+                    _.map(messages, (fragment, index) => (
+                        <ReportActionItemFragment
+                            key={`actionFragment-${props.action.reportActionID}-${index}`}
+                            fragment={fragment}
+                            iouMessage={iouMessage}
+                            isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
+                            attachmentInfo={props.action.attachmentInfo}
+                            pendingAction={props.action.pendingAction}
+                            source={lodashGet(props.action, 'originalMessage.source')}
+                            accountID={props.action.actorAccountID}
+                            style={props.style}
                         displayAsGroup={props.displayAsGroup}
-                    />
-                ))
-            ) : (
-                <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>
-            )}
+                        />
+                    ))
+                ) : (
+                    <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>
+                )}
+            </Text>
         </View>
     );
 }
