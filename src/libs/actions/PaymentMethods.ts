@@ -26,6 +26,10 @@ type DefaultPaymentOnyxDataItem = {
     };
 };
 
+type PaymentCardParams = {expirationDate: string; cardNumber: string; securityCode: string; nameOnCard: string; addressZipCode: string};
+
+type FilterMethodPaymentType = typeof CONST.PAYMENT_METHODS.DEBIT_CARD | typeof CONST.PAYMENT_METHODS.BANK_ACCOUNT | null;
+
 /**
  * Sets up a ref to an instance of the KYC Wall component.
  */
@@ -101,7 +105,7 @@ function getMakeDefaultPaymentOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
             value: {
-                [previousPaymentMethod?.methodID]: {
+                [previousPaymentMethod.methodID]: {
                     isDefault: !isOptimisticData,
                 },
             },
@@ -145,7 +149,7 @@ function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previou
  * Calls the API to add a new card.
  *
  */
-function addPaymentCard(params: {expirationDate: string; cardNumber: string; securityCode: string; nameOnCard: string; addressZipCode: string}) {
+function addPaymentCard(params: PaymentCardParams) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
@@ -261,7 +265,7 @@ function saveWalletTransferAccountTypeAndID(selectedAccountType: string, selecte
  * Toggles the user's selected type of payment method (bank account or debit card) on the wallet transfer balance screen.
  *
  */
-function saveWalletTransferMethodType(filterPaymentMethodType?: typeof CONST.PAYMENT_METHODS.DEBIT_CARD | typeof CONST.PAYMENT_METHODS.BANK_ACCOUNT | null) {
+function saveWalletTransferMethodType(filterPaymentMethodType?: FilterMethodPaymentType) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {filterPaymentMethodType});
 }
 
@@ -285,7 +289,7 @@ function hasPaymentMethodError(bankList: OnyxValues[typeof ONYXKEYS.BANK_ACCOUNT
  * @param paymentListKey The onyx key for the provided payment method
  * @param paymentMethodID
  */
-function clearDeletePaymentMethodError(paymentListKey: typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST, paymentMethodID: number) {
+function clearDeletePaymentMethodError(paymentListKey: typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST, paymentMethodID: string) {
     Onyx.merge(paymentListKey, {
         [paymentMethodID]: {
             pendingAction: null,
@@ -299,7 +303,7 @@ function clearDeletePaymentMethodError(paymentListKey: typeof ONYXKEYS.BANK_ACCO
  * @param paymentListKey The onyx key for the provided payment method
  * @param paymentMethodID
  */
-function clearAddPaymentMethodError(paymentListKey: typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST, paymentMethodID: number) {
+function clearAddPaymentMethodError(paymentListKey: typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST, paymentMethodID: string) {
     Onyx.merge(paymentListKey, {
         [paymentMethodID]: null,
     });
