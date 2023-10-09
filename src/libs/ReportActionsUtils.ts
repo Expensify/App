@@ -106,7 +106,9 @@ function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>, allReportAct
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  */
 function isSentMoneyReportAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!reportAction.originalMessage.IOUDetails;
+    return (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction?.originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!reportAction?.originalMessage?.IOUDetails
+    );
 }
 
 /**
@@ -497,7 +499,7 @@ function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<OnyxTypes
 }
 
 function isCreatedTaskReportAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && Boolean(reportAction.originalMessage?.taskReportID);
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !!reportAction.originalMessage?.taskReportID;
 }
 
 /**
