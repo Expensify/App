@@ -1485,8 +1485,85 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     Report.notifyNewAction(splitChatReport.chatReportID, currentUserAccountID);
 }
 
-function completeSplitBill(updatedTransaction) {
-    console.log(updatedTransaction);
+function completeSplitBill(chatReportID, reportAction, updatedTransaction, currentUserAccountID, currentUserEmail) {
+    // Save optimistic updated transaction and action
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${updatedTransaction.transactionID}`,
+            value: updatedTransaction,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            value: {
+                [reportActionID]: {
+                    ...reportAction,
+                    lastModified: DateUtils.getDBTime(),
+                    whisperedToAccountIDs: [],
+                },
+            },
+        },
+    ];
+
+    const splitParticipants = transaction.comment.splits;
+    const {modifiedAmount: amount, modifiedCurrency: currency} = splitTransaction;
+    const splitAmount = IOUUtils.calculateAmount(splitParticipants.length, amount, currency, false);
+    const splits = [];
+    _.eacch(splitParticipants, (participant) => {
+        // Skip creating the transaction for the current user
+        if (participant.email && participant.email === currentUserEmail) {
+            return;
+        }
+        const isPolicyExpenseChat = !_.isEmpty(participant.policyID);
+        let oneOnOneChatReport;
+        if (isPolicyExpenseChat) {
+            // The workspace chat reportID is saved in the splits array when starting a split bill with a workspace
+            oneOnOneChatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`];
+        } else {
+            oneOnOneChatReport = ReportUtils.getChatByParticipants([participant.accountID] || ReportUtils.buildOptimisticChatReport([participant.accountID]));
+        }
+
+        let oneOnOneIOUReport = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`, undefined);
+        const shouldCreateNewOneOnOneIOUReport =
+            _.isUndefined(oneOnOneIOUReport) || (isPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
+
+        if (shouldCreateNewOneOnOneIOUReport) {
+            oneOnOneIOUReport = isPolicyExpenseChat
+                ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport.reportID, participant.policyID, currentUserAccountID, splitAmount, currency)
+                : ReportUtils.buildOptimisticIOUReport(currentUserAccountID, participant.accountID, splitAmount, oneOnOneChatReport.reportID, currency);
+        } else if (isOwnPolicyExpenseChat) {
+            // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+            oneOnOneIOUReport.total -= splitAmount;
+        } else {
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);
+        }
+
+        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
+            isPolicyExpenseChat ? -splitAmount : splitAmount,
+            currency,
+            oneOnOneIOUReport.reportID,
+            updatedTransaction.comment,
+            '',
+            CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
+            updatedTransaction.transactionID,
+        );
+
+        const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+        const oneOnOneCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+        const oneOnOneIOUAction = ReportUtils.buildOptimisticIOUReportAction(
+            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            splitAmount,
+            currency,
+            comment,
+            [participant],
+            oneOnOneTransaction.transactionID,
+            '',
+            oneOnOneIOUReport.reportID,
+        );
+    });
+
+    // Loop over participants and generate optimistic 1on1 chats and IOU reports, if workspace chat, generate optimistic expense report
 }
 
 /**
