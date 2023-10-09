@@ -13,3 +13,5 @@ type ReportActionReaction = {
 type ReportActionReactions = Record<string, ReportActionReaction>;
 
 export default ReportActionReactions;
+
+export type {User};

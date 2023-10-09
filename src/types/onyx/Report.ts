@@ -2,6 +2,10 @@ import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 import * as OnyxCommon from './OnyxCommon';
 
+type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
+
+type WriteCapability = ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
+
 type Report = {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -28,7 +32,7 @@ type Report = {
     lastReadTime?: string;
 
     /** The current user's notification preference for this report */
-    notificationPreference?: string | number;
+    notificationPreference?: NotificationPreference;
 
     /** The policy name to use for an archived report */
     oldPolicyName?: string;
@@ -52,7 +56,7 @@ type Report = {
     statusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
 
     /** Which user role is capable of posting messages on the report */
-    writeCapability?: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
+    writeCapability?: WriteCapability;
 
     /** The report type */
     type?: string;
@@ -76,6 +80,11 @@ type Report = {
     nonReimbursableTotal?: number;
     lastMessageTranslationKey?: string;
     isLastMessageDeletedParentAction?: boolean;
+    iouReportID?: string;
+    privateNotes?: Record<number, {errors?: OnyxCommon.Errors}>;
+    isLoadingPrivateNotes?: boolean;
 };
 
 export default Report;
+
+export type {NotificationPreference, WriteCapability};

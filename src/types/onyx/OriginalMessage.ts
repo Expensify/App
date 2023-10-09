@@ -5,7 +5,7 @@ type OriginalMessageIOU = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.IOU;
     originalMessage: {
         /** The ID of the iou transaction */
-        IOUTransactionID?: string;
+        IOUTransactionID: string;
 
         IOUReportID?: number;
         amount: number;
@@ -120,7 +120,8 @@ type OriginalMessagePolicyTask = {
         | typeof CONST.REPORT.ACTIONS.TYPE.TASKEDITED
         | typeof CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
         | typeof CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED
-        | typeof CONST.REPORT.ACTIONS.TYPE.TASKREOPENED;
+        | typeof CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
+        | typeof CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
     originalMessage: unknown;
 };
 
@@ -136,4 +137,4 @@ type OriginalMessage =
     | OriginalMessagePolicyTask;
 
 export default OriginalMessage;
-export type {Reaction, ChronosOOOEvent};
+export type {Reaction, ChronosOOOEvent, OriginalMessageIOU};

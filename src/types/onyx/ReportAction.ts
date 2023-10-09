@@ -1,5 +1,15 @@
 import OriginalMessage, {Reaction} from './OriginalMessage';
 import * as OnyxCommon from './OnyxCommon';
+import CONST from '../../CONST';
+
+type ModerationDecision = {
+    decision:
+        | typeof CONST.MODERATION.MODERATOR_DECISION_APPROVED
+        | typeof CONST.MODERATION.MODERATOR_DECISION_HIDDEN
+        | typeof CONST.MODERATION.MODERATOR_DECISION_PENDING
+        | typeof CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE
+        | typeof CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
+};
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -34,6 +44,8 @@ type Message = {
     isDeletedParentAction: boolean;
     whisperedTo: number[];
     reactions: Reaction[];
+    html?: string;
+    moderationDecision?: ModerationDecision;
 };
 
 type Person = {
@@ -44,7 +56,7 @@ type Person = {
 
 type ReportActionBase = {
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
-    reportActionID?: string;
+    reportActionID: string;
 
     /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
     previousReportActionID?: string;
@@ -86,3 +98,5 @@ type ReportActionBase = {
 type ReportAction = ReportActionBase & OriginalMessage;
 
 export default ReportAction;
+
+export type {ReportActionBase, Message, ModerationDecision};
