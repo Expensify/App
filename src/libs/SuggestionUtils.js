@@ -32,7 +32,7 @@ function trimLeadingSpace(str) {
  * @param {Number} composerHeight
  * @returns {Boolean}
  */
-function spaceAvailableForLargeSuggestionMenu(listHeight, composerHeight) {
+function hasEnoughSpaceForLargeSuggestionMenu(listHeight, composerHeight) {
     const chatFooterHeight = CONST.CHAT_FOOTER_SECONDARY_ROW_HEIGHT + 2 * CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING;
     const availableHeight = listHeight - composerHeight - chatFooterHeight;
     const menuHeight =
@@ -42,4 +42,4 @@ function spaceAvailableForLargeSuggestionMenu(listHeight, composerHeight) {
     return availableHeight > menuHeight;
 }
 
-export {getMaxArrowIndex, trimLeadingSpace, spaceAvailableForLargeSuggestionMenu};
+export {getMaxArrowIndex, trimLeadingSpace, hasEnoughSpaceForLargeSuggestionMenu};
