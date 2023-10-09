@@ -9,7 +9,7 @@ function DraggableList<T>({renderClone, shouldUsePortal, ...viewProps}: Draggabl
         <DraggableFlatList
             ref={ref}
             containerStyle={styles.flex1}
-            contentContainerStyle={styles.flex1}
+            contentContainerStyle={styles.flexGrow1}
             ListFooterComponentStyle={styles.flex1}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...viewProps}
