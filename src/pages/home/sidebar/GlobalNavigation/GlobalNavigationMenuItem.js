@@ -49,7 +49,7 @@ const GlobalNavigationMenuItem = React.forwardRef(({icon, title, isFocused, onPr
                         fill={isFocused ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DEFAULT, true) : StyleUtils.getIconFillColor()}
                     />
                     <View style={[styles.mt1, styles.alignItemsCenter]}>
-                        <Text style={[StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall), styles.globalNavigationMenuItem(isFocused)]}>{title}</Text>
+                        <Text style={[StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall), styles.globalNavigationMenuItem(isFocused), styles.textAlignCenter]}>{title}</Text>
                     </View>
                 </View>
             </View>
