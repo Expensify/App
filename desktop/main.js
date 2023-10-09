@@ -14,6 +14,11 @@ const Localize = require('../src/libs/Localize');
 const port = process.env.PORT || 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 
+// Setup google api key in process environment, we are setting it this way intentionally. It is required by the
+// geolocation api (window.navigator.geolocation.getCurrentPosition) to work on desktop.
+// Source: https://github.com/electron/electron/blob/98cd16d336f512406eee3565be1cead86514db7b/docs/api/environment-variables.md#google_api_key
+process.env.GOOGLE_API_KEY = CONFIG.GOOGLE_GEOLOCATION_API_KEY;
+
 app.setName('New Expensify');
 
 /**

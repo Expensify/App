@@ -4,7 +4,7 @@ import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import moment from 'moment';
+import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
@@ -881,7 +881,7 @@ function getNewerActions(reportID, reportActionID) {
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingNewerReportActions: false,
                     },
@@ -897,7 +897,7 @@ function getNewerActions(reportID, reportActionID) {
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingNewerReportActions: false,
                     },
@@ -1451,7 +1451,7 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
 function updateWelcomeMessage(reportID, previousValue, newValue) {
     // No change needed, navigate back
     if (previousValue === newValue) {
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
         return;
     }
 
@@ -1471,7 +1471,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateWelcomeMessage', {reportID, welcomeMessage: parsedWelcomeMessage}, {optimisticData, failureData});
-    Navigation.goBack(ROUTES.HOME);
+    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
 /**
@@ -1527,9 +1527,8 @@ function navigateToConciergeChat() {
  * @param {String} visibility
  * @param {Array<Number>} policyMembersAccountIDs
  * @param {String} writeCapability
- * @param {String} welcomeMessage
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL, welcomeMessage = '') {
+function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL) {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
     const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);
@@ -1546,9 +1545,6 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
 
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-        '',
-        '',
-        welcomeMessage,
     );
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
 
@@ -1613,7 +1609,6 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
             writeCapability,
-            welcomeMessage,
         },
         {optimisticData, successData, failureData},
     );
@@ -1783,7 +1778,7 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
 
     // Only show notifications for supported types of report actions
     if (!ReportActionsUtils.isNotifiableReportAction(action)) {
-        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: action.actionName});
+        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: lodashGet(action, 'actionName')});
         return false;
     }
 
@@ -1856,7 +1851,7 @@ function hasAccountIDEmojiReacted(accountID, users, skinTone) {
  * @param {Number} [skinTone]
  */
 function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredSkinTone) {
-    const createdAt = moment().utc().format(CONST.DATE.SQL_DATE_TIME);
+    const createdAt = timezoneFormat(utcToZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1974,11 +1969,11 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
     const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
     if (existingReactionObject && hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
-        removeEmojiReaction(reportID, reportAction.reportActionID, emoji);
+        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
         return;
     }
 
-    addEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone);
+    addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone);
 }
 
 /**
@@ -2069,15 +2064,6 @@ function leaveRoom(reportID) {
             ],
         },
     );
-    Navigation.dismissModal();
-    if (Navigation.getTopmostReportId() === reportID) {
-        Navigation.goBack(ROUTES.HOME);
-    }
-    if (report.parentReportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
-        return;
-    }
-    navigateToConciergeChat();
 }
 
 /**

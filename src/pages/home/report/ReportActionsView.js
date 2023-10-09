@@ -106,7 +106,6 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
             return;
         }
         setFetchNewerWasCalled(false);
-        setFetchNewerWasCalled(false);
         setLinkingToMessageTrigger(true);
         props.fetchReport();
         setTimeout(() => {
@@ -232,9 +231,10 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         //
         // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
         // This should be removed once the issue of frequent re-renders is resolved.
-
         if (!isFetchNewerWasCalled) {
             setFetchNewerWasCalled(true);
+        // if (!isFetchNewerWasCalled.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
+        //     isFetchNewerWasCalled.current = true;
             return;
         }
         if (!isFetchNewerWasCalled || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
