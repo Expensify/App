@@ -2120,7 +2120,7 @@ function submitReport(expenseReport) {
             lastMessageText: optimisticSubmittedReportAction.message[0].text,
             lastMessageHtml: optimisticSubmittedReportAction.message[0].html,
             state: CONST.REPORT.STATE.SUBMITTED,
-            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
             statusNum: CONST.REPORT.STATUS.SUBMITTED,
         },
     };
@@ -2146,6 +2146,14 @@ function submitReport(expenseReport) {
                 [expenseReport.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS.OPEN,
             },
         },
     ];
