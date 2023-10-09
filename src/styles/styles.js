@@ -1234,6 +1234,20 @@ const styles = (theme) => ({
         height: '100%',
     },
 
+    sidebarHeaderContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingVertical: 19,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+
+    subNavigationContainer: {
+        backgroundColor: theme.sidebar,
+        flex: 1,
+        borderTopLeftRadius: variables.componentBorderRadiusRounded,
+    },
+
     sidebarAnimatedWrapperContainer: {
         height: '100%',
         position: 'absolute',
@@ -1269,8 +1283,7 @@ const styles = (theme) => ({
 
     floatingActionButtonContainer: {
         position: 'absolute',
-        right: 20,
-
+        left: 16,
         // The bottom of the floating action button should align with the bottom of the compose box.
         // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
         bottom: 25,
@@ -1278,8 +1291,8 @@ const styles = (theme) => ({
 
     floatingActionButton: {
         backgroundColor: theme.success,
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
@@ -1331,7 +1344,7 @@ const styles = (theme) => ({
 
     createMenuPositionSidebar: (windowHeight) => ({
         horizontal: 18,
-        vertical: windowHeight - 100,
+        vertical: windowHeight - 75,
     }),
 
     createMenuPositionProfile: (windowWidth) => ({
@@ -1399,11 +1412,25 @@ const styles = (theme) => ({
         textDecorationLine: 'none',
     },
 
+    sidebarLinkLHN: {
+        textDecorationLine: 'none',
+        marginLeft: 12,
+        marginRight: 12,
+        borderRadius: 8,
+    },
+
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
         paddingLeft: 20,
         paddingRight: 20,
+    },
+
+    sidebarLinkInnerLHN: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        paddingLeft: 8,
+        paddingRight: 8,
     },
 
     sidebarLinkText: {
@@ -1417,8 +1444,17 @@ const styles = (theme) => ({
         backgroundColor: theme.sidebarHover,
     },
 
+    sidebarLinkHoverLHN: {
+        backgroundColor: theme.highlightBG,
+    },
+
     sidebarLinkActive: {
         backgroundColor: theme.border,
+        textDecorationLine: 'none',
+    },
+
+    sidebarLinkActiveLHN: {
+        backgroundColor: theme.highlightBG,
         textDecorationLine: 'none',
     },
 
@@ -3693,6 +3729,34 @@ const styles = (theme) => ({
         width: '100%',
     },
 
+    globalNavigation: {
+        width: variables.globalNavigationWidth,
+        backgroundColor: theme.highlightBG,
+    },
+
+    globalNavigationMenuContainer: {
+        marginTop: 13,
+    },
+
+    globalAndSubNavigationContainer: {
+        backgroundColor: theme.highlightBG,
+    },
+
+    globalNavigationSelectionIndicator: (isFocused) => ({
+        width: 4,
+        height: 52,
+        borderTopRightRadius: variables.componentBorderRadiusRounded,
+        borderBottomRightRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: isFocused ? theme.iconMenu : theme.transparent,
+    }),
+
+    globalNavigationMenuItem: (isFocused) => (isFocused ? {color: theme.text, fontWeight: fontWeightBold, fontFamily: fontFamily.EXP_NEUE_BOLD} : {color: theme.icon}),
+
+    globalNavigationItemContainer: {
+        width: variables.globalNavigationWidth,
+        height: variables.globalNavigationWidth,
+    },
+
     walletCard: {
         borderRadius: variables.componentBorderRadiusLarge,
         position: 'relative',
@@ -3717,6 +3781,10 @@ const styles = (theme) => ({
 
     receiptDropHeaderGap: {
         backgroundColor: theme.receiptDropUIBG,
+    },
+
+    checkboxWithLabelCheckboxStyle: {
+        marginLeft: -2,
     },
 });
 
