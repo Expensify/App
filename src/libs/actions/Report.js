@@ -1388,9 +1388,11 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
 
 /**
  * Navigates to the 1:1 report with Concierge
+ *
+ * @param {Boolean} ignoreConciergeReportID
  */
-function navigateToConciergeChat() {
-    if (!conciergeChatReportID) {
+function navigateToConciergeChat(ignoreConciergeReportID = false) {
+    if (!conciergeChatReportID || ignoreConciergeReportID) {
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
@@ -1884,7 +1886,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
             if (route === ROUTES.CONCIERGE) {
-                navigateToConciergeChat();
+                navigateToConciergeChat(true);
                 return;
             }
             Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
