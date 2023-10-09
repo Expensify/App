@@ -17,18 +17,14 @@ const propTypes = {
     ...defaultPropTypes,
 };
 function BackgroundImage(props) {
-    console.log('PRINT', props.isSmallScreen, props.width);
     return props.isSmallScreen ? (
         <Image
-            // contentFit="fill"
             source={MobileBackgroundImage}
-            // pointerEvents={props.pointerEvents}
             style={[styles.signInBackground, {width: props.width}]}
         />
     ) : (
         <Image
             source={DesktopBackgroundImage}
-            // pointerEvents={props.pointerEvents}
             style={[styles.signInBackground, {width: props.width}]}
         />
     );

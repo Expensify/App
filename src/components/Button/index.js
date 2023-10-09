@@ -29,7 +29,7 @@ const propTypes = {
     shouldShowRightIcon: PropTypes.bool,
 
     /** The icon asset to display to the left of the text */
-    icon: PropTypes.func,
+    icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
 
     /** The icon asset to display to the right of the text */
     iconRight: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),

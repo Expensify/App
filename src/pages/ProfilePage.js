@@ -270,6 +270,7 @@ function ProfilePage(props) {
                 {shouldShowBlockingView && (
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
+                        iconColor={null}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={props.translate('notFound.notHere')}

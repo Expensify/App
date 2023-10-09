@@ -137,7 +137,6 @@ const personalDetailsSelector = (personalDetails) =>
     _.reduce(
         personalDetails,
         (finalPersonalDetails, personalData, accountID) => {
-            console.log("avatar", UserUtils.getAvatar(personalData.avatar, personalData.accountID))
             // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
             // eslint-disable-next-line no-param-reassign
             finalPersonalDetails[accountID] = {

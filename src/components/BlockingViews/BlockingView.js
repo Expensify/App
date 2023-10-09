@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
+import {imagePropTypes} from '@components/Image/imagePropTypes';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -13,7 +14,7 @@ import variables from '@styles/variables';
 
 const propTypes = {
     /** Expensicon for the page */
-    icon: PropTypes.func.isRequired,
+    icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]).isRequired,
 
     /** Color for the icon (should be from theme) */
     iconColor: PropTypes.string,

@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import styles from '@styles/styles';
 import Icon from './Icon';
+import {imagePropTypes} from './Image/imagePropTypes';
 import MenuItemList from './MenuItemList';
 import menuItemPropTypes from './menuItemPropTypes';
 import Text from './Text';
@@ -18,7 +19,7 @@ const propTypes = {
     subtitle: PropTypes.string,
 
     /** The icon to display along with the title */
-    icon: PropTypes.func,
+    icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
 
     /** Icon component */
     IconComponent: PropTypes.func,
@@ -45,6 +46,9 @@ const propTypes = {
     /** Customize the Icon container */
     // eslint-disable-next-line react/forbid-prop-types
     iconContainerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** The fill color for the icon displayed in the section. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
+    iconFill: PropTypes.string,
 };
 
 const defaultProps = {
@@ -58,6 +62,7 @@ const defaultProps = {
     subtitleStyles: [],
     childrenStyles: [],
     subtitle: null,
+    iconFill: null,
 };
 
 function Section({children, childrenStyles, containerStyles, icon, IconComponent, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles}) {
@@ -74,6 +79,7 @@ function Section({children, childrenStyles, containerStyles, icon, IconComponent
                                 src={icon}
                                 height={68}
                                 width={68}
+                                fill={props.iconFill}
                             />
                         )}
                         {Boolean(IconComponent) && <IconComponent />}

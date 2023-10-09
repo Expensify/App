@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import Icon from '@components/Icon';
+import {imagePropTypes} from '@components/Image/imagePropTypes';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -16,7 +17,7 @@ const propTypes = {
     code: PropTypes.string.isRequired,
 
     /** The icon representation of the category that this button links to */
-    icon: PropTypes.func.isRequired,
+    icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]).isRequired,
 
     /** The function to call when an emoji is selected */
     onPress: PropTypes.func.isRequired,

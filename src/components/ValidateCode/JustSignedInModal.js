@@ -23,6 +23,7 @@ function JustSignedInModal(props) {
             <View style={styles.deeplinkWrapperMessage}>
                 <View style={styles.mb2}>
                     <Icon
+                        fill={null}
                         width={variables.modalTopIconWidth}
                         height={props.is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight}
                         src={props.is2FARequired ? Illustrations.SafeBlue : Illustrations.Abracadabra}

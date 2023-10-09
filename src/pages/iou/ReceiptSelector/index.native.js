@@ -1,3 +1,4 @@
+import {Image} from 'expo-image';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -165,6 +166,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                     <Image
+                        contentFit="contain"
                         source={Hand}
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
                         height={CONST.RECEIPT.HAND_ICON_HEIGHT}
@@ -243,6 +245,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                     onPress={takePhoto}
                 >
                     <Image
+                        contentFit="contain"
                         source={Shutter}
                         style={{width: CONST.RECEIPT.SHUTTER_SIZE, height: CONST.RECEIPT.SHUTTER_SIZE}}
                     />

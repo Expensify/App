@@ -8,6 +8,7 @@ import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {imagePropTypes} from '@components/Image/imagePropTypes';
 import Modal from '@components/Modal';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -44,7 +45,7 @@ const propTypes = {
     isVisible: PropTypes.bool.isRequired,
 
     /** Image crop vector mask */
-    maskImage: PropTypes.func,
+    maskImage: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,

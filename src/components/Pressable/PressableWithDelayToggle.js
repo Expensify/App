@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {imagePropTypes} from '@components/Image/imagePropTypes';
 import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -44,10 +45,10 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** The icon to display */
-    icon: PropTypes.func,
+    icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
 
     /** The icon to display once the pressable is pressed */
-    iconChecked: PropTypes.func,
+    iconChecked: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
 
     /**
      * Should be set to `true` if this component is being rendered inline in

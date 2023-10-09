@@ -82,6 +82,7 @@ const defaultProps = {
     shouldShowRightComponent: false,
     titleWithTooltips: [],
     shouldCheckActionAllowedOnPress: true,
+    displayWithDefaultIconFill: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -222,11 +223,13 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     width={props.iconWidth}
                                                     height={props.iconHeight}
                                                     fill={
-                                                        props.iconFill ||
-                                                        StyleUtils.getIconFillColor(
-                                                            getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive),
-                                                            true,
-                                                        )
+                                                        props.displayWithDefaultIconFill
+                                                            ? null
+                                                            : props.iconFill ||
+                                                              StyleUtils.getIconFillColor(
+                                                                  getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive),
+                                                                  true,
+                                                              )
                                                     }
                                                 />
                                             )}

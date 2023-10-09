@@ -68,7 +68,7 @@ const propTypes = {
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
 
     /** Image crop vector mask */
-    editorMaskImage: PropTypes.func,
+    editorMaskImage: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
 
     /** Additional style object for the error row */
     errorRowStyles: stylePropTypes,

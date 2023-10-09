@@ -1,3 +1,4 @@
+import {Image} from 'expo-image';
 import React, {useMemo, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
@@ -108,10 +109,10 @@ function AboutPage(props) {
                         <View style={[styles.flex1]}>
                             <View style={styles.pageWrapper}>
                                 <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
-                                    {/* <Image
+                                    <Image
                                         source={Logo}
-                                        style={{height, width}}
-                                    /> */}
+                                        style={{height: 80, width: 80}}
+                                    />
                                     <Text
                                         selectable
                                         style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted]}
