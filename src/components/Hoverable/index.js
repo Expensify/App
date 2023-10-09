@@ -5,6 +5,14 @@ import {propTypes, defaultProps} from './hoverablePropTypes';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import CONST from '../../CONST';
 
+/**
+ * Maps the children of a Hoverable component to
+ * - a function that is called with the parameter
+ * - the child itself if it is the only child
+ * @param {Array|Function|ReactNode} children - The children to map.
+ * @param {Object} callbackParam - The parameter to pass to the children function.
+ * @returns {ReactNode} The mapped children.
+ */
 function mapChildren(children, callbackParam) {
     if (_.isArray(children) && children.length === 1) {
         return children[0];
@@ -17,6 +25,11 @@ function mapChildren(children, callbackParam) {
     return children;
 }
 
+/**
+ * Assigns a ref to an element, either by setting the current property of the ref object or by calling the ref function
+ * @param {Object|Function} ref - The ref object or function.
+ * @param {HTMLElement} el - The element to assign the ref to.
+ */
 function assignRef(ref, el) {
     if (!ref) {
         return;
