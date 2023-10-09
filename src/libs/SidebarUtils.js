@@ -347,13 +347,30 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
         const lastAction = visibleReportActionItems[report.reportID];
-        if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+        const lastActionType = lodashGet(lastAction, 'actionName', '');
+        if (lastActionType === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lodashGet(lastAction, 'originalMessage.newName', '');
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
-        } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
+        } else if (lastActionType === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
             result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}: ${report.reportName}`;
-        } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
+        } else if (lastActionType === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
             result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}: ${report.reportName}`;
+        } else if (_.includes([
+            CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM,
+            CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM,
+            CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM,
+            CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
+        ], lastActionType)) {
+            const targetAccountIDs = lodashGet(lastAction, 'originalMessage.targetAccountIDs', []);
+            const verb = lastActionType === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastActionType === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ? 'invited' : 'removed';
+            const users = targetAccountIDs.length > 1 ? "users" : "user";
+            result.alternateText = `${verb} ${targetAccountIDs.length} ${users}`;
+
+            const roomName = lodashGet(lastAction, 'originalMessage.roomName', '');
+            if (roomName) {
+                const preposition = CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastActionType === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ? 'to' : 'from';
+                result.alternateText += `${preposition} ${roomName}`;
+            }
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
