@@ -154,7 +154,7 @@ function FloatingActionButtonAndPopover(props) {
         }
         Welcome.show({routes, showCreateMenu});
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [props.isLoading]);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
