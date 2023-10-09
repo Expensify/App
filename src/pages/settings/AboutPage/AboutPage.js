@@ -84,7 +84,7 @@ function AboutPage(props) {
             action: Report.navigateToConciergeChat,
         },
     ];
-    console.log('props.isShortcutsModalOpen: ', props.isShortcutsModalOpen);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
