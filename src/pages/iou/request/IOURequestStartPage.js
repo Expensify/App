@@ -23,10 +23,16 @@ import * as IOU from '../../../libs/actions/IOU';
 import usePrevious from '../../../hooks/usePrevious';
 import * as TransactionUtils from '../../../libs/TransactionUtils';
 import IOURequestStepRoutePropTypes from './step/IOURequestStepRoutePropTypes';
+import reportPropTypes from '../../reportPropTypes';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: IOURequestStepRoutePropTypes.isRequired,
+
+    /* Onyx Props */
+    /** The report that holds the transaction */
+    report: reportPropTypes,
 
     /** The tab to select by default (whatever the user visited last) */
     selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
@@ -36,14 +42,16 @@ const propTypes = {
 };
 
 const defaultProps = {
+    report: {},
     selectedTab: CONST.TAB_REQUEST.MANUAL,
     transaction: {},
 };
 
 function IOURequestStartPage({
+    report,
     route,
     route: {
-        params: {iouType, reportID, step},
+        params: {iouType, reportID},
     },
     selectedTab,
     transaction,
@@ -66,12 +74,13 @@ function IOURequestStartPage({
         [],
     );
 
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
     const iouTypeParamIsInvalid = !_.contains(_.values(CONST.IOU.TYPE), iouType);
-    if (iouTypeParamIsInvalid) {
+    if (iouTypeParamIsInvalid || !canUserPerformWriteAction) {
         return <FullPageNotFoundView shouldShow />;
     }
 
-    const goBack = () => {
+    const navigateBack = () => {
         Navigation.dismissModal();
     };
 
@@ -95,7 +104,7 @@ function IOURequestStartPage({
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={tabTitles[iouType]}
-                            onBackButtonPress={goBack}
+                            onBackButtonPress={navigateBack}
                         />
 
                         <OnyxTabNavigator
@@ -126,6 +135,9 @@ IOURequestStartPage.propTypes = propTypes;
 IOURequestStartPage.defaultProps = defaultProps;
 
 export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
+    },
     selectedTab: {
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
     },
