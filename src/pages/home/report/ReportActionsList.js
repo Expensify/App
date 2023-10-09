@@ -39,6 +39,9 @@ const propTypes = {
     /** Are we loading more report actions? */
     isLoadingOlderReportActions: PropTypes.bool,
 
+    /** Are we loading newer report actions? */
+    isLoadingNewerReportActions: PropTypes.bool,
+
     /** Callback executed on list layout */
     onLayout: PropTypes.func.isRequired,
 
@@ -47,6 +50,9 @@ const propTypes = {
 
     /** Function to load more chats */
     loadOlderChats: PropTypes.func.isRequired,
+
+    /** Function to load newer chats */
+    loadNewerChats: PropTypes.func.isRequired,
 
     /** The policy object for the current route */
     policy: PropTypes.shape({
@@ -344,6 +350,8 @@ function ReportActionsList({
     );
 
     const listFooterComponent = useCallback(() => {
+        // Skip this hook on the first render, as we are not sure if more actions are going to be loaded
+        // Therefore showing the skeleton on footer might be misleading
         if (firstRenderRef.current) {
             firstRenderRef.current = false;
             return null;

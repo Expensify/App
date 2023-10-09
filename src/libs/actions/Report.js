@@ -760,52 +760,6 @@ function reconnect(reportID) {
  * @param {String} reportID
  * @param {String} reportActionID
  */
-function readOldestAction(reportID, reportActionID) {
-    API.read(
-        'ReadOldestAction',
-        {
-            reportID,
-            reportActionID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                    value: {
-                        isLoadingOlderReportActions: true,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                    value: {
-                        isLoadingOlderReportActions: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                    value: {
-                        isLoadingOlderReportActions: true,
-                    },
-                },
-            ],
-        },
-    );
-}
-
-/**
- * Gets the older actions that have not been read yet.
- * Normally happens when you scroll up on a chat, and the actions have not been read yet.
- *
- * @param {String} reportID
- * @param {String} reportActionID
- */
 function getOlderActions(reportID, reportActionID) {
     API.read(
         'GetOlderActions',
@@ -863,13 +817,6 @@ function getNewerActions(reportID, reportActionID) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        isLoadingNewerReportActions: true,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingNewerReportActions: true,
@@ -884,22 +831,8 @@ function getNewerActions(reportID, reportActionID) {
                         isLoadingNewerReportActions: false,
                     },
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                    value: {
-                        isLoadingNewerReportActions: false,
-                    },
-                },
             ],
             failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                    value: {
-                        isLoadingNewerReportActions: false,
-                    },
-                },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
@@ -2328,7 +2261,6 @@ export {
     expandURLPreview,
     markCommentAsUnread,
     readNewestAction,
-    readOldestAction,
     openReport,
     openReportFromDeepLink,
     navigateToAndOpenReport,
