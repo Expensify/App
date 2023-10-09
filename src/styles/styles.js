@@ -3289,12 +3289,6 @@ const styles = (theme) => ({
         lineHeight: variables.lineHeightXXLarge,
     },
 
-    eReceiptAmount: {
-        ...headlineFont,
-        fontSize: variables.fontSizeXXXLarge,
-        lineHeight: variables.lineHeightXXXLarge,
-    },
-
     eReceiptAmountLarge: {
         ...headlineFont,
         fontSize: variables.fontSizeEReceiptLarge,
@@ -3359,19 +3353,6 @@ const styles = (theme) => ({
         minHeight: 540,
         borderRadius: 20,
         overflow: 'hidden',
-    },
-
-    eReceiptReceiptIconSmall: {
-        height: 82.09,
-        width: 59.1,
-    },
-
-    eReceiptPanel: {
-        ...spacing.p5,
-        ...spacing.pb8,
-        ...spacing.m5,
-        borderRadius: 20,
-        width: 500,
     },
 
     loginHeroBody: {
