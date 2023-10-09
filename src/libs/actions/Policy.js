@@ -240,7 +240,7 @@ function removeMembers(accountIDs, policyID) {
             key: membersListKey,
             value: _.object(accountIDs, Array(accountIDs.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
         },
-        ..._.map(workspaceChats, ({reportID, stateNum, statusNum, hasDraft, oldPolicyName}) => ({
+        ..._.map(workspaceChats, ({reportID, stateNum, statusNum, hasDraft, oldPolicyName = null}) => ({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
@@ -249,6 +249,11 @@ function removeMembers(accountIDs, policyID) {
                 hasDraft,
                 oldPolicyName,
             },
+        })),
+        ..._.map(optimisticClosedReportActions, (reportAction, index) => ({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats[index].reportID}`,
+            value: {[reportAction.reportActionID]: null},
         })),
     ];
     API.write(
