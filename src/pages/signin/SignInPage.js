@@ -88,7 +88,7 @@ const defaultProps = {
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, hasEmailDeliveryFailure, isClientTheLeader}) {
+function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, isSAMLEnabled, isSAMLRequired, isUsingMagicCode, hasEmailDeliveryFailure, isClientTheLeader}) {
     const shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
     let shouldShowChooseSSOOrMagicCode = false;
     let shouldInitiateSAMLLogin = false;
