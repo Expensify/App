@@ -243,7 +243,7 @@ function BaseSelectionList({
     // This debounce happens on the trailing edge because on repeated enter presses, rapid component state update cancels the existing debounce and the redundant
     // enter presses runs the debounced function again. This is solved by running the debounce on trailing edge.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedSelectFocusedOption = useCallback(shouldDebounceRowSelect ? _.debounce(selectFocusedOption, 50) : selectFocusedOption, [selectFocusedOption]);
+    const debouncedSelectFocusedOption = useCallback(shouldDebounceRowSelect ? _.debounce(selectFocusedOption, 50) : selectFocusedOption, [shouldDebounceRowSelect, selectFocusedOption]);
 
     /**
      * This function is used to compute the layout of any given item in our list.
