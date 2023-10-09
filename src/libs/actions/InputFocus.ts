@@ -6,7 +6,7 @@ function inputFocusChange(focus: boolean) {
 }
 
 let refSave: HTMLElement | undefined;
-function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: {willAlertModalBecomeVisible: boolean, isVisible: boolean}, onyxFocused: boolean) {
+function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: {willAlertModalBecomeVisible: boolean; isVisible: boolean}, onyxFocused: boolean) {
     if (isFocused && !onyxFocused) {
         inputFocusChange(true);
         ref.focus();
@@ -19,5 +19,4 @@ function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: {
     }
 }
 
-
-export { composerFocusKeepFocusOn, inputFocusChange }
+export {composerFocusKeepFocusOn, inputFocusChange};
