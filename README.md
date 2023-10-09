@@ -99,7 +99,7 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
-- `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing. 
+- `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
 
 ----
@@ -120,7 +120,7 @@ to help run our Unit tests.
 2. This will allow you to attach a debugger in your IDE, React Developer Tools, or your browser.
 3. For more information on how to attach a debugger, see [React Native Debugging Documentation](https://reactnative.dev/docs/debugging#chrome-developer-tools)
 
-Alternatively, you can also set up debugger using [Flipper](https://fbflipper.com/). After installation, press `⌘D` and select "Open Debugger". This will open Flipper window. To view data stored by Onyx, go to Plugin Manager and install `async-storage` plugin.
+Alternatively, you can also set up debugger using [Flipper](https://fbflipper.com/). After installation, press `⌘D` and select "Open Debugger". This will open Flipper window.
 
 ## Android
 Our React Native Android app now uses the `Hermes` JS engine which requires your browser for remote debugging. These instructions are specific to Chrome since that's what the Hermes documentation provided.
