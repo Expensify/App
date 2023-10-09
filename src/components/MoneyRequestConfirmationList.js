@@ -144,6 +144,9 @@ const propTypes = {
     /** Whether the receipt associated with this report is being scanned */
     isScanning: PropTypes.bool,
 
+    /** Whether we should show the amount, date, and merchant fields. */
+    shouldShowSmartScanFields: PropTypes.bool,
+
     /* Onyx Props */
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
@@ -180,6 +183,7 @@ const defaultProps = {
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
     isDistanceRequest: false,
     isScanning: false,
+    shouldShowSmartScanFields: true,
 };
 
 function MoneyRequestConfirmationList(props) {
