@@ -3680,7 +3680,7 @@ const styles = (theme) => ({
 
     mapViewContainer: {
         ...flex.flex1,
-        ...spacing.p4,
+        ...spacing.p2,
         ...spacing.flex1,
         minHeight: 300,
         maxHeight: 500,
