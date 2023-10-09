@@ -128,7 +128,6 @@ const defaultProps = {
     allPolicyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
-window._navigate = () => Navigation.navigate('/settings/wallet/card/Expensify');
 
 function InitialSettingsPage(props) {
     const { isExecuting, singleExecution } = useSingleExecution();
