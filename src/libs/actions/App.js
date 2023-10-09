@@ -1,3 +1,6 @@
+// Do not remove this import until moment package is fully removed.
+// Issue - https://github.com/Expensify/App/issues/26719
+import 'moment/locale/es';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
