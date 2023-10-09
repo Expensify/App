@@ -83,7 +83,7 @@ function SplitBillDetailsPage(props) {
     const isEdittingSplitBill =
         props.session.accountID === reportAction.actorAccountID && (isScanning || (TransactionUtils.hasReceipt(transaction) && transaction.receipt.state === CONST.IOU.RECEIPT_STATE.FAILED));
 
-    const draftSplitTransaction = props.draftSplitTransactions[`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transaction.transactionID}`];
+    const draftSplitTransaction = props.draftSplitTransactions && props.draftSplitTransactions[`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transaction.transactionID}`];
 
     if (isEdittingSplitBill && !draftSplitTransaction) {
         IOU.setDraftSplitTransaction(transaction.transactionID);
@@ -97,7 +97,7 @@ function SplitBillDetailsPage(props) {
         created: splitCreated,
     } = isEdittingSplitBill && draftSplitTransaction ? ReportUtils.getTransactionDetails(draftSplitTransaction) : ReportUtils.getTransactionDetails(transaction);
 
-    const onConfirm = useCallback(() => IOU.completeSplitBill(draftSplitTransaction));
+    const onConfirm = useCallback(() => IOU.completeSplitBill(draftSplitTransaction), [draftSplitTransaction]);
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
