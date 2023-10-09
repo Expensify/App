@@ -1,4 +1,3 @@
-// TODO: This file came from IOURequestStepMerchant.js - verify it's still the same when ready to merge and clean up the old file
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';

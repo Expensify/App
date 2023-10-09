@@ -1,4 +1,3 @@
-// TODO: This file came from iou/ReceiptSelector/index.js and it needs cleaned up and have everything use this new file
 import {View, Text, PanResponder, PixelRatio} from 'react-native';
 import React, {useContext, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';

@@ -1,4 +1,3 @@
-// TODO: This file came from MoneyRequestConfirmPage.js and we need to be sure any recent changes are copied to this file
 import React, {useCallback, useEffect} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';

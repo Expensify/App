@@ -2551,8 +2551,6 @@ export {
     resetMoneyRequestCategory,
     resetMoneyRequestInfo,
     resetMoneyRequestTag,
-
-    // TODO: Rename these methods to "money"
     setMoneeRequestAmount,
     setMoneeRequestCategory,
     setMoneeRequestCreated,
@@ -2562,8 +2560,6 @@ export {
     setMoneeRequestParticipants,
     setMoneeRequestReceipt,
     setMoneeRequestTag,
-
-    // TODO: remove these methods
     setMoneyRequestAmount,
     setMoneyRequestBillable,
     setMoneyRequestCategory,

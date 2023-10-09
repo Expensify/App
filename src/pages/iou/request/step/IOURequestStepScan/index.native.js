@@ -1,4 +1,3 @@
-// TODO: This file came from iou/ReceiptSelector/index.native.js and it needs cleaned up and have everything use this new file
 import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useCameraDevices} from 'react-native-vision-camera';

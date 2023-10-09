@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -16,11 +17,25 @@ import CONST from '../../../../CONST';
 import StepScreenWrapper from './StepScreenWrapper';
 import reportPropTypes from '../../../reportPropTypes';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
-import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: IOURequestStepRoutePropTypes.isRequired,
+    /** React Navigation route */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The ID of the transaction being configured */
+            transactionID: PropTypes.string,
+
+            /** The current step the user is on */
+            step: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+        }),
+    }).isRequired,
 
     /* Onyx Props */
     /** The report that the transaction belongs to */
@@ -35,7 +50,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestStepAmount({
+function IOURequestStepScan({
     route: {
         params: {iouType, reportID, step, transactionID},
     },
@@ -118,7 +133,7 @@ function IOURequestStepAmount({
         <StepScreenWrapper
             headerTitle={translate('iou.amount')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepAmount.displayName}
+            testID={IOURequestStepScan.displayName}
             shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
             shouldShowWrapper={isUserComingFromConfirmationStep}
         >
@@ -134,9 +149,9 @@ function IOURequestStepAmount({
     );
 }
 
-IOURequestStepAmount.propTypes = propTypes;
-IOURequestStepAmount.defaultProps = defaultProps;
-IOURequestStepAmount.displayName = 'IOURequestStepAmount';
+IOURequestStepScan.propTypes = propTypes;
+IOURequestStepScan.defaultProps = defaultProps;
+IOURequestStepScan.displayName = 'IOURequestStepScan';
 
 export default withOnyx({
     report: {
@@ -145,4 +160,4 @@ export default withOnyx({
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
     },
-})(IOURequestStepAmount);
+})(IOURequestStepScan);

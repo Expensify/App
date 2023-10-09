@@ -1,4 +1,3 @@
-// TODO: This file came from IOURequestStepTag - verify it's still the same when ready to merge and clean up the old file
 import React from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';

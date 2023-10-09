@@ -1,4 +1,3 @@
-// TODO: This file came from IOURequestStepCurrency.js and that file needs to be removed and cleaned up to ensure any additinal functionality is included here
 import React, {useState, useMemo, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';

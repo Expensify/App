@@ -1,4 +1,3 @@
-// TODO: This file came from MoneyRequestCategoryPage - verify it's still the same when ready to merge and clean up the old file
 import React from 'react';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';

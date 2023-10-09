@@ -613,6 +613,7 @@ function MoneyRequestConfirmationList(props) {
 
 MoneyRequestConfirmationList.propTypes = propTypes;
 MoneyRequestConfirmationList.defaultProps = defaultProps;
+MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
 
 export default compose(
     withCurrentUserPersonalDetails,

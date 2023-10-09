@@ -181,7 +181,6 @@ export default {
     },
 
     // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
-    // <!-- replaced with MONEE_REQUEST
     MONEY_REQUEST: {
         route: ':iouType/new/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}`,
@@ -244,9 +243,7 @@ export default {
     },
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
-    // -->
 
-    // TODO: remove "create" from the front of the route
     MONEE_REQUEST_CREATE: {
         route: 'create/:iouType/start/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}`,

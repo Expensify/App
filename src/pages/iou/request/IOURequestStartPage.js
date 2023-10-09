@@ -1,4 +1,3 @@
-// TODO: cleanup - file was made from MoneyRequestSelectorPage
 import React, {useState, useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -92,10 +91,7 @@ function IOURequestStartPage({
             testID={IOURequestStartPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <DragAndDropProvider
-                    isDisabled={iouType !== CONST.TAB_REQUEST.SCAN}
-                    setIsDraggingOver={setIsDraggingOver}
-                >
+                <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={tabTitles[iouType]}

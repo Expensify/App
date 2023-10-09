@@ -1,11 +1,10 @@
-// TODO: This file came from MoneyRequestParticipantsPage.js and we need to be sure any recent changes are copied to this file
 import React, {useRef, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
-import MoneyRequestParticipantsSelector from '../../steps/MoneyRequstParticipantsPage/MoneeRequestParticipantsSelector';
+import MoneyRequestParticipantsSelector from '../MoneeRequestParticipantsSelector';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as IOU from '../../../../libs/actions/IOU';
 import useLocalize from '../../../../hooks/useLocalize';
