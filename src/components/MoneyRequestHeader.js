@@ -80,15 +80,15 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
-    const shouldShowThreeDotsButton = isActionOwner && !isSettled && !isApproved;
+    const canModifyRequest = isActionOwner && !isSettled && !isApproved;
 
     useEffect(() => {
-        if (shouldShowThreeDotsButton) {
+        if (canModifyRequest) {
             return;
         }
 
         setIsDeleteModalVisible(false);
-    }, [shouldShowThreeDotsButton]);
+    }, [canModifyRequest]);
 
     return (
         <>
@@ -96,7 +96,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 <HeaderWithBackButton
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                    shouldShowThreeDotsButton={canModifyRequest}
                     threeDotsMenuItems={[
                         ...(TransactionUtils.hasReceipt(transaction)
                             ? []
