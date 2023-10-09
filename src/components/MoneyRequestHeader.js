@@ -21,6 +21,9 @@ import * as TransactionUtils from '../libs/TransactionUtils';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import transactionPropTypes from './transactionPropTypes';
 import useWindowDimensions from '../hooks/useWindowDimensions';
+import themeColors from '../styles/themes/default';
+import * as Report from '../libs/actions/Report';
+import * as Session from '../libs/actions/Session';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -79,6 +82,38 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }, [parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+    const threeDotsMenuItems = [
+        ...(TransactionUtils.hasReceipt(transaction)
+            ? []
+            : [
+                  {
+                      icon: Expensicons.Receipt,
+                      text: translate('receipt.addReceipt'),
+                      onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+                  },
+              ]),
+        {
+            icon: Expensicons.Trashcan,
+            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+            onSelected: () => setIsDeleteModalVisible(true),
+        },
+    ];
+
+    if (!report.isPinned) {
+        threeDotsMenuItems.unshift({
+            icon: Expensicons.Pin,
+            iconFill: themeColors.icon,
+            text: translate('common.pin'),
+            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, report.isPinned)),
+        });
+    } else {
+        threeDotsMenuItems.unshift({
+            icon: Expensicons.Pin,
+            iconFill: themeColors.icon,
+            text: translate('common.unPin'),
+            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, report.isPinned)),
+        });
+    }
 
     return (
         <>
@@ -87,22 +122,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton={isActionOwner && !isSettled && !isApproved}
-                    threeDotsMenuItems={[
-                        ...(TransactionUtils.hasReceipt(transaction)
-                            ? []
-                            : [
-                                  {
-                                      icon: Expensicons.Receipt,
-                                      text: translate('receipt.addReceipt'),
-                                      onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
-                                  },
-                              ]),
-                        {
-                            icon: Expensicons.Trashcan,
-                            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-                            onSelected: () => setIsDeleteModalVisible(true),
-                        },
-                    ]}
+                    threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     report={{
                         ...report,
