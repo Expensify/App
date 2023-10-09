@@ -2,11 +2,19 @@
 import {Dimensions, useWindowDimensions} from 'react-native';
 import variables from '../../styles/variables';
 
+type WindowDimensions = {
+    windowWidth: number;
+    windowHeight: number;
+    isExtraSmallScreenHeight: boolean,
+    isSmallScreenWidth: boolean,
+    isMediumScreenWidth: boolean,
+    isLargeScreenWidth: boolean,
+}
+
 /**
  * A convenience wrapper around React Native's useWindowDimensions hook that also provides booleans for our breakpoints.
- * @returns {Object}
  */
-export default function () {
+export default function(): WindowDimensions {
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
     // When the soft keyboard opens on mWeb, the window height changes. Use static screen height instead to get real screenHeight.
     const screenHeight = Dimensions.get('screen').height;
@@ -14,6 +22,7 @@ export default function () {
     const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
     const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
+
     return {
         windowWidth,
         windowHeight,
