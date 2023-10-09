@@ -1,4 +1,5 @@
-import moment from 'moment';
+// import _ from 'underscore';
+import {isAfter} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import {AppState, NativeEventSubscription} from 'react-native';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -41,7 +42,7 @@ const setExpirationTimer = () => {
     }, REFRESH_INTERVAL);
 };
 
-const hasTokenExpired = () => moment().isAfter(currentToken?.expiration);
+const hasTokenExpired = () => isAfter(new Date(), new Date(currentToken?.expiration ?? ''));
 
 const clearToken = () => {
     console.debug('[MapboxToken] Deleting the token stored in Onyx');
