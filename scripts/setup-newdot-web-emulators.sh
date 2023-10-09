@@ -48,6 +48,7 @@ setup_ios()
   sleep 5
   info "Installing certificates on iOS simulator"
   xcrun simctl keychain booted add-cert ./config/webpack/certificate.pem
+  kill_all_emulators_ios
 }
 
 restart_adb_server() {
@@ -82,6 +83,7 @@ setup_android_path_1()
   sleep 2
   adb remount
   adb push /etc/hosts /system/etc/hosts
+  kill_all_emulators_android
 }
 
 setup_android_path_2()
@@ -100,6 +102,7 @@ setup_android_path_2()
   sleep 2
   adb remount
   adb push /etc/hosts /system/etc/hosts
+  kill_all_emulators_android
 }
 
 setup_android()

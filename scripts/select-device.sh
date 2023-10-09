@@ -51,6 +51,11 @@ select_device_ios()
   open -a Simulator --args -CurrentDeviceUDID "$device_identifier"
 }
 
+kill_all_emulators_ios() {
+  # kill all the emulators
+  killall Simulator
+}
+
 select_device_android()
 {
   # shellcheck disable=SC2124
@@ -86,4 +91,9 @@ select_device_android()
   done
   success "Launching $device_identifier"
   emulator -avd "$device_identifier" -writable-system > /dev/null 2>&1 &
+}
+
+kill_all_emulators_android() {
+  # kill all the emulators
+  adb devices | grep emulator | cut -f1 | while read -r line; do adb -s "$line" emu kill; done
 }
