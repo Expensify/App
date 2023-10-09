@@ -1,6 +1,5 @@
 /* eslint-disable es/no-nullish-coalescing-operators */
 import React, {useEffect, useState} from 'react';
-import Navigation from '../libs/Navigation/Navigation';
 
 function getNewDotURL(url) {
     const urlObj = new URL(url);
@@ -80,11 +79,10 @@ function getOldDotURL(url) {
 }
 
 export default function ReportScreen() {
-    const [oldDotURL, setOldDotURL] = useState('https://expensify.com.dev');
+    const [oldDotURL, setOldDotURL] = useState('https://www.expensify.com.dev');
 
     useEffect(() => {
-        const route = Navigation.getActiveRoute();
-        setOldDotURL(`https://expensify.com.dev/${getOldDotURL(route)}`);
+        setOldDotURL(`https://expensify.com.dev/${getOldDotURL(window.location.href)}`);
 
         window.addEventListener('message', (event) => {
             const url = event.data;
