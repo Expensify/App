@@ -1,12 +1,19 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
+import * as Browser from '../../Browser';
 
 function inputFocusChange(focus: boolean) {
+    if (Browser.isMobile()) {
+        return;
+    }
     Onyx.set(ONYXKEYS.INPUT_FOCUSED, focus);
 }
 
 let refSave: HTMLElement | undefined;
 function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: {willAlertModalBecomeVisible: boolean; isVisible: boolean}, onyxFocused: boolean) {
+    if (Browser.isMobile()) {
+        return;
+    }
     if (isFocused && !onyxFocused) {
         inputFocusChange(true);
         ref.focus();
@@ -19,4 +26,6 @@ function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: {
     }
 }
 
-export {composerFocusKeepFocusOn, inputFocusChange};
+const callback = (method: () => void) => !Browser.isMobile() && method();
+
+export {composerFocusKeepFocusOn, inputFocusChange, callback};
