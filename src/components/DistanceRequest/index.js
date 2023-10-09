@@ -18,6 +18,7 @@ import usePrevious from '../../hooks/usePrevious';
 import * as Transaction from '../../libs/actions/Transaction';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 import Button from '../Button';
 import DraggableList from '../DraggableList';
 import transactionPropTypes from '../transactionPropTypes';
@@ -26,6 +27,7 @@ import FullPageNotFoundView from '../BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../HeaderWithBackButton';
 import DistanceRequestFooter from './DistanceRequestFooter';
 import DistanceRequestRenderItem from './DistanceRequestRenderItem';
+import DotIndicatorMessage from '../DotIndicatorMessage';
 
 const propTypes = {
     /** The transactionID of this request */
@@ -68,6 +70,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
     const {translate} = useLocalize();
 
     const [optimisticWaypoints, setOptimisticWaypoints] = useState(null);
+    const [userTriedSubmitting, setUserTriedSubmitting] = useState(false);
     const isEditing = lodashGet(route, 'path', '').includes('address');
     const reportID = lodashGet(report, 'reportID', '');
     const waypoints = useMemo(() => optimisticWaypoints || lodashGet(transaction, 'comment.waypoints', {waypoint0: {}, waypoint1: {}}), [optimisticWaypoints, transaction]);
@@ -101,6 +104,9 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
 
         // Create the initial start and stop waypoints
         Transaction.createInitialWaypoints(transactionID);
+        return () => {
+            setUserTriedSubmitting(false);
+        };
     }, [transaction, transactionID]);
 
     useEffect(() => {
@@ -118,6 +124,13 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
         scrollViewRef.current.scrollToEnd({animated: true});
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
+    useEffect(() => {
+        if (_.isEqual(previousWaypoints, waypoints)) {
+            return;
+        }
+        setUserTriedSubmitting(false);
+    }, [waypoints, previousWaypoints]);
+
     const navigateBack = () => {
         Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
     };
@@ -128,6 +141,21 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
      */
     const navigateToWaypointEditPage = (index) => {
         Navigation.navigate(isEditingRequest ? ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.getRoute(report.reportID, transactionID, index) : ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index));
+    };
+
+    const getError = () => {
+        // get route error if available else show the invalid number of waypoints error
+        if (hasRouteError) {
+            return ErrorUtils.getLatestErrorField(transaction, 'route');
+        }
+
+        if (_.size(validatedWaypoints) < 2) {
+            // initially, both waypoints will be null, and if we give fallback value as emmpty string that will result in true condition, that's why different default values
+            if (_.keys(waypoints).length === 2 && lodashGet(waypoints, 'waypoint0.address', 'address1') === lodashGet(waypoints, 'waypoint1.address', 'address2')) {
+                return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
+            }
+            return {0: translate('iou.error.emptyWaypointsErrorMessage')};
+        }
     };
 
     const updateWaypoints = useCallback(
@@ -183,13 +211,27 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
                 />
             </View>
             <View style={[styles.w100, styles.pt2]}>
+                {/* show error message if there is route error or there are less than 2 routes and user has tried submitting */}
+                {((userTriedSubmitting && _.size(validatedWaypoints) < 2) || hasRouteError) && (
+                    <DotIndicatorMessage
+                        style={[styles.mh4, styles.mv3]}
+                        messages={getError()}
+                        type="error"
+                    />
+                )}
                 <Button
                     success
                     allowBubble
                     pressOnEnter
                     style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                    onPress={() => onSubmit(waypoints)}
-                    isDisabled={_.size(validatedWaypoints) < 2 || (!isOffline && (hasRouteError || isLoadingRoute || isLoading))}
+                    onPress={() => {
+                        setUserTriedSubmitting(true);
+                        // if there is any error or loading state, don't let user go to next page
+                        if (_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute || isLoading) {
+                            return;
+                        }
+                        onSubmit(waypoints);
+                    }}
                     text={translate(isEditingRequest ? 'common.save' : 'common.next')}
                     isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                 />

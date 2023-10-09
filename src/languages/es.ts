@@ -561,6 +561,8 @@ export default {
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
             genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
+            duplicateWaypointsErrorMessage: 'Hay puntos de ruta duplicados',
+            emptyWaypointsErrorMessage: 'Por favor introduce al menos dos waypoints',
         },
     },
     notificationPreferencesPage: {
