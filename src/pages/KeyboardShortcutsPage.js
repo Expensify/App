@@ -45,10 +45,7 @@ function KeyboardShortcutsPage() {
             includeSafeAreaPaddingBottom={false}
             testID={KeyboardShortcutsPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('keyboardShortcutsPage.title')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButton title={translate('keyboardShortcutsPage.title')} />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.mb5, styles.baseFontStyle]}>{translate('keyboardShortcutsPage.subtitle')}</Text>
