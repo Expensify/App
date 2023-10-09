@@ -114,10 +114,6 @@ function ComposerWithSuggestions({
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
 
-    // Disabled auto-focus for `web platforms`.
-    // Focus for `web platforms` with `focusWithScrolledToBottom` method.
-    const autoFocusOnMount = shouldAutoFocus && isNativeApp;
-
     const valueRef = useRef(value);
     valueRef.current = value;
 
@@ -460,11 +456,7 @@ function ComposerWithSuggestions({
 
         // Set the `selection at end` and `scrolls input to bottom` for `Web Platforms`.
         updateMultilineInputRange(textInputRef.current);
-
-        // `autoFocusOnMount` has disabled auto-focus for `Native Platforms`.
-        // So we Focus input programmatically here.
-        focus();
-    }, [focus, shouldAutoFocus]);
+    }, [shouldAutoFocus]);
 
     useEffect(() => {
         // Initial focus ref to prevent unneccessary focus after first render.
@@ -538,7 +530,7 @@ function ComposerWithSuggestions({
             <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
-                    autoFocus={autoFocusOnMount}
+                    autoFocus={shouldAutoFocus}
                     multiline
                     ref={setTextInputRef}
                     textAlignVertical="top"
