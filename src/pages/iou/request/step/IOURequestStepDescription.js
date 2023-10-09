@@ -62,8 +62,6 @@ function IOURequestStepDescription({
     };
 
     /**
-     * Sets the money request comment by saving it to Onyx.
-     *
      * @param {Object} value
      * @param {String} value.moneyRequestComment
      */

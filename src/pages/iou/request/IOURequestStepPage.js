@@ -1,6 +1,10 @@
 import React from 'react';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 
+import * as ReportUtils from '../../../libs/ReportUtils';
+import ONYXKEYS from '../../../ONYXKEYS';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../../CONST';
 import IOURequestStepWaypoint from './step/IOURequestStepWaypoint';
@@ -15,13 +19,21 @@ import IOURequestStepCurrency from './step/IOURequestStepCurrency';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepMerchant from './step/IOURequestStepMerchant';
 import IOURequestStepRoutePropTypes from './step/IOURequestStepRoutePropTypes';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: IOURequestStepRoutePropTypes.isRequired,
+
+    /* Onyx Props */
+    report: reportPropTypes,
+};
+const defaultProps = {
+    report: {},
 };
 
 function IOURequestStepPage({
+    report,
     route,
     route: {
         params: {iouType, step},
@@ -29,7 +41,8 @@ function IOURequestStepPage({
 }) {
     const iouTypeParamIsInvalid = !_.contains(_.values(CONST.IOU.TYPE), iouType);
     const stepParamIsInvalid = !_.contains(_.values(CONST.IOU.REQUEST_STEPS), step);
-    if (iouTypeParamIsInvalid || stepParamIsInvalid) {
+    const canUserWriteToReport = !ReportUtils.shouldDisableWriteActions(report);
+    if (iouTypeParamIsInvalid || stepParamIsInvalid || !canUserWriteToReport) {
         return <FullPageNotFoundView shouldShow />;
     }
     return (
@@ -51,5 +64,10 @@ function IOURequestStepPage({
 
 IOURequestStepPage.displayName = 'IOURequestStepPage';
 IOURequestStepPage.propTypes = propTypes;
+IOURequestStepPage.defaultProps = defaultProps;
 
-export default IOURequestStepPage;
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
+    },
+})(IOURequestStepPage);

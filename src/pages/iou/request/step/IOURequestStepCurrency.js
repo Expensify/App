@@ -65,6 +65,10 @@ function IOURequestStepCurrency({
         Navigation.goBack(backTo || ROUTES.HOME, true);
     };
 
+    /**
+     * @param {Object} option
+     * @param {String} options.currencyCode
+     */
     const confirmCurrencySelection = (option) => {
         IOU.setMoneeRequestCurrency(transactionID, option.currencyCode);
         navigateBack();

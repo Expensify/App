@@ -130,7 +130,7 @@ function IOURequestStepDistance({
         // to the confirm step.
         if (report.reportID) {
             IOU.autoAssignParticipants(transactionID, report);
-            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+            navigateToConfirmationStep();
             return;
         }
 

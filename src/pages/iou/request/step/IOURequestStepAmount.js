@@ -63,14 +63,6 @@ function IOURequestStepAmount({
         }, []),
     );
 
-    // Check and dismiss modal
-    useEffect(() => {
-        if (!ReportUtils.shouldDisableWriteActions(report)) {
-            return;
-        }
-        Navigation.dismissModal(reportID);
-    }, [report, reportID]);
-
     const navigateToConfirmationStep = () => {
         Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
     };
@@ -90,6 +82,9 @@ function IOURequestStepAmount({
         Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CURRENCY, transactionID, reportID, '', currentPath));
     };
 
+    /**
+     * @param {Number} currentAmount
+     */
     const navigateToNextPage = (currentAmount) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         IOU.setMoneeRequestAmount(transactionID, amountInSmallestCurrencyUnits);

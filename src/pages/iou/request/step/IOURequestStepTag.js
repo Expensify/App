@@ -1,6 +1,5 @@
 import React from 'react';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../../../../libs/compose';
@@ -9,8 +8,6 @@ import * as IOU from '../../../../libs/actions/IOU';
 import * as PolicyUtils from '../../../../libs/PolicyUtils';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import useLocalize from '../../../../hooks/useLocalize';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import TagPicker from '../../../../components/TagPicker';
 import Text from '../../../../components/Text';
 import tagPropTypes from '../../../../components/tagPropTypes';
@@ -19,22 +16,12 @@ import reportPropTypes from '../../../reportPropTypes';
 import styles from '../../../../styles/styles';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
 import CONST from '../../../../CONST';
+import StepScreenWrapper from './StepScreenWrapper';
+import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
-    route: PropTypes.shape({
-        /** Route specific parameters used on this screen via route :iouType/new/tag/:reportID? */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
-
-            /** The ID of the transaction being configured */
-            transactionID: PropTypes.string,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /* Onyx props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
@@ -67,25 +54,26 @@ function IOURequestStepTag({
     const tagListKey = _.first(_.keys(policyTags));
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
 
-    const goBack = () => {
+    const navigateBack = () => {
         Navigation.goBack(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID), true);
     };
 
+    /**
+     * @param {Object} selectedTag
+     * @param {String} selectedTag.searchText
+     */
     const updateTag = (selectedTag) => {
         IOU.setMoneeRequestTag(transactionID, selectedTag.searchText);
-        goBack();
+        navigateBack();
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
+        <StepScreenWrapper
+            headerTitle={policyTagListName}
+            onBackButtonPress={navigateBack}
+            shouldShowWrapper
             testID={IOURequestStepTag.displayName}
         >
-            <HeaderWithBackButton
-                title={policyTagListName}
-                onBackButtonPress={goBack}
-            />
             <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
             <TagPicker
                 policyID={report.policyID}
@@ -93,7 +81,7 @@ function IOURequestStepTag({
                 selectedTag={tag || ''}
                 onSubmit={updateTag}
             />
-        </ScreenWrapper>
+        </StepScreenWrapper>
     );
 }
 

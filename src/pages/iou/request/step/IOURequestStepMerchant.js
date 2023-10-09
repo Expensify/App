@@ -60,6 +60,10 @@ function IOURequestStepMerchant({
         Navigation.goBack(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID), true);
     };
 
+    /**
+     * @param {Object} value
+     * @param {String} value.moneyRequestMerchant
+     */
     const validate = useCallback((value) => {
         const errors = {};
 
@@ -71,15 +75,13 @@ function IOURequestStepMerchant({
     }, []);
 
     /**
-     * Sets the money request comment by saving it to Onyx.
-     *
      * @param {Object} value
      * @param {String} value.moneyRequestMerchant
      */
-    function updateMerchant(value) {
+    const updateMerchant = (value) => {
         IOU.setMoneeRequestMerchant(transactionID, value.moneyRequestMerchant);
         navigateBack();
-    }
+    };
 
     return (
         <StepScreenWrapper
