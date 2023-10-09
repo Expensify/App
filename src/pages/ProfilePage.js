@@ -60,6 +60,12 @@ const propTypes = {
     /** Indicates whether the app is loading initial data */
     isLoadingReportData: PropTypes.bool,
 
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -67,6 +73,9 @@ const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
     isLoadingReportData: true,
+    session: {
+        accountID: 0,
+    },
 };
 
 /**
