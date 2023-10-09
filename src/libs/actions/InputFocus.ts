@@ -1,9 +1,12 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import _ from 'lodash';
+
+function inputFocusChange(focus: boolean) {
+    Onyx.set(ONYXKEYS.INPUT_FOCUSED, focus);
+}
 
 let refSave: HTMLElement | undefined;
-export function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: any, onyxFocused: boolean) {
+function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: {willAlertModalBecomeVisible: boolean, isVisible: boolean}, onyxFocused: boolean) {
     if (isFocused && !onyxFocused) {
         inputFocusChange(true);
         ref.focus();
@@ -16,6 +19,5 @@ export function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, m
     }
 }
 
-export function inputFocusChange(focus: boolean) {
-    Onyx.set(ONYXKEYS.INPUT_FOCUSED, focus);
-}
+
+export { composerFocusKeepFocusOn, inputFocusChange }
