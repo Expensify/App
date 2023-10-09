@@ -60,18 +60,18 @@ function ExpensifyCardPage({
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
 
     const handleRevealDetails = () => {
-        dispatch({type: 'START'});
+        dispatch({type: revealCardDetailsUtils.ACTION_TYPES.start});
         // eslint-disable-next-line rulesdir/no-api-in-views,rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects('RevealVirtualCardDetails')
             .then((response) => {
                 if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    dispatch({type: 'FAIL', payload: response.message});
+                    dispatch({type: revealCardDetailsUtils.ACTION_TYPES.fail, payload: response.message});
                     return;
                 }
-                dispatch({type: 'SUCCESS', payload: response});
+                dispatch({type: revealCardDetailsUtils.ACTION_TYPES.success, payload: response});
             })
             .catch((err) => {
-                dispatch({type: 'FAIL', payload: err.message});
+                dispatch({type: revealCardDetailsUtils.ACTION_TYPES.fail, payload: err.message});
             });
     };
 

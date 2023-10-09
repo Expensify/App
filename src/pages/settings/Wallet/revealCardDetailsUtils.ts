@@ -1,3 +1,9 @@
+const ACTION_TYPES = {
+    START: 'START',
+    SUCCESS: 'SUCCESS',
+    FAIL: 'FAIL',
+} as const;
+
 type State = {
     details: {
         pan: string;
@@ -18,7 +24,7 @@ type State = {
     error: string;
 };
 
-type Action = {type: 'START'} | {type: 'SUCCESS'; payload: State['details']} | {type: 'FAIL'; payload: string};
+type Action = {type: typeof ACTION_TYPES.START} | {type: typeof ACTION_TYPES.SUCCESS; payload: State['details']} | {type: typeof ACTION_TYPES.FAIL; payload: string};
 
 const initialState: State = {
     details: {
@@ -42,11 +48,11 @@ const initialState: State = {
 
 const reducer = (state: State, action: Action): State => {
     switch (action.type) {
-        case 'START':
+        case ACTION_TYPES.START:
             return {...state, isLoading: true};
-        case 'SUCCESS':
+        case ACTION_TYPES.SUCCESS:
             return {details: action.payload, isLoading: false, error: ''};
-        case 'FAIL': {
+        case ACTION_TYPES.FAIL: {
             return {...state, error: action.payload, isLoading: false};
         }
         default:
@@ -54,4 +60,4 @@ const reducer = (state: State, action: Action): State => {
     }
 };
 
-export {initialState, reducer};
+export {initialState, reducer, ACTION_TYPES};
