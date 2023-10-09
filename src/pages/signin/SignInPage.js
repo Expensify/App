@@ -88,7 +88,18 @@ const defaultProps = {
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, isSAMLEnabled, isSAMLRequired, isUsingMagicCode, hasEmailDeliveryFailure, isClientTheLeader}) {
+function getRenderOptions({
+    hasLogin,
+    hasValidateCode,
+    hasAccount,
+    isPrimaryLogin,
+    isAccountValidated,
+    isSAMLEnabled,
+    isSAMLRequired,
+    isUsingMagicCode,
+    hasEmailDeliveryFailure,
+    isClientTheLeader,
+}) {
     const shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
     let shouldShowChooseSSOOrMagicCode = false;
     let shouldInitiateSAMLLogin = false;
@@ -102,7 +113,8 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
 
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
-    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
+    const shouldShowValidateCodeForm =
+        hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin;
     const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || !isClientTheLeader;
     return {
@@ -133,21 +145,27 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
 
     const isClientTheLeader = activeClients && ActiveClientManager.isClientTheLeader();
 
-    const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowChooseSSOOrMagicCode,
-        shouldInitiateSAMLLogin, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions(
-        {
-            hasLogin: Boolean(credentials.login),
-            hasValidateCode: Boolean(credentials.validateCode),
-            hasAccount: !_.isEmpty(account),
-            isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
-            isAccountValidated: Boolean(account.validated),
-            isSAMLEnabled: Boolean(account.isSAMLEnabled),
-            isSAMLRequired: Boolean(account.isSAMLRequired),
-            isUsingMagicCode,
-            hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
-            isClientTheLeader,
-        },
-    );
+    const {
+        shouldShowLoginForm,
+        shouldShowEmailDeliveryFailurePage,
+        shouldShowUnlinkLoginForm,
+        shouldShowValidateCodeForm,
+        shouldShowChooseSSOOrMagicCode,
+        shouldInitiateSAMLLogin,
+        shouldShowWelcomeHeader,
+        shouldShowWelcomeText,
+    } = getRenderOptions({
+        hasLogin: Boolean(credentials.login),
+        hasValidateCode: Boolean(credentials.validateCode),
+        hasAccount: !_.isEmpty(account),
+        isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
+        isAccountValidated: Boolean(account.validated),
+        isSAMLEnabled: Boolean(account.isSAMLEnabled),
+        isSAMLRequired: Boolean(account.isSAMLRequired),
+        isUsingMagicCode,
+        hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
+        isClientTheLeader,
+    });
 
     // If the user has SAML required and we're not already loading their account
     // bypass the rest of the sign in logic and open up their SSO provider login page
