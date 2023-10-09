@@ -111,9 +111,7 @@ const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
     // Encoding HTML chars '< >' in the text, because any HTML will be removed in stripHTML method.
     if (dom.type.toString() === 'text' && dom instanceof DataNode) {
         data = Str.htmlEncode(dom.data);
-    }
-
-    if (dom instanceof Element) {
+    } else if (dom instanceof Element) {
         domName = dom.name;
         // We are skipping elements which has html and body in data-testid, since ExpensiMark can't parse it. Also this data
         // has no meaning for us.
@@ -135,6 +133,8 @@ const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
         if (dom.children) {
             domChildren = dom.children.map((c) => replaceNodes(c, isChildOfEditorElement || !!dom.attribs?.[tagAttribute]));
         }
+    } else {
+        throw new Error(`Unknown dom type: ${dom.type}`);
     }
 
     return {
