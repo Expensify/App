@@ -478,6 +478,7 @@ class ReimbursementAccountPage extends React.Component {
                 <EnableStep
                     reimbursementAccount={this.props.reimbursementAccount}
                     policyName={policyName}
+                    onBackButtonPress={this.goBack}
                 />
             );
         }

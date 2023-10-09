@@ -1,5 +1,4 @@
-import moment from 'moment';
-import CONST from '../../../CONST';
+import {getDaysInMonth, startOfMonth, getDay, addDays, format} from 'date-fns';
 
 /**
  * Generates a matrix representation of a month's calendar given the year and month.
@@ -26,25 +25,25 @@ export default function generateMonthMatrix(year, month) {
     }
 
     // Get the number of days in the month and the first day of the month
-    const daysInMonth = moment([year, month]).daysInMonth();
-    const firstDay = moment([year, month, 1]).locale(CONST.LOCALES.EN);
+    const firstDayOfMonth = startOfMonth(new Date(year, month, 1));
+    const daysInMonth = getDaysInMonth(firstDayOfMonth);
 
     // Create a matrix to hold the calendar days
     const matrix = [];
     let currentWeek = [];
 
     // Add null values for days before the first day of the month
-    for (let i = 0; i < firstDay.weekday(); i++) {
+    for (let i = 0; i < getDay(firstDayOfMonth); i++) {
         currentWeek.push(null);
     }
 
     // Add calendar days to the matrix
     for (let i = 1; i <= daysInMonth; i++) {
-        const day = moment([year, month, i]).locale(CONST.LOCALES.EN);
-        currentWeek.push(day.date());
+        const currentDate = addDays(firstDayOfMonth, i - 1);
+        currentWeek.push(Number(format(currentDate, 'd')));
 
         // Start a new row when the current week is full
-        if (day.weekday() === 6) {
+        if (getDay(currentDate) === 6) {
             matrix.push(currentWeek);
             currentWeek = [];
         }
