@@ -682,6 +682,24 @@ const CONST = {
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
         },
+        STATUS: {
+            PENDING: 'Pending',
+            POSTED: 'Posted',
+        },
+    },
+    MCC_GROUPS: {
+        COMMUTER: 'Commuter',
+        GAS: 'Gas',
+        GOODS: 'Goods',
+        GROCERIES: 'Groceries',
+        HOTEL: 'Hotel',
+        MAIL: 'Mail',
+        MEALS: 'Meals',
+        RENTAL: 'Rental',
+        SERVICES: 'Services',
+        TAXI: 'Taxi',
+        MISCELLANEOUS: 'Miscellaneous',
+        UTILITIES: 'Utilities',
     },
     JSON_CODE: {
         SUCCESS: 200,
@@ -737,6 +755,7 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
+        MAX_REQUEST_RETRIES: 10,
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -825,6 +844,8 @@ const CONST = {
         URL: 'url',
         DEFAULT: 'default',
     },
+
+    YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     // This is a placeholder for attachment which is uploading
