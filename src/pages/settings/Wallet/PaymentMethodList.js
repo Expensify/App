@@ -175,11 +175,20 @@ function isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, p
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 
+/**
+ * @param {Object} item
+ * @returns {String}
+ */
 function keyExtractor(item) {
     return item.key;
 }
 
-const ESTIMATED_ITEM_SIZE = 81;
+/**
+ * This is a part of the FlashList configuration. It is used to estimate the size of each item in the list.
+ * https://shopify.github.io/flash-list/docs/usage/#estimateditemsize
+ * Measured using Element Inspector: 64.
+ */
+const ESTIMATED_ITEM_SIZE = 64;
 
 function PaymentMethodList({
     actionPaymentMethodType,
