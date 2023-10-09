@@ -15,7 +15,6 @@ import transactionPropTypes from '../../../../components/transactionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import * as IOU from '../../../../libs/actions/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
-import * as IOUUtils from '../../../../libs/IOUUtils';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
@@ -53,7 +52,7 @@ const defaultProps = {
 
 function IOURequestStepCurrency({
     route: {
-        params: {iouType, transactionID, backTo},
+        params: {transactionID, backTo},
     },
     currencyList,
     transaction: {currency},
@@ -112,7 +111,6 @@ function IOURequestStepCurrency({
             headerTitle={translate('common.selectCurrency')}
             onBackButtonPress={navigateBack}
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
-            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
             shouldShowWrapper
             testID={IOURequestStepCurrency.displayName}
         >

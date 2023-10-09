@@ -11,7 +11,6 @@ import CONST from '../../../../CONST';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
 import reportPropTypes from '../../../reportPropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
-import * as IOUUtils from '../../../../libs/IOUUtils';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
@@ -57,7 +56,6 @@ function IOURequestStepCategory({
         <StepScreenWrapper
             headerTitle={translate('common.category')}
             onBackButtonPress={navigateBack}
-            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
             shouldShowWrapper
             testID={IOURequestStepCategory.displayName}
         >

@@ -15,7 +15,6 @@ import CONST from '../../../../CONST';
 import useLocalize from '../../../../hooks/useLocalize';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
-import * as IOUUtils from '../../../../libs/IOUUtils';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
@@ -86,7 +85,6 @@ function IOURequestStepMerchant({
         <StepScreenWrapper
             headerTitle={translate('common.merchant')}
             onBackButtonPress={navigateBack}
-            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
             shouldShowWrapper
             testID={IOURequestStepMerchant.displayName}
         >

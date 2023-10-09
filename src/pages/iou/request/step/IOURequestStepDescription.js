@@ -16,7 +16,6 @@ import updateMultilineInputRange from '../../../../libs/UpdateMultilineInputRang
 import * as Browser from '../../../../libs/Browser';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
-import * as IOUUtils from '../../../../libs/IOUUtils';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
@@ -77,7 +76,6 @@ function IOURequestStepDescription({
         <StepScreenWrapper
             headerTitle={translate('common.description')}
             onBackButtonPress={navigateBack}
-            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
             shouldShowWrapper
             testID={IOURequestStepDescription.displayName}
         >

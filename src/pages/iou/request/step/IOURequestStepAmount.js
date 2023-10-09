@@ -11,7 +11,6 @@ import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
 import * as IOU from '../../../../libs/actions/IOU';
 import useLocalize from '../../../../hooks/useLocalize';
 import MoneyRequestAmountForm from '../../steps/MoneyRequestAmountForm';
-import * as IOUUtils from '../../../../libs/IOUUtils';
 import CONST from '../../../../CONST';
 import StepScreenWrapper from './StepScreenWrapper';
 import reportPropTypes from '../../../reportPropTypes';
@@ -119,7 +118,6 @@ function IOURequestStepAmount({
             headerTitle={translate('iou.amount')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepAmount.displayName}
-            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
             shouldShowWrapper={isUserComingFromConfirmationStep}
         >
             <MoneyRequestAmountForm

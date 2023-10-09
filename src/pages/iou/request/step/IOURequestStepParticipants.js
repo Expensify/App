@@ -11,7 +11,6 @@ import useLocalize from '../../../../hooks/useLocalize';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
 import * as TransactionUtils from '../../../../libs/TransactionUtils';
 import StepScreenWrapper from './StepScreenWrapper';
-import * as IOUUtils from '../../../../libs/IOUUtils';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
@@ -62,7 +61,6 @@ function IOURequestStepParticipants({
         <StepScreenWrapper
             headerTitle={headerTitle}
             onBackButtonPress={navigateBack}
-            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}

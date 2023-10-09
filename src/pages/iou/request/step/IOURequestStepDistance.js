@@ -15,7 +15,6 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import usePrevious from '../../../../hooks/usePrevious';
 import * as Transaction from '../../../../libs/actions/Transaction';
 import * as TransactionUtils from '../../../../libs/TransactionUtils';
-import * as IOUUtils from '../../../../libs/IOUUtils';
 import Button from '../../../../components/Button';
 import DraggableList from '../../../../components/DraggableList';
 import DistanceRequestFooter from '../../../../components/DistanceRequest/DistanceRequestFooter';
@@ -166,7 +165,6 @@ function IOURequestStepDistance({
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepDistance.displayName}
-            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
             shouldShowWrapper={isUserComingFromConfirmationStep}
         >
             <>

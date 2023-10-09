@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import FullPageNotFoundView from '../../../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 
@@ -20,9 +19,6 @@ const propTypes = {
     /** A function triggered when the entry transition is ended. Useful for auto-focusing elements. */
     onEntryTransitionEnd: PropTypes.func,
 
-    /** Whether or not the not-found page should be shown (like when the request isn't a valid IOU) */
-    shouldShowNotFound: PropTypes.bool.isRequired,
-
     /** Whether or not the wrapper should be shown (sometimes screens can be embedded inside another screen that already is using a wrapper) */
     shouldShowWrapper: PropTypes.bool.isRequired,
 
@@ -34,7 +30,7 @@ const defaultProps = {
     onEntryTransitionEnd: () => {},
 };
 
-function StepScreenWrapper({testID, shouldShowNotFound, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper}) {
+function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper}) {
     if (!shouldShowWrapper) {
         return children;
     }
@@ -48,15 +44,13 @@ function StepScreenWrapper({testID, shouldShowNotFound, headerTitle, onBackButto
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={shouldShowNotFound}>
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={headerTitle}
-                            onBackButtonPress={onBackButtonPress}
-                        />
-                        {children}
-                    </View>
-                </FullPageNotFoundView>
+                <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                    <HeaderWithBackButton
+                        title={headerTitle}
+                        onBackButtonPress={onBackButtonPress}
+                    />
+                    {children}
+                </View>
             )}
         </ScreenWrapper>
     );
