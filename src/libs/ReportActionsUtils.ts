@@ -4,7 +4,8 @@ import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
-import * as OnyxTypes from '../types/onyx';
+import ReportAction, {ReportActions} from '../types/onyx/ReportAction';
+import Report from '../types/onyx/Report';
 import {ActionName} from '../types/onyx/OriginalMessage';
 import * as CollectionUtils from './CollectionUtils';
 import Log from './Log';
@@ -16,7 +17,7 @@ type LastVisibleMessage = {
     lastMessageHtml?: string;
 };
 
-const allReports: OnyxCollection<OnyxTypes.Report> = {};
+const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
@@ -29,7 +30,7 @@ Onyx.connect({
     },
 });
 
-const allReportActions: OnyxCollection<OnyxTypes.ReportActions> = {};
+const allReportActions: OnyxCollection<ReportActions> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -48,44 +49,44 @@ Onyx.connect({
     callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
 });
 
-function isCreatedAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isCreatedAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
 
-function isDeletedAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isDeletedAction(reportAction: OnyxEntry<ReportAction>): boolean {
     // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = reportAction?.message ?? [];
     return message.length === 0 || message[0]?.html === '';
 }
 
-function isDeletedParentAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isDeletedParentAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.message?.[0]?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isPendingRemove(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isPendingRemove(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
-function isMoneyRequestAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isMoneyRequestAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
 
-function isReportPreviewAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isReportPreviewAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
-function isModifiedExpenseAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
-function isWhisperAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
 
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
-function isThreadParentMessage(reportAction: OnyxEntry<OnyxTypes.ReportAction>, reportID: string): boolean {
+function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
     const {childType, childVisibleActionCount = 0, childReportID} = reportAction ?? {};
     return childType === CONST.REPORT.TYPE.CHAT && (childVisibleActionCount > 0 || String(childReportID) === reportID);
 }
@@ -95,7 +96,7 @@ function isThreadParentMessage(reportAction: OnyxEntry<OnyxTypes.ReportAction>, 
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>, allReportActionsParam?: OnyxCollection<OnyxTypes.ReportActions>): OnyxTypes.ReportAction | Record<string, never> {
+function getParentReportAction(report: OnyxEntry<Report>, allReportActionsParam?: OnyxCollection<ReportActions>): ReportAction | Record<string, never> {
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
@@ -105,7 +106,7 @@ function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>, allReportAct
 /**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  */
-function isSentMoneyReportAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction?.originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!reportAction?.originalMessage?.IOUDetails
     );
@@ -115,7 +116,7 @@ function isSentMoneyReportAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>
  * Returns whether the thread is a transaction thread, which is any thread with IOU parent
  * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
  */
-function isTransactionThread(parentReportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boolean {
     return (
         parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
         (parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
@@ -128,7 +129,7 @@ function isTransactionThread(parentReportAction: OnyxEntry<OnyxTypes.ReportActio
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
  */
-function getSortedReportActions(reportActions: OnyxTypes.ReportAction[] | null, shouldSortInDescendingOrder = false): OnyxTypes.ReportAction[] {
+function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false): ReportAction[] {
     if (!Array.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
@@ -160,7 +161,7 @@ function getSortedReportActions(reportActions: OnyxTypes.ReportAction[] | null, 
 /**
  * Finds most recent IOU request action ID.
  */
-function getMostRecentIOURequestActionID(reportActions: OnyxTypes.ReportAction[] | null): string | null {
+function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): string | null {
     const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
     const iouRequestActions = reportActions?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && iouRequestTypes.includes(action.originalMessage.type)) ?? [];
 
@@ -175,7 +176,7 @@ function getMostRecentIOURequestActionID(reportActions: OnyxTypes.ReportAction[]
 /**
  * Returns array of links inside a given report action
  */
-function extractLinksFromMessageHtml(reportAction: OnyxEntry<OnyxTypes.ReportAction>): string[] {
+function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): string[] {
     const htmlContent = reportAction?.message?.[0]?.html;
 
     // Regex to get link in href prop inside of <a/> component
@@ -193,7 +194,7 @@ function extractLinksFromMessageHtml(reportAction: OnyxEntry<OnyxTypes.ReportAct
  * @param reportActions - all actions
  * @param actionIndex - index of the action
  */
-function findPreviousAction(reportActions: OnyxTypes.ReportAction[] | null, actionIndex: number): OnyxEntry<OnyxTypes.ReportAction> {
+function findPreviousAction(reportActions: ReportAction[] | null, actionIndex: number): OnyxEntry<ReportAction> {
     if (!reportActions) {
         return null;
     }
@@ -215,7 +216,7 @@ function findPreviousAction(reportActions: OnyxTypes.ReportAction[] | null, acti
  *
  * @param actionIndex - index of the comment item in state to check
  */
-function isConsecutiveActionMadeByPreviousActor(reportActions: OnyxTypes.ReportAction[] | null, actionIndex: number): boolean {
+function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | null, actionIndex: number): boolean {
     const previousAction = findPreviousAction(reportActions, actionIndex);
     const currentAction = reportActions?.[actionIndex];
 
@@ -251,7 +252,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: OnyxTypes.ReportA
 /**
  * Checks if a reportAction is deprecated.
  */
-function isReportActionDeprecated(reportAction: OnyxEntry<OnyxTypes.ReportAction>, key: string): boolean {
+function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: string): boolean {
     if (!reportAction) {
         return true;
     }
@@ -270,7 +271,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<OnyxTypes.ReportAction
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<OnyxTypes.ReportAction>, key: string): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string): boolean {
     if (!reportAction) {
         return false;
     }
@@ -310,7 +311,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<OnyxTypes.ReportAct
  * Checks if a reportAction is fit for display as report last action, meaning that
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
-function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportAction>): boolean {
     if (!reportAction) {
         return false;
     }
@@ -327,8 +328,8 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<OnyxTyp
     );
 }
 
-function getLastVisibleAction(reportID: string, actionsToMerge: OnyxTypes.ReportActions = {}): OnyxEntry<OnyxTypes.ReportAction> {
-    const updatedActionsToMerge: OnyxTypes.ReportActions = {};
+function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
+    const updatedActionsToMerge: ReportActions = {};
     if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
         Object.keys(actionsToMerge).forEach(
             (actionToMergeID) => (updatedActionsToMerge[actionToMergeID] = {...allReportActions?.[reportID]?.[actionToMergeID], ...actionsToMerge[actionToMergeID]}),
@@ -348,7 +349,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: OnyxTypes.Report
     return maxAction ?? null;
 }
 
-function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxTypes.ReportActions = {}): LastVisibleMessage {
+function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions = {}): LastVisibleMessage {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
     const message = lastVisibleAction?.message?.[0];
 
@@ -375,7 +376,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxTypes.Repor
 /**
  * A helper method to filter out report actions keyed by sequenceNumbers.
  */
-function filterOutDeprecatedReportActions(reportActions: OnyxTypes.ReportActions | null): OnyxTypes.ReportAction[] {
+function filterOutDeprecatedReportActions(reportActions: ReportActions | null): ReportAction[] {
     return Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => !isReportActionDeprecated(reportAction, key))
         .map((entry) => entry[1]);
@@ -387,7 +388,7 @@ function filterOutDeprecatedReportActions(reportActions: OnyxTypes.ReportActions
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: OnyxTypes.ReportActions | null): OnyxTypes.ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: ReportActions | null): ReportAction[] {
     const filteredReportActions = Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
@@ -400,7 +401,7 @@ function getSortedReportActionsForDisplay(reportActions: OnyxTypes.ReportActions
  * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
  *
  */
-function getLastClosedReportAction(reportActions: OnyxTypes.ReportActions | null): OnyxEntry<OnyxTypes.ReportAction> {
+function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEntry<ReportAction> {
     // If closed report action is not present, return early
     if (!Object.values(reportActions ?? {}).some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
         return null;
@@ -414,14 +415,14 @@ function getLastClosedReportAction(reportActions: OnyxTypes.ReportActions | null
 /**
  * @returns The latest report action in the `onyxData` or `null` if one couldn't be found
  */
-function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): OnyxEntry<OnyxTypes.ReportAction> {
+function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): OnyxEntry<ReportAction> {
     const reportActionUpdate = onyxData?.find((onyxUpdate) => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
 
     if (!reportActionUpdate) {
         return null;
     }
 
-    const reportActions = Object.values((reportActionUpdate.value as OnyxTypes.ReportActions) ?? {});
+    const reportActions = Object.values((reportActionUpdate.value as ReportActions) ?? {});
     const sortedReportActions = getSortedReportActions(reportActions);
     return sortedReportActions.at(-1) ?? null;
 }
@@ -437,7 +438,7 @@ function getLinkedTransactionID(reportID: string, reportActionID: string): strin
     return reportAction.originalMessage.IOUTransactionID ?? null;
 }
 
-function getReportAction(reportID: string, reportActionID: string): OnyxEntry<OnyxTypes.ReportAction> {
+function getReportAction(reportID: string, reportActionID: string): OnyxEntry<ReportAction> {
     return allReportActions?.[reportID]?.[reportActionID] ?? null;
 }
 
@@ -483,7 +484,7 @@ function getMostRecentReportActionLastModified(): string {
 /**
  * @returns The report preview action or `null` if one couldn't be found
  */
-function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxEntry<OnyxTypes.ReportAction> {
+function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxEntry<ReportAction> {
     return (
         Object.values(allReportActions?.[chatReportID] ?? {}).find(
             (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
@@ -494,33 +495,33 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
 /**
  * Get the iouReportID for a given report action.
  */
-function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<OnyxTypes.ReportAction>): string {
+function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAction>): string {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? reportAction.originalMessage.linkedReportID : '';
 }
 
-function isCreatedTaskReportAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isCreatedTaskReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !!reportAction.originalMessage?.taskReportID;
 }
 
 /**
  * A helper method to identify if the message is deleted or not.
  */
-function isMessageDeleted(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isMessageDeleted(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.message?.[0]?.isDeletedParentAction ?? false;
 }
 
 /**
  * Returns the number of money requests associated with a report preview
  */
-function getNumberOfMoneyRequests(reportPreviewAction: OnyxEntry<OnyxTypes.ReportAction>): number {
+function getNumberOfMoneyRequests(reportPreviewAction: OnyxEntry<ReportAction>): number {
     return reportPreviewAction?.childMoneyRequestCount ?? 0;
 }
 
-function isSplitBillAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isSplitBillAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 }
 
-function isTaskAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     const reportActionName = reportAction?.actionName;
     return (
         reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
@@ -529,7 +530,7 @@ function isTaskAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean 
     );
 }
 
-function getAllReportActions(reportID: string): OnyxTypes.ReportActions {
+function getAllReportActions(reportID: string): ReportActions {
     return allReportActions?.[reportID] ?? {};
 }
 
@@ -538,7 +539,7 @@ function getAllReportActions(reportID: string): OnyxTypes.ReportActions {
  *
  * @param reportAction report action
  */
-function isReportActionAttachment(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isReportActionAttachment(reportAction: OnyxEntry<ReportAction>): boolean {
     const message = reportAction?.message?.[0];
 
     if (reportAction && Object.hasOwn(reportAction, 'isAttachment')) {
@@ -555,7 +556,7 @@ function isReportActionAttachment(reportAction: OnyxEntry<OnyxTypes.ReportAction
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function isNotifiableReportAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>): boolean {
+function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     if (!reportAction) {
         return false;
     }
