@@ -61,7 +61,7 @@ function ExpensifyCardPage({
 
     const handleRevealDetails = () => {
         dispatch({type: 'START'});
-        // eslint-disable-next-line
+        // eslint-disable-next-line rulesdir/no-api-in-views,rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects('RevealVirtualCardDetails')
             .then((response) => {
                 if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
