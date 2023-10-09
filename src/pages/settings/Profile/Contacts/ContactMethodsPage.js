@@ -2,8 +2,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '../../../../components/Button';
@@ -100,7 +99,7 @@ function ContactMethodsPage(props) {
                 <MenuItem
                     title={menuItemTitle}
                     description={description}
-                    onPress={() => Navigation.navigate(ROUTES.getEditContactMethodRoute(partnerUserID))}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID))}
                     brickRoadIndicator={indicator}
                     shouldShowBasicTitle
                     shouldShowRightIcon
@@ -111,12 +110,15 @@ function ContactMethodsPage(props) {
     });
 
     return (
-        <ScreenWrapper shouldEnableKeyboardAvoidingView={false}>
+        <ScreenWrapper
+            shouldEnableKeyboardAvoidingView={false}
+            testID={ContactMethodsPage.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('contacts.contactMethods')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
                     <Text>
                         {props.translate('contacts.helpTextBeforeEmail')}
@@ -128,15 +130,15 @@ function ContactMethodsPage(props) {
                     </Text>
                 </View>
                 {loginMenuItems}
+                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                    <Button
+                        success
+                        text={props.translate('contacts.newContactMethod')}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
+                        pressOnEnter
+                    />
+                </FixedFooter>
             </ScrollView>
-            <FixedFooter style={[styles.flexGrow0, styles.pt5]}>
-                <Button
-                    success
-                    text={props.translate('contacts.newContactMethod')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
-                    pressOnEnter
-                />
-            </FixedFooter>
         </ScreenWrapper>
     );
 }
