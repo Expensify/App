@@ -1284,6 +1284,20 @@ const styles = (theme: ThemeDefault) =>
             height: '100%',
         },
 
+        sidebarHeaderContainer: {
+            flexDirection: 'row',
+            paddingHorizontal: 20,
+            paddingVertical: 19,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+        },
+
+        subNavigationContainer: {
+            backgroundColor: theme.sidebar,
+            flex: 1,
+            borderTopLeftRadius: variables.componentBorderRadiusRounded,
+        },
+
         sidebarAnimatedWrapperContainer: {
             height: '100%',
             position: 'absolute',
@@ -1320,7 +1334,7 @@ const styles = (theme: ThemeDefault) =>
 
         floatingActionButtonContainer: {
             position: 'absolute',
-            right: 20,
+            left: 16,
 
             // The bottom of the floating action button should align with the bottom of the compose box.
             // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
@@ -1329,8 +1343,8 @@ const styles = (theme: ThemeDefault) =>
 
         floatingActionButton: {
             backgroundColor: theme.success,
-            height: variables.componentSizeLarge,
-            width: variables.componentSizeLarge,
+            height: variables.componentSizeNormal,
+            width: variables.componentSizeNormal,
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
@@ -1384,7 +1398,7 @@ const styles = (theme: ThemeDefault) =>
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
                 horizontal: 18,
-                vertical: windowHeight - 100,
+                vertical: windowHeight - 75,
             } satisfies AnchorPosition),
 
         createMenuPositionProfile: (windowWidth: number) =>
@@ -1454,11 +1468,25 @@ const styles = (theme: ThemeDefault) =>
             textDecorationLine: 'none',
         },
 
+        sidebarLinkLHN: {
+            textDecorationLine: 'none',
+            marginLeft: 12,
+            marginRight: 12,
+            borderRadius: 8,
+        },
+
         sidebarLinkInner: {
             alignItems: 'center',
             flexDirection: 'row',
             paddingLeft: 20,
             paddingRight: 20,
+        },
+
+        sidebarLinkInnerLHN: {
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingLeft: 8,
+            paddingRight: 8,
         },
 
         sidebarLinkText: {
@@ -1472,8 +1500,17 @@ const styles = (theme: ThemeDefault) =>
             backgroundColor: theme.sidebarHover,
         },
 
+        sidebarLinkHoverLHN: {
+            backgroundColor: theme.highlightBG,
+        },
+
         sidebarLinkActive: {
             backgroundColor: theme.border,
+            textDecorationLine: 'none',
+        },
+
+        sidebarLinkActiveLHN: {
+            backgroundColor: theme.highlightBG,
             textDecorationLine: 'none',
         },
 
@@ -2194,6 +2231,7 @@ const styles = (theme: ThemeDefault) =>
         },
 
         reportDetailsTitleContainer: {
+            ...display.dFlex,
             ...flex.flexColumn,
             ...flex.alignItemsCenter,
             paddingHorizontal: 20,
@@ -2202,6 +2240,7 @@ const styles = (theme: ThemeDefault) =>
 
         reportDetailsRoomInfo: {
             ...flex.flex1,
+            ...display.dFlex,
             ...flex.flexColumn,
             ...flex.alignItemsCenter,
         },
@@ -2841,6 +2880,11 @@ const styles = (theme: ThemeDefault) =>
             alignItems: 'center',
         },
 
+        locationErrorLinkText: {
+            textAlignVertical: 'center',
+            fontSize: variables.fontSizeLabel,
+        },
+
         sidebarPopover: {
             width: variables.sideBarWidth - 68,
         },
@@ -3357,6 +3401,8 @@ const styles = (theme: ThemeDefault) =>
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,
+            ...flex.flexWrap,
+            ...flex.flex1,
             fontSize: variables.fontSizeXLarge,
             maxWidth: '100%',
             ...wordBreak.breakWord,
@@ -3396,6 +3442,8 @@ const styles = (theme: ThemeDefault) =>
             marginLeft: 'auto',
             ...spacing.mt1,
             ...pointerEventsAuto,
+            ...display.dFlex,
+            ...flex.alignItemsCenter,
         },
 
         shareCodePage: {
@@ -3512,6 +3560,14 @@ const styles = (theme: ThemeDefault) =>
                 fontWeight: isSelected ? fontWeightBold : '400',
                 color: isSelected ? theme.textLight : theme.textSupporting,
             } satisfies TextStyle),
+
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
+            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+        }),
+
+        tabOpacity: (hovered: boolean, isFocused: boolean, activeOpacityValue: number, inactiveOpacityValue: number) => ({
+            opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
+        }),
 
         overscrollSpacer: (backgroundColor: string, height: number) =>
             ({
@@ -3746,6 +3802,34 @@ const styles = (theme: ThemeDefault) =>
             width: '100%',
         },
 
+        globalNavigation: {
+            width: variables.globalNavigationWidth,
+            backgroundColor: theme.highlightBG,
+        },
+
+        globalNavigationMenuContainer: {
+            marginTop: 13,
+        },
+
+        globalAndSubNavigationContainer: {
+            backgroundColor: theme.highlightBG,
+        },
+
+        globalNavigationSelectionIndicator: (isFocused: boolean) => ({
+            width: 4,
+            height: 52,
+            borderTopRightRadius: variables.componentBorderRadiusRounded,
+            borderBottomRightRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: isFocused ? theme.iconMenu : theme.transparent,
+        }),
+
+        globalNavigationMenuItem: (isFocused: boolean) => (isFocused ? {color: theme.text, fontWeight: fontWeightBold, fontFamily: fontFamily.EXP_NEUE_BOLD} : {color: theme.icon}),
+
+        globalNavigationItemContainer: {
+            width: variables.globalNavigationWidth,
+            height: variables.globalNavigationWidth,
+        },
+
         walletCard: {
             borderRadius: variables.componentBorderRadiusLarge,
             position: 'relative',
@@ -3770,6 +3854,10 @@ const styles = (theme: ThemeDefault) =>
 
         receiptDropHeaderGap: {
             backgroundColor: theme.receiptDropUIBG,
+        },
+
+        checkboxWithLabelCheckboxStyle: {
+            marginLeft: -2,
         },
     } satisfies Styles);
 
