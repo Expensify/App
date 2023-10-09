@@ -1,13 +1,19 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
-import SidebarLinksData from '../SidebarLinksData';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Timing from '../../../../libs/actions/Timing';
 import CONST from '../../../../CONST';
 import Performance from '../../../../libs/Performance';
-import sidebarPropTypes from './sidebarPropTypes';
 import * as Browser from '../../../../libs/Browser';
+import GlobalNavigation from '../GlobalNavigation';
+import SubNavigation from '../SubNavigation/SubNavigation';
+
+const propTypes = {
+    /** Children to wrap (floating button). */
+    children: PropTypes.node.isRequired,
+};
 
 /**
  * Function called when a pinned chat is selected.
@@ -18,11 +24,6 @@ const startTimer = () => {
 };
 
 function BaseSidebarScreen(props) {
-    useEffect(() => {
-        Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
-        Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
-    }, []);
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -32,11 +33,11 @@ function BaseSidebarScreen(props) {
         >
             {({insets}) => (
                 <>
-                    <View style={[styles.flex1]}>
-                        <SidebarLinksData
+                    <View style={[styles.flex1, styles.flexRow, styles.globalAndSubNavigationContainer]}>
+                        <GlobalNavigation />
+                        <SubNavigation
                             onLinkClick={startTimer}
                             insets={insets}
-                            onLayout={props.onLayout}
                         />
                     </View>
                     {props.children}
@@ -46,7 +47,7 @@ function BaseSidebarScreen(props) {
     );
 }
 
-BaseSidebarScreen.propTypes = sidebarPropTypes;
+BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 
 export default BaseSidebarScreen;
