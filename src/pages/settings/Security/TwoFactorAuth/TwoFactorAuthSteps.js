@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import CodesStep from './Steps/CodesStep';
 import DisabledStep from './Steps/DisabledStep';
@@ -13,12 +13,12 @@ import {defaultAccount, TwoFactorAuthPropTypes} from './TwoFactorAuthPropTypes';
 import useAnimatedStepContext from '../../../../components/AnimatedStep/useAnimatedStepContext';
 
 function TwoFactorAuthSteps({account = defaultAccount}) {
-    const calculateCurrentStep = () => {
+    const calculateCurrentStep = useMemo(() => {
         if (account.twoFactorAuthStep) {
             return account.twoFactorAuthStep;
         }
         return account.requiresTwoFactorAuth ? CONST.TWO_FACTOR_AUTH_STEPS.ENABLED : CONST.TWO_FACTOR_AUTH_STEPS.CODES;
-    };
+    }, [account.requiresTwoFactorAuth, account.twoFactorAuthStep]);
 
     const [currentStep, setCurrentStep] = useState(calculateCurrentStep);
 
@@ -28,8 +28,7 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
 
     useEffect(() => {
         setCurrentStep(calculateCurrentStep);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [account.requiresTwoFactorAuth, account.twoFactorAuthStep]);
+    }, [calculateCurrentStep]);
 
     const handleSetStep = useCallback(
         (step, animationDirection = CONST.ANIMATION_DIRECTION.IN) => {
