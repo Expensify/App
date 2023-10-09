@@ -14,7 +14,7 @@ type State = {
             };
         };
     };
-    loading: boolean;
+    isLoading: boolean;
     error: string;
 };
 
@@ -36,18 +36,18 @@ const initialState: State = {
             },
         },
     },
-    loading: false,
+    isLoading: false,
     error: '',
 };
 
-const reducer = (state: State, action: Action) => {
+const reducer = (state: State, action: Action): State => {
     switch (action.type) {
         case 'START':
-            return {...state, loading: true};
+            return {...state, isLoading: true};
         case 'SUCCESS':
-            return {details: action.payload, loading: false, error: ''};
+            return {details: action.payload, isLoading: false, error: ''};
         case 'FAIL': {
-            return {...state, error: action.payload, loading: false};
+            return {...state, error: action.payload, isLoading: false};
         }
         default:
             return state;

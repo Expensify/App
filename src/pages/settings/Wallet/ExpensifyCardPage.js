@@ -51,7 +51,7 @@ function ExpensifyCardPage({
     const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
     const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
 
-    const [{loading, details, error}, dispatch] = useReducer(revealCardDetailsUtils.reducer, revealCardDetailsUtils.initialState);
+    const [{isLoading, details, error}, dispatch] = useReducer(revealCardDetailsUtils.reducer, revealCardDetailsUtils.initialState);
 
     if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
         return <NotFoundPage />;
@@ -119,8 +119,8 @@ function ExpensifyCardPage({
                                                 medium
                                                 text={translate('cardPage.cardDetails.revealDetails')}
                                                 onPress={handleRevealDetails}
-                                                isDisabled={loading}
-                                                isLoading={loading}
+                                                isDisabled={isLoading}
+                                                isLoading={isLoading}
                                             />
                                         }
                                     />
