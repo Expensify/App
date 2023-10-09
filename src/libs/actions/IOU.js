@@ -482,7 +482,10 @@ function getMoneyRequestInformation(
         // For now it only uses the first tag of the policy, since multi-tags are not yet supported
         const tagListKey = _.first(_.keys(policyTags));
         const uniquePolicyRecentlyUsedTags = recentlyUsedPolicyTags ? _.filter(recentlyUsedPolicyTags[tagListKey], (recentlyUsedPolicyTag) => recentlyUsedPolicyTag !== tag) : [];
-        optimisticPolicyRecentlyUsedTags[tagListKey] = [tag, ...uniquePolicyRecentlyUsedTags];
+        if (tag) {
+            uniquePolicyRecentlyUsedTags.unshift(tag);
+        }
+        optimisticPolicyRecentlyUsedTags[tagListKey] = [...uniquePolicyRecentlyUsedTags];
     }
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
