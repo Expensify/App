@@ -29,7 +29,6 @@ import * as Link from '../../libs/actions/Link';
 import * as Report from '../../libs/actions/Report';
 import * as Session from '../../libs/actions/Session';
 import * as Task from '../../libs/actions/Task';
-import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -275,14 +274,6 @@ function HeaderView(props) {
                                     anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                                     menuItems={threeDotMenuItems}
                                     shouldSetModalVisibility={false}
-                                    onIconPress={() => {
-                                        const {composerRef, editComposerRef, isFocused, isEditFocused} = ReportActionComposeFocusManager;
-                                        if (isFocused()) {
-                                            composerRef.current.blur();
-                                        } else if (isEditFocused()) {
-                                            editComposerRef.current.blur();
-                                        }
-                                    }}
                                 />
                             )}
                         </View>

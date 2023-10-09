@@ -11,6 +11,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 import CONST from '../../CONST';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Tooltip for the popup icon */
@@ -94,6 +95,12 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                             if (onIconPress) {
                                 onIconPress();
                             }
+                        }}
+                        onMouseDown={(e) => {
+                            if (!Browser.isMobile()) {
+                                return;
+                            }
+                            e.preventDefault();
                         }}
                         ref={buttonRef}
                         style={[styles.touchableButtonImage, ...iconStyles]}
