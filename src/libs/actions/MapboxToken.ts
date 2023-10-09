@@ -1,4 +1,3 @@
-// import _ from 'underscore';
 import {isAfter} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import {AppState, NativeEventSubscription} from 'react-native';
@@ -8,7 +7,7 @@ import CONST from '../../CONST';
 import * as ActiveClientManager from '../ActiveClientManager';
 import {MapboxAccessToken, Network} from '../../types/onyx';
 
-let authToken: string | undefined | null;
+let authToken: string | null;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -20,7 +19,7 @@ let connectionIDForToken: number | null;
 let connectionIDForNetwork: number | null;
 let appStateSubscription: NativeEventSubscription | null;
 let currentToken: MapboxAccessToken | null;
-let refreshTimeoutID: NodeJS.Timeout;
+let refreshTimeoutID: NodeJS.Timeout | undefined;
 let isCurrentlyFetchingToken = false;
 const REFRESH_INTERVAL = 1000 * 60 * 25;
 
