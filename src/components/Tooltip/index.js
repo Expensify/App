@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {propTypes as tooltipPropTypes, defaultProps as tooltipDefaultProps} from './tooltipPropTypes';
 import BaseTooltip from './BaseTooltip';
@@ -34,4 +34,4 @@ Tooltip.displayName = 'Tooltip';
 Tooltip.propTypes = propTypes;
 Tooltip.defaultProps = defaultProps;
 
-export default memo(Tooltip);
+export default Tooltip;
