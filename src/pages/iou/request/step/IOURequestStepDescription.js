@@ -32,10 +32,10 @@ const defaultProps = {
 };
 
 function IOURequestStepDescription({
-    transaction,
     route: {
         params: {iouType, reportID, transactionID},
     },
+    transaction,
 }) {
     const {translate} = useLocalize();
     const inputRef = useRef(null);

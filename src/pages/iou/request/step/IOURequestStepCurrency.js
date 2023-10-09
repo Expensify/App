@@ -51,10 +51,10 @@ const defaultProps = {
 };
 
 function IOURequestStepCurrency({
-    route: {
-        params: {transactionID, backTo},
-    },
     currencyList,
+    route: {
+        params: {backTo, transactionID},
+    },
     transaction: {currency},
 }) {
     const {translate} = useLocalize();

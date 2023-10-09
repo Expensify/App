@@ -41,11 +41,11 @@ const defaultProps = {
 };
 
 function IOURequestStepTag({
+    policyTags,
+    report,
     route: {
         params: {iouType, transactionID, reportID},
     },
-    report,
-    policyTags,
     transaction: {tag},
 }) {
     const {translate} = useLocalize();

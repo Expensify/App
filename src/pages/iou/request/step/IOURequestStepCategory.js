@@ -31,11 +31,11 @@ const defaultProps = {
 };
 
 function IOURequestStepCategory({
-    transaction,
+    report,
     route: {
         params: {iouType, reportID, transactionID},
     },
-    report,
+    transaction,
 }) {
     const {translate} = useLocalize();
 

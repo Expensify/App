@@ -61,7 +61,13 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestStepWaypoint({route: {params: {iouType = '', transactionID = '', pageIndex = '', reportID = ''}} = {}, transaction, recentWaypoints}) {
+function IOURequestStepWaypoint({
+    recentWaypoints,
+    route: {
+        params: {iouType, pageIndex, reportID, transactionID},
+    },
+    transaction,
+}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();

@@ -35,10 +35,10 @@ const defaultProps = {
 };
 
 function IOURequestStepAmount({
+    report,
     route: {
         params: {iouType, reportID, step, transactionID},
     },
-    report,
     transaction,
     transaction: {currency},
 }) {

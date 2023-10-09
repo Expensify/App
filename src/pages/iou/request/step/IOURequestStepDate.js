@@ -29,10 +29,10 @@ const defaultProps = {
 };
 
 function IOURequestStepDate({
-    transaction,
     route: {
         params: {iouType, reportID, transactionID},
     },
+    transaction,
 }) {
     const {translate} = useLocalize();
 

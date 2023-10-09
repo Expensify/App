@@ -44,10 +44,10 @@ const defaultProps = {
 };
 
 function IOURequestStepDistance({
+    report,
     route: {
         params: {iouType, reportID, step, transactionID},
     },
-    report,
     transaction,
 }) {
     const {isOffline} = useNetwork();

@@ -31,10 +31,10 @@ const defaultProps = {
 };
 
 function IOURequestStepMerchant({
-    transaction: {merchant},
     route: {
         params: {iouType, reportID, transactionID},
     },
+    transaction: {merchant},
 }) {
     const {translate} = useLocalize();
     const inputRef = useRef(null);
