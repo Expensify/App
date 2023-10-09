@@ -71,4 +71,14 @@ function generateRandomInt(a: number, b: number): number {
     return Math.floor(lower + Math.random() * (upper - lower + 1));
 }
 
-export {rand64, generateHexadecimalValue, generateRandomInt, clampWorklet};
+/**
+ * Parses a numeric string value containing a decimal separator from any locale.
+ *
+ * @param value the string value to parse
+ * @returns a floating point number parsed from the string value
+ */
+function parseFloatAnyLocale(value: string): number {
+    return parseFloat(value ? value.replace(',', '.') : value);
+}
+
+export {rand64, generateHexadecimalValue, generateRandomInt, clampWorklet, parseFloatAnyLocale};
