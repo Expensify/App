@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
@@ -71,16 +71,26 @@ function updateAddress(values) {
 function AddressPage({privatePersonalDetails, route}) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
+    const address = useMemo(() => lodashGet(privatePersonalDetails, 'address') || {}, [privatePersonalDetails]);
     const countryFromUrl = lodashGet(route, 'params.country');
-    const [currentCountry, setCurrentCountry] = useState(countryFromUrl || PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')));
-    const isUSAForm = currentCountry === CONST.COUNTRY.US;
+    const [currentCountry, setCurrentCountry] = useState(address.country);
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
-
-    const address = lodashGet(privatePersonalDetails, 'address') || {};
+    const isUSAForm = currentCountry === CONST.COUNTRY.US;
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
+    const [city, setCity] = useState(address.city);
+
+    useEffect(() => {
+        if (!address) {
+            return;
+        }
+        setState(address.state);
+        setCurrentCountry(address.country);
+        setCity(address.city);
+    }, [address]);
+
     /**
      * @param {Function} translate - translate function
      * @param {Boolean} isUSAForm - selected country ISO code is US
@@ -127,15 +137,20 @@ function AddressPage({privatePersonalDetails, route}) {
     }, []);
 
     const handleAddressChange = useCallback((value, key) => {
-        if (key !== 'country' && key !== 'state') {
+        if (key !== 'country' && key !== 'state' && key !== 'city') {
             return;
         }
         if (key === 'country') {
             setCurrentCountry(value);
             setState('');
+            setCity('');
             return;
         }
-        setState(value);
+        if (key === 'state') {
+            setState(value);
+            return;
+        }
+        setCity(value);
     }, []);
 
     useEffect(() => {
@@ -227,9 +242,10 @@ function AddressPage({privatePersonalDetails, route}) {
                         label={translate('common.city')}
                         accessibilityLabel={translate('common.city')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={address.city || ''}
+                        value={city || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
+                        onValueChange={handleAddressChange}
                     />
                     <View style={styles.formSpaceVertical} />
                     <TextInput

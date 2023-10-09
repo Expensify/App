@@ -1,6 +1,7 @@
 ---
 title: Your Expensify Account Manager
 description: Everything you need to know about Having an Expensify account manager
+redirect_from: articles/other/Your-Expensify-Account-Manager/
 ---
 
 <!-- The lines above are required by Jekyll to process the .md file -->
