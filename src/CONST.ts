@@ -1466,6 +1466,15 @@ const CONST = {
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
     },
 
+    ERECEIPT_COLORS: {
+        YELLOW: 'Yellow',
+        ICE: 'Ice',
+        BLUE: 'Blue',
+        GREEN: 'Green',
+        TANGERINE: 'Tangerine',
+        PINK: 'Pink',
+    },
+
     MAP_PADDING: 50,
     MAP_MARKER_SIZE: 20,
 

@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import {View} from 'react-native';
-import EReceiptThumbail from '../components/EReceiptThumbail';
+import EReceiptThumbnail from '../components/EReceiptThumbnail';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -9,31 +9,31 @@ import EReceiptThumbail from '../components/EReceiptThumbail';
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story = {
-    title: 'Components/EReceiptThumbail',
-    component: EReceiptThumbail,
+    title: 'Components/EReceiptThumbnail',
+    component: EReceiptThumbnail,
 };
 
 function Template(args) {
     return (
         <>
             <View>
-                <EReceiptThumbail {...args} />
+                <EReceiptThumbnail {...args} />
             </View>
 
             <View style={{height: 116, width: 89, borderRadius: 0, overflow: 'hidden'}}>
-                <EReceiptThumbail {...args} />
+                <EReceiptThumbnail {...args} />
             </View>
 
             <View style={{height: 140, width: 143, borderRadius: 16, overflow: 'hidden'}}>
-                <EReceiptThumbail {...args} />
+                <EReceiptThumbnail {...args} />
             </View>
 
             <View style={{height: 140, width: 283, borderRadius: 16, overflow: 'hidden'}}>
-                <EReceiptThumbail {...args} />
+                <EReceiptThumbnail {...args} />
             </View>
 
             <View style={{height: 175, width: 335, borderRadius: 16, overflow: 'hidden'}}>
-                <EReceiptThumbail {...args} />
+                <EReceiptThumbnail {...args} />
             </View>
         </>
     );

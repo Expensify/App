@@ -3,19 +3,21 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../ONYXKEYS';
-import EReceiptBG from '../../assets/images/eReceipt-BGImage.svg';
 import * as StyleUtils from '../styles/StyleUtils';
 import transactionPropTypes from './transactionPropTypes';
 import styles from '../styles/styles';
 import * as Expensicons from './Icon/Expensicons';
 import * as MCCIcons from './Icon/MCCIcons';
 import Icon from './Icon';
+import Image from './Image';
 import Text from './Text';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import * as CardUtils from '../libs/CardUtils';
 import variables from '../styles/variables';
 import useLocalize from '../hooks/useLocalize';
+import * as EReceiptBGs from './Icon/EReceiptBGs';
+import CONST from '../CONST';
 
 const propTypes = {
     /* transactionID */
@@ -29,11 +31,15 @@ const defaultProps = {
     transaction: {},
 };
 
-function EReceipt({transaction}) {
+function EReceipt({transaction, transactionID}) {
     const {translate} = useLocalize();
-    const colorStyles = StyleUtils.getEReceiptColor(transaction.parentTransactionID || transaction.transactionID || '');
+    
+    // Get receipt colorway, or default to Yellow.
+    const colorCode = StyleUtils.getEReceiptColorCode(transaction.parentTransactionID || transaction.transactionID || transactionID) || CONST.ERECEIPT_COLORS.YELLOW;
+    const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
     const primaryColor = colorStyles.backgroundColor;
     const secondaryColor = colorStyles.color;
+    const backgroundImage = EReceiptBGs[`EReceiptBG_${colorCode}`];
 
     const {
         amount: transactionAmount,
@@ -51,9 +57,10 @@ function EReceipt({transaction}) {
 
     return (
         <View style={[styles.eReceiptContainer, StyleUtils.getBackgroundColorStyle(primaryColor)]}>
-            <View style={styles.eReceiptBackground}>
-                <EReceiptBG style={colorStyles} />
-            </View>
+            <Image 
+                source={backgroundImage}
+                style={styles.eReceiptBackground}
+            />
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pb14, styles.pt8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.eReceiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon

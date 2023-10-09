@@ -16,6 +16,7 @@ import cursor from './utilities/cursor';
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
+type EReceiptColorName = ValueOf<typeof CONST.ERECEIPT_COLORS>;
 type AvatarSizeValue = ValueOf<
     Pick<
         typeof variables,
@@ -94,6 +95,24 @@ const eReceiptColorOptions: EreceiptColorStyle[] = [
     {backgroundColor: colors.green800, color: colors.green400},
     {backgroundColor: colors.tangerine800, color: colors.tangerine400},
     {backgroundColor: colors.pink800, color: colors.pink400},
+];
+
+const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
+    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow600, color: colors.yellow100},
+    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.blue800, color: colors.ice400},
+    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue400, color: colors.blue100},
+    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400},
+    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400},
+    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400},
+};
+
+const eReceiptColors: EReceiptColorName[] = [
+    CONST.ERECEIPT_COLORS.YELLOW,
+    CONST.ERECEIPT_COLORS.ICE,
+    CONST.ERECEIPT_COLORS.BLUE,
+    CONST.ERECEIPT_COLORS.GREEN,
+    CONST.ERECEIPT_COLORS.TANGERINE,
+    CONST.ERECEIPT_COLORS.PINK,
 ];
 
 const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
@@ -251,12 +270,20 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle | CSSP
 }
 
 /**
- * Helper method to return eReceipt color styles
+ * Helper method to return eReceipt color code
  */
-function getEReceiptColor(transactionID: string): ViewStyle | CSSProperties {
+function getEReceiptColorCode(transactionID: string): EReceiptColorName {
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColorOptions.length);
 
-    return eReceiptColorOptions[colorHash];
+    return eReceiptColors[colorHash];
+}
+
+
+/**
+ * Helper method to return eReceipt color styles
+ */
+function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyle | undefined {
+    return eReceiptColorStyles[colorCode];
 }
 
 /**
@@ -1342,5 +1369,6 @@ export {
     getDropDownButtonHeight,
     getAmountFontSizeAndLineHeight,
     getTransparentColor,
-    getEReceiptColor,
+    getEReceiptColorStyles,
+    getEReceiptColorCode,
 };

@@ -3350,7 +3350,7 @@ const styles = (theme) => ({
         position: 'absolute',
         aspectRatio: 335 / 540,
         top: 0,
-        left: 0,
+        minWidth: 217,
     },
 
     eReceiptContainer: {

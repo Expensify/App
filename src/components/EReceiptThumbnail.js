@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../ONYXKEYS';
-import EReceiptBG from '../../assets/images/eReceipt-BGImage2.svg';
 import * as StyleUtils from '../styles/StyleUtils';
 import transactionPropTypes from './transactionPropTypes';
 import styles from '../styles/styles';
@@ -12,6 +11,9 @@ import * as MCCIcons from './Icon/MCCIcons';
 import Icon from './Icon';
 import * as ReportUtils from '../libs/ReportUtils';
 import variables from '../styles/variables';
+import * as eReceiptBGs from './Icon/EReceiptBGs';
+import Image from './Image';
+import CONST from '../CONST';
 
 const propTypes = {
     /* transactionID */
@@ -25,16 +27,20 @@ const defaultProps = {
     transaction: {},
 };
 
-function EReceiptThumbail({transaction}) {
-    const colorStyles = StyleUtils.getEReceiptColor(transaction.parentTransactionID || transaction.transactionID || '');
+function EReceiptThumbnail({transaction, transactionID}) {
+    // Get receipt colorway, or default to Yellow.
+    const colorCode = StyleUtils.getEReceiptColorCode(transaction.parentTransactionID || transaction.transactionID || transactionID) || CONST.ERECEIPT_COLORS.YELLOW;
+    const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
     const primaryColor = colorStyles.backgroundColor;
     const secondaryColor = colorStyles.color;
 
     const [containerWidth, setContainerWidth] = useState(0);
+    const [containerHeight, setContainerHeight] = useState(0);
 
     const onContainerLayout = (event) => {
-        const {width} = event.nativeEvent.layout;
+        const {width, height} = event.nativeEvent.layout;
         setContainerWidth(width);
+        setContainerHeight(height);
     };
 
     const {mccGroup: transactionMCCGroup} = ReportUtils.getTransactionDetails(transaction);
@@ -59,12 +65,14 @@ function EReceiptThumbail({transaction}) {
 
     return (
         <View
-            style={[styles.flex1, StyleUtils.getBackgroundColorStyle(primaryColor), styles.overflowHidden, styles.alignItemsCenter, styles.justifyContentCenter]}
+            style={[styles.flex1, StyleUtils.getBackgroundColorStyle(primaryColor), styles.overflowHidden, styles.alignItemsCenter, containerHeight < 200 && styles.justifyContentCenter]}
             onLayout={onContainerLayout}
         >
-            <View style={styles.eReceiptBackgroundThumbnail}>
-                <EReceiptBG style={colorStyles} />
-            </View>
+            <Image 
+                source={eReceiptBGs[`EReceiptBG_${colorCode}`]}
+                style={styles.eReceiptBackgroundThumbnail}
+                resizeMode="cover"
+            />
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
@@ -88,12 +96,12 @@ function EReceiptThumbail({transaction}) {
     );
 }
 
-EReceiptThumbail.displayName = 'EReceiptThumbail';
-EReceiptThumbail.propTypes = propTypes;
-EReceiptThumbail.defaultProps = defaultProps;
+EReceiptThumbnail.displayName = 'EReceiptThumbnail';
+EReceiptThumbnail.propTypes = propTypes;
+EReceiptThumbnail.defaultProps = defaultProps;
 
 export default withOnyx({
     transaction: {
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
     },
-})(EReceiptThumbail);
+})(EReceiptThumbnail);
