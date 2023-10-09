@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
@@ -20,6 +21,7 @@ import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import MoneyRequestHeaderStatusBar from '../../components/MoneyRequestHeaderStatusBar';
+import * as IOU from '../../libs/actions/IOU';
 
 const propTypes = {
     /* Onyx Props */
@@ -76,10 +78,26 @@ function SplitBillDetailsPage(props) {
     }
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
-    const {amount: splitAmount, currency: splitCurrency, comment: splitComment, merchant: splitMerchant, created: splitCreated} = ReportUtils.getTransactionDetails(transaction);
+
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    const canEditSplit =
+    const isEdittingSplitBill =
         props.session.accountID === reportAction.actorAccountID && (isScanning || (TransactionUtils.hasReceipt(transaction) && transaction.receipt.state === CONST.IOU.RECEIPT_STATE.FAILED));
+
+    const draftSplitTransaction = props.draftSplitTransactions[`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transaction.transactionID}`];
+
+    if (isEdittingSplitBill && !draftSplitTransaction) {
+        IOU.setDraftSplitTransaction(transaction.transactionID);
+    }
+
+    const {
+        amount: splitAmount,
+        currency: splitCurrency,
+        comment: splitComment,
+        merchant: splitMerchant,
+        created: splitCreated,
+    } = isEdittingSplitBill && draftSplitTransaction ? ReportUtils.getTransactionDetails(draftSplitTransaction) : ReportUtils.getTransactionDetails(transaction);
+
+    const onConfirm = useCallback(() => IOU.completeSplitBill(draftSplitTransaction));
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
@@ -101,15 +119,16 @@ function SplitBillDetailsPage(props) {
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
-                            isReadOnly={!canEditSplit}
+                            isReadOnly={!isEdittingSplitBill}
                             shouldShowSmartScanFields
                             receiptPath={transaction.receipt && transaction.receipt.source}
                             receiptFilename={transaction.filename}
                             shouldShowFooter={false}
                             isScanning={isScanning}
-                            canEditSplit={canEditSplit}
+                            isEdittingSplitBill={isEdittingSplitBill}
                             reportActionID={reportAction.reportActionID}
                             reportID={props.report.reportID}
+                            onConfirm={onConfirm}
                         />
                     )}
                 </View>
@@ -126,6 +145,9 @@ export default compose(
     withLocalize,
     withReportAndReportActionOrNotFound,
     withOnyx({
+        draftSplitTransactions: {
+            key: ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION,
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },

@@ -52,6 +52,20 @@ Onyx.connect({
     },
 });
 
+let allDraftSplitTransactions;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
+            allDraftSplitTransactions = {};
+            return;
+        }
+
+        allDraftSplitTransactions = val;
+    },
+});
+
 let allRecentlyUsedCategories = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
@@ -1471,21 +1485,24 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     Report.notifyNewAction(splitChatReport.chatReportID, currentUserAccountID);
 }
 
+function completeSplitBill(updatedTransaction) {}
+
 /**
  * @param {Number} reportID
  * @param {Number} reportActionID
  * @param {String} transactionID
  * @param {Object} transactionChanges
  */
-function setSplitBillTransaction(reportID, reportActionID, transactionID, transactionChanges) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, false, false);
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, updatedTransaction);
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [reportActionID]: {
-            lastModified: DateUtils.getDBTime(),
-        },
-    });
+function setDraftSplitTransaction(transactionID, transactionChanges = {}) {
+    let draftSplitTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`];
+
+    if (!draftSplitTransaction) {
+        draftSplitTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    }
+
+    const updatedTransaction = TransactionUtils.getUpdatedTransaction(draftSplitTransaction, transactionChanges, false, false);
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`, updatedTransaction);
 }
 
 /**
@@ -2551,8 +2568,9 @@ export {
     deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
+    setDraftSplitTransaction,
     startSplitBill,
-    setSplitBillTransaction,
+    completeSplitBill,
     requestMoney,
     sendMoneyElsewhere,
     approveMoneyRequest,

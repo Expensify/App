@@ -67,18 +67,24 @@ const defaultProps = {
     },
 };
 
-function EditSplitBillRequestPage({report, route}) {
+function EditSplitBillRequestPage({report, route, draftSplitTransactions}) {
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
     const reportAction = ReportActionsUtils.getReportAction(report.reportID, lodashGet(route, ['params', 'reportActionID'], ''));
-    const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+    const transactionID = TransactionUtils.getLinkedTransaction(reportAction).transactionID;
+    const draftSplitTransaction = draftSplitTransactions[`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`];
 
-    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription, merchant: transactionMerchant} = ReportUtils.getTransactionDetails(transaction);
+    const {
+        amount: transactionAmount,
+        currency: transactionCurrency,
+        comment: transactionDescription,
+        merchant: transactionMerchant,
+        created: transactionCreated,
+    } = ReportUtils.getTransactionDetails(draftSplitTransaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
 
-    function setSplitBillTransaction(transactionChanges) {
-        console.log(reportAction.reportActionID);
-        IOU.setSplitBillTransaction(report.reportID, reportAction.reportActionID, transaction.transactionID, transactionChanges);
+    function setDraftSplitTransaction(transactionChanges) {
+        IOU.setDraftSplitTransaction(transactionID, transactionChanges);
         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(report.reportID, reportAction.reportActionID));
     }
 
@@ -91,7 +97,7 @@ function EditSplitBillRequestPage({report, route}) {
                         Navigation.dismissModal();
                         return;
                     }
-                    setSplitBillTransaction({
+                    setDraftSplitTransaction({
                         comment: transactionChanges.comment,
                     });
                 }}
@@ -110,7 +116,7 @@ function EditSplitBillRequestPage({report, route}) {
                         Navigation.dismissModal();
                         return;
                     }
-                    setSplitBillTransaction({
+                    setDraftSplitTransaction({
                         created: transactionChanges.created,
                     });
                 }}
@@ -123,16 +129,18 @@ function EditSplitBillRequestPage({report, route}) {
             <EditRequestAmountPage
                 defaultAmount={transactionAmount}
                 defaultCurrency={defaultCurrency}
+                reportID={report.reportID}
                 isEdittingSplitBill
                 onSubmit={(transactionChanges) => {
                     const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
+                    console.log('new amount', amount);
 
                     if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
                         Navigation.goBack();
                         return;
                     }
 
-                    setSplitBillTransaction({
+                    setDraftSplitTransaction({
                         amount,
                         currency: defaultCurrency,
                     });
@@ -150,7 +158,7 @@ function EditSplitBillRequestPage({report, route}) {
                         Navigation.goBack();
                         return;
                     }
-                    setSplitBillTransaction({merchant: transactionChanges.merchant});
+                    setDraftSplitTransaction({merchant: transactionChanges.merchant});
                 }}
             />
         );
@@ -166,6 +174,9 @@ export default compose(
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        },
+        draftSplitTransactions: {
+            key: ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION,
         },
     }),
 )(EditSplitBillRequestPage);

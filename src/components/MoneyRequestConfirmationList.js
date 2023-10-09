@@ -260,9 +260,9 @@ function MoneyRequestConfirmationList(props) {
 
     const splitOrRequestOptions = useMemo(() => {
         let text;
-        if (props.receiptPath && props.hasMultipleParticipants && props.iouAmount === 0) {
+        if (props.receiptPath && props.hasMultipleParticipants && props.isScanning && props.iouAmount === 0) {
             text = translate('iou.split');
-        } else if (props.receiptPath || isDistanceRequestWithoutRoute) {
+        } else if ((props.receiptPath && props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST) || isDistanceRequestWithoutRoute) {
             text = translate('iou.request');
         } else {
             const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
@@ -511,7 +511,7 @@ function MoneyRequestConfirmationList(props) {
                         if (props.isDistanceRequest) {
                             return;
                         }
-                        if (props.canEditSplit) {
+                        if (props.isEdittingSplitBill) {
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
@@ -527,7 +527,7 @@ function MoneyRequestConfirmationList(props) {
                 title={props.iouComment}
                 description={translate('common.description')}
                 onPress={() => {
-                    if (props.canEditSplit) {
+                    if (props.isEdittingSplitBill) {
                         Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
                         return;
                     }
@@ -563,7 +563,7 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (props.canEditSplit) {
+                                if (props.isEdittingSplitBill) {
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
                                     return;
                                 }
@@ -591,7 +591,7 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (props.canEditSplit) {
+                                if (props.isEdittingSplitBill) {
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
                                     return;
                                 }
