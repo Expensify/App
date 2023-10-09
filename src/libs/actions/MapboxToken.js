@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import moment from 'moment';
+import {isAfter} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import {AppState} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -42,13 +42,17 @@ const setExpirationTimer = () => {
     }, REFRESH_INTERVAL);
 };
 
-const hasTokenExpired = () => moment().isAfter(currentToken.expiration);
+const hasTokenExpired = () => isAfter(new Date(), new Date(currentToken.expiration));
 
 const clearToken = () => {
     console.debug('[MapboxToken] Deleting the token stored in Onyx');
-
     // Use Onyx.set() to delete the key from Onyx, which will trigger a new token to be retrieved from the API.
     Onyx.set(ONYXKEYS.MAPBOX_ACCESS_TOKEN, null);
+};
+
+const fetchToken = () => {
+    API.read('GetMapboxAccessToken');
+    isCurrentlyFetchingToken = true;
 };
 
 const init = () => {
@@ -83,9 +87,7 @@ const init = () => {
             // If the token is falsy or an empty object, the token needs to be retrieved from the API.
             // The API sets a token in Onyx with a 30 minute expiration.
             if (_.isEmpty(token)) {
-                console.debug('[MapboxToken] Token does not exist so fetching one');
-                API.read('GetMapboxAccessToken');
-                isCurrentlyFetchingToken = true;
+                fetchToken();
                 return;
             }
 
@@ -126,9 +128,13 @@ const init = () => {
             callback: (val) => {
                 // When the network reconnects, check if the token has expired. If it has, then clearing the token will
                 // trigger the fetch of a new one
-                if (network && network.isOffline && val && !val.isOffline && !isCurrentlyFetchingToken && hasTokenExpired()) {
-                    console.debug('[MapboxToken] Token is expired after network came online');
-                    clearToken();
+                if (network && network.isOffline && val && !val.isOffline) {
+                    if (_.isEmpty(currentToken)) {
+                        fetchToken();
+                    } else if (!isCurrentlyFetchingToken && hasTokenExpired()) {
+                        console.debug('[MapboxToken] Token is expired after network came online');
+                        clearToken();
+                    }
                 }
                 network = val;
             },

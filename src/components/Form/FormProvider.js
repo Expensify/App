@@ -108,6 +108,7 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
         (values) => {
             const validateErrors = validate(values);
             setErrors(validateErrors);
+            return validateErrors;
         },
         [validate],
     );
@@ -239,6 +240,7 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
                 onSubmit={submit}
                 inputRefs={inputRefs}
                 errors={errors}
+                enabledWhenOffline={enabledWhenOffline}
             >
                 {children}
             </FormWrapper>

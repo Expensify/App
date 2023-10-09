@@ -78,10 +78,10 @@ export default {
     extraSmallMobileResponsiveWidthBreakpoint: 320,
     extraSmallMobileResponsiveHeightBreakpoint: 667,
     mobileResponsiveWidthBreakpoint: 800,
-    modalFullscreenBackdropOpacity: 0.5,
     tabletResponsiveWidthBreakpoint: 1024,
     safeInsertPercentage: 0.7,
-    sideBarWidth: 375,
+    globalNavigationWidth: 72,
+    sideBarWidth: 303 + 72,
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
     gutterWidth: 12,
@@ -159,4 +159,8 @@ export default {
     moneyRequestSkeletonHeight: 107,
 
     distanceScrollEventThrottle: 16,
+
+    cardPreviewHeight: 148,
+    cardPreviewWidth: 235,
+    cardNameWidth: 156,
 } as const;

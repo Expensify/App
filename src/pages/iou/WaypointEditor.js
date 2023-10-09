@@ -1,10 +1,10 @@
 import React, {useMemo, useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {InteractionManager, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {useIsFocused} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import AddressSearch from '../../components/AddressSearch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -23,17 +23,22 @@ import * as Transaction from '../../libs/actions/Transaction';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
 import transactionPropTypes from '../../components/transactionPropTypes';
+import UserCurrentLocationButton from '../../components/UserCurrentLocationButton';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
-    /** The transactionID of the IOU */
-    transactionID: PropTypes.string.isRequired,
-
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
             /** IOU type */
             iouType: PropTypes.string,
+
+            /** Thread reportID */
+            threadReportID: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
+            /** ID of the transaction being edited */
+            transactionID: PropTypes.string,
 
             /** Index of the waypoint being edited */
             waypointIndex: PropTypes.string,
@@ -59,24 +64,23 @@ const propTypes = {
         }),
     ),
 
+    /* Onyx props */
     /** The optimistic transaction for this request */
     transaction: transactionPropTypes,
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            waypointIndex: '',
-        },
-    },
+    route: {},
     recentWaypoints: [],
     transaction: {},
 };
 
-function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, transaction, recentWaypoints}) {
+function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
-    const isFocused = useIsFocused();
+    const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+    const navigation = useNavigation();
+    const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const textInput = useRef(null);
@@ -97,6 +101,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     }, [parsedWaypointIndex, waypointCount]);
 
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
+    const isEditingWaypoint = Boolean(threadReportID);
     const totalWaypoints = _.size(lodashGet(transaction, 'comment.waypoints', {}));
     // Hide the menu when there is only start and finish waypoint
     const shouldShowThreeDotsButton = totalWaypoints > 2;
@@ -127,7 +132,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         }
     };
 
-    const onSubmit = (values) => {
+    const submit = (values) => {
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
 
         // Allows letting you set a waypoint to an empty value
@@ -162,17 +167,33 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             lng: values.lng,
             address: values.address,
         };
-        saveWaypoint(waypoint);
+        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
+
+        if (isEditingWaypoint) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(threadReportID));
+            return;
+        }
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
 
-    const focusAddressInput = () => {
-        InteractionManager.runAfterInteractions(() => {
-            if (!textInput.current) {
-                return;
-            }
-            textInput.current.focus();
-        });
+    /**
+     * Sets user current location as a waypoint
+     * @param {Object} geolocationData
+     * @param {Object} geolocationData.coords
+     * @param {Number} geolocationData.coords.latitude
+     * @param {Number} geolocationData.coords.longitude
+     * @param {Number} geolocationData.timestamp
+     */
+    const selectWaypointFromCurrentLocation = (geolocationData) => {
+        setIsFetchingLocation(false);
+
+        const waypoint = {
+            lat: geolocationData.coords.latitude,
+            lng: geolocationData.coords.longitude,
+            address: CONST.YOUR_LOCATION_TEXT,
+        };
+
+        selectWaypoint(waypoint);
     };
 
     return (
@@ -198,14 +219,12 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             onSelected: () => setIsDeleteStopModalOpen(true),
                         },
                     ]}
-                    onModalHide={focusAddressInput}
                 />
                 <ConfirmModal
                     title={translate('distance.deleteWaypoint')}
                     isVisible={isDeleteStopModalOpen}
                     onConfirm={deleteStopAndHideModal}
                     onCancel={() => setIsDeleteStopModalOpen(false)}
-                    onModalHide={focusAddressInput}
                     prompt={translate('distance.deleteWaypointConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
@@ -216,7 +235,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
-                    onSubmit={onSubmit}
+                    onSubmit={submit}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
@@ -246,6 +265,17 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             resultTypes=""
                         />
                     </View>
+                    <UserCurrentLocationButton
+                        isDisabled={isOffline}
+                        onClick={() => {
+                            Keyboard.dismiss();
+
+                            setIsFetchingLocation(true);
+                        }}
+                        onLocationError={() => setIsFetchingLocation(false)}
+                        onLocationFetched={selectWaypointFromCurrentLocation}
+                    />
+                    {isFetchingLocation && <FullScreenLoadingIndicator />}
                 </Form>
             </FullPageNotFoundView>
         </ScreenWrapper>
@@ -257,7 +287,7 @@ WaypointEditor.propTypes = propTypes;
 WaypointEditor.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
         selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
     },
     recentWaypoints: {

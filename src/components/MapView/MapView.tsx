@@ -39,14 +39,17 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                         centerCoordinate: waypoints[0].coordinate,
                     });
                 } else {
-                    const {southWest, northEast} = utils.getBounds(waypoints.map((waypoint) => waypoint.coordinate));
+                    const {southWest, northEast} = utils.getBounds(
+                        waypoints.map((waypoint) => waypoint.coordinate),
+                        directionCoordinates,
+                    );
                     cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
                 }
             }
             return () => {
                 setIsIdle(false);
             };
-        }, [mapPadding, waypoints, isIdle]),
+        }, [mapPadding, waypoints, isIdle, directionCoordinates]),
     );
 
     useEffect(() => {
@@ -71,6 +74,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                 onMapIdle={setMapIdle}
                 pitchEnabled={pitchEnabled}
                 attributionPosition={{...styles.r2, ...styles.b2}}
+                scaleBarEnabled={false}
                 logoPosition={{...styles.l2, ...styles.b2}}
                 // eslint-disable-next-line
                 {...responder.panHandlers}

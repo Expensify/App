@@ -268,7 +268,10 @@ function BaseWalletPage(props) {
                                     enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
                                     addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
                                     addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                    popoverPlacement="bottom"
+                                    anchorAlignment={{
+                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                    }}
                                 >
                                     {(triggerKYCFlow, buttonRef) => (
                                         <MenuItem
