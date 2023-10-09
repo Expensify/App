@@ -1,38 +1,41 @@
-import _ from 'underscore';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {ScrollView, View} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import TextLink from '../../../components/TextLink';
-import CONST from '../../../CONST';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import MenuItem from '../../../components/MenuItem';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import Logo from '../../../../assets/images/new-expensify.svg';
 import pkg from '../../../../package.json';
-import * as Report from '../../../libs/actions/Report';
-import * as Link from '../../../libs/actions/Link';
-import compose from '../../../libs/compose';
-import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
-import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
-import * as Environment from '../../../libs/Environment/Environment';
-import useWaitForNavigation from '../../../hooks/useWaitForNavigation';
-import MenuItemList from '../../../components/MenuItemList';
-import {withOnyx} from 'react-native-onyx';
+import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
+import ROUTES from '../../../ROUTES';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import MenuItemList from '../../../components/MenuItemList';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import Text from '../../../components/Text';
+import TextLink from '../../../components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import useWaitForNavigation from '../../../hooks/useWaitForNavigation';
+import * as Environment from '../../../libs/Environment/Environment';
+import Navigation from '../../../libs/Navigation/Navigation';
+import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
+import * as Link from '../../../libs/actions/Link';
+import * as Report from '../../../libs/actions/Report';
+import compose from '../../../libs/compose';
+import styles from '../../../styles/styles';
+import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
+import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
 
 const propTypes = {
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     isShortcutsModalOpen: PropTypes.bool,
+};
+
+const defaultProps = {
+    isShortcutsModalOpen: false,
 };
 
 function getFlavor() {
@@ -161,6 +164,7 @@ function AboutPage(props) {
 }
 
 AboutPage.propTypes = propTypes;
+AboutPage.defaultProps = defaultProps;
 AboutPage.displayName = 'AboutPage';
 
 export default compose(
