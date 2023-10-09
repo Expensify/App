@@ -91,7 +91,7 @@ function PersonalDetailsInitialPage(props) {
                         />
                         <MenuItemWithTopDescription
                             title={PersonalDetailsUtils.getFormattedAddress(props.privatePersonalDetails)}
-                            description={props.translate('privatePersonalDetails.homeAddress')}
+                            description={props.translate('privatePersonalDetails.address')}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
                         />
