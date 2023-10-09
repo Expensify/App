@@ -9,7 +9,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 import variables from '../../src/styles/variables';
 
-jest.setTimeout(10000)
+jest.setTimeout(10000);
 
 jest.mock('../../src/libs/Permissions');
 jest.mock('../../src/libs/Navigation/Navigation');
