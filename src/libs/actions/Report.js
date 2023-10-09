@@ -1,4 +1,4 @@
-import {InteractionManager} from 'react-native';
+import {InteractionManager, DeviceEventEmitter} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -842,8 +842,6 @@ function readNewestAction(reportID) {
  *
  * @param {String} reportID
  * @param {String} reportActionCreated
- *
- * @returns {String} lastReadTime
  */
 function markCommentAsUnread(reportID, reportActionCreated) {
     // If no action created date is provided, use the last action's
@@ -871,7 +869,7 @@ function markCommentAsUnread(reportID, reportActionCreated) {
             ],
         },
     );
-    return lastReadTime;
+    DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
 /**
