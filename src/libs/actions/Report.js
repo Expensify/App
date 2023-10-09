@@ -26,7 +26,7 @@ import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import * as Environment from '../Environment/Environment';
-import * as Session from './Session';
+import SidebarUtils from '../../libs/SidebarUtils';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -1882,7 +1882,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        Session.waitForUserSignIn().then(() => {
+        SidebarUtils.isSidebarLoadedReady().then(() => {
             if (route === ROUTES.CONCIERGE) {
                 navigateToConciergeChat();
                 return;
