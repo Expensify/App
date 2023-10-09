@@ -48,6 +48,8 @@ function Suggestions({
     const suggestionEmojiRef = useRef(null);
     const suggestionMentionRef = useRef(null);
 
+    const getSuggestions = useCallback(() => suggestionEmojiRef.current.getSuggestions() || suggestionMentionRef.current.getSuggestions(), []);
+
     /**
      * Clean data related to EmojiSuggestions
      */
@@ -90,8 +92,9 @@ function Suggestions({
             triggerHotkeyActions,
             updateShouldShowSuggestionMenuToFalse,
             setShouldBlockSuggestionCalc,
+            getSuggestions,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     const baseProps = {
