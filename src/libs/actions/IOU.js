@@ -1485,11 +1485,11 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     Report.notifyNewAction(splitChatReport.chatReportID, currentUserAccountID);
 }
 
-function completeSplitBill(updatedTransaction) {}
+function completeSplitBill(updatedTransaction) {
+    console.log(updatedTransaction);
+}
 
 /**
- * @param {Number} reportID
- * @param {Number} reportActionID
  * @param {String} transactionID
  * @param {Object} transactionChanges
  */

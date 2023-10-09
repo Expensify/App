@@ -14,6 +14,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import reportPropTypes from '../reportPropTypes';
+import transactionPropTypes from '../../components/transactionPropTypes';
 import withReportAndReportActionOrNotFound from '../home/report/withReportAndReportActionOrNotFound';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../CONST';
@@ -34,6 +35,9 @@ const propTypes = {
 
     /** Array of report actions for this report */
     reportActions: PropTypes.shape(reportActionPropTypes),
+
+    /** Used for retrieving the draft transaction of the split bill being edited */
+    draftSplitTransactions: PropTypes.shape(transactionPropTypes),
 
     /** Route params */
     route: PropTypes.shape({
@@ -58,6 +62,7 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     reportActions: {},
+    draftSplitTransactions: {},
 };
 
 function SplitBillDetailsPage(props) {
