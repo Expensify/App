@@ -13,7 +13,16 @@ import RadioListItem from './RadioListItem';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import CONST from '../../CONST';
 
-function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip, shouldPreventDefaultFocusOnSelect = false, canSelectMultiple = false, onSelectRow, onDismissError = () => {}}) {
+function BaseListItem({
+    item,
+    isFocused = false,
+    isDisabled = false,
+    showTooltip,
+    shouldPreventDefaultFocusOnSelect = false,
+    canSelectMultiple = false,
+    onSelectRow,
+    onDismissError = () => {},
+}) {
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
 
