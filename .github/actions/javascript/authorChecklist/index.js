@@ -64934,6 +64934,7 @@ exports.default = generateDynamicChecksAndCheckForCompletion;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.detectReactComponent = void 0;
 const parser_1 = __nccwpck_require__(639);
 const traverse_1 = __nccwpck_require__(5008);
 const github_1 = __nccwpck_require__(5438);
@@ -64962,19 +64963,32 @@ function detectReactComponent(code, filename) {
     });
     let isReactComponent = false;
     (0, traverse_1.default)(ast, {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        FunctionDeclaration(path) {
+        enter(path) {
             if (isReactComponent) {
                 return;
             }
-            if (path.node.id && path.node.body.body.some((node) => node.type === 'ReturnStatement' && node.argument?.type === 'JSXElement')) {
-                console.log('Detected react component in file', filename);
+            if (path.isFunctionDeclaration() || path.isArrowFunctionExpression() || path.isFunctionExpression()) {
+                path.traverse({
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    JSXElement() {
+                        isReactComponent = true;
+                        path.stop();
+                    },
+                });
+            }
+        },
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        ClassDeclaration(path) {
+            const { superClass } = path.node;
+            if (superClass && ((superClass.object && superClass.object.name === 'React' && superClass.property.name === 'Component') || superClass.name === 'Component')) {
                 isReactComponent = true;
+                path.stop();
             }
         },
     });
     return isReactComponent;
 }
+exports.detectReactComponent = detectReactComponent;
 function nodeBase64ToUtf8(data) {
     return Buffer.from(data, 'base64').toString('utf-8');
 }
