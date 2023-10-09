@@ -98,6 +98,7 @@ export default {
         resend: 'Reenviar',
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
+        submit: 'Enviar',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -342,6 +343,8 @@ export default {
     phoneCountryCode: '34',
     welcomeText: {
         getStarted: 'Comience a continuación.',
+        anotherLoginPageIsOpen: 'Otra página de inicio de sesión está abierta.',
+        anotherLoginPageIsOpenExplanation: 'Ha abierto la página de inicio de sesión en una pestaña separada, inicie sesión desde esa pestaña específica.',
         welcomeBack: '¡Bienvenido de nuevo!',
         welcome: '¡Bienvenido!',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
@@ -2273,6 +2276,11 @@ export default {
             tryDifferentEmail: 'Por favor intenta con un e-mail diferente',
         },
     },
+    cardTransactions: {
+        notActivated: 'No activado',
+        outOfPocketSpend: 'Gastos por cuenta propia',
+        companySpend: 'Gastos de empresa',
+    },
     distance: {
         addStop: 'Agregar parada',
         deleteWaypoint: 'Eliminar punto de ruta',
@@ -2291,5 +2299,8 @@ export default {
         errors: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
     },
 } satisfies EnglishTranslation;
