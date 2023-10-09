@@ -41,7 +41,7 @@ const lightTheme = {
     hoverComponentBG: colors.lightHighlightBackground,
     activeComponentBG: colors.lightBorders,
     signInSidebar: colors.green800,
-    sidebar: colors.lightHighlightBackground,
+    sidebar: colors.lightAppBackground,
     sidebarHover: colors.lightBorders,
     heading: colors.lightPrimaryText,
     textLight: colors.white,
