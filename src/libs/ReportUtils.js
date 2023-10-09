@@ -3580,6 +3580,15 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
     return expenseChat.reportID;
 }
 
+/**
+ * @param {String} policyID
+ * @param {Array} accountIDs
+ * @returns {Array}
+ */
+function getWorkspaceChats(policyID, accountIDs) {
+    return _.filter(allReports, (report) => isPolicyExpenseChat(report) && lodashGet(report, 'policyID', '') === policyID && _.contains(accountIDs, lodashGet(report, 'ownerAccountID', '')));
+}
+
 /*
  * @param {Object|null} report
  * @returns {Boolean}
@@ -3945,6 +3954,7 @@ export {
     isDM,
     getPolicy,
     getPolicyExpenseChatReportIDByOwner,
+    getWorkspaceChats,
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
