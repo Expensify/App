@@ -54,7 +54,7 @@ function getOldDotURL(url) {
         return 'inbox';
     }
 
-    if (pathname === 'expenses' ?? pathname === 'insights') {
+    if (pathname === 'expenses' || pathname === 'insights') {
         return `expenses/${urlObj.search}`;
     }
 
