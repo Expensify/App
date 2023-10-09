@@ -238,6 +238,13 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {pendingAction: null},
         },
+
+        // Remove the temporary transaction used during the creation flow
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${CONST.OPTIMISTIC_TRANSACTION_ID}`,
+            value: null,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
@@ -586,15 +593,15 @@ function getMoneyRequestInformation(
  * @param {Object} participant
  * @param {String} comment
  * @param {String} created
- * @param {String} [transactionID]
  * @param {String} [category]
  * @param {String} [tag]
  * @param {Number} amount
  * @param {String} currency
  * @param {String} merchant
  * @param {Boolean} [billable]
+ * @param {Obejct} validWaypoints
  */
-function createDistanceRequest(report, participant, comment, created, transactionID, category, tag, amount, currency, merchant, billable) {
+function createDistanceRequest(report, participant, comment, created, category, tag, amount, currency, merchant, billable, validWaypoints) {
     const optimisticReceipt = {
         source: ReceiptGeneric,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
@@ -610,7 +617,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
         userAccountID,
         currentUserEmail,
         optimisticReceipt,
-        transactionID,
+        undefined,
         category,
         tag,
         billable,
@@ -626,7 +633,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
             createdChatReportActionID,
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
-            waypoints: JSON.stringify(TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true)),
+            waypoints: JSON.stringify(validWaypoints),
             created,
             category,
             tag,

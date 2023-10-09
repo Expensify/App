@@ -111,11 +111,6 @@ function IOURequestStepConfirmation({
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-        // TODO: make sure this can be removed
-        // // Verification to reset billable with a default value, when value in IOU was changed
-        // if (typeof transaction.billable !== 'boolean') {
-        //     IOU.setMoneyRequestBillable(lodashGet(policy, 'defaultBillable', false));
-        // }
     }, [isOffline, participants, transaction.billable, policy]);
 
     /**
@@ -155,76 +150,70 @@ function IOURequestStepConfirmation({
         ],
     );
 
-    /**
-     * @param {Array} selectedParticipants
-     * @param {String} trimmedComment
-     */
-    const createDistanceRequest = useCallback(
-        (selectedParticipants, trimmedComment) => {
-            IOU.createDistanceRequest(
-                report,
-                selectedParticipants[0],
-                trimmedComment,
-                transaction.created,
-                transaction.transactionID,
-                transaction.category,
-                transaction.tag,
-                transaction.amount,
-                transaction.currency,
-                transaction.merchant,
-                transaction.billable,
-            );
-        },
-        [report, transaction.created, transaction.transactionID, transaction.category, transaction.tag, transaction.amount, transaction.currency, transaction.merchant, transaction.billable],
-    );
-
     const createTransaction = useCallback(
         (selectedParticipants) => {
-            const trimmedComment = transaction.comment.trim();
+            const trimmedComment = lodashGet(transaction, 'comment.comment', '').trim();
 
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID)) {
-                IOU.splitBill(
-                    selectedParticipants,
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    transaction.amount,
-                    trimmedComment,
-                    transaction.currency,
-                    reportID,
-                );
+                // TODO:
+                // IOU.splitBill(
+                //     selectedParticipants,
+                //     currentUserPersonalDetails.login,
+                //     currentUserPersonalDetails.accountID,
+                //     transaction.amount,
+                //     trimmedComment,
+                //     transaction.currency,
+                //     reportID,
+                // );
                 return;
             }
 
             // If the request is created from the global create menu, we also navigate the user to the group report
             if (iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
-                IOU.splitBillAndOpenReport(
-                    selectedParticipants,
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    transaction.amount,
-                    trimmedComment,
-                    transaction.currency,
-                );
+                // TODO:
+                // IOU.splitBillAndOpenReport(
+                //     selectedParticipants,
+                //     currentUserPersonalDetails.login,
+                //     currentUserPersonalDetails.accountID,
+                //     transaction.amount,
+                //     trimmedComment,
+                //     transaction.currency,
+                // );
                 return;
             }
 
             if (transaction.receiptPath && transaction.receiptSource) {
-                FileUtils.readFileAsync(transaction.receiptPath, transaction.receiptSource).then((file) => {
-                    const receipt = file;
-                    receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
-                    requestMoney(selectedParticipants, trimmedComment, receipt);
-                });
+                // TODO:
+                // FileUtils.readFileAsync(transaction.receiptPath, transaction.receiptSource).then((file) => {
+                //     const receipt = file;
+                //     receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+                //     requestMoney(selectedParticipants, trimmedComment, receipt);
+                // });
                 return;
             }
 
             if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
-                createDistanceRequest(selectedParticipants, trimmedComment);
+                IOU.createDistanceRequest(
+                    report,
+                    selectedParticipants[0],
+                    trimmedComment,
+                    transaction.created,
+                    undefined,
+                    transaction.category,
+                    transaction.tag,
+                    transaction.amount,
+                    transaction.currency,
+                    transaction.merchant,
+                    transaction.billable,
+                    TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true),
+                );
                 return;
             }
 
-            requestMoney(selectedParticipants, trimmedComment);
+            // TODO:
+            // requestMoney(selectedParticipants, trimmedComment);
         },
         [
             iouType,
@@ -238,7 +227,7 @@ function IOURequestStepConfirmation({
             transaction.receiptSource,
             requestType,
             requestMoney,
-            createDistanceRequest,
+            IOU.createDistanceRequest,
         ],
     );
 

@@ -278,6 +278,7 @@ function getCreated(transaction: Transaction): string {
 }
 
 function isDistanceRequest(transaction: Transaction): boolean {
+    console.log('[tim] isDistanceRequest()', transaction);
     // This is used during the request creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
         return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
