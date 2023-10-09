@@ -26,4 +26,18 @@ function trimLeadingSpace(str) {
     return str.slice(0, 1) === ' ' ? str.slice(1) : str;
 }
 
-export {getMaxArrowIndex, trimLeadingSpace};
+/**
+ * Checks if space is available to render large suggestion menu
+ * @param {Number} listHeight
+ * @param {Number} composerHeight
+ * @returns {Boolean}
+ */
+function spaceAvailableForLargeSuggestionMenu(listHeight, composerHeight) {
+    return (
+        listHeight - composerHeight - (CONST.CHAT_FOOTER_SECONDARY_ROW_HEIGHT + 2 * CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING) >
+        CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT +
+            CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING * 2
+    );
+}
+
+export {getMaxArrowIndex, trimLeadingSpace, spaceAvailableForLargeSuggestionMenu};
