@@ -112,6 +112,8 @@ function ReimbursementAccountPage({
 
 }) {
 
+    console.log("--- :::::: ENTERED :::: ReimbursementAccountPage  ---");
+
     // Use a ref to store the previous props and compare them when the effect runs
     const prevProps = useRef({
         reimbursementAccount,
@@ -153,6 +155,8 @@ function ReimbursementAccountPage({
     };
 
     const goBack = () => {
+
+        console.log("--- :::::: ENTERED :::::: go back  ---");
         const achData = lodashGet(reimbursementAccount, 'achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const subStep = achData.subStep;
