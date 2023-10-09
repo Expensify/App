@@ -229,6 +229,13 @@ function getDistance(transaction: Transaction): number {
 }
 
 /**
+ * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
+ */
+function getMCCGroup(transaction: Transaction): string {
+    return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup ?? '';
+}
+
+/**
  * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
  */
 function getWaypoints(transaction: Transaction): WaypointCollection | undefined {
@@ -335,6 +342,13 @@ function hasRoute(transaction: Transaction): boolean {
 }
 
 /**
+ * Check if the transaction has an Ereceipt
+ */
+function hasEreceipt(transaction: Transaction): boolean {
+    return !!transaction?.hasEReceipt;
+}
+
+/**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
@@ -420,6 +434,7 @@ export {
     getCurrency,
     getDistance,
     getMerchant,
+    getMCCGroup,
     getCreated,
     getCategory,
     getBillable,
@@ -427,6 +442,7 @@ export {
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
+    hasEreceipt,
     hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,

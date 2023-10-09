@@ -90,9 +90,8 @@ const defaultProps = {
     policyTags: {},
 };
 
-function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags}) {
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags, parentReportActions, transaction}) {
+    const parentReportAction = parentReportActions[report.parentReportActionID];
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
@@ -292,18 +291,15 @@ EditRequestPage.defaultProps = defaultProps;
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
-        },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
@@ -312,6 +308,22 @@ export default compose(
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        transaction: {
+            key: ({report, parentReportActions}) => {
+                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
+            },
         },
     }),
 )(EditRequestPage);

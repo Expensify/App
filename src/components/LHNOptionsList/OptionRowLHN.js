@@ -56,7 +56,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    hoverStyle: styles.sidebarLinkHover,
+    hoverStyle: styles.sidebarLinkHoverLHN,
     viewMode: 'default',
     onSelectRow: () => {},
     style: null,
@@ -110,7 +110,7 @@ function OptionRowLHN(props) {
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
     const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : themeColors.sidebar;
-    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const focusedBackgroundColor = styles.sidebarLinkActiveLHN.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
@@ -185,8 +185,8 @@ function OptionRowLHN(props) {
                             styles.flexRow,
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
-                            styles.sidebarLink,
-                            styles.sidebarLinkInner,
+                            styles.sidebarLinkLHN,
+                            styles.sidebarLinkInnerLHN,
                             StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
                             (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
