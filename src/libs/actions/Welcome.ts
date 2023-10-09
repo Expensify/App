@@ -124,7 +124,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}
         const isWorkspaceRoute = topRoute !== undefined && topRoute.name === 'Settings' && topRoute.params?.path.includes('workspace');
         const transitionRoute = routes.find((route) => route.name === SCREENS.TRANSITION_BETWEEN_APPS);
         const exitingToWorkspaceRoute = transitionRoute?.params?.exitTo === 'workspace/new';
-        const openOnAdminRoom = topRoute === undefined ? undefined : topRoute.params?.openOnAdminRoom ?? false;
+        const openOnAdminRoom = topRoute?.params?.openOnAdminRoom ?? false;
         const isDisplayingWorkspaceRoute = isWorkspaceRoute ?? exitingToWorkspaceRoute;
 
         // If we already opened the workspace settings or want the admin room to stay open, do not
