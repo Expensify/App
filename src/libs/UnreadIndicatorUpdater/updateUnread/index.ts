@@ -2,13 +2,12 @@
  * Web browsers have a tab title and favicon which can be updated to show there are unread comments
  */
 import CONFIG from '../../../CONFIG';
+import UpdateUnread from './types';
 
 /**
  * Set the page title on web
- *
- * @param {Number} totalCount
  */
-function updateUnread(totalCount) {
+const updateUnread: UpdateUnread = (totalCount) => {
     const hasUnread = totalCount !== 0;
 
     // This setTimeout is required because due to how react rendering messes with the DOM, the document title can't be modified synchronously, and we must wait until all JS is done
@@ -18,8 +17,11 @@ function updateUnread(totalCount) {
         // seems to improve this issue.
         document.title = '';
         document.title = hasUnread ? `(${totalCount}) ${CONFIG.SITE_TITLE}` : CONFIG.SITE_TITLE;
-        document.getElementById('favicon').href = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
+        const favicon = document.getElementById('favicon');
+        if (favicon && 'href' in favicon) {
+            favicon.href = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
+        }
     }, 0);
-}
+};
 
 export default updateUnread;
