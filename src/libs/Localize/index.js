@@ -11,7 +11,7 @@ import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 import ONYXKEYS from '../../ONYXKEYS';
 
-// Save the email after user logins
+// Current user mail is needed for handling missing translations
 let userEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
