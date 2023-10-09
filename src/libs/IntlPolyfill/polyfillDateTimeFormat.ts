@@ -1,7 +1,7 @@
-import Onyx from "react-native-onyx";
-import ONYXKEYS from "../../ONYXKEYS";
-import {Timezone} from "../../types/onyx/PersonalDetails";
-import CONST from "../../CONST";
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../../ONYXKEYS';
+import {Timezone} from '../../types/onyx/PersonalDetails';
+import CONST from '../../CONST';
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({

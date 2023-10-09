@@ -1,6 +1,6 @@
 import polyfillNumberFormat from './polyfillNumberFormat';
 import IntlPolyfill from './types';
-import polyfillDateTimeFormat from "./polyfillDateTimeFormat";
+import polyfillDateTimeFormat from './polyfillDateTimeFormat';
 
 /**
  * Polyfill the Intl API if the ICU version is old.
