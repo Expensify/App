@@ -82,7 +82,6 @@ const getBackgroundColor = (position, routesLength, tabIndex) => {
 
 function TabSelector({state, navigation, onTabPress, position}) {
     const {translate} = useLocalize();
-
     return (
         <View style={styles.tabSelector}>
             {_.map(state.routes, (route, index) => {
@@ -120,6 +119,7 @@ function TabSelector({state, navigation, onTabPress, position}) {
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}
+                        isFocused={isFocused}
                     />
                 );
             })}

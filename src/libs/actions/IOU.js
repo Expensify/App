@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import moment from 'moment';
+import {format} from 'date-fns';
 import CONST from '../../CONST';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -110,7 +110,7 @@ Onyx.connect({
  * @param {String} id
  */
 function resetMoneyRequestInfo(id = '') {
-    const created = currentDate || moment().format('YYYY-MM-DD');
+    const created = currentDate || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     Onyx.merge(ONYXKEYS.IOU, {
         id,
         amount: 0,
@@ -2325,6 +2325,10 @@ function navigateToNextPage(iou, iouType, report, path = '') {
     Navigation.navigate(ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType));
 }
 
+function submitReport() {
+    // Will be implemented in https://github.com/Expensify/App/issues/28763
+}
+
 export {
     createDistanceRequest,
     editMoneyRequest,
@@ -2356,4 +2360,6 @@ export {
     updateDistanceRequest,
     replaceReceipt,
     detachReceipt,
+    submitReport,
+>>>>>>> main
 };

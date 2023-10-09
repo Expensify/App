@@ -143,6 +143,7 @@ function ButtonWithDropdownMenu(props) {
             ) : (
                 <Button
                     success
+                    ref={props.buttonRef}
                     pressOnEnter={props.pressOnEnter}
                     isDisabled={props.isDisabled}
                     style={[styles.w100, ...props.style]}
