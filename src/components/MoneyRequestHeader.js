@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -80,13 +80,23 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
+    const shouldShowThreeDotsButton = isActionOwner && !isSettled && !isApproved;
+
+    useEffect(() => {
+        if (shouldShowThreeDotsButton) {
+            return;
+        }
+
+        setIsDeleteModalVisible(false);
+    }, [shouldShowThreeDotsButton]);
+
     return (
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton={isActionOwner && !isSettled && !isApproved}
+                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={[
                         ...(TransactionUtils.hasReceipt(transaction)
                             ? []
