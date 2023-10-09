@@ -1,14 +1,12 @@
 import {createRef} from 'react';
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
+import ONYXKEYS, {OnyxValues} from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
 import {PaymentMethod} from '../PaymentUtils';
-import * as OnyxTypes from '../../types/onyx';
 
 type KYCWallRef = {
     continue?: () => void;
@@ -41,14 +39,12 @@ function openWalletPage() {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
                     value: true,
                 },
             ],
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
                     value: false,
                 },
             ],
@@ -63,11 +59,6 @@ function openWalletPage() {
     );
 }
 
-/**
- *
- * @return
- *
- */
 function getMakeDefaultPaymentOnyxData(bankAccountID: number, fundID: number, previousPaymentMethod: PaymentMethod, currentPaymentMethod: PaymentMethod, isOptimisticData = true) {
     const onyxData: Array<{
         onyxMethod: string;
@@ -93,7 +84,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID: number, fundID: number, pr
         onyxData[0].value.errors = null;
     }
 
-    if (previousPaymentMethod && previousPaymentMethod?.methodID) {
+    if (previousPaymentMethod?.methodID) {
         onyxData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
@@ -105,7 +96,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID: number, fundID: number, pr
         });
     }
 
-    if (currentPaymentMethod && currentPaymentMethod.methodID) {
+    if (currentPaymentMethod?.methodID) {
         onyxData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
@@ -132,8 +123,6 @@ function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previou
             fundID,
         },
         {
-            // optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, true, ONYXKEYS.FUND_LIST),
-            // failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false, ONYXKEYS.FUND_LIST),
             optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, true),
             failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false),
         },
@@ -279,11 +268,10 @@ function dismissSuccessfulTransferBalancePage() {
  * Looks through each payment method to see if there is an existing error
  *
  */
-function hasPaymentMethodError(bankList: OnyxTypes.AccountData[], fundList: OnyxTypes.Fund[]) {
+function hasPaymentMethodError(bankList: OnyxValues[typeof ONYXKEYS.BANK_ACCOUNT_LIST], fundList: OnyxValues[typeof ONYXKEYS.FUND_LIST]) {
     const combinedPaymentMethods = {...bankList, ...fundList};
-    // const combinedPaymentMethods = [...bankList, ...fundList];
-    return _.some(combinedPaymentMethods, (item) => !_.isEmpty(item.errors));
-    // return combinedPaymentMethods.some((item) => !!item.errors)
+
+    return Object.values(combinedPaymentMethods).some((item) => !!item.errors);
 }
 
 /**

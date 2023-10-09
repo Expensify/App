@@ -32,6 +32,7 @@ type Fund = {
     methodID?: number;
     title?: string;
     errors?: OnyxCommon.Errors;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 export default Fund;
