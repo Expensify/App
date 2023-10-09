@@ -159,7 +159,7 @@ function MoneyRequestParticipantsSelector({
         onAddParticipants([
             {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText},
         ]);
-        navigateToRequest(option);
+        navigateToRequest();
     };
 
     /**

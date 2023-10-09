@@ -147,6 +147,9 @@ const propTypes = {
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields: PropTypes.bool,
 
+    /** A flag for verifying that the current report is a sub-report of a workspace chat */
+    isPolicyExpenseChat: PropTypes.bool,
+
     /* Onyx Props */
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
@@ -184,6 +187,7 @@ const defaultProps = {
     isDistanceRequest: false,
     isScanning: false,
     shouldShowSmartScanFields: true,
+    isPolicyExpenseChat: false,
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -192,20 +196,18 @@ function MoneyRequestConfirmationList(props) {
     const {onSendMoney, onConfirm, onSelectParticipant, transaction} = props;
     const {translate, toLocaleDigit} = useLocalize();
 
-    // A flag and a toggler for showing the rest of the form fields
-    const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
-    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields;
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
 
-    // A flag for verifying that the current report is a sub-report of a workspace chat
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(ReportUtils.getReport(props.reportID))), [props.reportID]);
-
     // A flag for showing the categories field
-    const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories));
+    const shouldShowCategories = props.isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories));
+
+    // A flag and a toggler for showing the rest of the form fields
+    const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
+    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || !props.shouldShowSmartScanFields;
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(props.policyTags);
@@ -213,7 +215,7 @@ function MoneyRequestConfirmationList(props) {
     const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
     const canUseTags = Permissions.canUseTags(props.betas);
     // A flag for showing the tags field
-    const shouldShowTags = isPolicyExpenseChat && canUseTags && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+    const shouldShowTags = props.isPolicyExpenseChat && canUseTags && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
 
     // A flag for showing the billable field
     const shouldShowBillable = canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true);

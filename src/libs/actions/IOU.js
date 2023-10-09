@@ -22,6 +22,7 @@ import * as Report from './Report';
 import * as NumberUtils from '../NumberUtils';
 import ReceiptGeneric from '../../../assets/images/receipt-generic.png';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
+import * as Policy from './Policy';
 
 let allPersonalDetails;
 Onyx.connect({
@@ -159,7 +160,7 @@ function buildOnyxDataForMoneyRequest(
     iouAction,
     optimisticPersonalDetailListAction,
     reportPreviewAction,
-    optimisticRecentlyUsedCategories,
+    optimisticPolicyRecentlyUsedCategories,
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
     isNewIOUReport,
@@ -211,11 +212,11 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
-    if (!_.isEmpty(optimisticRecentlyUsedCategories)) {
+    if (!_.isEmpty(optimisticPolicyRecentlyUsedCategories)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
-            value: optimisticRecentlyUsedCategories,
+            value: optimisticPolicyRecentlyUsedCategories,
         });
     }
 
@@ -500,13 +501,7 @@ function getMoneyRequestInformation(
         billable,
     );
 
-    const uniquePolicyRecentlyUsedCategories = allRecentlyUsedCategories
-        ? _.filter(
-              allRecentlyUsedCategories[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`],
-              (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory !== category,
-          )
-        : [];
-    const optimisticPolicyRecentlyUsedCategories = [category, ...uniquePolicyRecentlyUsedCategories];
+    const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
 
     const optimisticPolicyRecentlyUsedTags = {};
     const policyTags = allPolicyTags[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReport.policyID}`];
@@ -904,11 +899,12 @@ function requestMoney(
  * @param {Number} amount - always in the smallest unit of the currency
  * @param {String} comment
  * @param {String} currency
+ * @param {String} category
  * @param {String} existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingSplitChatReportID = '') {
+function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID = '') {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -932,6 +928,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         '',
         '',
         `${Localize.translateLocal('iou.splitBill')} ${Localize.translateLocal('common.with')} ${formattedParticipants} [${DateUtils.getDBTime().slice(0, 10)}]`,
+        undefined,
+        undefined,
+        undefined,
+        category,
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
@@ -1058,9 +1058,12 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
-        // In case the participant is a worskapce, email & accountID should remain undefined and won't be used in the rest of this code
-        const email = isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || participant.text).toLowerCase();
-        const accountID = isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
+        // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
+        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
+
+        // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
+        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
+        const accountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
         }
@@ -1112,6 +1115,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             '',
             CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
             splitTransaction.transactionID,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            category,
         );
 
         // STEP 4: Build optimistic reportActions. We need:
@@ -1153,6 +1161,12 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
 
+        // Add category to optimistic policy recently used categories when a participant is a workspace
+        let optimisticPolicyRecentlyUsedCategories = [];
+        if (isPolicyExpenseChat) {
+            optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
+        }
+
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
             oneOnOneChatReport,
@@ -1163,7 +1177,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneIOUAction,
             oneOnOnePersonalDetailListAction,
             oneOnOneReportPreviewAction,
-            [],
+            optimisticPolicyRecentlyUsedCategories,
             {},
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
@@ -1213,11 +1227,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
  * @param {Number} amount - always in smallest currency unit
  * @param {String} comment
  * @param {String} currency
+ * @param {String} category
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
  */
-function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingSplitChatReportID = '') {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingSplitChatReportID);
-
+function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID = '') {
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, existingSplitChatReportID);
     API.write(
         'SplitBill',
         {
@@ -1226,6 +1240,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
             splits: JSON.stringify(splits),
             currency,
             comment,
+            category,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
             createdReportActionID: splitData.createdReportActionID,
@@ -1246,9 +1261,10 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  * @param {Number} amount - always in smallest currency unit
  * @param {String} comment
  * @param {String} currency
+ * @param {String} category
  */
-function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency);
+function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category) {
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category);
 
     API.write(
         'SplitBillAndOpenReport',
@@ -1258,6 +1274,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
             splits: JSON.stringify(splits),
             currency,
             comment,
+            category,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
             createdReportActionID: splitData.createdReportActionID,
@@ -2430,6 +2447,80 @@ function approveMoneyRequest(expenseReport) {
 }
 
 /**
+ * @param {Object} expenseReport
+ */
+function submitReport(expenseReport) {
+    const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
+
+    const optimisticReportActionsData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+        value: {
+            [optimisticSubmittedReportAction.reportActionID]: {
+                ...optimisticSubmittedReportAction,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        },
+    };
+    const optimisticIOUReportData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+        value: {
+            ...expenseReport,
+            lastMessageText: optimisticSubmittedReportAction.message[0].text,
+            lastMessageHtml: optimisticSubmittedReportAction.message[0].html,
+            state: CONST.REPORT.STATE.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
+            statusNum: CONST.REPORT.STATUS.SUBMITTED,
+        },
+    };
+    const optimisticData = [optimisticIOUReportData, optimisticReportActionsData];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticSubmittedReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [expenseReport.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                state: CONST.REPORT.STATE.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            },
+        },
+    ];
+
+    API.write(
+        'SubmitReport',
+        {
+            reportID: expenseReport.reportID,
+            managerEmail: expenseReport.managerEmail,
+            managerAccountID: expenseReport.managerID,
+            reportActionID: optimisticSubmittedReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
+}
+
+/**
  * @param {String} paymentType
  * @param {Object} chatReport
  * @param {Object} iouReport
@@ -2635,8 +2726,19 @@ function navigateToNextPage(iou, iouType, report, path = '') {
     Navigation.navigate(ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType));
 }
 
-function submitReport() {
-    // Will be implemented in https://github.com/Expensify/App/issues/28763
+/**
+ *  When the money request or split bill creation flow is initialized via FAB, the reportID is not passed as a navigation
+ * parameter.
+ * Gets a report id from the first participant of the IOU object stored in Onyx.
+ * @param {Object} iou
+ * @param {Array} iou.participants
+ * @param {Object} route
+ * @param {Object} route.params
+ * @param {String} [route.params.reportID]
+ * @returns {String}
+ */
+function getIOUReportID(iou, route) {
+    return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '');
 }
 
 export {
@@ -2651,6 +2753,7 @@ export {
     requestMoney,
     sendMoneyElsewhere,
     approveMoneyRequest,
+    submitReport,
     payMoneyRequest,
     sendMoneyWithWallet,
     startMoneyRequest,
@@ -2672,5 +2775,5 @@ export {
     navigateToNextPage,
     updateDistanceRequest,
     replaceReceipt,
-    submitReport,
+    getIOUReportID,
 };
