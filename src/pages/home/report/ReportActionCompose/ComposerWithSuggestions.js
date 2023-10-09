@@ -33,6 +33,7 @@ import withKeyboardState from '../../../../components/withKeyboardState';
 import {propTypes, defaultProps} from './composerWithSuggestionsProps';
 import focusWithDelay from '../../../../libs/focusWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
+import * as InputFocus from '../../../../libs/actions/InputFocus';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -98,6 +99,7 @@ function ComposerWithSuggestions({
     animatedRef,
     forwardedRef,
     isNextModalWillOpenRef,
+    editFocused,
 }) {
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
@@ -478,9 +480,12 @@ function ComposerWithSuggestions({
             return;
         }
 
+        if (editFocused) {
+            InputFocus.inputFocusChange(false);
+            return;
+        }
         focus();
-    }, [focus, prevIsFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
-
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
     useEffect(() => {
         if (value.length === 0) {
             return;
@@ -590,6 +595,9 @@ export default compose(
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             selector: EmojiUtils.getPreferredSkinToneIndex,
+        },
+        editFocused: {
+            key: ONYXKEYS.INPUT_FOCUSED,
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
