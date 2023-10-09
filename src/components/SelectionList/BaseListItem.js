@@ -44,10 +44,10 @@ function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip,
                     ]}
                 >
                     {canSelectMultiple && (
-                        <View style={styles.checkboxPressable}>
+                        <View style={StyleUtils.getCheckboxPressableStyle()}>
                             <View
                                 style={[
-                                    StyleUtils.getCheckboxContainerStyle(20, 4),
+                                    StyleUtils.getCheckboxContainerStyle(20),
                                     styles.mr3,
                                     item.isSelected && styles.checkedContainer,
                                     item.isSelected && styles.borderColorFocus,

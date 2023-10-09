@@ -230,7 +230,7 @@ function ReportScreen({
 
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
-        if (!reportIDFromPath) {
+        if (!ReportUtils.isValidReportIDFromPath(reportIDFromPath)) {
             return;
         }
 
@@ -314,7 +314,15 @@ function ReportScreen({
             // optimistic case
             (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && prevReport.statusNum === CONST.REPORT.STATUS.OPEN && report.statusNum === CONST.REPORT.STATUS.CLOSED)
         ) {
-            Navigation.goBack();
+            Navigation.dismissModal();
+            if (Navigation.getTopmostReportId() === prevOnyxReportID) {
+                Navigation.setShouldPopAllStateOnUP();
+                Navigation.goBack(ROUTES.HOME, false, true);
+            }
+            if (prevReport.parentReportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
+                return;
+            }
             Report.navigateToConciergeChat();
             return;
         }
@@ -329,7 +337,7 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum]);
+    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum, prevReport.parentReportID]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -432,7 +440,7 @@ function ReportScreen({
                                         policies={policies}
                                     />
                                 ) : (
-                                    <ReportFooter shouldDisableCompose />
+                                    <ReportFooter isReportReadyForDisplay={false} />
                                 )}
                             </View>
                         </DragAndDropProvider>

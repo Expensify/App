@@ -220,7 +220,14 @@ function getCurrency(transaction: Transaction): string {
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: Transaction): string {
-    return transaction?.modifiedMerchant ?? transaction?.merchant ?? '';
+    return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant || '';
+}
+
+/**
+ * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
+ */
+function getMCCGroup(transaction: Transaction): string {
+    return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup ?? '';
 }
 
 /**
@@ -255,7 +262,7 @@ function getTag(transaction: Transaction): string {
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
 function getCreated(transaction: Transaction): string {
-    const created = transaction?.modifiedCreated ?? transaction?.created ?? '';
+    const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
     const createdDate = parseISO(created);
     if (isValid(createdDate)) {
         return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
@@ -286,6 +293,13 @@ function hasMissingSmartscanFields(transaction: Transaction): boolean {
  */
 function hasRoute(transaction: Transaction): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
+}
+
+/**
+ * Check if the transaction has an Ereceipt
+ */
+function hasEreceipt(transaction: Transaction): boolean {
+    return !!transaction?.hasEReceipt;
 }
 
 /**
@@ -368,6 +382,7 @@ export {
     getAmount,
     getCurrency,
     getMerchant,
+    getMCCGroup,
     getCreated,
     getCategory,
     getBillable,
@@ -375,6 +390,7 @@ export {
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
+    hasEreceipt,
     hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,
