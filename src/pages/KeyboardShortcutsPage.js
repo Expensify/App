@@ -54,7 +54,7 @@ function KeyboardShortcutsPage() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <View style={[styles.pageWrapper, styles.alignItemsStart]}>
+                <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.mb5, styles.baseFontStyle]}>{translate('keyboardShortcutsPage.subtitle')}</Text>
                     {_.map(shortcuts, renderShortcut)}
                 </View>
