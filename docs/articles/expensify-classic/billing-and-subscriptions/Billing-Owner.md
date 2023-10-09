@@ -29,7 +29,7 @@ To change your payment details:
 ## Taking over an existing subscription
 If the previous Billing Owner had a 12-month subscription, it will be transferred to your Expensify account. If you already have an annual subscription, the sizes of both subscriptions will be combined. For example, if you have a subscription for 10 users and take over from someone with 50 users, your subscription will now cover 60 users. To take over the Annual Subscription, you need to transfer billing ownership of all Workspaces under the previous Billing Owner's name.
 
-##Taking over Consolidated Domain Billing
+## Taking over Consolidated Domain Billing
 If a Domain Admin has enabled Consolidated Domain Billing (**Settings > Domains > Domain Name > Domain Admins**), all Group Workspaces owned by users with email addresses matching the domain will be billed to the Consolidated Domain Billing owner. You can take over billing for the entire domain by following these steps:
 
 To take over billing for the entire domain, you must:
