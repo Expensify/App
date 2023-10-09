@@ -255,8 +255,6 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.accountID,
             props.iou.currency,
             props.iou.category,
-            props.iou.receiptPath,
-            props.iou.receiptSource,
             isDistanceRequest,
             requestMoney,
             createDistanceRequest,
