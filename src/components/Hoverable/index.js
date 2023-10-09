@@ -152,7 +152,7 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, children, 
 
     const child = useMemo(() => React.Children.only(mapChildren(children, isHovered)), [children, isHovered]);
 
-    const onMouseEnter = useCallback(
+    const enableHoveredOnMouseEnter = useCallback(
         (el) => {
             updateIsHoveredOnScrolling(true);
 
@@ -163,7 +163,7 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, children, 
         [child.props, updateIsHoveredOnScrolling],
     );
 
-    const onMouseLeave = useCallback(
+    const disableHoveredOnMouseLeave = useCallback(
         (el) => {
             updateIsHoveredOnScrolling(false);
 
@@ -174,7 +174,7 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, children, 
         [child.props, updateIsHoveredOnScrolling],
     );
 
-    const onBlur = useCallback(
+    const disableHoveredOnBlur = useCallback(
         (el) => {
             // Check if the blur event occurred due to clicking outside the element
             // and the wrapperView contains the element that caused the blur and reset isHovered
@@ -198,9 +198,9 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, children, 
             ref.current = el;
             assignRef(child.ref, el);
         },
-        onMouseEnter,
-        onMouseLeave,
-        onBlur,
+        onMouseEnter: enableHoveredOnMouseEnter,
+        onMouseLeave: disableHoveredOnMouseLeave,
+        onBlur: disableHoveredOnBlur,
     });
 });
 
