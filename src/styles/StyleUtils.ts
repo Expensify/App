@@ -41,6 +41,7 @@ type AvatarSize = {width: number};
 type ParsableStyle = ViewStyle | CSSProperties | ((state: PressableStateCallbackType) => ViewStyle | CSSProperties);
 
 type WorkspaceColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
+type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue};
 
 type ModalPaddingStylesArgs = {
     shouldAddBottomSafeAreaMargin: boolean;
@@ -84,6 +85,15 @@ const workspaceColorOptions: WorkspaceColorStyle[] = [
     {backgroundColor: colors.ice200, fill: colors.ice700},
     {backgroundColor: colors.ice400, fill: colors.ice800},
     {backgroundColor: colors.ice700, fill: colors.ice200},
+];
+
+const eReceiptColorOptions: EreceiptColorStyle[] = [
+    {backgroundColor: colors.yellow600, color: colors.yellow100},
+    {backgroundColor: colors.blue800, color: colors.ice400},
+    {backgroundColor: colors.blue400, color: colors.blue100},
+    {backgroundColor: colors.green800, color: colors.green400},
+    {backgroundColor: colors.tangerine800, color: colors.tangerine400},
+    {backgroundColor: colors.pink800, color: colors.pink400},
 ];
 
 const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
@@ -232,12 +242,21 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle | C
 }
 
 /**
- * Helper method to return old dot default avatar associated with login
+ * Helper method to return workspace avatar color styles
  */
 function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle | CSSProperties {
     const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
+}
+
+/**
+ * Helper method to return eReceipt color styles
+ */
+function getEReceiptColor(transactionID: string): ViewStyle | CSSProperties {
+    const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColorOptions.length);
+
+    return eReceiptColorOptions[colorHash];
 }
 
 /**
@@ -839,7 +858,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): View
     if (isSmallScreenWidth) {
         return {
             height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '100%',
+            width: '200%',
             position: 'absolute',
         };
     }
@@ -942,13 +961,13 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
     'worklet';
 
     const borderWidth = 2;
-    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + borderWidth;
+    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING),
+        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + borderWidth),
         height,
     };
 }
@@ -1148,9 +1167,22 @@ function getDisabledLinkStyles(isDisabled = false): ViewStyle | CSSProperties {
 }
 
 /**
+ * Returns the checkbox pressable style
+ */
+function getCheckboxPressableStyle(borderRadius = 6): ViewStyle | CSSProperties {
+    return {
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        // eslint-disable-next-line object-shorthand
+        borderRadius: borderRadius,
+    };
+}
+
+/**
  * Returns the checkbox container style
  */
-function getCheckboxContainerStyle(size: number, borderRadius: number): ViewStyle | CSSProperties {
+function getCheckboxContainerStyle(size: number, borderRadius = 4): ViewStyle | CSSProperties {
     return {
         backgroundColor: themeColors.componentBG,
         height: size,
@@ -1287,8 +1319,10 @@ export {
     getWrappingStyle,
     getMenuItemTextContainerStyle,
     getDisabledLinkStyles,
+    getCheckboxPressableStyle,
     getCheckboxContainerStyle,
     getDropDownButtonHeight,
     getAmountFontSizeAndLineHeight,
     getTransparentColor,
+    getEReceiptColor,
 };
