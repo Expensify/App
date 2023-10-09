@@ -15,28 +15,28 @@ const story = {
 function Template(args) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return (
-            <>
-                <View>
-                    <EReceiptThumbail {...args} />
-                </View>
+        <>
+            <View>
+                <EReceiptThumbail {...args} />
+            </View>
 
-                <View style={{height: 116, width: 89, borderRadius: 0, overflow: 'hidden'}}>
-                    <EReceiptThumbail {...args} />
-                </View>
+            <View style={{height: 116, width: 89, borderRadius: 0, overflow: 'hidden'}}>
+                <EReceiptThumbail {...args} />
+            </View>
 
-                <View style={{height: 140, width: 143, borderRadius: 16, overflow: 'hidden'}}>
-                    <EReceiptThumbail {...args} />
-                </View>
+            <View style={{height: 140, width: 143, borderRadius: 16, overflow: 'hidden'}}>
+                <EReceiptThumbail {...args} />
+            </View>
 
-                <View style={{height: 140, width: 283, borderRadius: 16, overflow: 'hidden'}}>
-                    <EReceiptThumbail {...args} />
-                </View>
+            <View style={{height: 140, width: 283, borderRadius: 16, overflow: 'hidden'}}>
+                <EReceiptThumbail {...args} />
+            </View>
 
-                <View style={{height: 175, width: 335, borderRadius: 16, overflow: 'hidden'}}>
-                    <EReceiptThumbail {...args} />
-                </View>
-            </>
-            );
+            <View style={{height: 175, width: 335, borderRadius: 16, overflow: 'hidden'}}>
+                <EReceiptThumbail {...args} />
+            </View>
+        </>
+    );
 }
 
 const Default = Template.bind({});
@@ -129,19 +129,5 @@ invalidMCC.args = {
     transaction: {transactionID: '15', amount: 200, currency: 'USD', cardID: 4, merchant: 'Invalid MCC', mccGroup: 'invalidMCC', created: '2023-01-11 13:46:20'},
 };
 
-const veryLong = Template.bind({});
-veryLong.args = {
-    transactionID: '1',
-    transaction: {
-        transactionID: '15',
-        amount: 200,
-        currency: 'USD',
-        cardID: 4,
-        merchant: 'This is a very very very very very very very very long merchant name, why would you ever shop at a store with a sign this long?',
-        mccGroup: 'invalidMCC',
-        created: '2023-01-11 13:46:20',
-    },
-};
-
 export default story;
-export {Default, Airlines, Commuter, Gas, Goods, Groceries, Hotel, Mail, Meals, Rental, Services, Taxi, Miscellaneous, Utilities, invalidMCC, veryLong};
+export {Default, Airlines, Commuter, Gas, Goods, Groceries, Hotel, Mail, Meals, Rental, Services, Taxi, Miscellaneous, Utilities, invalidMCC};

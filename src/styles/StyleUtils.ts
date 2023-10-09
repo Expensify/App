@@ -771,6 +771,15 @@ function getMinimumHeight(minHeight: number): ViewStyle | CSSProperties {
 }
 
 /**
+ * Get minimum width as style
+ */
+function getMinimumWidth(minWidth: number): ViewStyle | CSSProperties {
+    return {
+        minWidth,
+    };
+}
+
+/**
  * Get maximum height as style
  */
 function getMaximumHeight(maxHeight: number): ViewStyle | CSSProperties {
@@ -1293,6 +1302,7 @@ export {
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
+    getMinimumWidth,
     getMaximumHeight,
     getMaximumWidth,
     fade,

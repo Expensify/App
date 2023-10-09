@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -30,30 +30,55 @@ function EReceiptThumbail({transaction}) {
     const primaryColor = colorStyles.backgroundColor;
     const secondaryColor = colorStyles.color;
 
-    const {
-        mccGroup: transactionMCCGroup,
-    } = ReportUtils.getTransactionDetails(transaction);
+    const [containerWidth, setContainerWidth] = useState(0);
+
+    const onContainerLayout = (event) => {
+        const {width} = event.nativeEvent.layout;
+        setContainerWidth(width);
+    };
+
+    const {mccGroup: transactionMCCGroup} = ReportUtils.getTransactionDetails(transaction);
     const MCCIcon = MCCIcons[`${transactionMCCGroup}`];
 
+    const isSmall = containerWidth < variables.eReceiptThumbnailSmallBreakpoint;
+    const isMedium = containerWidth < variables.eReceiptThumbnailMediumBreakpoint;
+
+    let receiptIconWidth = variables.eReceiptIconWidth;
+    let receiptIconHeight = variables.eReceiptIconHeight;
+    let receiptMCCSize = variables.eReceiptMCCHeightWidth;
+
+    if (isSmall) {
+        receiptIconWidth = variables.eReceiptIconWidthSmall;
+        receiptIconHeight = variables.eReceiptIconHeightSmall;
+        receiptMCCSize = variables.eReceiptMCCHeightWidthSmall;
+    } else if (isMedium) {
+        receiptIconWidth = variables.eReceiptIconWidthMedium;
+        receiptIconHeight = variables.eReceiptIconHeightMedium;
+        receiptMCCSize = variables.eReceiptMCCHeightWidthMedium;
+    }
+
     return (
-        <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(primaryColor), styles.overflowHidden, styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getMinimumHeight(variables.eReceiptIconHeight + 16), {minWidth: variables.eReceiptIconWidth + 16}]}>
+        <View
+            style={[styles.flex1, StyleUtils.getBackgroundColorStyle(primaryColor), styles.overflowHidden, styles.alignItemsCenter, styles.justifyContentCenter]}
+            onLayout={onContainerLayout}
+        >
             <View style={styles.eReceiptBackgroundThumbnail}>
-                    <EReceiptBG style={{...colorStyles, width: '100%'}} />  
+                <EReceiptBG style={colorStyles} />
             </View>
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
-                <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.eReceiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
                         src={Expensicons.EReceiptIcon}
-                        height={variables.eReceiptIconHeight}
-                        width={variables.eReceiptIconWidth}
+                        height={receiptIconHeight}
+                        width={receiptIconWidth}
                         fill={secondaryColor}
-                        additionalStyles={[styles.eReceiptBackground]}
+                        additionalStyles={[styles.fullScreen]}
                     />
                     {MCCIcon ? (
                         <Icon
                             src={MCCIcon}
-                            height={variables.eReceiptMCCHeightWidth}
-                            width={variables.eReceiptMCCHeightWidth}
+                            height={receiptMCCSize}
+                            width={receiptMCCSize}
                             fill={primaryColor}
                         />
                     ) : null}

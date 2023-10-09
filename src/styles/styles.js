@@ -3361,6 +3361,11 @@ const styles = (theme) => ({
         overflow: 'hidden',
     },
 
+    eReceiptReceiptIconSmall: {
+        height: 82.09,
+        width: 59.1,
+    },
+
     eReceiptPanel: {
         ...spacing.p5,
         ...spacing.pb8,
