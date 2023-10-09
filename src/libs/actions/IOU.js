@@ -65,6 +65,20 @@ Onyx.connect({
     },
 });
 
+let allPolicyTags = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
 let userAccountID = '';
 let currentUserEmail = '';
 Onyx.connect({
@@ -75,29 +89,11 @@ Onyx.connect({
     },
 });
 
-let didInitCurrency = false;
-Onyx.connect({
-    key: ONYXKEYS.IOU,
-    callback: (val) => {
-        didInitCurrency = lodashGet(val, 'didInitCurrency');
-    },
-});
-
-let shouldResetIOUAfterLogin = true;
 let currentUserPersonalDetails = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         currentUserPersonalDetails = lodashGet(val, userAccountID, {});
-        if (!val || !shouldResetIOUAfterLogin || didInitCurrency) {
-            return;
-        }
-        // eslint-disable-next-line no-use-before-define
-        resetMoneyRequestInfo();
-        shouldResetIOUAfterLogin = false;
-        Onyx.merge(ONYXKEYS.IOU, {
-            didInitCurrency: true,
-        });
     },
 });
 
@@ -154,6 +150,7 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 ...chatReport,
                 lastReadTime: DateUtils.getDBTime(),
+                lastMessageTranslationKey: '',
                 hasOutstandingIOU: iouReport.total !== 0,
                 iouReportID: iouReport.reportID,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
@@ -490,13 +487,14 @@ function getMoneyRequestInformation(
     const optimisticPolicyRecentlyUsedCategories = [category, ...uniquePolicyRecentlyUsedCategories];
 
     const optimisticPolicyRecentlyUsedTags = {};
+    const policyTags = allPolicyTags[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReport.policyID}`];
     const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
 
-    if (recentlyUsedPolicyTags) {
+    if (policyTags) {
         // For now it only uses the first tag of the policy, since multi-tags are not yet supported
-        const recentlyUsedTagListKey = _.first(_.keys(recentlyUsedPolicyTags));
-        const uniquePolicyRecentlyUsedTags = _.filter(recentlyUsedPolicyTags[recentlyUsedTagListKey], (recentlyUsedPolicyTag) => recentlyUsedPolicyTag !== tag);
-        optimisticPolicyRecentlyUsedTags[recentlyUsedTagListKey] = [tag, ...uniquePolicyRecentlyUsedTags];
+        const tagListKey = _.first(_.keys(policyTags));
+        const uniquePolicyRecentlyUsedTags = recentlyUsedPolicyTags ? _.filter(recentlyUsedPolicyTags[tagListKey], (recentlyUsedPolicyTag) => recentlyUsedPolicyTag !== tag) : [];
+        optimisticPolicyRecentlyUsedTags[tagListKey] = [tag, ...uniquePolicyRecentlyUsedTags];
     }
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
@@ -553,6 +551,7 @@ function getMoneyRequestInformation(
                   avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
                   displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || payerEmail),
                   login: participant.login,
+                  isOptimisticPersonalDetail: true,
               },
           }
         : undefined;
@@ -1120,6 +1119,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
                       avatar: UserUtils.getDefaultAvatarURL(accountID),
                       displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
                       login: participant.login,
+                      isOptimisticPersonalDetail: true,
                   },
               }
             : undefined;
@@ -1308,10 +1308,10 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         const tagListName = transactionChanges.tagListName;
         const recentlyUsedPolicyTags = allRecentlyUsedTags[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`];
 
-        if (recentlyUsedPolicyTags) {
-            const uniquePolicyRecentlyUsedTags = _.filter(recentlyUsedPolicyTags[tagListName], (recentlyUsedPolicyTag) => recentlyUsedPolicyTag !== transactionChanges.tag);
-            optimisticPolicyRecentlyUsedTags[tagListName] = [transactionChanges.tag, ...uniquePolicyRecentlyUsedTags];
-        }
+        const uniquePolicyRecentlyUsedTags = recentlyUsedPolicyTags
+            ? _.filter(recentlyUsedPolicyTags[tagListName], (recentlyUsedPolicyTag) => recentlyUsedPolicyTag !== transactionChanges.tag)
+            : [];
+        optimisticPolicyRecentlyUsedTags[tagListName] = [transactionChanges.tag, ...uniquePolicyRecentlyUsedTags];
     }
 
     // STEP 4: Compose the optimistic data
