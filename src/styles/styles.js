@@ -3345,7 +3345,16 @@ const styles = (theme) => ({
         height: 540,
     },
 
+    eReceiptBackgroundThumbnail: {
+        ...sizing.w100,
+        position: 'absolute',
+        aspectRatio: 335 / 540,
+        top: 0,
+        left: 0,
+    },
+
     eReceiptContainer: {
+        flex: 1,
         width: 335,
         minHeight: 540,
         borderRadius: 20,

@@ -19,6 +19,7 @@ import * as LottieAnimations from '../../../components/LottieAnimations';
 import SCREENS from '../../../SCREENS';
 import useEnvironment from '../../../hooks/useEnvironment';
 import useLocalize from '../../../hooks/useLocalize';
+import EReceipt from '../../../components/EReceipt';
 
 const propTypes = {
     /** The chat priority mode */
@@ -66,6 +67,7 @@ function PreferencesPage(props) {
                         />
                     </View>
                 </View>
+                <EReceipt transactionID="1" />
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
                     title={translate(`priorityModePage.priorityModes.${props.priorityMode}.label`)}
