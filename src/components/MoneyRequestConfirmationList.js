@@ -203,8 +203,8 @@ function MoneyRequestConfirmationList(props) {
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories));
 
-    // A flag for showing SS fields: date, merchant, and amount, only when we don't have a receiptPath (e.g. manual request)
-    // or in the split details page when it's ReadOnly
+    // A flag for showing SmartScan fields: date, merchant, and amount, only when we don't have a receiptPath (e.g. manual request)
+    // or in the split details page which is ReadOnly
     const shouldShowSmartScanFields = (!props.receiptPath || props.isReadOnly) && !props.isScanning;
 
     // Fetches the first tag list of the policy
