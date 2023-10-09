@@ -192,9 +192,6 @@ function MoneyRequestConfirmationList(props) {
     const {onSendMoney, onConfirm, onSelectParticipant, transaction} = props;
     const {translate, toLocaleDigit} = useLocalize();
 
-    // A flag and a toggler for showing the rest of the form fields
-    const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
-    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields;
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     const {unit, rate, currency} = props.mileageRate;
@@ -207,6 +204,10 @@ function MoneyRequestConfirmationList(props) {
     // A flag for showing SmartScan fields: date, merchant, and amount, only when we don't have a receiptPath (e.g. manual request)
     // or in the split details page which is ReadOnly
     const shouldShowSmartScanFields = (!props.receiptPath || props.isReadOnly) && !props.isScanning;
+
+    // A flag and a toggler for showing the rest of the form fields
+    const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
+    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields;
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(props.policyTags);
