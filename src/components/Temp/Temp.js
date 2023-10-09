@@ -1,13 +1,13 @@
 import PropTypes from 'prop-types';
-import Navigation from '../../libs/Navigation/Navigation';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import * as Illustrations from '../Icon/Illustrations';
-import variables from '../../styles/variables';
-import {View} from 'react-native';
 import React from 'react';
-import styles from '../../styles/styles';
+import {View} from 'react-native';
 import useLocalize from '../../hooks/useLocalize';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
+import Navigation from '../../libs/Navigation/Navigation';
+import styles from '../../styles/styles';
+import variables from '../../styles/variables';
 import BlockingView from '../BlockingViews/BlockingView';
+import * as Illustrations from '../Icon/Illustrations';
 
 const propTypes = {
     /** Child elements */
@@ -38,16 +38,14 @@ const defaultProps = {
     onLinkPress: () => Navigation.dismissModal(),
 };
 
-function TempPlaceHolder({titleKey, subtitleKey, linkKey, onLinkPress, children, shouldShow}) {
+function Temp({titleKey, subtitleKey, linkKey, onLinkPress, children, shouldShow}) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const {translate} = useLocalize();
 
-    console.log(translate('mobilePlacerHolder.subTitle'), 'ib');
-
     if (shouldShow || isSmallScreenWidth) {
         return (
-            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
+            <View style={[styles.blockingViewContainer, styles.flex1]}>
                 <BlockingView
                     icon={Illustrations.EmptyStateBiggerScreen}
                     iconWidth={variables.modalTopIconWidth}
@@ -64,8 +62,8 @@ function TempPlaceHolder({titleKey, subtitleKey, linkKey, onLinkPress, children,
     return children;
 }
 
-TempPlaceHolder.displayName = 'PlaceHolder';
-TempPlaceHolder.propTypes = propTypes;
-TempPlaceHolder.defaultProps = defaultProps;
+Temp.displayName = 'PlaceHolder';
+Temp.propTypes = propTypes;
+Temp.defaultProps = defaultProps;
 
-export default TempPlaceHolder;
+export default Temp;
