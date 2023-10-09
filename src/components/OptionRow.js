@@ -70,8 +70,8 @@ const propTypes = {
     /** Whether to remove the lateral padding and align the content with the margins */
     shouldDisableRowInnerPadding: PropTypes.bool,
 
-    /** Whether to take focus when selecting */
-    shouldTakeFocus: PropTypes.bool,
+    /** Whether to prevent default focusing on select */
+    shouldPreventDefaultFocusOnSelect: PropTypes.bool,
 
     /** Whether to wrap large text up to 2 lines */
     isMultilineSupported: PropTypes.bool,
@@ -98,7 +98,7 @@ const defaultProps = {
     style: null,
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
-    shouldTakeFocus: true,
+    shouldPreventDefaultFocusOnSelect: false,
 };
 
 class OptionRow extends Component {
@@ -217,7 +217,7 @@ class OptionRow extends Component {
                             hoverDimmingValue={1}
                             hoverStyle={this.props.hoverStyle}
                             needsOffscreenAlphaCompositing={lodashGet(this.props.option, 'icons.length', 0) >= 2}
-                            onMouseDown={this.props.shouldTakeFocus ? undefined : (e) => e.preventDefault()}
+                            onMouseDown={this.props.shouldPreventDefaultFocusOnSelect ? (e) => e.preventDefault() : undefined}
                         >
                             <View style={sidebarInnerRowStyle}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>

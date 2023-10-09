@@ -79,8 +79,8 @@ const propTypes = {
     /** Whether to disable the inner padding in rows */
     shouldDisableRowInnerPadding: PropTypes.bool,
 
-    /** Whether to take focus when selecting a row */
-    shouldTakeFocus: PropTypes.bool,
+    /** Whether to prevent default focusing when selecting a row */
+    shouldPreventDefaultFocusOnSelect: PropTypes.bool,
 
     /** Whether to show the scroll bar */
     showScrollIndicator: PropTypes.bool,
@@ -110,7 +110,7 @@ const defaultProps = {
     onLayout: undefined,
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
-    shouldTakeFocus: true,
+    shouldPreventDefaultFocusOnSelect: false,
     showScrollIndicator: false,
     isRowMultilineSupported: false,
 };

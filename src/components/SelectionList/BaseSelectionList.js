@@ -299,7 +299,7 @@ function BaseSelectionList({
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
                 onDismissError={onDismissError}
-                shouldTakeFocus={!shouldFocusOnSelectRow}
+                shouldPreventDefaultFocusOnSelect={shouldFocusOnSelectRow}
             />
         );
     };

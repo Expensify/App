@@ -417,7 +417,7 @@ class BaseOptionsSelector extends Component {
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
                 isRowMultilineSupported={this.props.isRowMultilineSupported}
-                shouldTakeFocus={!this.props.shouldFocusOnSelectRow}
+                shouldPreventDefaultFocusOnSelect={this.props.shouldFocusOnSelectRow}
             />
         );
         return (
