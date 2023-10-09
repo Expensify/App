@@ -28,9 +28,8 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
 
     useEffect(() => {
         setCurrentStep(calculateCurrentStep);
-        // we don't want to trigger the hook every time the step changes, only when the requiresTwoFactorAuth changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [account.requiresTwoFactorAuth]);
+    }, [account.requiresTwoFactorAuth, account.twoFactorAuthStep]);
 
     const handleSetStep = useCallback(
         (step, animationDirection = CONST.ANIMATION_DIRECTION.IN) => {

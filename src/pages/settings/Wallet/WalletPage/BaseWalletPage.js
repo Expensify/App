@@ -74,7 +74,9 @@ function BaseWalletPage(props) {
      * @param {Object} position
      */
     const setMenuPosition = useCallback(() => {
-        if (!paymentMethodButtonRef.current) return;
+        if (!paymentMethodButtonRef.current) {
+            return;
+        }
 
         const position = getClickedTargetLocation(paymentMethodButtonRef.current);
 
@@ -266,7 +268,10 @@ function BaseWalletPage(props) {
                                     enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
                                     addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
                                     addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                    popoverPlacement="bottom"
+                                    anchorAlignment={{
+                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                    }}
                                 >
                                     {(triggerKYCFlow, buttonRef) => (
                                         <MenuItem
@@ -346,7 +351,7 @@ function BaseWalletPage(props) {
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={BaseWalletPage.displayName}>
             <HeaderWithBackButton
                 title={translate('common.wallet')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
@@ -448,7 +453,7 @@ function BaseWalletPage(props) {
 
 BaseWalletPage.propTypes = propTypes;
 BaseWalletPage.defaultProps = defaultProps;
-BaseWalletPage.displayName = BaseWalletPage;
+BaseWalletPage.displayName = 'BaseWalletPage';
 
 export default compose(
     withNetwork(),
