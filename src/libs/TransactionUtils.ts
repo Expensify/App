@@ -1,6 +1,7 @@
 import Onyx, {OnyxCollection} from 'react-native-onyx';
 import {format, parseISO, isValid} from 'date-fns';
 import {ValueOf} from 'type-fest';
+import lodashHas from 'lodash/has';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
@@ -277,9 +278,9 @@ function getCreated(transaction: Transaction): string {
 }
 
 function isDistanceRequest(transaction: Transaction): boolean {
-    // This is the case for temporary transaction objects that haven't been saved yet
-    if (Object.keys(transaction?.comment?.waypoints ?? {}).length > 1) {
-        return true;
+    // This is used during the request creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
 
     // This is the case for transaction objects once they have been saved to the server
@@ -289,12 +290,12 @@ function isDistanceRequest(transaction: Transaction): boolean {
 }
 
 function isScanRequest(transaction: Transaction): boolean {
-    return Boolean(transaction?.receipt?.source);
-}
+    // This is used during the request creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+    }
 
-function isSplitRequest(transaction: Transaction): boolean {
-    // TODO: Figure out what makes a transaction a split request
-    return false;
+    return Boolean(transaction?.receipt?.source);
 }
 
 function getRequestType(transaction: Transaction): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
@@ -308,6 +309,11 @@ function getRequestType(transaction: Transaction): ValueOf<typeof CONST.IOU.REQU
 }
 
 function isManualRequest(transaction: Transaction): boolean {
+    // This is used during the request creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    }
+
     return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
@@ -429,7 +435,6 @@ export {
     getRequestType,
     isManualRequest,
     isScanRequest,
-    isSplitRequest,
     getAmount,
     getCurrency,
     getDistance,

@@ -73,8 +73,7 @@ function IOURequestStepConfirmation({
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
-    const isManualRequestDM = TransactionUtils.isManualRequest(transaction);
-    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    const requestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = translate(TransactionUtils.getHeaderTitle(transaction));
     const participants = _.map(transaction.participants, (participant) => {
         const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
@@ -82,24 +81,29 @@ function IOURequestStepConfirmation({
     });
 
     const navigateBack = () => {
-        // The previous step for distance requests was the participants page
-        if (isDistanceRequest) {
-            // If there is a report attached to the IOU with a reportID, then the participants have been automatically assigned
-            // so the previous step was actually the distance tab.
-            if (report.reportID) {
-                Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID), true);
-                return;
-            }
-
+        // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
+        // back to the participants step
+        if (!report.reportID) {
             Navigation.goBack(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID), true);
             return;
         }
-        Navigation.goBack();
+
+        // If the participants were automatically added to the transaction, then the user needs taken back to the starting step
+        switch (requestType) {
+            case CONST.IOU.REQUEST_TYPE.DISTANCE:
+                Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID), true);
+                break;
+            case CONST.IOU.REQUEST_TYPE.SCAN:
+                Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transactionID, reportID), true);
+                break;
+            default:
+                Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID), true);
+                break;
+        }
     };
 
     const navigateToAddReceipt = () => {
-        // TODO: Get this route working
-        // Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType, reportID);
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.SCAN, transactionID, reportID));
     };
 
     useEffect(() => {
@@ -209,13 +213,13 @@ function IOURequestStepConfirmation({
             if (transaction.receiptPath && transaction.receiptSource) {
                 FileUtils.readFileAsync(transaction.receiptPath, transaction.receiptSource).then((file) => {
                     const receipt = file;
-                    receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+                    receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
                     requestMoney(selectedParticipants, trimmedComment, receipt);
                 });
                 return;
             }
 
-            if (isDistanceRequest) {
+            if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
                 createDistanceRequest(selectedParticipants, trimmedComment);
                 return;
             }
@@ -232,10 +236,9 @@ function IOURequestStepConfirmation({
             transaction.currency,
             transaction.receiptPath,
             transaction.receiptSource,
-            isDistanceRequest,
+            requestType,
             requestMoney,
             createDistanceRequest,
-            isManualRequestDM,
         ],
     );
 
@@ -283,7 +286,7 @@ function IOURequestStepConfirmation({
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={isManualRequestDM}
+                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {
@@ -332,7 +335,7 @@ function IOURequestStepConfirmation({
                                 bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                                 iouMerchant={transaction.merchant}
                                 iouCreated={transaction.created}
-                                isDistanceRequest={isDistanceRequest}
+                                isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                                 listStyles={[StyleUtils.getMaximumHeight(windowHeight / 3)]}
                             />
                         </ScrollView>

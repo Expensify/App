@@ -1118,6 +1118,7 @@ const CONST = {
             DISTANCE: 'distance',
             MERCHANT: 'merchant',
             PARTICIPANTS: 'participants',
+            SCAN: 'scan',
             START: 'start',
             TAG: 'tag',
             WAYPOINT: 'waypoint',

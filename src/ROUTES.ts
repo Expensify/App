@@ -261,7 +261,10 @@ export default {
         route: 'create/:iouType/start/:transactionID/:reportID/manual',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/manual`,
     },
-    MONEE_REQUEST_CREATE_TAB_SCAN: 'create/:iouType/start/:transactionID/:reportID/scan',
+    MONEE_REQUEST_CREATE_TAB_SCAN: {
+        route: 'create/:iouType/start/:transactionID/:reportID/scan',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/scan`,
+    },
 
     IOU_REQUEST: 'request/new',
     IOU_SEND: 'send/new',

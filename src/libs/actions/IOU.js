@@ -2294,6 +2294,7 @@ function startMoneeRequest(reportID, iouRequestType = CONST.IOU.REQUEST_TYPE.MAN
         comment,
         created,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
+        iouRequestType,
         reportID,
         transactionID: newTransactionID,
     });

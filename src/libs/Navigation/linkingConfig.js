@@ -318,7 +318,7 @@ export default {
                                         exact: true,
                                     },
                                     scan: {
-                                        path: ROUTES.MONEE_REQUEST_CREATE_TAB_SCAN,
+                                        path: ROUTES.MONEE_REQUEST_CREATE_TAB_SCAN.route,
                                         exact: true,
                                     },
                                 },

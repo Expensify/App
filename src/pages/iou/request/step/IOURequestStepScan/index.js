@@ -22,6 +22,7 @@ import Navigation from '../../../../../libs/Navigation/Navigation';
 import reportPropTypes from '../../../../reportPropTypes';
 import ONYXKEYS from '../../../../../ONYXKEYS';
 import IOURequestStepRoutePropTypes from '../IOURequestStepRoutePropTypes';
+import StepScreenDragAndDropWrapper from '../StepScreenDragAndDropWrapper';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -44,7 +45,7 @@ const defaultProps = {
 function IOURequestStepScan({
     report,
     route: {
-        params: {iouType, reportID, transactionID},
+        params: {iouType, reportID, step, transactionID},
     },
 }) {
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -54,6 +55,11 @@ function IOURequestStepScan({
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
+
+    // When this screen is accessed from the "start request flow" (ie. the manual/scan/distance tab selector) it is already embedded in a screen wrapper.
+    // When this screen is navigated to from the "confirmation step" it won't be embedded in a screen wrapper, so the StepScreenWrapper should be shown.
+    // In the "start request flow", the "step" param does not exist, but it does exist in the "confirmation step" flow.
+    const isUserComingFromConfirmationStep = !_.isUndefined(step);
 
     const hideReciptModal = () => {
         setIsAttachmentInvalid(false);
@@ -90,6 +96,10 @@ function IOURequestStepScan({
 
         return true;
     }
+
+    const navigateBack = () => {
+        Navigation.goBack(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID), true);
+    };
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
@@ -130,69 +140,76 @@ function IOURequestStepScan({
     ).current;
 
     return (
-        <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
-            {!isDraggingOver ? (
-                <>
-                    <View
-                        onLayout={({nativeEvent}) => {
-                            setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top));
-                        }}
-                    >
-                        <ReceiptUpload
-                            width={CONST.RECEIPT.ICON_SIZE}
-                            height={CONST.RECEIPT.ICON_SIZE}
-                        />
-                    </View>
-                    <View
-                        style={styles.receiptViewTextContainer}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...panResponder.panHandlers}
-                    >
-                        <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
-                        <Text style={[styles.subTextReceiptUpload]}>
-                            {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
-                            <CopyTextToClipboard
-                                text={CONST.EMAIL.RECEIPTS}
-                                textStyles={[styles.textBlue]}
+        <StepScreenDragAndDropWrapper
+            headerTitle={translate('common.receipt')}
+            onBackButtonPress={navigateBack}
+            shouldShowWrapper={isUserComingFromConfirmationStep}
+            testID={IOURequestStepScan.displayName}
+        >
+            <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
+                {!isDraggingOver && (
+                    <>
+                        <View
+                            onLayout={({nativeEvent}) => {
+                                setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top));
+                            }}
+                        >
+                            <ReceiptUpload
+                                width={CONST.RECEIPT.ICON_SIZE}
+                                height={CONST.RECEIPT.ICON_SIZE}
                             />
-                            {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
-                        </Text>
-                    </View>
-                    <AttachmentPicker>
-                        {({openPicker}) => (
-                            <Button
-                                medium
-                                success
-                                text={translate('receipt.chooseFile')}
-                                accessibilityLabel={translate('receipt.chooseFile')}
-                                style={[styles.p9]}
-                                onPress={() => {
-                                    openPicker({
-                                        onPicked: setReceiptAndNavigate,
-                                    });
-                                }}
-                            />
-                        )}
-                    </AttachmentPicker>
-                </>
-            ) : null}
-            <ReceiptDropUI
-                onDrop={(e) => {
-                    const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                    setReceiptAndNavigate(file);
-                }}
-                receiptImageTopPosition={receiptImageTopPosition}
-            />
-            <ConfirmModal
-                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                onConfirm={hideReciptModal}
-                onCancel={hideReciptModal}
-                isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                confirmText={translate('common.close')}
-                shouldShowCancelButton={false}
-            />
-        </View>
+                        </View>
+                        <View
+                            style={styles.receiptViewTextContainer}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...panResponder.panHandlers}
+                        >
+                            <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
+                            <Text style={[styles.subTextReceiptUpload]}>
+                                {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+                                <CopyTextToClipboard
+                                    text={CONST.EMAIL.RECEIPTS}
+                                    textStyles={[styles.textBlue]}
+                                />
+                                {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
+                            </Text>
+                        </View>
+                        <AttachmentPicker>
+                            {({openPicker}) => (
+                                <Button
+                                    medium
+                                    success
+                                    text={translate('receipt.chooseFile')}
+                                    accessibilityLabel={translate('receipt.chooseFile')}
+                                    style={[styles.p9]}
+                                    onPress={() => {
+                                        openPicker({
+                                            onPicked: setReceiptAndNavigate,
+                                        });
+                                    }}
+                                />
+                            )}
+                        </AttachmentPicker>
+                    </>
+                )}
+                <ReceiptDropUI
+                    onDrop={(e) => {
+                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                        setReceiptAndNavigate(file);
+                    }}
+                    receiptImageTopPosition={receiptImageTopPosition}
+                />
+                <ConfirmModal
+                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                    onConfirm={hideReciptModal}
+                    onCancel={hideReciptModal}
+                    isVisible={isAttachmentInvalid}
+                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                    confirmText={translate('common.close')}
+                    shouldShowCancelButton={false}
+                />
+            </View>
+        </StepScreenDragAndDropWrapper>
     );
 }
 

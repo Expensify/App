@@ -44,6 +44,7 @@ type Transaction = {
     errorFields?: OnyxCommon.ErrorFields;
     // The name of the file used for a receipt (formerly receiptFilename)
     filename?: string;
+    iouRequestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
     merchant: string;
     modifiedAmount?: number;
     modifiedCreated?: string;

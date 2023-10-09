@@ -7,18 +7,19 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../../CONST';
-import IOURequestStepWaypoint from './step/IOURequestStepWaypoint';
-import IOURequestStepParticipants from './step/IOURequestStepParticipants';
-import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
-import IOURequestStepDescription from './step/IOURequestStepDescription';
-import IOURequestStepDate from './step/IOURequestStepDate';
-import IOURequestStepCategory from './step/IOURequestStepCategory';
-import IOURequestStepTag from './step/IOURequestStepTag';
-import IOURequestStepDistance from './step/IOURequestStepDistance';
-import IOURequestStepCurrency from './step/IOURequestStepCurrency';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
+import IOURequestStepCategory from './step/IOURequestStepCategory';
+import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
+import IOURequestStepCurrency from './step/IOURequestStepCurrency';
+import IOURequestStepDate from './step/IOURequestStepDate';
+import IOURequestStepDescription from './step/IOURequestStepDescription';
+import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepMerchant from './step/IOURequestStepMerchant';
+import IOURequestStepParticipants from './step/IOURequestStepParticipants';
 import IOURequestStepRoutePropTypes from './step/IOURequestStepRoutePropTypes';
+import IOURequestStepScan from './step/IOURequestStepScan';
+import IOURequestStepTag from './step/IOURequestStepTag';
+import IOURequestStepWaypoint from './step/IOURequestStepWaypoint';
 import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
@@ -45,19 +46,21 @@ function IOURequestStepPage({
     if (iouTypeParamIsInvalid || stepParamIsInvalid || !canUserPerformWriteAction) {
         return <FullPageNotFoundView shouldShow />;
     }
+
     return (
         <>
             {step === CONST.IOU.REQUEST_STEPS.AMOUNT && <IOURequestStepAmount route={route} />}
-            {step === CONST.IOU.REQUEST_STEPS.PARTICIPANTS && <IOURequestStepParticipants route={route} />}
-            {step === CONST.IOU.REQUEST_STEPS.CONFIRMATION && <IOURequestStepConfirmation route={route} />}
-            {step === CONST.IOU.REQUEST_STEPS.DATE && <IOURequestStepDate route={route} />}
-            {step === CONST.IOU.REQUEST_STEPS.CURRENCY && <IOURequestStepCurrency route={route} />}
-            {step === CONST.IOU.REQUEST_STEPS.DESCRIPTION && <IOURequestStepDescription route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.CATEGORY && <IOURequestStepCategory route={route} />}
-            {step === CONST.IOU.REQUEST_STEPS.TAG && <IOURequestStepTag route={route} />}
-            {step === CONST.IOU.REQUEST_STEPS.MERCHANT && <IOURequestStepMerchant route={route} />}
-            {step === CONST.IOU.REQUEST_STEPS.WAYPOINT && <IOURequestStepWaypoint route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.CONFIRMATION && <IOURequestStepConfirmation route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.CURRENCY && <IOURequestStepCurrency route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.DATE && <IOURequestStepDate route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.DESCRIPTION && <IOURequestStepDescription route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.DISTANCE && <IOURequestStepDistance route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.MERCHANT && <IOURequestStepMerchant route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.PARTICIPANTS && <IOURequestStepParticipants route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.SCAN && <IOURequestStepScan route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.TAG && <IOURequestStepTag route={route} />}
+            {step === CONST.IOU.REQUEST_STEPS.WAYPOINT && <IOURequestStepWaypoint route={route} />}
         </>
     );
 }
