@@ -14,14 +14,39 @@ import SignInOrAvatarWithOptionalStatus from '../SignInOrAvatarWithOptionalStatu
 function GlobalNavigation() {
     const sidebarNavigation = useContext(SidebarNavigationContext);
     const {translate} = useLocalize();
+
     const items = useMemo(
         () => [
             {
+                icon: Expensicons.Feed,
+                text: translate('globalNavigation.home'),
+                value: CONST.GLOBAL_NAVIGATION_OPTION.HOME,
+                onSelected: () => {
+                    Navigation.navigate(ROUTES.HOME_OLDDOT);
+                },
+            },
+            {
                 icon: Expensicons.ChatBubble,
-                text: translate('globalNavigationOptions.chats'),
+                text: translate('globalNavigation.chats'),
                 value: CONST.GLOBAL_NAVIGATION_OPTION.CHATS,
                 onSelected: () => {
                     Navigation.navigate(ROUTES.REPORT);
+                },
+            },
+            {
+                icon: Expensicons.Transfer,
+                text: translate('globalNavigation.money'),
+                value: CONST.GLOBAL_NAVIGATION_OPTION.MONEY,
+                onSelected: () => {
+                    Navigation.navigate(ROUTES.EXPENSES_OLDDOT);
+                },
+            },
+            {
+                icon: Expensicons.Building,
+                text: translate('globalNavigation.workspaces'),
+                value: CONST.GLOBAL_NAVIGATION_OPTION.WORKSPACES,
+                onSelected: () => {
+                    Navigation.navigate(ROUTES.INDIVIDUALS_OLDDOT);
                 },
             },
         ],

@@ -1408,6 +1408,24 @@ const styles = (theme) => ({
         flex: 1,
     },
 
+    subNavigationOption: {
+        flexDirection: 'row',
+        marginHorizontal: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 18,
+        borderRadius: 8,
+    },
+
+    subNavigationOptionActive: {
+        backgroundColor: theme.highlightBG,
+    },
+
+    subNavigationOptionText: {
+        color: theme.text,
+        fontWeight: fontWeightBold,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+    },
+
     sidebarLink: {
         textDecorationLine: 'none',
     },
@@ -1454,7 +1472,7 @@ const styles = (theme) => ({
     },
 
     sidebarLinkActiveLHN: {
-        backgroundColor: theme.highlightBG,
+        backgroundColor: theme.border,
         textDecorationLine: 'none',
     },
 
@@ -3766,6 +3784,12 @@ const styles = (theme) => ({
     }),
 
     globalNavigationMenuItem: (isFocused) => (isFocused ? {color: theme.text, fontWeight: fontWeightBold, fontFamily: fontFamily.EXP_NEUE_BOLD} : {color: theme.icon}),
+
+    subNavigationMenuItem: {
+        color: theme.text,
+        fontWeight: fontWeightBold,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+    },
 
     globalNavigationItemContainer: {
         width: variables.globalNavigationWidth,

@@ -2300,7 +2300,23 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
     },
-    globalNavigationOptions: {
+    globalNavigation: {
+        home: 'Inicio',
         chats: 'Chats',
+        money: 'Dinero',
+
+        // TODO: Something to check
+        workspaces: 'Workspaces',
+    },
+    subNavigation: {
+        // Money
+        expenses: 'Gastos',
+        reports: 'Informes',
+        insights: 'Perspectivas',
+
+        // Workspaces
+        individual: 'Individual',
+        groups: 'Grupos',
+        cardsAndDomains: 'Tarjetas y Dominios',
     },
 } satisfies EnglishTranslation;

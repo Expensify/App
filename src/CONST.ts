@@ -2722,7 +2722,7 @@ const CONST = {
     GLOBAL_NAVIGATION_OPTION: {
         HOME: 'home',
         CHATS: 'chats',
-        SPEND: 'spend',
+        MONEY: 'money',
         WORKSPACES: 'workspaces',
     },
 } as const;

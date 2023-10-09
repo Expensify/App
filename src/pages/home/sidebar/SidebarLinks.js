@@ -147,7 +147,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 dataSet={{dragArea: true}}
             >
                 <Header
-                    title={<Text style={styles.textHeadline}>{translate('globalNavigationOptions.chats')}</Text>}
+                    title={<Text style={styles.textHeadline}>{translate('globalNavigation.chats')}</Text>}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     shouldShowEnvironmentBadge
                 />

@@ -1816,7 +1816,21 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
     },
-    globalNavigationOptions: {
+    globalNavigation: {
+        home: 'Home',
         chats: 'Chats',
+        money: 'Money',
+        workspaces: 'Workspaces',
+    },
+    subNavigation: {
+        // Money
+        expenses: 'Expenses',
+        reports: 'Reports',
+        insights: 'Insights',
+
+        // Workspaces
+        individual: 'Individual',
+        groups: 'Groups',
+        cardsAndDomains: 'Cards & Domains',
     },
 } satisfies TranslationBase;
