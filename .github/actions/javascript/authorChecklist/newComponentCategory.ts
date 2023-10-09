@@ -4,6 +4,8 @@ import github from '@actions/github';
 import CONST from '../../../libs/CONST';
 import GithubUtils from '../../../libs/GithubUtils';
 
+type SuperClassType = {superClass: {name?: string; object: {name: string}; property: {name: string}} | null; name: string};
+
 const items = [
     "I verified that similar component doesn't exist in the codebase",
     'I verified that all props are defined accurately and each prop has a `/** comment above it */`',
@@ -30,14 +32,26 @@ function detectReactComponent(code: string, filename: string): boolean | undefin
     let isReactComponent = false;
 
     traverse(ast, {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        FunctionDeclaration(path) {
+        enter(path) {
             if (isReactComponent) {
                 return;
             }
-            if (path.node.id && path.node.body.body.some((node) => node.type === 'ReturnStatement' && node.argument?.type === 'JSXElement')) {
-                console.log('Detected react component in file', filename);
+            if (path.isFunctionDeclaration() || path.isArrowFunctionExpression() || path.isFunctionExpression()) {
+                path.traverse({
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    JSXElement() {
+                        isReactComponent = true;
+                        path.stop();
+                    },
+                });
+            }
+        },
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        ClassDeclaration(path) {
+            const {superClass} = path.node as unknown as SuperClassType;
+            if (superClass && ((superClass.object && superClass.object.name === 'React' && superClass.property.name === 'Component') || superClass.name === 'Component')) {
                 isReactComponent = true;
+                path.stop();
             }
         },
     });
@@ -87,3 +101,4 @@ export default {
     detect,
     items,
 };
+export {detectReactComponent};
