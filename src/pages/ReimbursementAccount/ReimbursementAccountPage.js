@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, { useState, useRef, useEffect } from 'react';
-import {withOnyx} from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import {View} from 'react-native';
+import { View } from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -12,12 +12,12 @@ import ReimbursementAccountLoadingIndicator from '../../components/Reimbursement
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import BankAccount from '../../libs/models/BankAccount';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, { withLocalizePropTypes } from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
 import Text from '../../components/Text';
-import {withNetwork} from '../../components/OnyxProvider';
+import { withNetwork } from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
@@ -138,19 +138,19 @@ function ReimbursementAccountPage({
     const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const policyName = lodashGet(policy, 'name');
     const policyID = lodashGet(route.params, 'policyID');
-    
+
     const continueFunction = () => {
         setShouldShowContinueSetupButton(false);
         fetchData(true);
     };
 
-     /**
-     * @param {String} fieldName
-     * @param {*} defaultValue
-     *
-     * @returns {*}
-     */
-     const getDefaultStateForField = (fieldName, defaultValue = '') => {
+    /**
+    * @param {String} fieldName
+    * @param {*} defaultValue
+    *
+    * @returns {*}
+    */
+    const getDefaultStateForField = (fieldName, defaultValue = '') => {
         return lodashGet(reimbursementAccount, ['achData', fieldName], defaultValue);
     };
 
@@ -164,7 +164,7 @@ function ReimbursementAccountPage({
         const backTo = lodashGet(route.params, 'backTo', ROUTES.HOME);
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-                if (hasInProgressVBBA()) {  
+                if (hasInProgressVBBA()) {
                     setShouldShowContinueSetupButton(true);
                 }
                 if (subStep) {
@@ -174,7 +174,7 @@ function ReimbursementAccountPage({
                 }
                 break;
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, {subStep: CONST.BANK_ACCOUNT.SUBSTEP.MANUAL});
+                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, { subStep: CONST.BANK_ACCOUNT.SUBSTEP.MANUAL });
                 break;
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
                 if (shouldShowOnfido) {
@@ -200,15 +200,15 @@ function ReimbursementAccountPage({
                 Navigation.goBack(backTo);
         }
     };
-    
+
     /**
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      * @returns {Boolean}
      */
     const hasInProgressVBBA = () => {
         const achData = lodashGet(reimbursementAccount, 'achData', {});
-        return achData.bankAccountID 
-            && achData.state !== BankAccount.STATE.OPEN 
+        return achData.bankAccountID
+            && achData.state !== BankAccount.STATE.OPEN
             && achData.state !== BankAccount.STATE.LOCKED;
     };
 
@@ -218,7 +218,7 @@ function ReimbursementAccountPage({
     useEffect(() => {
         setHasACHDataBeenLoaded(reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps);
     }, [reimbursementAccount]);
-    
+
     /*
      * Calculates the state used to show the "Continue with setup" view. If a bank account setup is already in progress and
      * no specific further step was passed in the url we'll show the workspace bank account reset modal if the user wishes to start over
@@ -231,7 +231,7 @@ function ReimbursementAccountPage({
         const achData = lodashGet(reimbursementAccount, 'achData', {});
         return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], getStepToOpenFromRouteParams());
     }
-    
+
     /**
      * We can pass stepToOpen in the URL to force which step to show.
      * Mainly needed when user finished the flow in verifying state, and Ops ask them to modify some fields from a specific step.
@@ -255,7 +255,7 @@ function ReimbursementAccountPage({
                 return '';
         }
     }
-    
+
     useEffect(() => {
         fetchData();
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
@@ -267,7 +267,7 @@ function ReimbursementAccountPage({
     const fetchData = (ignoreLocalCurrentStep) => {
         // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
         BankAccounts.setReimbursementAccountLoading(true);
-    
+
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = getStepToOpenFromRouteParams();
@@ -276,13 +276,13 @@ function ReimbursementAccountPage({
         const localCurrentStep = achData.currentStep || '';
         BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep);
     };
-    
+
     useEffect(() => {
         // Check for network change from offline to online
         if (prevProps.current.network.isOffline && !network.isOffline && prevProps.current.reimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             fetchData();
         }
-    
+
         if (!hasACHDataBeenLoaded) {
             if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && !reimbursementAccount.isLoading) {
                 setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
@@ -290,20 +290,20 @@ function ReimbursementAccountPage({
             }
             return;
         }
-    
+
         if (
             prevProps.current.reimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
             reimbursementAccount.pendingAction !== prevProps.current.reimbursementAccount.pendingAction
         ) {
             setShouldShowContinueSetupButton(hasInProgressVBBA());
         }
-    
+
         const currentStep = lodashGet(reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-    
+
         if (shouldShowContinueSetupButton) {
             return;
         }
-    
+
         const currentStepRouteParam = getStepToOpenFromRouteParams();
         if (currentStepRouteParam === currentStep) {
             return;
@@ -311,11 +311,11 @@ function ReimbursementAccountPage({
         if (currentStepRouteParam !== '') {
             BankAccounts.hideBankAccountErrors();
         }
-    
+
         const backTo = lodashGet(route.params, 'backTo');
         const policyId = lodashGet(route.params, 'policyID');
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyId, backTo));
-    
+
         // At the end, update the prevProps ref to the current values
         prevProps.current = {
             reimbursementAccount,
@@ -331,7 +331,7 @@ function ReimbursementAccountPage({
             reimbursementAccountDraft,
         };
     }, [reimbursementAccount, network, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton]);
-    
+
     /**
      * @param {String} currentStep
      * @returns {String}
@@ -353,7 +353,7 @@ function ReimbursementAccountPage({
                 return 'new';
         }
     }
-    
+
     // Rendering
 
     if (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy)) {
@@ -372,9 +372,9 @@ function ReimbursementAccountPage({
     const shouldShowOfflineLoader = !(
         network.isOffline &&
         _.contains([
-            CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, 
-            CONST.BANK_ACCOUNT.STEP.COMPANY, 
-            CONST.BANK_ACCOUNT.STEP.REQUESTOR, 
+            CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+            CONST.BANK_ACCOUNT.STEP.COMPANY,
+            CONST.BANK_ACCOUNT.STEP.REQUESTOR,
             CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep)
     );
 
@@ -434,7 +434,7 @@ function ReimbursementAccountPage({
             <BankAccountStep
                 reimbursementAccount={reimbursementAccount}
                 reimbursementAccountDraft={reimbursementAccountDraft}
-                onBackButtonPress={goBack} 
+                onBackButtonPress={goBack}
                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                 plaidLinkOAuthToken={plaidLinkToken}
                 getDefaultStateForField={getDefaultStateForField}
@@ -460,7 +460,7 @@ function ReimbursementAccountPage({
         const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
         return (
             <RequestorStep
-                ref={requestorStepRef} 
+                ref={requestorStepRef}
                 reimbursementAccount={reimbursementAccount}
                 reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={goBack}
@@ -481,7 +481,7 @@ function ReimbursementAccountPage({
             />
         );
     }
-    
+
     if (currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION) {
         return (
             <ValidationStep
