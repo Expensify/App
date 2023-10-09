@@ -86,6 +86,8 @@ export default function ReportScreen() {
 
         window.addEventListener('message', (event) => {
             const url = event.data;
+            // TODO: use this value to navigate to a new path
+            // eslint-disable-next-line no-unused-vars
             const newDotURL = getNewDotURL(url);
         });
     }, []);
