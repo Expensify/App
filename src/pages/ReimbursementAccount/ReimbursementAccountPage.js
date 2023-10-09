@@ -160,7 +160,7 @@ class ReimbursementAccountPage extends React.Component {
         // Update the data that is returned from back-end to draft value
         const draftStep = this.props.reimbursementAccount.draftStep;
         if (draftStep) {
-            BankAccounts.updateReimbursementAccountDraft(this.getBankAccountFields(this.getFieldsOfCurrentStep(draftStep)));
+            BankAccounts.updateReimbursementAccountDraft(this.getBankAccountFields(this.getFieldsForStep(draftStep)));
         }
 
         const currentStepRouteParam = this.getStepToOpenFromRouteParams();
@@ -184,7 +184,7 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     getFieldsForStep(step) {
-        switch (currentStep) {
+        switch (step) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
