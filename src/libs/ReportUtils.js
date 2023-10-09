@@ -1377,28 +1377,36 @@ function getTransactionDetails(transaction) {
  * Can only edit if:
  *
  * - in case of IOU report
- *    - the current user is the requestor
+ *    - the current user is the requestor and is not settled yet
  * - in case of expense report
- *    - the current user is the requestor
+ *    - the current user is the requestor and is not settled yet
  *    - or the user is an admin on the policy the expense report is tied to
  *
  * @param {Object} reportAction
  * @returns {Boolean}
  */
 function canEditMoneyRequest(reportAction) {
-    // If the report action i snot IOU type, return true early
+    // If the report action is not IOU type, return true early
     if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return true;
     }
+
     const moneyRequestReportID = lodashGet(reportAction, 'originalMessage.IOUReportID', 0);
+
     if (!moneyRequestReportID) {
         return false;
     }
+
     const moneyRequestReport = getReport(moneyRequestReportID);
     const isReportSettled = isSettled(moneyRequestReport.reportID);
     const isAdmin = isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction.actorAccountID;
-    return !isReportSettled && (isAdmin || isRequestor);
+
+    if (isAdmin) {
+        return true;
+    }
+
+    return !isReportSettled && isRequestor;
 }
 
 /**
