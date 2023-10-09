@@ -110,9 +110,7 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
     const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
     const isSettled = ReportUtils.isSettled(parentReport.reportID);
 
-    const isAdmin = Policy.isAdminOfFreePolicy([policy]) && ReportUtils.isExpenseReport(parentReport);
-    const isRequestor = ReportUtils.isMoneyRequestReport(parentReport) && lodashGet(session, 'accountID', null) === parentReportAction.actorAccountID;
-    const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
+    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
 
     // For now, it always defaults to the first tag of the policy
     const policyTag = PolicyUtils.getTag(policyTags);
@@ -130,13 +128,18 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
 
     // Dismiss the modal when the request is paid or deleted
     useEffect(() => {
-        if (canEdit) {
+        const isAmountToEdit = fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT;
+        const isCreatedDateToEdit = fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE;
+        const isNonEditableFieldWhenSettled = isAmountToEdit || isCreatedDateToEdit;
+
+        if (canEdit && !isDeleted && (!isNonEditableFieldWhenSettled || !isSettled)) {
             return;
         }
+
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [canEdit]);
+    }, [canEdit, isDeleted, isSettled, fieldToEdit]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {

@@ -158,8 +158,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     titleIcon={Expensicons.Checkmark}
                     description={description}
                     titleStyle={styles.newKansasLarge}
-                    interactive={canEdit}
-                    shouldShowRightIcon={canEdit}
+                    interactive={canEdit && !isSettled}
+                    shouldShowRightIcon={canEdit && !isSettled}
                     onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                     brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
@@ -182,8 +182,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                 <MenuItemWithTopDescription
                     description={translate('common.date')}
                     title={transactionDate}
-                    interactive={canEdit}
-                    shouldShowRightIcon={canEdit}
+                    interactive={canEdit && !isSettled}
+                    shouldShowRightIcon={canEdit && !isSettled}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                     brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
