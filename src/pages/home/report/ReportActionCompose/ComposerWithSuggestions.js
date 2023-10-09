@@ -374,7 +374,7 @@ function ComposerWithSuggestions({
         if (!suggestionsRef.current) {
             return false;
         }
-        InputFocus.inputFocusChange(false)
+        InputFocus.inputFocusChange(false);
         return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
 

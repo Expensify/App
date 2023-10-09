@@ -11,21 +11,21 @@ function inputFocusChange(focus: boolean) {
 }
 
 let refSave: HTMLElement | undefined;
-function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: { willAlertModalBecomeVisible: boolean; isVisible: boolean }, onyxFocused: boolean) {
+function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: {willAlertModalBecomeVisible: boolean; isVisible: boolean}, onyxFocused: boolean) {
     if (Browser.isMobile()) {
         return;
     }
     if (isFocused && !onyxFocused) {
         inputFocusChange(true);
         ref.focus();
-    }   
+    }
     if (isFocused) {
         refSave = ref;
     }
-    if (!isFocused && !onyxFocused && !modal.willAlertModalBecomeVisible && !modal.isVisible && refSave) {        
+    if (!isFocused && !onyxFocused && !modal.willAlertModalBecomeVisible && !modal.isVisible && refSave) {
         if (!ReportActionComposeFocusManager.isFocused()) {
             refSave.focus();
-        } else { 
+        } else {
             refSave = undefined;
         }
     }
