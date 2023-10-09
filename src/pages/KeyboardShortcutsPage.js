@@ -1,7 +1,6 @@
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
-import Navigation from '../libs/Navigation/Navigation';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Text from '../components/Text';
