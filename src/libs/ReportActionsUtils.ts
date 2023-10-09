@@ -542,10 +542,8 @@ function getAllReportActions(reportID: string): ReportActions {
 function isReportActionAttachment(reportAction: OnyxEntry<ReportAction>): boolean {
     const message = reportAction?.message?.[0];
 
-    if (reportAction && Object.hasOwn(reportAction, 'isAttachment')) {
-        // The condition asserts "isAttachment" exists.
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return reportAction.isAttachment!;
+    if (reportAction && 'isAttachment' in reportAction) {
+        return reportAction.isAttachment ?? false;
     }
 
     if (message) {
