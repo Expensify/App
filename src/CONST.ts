@@ -440,6 +440,12 @@ const CONST = {
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
     EXPENSIFY_URL: 'https://www.expensify.com',
+    BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
+        'https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account',
+    PERSONAL_DATA_PROTECTION_INFO_URL: 'https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information',
+    ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
+    ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
+    ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
@@ -676,6 +682,24 @@ const CONST = {
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
         },
+        STATUS: {
+            PENDING: 'Pending',
+            POSTED: 'Posted',
+        },
+    },
+    MCC_GROUPS: {
+        COMMUTER: 'Commuter',
+        GAS: 'Gas',
+        GOODS: 'Goods',
+        GROCERIES: 'Groceries',
+        HOTEL: 'Hotel',
+        MAIL: 'Mail',
+        MEALS: 'Meals',
+        RENTAL: 'Rental',
+        SERVICES: 'Services',
+        TAXI: 'Taxi',
+        MISCELLANEOUS: 'Miscellaneous',
+        UTILITIES: 'Utilities',
     },
     JSON_CODE: {
         SUCCESS: 200,
@@ -731,10 +755,11 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
+        MAX_REQUEST_RETRIES: 10,
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: {}, success: '', isLoading: false},
+    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -819,6 +844,8 @@ const CONST = {
         URL: 'url',
         DEFAULT: 'default',
     },
+
+    YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     // This is a placeholder for attachment which is uploading
@@ -981,6 +1008,15 @@ const CONST = {
         TIER_NAME: {
             GOLD: 'GOLD',
             SILVER: 'SILVER',
+        },
+        WEB_MESSAGE_TYPE: {
+            STATEMENT: 'STATEMENT_NAVIGATE',
+            CONCIERGE: 'CONCIERGE_NAVIGATE',
+        },
+        MTL_WALLET_PROGRAM_ID: '760',
+        PROGRAM_ISSUERS: {
+            EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
+            BANCORP_BANK: 'The Bancorp Bank',
         },
     },
 
@@ -1222,6 +1258,7 @@ const CONST = {
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
+        LINE_BREAK: /\n/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
@@ -1229,7 +1266,7 @@ const CONST = {
 
         SPECIAL_CHAR_OR_EMOJI:
             // eslint-disable-next-line no-misleading-character-class
-            /[\n\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+            /[\n\s,/?"{}[\]()&_~^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
         SPACE_OR_EMOJI:
             // eslint-disable-next-line no-misleading-character-class
@@ -1252,6 +1289,8 @@ const CONST = {
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         ATTACHMENT_ROUTE: /\/r\/(\d*)\/attachment/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
+
+        ENCODE_PERCENT_CHARACTER: /%(25)+/g,
     },
 
     PRONOUNS: {
@@ -1359,6 +1398,8 @@ const CONST = {
         MERCHANT: 'merchant',
         CATEGORY: 'category',
         RECEIPT: 'receipt',
+        DISTANCE: 'distance',
+        TAG: 'tag',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,

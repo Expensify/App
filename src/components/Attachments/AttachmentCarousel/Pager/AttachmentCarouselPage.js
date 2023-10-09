@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Image from '../../../Image';
@@ -21,7 +21,7 @@ const pagePropTypes = {
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
-    /** URL to full-sized attachment or SVG function */
+    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
     source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
 
     isActive: PropTypes.bool.isRequired,
@@ -49,16 +49,19 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
     }, [initialIsActive]);
 
     const [initialActivePageLoad, setInitialActivePageLoad] = useState(isActive);
-    const [isImageLoading, setIsImageLoading] = useState(true);
-    const [showFallback, setShowFallback] = useState(isImageLoading);
+    const isImageLoaded = useRef(null);
+    const [isImageLoading, setIsImageLoading] = useState(false);
+    const [isFallbackLoading, setIsFallbackLoading] = useState(false);
+    const [showFallback, setShowFallback] = useState(true);
 
     // We delay hiding the fallback image while image transformer is still rendering
     useEffect(() => {
-        if (isImageLoading) {
+        if (isImageLoading || showFallback) {
             setShowFallback(true);
         } else {
             setTimeout(() => setShowFallback(false), 100);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isImageLoading]);
 
     return (
@@ -79,8 +82,14 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                             source={{uri: source}}
                             style={dimensions == null ? undefined : {width: dimensions.imageWidth, height: dimensions.imageHeight}}
                             isAuthTokenRequired={isAuthTokenRequired}
-                            onLoadStart={() => setIsImageLoading(true)}
-                            onLoadEnd={() => setIsImageLoading(false)}
+                            onLoadStart={() => {
+                                setIsImageLoading(true);
+                            }}
+                            onLoadEnd={() => {
+                                setShowFallback(false);
+                                setIsImageLoading(false);
+                                isImageLoaded.current = true;
+                            }}
                             onLoad={(evt) => {
                                 const imageWidth = (evt.nativeEvent?.width || 0) / PixelRatio.get();
                                 const imageHeight = (evt.nativeEvent?.height || 0) / PixelRatio.get();
@@ -106,8 +115,10 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
                                 // On the initial render of the active page, the onLoadEnd event is never fired.
                                 // That's why we instead set isImageLoading to false in the onLoad event.
                                 if (initialActivePageLoad) {
-                                    setIsImageLoading(false);
                                     setInitialActivePageLoad(false);
+                                    setIsImageLoading(false);
+                                    setTimeout(() => setShowFallback(false), 100);
+                                    isImageLoaded.current = true;
                                 }
                             }}
                         />
@@ -116,12 +127,24 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
             )}
 
             {/* Keep rendering the image without gestures as fallback while ImageTransformer is loading the image */}
-            {(!isActive || showFallback) && (
+            {(showFallback || !isActive) && (
                 <ImageWrapper>
                     <Image
                         source={{uri: source}}
                         isAuthTokenRequired={isAuthTokenRequired}
-                        onLoadStart={() => setIsImageLoading(true)}
+                        onLoadStart={() => {
+                            setIsImageLoading(true);
+                            if (isImageLoaded.current) {
+                                return;
+                            }
+                            setIsFallbackLoading(true);
+                        }}
+                        onLoadEnd={() => {
+                            if (isImageLoaded.current) {
+                                return;
+                            }
+                            setIsFallbackLoading(false);
+                        }}
                         onLoad={(evt) => {
                             const imageWidth = evt.nativeEvent.width;
                             const imageHeight = evt.nativeEvent.height;
@@ -149,7 +172,7 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialI
             )}
 
             {/* Show activity indicator while ImageTransfomer is still loading the image. */}
-            {isActive && isImageLoading && (
+            {isActive && isFallbackLoading && !isImageLoaded.current && (
                 <ActivityIndicator
                     size="large"
                     style={StyleSheet.absoluteFill}

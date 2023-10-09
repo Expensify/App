@@ -56,7 +56,6 @@ const defaultProps = {
     disabled: false,
     isSelected: false,
     subtitle: undefined,
-    subtitleTextStyle: {},
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
     onSecondaryInteraction: undefined,
@@ -76,7 +75,10 @@ const defaultProps = {
     title: '',
     numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
+    error: '',
     shouldRenderAsHTML: false,
+    rightComponent: undefined,
+    shouldShowRightComponent: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -130,6 +132,8 @@ const MenuItem = React.forwardRef((props, ref) => {
 
         return '';
     }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
+
+    const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
 
     return (
         <Hoverable>
@@ -276,6 +280,11 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                 {props.description}
                                             </Text>
                                         )}
+                                        {Boolean(props.error) && (
+                                            <View style={[styles.mt1]}>
+                                                <Text style={[styles.textLabelError]}>{props.error}</Text>
+                                            </View>
+                                        )}
                                         {Boolean(props.furtherDetails) && (
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                 <Icon
@@ -295,7 +304,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     </View>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
+                            <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
                                 {Boolean(props.badgeText) && (
                                     <Badge
                                         text={props.badgeText}
@@ -309,7 +318,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                                 {(props.subtitle || props.subtitle === 0) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                        <Text style={[props.subtitleTextStyle || styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
+                                        <Text style={[styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
                                     </View>
                                 )}
                                 {!_.isEmpty(props.floatRightAvatars) && (
@@ -340,6 +349,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         />
                                     </View>
                                 )}
+                                {props.shouldShowRightComponent && props.rightComponent}
                                 {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                             </View>
                         </>
