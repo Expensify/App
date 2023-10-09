@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -16,25 +15,11 @@ import CONST from '../../../../CONST';
 import StepScreenWrapper from './StepScreenWrapper';
 import reportPropTypes from '../../../reportPropTypes';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
+import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
-    /** React Navigation route */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
-
-            /** The ID of the transaction being configured */
-            transactionID: PropTypes.string,
-
-            /** The current step the user is on */
-            step: PropTypes.string,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /* Onyx Props */
     /** The report that the transaction belongs to */
