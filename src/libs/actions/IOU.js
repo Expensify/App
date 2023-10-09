@@ -2361,5 +2361,4 @@ export {
     replaceReceipt,
     detachReceipt,
     submitReport,
->>>>>>> main
 };
