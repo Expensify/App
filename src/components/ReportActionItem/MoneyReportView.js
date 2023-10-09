@@ -7,7 +7,6 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
-import CONST from '../../CONST';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -33,40 +32,40 @@ function MoneyReportView(props) {
     const {translate} = useLocalize();
 
     return (
-        <View>
-            <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
-                <AnimatedEmptyStateBackground />
-            </View>
-            <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
-                <View style={[styles.flex1, styles.justifyContentCenter]}>
-                    <Text
-                        style={[styles.textLabelSupporting, StyleUtils.getFontSizeStyle(variables.fontSizeNormal)]}
-                        numberOfLines={1}
-                    >
-                        {translate('common.total')}
-                    </Text>
+        <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
+            <AnimatedEmptyStateBackground />
+            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
+                    <View style={[styles.flex1, styles.justifyContentCenter]}>
+                        <Text
+                            style={[styles.textLabelSupporting, StyleUtils.getFontSizeStyle(variables.fontSizeNormal)]}
+                            numberOfLines={1}
+                        >
+                            {translate('common.total')}
+                        </Text>
+                    </View>
+                    <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                        {isSettled && (
+                            <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
+                                <Icon
+                                    src={Expensicons.Checkmark}
+                                    fill={themeColors.success}
+                                />
+                            </View>
+                        )}
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter]}
+                        >
+                            {formattedAmount}
+                        </Text>
+                    </View>
                 </View>
-                <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                    {isSettled && (
-                        <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
-                            <Icon
-                                src={Expensicons.Checkmark}
-                                fill={themeColors.success}
-                            />
-                        </View>
-                    )}
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.taskTitleMenuItem, styles.alignSelfCenter]}
-                    >
-                        {formattedAmount}
-                    </Text>
-                </View>
+                <SpacerView
+                    shouldShow={props.shouldShowHorizontalRule}
+                    style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+                />
             </View>
-            <SpacerView
-                shouldShow={props.shouldShowHorizontalRule}
-                style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
-            />
         </View>
     );
 }
