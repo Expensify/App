@@ -1,3 +1,4 @@
+import {CSSProperties} from 'react';
 import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
