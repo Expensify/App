@@ -1,6 +1,18 @@
 #!/bin/bash
 
-# Use functions and varaibles from the utils script
+# Utility script for iOS and Android Emulators
+# ============================================
+#
+# Purpose:
+# --------
+# This script helps to start and kill iOS simulators and Android emulators instances.
+#
+# How this script helps:
+# ----------------------
+# This script streamlines the process of starting and killing on both android and ios
+# platforms.
+
+# Use functions and variables from the utils script
 source scripts/shellUtils.sh
 
 select_device_ios()

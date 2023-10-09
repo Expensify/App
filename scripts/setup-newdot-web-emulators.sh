@@ -30,7 +30,7 @@
 # 3. all (default)
 # ./setup-newdot-web-emulators.sh platform
 
-# Use functions and varaibles from the utils script
+# Use functions and variables from the utils script
 source scripts/shellUtils.sh
 
 # Use functions to select and open the emulator for iOS and Android
@@ -125,7 +125,10 @@ if [ "$platform" = "ios" ] || [ "$platform" = "all" ]; then
 fi
 
 if [ "$platform" = "android" ] || [ "$platform" = "all" ]; then
-  setup_android
+  setup_android || { 
+    error "Failed to setup Android emulator"
+    exit 1 
+  }
 fi
 
 success "Done!"
