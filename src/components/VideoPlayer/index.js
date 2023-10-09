@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {Video, ResizeMode} from 'expo-av';
@@ -39,7 +39,7 @@ const defaultProps = {
 
 function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle}) {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {updateCurrentlyPlayingURL, volume} = usePlaybackContext();
     const [isVideoPlaying, setIsVideoPlaying] = React.useState(false);
     const [isVideoLoading, setIsVideoLoading] = React.useState(true);
     const [duration, setDuration] = React.useState(0);
@@ -61,9 +61,13 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         ref.current.presentFullscreenPlayer();
     };
 
-    const updateVolume = (volume) => {
-        ref.current.setStatusAsync({volume});
+    const updateVolume = (newVolume) => {
+        ref.current.setStatusAsync({volume: newVolume});
     };
+
+    useEffect(() => {
+        updateVolume(volume);
+    }, [volume]);
 
     return (
         <Hoverable>
@@ -104,7 +108,6 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             updatePostiion={updatePostiion}
                             enterFullScreenMode={enterFullScreenMode}
                             isPlaying={isVideoPlaying}
-                            updateVolume={updateVolume}
                         />
                     )}
                 </View>

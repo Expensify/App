@@ -1,29 +1,42 @@
 import React, {useState} from 'react';
-import PropTypes from 'prop-types';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Hoverable from '../Hoverable';
+import {usePlaybackContext} from '../PlaybackContext';
 
 const propTypes = {
-    updateVolume: PropTypes.func.isRequired,
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 const defaultProps = {};
 
-function ProgressBar({updateVolume}) {
+function ProgressBar({style}) {
+    const {updateVolume, volume} = usePlaybackContext();
     const [sliderHeight, setSliderHeight] = useState(1);
-    const progressHeight = useSharedValue(0);
+    const progressHeight = useSharedValue(volume * 100);
 
     const onSliderLayout = (e) => {
         setSliderHeight(e.nativeEvent.layout.height);
     };
 
+    const getVolumeIcon = () => {
+        if (volume === 0) {
+            return Expensicons.Mute;
+        }
+        if (volume <= 0.5) {
+            return Expensicons.VolumeLow;
+        }
+        return Expensicons.VolumeHigh;
+    };
+
     const pan = Gesture.Pan().onChange((event) => {
         progressHeight.value = Math.min(Math.max(100 - (event.y / sliderHeight) * 100, 0), 100);
-        updateVolume(progressHeight.value / 100);
+        updateVolume(Math.round(progressHeight.value) / 100);
     });
 
     const progressBarStyle = useAnimatedStyle(() => ({height: `${progressHeight.value}%`}));
@@ -31,7 +44,7 @@ function ProgressBar({updateVolume}) {
     return (
         <Hoverable>
             {(isHovered) => (
-                <Animated.View style={{padding: 5, position: 'relative'}}>
+                <Animated.View style={[{padding: 5, position: 'relative'}, style]}>
                     {isHovered && (
                         <View style={{position: 'absolute', left: 0, bottom: 0, width: '100%', height: 100, alignItems: 'center', borderRadius: 4, backgroundColor: '#085239'}}>
                             <GestureDetector gesture={pan}>
@@ -44,8 +57,9 @@ function ProgressBar({updateVolume}) {
                             </GestureDetector>
                         </View>
                     )}
+
                     <Icon
-                        src={Expensicons.VolumeHigh}
+                        src={getVolumeIcon()}
                         fill="white"
                     />
                 </Animated.View>

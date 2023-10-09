@@ -7,9 +7,14 @@ function PlaybackContextProvider({children}) {
     const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState(null);
     const [sharedElement, setSharedElement] = useState(null);
     const [originalParent, setOriginalParent] = useState(null);
+    const [volume, setVolume] = useState(0);
 
     const updateCurrentlyPlayingURL = useCallback((url) => {
         setCurrentlyPlayingURL(url);
+    }, []);
+
+    const updateVolume = useCallback((newVolume) => {
+        setVolume(newVolume);
     }, []);
 
     const updateSharedElements = (parent, child) => {
@@ -24,8 +29,10 @@ function PlaybackContextProvider({children}) {
             originalParent,
             sharedElement,
             updateSharedElements,
+            volume,
+            updateVolume,
         }),
-        [currentlyPlayingURL, originalParent, sharedElement, updateCurrentlyPlayingURL],
+        [currentlyPlayingURL, originalParent, sharedElement, updateCurrentlyPlayingURL, updateVolume, volume],
     );
     return <PlaybackContext.Provider value={contextValue}>{children}</PlaybackContext.Provider>;
 }

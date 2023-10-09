@@ -20,8 +20,6 @@ const propTypes = {
 
     enterFullScreenMode: PropTypes.func.isRequired,
 
-    updateVolume: PropTypes.func.isRequired,
-
     isPlaying: PropTypes.bool,
 };
 
@@ -29,7 +27,7 @@ const defaultProps = {
     isPlaying: false,
 };
 
-function VideoPlayerControls({duration, position, updatePostiion, togglePlay, enterFullScreenMode, updateVolume, isPlaying}) {
+function VideoPlayerControls({duration, position, updatePostiion, togglePlay, enterFullScreenMode, isPlaying}) {
     const [durationFormatted, setDurationFormatted] = React.useState('0:00');
 
     useEffect(() => {
@@ -66,7 +64,7 @@ function VideoPlayerControls({duration, position, updatePostiion, togglePlay, en
                     <Text style={{color: 'white', width: 35, textAlign: 'center'}}>{durationFormatted}</Text>
                 </View>
                 <View style={{flexDirection: 'row'}}>
-                    <VolumeButton updateVolume={updateVolume} />
+                    <VolumeButton style={{marginRight: 10}} />
                     <IconButton
                         src={Expensicons.Fullscreen}
                         fill="white"
