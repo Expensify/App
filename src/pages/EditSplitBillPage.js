@@ -133,7 +133,6 @@ function EditSplitBillRequestPage({report, route, draftSplitTransactions}) {
                 isEdittingSplitBill
                 onSubmit={(transactionChanges) => {
                     const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
-                    console.log('new amount', amount);
 
                     if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
                         Navigation.goBack();
