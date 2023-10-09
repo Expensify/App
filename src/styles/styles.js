@@ -3486,10 +3486,16 @@ const styles = (theme) => ({
 
     tabText: (isSelected) => ({
         marginLeft: 8,
-        fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
-        fontWeight: isSelected ? fontWeightBold : 400,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
         color: isSelected ? theme.textLight : theme.textSupporting,
     }),
+
+    tabBackground: (hovered, isFocused, background) => ({
+        backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+    }),
+
+    tabOpacity: (hovered, isFocused, activeOpacityValue, inactiveOpacityValue) => (hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue),
 
     /**
      * @param {String} backgroundColor
