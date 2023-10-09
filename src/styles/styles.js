@@ -782,12 +782,14 @@ const styles = (theme) => ({
     cameraView: {
         flex: 1,
         overflow: 'hidden',
-        padding: 10,
         borderRadius: 28,
         borderStyle: 'solid',
         borderWidth: 8,
         backgroundColor: theme.highlightBG,
         borderColor: theme.appBG,
+        display: 'flex',
+        justifyContent: 'center',
+        justifyItems: 'center',
     },
 
     permissionView: {
@@ -3698,8 +3700,9 @@ const styles = (theme) => ({
     },
     videoContainer: {
         ...flex.flex1,
+        ...flex.alignItemsCenter,
+        ...flex.justifyContentCenter,
         ...objectFit.oFCover,
-        borderRadius: variables.componentBorderRadiusCard,
     },
 
     walletCard: {

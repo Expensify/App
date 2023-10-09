@@ -173,17 +173,15 @@ function ReceiptSelector({route, transactionID, iou, report}) {
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
-                {(cameraPermissionState === 'prompt' || cameraPermissionState === 'unknown') && (
-                    <View style={[styles.cameraView]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={themeColors.textSupporting}
-                        />
-                    </View>
+                {(cameraPermissionState === 'prompt' || !cameraPermissionState) && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={themeColors.textSupporting}
+                    />
                 )}
                 {cameraPermissionState === 'denied' && (
-                    <View style={[styles.cameraView, styles.permissionView]}>
+                    <View style={[styles.flex1, styles.permissionView]}>
                         <Icon
                             src={Hand}
                             width={CONST.RECEIPT.HAND_ICON_WIDTH}
@@ -203,6 +201,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     videoConstraints={{facingMode: {exact: 'environment'}}}
                     torchOn={isFlashLightOn}
                     onTorchAvailability={setIsTorchAvailable}
+                    forceScreenshotSourceSize
                 />
             </View>
 
