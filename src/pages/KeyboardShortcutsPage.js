@@ -35,12 +35,8 @@ function KeyboardShortcutsPage() {
             key={shortcut.displayName}
             style={styles.mb5}
         >
-            <View style={styles.mb1}>
-                <Text style={styles.textStrong}>{shortcut.displayName}</Text>
-            </View>
-            <View>
-                <Text style={styles.textLabelSupporting}>{translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}`)}</Text>
-            </View>
+            <Text style={[styles.textStrong, styles.mb1]}>{shortcut.displayName}</Text>
+            <Text style={styles.textLabelSupporting}>{translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}`)}</Text>
         </View>
     );
 
