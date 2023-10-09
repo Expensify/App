@@ -131,7 +131,6 @@ function ReportActionItemMessageEdit(props) {
 
     useEffect(() => {
         InputFocus.composerFocusKeepFocusOn(textInputRef.current, isFocused, modal, onyxFocused);
-        return () => {};
     }, [isFocused, modal, onyxFocused]);
 
     useEffect(() => {
