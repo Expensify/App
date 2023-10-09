@@ -41,7 +41,7 @@ const defaultProps = {
     isInTabNavigator: true,
 };
 
-function ReceiptSelector({
+function IOURequestStepScan({
     report,
     route: {
         params: {iouType, reportID, transactionID},
@@ -196,12 +196,12 @@ function ReceiptSelector({
     );
 }
 
-ReceiptSelector.defaultProps = defaultProps;
-ReceiptSelector.propTypes = propTypes;
-ReceiptSelector.displayName = 'ReceiptSelector';
+IOURequestStepScan.defaultProps = defaultProps;
+IOURequestStepScan.propTypes = propTypes;
+IOURequestStepScan.displayName = 'IOURequestStepScan';
 
 export default withOnyx({
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
     },
-})(ReceiptSelector);
+})(IOURequestStepScan);

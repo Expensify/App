@@ -67,7 +67,7 @@ function getImagePickerOptions(type) {
     };
 }
 
-function ReceiptSelector({
+function IOURequestStepScan({
     report,
     route: {
         params: {iouType, reportID, transactionID, pageIndex},
@@ -326,8 +326,8 @@ function ReceiptSelector({
     );
 }
 
-ReceiptSelector.defaultProps = defaultProps;
-ReceiptSelector.propTypes = propTypes;
-ReceiptSelector.displayName = 'ReceiptSelector';
+IOURequestStepScan.defaultProps = defaultProps;
+IOURequestStepScan.propTypes = propTypes;
+IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-export default ReceiptSelector;
+export default IOURequestStepScan;
