@@ -24,7 +24,7 @@ type ChunkedDataEvents = {chunks: unknown[]; receivedFinal: boolean};
 
 type EventData = {id?: string; chunk?: unknown; final?: boolean; index: number};
 
-type SocketEventCallback<T> = (eventName: SocketEventName, data?: T) => void;
+type SocketEventCallback = (eventName: SocketEventName, data?: unknown) => void;
 
 type PusherWithAuthParams = InstanceType<typeof Pusher> & {
     config: {
@@ -51,13 +51,13 @@ Onyx.connect({
 
 let socket: PusherWithAuthParams | null;
 let pusherSocketID = '';
-const socketEventCallbacks: Array<SocketEventCallback<unknown>> = [];
+const socketEventCallbacks: SocketEventCallback[] = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
 
 /**
  * Trigger each of the socket event callbacks with the event information
  */
-function callSocketEventCallbacks<T>(eventName: SocketEventName, data?: T) {
+function callSocketEventCallbacks(eventName: SocketEventName, data?: unknown) {
     socketEventCallbacks.forEach((cb) => cb(eventName, data));
 }
 
@@ -301,7 +301,7 @@ function isSubscribed(channelName: string): boolean {
 /**
  * Sends an event over a specific event/channel in pusher.
  */
-function sendEvent<T>(channelName: string, eventName: PusherEventName, payload: T) {
+function sendEvent(channelName: string, eventName: PusherEventName, payload: Record<string, unknown>) {
     // Check to see if we are subscribed to this channel before sending the event. Sending client events over channels
     // we are not subscribed too will throw errors and cause reconnection attempts. Subscriptions are not instant and
     // can happen later than we expect.
@@ -315,8 +315,8 @@ function sendEvent<T>(channelName: string, eventName: PusherEventName, payload: 
 /**
  * Register a method that will be triggered when a socket event happens (like disconnecting)
  */
-function registerSocketEventCallback<T>(cb: SocketEventCallback<T>) {
-    socketEventCallbacks.push(cb as SocketEventCallback<unknown>);
+function registerSocketEventCallback(cb: SocketEventCallback) {
+    socketEventCallbacks.push(cb);
 }
 
 /**
