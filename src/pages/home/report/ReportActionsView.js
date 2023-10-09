@@ -108,9 +108,14 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         setFetchNewerWasCalled(false);
         setLinkingToMessageTrigger(true);
         props.fetchReport();
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
             setLinkingToMessageTrigger(false);
-        }, 300);
+        }, 500);
+
+        // Return a cleanup function
+        return () => {
+            clearTimeout(timeoutId);
+        };
         // setLinkingToMessageTrigger(true);
     }, [route, reportActionID]);
 
@@ -233,8 +238,6 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         // This should be removed once the issue of frequent re-renders is resolved.
         if (!isFetchNewerWasCalled) {
             setFetchNewerWasCalled(true);
-        // if (!isFetchNewerWasCalled.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
-        //     isFetchNewerWasCalled.current = true;
             return;
         }
         if (!isFetchNewerWasCalled || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
