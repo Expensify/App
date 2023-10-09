@@ -5,16 +5,16 @@ import variables from '../../styles/variables';
 type WindowDimensions = {
     windowWidth: number;
     windowHeight: number;
-    isExtraSmallScreenHeight: boolean,
-    isSmallScreenWidth: boolean,
-    isMediumScreenWidth: boolean,
-    isLargeScreenWidth: boolean,
-}
+    isExtraSmallScreenHeight: boolean;
+    isSmallScreenWidth: boolean;
+    isMediumScreenWidth: boolean;
+    isLargeScreenWidth: boolean;
+};
 
 /**
  * A convenience wrapper around React Native's useWindowDimensions hook that also provides booleans for our breakpoints.
  */
-export default function(): WindowDimensions {
+export default function (): WindowDimensions {
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
     const isExtraSmallScreenHeight = windowHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
     const isSmallScreenWidth = true;
