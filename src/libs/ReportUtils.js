@@ -3052,7 +3052,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
  * @returns {Array|undefined}
  */
 function getChatByParticipants(newParticipantList) {
-    newParticipantList.sort();
+    const sortedNewParticipantList = _.sortBy(newParticipantList);
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
         if (
@@ -3068,7 +3068,7 @@ function getChatByParticipants(newParticipantList) {
         }
 
         // Only return the chat if it has all the participants
-        return _.isEqual(newParticipantList, _.sortBy(report.participantAccountIDs));
+        return _.isEqual(sortedNewParticipantList, _.sortBy(report.participantAccountIDs));
     });
 }
 
@@ -3769,6 +3769,14 @@ function getIOUReportActionDisplayMessage(reportAction) {
     return displayMessage;
 }
 
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isReportDraft(report) {
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.OPEN && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.OPEN;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3912,4 +3920,5 @@ export {
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
+    isReportDraft,
 };
