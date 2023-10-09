@@ -57,12 +57,6 @@ const propTypes = {
     /** Route params */
     route: matchType.isRequired,
 
-    /** Login list for the user that is signed in */
-    loginList: PropTypes.shape({
-        /** Phone/Email associated with user */
-        partnerUserID: PropTypes.string,
-    }),
-
     /** Indicates whether the app is loading initial data */
     isLoadingReportData: PropTypes.bool,
 
@@ -72,7 +66,6 @@ const propTypes = {
 const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
-    loginList: {},
     isLoadingReportData: true,
 };
 
@@ -279,9 +272,6 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        loginList: {
-            key: ONYXKEYS.LOGIN_LIST,
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
