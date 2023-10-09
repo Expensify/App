@@ -76,7 +76,8 @@ class DatePicker extends React.Component {
     }
 
     render() {
-        const dateAsText = this.props.value || this.props.defaultValue ? format(new Date(this.props.value || this.props.defaultValue), CONST.DATE.FNS_FORMAT_STRING) : '';
+        const date = this.props.value || this.props.defaultValue;
+        const dateAsText = date ? format(new Date(date), CONST.DATE.FNS_FORMAT_STRING) : '';
         return (
             <>
                 <TextInput
