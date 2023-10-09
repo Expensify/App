@@ -64794,7 +64794,7 @@ const CONST_1 = __nccwpck_require__(4097);
 const newComponentCategory_1 = __nccwpck_require__(4749);
 const pathToAuthorChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md';
 const checklistStartsWith = '### PR Author Checklist';
-const checklistEndsWith = "\r\n### Screenshots/Videos";
+const checklistEndsWith = '\r\n### Screenshots/Videos';
 const prNumber = github_1.default.context.payload.pull_request?.number;
 const CHECKLIST_CATEGORIES = {
     NEW_COMPONENT: newComponentCategory_1.default,

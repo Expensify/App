@@ -7,7 +7,7 @@ import newComponentCategory from './newComponentCategory';
 
 const pathToAuthorChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md';
 const checklistStartsWith = '### PR Author Checklist';
-const checklistEndsWith = "\r\n### Screenshots/Videos";
+const checklistEndsWith = '\r\n### Screenshots/Videos';
 
 const prNumber = github.context.payload.pull_request?.number;
 
@@ -34,7 +34,7 @@ async function getChecklistCategoriesForPullRequest(): Promise<string[][]> {
             categories.push(category.items);
         }
         return categories;
-     }
+    }
     return categories;
 }
 
@@ -104,8 +104,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
             }
         }
     }
-    const allChecks = Object.values(CHECKLIST_CATEGORIES).reduce((acc: string[], category) =>
-        acc.concat(category.items), []);
+    const allChecks = Object.values(CHECKLIST_CATEGORIES).reduce((acc: string[], category) => acc.concat(category.items), []);
 
     for (const check of allChecks) {
         if (!checks.has(check)) {
