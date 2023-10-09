@@ -14,7 +14,6 @@ import {propTypes, defaultProps} from './kycWallPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ReportUtils from '../../libs/ReportUtils';
 
-const POPOVER_MENU_ANCHOR_POSITION_VERTICAL_OFFSET = 2;
 const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
 
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
@@ -23,7 +22,6 @@ const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
 function KYCWall({
     shouldListenForResize,
     chatReportID,
-    popoverPlacement,
     iouReport,
     fundList,
     reimbursementAccount,
@@ -33,6 +31,7 @@ function KYCWall({
     onSuccessfulKYC,
     addBankAccountRoute,
     addDebitCardRoute,
+    anchorAlignment,
     children,
 }) {
     const anchorRef = useRef(null);
@@ -50,9 +49,9 @@ function KYCWall({
      */
     const getAnchorPosition = useCallback(
         (domRect) => {
-            if (popoverPlacement === 'bottom') {
+            if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
                 return {
-                    anchorPositionVertical: domRect.top + (domRect.height - POPOVER_MENU_ANCHOR_POSITION_VERTICAL_OFFSET),
+                    anchorPositionVertical: domRect.top + domRect.height + CONST.MODAL.POPOVER_MENU_PADDING,
                     anchorPositionHorizontal: domRect.left + POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET,
                 };
             }
@@ -62,7 +61,7 @@ function KYCWall({
                 anchorPositionHorizontal: domRect.left,
             };
         },
-        [popoverPlacement],
+        [anchorAlignment.vertical],
     );
 
     /**
@@ -122,8 +121,10 @@ function KYCWall({
             return;
         }
 
-        transferBalanceButtonRef.current = event.nativeEvent.target;
+        // Use event target as fallback if anchorRef is null for safety
+        const targetElement = anchorRef.current || event.nativeEvent.target;
 
+        transferBalanceButtonRef.current = targetElement;
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const paymentCardList = fundList || {};
 
@@ -134,7 +135,7 @@ function KYCWall({
         ) {
             Log.info('[KYC Wallet] User does not have valid payment method');
 
-            const clickedElementLocation = getClickedTargetLocation(event.nativeEvent.target);
+            const clickedElementLocation = getClickedTargetLocation(targetElement);
             const position = getAnchorPosition(clickedElementLocation);
 
             setPositionAddPaymentMenu(position);
@@ -175,6 +176,7 @@ function KYCWall({
                 isVisible={shouldShowAddPaymentMenu}
                 onClose={() => setShouldShowAddPaymentMenu(false)}
                 anchorRef={anchorRef}
+                anchorAlignment={anchorAlignment}
                 anchorPosition={{
                     vertical: anchorPosition.anchorPositionVertical,
                     horizontal: anchorPosition.anchorPositionHorizontal,
