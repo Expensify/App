@@ -13,7 +13,6 @@ type OriginalMessageIOU = {
         currency: string;
         lastModified?: string;
         participantAccountIDs?: number[];
-        participants?: string[];
         type: string;
     };
 };
