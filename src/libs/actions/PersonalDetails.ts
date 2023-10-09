@@ -1,9 +1,9 @@
 import Str from 'expensify-common/lib/str';
-import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx, {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import * as OnyxTypes from '../../types/onyx';
+import {PersonalDetails, PrivatePersonalDetails, DateOfBirthForm} from '../../types/onyx';
 import {Timezone} from '../../types/onyx/PersonalDetails';
 import * as API from '../API';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
@@ -26,13 +26,13 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxCollection<OnyxTypes.PersonalDetails> = null;
+let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>> = null;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
 });
 
-let privatePersonalDetails: OnyxEntry<OnyxTypes.PrivatePersonalDetails> = null;
+let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails> = null;
 Onyx.connect({
     key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     callback: (val) => (privatePersonalDetails = val),
@@ -41,7 +41,7 @@ Onyx.connect({
 /**
  * Returns the displayName for a user
  */
-function getDisplayName(login: string, personalDetail: Pick<OnyxTypes.PersonalDetails, 'firstName' | 'lastName'> | null): string {
+function getDisplayName(login: string, personalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'> | null): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
@@ -82,7 +82,7 @@ function getDisplayNameForTypingIndicator(userAccountIDOrLogin: string, defaultD
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
  */
-function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: OnyxTypes.PersonalDetails): FirstAndLastName {
+function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
     if (firstName ?? lastName) {
         return {firstName: firstName ?? '', lastName: lastName ?? ''};
     }
@@ -199,7 +199,7 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
 /**
  * @param dob - date of birth
  */
-function updateDateOfBirth({dob}: OnyxTypes.DateOfBirthForm) {
+function updateDateOfBirth({dob}: DateOfBirthForm) {
     type UpdateDateOfBirthParams = {
         dob?: string;
     };
@@ -561,7 +561,7 @@ function clearAvatarErrors() {
 /**
  * Get private personal details value
  */
-function getPrivatePersonalDetails(): OnyxEntry<OnyxTypes.PrivatePersonalDetails> {
+function getPrivatePersonalDetails(): OnyxEntry<PrivatePersonalDetails> {
     return privatePersonalDetails;
 }
 
