@@ -24,7 +24,7 @@ const propTypes = {
 
 function AutoUpdateTime(props) {
     /**
-     * @returns {moment} Returns the locale moment object
+     * @returns {Date} Returns the locale Date object
      */
     const getCurrentUserLocalTime = useCallback(
         () => DateUtils.getLocalDateFromDatetime(props.preferredLocale, null, props.timezone.selected),
