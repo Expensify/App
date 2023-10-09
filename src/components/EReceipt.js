@@ -7,17 +7,15 @@ import * as StyleUtils from '../styles/StyleUtils';
 import transactionPropTypes from './transactionPropTypes';
 import styles from '../styles/styles';
 import * as Expensicons from './Icon/Expensicons';
-import * as MCCIcons from './Icon/MCCIcons';
 import Icon from './Icon';
-import Image from './Image';
 import Text from './Text';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import * as CardUtils from '../libs/CardUtils';
 import variables from '../styles/variables';
 import useLocalize from '../hooks/useLocalize';
-import * as EReceiptBGs from './Icon/EReceiptBGs';
 import CONST from '../CONST';
+import EReceiptThumbnail from './EReceiptThumbnail';
 
 const propTypes = {
     /* transactionID */
@@ -39,49 +37,29 @@ function EReceipt({transaction, transactionID}) {
     const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
     const primaryColor = colorStyles.backgroundColor;
     const secondaryColor = colorStyles.color;
-    const backgroundImage = EReceiptBGs[`EReceiptBG_${colorCode}`];
 
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
         merchant: transactionMerchant,
         createdMMDYYYY: transactionDate,
-        mccGroup: transactionMCCGroup,
         cardID: transactionCardID,
     } = ReportUtils.getTransactionDetails(transaction);
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency);
     const amount = formattedAmount.replace(currency, '');
-    const MCCIcon = MCCIcons[`${transactionMCCGroup}`];
     const cardDescription = CardUtils.getCardDescription(transactionCardID);
 
     return (
         <View style={[styles.eReceiptContainer, StyleUtils.getBackgroundColorStyle(primaryColor)]}>
-            <Image
-                source={backgroundImage}
-                style={styles.eReceiptBackground}
-            />
+            <View style={styles.fullScreen}>
+                <EReceiptThumbnail transactionID={transaction.transactionID} />
+            </View>
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pb14, styles.pt8]}>
-                <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.eReceiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <Icon
-                        src={Expensicons.EReceiptIcon}
-                        height={variables.eReceiptIconHeight}
-                        width={variables.eReceiptIconWidth}
-                        fill={secondaryColor}
-                        additionalStyles={[styles.eReceiptBackground]}
-                    />
-                    {MCCIcon ? (
-                        <Icon
-                            src={MCCIcon}
-                            height={variables.eReceiptMCCHeightWidth}
-                            width={variables.eReceiptMCCHeightWidth}
-                            fill={primaryColor}
-                        />
-                    ) : null}
-                </View>
+                <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.eReceiptIconHeight)]} />
             </View>
             <View style={[styles.flexColumn, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph9, styles.flex1]}>
-                <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2, {marginBottom: 32}]}>
+                <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2, styles.mb8]}>
                     <View style={[styles.flexRow, styles.justifyContentCenter]}>
                         <View style={[styles.flexColumn, styles.pt1]}>
                             <Text style={[styles.eReceiptCurrency, StyleUtils.getColorStyle(secondaryColor)]}>{currency}</Text>
