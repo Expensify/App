@@ -448,25 +448,16 @@ function ComposerWithSuggestions({
         textInputRef.current.blur();
     }, []);
 
-    const focusWithScrolledToBottom = useCallback(() => {
-        // `shouldAutoFocus` determines if component should focus or not.
-        if (isNativeApp || !shouldAutoFocus) {
+    useEffect(() => {
+        // Initial focus ref to prevent unneccessary focus after first render.
+        if (initialFocusedRef.current || isNativeApp || !shouldAutoFocus) {
             return;
         }
 
         // Set the `selection at end` and `scrolls input to bottom` for `Web Platforms`.
         updateMultilineInputRange(textInputRef.current);
-    }, [shouldAutoFocus]);
-
-    useEffect(() => {
-        // Initial focus ref to prevent unneccessary focus after first render.
-        if (initialFocusedRef.current) {
-            return;
-        }
-
         initialFocusedRef.current = true;
-        focusWithScrolledToBottom();
-    }, [focusWithScrolledToBottom]);
+    }, [shouldAutoFocus]);
 
     useEffect(() => {
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
