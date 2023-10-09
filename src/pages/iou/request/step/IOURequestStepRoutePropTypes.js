@@ -1,16 +1,18 @@
+import _ from 'underscore';
 import PropTypes from 'prop-types';
+import CONST from '../../../../CONST';
 
 export default PropTypes.shape({
     /** Route specific parameters used on this screen via route :iouType/new/category/:reportID? */
     params: PropTypes.shape({
         /** The type of IOU report, i.e. bill, request, send */
-        iouType: PropTypes.string.isRequired,
+        iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
         /** The ID of the transaction being configured */
         transactionID: PropTypes.string.isRequired,
 
         /** The current step the user is on */
-        step: PropTypes.string,
+        step: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_STEPS)),
 
         /** The report ID of the IOU */
         reportID: PropTypes.string.isRequired,

@@ -13,7 +13,6 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import useLocalize from '../../../hooks/useLocalize';
 import styles from '../../../styles/styles';
 import DragAndDropProvider from '../../../components/DragAndDrop/Provider';
-import * as IOUUtils from '../../../libs/IOUUtils';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import OnyxTabNavigator, {TopTab} from '../../../libs/Navigation/OnyxTabNavigator';
 import TabSelector from '../../../components/TabSelector/TabSelector';
@@ -24,19 +23,11 @@ import IOURequestStepScan from './step/IOURequestStepScan';
 import * as IOU from '../../../libs/actions/IOU';
 import usePrevious from '../../../hooks/usePrevious';
 import * as TransactionUtils from '../../../libs/TransactionUtils';
+import IOURequestStepRoutePropTypes from './step/IOURequestStepRoutePropTypes';
 
 const propTypes = {
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU being created */
-            iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)).isRequired,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /** The tab to select by default (whatever the user visited last) */
     selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
@@ -53,7 +44,7 @@ const defaultProps = {
 function IOURequestStartPage({
     route,
     route: {
-        params: {iouType, reportID},
+        params: {iouType, reportID, step},
     },
     selectedTab,
     transaction,
@@ -68,6 +59,19 @@ function IOURequestStartPage({
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const previousIOURequestType = usePrevious(transactionRequestType.current);
 
+    // Clear out the temporary money request when this component is unmounted
+    useEffect(
+        () => () => {
+            IOU.startMoneeRequest('');
+        },
+        [],
+    );
+
+    const iouTypeParamIsInvalid = !_.contains(_.values(CONST.IOU.TYPE), iouType);
+    if (iouTypeParamIsInvalid) {
+        return <FullPageNotFoundView shouldShow />;
+    }
+
     const goBack = () => {
         Navigation.dismissModal();
     };
@@ -80,14 +84,6 @@ function IOURequestStartPage({
         transactionRequestType.current = newIouType;
     };
 
-    // Clear out the temporary money request when this component is unmounted
-    useEffect(
-        () => () => {
-            IOU.startMoneeRequest('');
-        },
-        [],
-    );
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -96,36 +92,34 @@ function IOURequestStartPage({
             testID={IOURequestStartPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <DragAndDropProvider
-                        isDisabled={iouType !== CONST.TAB_REQUEST.SCAN}
-                        setIsDraggingOver={setIsDraggingOver}
-                    >
-                        <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                            <HeaderWithBackButton
-                                title={tabTitles[iouType]}
-                                onBackButtonPress={goBack}
-                            />
+                <DragAndDropProvider
+                    isDisabled={iouType !== CONST.TAB_REQUEST.SCAN}
+                    setIsDraggingOver={setIsDraggingOver}
+                >
+                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                        <HeaderWithBackButton
+                            title={tabTitles[iouType]}
+                            onBackButtonPress={goBack}
+                        />
 
-                            <OnyxTabNavigator
-                                id={CONST.TAB.IOU_REQUEST_TYPE}
-                                selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.MANUAL}
-                                onTabSelected={resetIouTypeIfChanged}
-                                tabBar={({state, navigation, position}) => (
-                                    <TabSelector
-                                        state={state}
-                                        navigation={navigation}
-                                        position={position}
-                                    />
-                                )}
-                            >
-                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
-                                <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
-                                <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>
-                            </OnyxTabNavigator>
-                        </View>
-                    </DragAndDropProvider>
-                </FullPageNotFoundView>
+                        <OnyxTabNavigator
+                            id={CONST.TAB.IOU_REQUEST_TYPE}
+                            selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.MANUAL}
+                            onTabSelected={resetIouTypeIfChanged}
+                            tabBar={({state, navigation, position}) => (
+                                <TabSelector
+                                    state={state}
+                                    navigation={navigation}
+                                    position={position}
+                                />
+                            )}
+                        >
+                            <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
+                            <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>
+                        </OnyxTabNavigator>
+                    </View>
+                </DragAndDropProvider>
             )}
         </ScreenWrapper>
     );

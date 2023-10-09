@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
 
@@ -15,33 +14,24 @@ import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepCurrency from './step/IOURequestStepCurrency';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepMerchant from './step/IOURequestStepMerchant';
+import IOURequestStepRoutePropTypes from './step/IOURequestStepRoutePropTypes';
 
 const propTypes = {
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU being created */
-            iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)).isRequired,
-
-            /** The optimistic ID of a new transaction that is being created */
-            transactionID: PropTypes.string.isRequired,
-
-            /** Which step the user is modifying */
-            step: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_STEPS)),
-
-            /** reportID if a transaction is attached to a specific report */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 };
 
 function IOURequestStepPage({
     route,
     route: {
-        params: {step},
+        params: {iouType, step},
     },
 }) {
+    const iouTypeParamIsInvalid = !_.contains(_.values(CONST.IOU.TYPE), iouType);
+    const stepParamIsInvalid = !_.contains(_.values(CONST.IOU.REQUEST_STEPS), step);
+    if (iouTypeParamIsInvalid || stepParamIsInvalid) {
+        return <FullPageNotFoundView shouldShow />;
+    }
     return (
         <>
             {step === CONST.IOU.REQUEST_STEPS.AMOUNT && <IOURequestStepAmount route={route} />}
@@ -55,7 +45,6 @@ function IOURequestStepPage({
             {step === CONST.IOU.REQUEST_STEPS.MERCHANT && <IOURequestStepMerchant route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.WAYPOINT && <IOURequestStepWaypoint route={route} />}
             {step === CONST.IOU.REQUEST_STEPS.DISTANCE && <IOURequestStepDistance route={route} />}
-            {!_.contains(_.values(CONST.IOU.REQUEST_STEPS), step) && <FullPageNotFoundView shouldShow />}
         </>
     );
 }
