@@ -83,7 +83,7 @@ setup_android_path_1()
   sleep 2
   adb remount
   adb push /etc/hosts /system/etc/hosts
-  kill_all_emulators_android
+  # kill_all_emulators_android
 }
 
 setup_android_path_2()
@@ -102,13 +102,14 @@ setup_android_path_2()
   sleep 2
   adb remount
   adb push /etc/hosts /system/etc/hosts
-  kill_all_emulators_android
+  # kill_all_emulators_android
 }
 
 setup_android()
 {
   select_device_android
-  sleep 5
+  sleep 30
+  ensure_device_available
   info "Installing certificates on Android emulator"
   setup_android_path_1 || {
     info "Looks like the system partition is read-only"
