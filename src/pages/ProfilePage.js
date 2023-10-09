@@ -34,8 +34,9 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import BlockingView from '../components/BlockingViews/BlockingView';
 import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
-import ROUTES from '../ROUTES';
 import * as ValidationUtils from '../libs/ValidationUtils';
+import Permissions from '../libs/Permissions';
+import ROUTES from '../ROUTES';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -98,17 +99,11 @@ const getPhoneNumber = (details) => {
 function ProfilePage(props) {
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (ValidationUtils.isValidAccountRoute(accountID)) {
-            PersonalDetails.openPublicProfilePage(accountID);
-        }
-    }, [accountID]);
-
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
+    const fallbackIcon = lodashGet(details, 'fallbackIcon', '');
     const originalFileName = lodashGet(details, 'originalFileName', '');
     const login = lodashGet(details, 'login', '');
     const timezone = lodashGet(details, 'timezone', {});
@@ -127,17 +122,33 @@ function ProfilePage(props) {
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
     const isCurrentUser = _.keys(props.loginList).includes(login);
-    const hasMinimumDetails = !_.isEmpty(details.avatar);
+    const hasMinimumDetails = !_.isEmpty(details.avatar) && !_.isUndefined(details.displayName);
     const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details) || props.isLoadingReportData;
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
 
+    const statusEmojiCode = lodashGet(details, 'status.emojiCode', '');
+    const statusText = lodashGet(details, 'status.text', '');
+    const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
+    const statusContent = `${statusEmojiCode}  ${statusText}`;
+
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
+
+    const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : 0;
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (ValidationUtils.isValidAccountRoute(accountID) && !hasMinimumDetails) {
+            PersonalDetails.openPublicProfilePage(accountID);
+        }
+    }, [accountID, hasMinimumDetails]);
+
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={ProfilePage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
+                onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
             />
             <View
                 pointerEvents="box-none"
@@ -151,6 +162,7 @@ function ProfilePage(props) {
                                 source={UserUtils.getFullSizeAvatar(avatar, accountID)}
                                 isAuthTokenRequired
                                 originalFileName={originalFileName}
+                                fallbackSource={fallbackIcon}
                             >
                                 {({show}) => (
                                     <PressableWithoutFocus
@@ -165,6 +177,7 @@ function ProfilePage(props) {
                                                 imageStyles={[styles.avatarLarge]}
                                                 source={UserUtils.getAvatar(avatar, accountID)}
                                                 size={CONST.AVATAR_SIZE.LARGE}
+                                                fallbackIcon={fallbackIcon}
                                             />
                                         </OfflineWithFeedback>
                                     </PressableWithoutFocus>
@@ -178,6 +191,18 @@ function ProfilePage(props) {
                                     {displayName}
                                 </Text>
                             )}
+                            {hasStatus && (
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.mb1]}
+                                        numberOfLines={1}
+                                    >
+                                        {props.translate('statusPage.status')}
+                                    </Text>
+                                    <Text>{statusContent}</Text>
+                                </View>
+                            )}
+
                             {login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
                                     <Text
@@ -209,10 +234,22 @@ function ProfilePage(props) {
                         {!isCurrentUser && !Session.isAnonymousUser() && (
                             <MenuItem
                                 title={`${props.translate('common.message')}${displayName}`}
+                                titleStyle={styles.flex1}
                                 icon={Expensicons.ChatBubble}
                                 onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
+                            />
+                        )}
+                        {!_.isEmpty(chatReportWithCurrentUser) && (
+                            <MenuItem
+                                title={`${props.translate('privateNotes.title')}`}
+                                titleStyle={styles.flex1}
+                                icon={Expensicons.Pencil}
+                                onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(chatReportWithCurrentUser.reportID))}
+                                wrapperStyle={styles.breakAll}
+                                shouldShowRightIcon
+                                brickRoadIndicator={Report.hasErrorInPrivateNotes(chatReportWithCurrentUser) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             />
                         )}
                     </ScrollView>
@@ -224,6 +261,8 @@ function ProfilePage(props) {
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={props.translate('notFound.notHere')}
+                        shouldShowLink
+                        link={props.translate('notFound.goBackHome')}
                     />
                 )}
             </View>
@@ -246,6 +285,9 @@ export default compose(
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(ProfilePage);

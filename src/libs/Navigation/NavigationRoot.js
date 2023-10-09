@@ -1,8 +1,8 @@
-import React, {useRef, useEffect} from 'react';
+import React, {useRef, useEffect, useContext} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
-import {useFlipper} from '@react-navigation/devtools';
 import {useSharedValue, useAnimatedReaction, interpolateColor, withTiming, withDelay, Easing, runOnJS} from 'react-native-reanimated';
+import useFlipper from '../../hooks/useFlipper';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
@@ -11,6 +11,7 @@ import Log from '../Log';
 import StatusBar from '../StatusBar';
 import useCurrentReportID from '../../hooks/useCurrentReportID';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import {SidebarNavigationContext} from '../../pages/home/sidebar/SidebarNavigationContext';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -52,8 +53,8 @@ function parseAndLogRoute(state) {
 
 function NavigationRoot(props) {
     useFlipper(navigationRef);
-    const navigationStateRef = useRef(undefined);
     const firstRenderRef = useRef(true);
+    const globalNavigation = useContext(SidebarNavigationContext);
 
     const {updateCurrentReportID} = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -72,6 +73,14 @@ function NavigationRoot(props) {
         Navigation.setShouldPopAllStateOnUP();
     }, [isSmallScreenWidth]);
 
+    useEffect(() => {
+        if (!navigationRef.isReady() || !props.authenticated) {
+            return;
+        }
+        // We need to force state rehydration so the CustomRouter can add the CentralPaneNavigator route if necessary.
+        navigationRef.resetRoot(navigationRef.getRootState());
+    }, [isSmallScreenWidth, props.authenticated]);
+
     const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
     const statusBarBackgroundColor = useRef(themeColors.appBG);
     const statusBarAnimation = useSharedValue(0);
@@ -79,7 +88,12 @@ function NavigationRoot(props) {
     const updateStatusBarBackgroundColor = (color) => StatusBar.setBackgroundColor(color);
     useAnimatedReaction(
         () => statusBarAnimation.value,
-        () => {
+        (current, previous) => {
+            // Do not run if either of the animated value is null
+            // or previous animated value is greater than or equal to the current one
+            if ([current, previous].includes(null) || current <= previous) {
+                return;
+            }
             const color = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
             runOnJS(updateStatusBarBackgroundColor)(color);
         },
@@ -91,7 +105,8 @@ function NavigationRoot(props) {
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
-        if (prevStatusBarBackgroundColor.current === statusBarBackgroundColor.current) {
+
+        if (currentScreenBackgroundColor === themeColors.appBG && prevStatusBarBackgroundColor.current === themeColors.appBG) {
             return;
         }
 
@@ -105,21 +120,24 @@ function NavigationRoot(props) {
         );
     };
 
-    const updateSavedNavigationStateAndLogRoute = (state) => {
+    const handleStateChange = (state) => {
         if (!state) {
             return;
         }
-        navigationStateRef.current = state;
-        updateCurrentReportID(state);
+        // Performance optimization to avoid context consumers to delay first render
+        setTimeout(() => {
+            updateCurrentReportID(state);
+        }, 0);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
+
+        // Update the global navigation to show the correct selected menu items.
+        globalNavigation.updateFromNavigationState(state);
     };
 
     return (
         <NavigationContainer
-            key={isSmallScreenWidth ? 'small' : 'big'}
-            onStateChange={updateSavedNavigationStateAndLogRoute}
-            initialState={navigationStateRef.current}
+            onStateChange={handleStateChange}
             onReady={props.onReady}
             theme={navigationTheme}
             ref={navigationRef}

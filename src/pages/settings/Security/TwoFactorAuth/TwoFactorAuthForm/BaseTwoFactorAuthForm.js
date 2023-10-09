@@ -75,6 +75,12 @@ function BaseTwoFactorAuthForm(props) {
         validateAndSubmitForm() {
             validateAndSubmitForm();
         },
+        focus() {
+            if (!inputRef.current) {
+                return;
+            }
+            inputRef.current.focus();
+        },
     }));
 
     return (
@@ -89,6 +95,7 @@ function BaseTwoFactorAuthForm(props) {
             onFulfill={validateAndSubmitForm}
             errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ErrorUtils.getLatestErrorMessage(props.account)}
             ref={inputRef}
+            autoFocus={false}
         />
     );
 }

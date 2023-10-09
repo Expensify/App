@@ -50,6 +50,7 @@ const defaultProps = {
         height: 0,
         width: 0,
     },
+    withoutOverlay: false,
 };
 
 /**
@@ -130,7 +131,7 @@ function PopoverWithMeasuredContent(props) {
     const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight);
     const shiftedAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
-        top: adjustedAnchorPosition.top + verticalShift,
+        bottom: windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift,
     };
     return isContentMeasured ? (
         <Popover
@@ -138,7 +139,7 @@ function PopoverWithMeasuredContent(props) {
             {...props}
             anchorPosition={shiftedAnchorPosition}
         >
-            {props.children}
+            <View onLayout={measurePopover}>{props.children}</View>
         </Popover>
     ) : (
         /*
@@ -148,7 +149,7 @@ function PopoverWithMeasuredContent(props) {
             but we can't measure its dimensions without first rendering it.
         */
         <View
-            style={styles.invisible}
+            style={styles.invisiblePopover}
             onLayout={measurePopover}
         >
             {props.children}

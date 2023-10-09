@@ -2,6 +2,7 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'lodash';
 import CONST from '../CONST';
 import Banner from './Banner';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -13,6 +14,7 @@ import reportPropTypes from '../pages/reportPropTypes';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import styles from '../styles/styles';
 import * as PersonalDetailsUtils from '../libs/PersonalDetailsUtils';
+import ArchivedReportFooterSkeletonView from './ArchivedReportFooterSkeletonView';
 
 const propTypes = {
     /** The reason this report was archived */
@@ -49,6 +51,9 @@ const defaultProps = {
 };
 
 function ArchivedReportFooter(props) {
+    if (!props.reportClosedAction.reportActionID) {
+        return <ArchivedReportFooterSkeletonView />;
+    }
     const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
     let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [props.report.ownerAccountID, 'displayName']);
 
@@ -60,15 +65,25 @@ function ArchivedReportFooter(props) {
         oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [oldAccountID, 'displayName']);
     }
 
+    const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+
+    let policyName = ReportUtils.getPolicyName(props.report);
+
+    if (shouldRenderHTML) {
+        oldDisplayName = _.escape(oldDisplayName);
+        displayName = _.escape(displayName);
+        policyName = _.escape(policyName);
+    }
+
     return (
         <Banner
             containerStyles={[styles.archivedReportFooter]}
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
                 displayName: `<strong>${displayName}</strong>`,
                 oldDisplayName: `<strong>${oldDisplayName}</strong>`,
-                policyName: `<strong>${ReportUtils.getPolicyName(props.report)}</strong>`,
+                policyName: `<strong>${policyName}</strong>`,
             })}
-            shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
+            shouldRenderHTML={shouldRenderHTML}
             shouldShowIcon
         />
     );

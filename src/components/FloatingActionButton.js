@@ -9,6 +9,7 @@ import themeColors from '../styles/themes/default';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import variables from '../styles/variables';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
@@ -23,7 +24,14 @@ const propTypes = {
     // Current state (active or not active) of the component
     isActive: PropTypes.bool.isRequired,
 
+    // Ref for the button
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    buttonRef: () => {},
 };
 
 class FloatingActionButton extends PureComponent {
@@ -75,7 +83,12 @@ class FloatingActionButton extends PureComponent {
             <Tooltip text={this.props.translate('common.new')}>
                 <View style={styles.floatingActionButtonContainer}>
                     <AnimatedPressable
-                        ref={(el) => (this.fabPressable = el)}
+                        ref={(el) => {
+                            this.fabPressable = el;
+                            if (this.props.buttonRef) {
+                                this.props.buttonRef.current = el;
+                            }
+                        }}
                         accessibilityLabel={this.props.accessibilityLabel}
                         accessibilityRole={this.props.accessibilityRole}
                         pressDimmingValue={1}
@@ -88,6 +101,8 @@ class FloatingActionButton extends PureComponent {
                         style={[styles.floatingActionButton, StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
                     >
                         <AnimatedIcon
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
                             src={Expensicons.Plus}
                             fill={fill}
                         />
@@ -99,5 +114,14 @@ class FloatingActionButton extends PureComponent {
 }
 
 FloatingActionButton.propTypes = propTypes;
+FloatingActionButton.defaultProps = defaultProps;
 
-export default withLocalize(FloatingActionButton);
+const FloatingActionButtonWithLocalize = withLocalize(FloatingActionButton);
+
+export default React.forwardRef((props, ref) => (
+    <FloatingActionButtonWithLocalize
+        // eslint-disable-next-line
+        {...props}
+        buttonRef={ref}
+    />
+));

@@ -22,6 +22,7 @@ const Default = Template.bind({});
 Default.args = {
     onPress: () => {},
     isChecked: true,
+    accessibilityLabel: '',
 };
 
 export {Default};

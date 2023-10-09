@@ -136,7 +136,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
         try {
             data = _.isObject(eventData) ? eventData : JSON.parse(eventData);
         } catch (err) {
-            Log.alert('[Pusher] Unable to parse JSON response from Pusher', {error: err, eventData});
+            Log.alert('[Pusher] Unable to parse single JSON event data from Pusher', {error: err, eventData});
             return;
         }
         if (data.id === undefined || data.chunk === undefined || data.final === undefined) {
@@ -172,6 +172,9 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
                     error: err,
                     eventData: chunkedEvent.chunks.join(''),
                 });
+
+                // Using console.error is helpful here because it will print a usable stack trace to the console to debug where the error comes from
+                console.error(err);
             }
 
             delete chunkedDataEvents[data.id];
@@ -314,6 +317,11 @@ function sendEvent(channelName, eventName, payload) {
     // we are not subscribed too will throw errors and cause reconnection attempts. Subscriptions are not instant and
     // can happen later than we expect.
     if (!isSubscribed(channelName)) {
+        return;
+    }
+
+    if (shouldForceOffline) {
+        Log.info('[Pusher] Ignoring a Send event because shouldForceOffline = true');
         return;
     }
 

@@ -29,8 +29,8 @@ const propTypes = {
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
-    /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    /** List of user cards */
+    fundList: PropTypes.objectOf(cardPropTypes),
 
     /** The user's wallet (coming from Onyx) */
     userWallet: userWalletPropTypes,
@@ -56,7 +56,7 @@ const defaultProps = {
     allPolicyMembers: {},
     policies: {},
     bankAccountList: {},
-    cardList: {},
+    fundList: null,
     userWallet: {},
     walletTerms: {},
     loginList: {},
@@ -68,12 +68,14 @@ function Indicator(props) {
     const cleanPolicies = _.pick(props.policies, (policy) => policy);
     const cleanAllPolicyMembers = _.pick(props.allPolicyMembers, (policyMembers) => policyMembers);
 
+    const paymentCardList = props.fundList || {};
+
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
     // we only care if a single error / info condition exists anywhere.
     const errorCheckingMethods = [
         () => !_.isEmpty(props.userWallet.errors),
-        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
+        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList),
         () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
         () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
         () => _.some(cleanAllPolicyMembers, PolicyUtils.hasPolicyMemberError),
@@ -110,8 +112,8 @@ export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
+    fundList: {
+        key: ONYXKEYS.FUND_LIST,
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,

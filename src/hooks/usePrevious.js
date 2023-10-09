@@ -7,7 +7,7 @@ import {useEffect, useRef} from 'react';
  * @returns {*}
  */
 export default function usePrevious(value) {
-    const ref = useRef();
+    const ref = useRef(value);
     useEffect(() => {
         ref.current = value;
     }, [value]);

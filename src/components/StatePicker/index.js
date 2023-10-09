@@ -1,12 +1,14 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import styles from '../../styles/styles';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import useLocalize from '../../hooks/useLocalize';
 import FormHelpMessage from '../FormHelpMessage';
 import StateSelectorModal from './StateSelectorModal';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Error text to display */
@@ -19,7 +21,10 @@ const propTypes = {
     onInputChange: PropTypes.func,
 
     /** A ref to forward to MenuItemWithTopDescription */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
+
+    /** Label to display on field */
+    label: PropTypes.string,
 };
 
 const defaultProps = {
@@ -27,17 +32,13 @@ const defaultProps = {
     forwardedRef: undefined,
     errorText: '',
     onInputChange: () => {},
+    label: undefined,
 };
 
-function StatePicker({value, errorText, onInputChange, forwardedRef}) {
+function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
     const {translate} = useLocalize();
-    const allStates = translate('allStates');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${value}.stateName`, ''));
-
-    useEffect(() => {
-        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
-    }, [value, allStates]);
+    const [searchValue, setSearchValue] = useState('');
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
@@ -48,11 +49,13 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
     };
 
     const updateStateInput = (state) => {
-        onInputChange(state.value);
+        if (state.value !== value) {
+            onInputChange(state.value);
+        }
         hidePickerModal();
     };
 
-    const title = allStates[value] ? allStates[value].stateName : '';
+    const title = value && _.keys(COMMON_CONST.STATES).includes(value) ? translate(`allStates.${value}.stateName`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
@@ -61,7 +64,7 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
                 ref={forwardedRef}
                 shouldShowRightIcon
                 title={title}
-                description={translate('common.state')}
+                description={label || translate('common.state')}
                 descriptionTextStyle={descStyle}
                 onPress={showPickerModal}
             />
@@ -75,6 +78,7 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
                 onStateSelected={updateStateInput}
                 searchValue={searchValue}
                 setSearchValue={setSearchValue}
+                label={label}
             />
         </View>
     );
