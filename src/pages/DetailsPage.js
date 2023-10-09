@@ -50,8 +50,8 @@ const propTypes = {
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
     }),
 
     ...withLocalizePropTypes,
@@ -61,7 +61,7 @@ const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
     session: {
-        email: '',
+        accountID: 0,
     },
 };
 
@@ -122,7 +122,7 @@ function DetailsPage(props) {
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
 
-    const isCurrentUser = props.session.email === login.toLowerCase();
+    const isCurrentUser = props.session.accountID === details.accountID;
 
     return (
         <ScreenWrapper testID={DetailsPage.displayName}>
