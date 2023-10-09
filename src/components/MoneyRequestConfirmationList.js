@@ -144,6 +144,9 @@ const propTypes = {
     /** Whether the receipt associated with this report is being scanned */
     isScanning: PropTypes.bool,
 
+    /** A flag for verifying that the current report is a sub-report of a workspace chat */
+    isPolicyExpenseChat: PropTypes.bool,
+
     /* Onyx Props */
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
@@ -180,6 +183,7 @@ const defaultProps = {
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
     isDistanceRequest: false,
     isScanning: false,
+    isPolicyExpenseChat: false,
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -197,11 +201,8 @@ function MoneyRequestConfirmationList(props) {
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
 
-    // A flag for verifying that the current report is a sub-report of a workspace chat
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(ReportUtils.getReport(props.reportID))), [props.reportID]);
-
     // A flag for showing the categories field
-    const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories));
+    const shouldShowCategories = props.isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories));
 
     // A flag for showing SmartScan fields: date, merchant, and amount, only when we don't have a receiptPath (e.g. manual request)
     // or in the split details page which is ReadOnly
@@ -213,7 +214,7 @@ function MoneyRequestConfirmationList(props) {
     const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
     const canUseTags = Permissions.canUseTags(props.betas);
     // A flag for showing the tags field
-    const shouldShowTags = isPolicyExpenseChat && canUseTags && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+    const shouldShowTags = props.isPolicyExpenseChat && canUseTags && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
 
     // A flag for showing the billable field
     const shouldShowBillable = canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
