@@ -141,7 +141,7 @@ function MoneyRequestConfirmPage(props) {
         }
         Navigation.goBack(fallback);
     };
-    
+
     /**
      * @param {Array} selectedParticipants
      * @param {String} trimmedComment
