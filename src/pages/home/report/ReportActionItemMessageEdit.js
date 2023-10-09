@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {useState, useRef, useMemo, useEffect, useCallback} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, Platform, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -130,7 +130,10 @@ function ReportActionItemMessageEdit(props) {
     }, [isFocused]);
 
     useEffect(() => {
-        InputFocus.composerFocusKeepFocusOn(textInputRef.current, isFocused, modal, onyxFocused);
+        if (Platform.OS === "web" && !Browser.isMobile()) {
+            InputFocus.composerFocusKeepFocusOn(textInputRef.current, isFocused, modal, onyxFocused);
+        }
+        return ()=>{}
     }, [isFocused, modal, onyxFocused]);
 
     useEffect(() => {
@@ -265,8 +268,10 @@ function ReportActionItemMessageEdit(props) {
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
-        setIsFocused(false);
-        InputFocus.inputFocusChange(false);
+        if (Platform.OS === "web" && !Browser.isMobile()) { 
+            setIsFocused(false);
+            InputFocus.inputFocusChange(false);
+        }        
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action, '');
 
