@@ -15,6 +15,8 @@ import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
 import * as LottieAnimations from '../../../components/LottieAnimations';
+import useWaitForNavigation from '../../../hooks/useWaitForNavigation';
+import MenuItemList from '../../../components/MenuItemList';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -33,18 +35,18 @@ const defaultProps = {
 };
 
 function SecuritySettingsPage(props) {
+    const waitForNavigate = useWaitForNavigation();
+
     const menuItems = [
         {
             translationKey: 'twoFactorAuth.headerTitle',
             icon: Expensicons.Shield,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_2FA),
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA)),
         },
         {
             translationKey: 'closeAccountPage.closeAccount',
             icon: Expensicons.ClosedSign,
-            action: () => {
-                Navigation.navigate(ROUTES.SETTINGS_CLOSE);
-            },
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
         },
     ];
 
@@ -58,16 +60,17 @@ function SecuritySettingsPage(props) {
         >
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
-                    {_.map(menuItems, (item) => (
-                        <MenuItem
-                            key={item.translationKey}
-                            title={props.translate(item.translationKey)}
-                            icon={item.icon}
-                            iconRight={item.iconRight}
-                            onPress={() => item.action()}
-                            shouldShowRightIcon
-                        />
-                    ))}
+                    <MenuItemList
+                        menuItems={_.map(menuItems, (item) => ({
+                            key: item.translationKey,
+                            title: props.translate(item.translationKey),
+                            icon: item.icon,
+                            iconRight: item.iconRight,
+                            onPress: item.action,
+                            shouldShowRightIcon: true,
+                        }))}
+                        shouldUseSingleExecution
+                    />
                 </View>
             </ScrollView>
         </IllustratedHeaderPageLayout>

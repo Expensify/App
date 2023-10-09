@@ -1,8 +1,8 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, ScrollView } from 'react-native';
-import { withOnyx } from 'react-native-onyx';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View, ScrollView} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -17,7 +17,7 @@ import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import { policyPropTypes, policyDefaultProps } from './withPolicy';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import reportPropTypes from '../reportPropTypes';
 import * as Policy from '../../libs/actions/Policy';
@@ -31,6 +31,10 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import withWindowDimensions from '../../components/withWindowDimensions';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import MenuItemList from '../../components/MenuItemList';
+import useWaitForNavigation from '../../hooks/useWaitForNavigation';
+import useSingleExecution from '../../hooks/useSingleExecution';
+import {is} from 'core-js/core/object';
+import MenuItem from '../../components/MenuItem';
 
 const propTypes = {
     ...policyPropTypes,
@@ -69,6 +73,8 @@ function WorkspaceInitialPage(props) {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
+    const waitForNavigate = useWaitForNavigation();
+    const {singleExecution, isExecuting} = useSingleExecution();
 
     /**
      * Call the delete policy and hide the modal
@@ -117,48 +123,49 @@ function WorkspaceInitialPage(props) {
         {
             translationKey: 'workspace.common.settings',
             icon: Expensicons.Gear,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id)),
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policy.id)),
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policy.id))),
         },
         {
             translationKey: 'workspace.common.reimburse',
             icon: Expensicons.Receipt,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policy.id)),
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policy.id))),
             error: hasCustomUnitsError,
         },
         {
             translationKey: 'workspace.common.bills',
             icon: Expensicons.Bill,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policy.id)),
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policy.id))),
         },
         {
             translationKey: 'workspace.common.invoices',
             icon: Expensicons.Invoice,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policy.id)),
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policy.id))),
         },
         {
             translationKey: 'workspace.common.travel',
             icon: Expensicons.Luggage,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policy.id)),
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policy.id))),
         },
         {
             translationKey: 'workspace.common.members',
             icon: Expensicons.Users,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id)),
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id))),
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
         {
             translationKey: 'workspace.common.bankAccount',
             icon: Expensicons.Bank,
-            action: () =>
+            action: waitForNavigate(() =>
                 policy.outputCurrency === CONST.CURRENCY.USD
                     ? ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, ''))
                     : setIsCurrencyModalOpen(true),
+            ),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
     ];
@@ -171,12 +178,12 @@ function WorkspaceInitialPage(props) {
         },
         {
             icon: Expensicons.Hashtag,
-            text: props.translate('workspace.common.goToRoom', { roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS }),
+            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
             onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
         },
         {
             icon: Expensicons.Hashtag,
-            text: props.translate('workspace.common.goToRoom', { roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE }),
+            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
             onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
         },
     ];
@@ -186,7 +193,7 @@ function WorkspaceInitialPage(props) {
             includeSafeAreaPaddingBottom={false}
             testID={WorkspaceInitialPage.displayName}
         >
-            {({ safeAreaPaddingBottomStyle }) => (
+            {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
@@ -213,9 +220,9 @@ function WorkspaceInitialPage(props) {
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                         <Tooltip text={props.translate('workspace.common.settings')}>
                                             <PressableWithoutFeedback
-                                                disabled={hasPolicyCreationError}
+                                                disabled={hasPolicyCreationError || isExecuting}
                                                 style={[styles.pRelative, styles.avatarLarge]}
-                                                onPress={() => openEditor(policy.id)}
+                                                onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
                                                 accessibilityLabel={props.translate('workspace.common.settings')}
                                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                             >
@@ -233,9 +240,9 @@ function WorkspaceInitialPage(props) {
                                         {!_.isEmpty(policy.name) && (
                                             <Tooltip text={props.translate('workspace.common.settings')}>
                                                 <PressableWithoutFeedback
-                                                    disabled={hasPolicyCreationError}
+                                                    disabled={hasPolicyCreationError || isExecuting}
                                                     style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
-                                                    onPress={() => openEditor(policy.id)}
+                                                    onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
                                                     accessibilityLabel={props.translate('workspace.common.settings')}
                                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                 >
@@ -250,22 +257,19 @@ function WorkspaceInitialPage(props) {
                                         )}
                                     </View>
                                 </View>
-                               <MenuItemList
-                                    menuItems={
-                                        _.map(menuItems, (item) => ({
-                                            key: item.translationKey,
-                                            disabled: hasPolicyCreationError,
-                                            interactive: !hasPolicyCreationError,
-                                            title: props.translate(item.translationKey),
-                                            icon: item.icon,
-                                            iconRight: item.iconRight,
-                                            onPress: item.action,
-                                            shouldShowRightIcon: true,
-                                            brickRoadIndicator: item.brickRoadIndicator,
-                                        }))
-                                    }
-                                    shouldUseSingleExecution
-                                />
+                                {_.map(menuItems, (item) => (
+                                    <MenuItem
+                                        key={item.translationKey}
+                                        disabled={hasPolicyCreationError || isExecuting}
+                                        interactive={!hasPolicyCreationError}
+                                        title={props.translate(item.translationKey)}
+                                        icon={item.icon}
+                                        iconRight={item.iconRight}
+                                        onPress={singleExecution(item.action)}
+                                        shouldShowRightIcon
+                                        brickRoadIndicator={item.brickRoadIndicator}
+                                    />
+                                ))}
                             </View>
                         </OfflineWithFeedback>
                     </ScrollView>

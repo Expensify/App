@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import MenuItem from './MenuItem';
 import menuItemPropTypes from './menuItemPropTypes';
 import * as ReportActionContextMenu from '../pages/home/report/ContextMenu/ReportActionContextMenu';
-import { CONTEXT_MENU_TYPES } from '../pages/home/report/ContextMenu/ContextMenuActions';
+import {CONTEXT_MENU_TYPES} from '../pages/home/report/ContextMenu/ContextMenuActions';
 import useSingleExecution from '../hooks/useSingleExecution';
 import useWaitForNavigation from '../hooks/useWaitForNavigation';
 
@@ -21,8 +21,7 @@ const defaultProps = {
 
 function MenuItemList(props) {
     let popoverAnchor;
-    const { isExecuting, singleExecution } = useSingleExecution();
-    const waitForNavigate = useWaitForNavigation();
+    const {isExecuting, singleExecution} = useSingleExecution();
 
     /**
      * Handle the secondary interaction for a menu item.
@@ -49,7 +48,7 @@ function MenuItemList(props) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...menuItemProps}
                     disabled={menuItemProps.disabled || isExecuting}
-                    onPress={props.shouldUseSingleExecution ? singleExecution(waitForNavigate(menuItemProps.onPress)) : menuItemProps.onPress}
+                    onPress={props.shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
                 />
             ))}
         </>

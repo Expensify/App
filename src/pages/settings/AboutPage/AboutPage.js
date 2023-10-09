@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -23,10 +24,15 @@ import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportAc
 import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
 import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
 import * as Environment from '../../../libs/Environment/Environment';
+import useWaitForNavigation from '../../../hooks/useWaitForNavigation';
+import MenuItemList from '../../../components/MenuItemList';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    isShortcutsModalOpen: PropTypes.bool,
 };
 
 function getFlavor() {
@@ -42,13 +48,12 @@ function getFlavor() {
 
 function AboutPage(props) {
     let popoverAnchor;
+    const waitForNavigate = useWaitForNavigation();
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
             icon: Expensicons.Link,
-            action: () => {
-                Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
-            },
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
@@ -79,7 +84,7 @@ function AboutPage(props) {
             action: Report.navigateToConciergeChat,
         },
     ];
-
+    console.log('props.isShortcutsModalOpen: ', props.isShortcutsModalOpen);
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -108,21 +113,23 @@ function AboutPage(props) {
                                     <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
                                 </View>
                             </View>
-                            {_.map(menuItems, (item) => (
-                                <MenuItem
-                                    key={item.translationKey}
-                                    title={props.translate(item.translationKey)}
-                                    icon={item.icon}
-                                    iconRight={item.iconRight}
-                                    onPress={() => item.action()}
-                                    shouldBlockSelection={Boolean(item.link)}
-                                    onSecondaryInteraction={
-                                        !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined
-                                    }
-                                    ref={(el) => (popoverAnchor = el)}
-                                    shouldShowRightIcon
-                                />
-                            ))}
+                            <MenuItemList
+                                menuItems={_.map(menuItems, (item) => ({
+                                    key: item.translationKey,
+                                    title: props.translate(item.translationKey),
+                                    icon: item.icon,
+                                    iconRight: item.iconRight,
+                                    disabled: props.isShortcutsModalOpen,
+                                    onPress: item.action,
+                                    shouldShowRightIcon: true,
+                                    onSecondaryInteraction: !_.isEmpty(item.link)
+                                        ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor)
+                                        : undefined,
+                                    ref: (el) => (popoverAnchor = el),
+                                    shouldBlockSelection: Boolean(item.link),
+                                }))}
+                                shouldUseSingleExecution
+                            />
                         </View>
                         <View style={[styles.sidebarFooter]}>
                             <Text
@@ -156,4 +163,12 @@ function AboutPage(props) {
 AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';
 
-export default compose(withLocalize, withWindowDimensions)(AboutPage);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        isShortcutsModalOpen: {
+            key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN,
+        },
+    }),
+)(AboutPage);
