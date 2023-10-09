@@ -10,6 +10,7 @@ module.exports = {
     ],
     transform: {
         '^.+\\.jsx?$': 'babel-jest',
+        '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: ['<rootDir>/node_modules/(?!react-native)/'],
     testPathIgnorePatterns: ['<rootDir>/node_modules'],

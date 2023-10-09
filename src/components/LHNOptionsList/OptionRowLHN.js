@@ -165,6 +165,7 @@ function OptionRowLHN(props) {
                             // Prevent losing Composer focus
                             e.preventDefault();
                         }}
+                        testID={optionItem.reportID}
                         onSecondaryInteraction={(e) => showPopover(e)}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
