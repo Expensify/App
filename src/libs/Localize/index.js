@@ -11,6 +11,7 @@ import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 import ONYXKEYS from '../../ONYXKEYS';
 
+// Save the email after user logins
 let userEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,

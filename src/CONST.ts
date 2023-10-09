@@ -930,7 +930,7 @@ const CONST = {
         RECEIPTS: 'receipts@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
-        EXPENSIFY_EMAIL_DOMAIN: '@expensify',
+        EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
 
     ACCOUNT_ID: {
