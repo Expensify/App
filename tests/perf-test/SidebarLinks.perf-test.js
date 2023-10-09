@@ -1,19 +1,19 @@
 import {measurePerformance} from 'reassure';
 import Onyx from 'react-native-onyx';
-import { fireEvent, screen } from '@testing-library/react-native';
+import {fireEvent, screen} from '@testing-library/react-native';
 import _ from 'underscore';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-import variables from "../../src/styles/variables";
+import variables from '../../src/styles/variables';
 
 jest.mock('../../src/libs/Permissions');
 jest.mock('../../src/libs/Navigation/Navigation');
 jest.mock('../../src/components/Icon/Expensicons');
 
-jest.mock('@react-navigation/native')
+jest.mock('@react-navigation/native');
 
 beforeAll(() =>
     Onyx.init({
@@ -94,13 +94,13 @@ test('should scroll and click some of the items', () => {
             },
         };
 
-        const lhnOptionsList =  await screen.findByTestId('lhn-options-list');
+        const lhnOptionsList = await screen.findByTestId('lhn-options-list');
         expect(lhnOptionsList).toBeDefined();
 
         fireEvent.scroll(lhnOptionsList, eventData);
 
-        const button1 =  await screen.findByTestId('1');
-        const button2 =  await screen.findByTestId('2');
+        const button1 = await screen.findByTestId('1');
+        const button2 = await screen.findByTestId('2');
         fireEvent.press(button1);
         fireEvent.press(button2);
     };
