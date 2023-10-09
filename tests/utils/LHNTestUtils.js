@@ -204,6 +204,7 @@ function MockedSidebarLinks({currentReportID}) {
                 }}
                 isSmallScreenWidth={false}
                 currentReportID={currentReportID}
+                onLinkClick={() => {}}
             />
         </ComposeProviders>
     );
