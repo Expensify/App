@@ -199,7 +199,8 @@ function MoneyRequestConfirmationList(props) {
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
 
     // A flag for showing the categories field
-    const shouldShowCategories = props.isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories));
+    const shouldShowCategories =
+        props.isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && (props.iouCategory || OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories)));
 
     // A flag for showing SmartScan fields: date, merchant, and amount, only when we don't have a receiptPath (e.g. manual request)
     // or in the split details page which is ReadOnly

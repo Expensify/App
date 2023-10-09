@@ -1,5 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -70,7 +71,14 @@ function SplitBillDetailsPage(props) {
     }
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
-    const {amount: splitAmount, currency: splitCurrency, comment: splitComment, merchant: splitMerchant, created: splitCreated} = ReportUtils.getTransactionDetails(transaction);
+    const {
+        amount: splitAmount,
+        currency: splitCurrency,
+        merchant: splitMerchant,
+        created: splitCreated,
+        comment: splitComment,
+        category: splitCategory,
+    } = ReportUtils.getTransactionDetails(transaction);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     return (
@@ -92,12 +100,14 @@ function SplitBillDetailsPage(props) {
                             iouComment={splitComment}
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
+                            iouCategory={splitCategory}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly
                             receiptPath={transaction.receipt && transaction.receipt.source}
                             receiptFilename={transaction.filename}
                             shouldShowFooter={false}
                             isScanning={isScanning}
+                            reportID={lodashGet(props.report, 'reportID', '')}
                         />
                     )}
                 </View>
