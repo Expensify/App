@@ -309,6 +309,11 @@ function sendEvent(channelName: string, eventName: PusherEventName, payload: Rec
         return;
     }
 
+    if (shouldForceOffline) {
+        Log.info('[Pusher] Ignoring a Send event because shouldForceOffline = true');
+        return;
+    }
+
     socket?.send_event(eventName, payload, channelName);
 }
 
