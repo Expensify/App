@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import {View} from 'react-native';
 import EReceiptThumbail from '../components/EReceiptThumbail';
@@ -13,7 +14,6 @@ const story = {
 };
 
 function Template(args) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <>
             <View>
