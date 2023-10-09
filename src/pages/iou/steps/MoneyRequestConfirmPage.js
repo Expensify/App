@@ -79,16 +79,6 @@ function MoneyRequestConfirmPage(props) {
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
     const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
-    const navigateBack = () => {
-        let fallback;
-        if (reportID.current) {
-            fallback = ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current);
-        } else {
-            fallback = ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType.current);
-        }
-        Navigation.goBack(fallback);
-    };
-
     useEffect(() => {
         IOU.resetMoneyRequestCategory();
         IOU.resetMoneyRequestTag();
@@ -98,7 +88,7 @@ function MoneyRequestConfirmPage(props) {
         if (props.iou.receiptPath && props.iou.receiptSource) {
             FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
                 if (!file) {
-                    navigateBack();
+                    Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current));
                 } else {
                     const receipt = file;
                     receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
@@ -142,6 +132,16 @@ function MoneyRequestConfirmPage(props) {
         };
     }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath, isDistanceRequest]);
 
+    const navigateBack = () => {
+        let fallback;
+        if (reportID.current) {
+            fallback = ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current);
+        } else {
+            fallback = ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType.current);
+        }
+        Navigation.goBack(fallback);
+    };
+    
     /**
      * @param {Array} selectedParticipants
      * @param {String} trimmedComment
