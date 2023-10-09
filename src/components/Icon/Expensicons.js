@@ -17,6 +17,7 @@ import Building from '../../../assets/images/building.svg';
 import Calendar from '../../../assets/images/calendar.svg';
 import Camera from '../../../assets/images/camera.svg';
 import Car from '../../../assets/images/car.svg';
+import CardsDomains from '../../../assets/images/cards-domains.svg';
 import Cash from '../../../assets/images/cash.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
 import ChatBubbles from '../../../assets/images/chatbubbles.svg';
@@ -47,6 +48,7 @@ import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
 import Expand from '../../../assets/images/expand.svg';
 import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
+import Feed from '../../../assets/images/feed.svg';
 import Flag from '../../../assets/images/flag.svg';
 import FlagLevelOne from '../../../assets/images/flag_level_01.svg';
 import FlagLevelTwo from '../../../assets/images/flag_level_02.svg';
@@ -65,6 +67,7 @@ import Info from '../../../assets/images/info.svg';
 import Invoice from '../../../assets/images/invoice.svg';
 import Key from '../../../assets/images/key.svg';
 import Keyboard from '../../../assets/images/keyboard.svg';
+import Lightbulb from '../../../assets/images/lightbulb.svg';
 import Link from '../../../assets/images/link.svg';
 import LinkCopy from '../../../assets/images/link-copy.svg';
 import Location from '../../../assets/images/location.svg';
@@ -147,6 +150,7 @@ export {
     Calendar,
     Camera,
     Car,
+    CardsDomains,
     Cash,
     ChatBubble,
     ChatBubbles,
@@ -181,6 +185,7 @@ export {
     Expand,
     Eye,
     EyeDisabled,
+    Feed,
     FallbackAvatar,
     FallbackWorkspaceAvatar,
     Flag,
@@ -201,6 +206,7 @@ export {
     Invoice,
     Key,
     Keyboard,
+    Lightbulb,
     Link,
     LinkCopy,
     Location,
