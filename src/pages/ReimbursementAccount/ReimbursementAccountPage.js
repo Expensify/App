@@ -183,7 +183,7 @@ class ReimbursementAccountPage extends React.Component {
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(this.getRouteForCurrentStep(currentStep), policyId, backTo));
     }
 
-    getFieldsOfCurrentStep(currentStep) {
+    getFieldsForStep(step) {
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
