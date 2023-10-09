@@ -2254,7 +2254,7 @@ function autoAssignParticipants(transactionID, report) {
               .filter((accountID) => currentUserAccountID !== accountID)
               .map((accountID) => ({accountID, selected: true}))
               .value();
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {participants});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {participants, participantsAutoAssigned: true});
 }
 
 /**
