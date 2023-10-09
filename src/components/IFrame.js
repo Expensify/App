@@ -53,7 +53,7 @@ function getOldDotURL(url) {
     const pathname = urlObj.pathname;
     const paths = pathname.slice(1).split('/');
 
-    //TODO: temporary measure until linking config is adjusted
+    // TODO: temporary measure until linking config is adjusted
     if (pathname.startsWith('/r')) {
         return 'inbox';
     }
