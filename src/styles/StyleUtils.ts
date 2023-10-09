@@ -278,7 +278,6 @@ function getEReceiptColorCode(transactionID: string): EReceiptColorName {
     return eReceiptColors[colorHash];
 }
 
-
 /**
  * Helper method to return eReceipt color styles
  */

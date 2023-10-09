@@ -68,7 +68,7 @@ function EReceiptThumbnail({transaction, transactionID}) {
             style={[styles.flex1, StyleUtils.getBackgroundColorStyle(primaryColor), styles.overflowHidden, styles.alignItemsCenter, containerHeight < 200 && styles.justifyContentCenter]}
             onLayout={onContainerLayout}
         >
-            <Image 
+            <Image
                 source={eReceiptBGs[`EReceiptBG_${colorCode}`]}
                 style={styles.eReceiptBackgroundThumbnail}
                 resizeMode="cover"

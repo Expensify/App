@@ -33,7 +33,7 @@ const defaultProps = {
 
 function EReceipt({transaction, transactionID}) {
     const {translate} = useLocalize();
-    
+
     // Get receipt colorway, or default to Yellow.
     const colorCode = StyleUtils.getEReceiptColorCode(transaction.parentTransactionID || transaction.transactionID || transactionID) || CONST.ERECEIPT_COLORS.YELLOW;
     const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
@@ -57,7 +57,7 @@ function EReceipt({transaction, transactionID}) {
 
     return (
         <View style={[styles.eReceiptContainer, StyleUtils.getBackgroundColorStyle(primaryColor)]}>
-            <Image 
+            <Image
                 source={backgroundImage}
                 style={styles.eReceiptBackground}
             />
