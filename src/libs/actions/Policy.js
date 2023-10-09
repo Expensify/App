@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import lodashUnion from 'lodash/union';
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
@@ -1186,9 +1187,8 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
     }
 
     const policyRecentlyUsedCategories = lodashGet(allRecentlyUsedCategories, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, []);
-    const uniquePolicyRecentlyUsedCategories = _.filter(policyRecentlyUsedCategories, (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory !== category);
 
-    return [category, ...uniquePolicyRecentlyUsedCategories];
+    return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
 export {
