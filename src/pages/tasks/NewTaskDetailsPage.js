@@ -18,6 +18,7 @@ import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
 import CONST from '../../CONST';
 import * as Browser from '../../libs/Browser';
+import {useFocusEffect} from '@react-navigation/native';
 
 const propTypes = {
     /** Beta features list */
@@ -46,7 +47,7 @@ function NewTaskDetailsPage(props) {
 
     useEffect(() => {
         setTaskTitle(props.task.title);
-        setTaskDescription(parser.htmlToMarkdown(props.task.description || ''));
+        setTaskDescription(parser.htmlToMarkdown(parser.replace(props.task.description || '')));
     }, [props.task]);
 
     /**
@@ -67,8 +68,7 @@ function NewTaskDetailsPage(props) {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     function onSubmit(values) {
-        const parsedTaskDescription = parser.replace(values.taskDescription);
-        Task.setDetailsValue(values.taskTitle, parsedTaskDescription);
+        Task.setDetailsValue(values.taskTitle, values.taskDescription);
         Navigation.navigate(ROUTES.NEW_TASK);
     }
 
@@ -118,7 +118,7 @@ function NewTaskDetailsPage(props) {
                         submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
-                        defaultValue={parser.htmlToMarkdown(taskDescription)}
+                        defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />

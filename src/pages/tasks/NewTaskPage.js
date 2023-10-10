@@ -71,7 +71,6 @@ function NewTaskPage(props) {
     const [description, setDescription] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [parentReport, setParentReport] = useState({});
-
     const isAllowedToCreateTask = useMemo(() => _.isEmpty(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
 
     useEffect(() => {
@@ -131,7 +130,7 @@ function NewTaskPage(props) {
         Task.createTaskAndNavigate(
             parentReport.reportID,
             props.task.title,
-            parser.htmlToMarkdown(props.task.description || ''),
+            props.task.description,
             props.task.assignee,
             props.task.assigneeAccountID,
             props.task.assigneeChatReport,
@@ -173,13 +172,12 @@ function NewTaskPage(props) {
                             />
                             <MenuItemWithTopDescription
                                 description={props.translate('task.description')}
-                                title={description}
+                                title={parser.htmlToMarkdown(parser.replace(description))}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
                                 shouldShowRightIcon
                                 shouldParseTitle
                                 numberOfLinesTitle={2}
                                 titleStyle={styles.flex1}
-                                shouldRenderAsHTML
                             />
                             <MenuItem
                                 label={assignee.displayName ? props.translate('task.assignee') : ''}

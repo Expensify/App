@@ -65,8 +65,7 @@ function NewTaskDescriptionPage(props) {
     );
 
     const onSubmit = (values) => {
-        const parsedTaskDescription = parser.replace(values.taskDescription);
-        Task.setDescriptionValue(parsedTaskDescription);
+        Task.setDescriptionValue(values.taskDescription);
         Navigation.goBack(ROUTES.NEW_TASK);
     };
 
@@ -95,7 +94,7 @@ function NewTaskDescriptionPage(props) {
                 >
                     <View style={styles.mb5}>
                         <TextInput
-                            defaultValue={parser.htmlToMarkdown(props.task.description)}
+                            defaultValue={parser.htmlToMarkdown(parser.replace(props.task.description))}
                             inputID="taskDescription"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
