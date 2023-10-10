@@ -1,3 +1,4 @@
-const bold = 'ExpensifyNeue-Bold';
+const singleBold = 'ExpensifyNeue-Bold';
+const multiBold = 'ExpensifyNeue-Bold';
 
-export default bold;
+export {singleBold, multiBold};
