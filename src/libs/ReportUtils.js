@@ -1212,7 +1212,7 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, sho
  * @returns {Array}
  */
 function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport, shouldFallbackToHidden) {
-  return _.map(personalDetailsList, (user) => {
+    return _.map(personalDetailsList, (user) => {
         const accountID = Number(user.accountID);
         const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user.login || '';
         const avatar = UserUtils.getDefaultAvatar(accountID);
