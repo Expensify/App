@@ -116,6 +116,8 @@ type PayerPaidAmountParams = {payer: string; amount: number};
 
 type ManagerApprovedParams = {manager: string};
 
+type ManagerApprovedAmountParams = {manager: string; amount: number};
+
 type PayerPaidParams = {payer: string};
 
 type PayerSettledParams = {amount: number};
@@ -275,6 +277,7 @@ export type {
     PayerPaidAmountParams,
     PayerPaidParams,
     ManagerApprovedParams,
+    ManagerApprovedAmountParams,
     PayerSettledParams,
     WaitingOnBankAccountParams,
     SettledAfterAddedBankAccountParams,
