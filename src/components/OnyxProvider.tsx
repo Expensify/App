@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import ONYXKEYS from '../ONYXKEYS';
 import createOnyxContext from './createOnyxContext';
 import ComposeProviders from './ComposeProviders';
@@ -15,12 +14,12 @@ const [withBetas, BetasProvider, BetasContext] = createOnyxContext(ONYXKEYS.BETA
 const [withReportCommentDrafts, ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
 const [withPreferredTheme, PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
 
-const propTypes = {
+type OnyxProviderProps = {
     /** Rendered child component */
-    children: PropTypes.node.isRequired,
+    children: React.ReactNode;
 };
 
-function OnyxProvider(props) {
+function OnyxProvider(props: OnyxProviderProps) {
     return (
         <ComposeProviders
             components={[
@@ -40,7 +39,6 @@ function OnyxProvider(props) {
 }
 
 OnyxProvider.displayName = 'OnyxProvider';
-OnyxProvider.propTypes = propTypes;
 
 export default OnyxProvider;
 
