@@ -43,14 +43,12 @@ const PressableWithFeedbackDefaultProps = {
 
 const PressableWithFeedback = forwardRef((props, ref) => {
     const propsWithoutWrapperProps = _.omit(props, omittedProps);
-    const {isExecuting, singleExecution} = useSingleExecution();
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
-    const isDisabled = props.disabled || isExecuting;
 
     return (
         <OpacityView
-            shouldDim={Boolean(!isDisabled && (isPressed || isHovered))}
+            shouldDim={Boolean(!props.disabled && (isPressed || isHovered))}
             dimmingValue={isPressed ? props.pressDimmingValue : props.hoverDimmingValue}
             style={props.wrapperStyle}
             needsOffscreenAlphaCompositing={props.needsOffscreenAlphaCompositing}
@@ -59,8 +57,7 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                 ref={ref}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...propsWithoutWrapperProps}
-                disabled={isDisabled}
-                isExecuting={isExecuting}
+                disabled={props.disabled}
                 onHoverIn={() => {
                     setIsHovered(true);
                     if (props.onHoverIn) {
@@ -84,9 +81,6 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                     if (props.onPressOut) {
                         props.onPressOut();
                     }
-                }}
-                onPress={(e) => {
-                    singleExecution(() => props.onPress(e))();
                 }}
             >
                 {(state) => (_.isFunction(props.children) ? props.children(state) : props.children)}
