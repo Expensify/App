@@ -2456,6 +2456,5 @@ export {
     updateDistanceRequest,
     replaceReceipt,
     detachReceipt,
-    submitReport,
     getIOUReportID,
 };
