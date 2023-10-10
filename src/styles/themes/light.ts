@@ -91,6 +91,7 @@ const lightTheme = {
         [SCREENS.SETTINGS.STATUS]: colors.green700,
         [SCREENS.SETTINGS.ROOT]: colors.lightHighlightBackground,
     },
+    white: colors.white,
 } satisfies ThemeDefault;
 
 export default lightTheme;

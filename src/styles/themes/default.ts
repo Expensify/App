@@ -91,6 +91,7 @@ const darkTheme = {
         [SCREENS.SETTINGS.STATUS]: colors.green700,
         [SCREENS.SETTINGS.ROOT]: colors.darkHighlightBackground,
     },
+    white: colors.white,
 } satisfies ThemeBase;
 
 export default darkTheme;

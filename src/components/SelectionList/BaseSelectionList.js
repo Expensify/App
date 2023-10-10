@@ -23,6 +23,7 @@ import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import useActiveElement from '../../hooks/useActiveElement';
 import BaseListItem from './BaseListItem';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -423,7 +424,7 @@ function BaseSelectionList({
                                     onScrollBeginDrag={onScrollBeginDrag}
                                     keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
-                                    indicatorStyle="white"
+                                    indicatorStyle={themeColors.white}
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={showScrollIndicator}
                                     initialNumToRender={12}
