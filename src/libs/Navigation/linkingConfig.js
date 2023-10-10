@@ -89,6 +89,10 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
                                 exact: true,
                             },
+                            Settings_Wallet_Card_Activate: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
+                                exact: true,
+                            },
                             Settings_Add_Debit_Card: {
                                 path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
                                 exact: true,

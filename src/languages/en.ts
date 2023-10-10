@@ -842,6 +842,14 @@ export default {
             copyCardNumber: 'Copy card number',
         },
     },
+    activateCardPage: {
+        activateCard: 'Activate card',
+        pleaseEnterLastFour: 'Please enter the last four digits of your card.',
+        activatePhysicalCard: 'Activate physical card',
+        error: {
+            thatDidntMatch: "That didn't match the last 4 digits on your card. Please try again.",
+        },
+    },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
         instant: 'Instant (Debit card)',
@@ -995,7 +1003,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include letters.',
+            hasInvalidCharacter: 'Name can only include Latin characters.',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
