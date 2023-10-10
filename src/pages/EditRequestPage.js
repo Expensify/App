@@ -30,6 +30,7 @@ import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import categoryPropTypes from '../components/categoryPropTypes';
 import ScreenWrapper from '../components/ScreenWrapper';
+import transactionPropTypes from '../components/transactionPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -75,6 +76,9 @@ const propTypes = {
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
 
+    /** The original transaction that is being edited */
+    transaction: transactionPropTypes,
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -88,10 +92,11 @@ const defaultProps = {
     },
     policyCategories: {},
     policyTags: {},
+    transaction:{}
 };
 
 function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags, parentReportActions, transaction}) {
-    const parentReportAction = parentReportActions[report.parentReportActionID];
+    const parentReportAction = lodashGet(parentReportActions, [report ? report.parentReportActionID : '0']);
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
