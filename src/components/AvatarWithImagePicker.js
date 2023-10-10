@@ -1,6 +1,6 @@
 import _ from 'underscore';
-import React, { useState, useRef, useEffect } from 'react';
-import { View } from 'react-native';
+import React, {useState, useRef, useEffect} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
@@ -23,7 +23,7 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import AttachmentModal from './AttachmentModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as Browser from '../libs/Browser';
-import withNavigationFocus, { withNavigationFocusPropTypes } from './withNavigationFocus';
+import withNavigationFocus, {withNavigationFocusPropTypes} from './withNavigationFocus';
 
 const propTypes = {
     /** Avatar source to display */
@@ -94,10 +94,10 @@ const propTypes = {
 
 const defaultProps = {
     source: '',
-    onImageSelected: () => { },
-    onImageRemoved: () => { },
+    onImageSelected: () => {},
+    onImageRemoved: () => {},
     style: [],
-    DefaultAvatar: () => { },
+    DefaultAvatar: () => {},
     isUsingDefaultAvatar: false,
     isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
@@ -105,7 +105,7 @@ const defaultProps = {
     type: CONST.ICON_TYPE_AVATAR,
     editorMaskImage: undefined,
     errorRowStyles: [],
-    onErrorClose: () => { },
+    onErrorClose: () => {},
     pendingAction: null,
     errors: null,
     headerTitle: '',
@@ -147,7 +147,7 @@ function AvatarWithImagePicker({
         type: ''
     });
     const anchorRef = useRef();
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     
     useEffect(() => {
         // If the component is still focused, don't proceed further.
