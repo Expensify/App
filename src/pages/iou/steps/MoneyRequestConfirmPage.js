@@ -210,6 +210,22 @@ function MoneyRequestConfirmPage(props) {
         (selectedParticipants) => {
             const trimmedComment = props.iou.comment.trim();
 
+            // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
+            if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && props.iou.receiptPath) {
+                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID.current) ? reportID.current : '';
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((receipt) => {
+                    IOU.startSplitBill(
+                        selectedParticipants,
+                        props.currentUserPersonalDetails.login,
+                        props.currentUserPersonalDetails.accountID,
+                        trimmedComment,
+                        receipt,
+                        existingSplitChatReportID,
+                    );
+                });
+                return;
+            }
+
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
@@ -354,7 +370,7 @@ function MoneyRequestConfirmPage(props) {
                                     IOU.setMoneyRequestParticipants(newParticipants);
                                 }}
                                 receiptPath={props.iou.receiptPath}
-                                receiptSource={props.iou.receiptSource}
+                                receiptFilename={props.iou.receiptFilename}
                                 iouType={iouType.current}
                                 reportID={reportID.current}
                                 isPolicyExpenseChat={isPolicyExpenseChat}
