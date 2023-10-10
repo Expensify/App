@@ -108,8 +108,9 @@ class BaseOptionsSelector extends Component {
             });
             return;
         }
-
         const newFocusedIndex = this.props.selectedOptions.length;
+        const isNewFocusedIndex = newFocusedIndex !== this.state.focusedIndex;
+
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
@@ -118,13 +119,13 @@ class BaseOptionsSelector extends Component {
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || this.props.value === '') {
+                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || (!!prevProps.value && !this.props.value)) {
                     this.scrollToIndex(0);
                     return;
                 }
 
                 // Otherwise, scroll to the focused index (as long as it's in range)
-                if (this.state.allOptions.length <= this.state.focusedIndex) {
+                if (this.state.allOptions.length <= this.state.focusedIndex || !isNewFocusedIndex) {
                     return;
                 }
                 this.scrollToIndex(this.state.focusedIndex);
