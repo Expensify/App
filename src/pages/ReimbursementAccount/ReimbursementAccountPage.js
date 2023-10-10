@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, { useState, useRef, useEffect } from 'react';
-import { withOnyx } from 'react-native-onyx';
+import React, {useState, useRef, useEffect} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -12,12 +12,12 @@ import ReimbursementAccountLoadingIndicator from '../../components/Reimbursement
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import BankAccount from '../../libs/models/BankAccount';
-import withLocalize, { withLocalizePropTypes } from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
 import Text from '../../components/Text';
-import { withNetwork } from '../../components/OnyxProvider';
+import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
