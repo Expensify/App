@@ -40,7 +40,7 @@ function MenuItemList(props) {
         <>
             {_.map(props.menuItems, (menuItemProps) => (
                 <MenuItem
-                    key={menuItemProps.key || menuItemProps.title}
+                    key={menuItemProps.title}
                     onSecondaryInteraction={!_.isUndefined(menuItemProps.link) ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
                     ref={(el) => (popoverAnchor = el)}
                     shouldBlockSelection={Boolean(menuItemProps.link)}

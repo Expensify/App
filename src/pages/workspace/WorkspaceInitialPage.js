@@ -159,11 +159,10 @@ function WorkspaceInitialPage(props) {
         {
             translationKey: 'workspace.common.bankAccount',
             icon: Expensicons.Bank,
-            action: waitForNavigate(() =>
+            action: () =>
                 policy.outputCurrency === CONST.CURRENCY.USD
-                    ? ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, ''))
+                    ? waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, '', waitForNavigate)))()
                     : setIsCurrencyModalOpen(true),
-            ),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
     ];
@@ -258,7 +257,7 @@ function WorkspaceInitialPage(props) {
                                 {_.map(menuItems, (item) => (
                                     <MenuItem
                                         key={item.translationKey}
-                                        disabled={hasPolicyCreationError || isExecuting}
+                                        disabled={hasPolicyCreationError || isExecuting || isCurrencyModalOpen}
                                         interactive={!hasPolicyCreationError}
                                         title={props.translate(item.translationKey)}
                                         icon={item.icon}
