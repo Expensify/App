@@ -35,12 +35,16 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    isSearchingForReports: false,
 };
 
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
@@ -207,7 +211,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             boldStyle
-                            shouldFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                             shouldShowOptions={isOptionsDataReady}
                             shouldShowConfirmButton
                             confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}

@@ -22,9 +22,6 @@ export default PropTypes.shape({
     /** Whether we're waiting on submitter to add a bank account */
     isWaitingOnBankAccount: PropTypes.bool,
 
-    /** The email of the last message's actor */
-    lastActorEmail: PropTypes.string,
-
     /** The accountID of the last message's actor */
     lastActorAccountID: PropTypes.number,
 

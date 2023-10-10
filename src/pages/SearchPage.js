@@ -40,6 +40,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     network: networkPropTypes,
+
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -47,6 +50,7 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     network: {},
+    isSearchingForReports: false,
 };
 
 class SearchPage extends Component {
