@@ -36,6 +36,9 @@ const propTypes = {
     /** The report object for the thread report */
     report: reportPropTypes,
 
+    /** All the transactions */
+    transactions: PropTypes.shape(transactionPropTypes),
+
     /** Used for retrieving the draft transaction of the split bill being edited */
     draftSplitTransactions: PropTypes.shape(transactionPropTypes),
 
@@ -52,12 +55,13 @@ const defaultProps = {
         email: null,
     },
     draftSplitTransactions: {},
+    transactions: {},
 };
 
-function EditSplitBillPage({report, route, draftSplitTransactions}) {
+function EditSplitBillPage({report, route, transactions, draftSplitTransactions}) {
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
     const reportAction = ReportActionsUtils.getReportAction(report.reportID, lodashGet(route, ['params', 'reportActionID'], ''));
-    const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+    const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${reportAction.originalMessage.IOUTransactionID}`];
 
     let draftSplitTransaction = draftSplitTransactions[`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transaction.transactionID}`];
     if (!draftSplitTransaction) {
@@ -135,6 +139,10 @@ function EditSplitBillPage({report, route, draftSplitTransactions}) {
                         currency: defaultCurrency,
                     });
                 }}
+                onNavigateToCurrency={() => {
+                    const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL_CURRENCY.getRoute(report.reportID, reportAction.reportActionID, defaultCurrency, activeRoute));
+                }}
             />
         );
     }
@@ -163,6 +171,9 @@ EditSplitBillPage.defaultProps = defaultProps;
 export default withOnyx({
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+    },
+    transactions: {
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
     },
     draftSplitTransactions: {
         key: ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION,

@@ -19,11 +19,14 @@ const propTypes = {
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
 
+    /** Callback to fire when we press on the currency  */
+    onNavigateToCurrency: PropTypes.func.isRequired,
+
     /** reportID for the transaction thread */
     reportID: PropTypes.string.isRequired,
 };
 
-function EditRequestAmountPage({defaultAmount, defaultCurrency, reportID, reportActionID, onSubmit}) {
+function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurrency, onSubmit}) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
 
@@ -37,12 +40,6 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, reportID, report
             }
             textInput.current.focus();
         });
-    };
-
-    const navigateToCurrencySelectionPage = () => {
-        // Remove query from the route and encode it.
-        const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
-        Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(reportID, defaultCurrency, activeRoute));
     };
 
     useFocusEffect(
@@ -63,7 +60,7 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, reportID, report
                 currency={defaultCurrency}
                 amount={defaultAmount}
                 ref={(e) => (textInput.current = e)}
-                onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                onCurrencyButtonPress={onNavigateToCurrency}
                 onSubmitButtonPress={onSubmit}
             />
         </ScreenWrapper>
