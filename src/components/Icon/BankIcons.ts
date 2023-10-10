@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import {SvgProps} from 'react-native-svg';
 import * as Expensicons from './Expensicons';
 import AmericanExpress from '../../../assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '../../../assets/images/bankicons/bank-of-america.svg';
@@ -21,14 +21,16 @@ import USBank from '../../../assets/images/bankicons/us-bank.svg';
 import USAA from '../../../assets/images/bankicons/usaa.svg';
 import variables from '../../styles/variables';
 
+type BankIcon = {
+    icon: React.FC<SvgProps>;
+    iconSize?: number;
+};
+
 /**
  * Returns matching asset icon for bankName
- * @param {String} bankName
- * @param {Boolean} isCard
- * @returns {Object}
  */
 
-function getAssetIcon(bankName, isCard) {
+function getAssetIcon(bankName: string, isCard: boolean): React.FC<SvgProps> {
     if (bankName.includes('americanexpress')) {
         return AmericanExpress;
     }
@@ -106,13 +108,10 @@ function getAssetIcon(bankName, isCard) {
 
 /**
  * Returns Bank Icon Object that matches to existing bank icons or default icons
- * @param {String} bankName
- * @param {Boolean} [isCard = false]
- * @returns {Object} Object includes props icon, iconSize only if applicable
  */
 
-export default function getBankIcon(bankName, isCard) {
-    const bankIcon = {
+export default function getBankIcon(bankName: string, isCard = false): BankIcon {
+    const bankIcon: BankIcon = {
         icon: isCard ? Expensicons.CreditCard : GenericBank,
     };
 
@@ -121,7 +120,7 @@ export default function getBankIcon(bankName, isCard) {
     }
 
     // For default Credit Card icon the icon size should not be set.
-    if (!_.contains([Expensicons.CreditCard], bankIcon.icon)) {
+    if (![Expensicons.CreditCard].includes(bankIcon.icon)) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
     }
 

@@ -1,6 +1,8 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useEffect} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -12,27 +14,41 @@ import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
 import SelectionList from '../../../components/SelectionList';
 import useLocalize from '../../../hooks/useLocalize';
+import ONYXKEYS from '../../../ONYXKEYS';
+import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
+
+    /** Indicates whether the app is loading initial data */
+    isLoadingApp: PropTypes.bool,
 };
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
+    isLoadingApp: true,
 };
 
-function PronounsPage({currentUserPersonalDetails}) {
+function PronounsPage({currentUserPersonalDetails, isLoadingApp}) {
     const {translate} = useLocalize();
     const currentPronouns = lodashGet(currentUserPersonalDetails, 'pronouns', '');
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
+    const [searchValue, setSearchValue] = useState('');
 
-    const [searchValue, setSearchValue] = useState(() => {
+    useEffect(() => {
+        if (isLoadingApp && _.isUndefined(currentUserPersonalDetails.pronouns)) {
+            return;
+        }
         const currentPronounsText = _.chain(CONST.PRONOUNS_LIST)
             .find((_value) => _value === currentPronounsKey)
             .value();
 
-        return currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '';
-    });
+        setSearchValue(currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '');
+
+        // Only need to update search value when the first time the data is loaded
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoadingApp]);
 
     const filteredPronounsList = useMemo(() => {
         const pronouns = _.chain(CONST.PRONOUNS_LIST)
@@ -69,21 +85,27 @@ function PronounsPage({currentUserPersonalDetails}) {
             includeSafeAreaPaddingBottom={false}
             testID={PronounsPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('pronounsPage.pronouns')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
-            />
-            <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
-            <SelectionList
-                headerMessage={headerMessage}
-                textInputLabel={translate('pronounsPage.pronouns')}
-                textInputPlaceholder={translate('pronounsPage.placeholderText')}
-                textInputValue={searchValue}
-                sections={[{data: filteredPronounsList, indexOffset: 0}]}
-                onSelectRow={updatePronouns}
-                onChangeText={setSearchValue}
-                initiallyFocusedOptionKey={currentPronounsKey}
-            />
+            {isLoadingApp && _.isUndefined(currentUserPersonalDetails.pronouns) ? (
+                <FullScreenLoadingIndicator />
+            ) : (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('pronounsPage.pronouns')}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+                    />
+                    <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
+                    <SelectionList
+                        headerMessage={headerMessage}
+                        textInputLabel={translate('pronounsPage.pronouns')}
+                        textInputPlaceholder={translate('pronounsPage.placeholderText')}
+                        textInputValue={searchValue}
+                        sections={[{data: filteredPronounsList, indexOffset: 0}]}
+                        onSelectRow={updatePronouns}
+                        onChangeText={setSearchValue}
+                        initiallyFocusedOptionKey={currentPronounsKey}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }
@@ -92,4 +114,11 @@ PronounsPage.propTypes = propTypes;
 PronounsPage.defaultProps = defaultProps;
 PronounsPage.displayName = 'PronounsPage';
 
-export default withCurrentUserPersonalDetails(PronounsPage);
+export default compose(
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
+        },
+    }),
+)(PronounsPage);
