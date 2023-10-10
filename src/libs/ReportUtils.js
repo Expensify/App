@@ -128,7 +128,7 @@ function transactionThreadHasViolations(report) {
 
 function reportHasViolations(reportID) {
     let transactions = TransactionUtils.getAllReportTransactions(reportID);
-    return _.find(transactions, (transaction) => {
+    return _.some(transactions, (transaction) => {
         const violations = lodashGet(transactionViolations, `${transaction.transactionID}.violation`, []);
         return !_.isEmpty(violations);
     });
@@ -3049,6 +3049,11 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     if (report.errorFields && report.errorFields.addWorkspaceRoom) {
         return true;
     }
+
+    if (isExpenseRequest(report) && transactionThreadHasViolations(report)) {
+        return true;
+    }
+
 
     // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
     if (isInGSDMode) {
