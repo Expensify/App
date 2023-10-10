@@ -1011,8 +1011,10 @@ const CONST = {
             ACTIVATE: 'ActivateStep',
         },
         TIER_NAME: {
+            PLATINUM: 'PLATINUM',
             GOLD: 'GOLD',
             SILVER: 'SILVER',
+            BRONZE: 'BRONZE',
         },
         WEB_MESSAGE_TYPE: {
             STATEMENT: 'STATEMENT_NAVIGATE',
