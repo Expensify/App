@@ -300,3 +300,4 @@ export default function getModalStyles(
         shouldAddTopSafeAreaPadding,
     };
 }
+export type {WindowDimensions};

@@ -57,6 +57,9 @@ type Report = {
     /** The report type */
     type?: string;
 
+    /** If the admin room should be opened */
+    openOnAdminRoom?: boolean;
+
     parentReportID?: string;
     parentReportActionID?: string;
     isOptimisticReport?: boolean;

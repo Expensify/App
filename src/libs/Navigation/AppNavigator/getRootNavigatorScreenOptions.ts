@@ -1,3 +1,4 @@
+import {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
@@ -10,12 +11,12 @@ const commonScreenOptions = {
     animationEnabled: true,
     cardOverlayEnabled: true,
     animationTypeForReplace: 'push',
-};
+} as StackNavigationOptions;
 
-export default (isSmallScreenWidth) => ({
+export default (isSmallScreenWidth: boolean) => ({
     rightModalNavigator: {
         ...commonScreenOptions,
-        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
+        cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
         presentation: 'transparentModal',
 
         // We want pop in RHP since there are some flows that would work weird otherwise
@@ -28,12 +29,12 @@ export default (isSmallScreenWidth) => ({
             // Excess space should be on the left so we need to position from right.
             right: 0,
         },
-    },
+    } as StackNavigationOptions,
 
     homeScreen: {
         title: CONFIG.SITE_TITLE,
         ...commonScreenOptions,
-        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
+        cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
 
         cardStyle: {
             ...getNavigationModalCardStyle(),
@@ -43,28 +44,27 @@ export default (isSmallScreenWidth) => ({
             transform: [{translateX: isSmallScreenWidth ? 0 : -variables.sideBarWidth}],
             ...(isSmallScreenWidth ? {} : styles.borderRight),
         },
-    },
-    // eslint-disable-next-line rulesdir/no-negated-variables
+    } as StackNavigationOptions,
     fullScreen: {
         ...commonScreenOptions,
-        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
+        cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
         cardStyle: {
             ...getNavigationModalCardStyle(),
 
             // This is necessary to cover whole screen. Including translated sidebar.
             marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
         },
-    },
+    } as StackNavigationOptions,
 
     centralPaneNavigator: {
         title: CONFIG.SITE_TITLE,
         ...commonScreenOptions,
         animationEnabled: isSmallScreenWidth,
-        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
+        cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
 
         cardStyle: {
             ...getNavigationModalCardStyle(),
             paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,
         },
-    },
+    } as StackNavigationOptions,
 });

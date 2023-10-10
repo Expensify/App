@@ -5,8 +5,9 @@ import ReportScreenWrapper from '../ReportScreenWrapper';
 import getCurrentUrl from '../../currentUrl';
 import styles from '../../../../styles/styles';
 import FreezeWrapper from '../../FreezeWrapper';
+import type {CentralPaneStackParamList} from '../types';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<CentralPaneStackParamList>();
 
 const url = getCurrentUrl();
 const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
@@ -18,7 +19,7 @@ function CentralPaneNavigator() {
                 <Stack.Screen
                     name={SCREENS.REPORT}
                     // We do it this way to avoid adding the url params to url
-                    initialParams={{openOnAdminRoom: openOnAdminRoom ? 'true' : undefined}}
+                    initialParams={{openOnAdminRoom: openOnAdminRoom ? true : undefined}}
                     options={{
                         headerShown: false,
                         title: 'New Expensify',

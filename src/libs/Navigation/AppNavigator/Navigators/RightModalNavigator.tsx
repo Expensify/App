@@ -1,23 +1,22 @@
 import React from 'react';
 import {View} from 'react-native';
-import {createStackNavigator} from '@react-navigation/stack';
+import {createStackNavigator, StackScreenProps} from '@react-navigation/stack';
 
 import * as ModalStackNavigators from '../ModalStackNavigators';
 import RHPScreenOptions from '../RHPScreenOptions';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import {withNavigationPropTypes} from '../../../../components/withNavigation';
 import styles from '../../../../styles/styles';
 import Overlay from './Overlay';
 import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
+import {WindowDimensions} from '../../../../styles/getModalStyles';
+import {AuthScreensStackParamList, RightModalNavigatorStackParamList} from '../types';
+import NAVIGATORS from '../../../../NAVIGATORS';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<RightModalNavigatorStackParamList>();
 
-const propTypes = {
-    ...withNavigationPropTypes,
-};
-
-function RightModalNavigator(props) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+function RightModalNavigator(props: StackScreenProps<AuthScreensStackParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>) {
+    // TODO: remove type assertion when useWindowDimensions is migrated to TS
+    const {isSmallScreenWidth} = useWindowDimensions() as WindowDimensions;
 
     return (
         <NoDropZone>
@@ -118,7 +117,6 @@ function RightModalNavigator(props) {
     );
 }
 
-RightModalNavigator.propTypes = propTypes;
 RightModalNavigator.displayName = 'RightModalNavigator';
 
 export default RightModalNavigator;

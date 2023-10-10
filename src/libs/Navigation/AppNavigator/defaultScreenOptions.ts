@@ -1,3 +1,5 @@
+import {StackNavigationOptions} from '@react-navigation/stack';
+
 const defaultScreenOptions = {
     cardStyle: {
         overflow: 'visible',
@@ -5,6 +7,6 @@ const defaultScreenOptions = {
     },
     headerShown: false,
     animationTypeForReplace: 'push',
-};
+} as StackNavigationOptions;
 
 export default defaultScreenOptions;

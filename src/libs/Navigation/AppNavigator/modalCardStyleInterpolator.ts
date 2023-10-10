@@ -1,8 +1,9 @@
 import {Animated} from 'react-native';
+import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
 import variables from '../../../styles/variables';
 import getCardStyles from '../../../styles/cardStyles';
 
-export default (isSmallScreenWidth, isFullScreenModal, {current: {progress}, inverted, layouts: {screen}}) => {
+export default (isSmallScreenWidth: boolean, isFullScreenModal: boolean, {current: {progress}, inverted, layouts: {screen}}: StackCardInterpolationProps): StackCardInterpolatedStyle => {
     const translateX = Animated.multiply(
         progress.interpolate({
             inputRange: [0, 1],

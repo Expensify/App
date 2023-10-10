@@ -1,12 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
-const propTypes = {
+type AppNavigatorProps = {
     /** If we have an authToken this is true */
-    authenticated: PropTypes.bool.isRequired,
+    authenticated: boolean;
 };
 
-function AppNavigator(props) {
+function AppNavigator(props: AppNavigatorProps) {
     if (props.authenticated) {
         const AuthScreens = require('./AuthScreens').default;
 
@@ -17,6 +16,5 @@ function AppNavigator(props) {
     return <PublicScreens />;
 }
 
-AppNavigator.propTypes = propTypes;
 AppNavigator.displayName = 'AppNavigator';
 export default AppNavigator;
