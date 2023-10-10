@@ -781,7 +781,7 @@ function readOldestAction(reportID, reportActionID) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingMoreReportActions: true,
                     },
@@ -790,7 +790,7 @@ function readOldestAction(reportID, reportActionID) {
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingMoreReportActions: false,
                     },
@@ -799,7 +799,7 @@ function readOldestAction(reportID, reportActionID) {
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
                         isLoadingMoreReportActions: false,
                     },
@@ -1673,7 +1673,7 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
 
     // Only show notifications for supported types of report actions
     if (!ReportActionsUtils.isNotifiableReportAction(action)) {
-        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: action.actionName});
+        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: lodashGet(action, 'actionName')});
         return false;
     }
 

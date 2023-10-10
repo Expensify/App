@@ -80,6 +80,10 @@ export default {
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
+    SETTINGS_WALLET_CARD_ACTIVATE: {
+        route: 'settings/wallet/cards/:domain/activate',
+        getRoute: (domain: string) => `settings/wallet/cards/${domain}/activate`,
+    },
     SETTINGS_PERSONAL_DETAILS: 'settings/profile/personal-details',
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: 'settings/profile/personal-details/legal-name',
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: 'settings/profile/personal-details/date-of-birth',
@@ -318,4 +322,17 @@ export default {
     // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
     SAASTR: 'saastr',
     SBE: 'sbe',
+
+    // Iframe screens from olddot
+    HOME_OLDDOT: 'home',
+
+    // Spend tab
+    EXPENSES_OLDDOT: 'expenses',
+    REPORTS_OLDDOT: 'reports',
+    INSIGHTS_OLDDOT: 'insights',
+
+    // Workspaces tab
+    INDIVIDUALS_OLDDOT: 'individual_workspaces',
+    GROUPS_OLDDOT: 'group_workspaces',
+    CARDS_AND_DOMAINS_OLDDOT: 'cards-and-domains',
 } as const;
