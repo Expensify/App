@@ -224,6 +224,13 @@ function getMerchant(transaction: Transaction): string {
 }
 
 /**
+ * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
+ */
+function getMCCGroup(transaction: Transaction): string {
+    return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup ?? '';
+}
+
+/**
  * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
  */
 function getWaypoints(transaction: Transaction): WaypointCollection | undefined {
@@ -286,6 +293,13 @@ function hasMissingSmartscanFields(transaction: Transaction): boolean {
  */
 function hasRoute(transaction: Transaction): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
+}
+
+/**
+ * Check if the transaction has an Ereceipt
+ */
+function hasEreceipt(transaction: Transaction): boolean {
+    return !!transaction?.hasEReceipt;
 }
 
 /**
@@ -368,6 +382,7 @@ export {
     getAmount,
     getCurrency,
     getMerchant,
+    getMCCGroup,
     getCreated,
     getCategory,
     getBillable,
@@ -375,6 +390,7 @@ export {
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
+    hasEreceipt,
     hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,

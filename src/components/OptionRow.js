@@ -246,6 +246,7 @@ function OptionRow(props) {
                                         ) : (
                                             <PressableWithFeedback
                                                 onPress={() => props.onSelectedStatePressed(props.option)}
+                                                disabled={isDisabled}
                                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                                 accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                             >
