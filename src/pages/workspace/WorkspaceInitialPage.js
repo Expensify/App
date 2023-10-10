@@ -254,6 +254,10 @@ function WorkspaceInitialPage(props) {
                                         )}
                                     </View>
                                 </View>
+                                {/*
+                                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation Actions.
+                                    But Here we need to have a `isExecuting` for profile details click actions also so we are directly mapping menuItems.
+                                */}
                                 {_.map(menuItems, (item) => (
                                     <MenuItem
                                         key={item.translationKey}
