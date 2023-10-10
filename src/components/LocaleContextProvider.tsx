@@ -59,7 +59,17 @@ type LocaleContextProps = {
     preferredLocale: string;
 };
 
-const LocaleContext = createContext<LocaleContextProps | null>(null);
+const LocaleContext = createContext<LocaleContextProps>({
+    translate: () => '',
+    numberFormat: () => '',
+    datetimeToRelative: () => '',
+    datetimeToCalendarTime: () => '',
+    updateLocale: () => '',
+    formatPhoneNumber: () => '',
+    toLocaleDigit: () => '',
+    fromLocaleDigit: () => '',
+    preferredLocale: '',
+});
 
 function LocaleContextProvider({preferredLocale = CONST.LOCALES.DEFAULT, currentUserPersonalDetails = {}, children}: LocaleContextProviderProps) {
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
@@ -113,3 +123,5 @@ const Provider = compose(
 )(LocaleContextProvider);
 
 export {Provider as LocaleContextProvider, LocaleContext};
+
+export type { LocaleContextProps };
