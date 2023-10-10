@@ -234,6 +234,7 @@ function IOURequestStepConfirmation({
         IOU.setMoneeRequestBillable(transactionID, billable);
     };
 
+    console.log('[tim receipt', transaction.receipt);
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}

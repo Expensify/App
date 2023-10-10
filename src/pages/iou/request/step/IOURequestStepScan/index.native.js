@@ -194,7 +194,7 @@ function IOURequestStepScan({
             })
             .then((photo) => {
                 const filePath = `file://${photo.path}`;
-                IOU.setMoneyRequestReceipt(filePath, photo.path);
+                IOU.setMoneeRequestReceipt(transactionID, filePath, photo.path);
 
                 // When an existing transaction is being edited (eg. not the create transaction flow)
                 if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
@@ -276,7 +276,7 @@ function IOURequestStepScan({
                         showImagePicker(launchImageLibrary)
                             .then((receiptImage) => {
                                 const filePath = receiptImage[0].uri;
-                                IOU.setMoneyRequestReceipt(filePath, receiptImage[0].fileName);
+                                IOU.setMoneeRequestReceipt(transactionID, filePath, receiptImage[0].fileName);
 
                                 // When a transaction is being edited (eg. not in the creation flow)
                                 if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
