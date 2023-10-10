@@ -64,7 +64,7 @@ const GenericPressable = forwardRef((props, ref) => {
             shouldBeDisabledByScreenReader = isScreenReaderActive;
         }
 
-        return props.disabled || shouldBeDisabledByScreenReader;
+        return props.disabled || shouldBeDisabledByScreenReader || isExecuting;
     }, [isScreenReaderActive, enableInScreenReaderStates, props.disabled, isExecuting]);
 
     const shouldUseDisabledCursor = useMemo(() => isDisabled && !isExecuting, [isDisabled, isExecuting]);
