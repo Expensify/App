@@ -191,7 +191,6 @@ function SettlementButton({
 
         onPress(iouPaymentType);
     };
-    const hasErrors = !_.isEmpty(iouReport.errorFields) || !_.isEmpty(iouReport.errors);
 
     return (
         <KYCWall
@@ -199,7 +198,7 @@ function SettlementButton({
             enablePaymentsRoute={enablePaymentsRoute}
             addBankAccountRoute={addBankAccountRoute}
             addDebitCardRoute={addDebitCardRoute}
-            isDisabled={isOffline || hasErrors}
+            isDisabled={isOffline}
             chatReportID={chatReportID}
             iouReport={iouReport}
             anchorAlignment={anchorAlignment}
