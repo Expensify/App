@@ -232,7 +232,7 @@ function WorkspaceInvitePage(props) {
                             onConfirm={inviteUser}
                             showScrollIndicator
                             showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
-                            shouldFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                         />
                         <View style={[styles.flexShrink0]}>
                             <FormAlertWithSubmitButton

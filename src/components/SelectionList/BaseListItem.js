@@ -18,7 +18,7 @@ function BaseListItem({
     isFocused = false,
     isDisabled = false,
     showTooltip,
-    shouldPreventDefaultFocusOnSelect = false,
+    shouldPreventDefaultFocusOnSelectRow = false,
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
@@ -41,7 +41,7 @@ function BaseListItem({
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                onMouseDown={shouldPreventDefaultFocusOnSelect ? (e) => e.preventDefault() : undefined}
+                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
             >
                 <View
                     style={[
