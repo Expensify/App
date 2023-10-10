@@ -70,7 +70,7 @@ function ReportActionsView(props) {
     const reactionListRef = useContext(ReactionListContext);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
-    const isFetchNewerWasCalled = useRef(false);
+    const isFirstRender = useRef(false);
     const hasCachedActions = useRef(_.size(props.reportActions) > 0);
 
     const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
@@ -174,8 +174,9 @@ function ReportActionsView(props) {
                     return;
                 }
 
-                if (!isFetchNewerWasCalled.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
-                    isFetchNewerWasCalled.current = true;
+                // onStartReached is triggered during the first render. Since we use OpenReport on the first render and are confident about the message ordering, we can safely skip this call
+                if (!isFirstRender.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
+                    isFirstRender.current = true;
                     return;
                 }
 
