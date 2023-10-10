@@ -89,15 +89,6 @@ const workspaceColorOptions: WorkspaceColorStyle[] = [
     {backgroundColor: colors.ice700, fill: colors.ice200},
 ];
 
-const eReceiptColorOptions: EreceiptColorStyle[] = [
-    {backgroundColor: colors.yellow600, color: colors.yellow100},
-    {backgroundColor: colors.blue800, color: colors.ice400},
-    {backgroundColor: colors.blue400, color: colors.blue100},
-    {backgroundColor: colors.green800, color: colors.green400},
-    {backgroundColor: colors.tangerine800, color: colors.tangerine400},
-    {backgroundColor: colors.pink800, color: colors.pink400},
-];
-
 const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
     [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow600, color: colors.yellow100},
     [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.blue800, color: colors.ice400},
@@ -276,7 +267,7 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle | CSSP
 function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
     const transactionID = transaction.parentTransactionID ?? transaction.transactionID ?? '';
 
-    const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColorOptions.length);
+    const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
     return eReceiptColors[colorHash];
 }
