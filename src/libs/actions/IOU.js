@@ -23,6 +23,7 @@ import Log from '../Log';
 import * as NumberUtils from '../NumberUtils';
 import ReceiptGeneric from '../../../assets/images/receipt-generic.png';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
+import * as ReportActions from './ReportActions';
 
 let allReports;
 Onyx.connect({
@@ -367,33 +368,21 @@ function buildOnyxDataForMoneyRequest(
     return [optimisticData, successData, failureData];
 }
 
-function cleanUpFailedMoneyRequest(iouAction) {
-    const iouReportID = String(lodashGet(iouAction, 'originalMessage.IOUReportID', ''));
+function cleanUpFailedMoneyRequest(iouReportID, iouAction) {
+    ReportActions.clearReportActionErrors(iouReportID, iouAction);
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     if (!iouReport) {
         Log.warn('[cleanUpFailedMoneyRequest] No iouReport found', {iouReportID});
         return;
     }
     const policyExpenseChatID = iouReport.parentReportID;
-    const transactionID = ReportActionsUtils.getLinkedTransactionID(iouReport.reportID, iouAction.reportActionID);
-    if (!transactionID) {
-        Log.warn('[cleanUpFailedMoneyRequest] No transactionID for reportID, actionID', {reportID: iouReport.reportID, reportActionID: iouAction.reportActionID});
-        return;
-    }
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(policyExpenseChatID, iouReport.reportID);
 
     // If the report failed to create, delete it.
     if (lodashGet(iouReport, 'errorFields.createChat')) {
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, null);
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, null);
-
-        // Delete the report preview action
-        if (reportPreviewAction) {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChatID}`, {[reportPreviewAction.reportActionID]: null});
-        }
     } else {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
         const lastMessageText = OptionsListUtils.getLastMessageTextFromActions(iouReport.reportID);
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {lastMessageText, lastMessageHtml: lastMessageText});
         const updatedIOUReport = allReports[iouReport.reportID] || {};

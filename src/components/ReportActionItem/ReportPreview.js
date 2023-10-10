@@ -170,7 +170,7 @@ function ReportPreview(props) {
 
     return (
         <OfflineWithFeedback
-            onClose={() => ReportActions.clearReportActionErrors(props.iouReport.reportID, props.action)}
+            onClose={() => IOU.cleanUpFailedMoneyRequest(props.iouReport.reportID, props.action)}
             pendingAction={props.action.pendingAction}
             errors={lodashGet(props.iouReport, 'errorFields.createChat')}
             needsOffscreenAlphaCompositing={ReportActionUtils.isMoneyRequestAction(props.action)}
