@@ -34,6 +34,7 @@ import withPolicy from '../workspace/withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import shouldReopenOnfido from '../../libs/shouldReopenOnfido';
+import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -106,7 +107,6 @@ function ReimbursementAccountPage({
     account,
     isLoadingReportData,
     session,
-    translate,
     plaidLinkToken,
     reimbursementAccountDraft,
 
@@ -121,7 +121,6 @@ function ReimbursementAccountPage({
             account,
             isLoadingReportData,
             session,
-            translate,
             plaidLinkToken,
             reimbursementAccountDraft,
         }
@@ -135,6 +134,7 @@ function ReimbursementAccountPage({
     const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const policyName = lodashGet(policy, 'name');
     const policyID = lodashGet(route.params, 'policyID');
+    const {translate} = useLocalize();
 
     const continueFunction = () => {
         setShouldShowContinueSetupButton(false);
@@ -154,7 +154,6 @@ function ReimbursementAccountPage({
                 account,
                 isLoadingReportData,
                 session,
-                translate,
                 plaidLinkToken,
                 reimbursementAccountDraft,
             }
@@ -168,7 +167,6 @@ function ReimbursementAccountPage({
         account,
         isLoadingReportData,
         session,
-        translate,
         plaidLinkToken,
         reimbursementAccountDraft,
     ]);
@@ -353,7 +351,6 @@ function ReimbursementAccountPage({
             account,
             isLoadingReportData,
             session,
-            translate,
             plaidLinkToken,
             reimbursementAccountDraft,
         };
