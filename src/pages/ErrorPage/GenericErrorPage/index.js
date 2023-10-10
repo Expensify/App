@@ -76,11 +76,11 @@ function GenericErrorPage({translate}) {
                     </View>
                     <View styles={styles.alignSelfEnd}>
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
-                            {/* <LogoWordmark
+                            <LogoWordmark
                                 height={30}
                                 width={80}
                                 fill={defaultTheme.textLight}
-                            /> */}
+                            />
                         </View>
                     </View>
                 </View>

@@ -1,32 +1,31 @@
-import {Image} from 'expo-image';
-import PropTypes from 'prop-types';
-import React from 'react';
 import {View} from 'react-native';
+import React from 'react';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
-import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
-import Hoverable from '@components/Hoverable';
-import * as Expensicons from '@components/Icon/Expensicons';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import Licenses from '@pages/signin/Licenses';
-import Socials from '@pages/signin/Socials';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
-import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
-import CONST from '@src/CONST';
+import Text from '../../../../components/Text';
+import styles from '../../../../styles/styles';
+import * as StyleUtils from '../../../../styles/StyleUtils';
+import themeColors from '../../../../styles/themes/default';
+import variables from '../../../../styles/variables';
+import * as Expensicons from '../../../../components/Icon/Expensicons';
+import TextLink from '../../../../components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import compose from '../../../../libs/compose';
+import Licenses from '../../Licenses';
+import Socials from '../../Socials';
+import Hoverable from '../../../../components/Hoverable';
+import CONST from '../../../../CONST';
+import * as Session from '../../../../libs/actions/Session';
+import SignInGradient from '../../../../../assets/images/home-fade-gradient--mobile.svg';
 
 const propTypes = {
+    ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     scrollPageToTop: PropTypes.func.isRequired,
-    shouldShowSmallScreen: PropTypes.bool,
 };
 
-const defaultProps = {
-    shouldShowSmallScreen: false,
-};
+const defaultProps = {};
 
 const navigateHome = (scrollPageToTop) => {
     scrollPageToTop();
@@ -66,6 +65,10 @@ const columns = ({scrollPageToTop}) => [
             {
                 link: CONST.FOOTER.INVOICES_URL,
                 translationPath: 'footer.invoicing',
+            },
+            {
+                link: CONST.FOOTER.CPA_CARD_URL,
+                translationPath: 'footer.CPACard',
             },
             {
                 link: CONST.FOOTER.PAYROLL_URL,
@@ -147,7 +150,7 @@ const columns = ({scrollPageToTop}) => [
 ];
 
 function Footer(props) {
-    const isVertical = props.shouldShowSmallScreen;
+    const isVertical = props.isSmallScreenWidth;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
@@ -160,11 +163,7 @@ function Footer(props) {
             <View style={footerWrapper}>
                 {isVertical ? (
                     <View style={[styles.signInPageGradientMobile]}>
-                        <Image
-                            contentFit="contain"
-                            source={SignInGradient}
-                            style={{height: '100%'}}
-                        />
+                        <SignInGradient height="100%" />
                     </View>
                 ) : null}
                 <View style={pageFooterWrapper}>
@@ -207,13 +206,11 @@ function Footer(props) {
                     </View>
                     <View style={[!isVertical && styles.footerBottomLogo]}>
                         {!isVertical ? (
-                            //here add width and height
-                            <Image source={Expensicons.ExpensifyFooterLogo} />
+                            <Expensicons.ExpensifyFooterLogo />
                         ) : (
-                            <Image
-                                contentFit="contain"
-                                source={Expensicons.ExpensifyFooterLogoVertical}
-                                style={{height: variables.verticalLogoHeight, width: variables.verticalLogoWidth}}
+                            <Expensicons.ExpensifyFooterLogoVertical
+                                height={variables.verticalLogoHeight}
+                                width={variables.verticalLogoWidth}
                             />
                         )}
                     </View>
@@ -227,4 +224,4 @@ Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
 Footer.defaultProps = defaultProps;
 
-export default withLocalize(Footer);
+export default compose(withLocalize, withWindowDimensions)(Footer);
