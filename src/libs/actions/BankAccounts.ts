@@ -381,16 +381,14 @@ function handlePlaidError(bankAccountID: number, error: string, errorDescription
     type BankAccountHandlePlaidErrorParams = {
         bankAccountID: number;
         error: string;
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        error_description: string;
+        errorDescription: string;
         plaidRequestID: string;
     };
 
     const parameters: BankAccountHandlePlaidErrorParams = {
         bankAccountID,
         error,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        error_description: errorDescription,
+        errorDescription,
         plaidRequestID,
     };
 
