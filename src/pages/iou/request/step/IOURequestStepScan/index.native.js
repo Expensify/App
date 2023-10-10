@@ -19,6 +19,7 @@ import Log from '../../../../../libs/Log';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import Navigation from '../../../../../libs/Navigation/Navigation';
+import * as FileUtils from '../../../../../libs/fileDownload/FileUtils';
 import TabNavigationAwareCamera from './TabNavigationAwareCamera';
 import ROUTES from '../../../../../ROUTES';
 import reportPropTypes from '../../../../reportPropTypes';
@@ -176,34 +177,6 @@ function IOURequestStepScan({
             });
         });
 
-    const saveFileAndNavigateToNextStep = useCallback(
-        (filePath, fileSource) => {
-            IOU.setMoneeRequestReceipt(transactionID, filePath, fileSource);
-
-            // TODO: Figure out what this does and if we need to account for it
-            // if (transactionID) {
-            //     FileUtils.readFileAsync(filePath, photo.path).then((receipt) => {
-            //         IOU.replaceReceipt(transactionID, receipt, filePath);
-            //     });
-
-            //     Navigation.dismissModal();
-            //     return;
-            // }
-
-            // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-            // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-            // to the confirm step.
-            if (report.reportID) {
-                IOU.autoAssignParticipants(transactionID, report);
-                Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
-                return;
-            }
-
-            Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
-        },
-        [iouType, reportID, transactionID, report],
-    );
-
     const takePhoto = useCallback(() => {
         const showCameraAlert = () => {
             Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
@@ -221,13 +194,34 @@ function IOURequestStepScan({
             })
             .then((photo) => {
                 const filePath = `file://${photo.path}`;
-                saveFileAndNavigateToNextStep(filePath, photo.path);
+                IOU.setMoneyRequestReceipt(filePath, photo.path);
+
+                // When an existing transaction is being edited (eg. not the create transaction flow)
+                if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                    FileUtils.readFileAsync(filePath, photo.path).then((receipt) => {
+                        IOU.replaceReceipt(transactionID, receipt, filePath);
+                    });
+
+                    Navigation.dismissModal();
+                    return;
+                }
+
+                // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
+                // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+                // to the confirm step.
+                if (report.reportID) {
+                    IOU.autoAssignParticipants(transactionID, report);
+                    Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+                    return;
+                }
+
+                Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
             })
             .catch((error) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, translate, saveFileAndNavigateToNextStep]);
+    }, [flash, iouType, report, reportID, translate, transactionID]);
 
     CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
@@ -282,7 +276,27 @@ function IOURequestStepScan({
                         showImagePicker(launchImageLibrary)
                             .then((receiptImage) => {
                                 const filePath = receiptImage[0].uri;
-                                saveFileAndNavigateToNextStep(filePath, receiptImage[0].fileName);
+                                IOU.setMoneyRequestReceipt(filePath, receiptImage[0].fileName);
+
+                                // When a transaction is being edited (eg. not in the creation flow)
+                                if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                                    FileUtils.readFileAsync(filePath, receiptImage[0].fileName).then((receipt) => {
+                                        IOU.replaceReceipt(transactionID, receipt, filePath);
+                                    });
+                                    Navigation.dismissModal();
+                                    return;
+                                }
+
+                                // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
+                                // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+                                // to the confirm step.
+                                if (report.reportID) {
+                                    IOU.autoAssignParticipants(transactionID, report);
+                                    Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, reportID));
+                                    return;
+                                }
+
+                                Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.PARTICIPANTS, transactionID, reportID));
                             })
                             .catch(() => {
                                 Log.info('User did not select an image from gallery');

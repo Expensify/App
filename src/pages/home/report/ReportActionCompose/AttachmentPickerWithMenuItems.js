@@ -144,7 +144,6 @@ function AttachmentPickerWithMenuItems({
         return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs), (option) => ({
             ...options[option],
             onSelected: () => {
-                // TODO: IOU.startMoneyRequest(option, report.reportID);
                 Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID));
             },
         }));

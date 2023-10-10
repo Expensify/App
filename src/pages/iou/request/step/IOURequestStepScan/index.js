@@ -113,12 +113,12 @@ function IOURequestStepScan({
         const filePath = URL.createObjectURL(file);
         IOU.setMoneeRequestReceipt(transactionID, filePath, file.name);
 
-        // TODO: Figure out what this does and if we need to account for it
-        // if (transactionID) {
-        //     IOU.replaceReceipt(transactionID, file, filePath);
-        //     Navigation.dismissModal();
-        //     return;
-        // }
+        // When an existing transaction is being edited (eg. not the create transaction flow)
+        if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+            IOU.replaceReceipt(transactionID, file, filePath);
+            Navigation.dismissModal();
+            return;
+        }
 
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
