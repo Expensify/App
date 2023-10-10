@@ -65,7 +65,13 @@ function EReceiptThumbnail({transaction, transactionID}) {
 
     return (
         <View
-            style={[styles.flex1, StyleUtils.getBackgroundColorStyle(primaryColor), styles.overflowHidden, styles.alignItemsCenter, containerHeight < 200 && styles.justifyContentCenter]}
+            style={[
+                styles.flex1,
+                StyleUtils.getBackgroundColorStyle(primaryColor),
+                styles.overflowHidden,
+                styles.alignItemsCenter,
+                containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint && styles.justifyContentCenter,
+            ]}
             onLayout={onContainerLayout}
         >
             <Image

@@ -151,6 +151,7 @@ export default {
     dropDownButtonDividerHeight: 28,
     eReceiptThumbnailSmallBreakpoint: 110,
     eReceiptThumbnailMediumBreakpoint: 335,
+    eReceiptThumnailCenterReceiptBreakpoint: 200,
     eReceiptIconHeight: 100,
     eReceiptIconWidth: 72,
     eReceiptMCCHeightWidth: 40,
