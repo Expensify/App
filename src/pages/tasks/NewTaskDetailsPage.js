@@ -18,7 +18,6 @@ import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
 import CONST from '../../CONST';
 import * as Browser from '../../libs/Browser';
-import {useFocusEffect} from '@react-navigation/native';
 
 const propTypes = {
     /** Beta features list */
