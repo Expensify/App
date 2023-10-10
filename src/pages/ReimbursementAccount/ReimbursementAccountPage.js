@@ -111,24 +111,21 @@ function ReimbursementAccountPage({
     reimbursementAccountDraft,
 
 }) {
-
-    console.log("--- :::::: ENTERED :::: ReimbursementAccountPage  ---");
-
-    // Use a ref to store the previous props and compare them when the effect runs
-    const prevProps = useRef({
-        reimbursementAccount,
-        network,
-        route,
-        onfidoToken,
-        policy,
-        account,
-        isLoadingReportData,
-        session,
-        translate,
-        plaidLinkToken,
-        reimbursementAccountDraft,
+    const [prevProps, setPrevProps] = useState({
+        current: {
+            reimbursementAccount,
+            network,
+            route,
+            onfidoToken,
+            policy,
+            account,
+            isLoadingReportData,
+            session,
+            translate,
+            plaidLinkToken,
+            reimbursementAccountDraft,
+        }
     });
-
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(
         hasACHDataBeenLoaded ? getShouldShowContinueSetupButtonInitialValue() : false
     );
@@ -144,6 +141,38 @@ function ReimbursementAccountPage({
         fetchData(true);
     };
 
+    useEffect(() => {
+        // If it's a subsequent render, compare the current props with prevProps if needed.
+        // At the end of the useEffect, update the prevProps to the current props for the next render cycle.
+        setPrevProps({
+            current: {
+                reimbursementAccount,
+                network,
+                route,
+                onfidoToken,
+                policy,
+                account,
+                isLoadingReportData,
+                session,
+                translate,
+                plaidLinkToken,
+                reimbursementAccountDraft,
+            }
+        });
+    }, [
+        reimbursementAccount,
+        network,
+        route,
+        onfidoToken,
+        policy,
+        account,
+        isLoadingReportData,
+        session,
+        translate,
+        plaidLinkToken,
+        reimbursementAccountDraft,
+    ]);
+
     /**
     * @param {String} fieldName
     * @param {*} defaultValue
@@ -155,8 +184,6 @@ function ReimbursementAccountPage({
     };
 
     const goBack = () => {
-
-        console.log("--- :::::: ENTERED :::::: go back  ---");
         const achData = lodashGet(reimbursementAccount, 'achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const subStep = achData.subStep;
