@@ -33,6 +33,7 @@ import * as ReportActionUtils from '../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import OfflineWithFeedback from '../OfflineWithFeedback';
+import * as OptionListUtils from '../../libs/OptionsListUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -125,7 +126,7 @@ function ReportPreview(props) {
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
-    const hasErrors = (hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID)) || !_.isEmpty(props.iouReport.errorFields) || !_.isEmpty(props.iouReport.errors);
+    const hasErrors = !_.isEmpty(OptionListUtils.getAllReportErrors(props.iouReport, {[props.action.reportActionID]: props.action}));
     const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || ''));
 
