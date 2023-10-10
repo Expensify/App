@@ -238,12 +238,12 @@ function ReportScreen({
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (report.reportID && report.reportID === getReportID(route) && !reportMetadata.isLoadingInitialReportActions) {
+        if (report.reportID && report.reportID === getReportID(route) && !isFirstlyLoadingReportActions) {
             return;
         }
 
         Report.openReport(reportIDFromPath);
-    }, [report.reportID, route, reportMetadata.isLoadingInitialReportActions]);
+    }, [report.reportID, route, isFirstlyLoadingReportActions]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
