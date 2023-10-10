@@ -5,7 +5,6 @@ import GenericPressable from './GenericPressable';
 import GenericPressablePropTypes from './GenericPressable/PropTypes';
 import OpacityView from '../OpacityView';
 import variables from '../../styles/variables';
-import useSingleExecution from '../../hooks/useSingleExecution';
 
 const omittedProps = ['wrapperStyle', 'needsOffscreenAlphaCompositing'];
 
