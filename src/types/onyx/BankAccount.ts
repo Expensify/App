@@ -1,3 +1,5 @@
+import CONST from '../../CONST';
+
 type AdditionalData = {
     isP2PDebitCard?: boolean;
     beneficialOwners?: string[];
@@ -49,7 +51,7 @@ type AccountData = {
 
 type BankAccount = {
     /** The bank account type */
-    accountType?: string;
+    accountType?: typeof CONST.PAYMENT_METHODS.BANK_ACCOUNT;
 
     /** string like 'Account ending in XXXX' */
     description?: string;

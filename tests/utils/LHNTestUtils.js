@@ -15,6 +15,7 @@ jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
+        useFocusEffect: jest.fn(),
         useIsFocused: () => ({
             navigate: mockedNavigate,
         }),
@@ -194,7 +195,6 @@ function MockedSidebarLinks({currentReportID}) {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider]}>
             <SidebarLinksData
-                onLinkClick={() => {}}
                 insets={{
                     top: 0,
                     left: 0,

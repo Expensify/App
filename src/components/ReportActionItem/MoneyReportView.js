@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
@@ -13,8 +13,8 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import variables from '../../styles/variables';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
+import AnimatedEmptyStateBackground from '../../pages/home/report/AnimatedEmptyStateBackground';
 import SpacerView from '../SpacerView';
 
 const propTypes = {
@@ -35,11 +35,7 @@ function MoneyReportView(props) {
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
-                <Image
-                    pointerEvents="none"
-                    source={EmptyStateBackgroundImage}
-                    style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
-                />
+                <AnimatedEmptyStateBackground />
             </View>
             <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>

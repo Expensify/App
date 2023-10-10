@@ -756,6 +756,17 @@ function isMoneyRequestReport(reportOrID) {
 }
 
 /**
+ * Get the report given a reportID
+ *
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReport(reportID) {
+    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
+}
+
+/**
  * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
  * policy admin
  *
@@ -764,29 +775,36 @@ function isMoneyRequestReport(reportOrID) {
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction, reportID) {
-    // For now, users cannot delete split actions
-    if (ReportActionsUtils.isMoneyRequestAction(reportAction) && lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
-        return false;
-    }
+    const report = getReport(reportID);
+
     const isActionOwner = reportAction.actorAccountID === currentUserAccountID;
-    if (isActionOwner && ReportActionsUtils.isMoneyRequestAction(reportAction) && !isSettled(reportAction.originalMessage.IOUReportID)) {
-        return true;
+
+    if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+        // For now, users cannot delete split actions
+        const isSplitAction = lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+
+        if (isSplitAction || isSettled(reportAction.originalMessage.IOUReportID) || isReportApproved(report)) {
+            return false;
+        }
+
+        if (isActionOwner) {
+            return true;
+        }
     }
+
     if (
         reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
         reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
-        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID)) ||
         reportAction.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
     ) {
         return false;
     }
-    if (isActionOwner) {
-        return true;
-    }
-    const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+
     const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`) || {};
-    return policy.role === CONST.POLICY.ROLE.ADMIN && !isDM(report);
+    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN && !isDM(report);
+
+    return isActionOwner || isAdmin;
 }
 
 /**
@@ -1195,17 +1213,6 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
 }
 
 /**
- * Get the report given a reportID
- *
- * @param {String} reportID
- * @returns {Object}
- */
-function getReport(reportID) {
-    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
-}
-
-/**
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
@@ -1525,7 +1532,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey = 'iou.paidElsewhereWithAmount';
         if (
-            _.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], reportAction.originalMessage.paymentType) ||
+            _.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], lodashGet(reportAction, 'originalMessage.paymentType')) ||
             reportActionMessage.match(/ (with Expensify|using Expensify)$/)
         ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
@@ -2195,6 +2202,9 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
         case CONST.REPORT.ACTIONS.TYPE.APPROVED:
             iouMessage = `approved ${amount}`;
             break;
+        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
+            iouMessage = `submitted ${amount}`;
+            break;
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
             iouMessage = `requested ${amount}${comment && ` for ${comment}`}`;
             break;
@@ -2338,6 +2348,44 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
+ *
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {Number} expenseReportID
+ *
+ * @returns {Object}
+ */
+function buildOptimisticSubmittedReportAction(amount, currency, expenseReportID) {
+    const originalMessage = {
+        amount,
+        currency,
+        expenseReportID,
+    };
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        isAttachment: false,
+        originalMessage,
+        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency),
         person: [
             {
                 style: 'strong',
@@ -3045,7 +3093,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
  * @returns {Array|undefined}
  */
 function getChatByParticipants(newParticipantList) {
-    newParticipantList.sort();
+    const sortedNewParticipantList = _.sortBy(newParticipantList);
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
         if (
@@ -3061,7 +3109,7 @@ function getChatByParticipants(newParticipantList) {
         }
 
         // Only return the chat if it has all the participants
-        return _.isEqual(newParticipantList, _.sortBy(report.participantAccountIDs));
+        return _.isEqual(sortedNewParticipantList, _.sortBy(report.participantAccountIDs));
     });
 }
 
@@ -3532,6 +3580,15 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
     return expenseChat.reportID;
 }
 
+/**
+ * @param {String} policyID
+ * @param {Array} accountIDs
+ * @returns {Array}
+ */
+function getWorkspaceChats(policyID, accountIDs) {
+    return _.filter(allReports, (report) => isPolicyExpenseChat(report) && lodashGet(report, 'policyID', '') === policyID && _.contains(accountIDs, lodashGet(report, 'ownerAccountID', '')));
+}
+
 /*
  * @param {Object|null} report
  * @returns {Boolean}
@@ -3762,6 +3819,14 @@ function getIOUReportActionDisplayMessage(reportAction) {
     return displayMessage;
 }
 
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isReportDraft(report) {
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.OPEN && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.OPEN;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3822,6 +3887,7 @@ export {
     buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
     buildOptimisticApprovedReportAction,
+    buildOptimisticSubmittedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
@@ -3888,6 +3954,7 @@ export {
     isDM,
     getPolicy,
     getPolicyExpenseChatReportIDByOwner,
+    getWorkspaceChats,
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
@@ -3905,4 +3972,5 @@ export {
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
+    isReportDraft,
 };
