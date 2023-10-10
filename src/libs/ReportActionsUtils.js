@@ -331,12 +331,6 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
-    if (isModifiedExpenseAction(reportAction)) {
-        if (reportAction.isDeletedTransaction) {
-            return false;
-        }
-    }
-
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED) {
         return false;
     }
@@ -401,11 +395,14 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
         ...allReportActions[reportID],
         ...updatedActionsToMerge,
     });
-    const visibleActions = actions.filter((action) => shouldReportActionBeVisibleAsLastAction(action));
+
+    const parentReportAction = getParentReportAction(allReports[reportID]);
+    const visibleActions = actions.filter((action) => shouldReportActionBeVisibleAsLastAction(action) && (!isDeletedAction(parentReportAction) || !isModifiedExpenseAction(action)));
 
     if (visibleActions.length === 0) {
         return {};
     }
+
     const maxDate = max(visibleActions.map((action) => parseISO(action.created)));
     const maxAction = visibleActions.find((action) => isEqual(parseISO(action.created), maxDate));
     return maxAction;
@@ -638,10 +635,6 @@ function getAllReportActions(reportID) {
     return lodashGet(allReportActions, reportID, []);
 }
 
-function getAllModifiedExpenseAction(reportID) {
-    return _.map(_.filter(lodashGet(allReportActions, reportID, []), isModifiedExpenseAction), (action) => action.reportActionID);
-}
-
 /**
  * Check whether a report action is an attachment (a file, such as an image or a zip).
  *
@@ -696,5 +689,4 @@ export {
     getAllReportActions,
     isReportActionAttachment,
     isNotifiableReportAction,
-    getAllModifiedExpenseAction,
 };

@@ -25,6 +25,7 @@ Onyx.connect({
         const reportID = CollectionUtils.extractCollectionItemID(key);
 
         const actionsArray = ReportActionsUtils.getSortedReportActions(_.toArray(actions));
+        const parentReportAction = ReportActionsUtils.getParentReportAction(ReportUtils.getReport(reportID));
         lastReportActions[reportID] = _.last(actionsArray);
 
         // The report is only visible if it is the last action not deleted that
@@ -34,7 +35,8 @@ Onyx.connect({
             (reportAction, actionKey) =>
                 ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
                 reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                (!ReportActionsUtils.isDeletedAction(parentReportAction) || !ReportActionsUtils.isModifiedExpenseAction(reportAction)),
         );
         visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
     },
@@ -283,6 +285,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
+    result.isIOURequest = ReportUtils.isIOURequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
@@ -331,6 +334,9 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
               }
             : null;
     }
+    if ((result.isExpenseRequest || result.isIOURequest) && visibleReportActionItems[report.reportID]) {
+        lastActorDetails = personalDetails[visibleReportActionItems[report.reportID].actorAccountID];
+    }
     const lastActorDisplayName =
         hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? lastActorDetails.displayName : '';
     let lastMessageText = lastMessageTextFromReport;
@@ -343,6 +349,10 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
             displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
             policyName: ReportUtils.getPolicyName(report, false, policy),
         });
+    }
+
+    if ((result.isExpenseRequest || result.isIOURequest) && visibleReportActionItems[report.reportID]) {
+        lastMessageText = lodashGet(visibleReportActionItems[report.reportID], 'message[0].text', '');
     }
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {

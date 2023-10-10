@@ -3973,4 +3973,5 @@ export {
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
     isReportDraft,
+    isIOURequest,
 };

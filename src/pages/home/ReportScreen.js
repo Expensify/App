@@ -146,6 +146,7 @@ function ReportScreen({
     errors,
     userLeavingStatus,
     currentReportID,
+    parentReportActions,
 }) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -170,7 +171,12 @@ function ReportScreen({
 
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const parentReportAction = useMemo(() => {
+        if (!report || !report.parentReportID || !report.parentReportActionID || !report.reportID || !parentReportActions) {
+            return {};
+        }
+        return parentReportActions[report.parentReportActionID];
+    }, [report, parentReportActions]);
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
@@ -351,6 +357,11 @@ function ReportScreen({
         }
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
+    const reportActionToDisplay = useMemo(
+        () => _.filter(reportActions, (action) => !ReportActionsUtils.isDeletedAction(parentReportAction) || !ReportActionsUtils.isModifiedExpenseAction(action)),
+        [reportActions, parentReportAction],
+    );
+
     const onListLayout = useCallback(() => {
         if (!markReadyForHydration) {
             return;
@@ -416,7 +427,7 @@ function ReportScreen({
                             >
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
-                                        reportActions={reportActions}
+                                        reportActions={reportActionToDisplay}
                                         report={report}
                                         isLoadingReportActions={reportMetadata.isLoadingReportActions}
                                         isLoadingMoreReportActions={reportMetadata.isLoadingMoreReportActions}
@@ -504,4 +515,10 @@ export default compose(
         },
         true,
     ),
+    withOnyx({
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
+        },
+    }),
 )(ReportScreen);
