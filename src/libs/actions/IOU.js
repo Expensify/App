@@ -1289,7 +1289,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
 }
 
 /** Used exclusively for starting a split bill request that contains a receipt, the split request will be completed once the receipt is scanned
- * or user enters details manually.
+ *  or user enters details manually.
  *
  * @param {Array} participants
  * @param {String} currentUserLogin
@@ -1306,17 +1306,12 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
             : ReportUtils.getChatByParticipants(participantAccountIDs);
     const splitChatReport = existingSplitChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
-    const isOwnPolicyExpenseChat = splitChatReport.isOwnPolicyExpenseChat;
+    const isOwnPolicyExpenseChat = splitChatReport.isOwnPolicyExpenseChat || false;
 
-    const receiptObject = {};
-    let filename;
-    if (receipt && receipt.source) {
-        receiptObject.source = receipt.source;
-        receiptObject.state = receipt.state || CONST.IOU.RECEIPT_STATE.SCANREADY;
-        filename = receipt.name;
-    }
+    const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCANREADY} = receipt;
+    const receiptObject = {state, source};
 
-    // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
+    // ReportID is -2 (aka "deleted") on the group transaction
     const splitTransaction = TransactionUtils.buildOptimisticTransaction(0, CONST.CURRENCY.USD, CONST.REPORT.SPLIT_REPORTID, comment, '', '', '', '', receiptObject, filename);
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
@@ -1429,8 +1424,11 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
                 value: {
-                    [splitIOUReportAction.reportActionID]: {
+                    [splitChatCreatedReportAction.reportActionID]: {
                         errors: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                    },
+                    [splitIOUReportAction.reportActionID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError('report.genericCreateFailureMessage'),
                     },
                 },
             },
@@ -1465,7 +1463,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                         accountID,
                         avatar: UserUtils.getDefaultAvatarURL(accountID),
                         displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
-                        login: participant.login,
+                        login: participant.login || participant.text,
                         isOptimisticPersonalDetail: true,
                     },
                 },
@@ -1494,11 +1492,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     );
 
     resetMoneyRequestInfo();
-    if (existingSplitChatReport) {
-        Navigation.dismissModal();
-    } else {
-        Navigation.dismissModal(splitChatReport.reportID);
-    }
+    Navigation.dismissModal(splitChatReport.reportID);
     Report.notifyNewAction(splitChatReport.chatReportID, currentUserAccountID);
 }
 

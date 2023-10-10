@@ -1300,10 +1300,9 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
  *
  * @param {Object} personalDetail
  * @param {String} amountText
- * @param {Boolean} shouldHideDescriptiveText
  * @returns {Object}
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText, shouldHideDescriptiveText) {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     return {
         text: personalDetail.displayName || formattedLogin,
@@ -1316,7 +1315,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
                 id: personalDetail.accountID,
             },
         ],
-        descriptiveText: shouldHideDescriptiveText ? '' : amountText,
+        descriptiveText: amountText,
         login: personalDetail.login,
         accountID: personalDetail.accountID,
     };
@@ -1327,13 +1326,12 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
  *
  * @param {Array} participants
  * @param {String} amountText
- * @param {Boolean} shouldHideDescriptiveText
  * @returns {Array}
  */
-function getIOUConfirmationOptionsFromParticipants(participants, amountText, shouldHideDescriptiveText) {
+function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
     return _.map(participants, (participant) => ({
         ...participant,
-        descriptiveText: shouldHideDescriptiveText ? '' : amountText,
+        descriptiveText: amountText,
     }));
 }
 

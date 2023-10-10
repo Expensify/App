@@ -203,11 +203,12 @@ function MoneyRequestConfirmationList(props) {
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
 
     // A flag for showing the categories field
-    const shouldShowCategories = props.isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories));
+    const shouldShowCategories =
+        props.isPolicyExpenseChat && Permissions.canUseCategories(props.betas) && (props.iouCategory || OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories)));
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
-    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || !props.shouldShowSmartScanFields;
+    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || props.isEdittingSplitBill || !props.shouldShowSmartScanFields;
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(props.policyTags);
@@ -255,8 +256,7 @@ function MoneyRequestConfirmationList(props) {
             const iouAmount = IOUUtils.calculateAmount(participantsList.length, props.iouAmount, props.iouCurrencyCode);
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
                 participantsList,
-                CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode),
-                props.iouAmount === 0,
+                props.iouAmount > 0 ? CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode) : '',
             );
         },
         [props.iouAmount, props.iouCurrencyCode],
@@ -304,8 +304,7 @@ function MoneyRequestConfirmationList(props) {
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, props.iouCurrencyCode, true);
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
                 payeePersonalDetails,
-                CurrencyUtils.convertToDisplayString(myIOUAmount, props.iouCurrencyCode),
-                props.iouAmount === 0,
+                props.iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, props.iouCurrencyCode) : '',
             );
 
             sections.push(

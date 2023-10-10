@@ -2,13 +2,12 @@ import React, {useCallback} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmationList';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -16,13 +15,14 @@ import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import reportPropTypes from '../reportPropTypes';
 import transactionPropTypes from '../../components/transactionPropTypes';
 import withReportAndReportActionOrNotFound from '../home/report/withReportAndReportActionOrNotFound';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import CONST from '../../CONST';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
-import MoneyRequestHeaderStatusBar from '../../components/MoneyRequestHeaderStatusBar';
 import * as IOU from '../../libs/actions/IOU';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmationList';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import MoneyRequestHeaderStatusBar from '../../components/MoneyRequestHeaderStatusBar';
 
 const propTypes = {
     /* Onyx Props */
@@ -100,6 +100,7 @@ function SplitBillDetailsPage(props) {
         comment: splitComment,
         merchant: splitMerchant,
         created: splitCreated,
+        category: splitCategory,
     } = isEdittingSplitBill && draftSplitTransaction ? ReportUtils.getTransactionDetails(draftSplitTransaction) : ReportUtils.getTransactionDetails(transaction);
 
     const onConfirm = useCallback(() => IOU.completeSplitBill(props.report.reportID, reportAction, draftSplitTransaction), [props.report.reportID, reportAction, draftSplitTransaction]);
@@ -123,6 +124,7 @@ function SplitBillDetailsPage(props) {
                             iouComment={splitComment}
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
+                            iouCategory={splitCategory}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly={!isEdittingSplitBill}
                             shouldShowSmartScanFields
@@ -132,7 +134,7 @@ function SplitBillDetailsPage(props) {
                             isScanning={isScanning}
                             isEdittingSplitBill={isEdittingSplitBill}
                             reportActionID={reportAction.reportActionID}
-                            reportID={props.report.reportID}
+                            reportID={lodashGet(props.report, 'reportID', '')}
                             onConfirm={onConfirm}
                         />
                     )}
