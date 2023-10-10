@@ -2,8 +2,7 @@
  * This is a file containing constants for all of the screen names. In most cases, we should use the routes for
  * navigation. But there are situations where we may need to access screen names directly.
  */
-
-export const PROTECTED_SCREENS = {
+const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
     REPORT_ATTACHMENTS: 'ReportAttachments',
@@ -43,3 +42,5 @@ export default {
     GROUPS_WORKSPACES_OLDDOT: 'GroupWorkspaces_OLDDOT',
     CARDS_AND_DOMAINS_OLDDOT: 'CardsAndDomains_OLDDOT',
 } as const;
+
+export {PROTECTED_SCREENS};
