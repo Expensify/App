@@ -77,6 +77,7 @@ function IOUCurrencySelection(props) {
     const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const threadReportID = lodashGet(props.route, 'params.threadReportID', '');
+
     // Dismiss the modal when the request is paid or deleted
     useEffect(() => {
         if (!threadReportID) {
