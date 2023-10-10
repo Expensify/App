@@ -101,8 +101,4 @@ function clearCardListErrors(cardID) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
 }
 
-export {
-    reportVirtualExpensifyCardFraud,
-    activatePhysicalExpensifyCard,
-    clearCardListErrors
-};
+export {reportVirtualExpensifyCardFraud, activatePhysicalExpensifyCard, clearCardListErrors};
