@@ -6,6 +6,7 @@ import Log from '../libs/Log';
 import styles from '../styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** Url for image to display */
@@ -42,6 +43,7 @@ function ImageWithSizeCalculation(props) {
     const isLoadedRef = useRef(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    const {isOffline} = useNetwork();
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url: props.url});
@@ -77,10 +79,11 @@ function ImageWithSizeCalculation(props) {
                 isAuthTokenRequired={props.isAuthTokenRequired}
                 resizeMode={Image.resizeMode.cover}
                 onLoadStart={() => {
-                    if (isLoadedRef.current || isLoading) {
-                        return;
+                    if (isLoadedRef.current || isOffline) {
+                        setIsLoading(false);
+                    } else {
+                        setIsLoading(true);
                     }
-                    setIsLoading(true);
                 }}
                 onLoadEnd={() => {
                     setIsLoading(false);
