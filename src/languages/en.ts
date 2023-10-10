@@ -1003,7 +1003,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include letters.',
+            hasInvalidCharacter: 'Name can only include Latin characters.',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
