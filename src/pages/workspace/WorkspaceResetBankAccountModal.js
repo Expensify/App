@@ -1,24 +1,29 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
+import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ConfirmModal from '../../components/ConfirmModal';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import BankAccount from '../../libs/models/BankAccount';
-import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** Reimbursement account data */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
-    ...withLocalizePropTypes,
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }).isRequired,
 };
 
 function WorkspaceResetBankAccountModal(props) {
+    const {translate} = useLocalize();
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
     const isInOpenState = achData.state === BankAccount.STATE.OPEN;
     const bankAccountID = achData.bankAccountID;
@@ -26,18 +31,18 @@ function WorkspaceResetBankAccountModal(props) {
 
     return (
         <ConfirmModal
-            title={props.translate('workspace.bankAccount.areYouSure')}
-            confirmText={isInOpenState ? props.translate('workspace.bankAccount.yesDisconnectMyBankAccount') : props.translate('workspace.bankAccount.yesStartOver')}
-            cancelText={props.translate('common.cancel')}
+            title={translate('workspace.bankAccount.areYouSure')}
+            confirmText={isInOpenState ? translate('workspace.bankAccount.yesDisconnectMyBankAccount') : translate('workspace.bankAccount.yesStartOver')}
+            cancelText={translate('common.cancel')}
             prompt={
                 isInOpenState ? (
                     <Text>
-                        <Text>{props.translate('workspace.bankAccount.disconnectYour')}</Text>
+                        <Text>{translate('workspace.bankAccount.disconnectYour')}</Text>
                         <Text style={styles.textStrong}>{bankShortName}</Text>
-                        <Text>{props.translate('workspace.bankAccount.bankAccountAnyTransactions')}</Text>
+                        <Text>{translate('workspace.bankAccount.bankAccountAnyTransactions')}</Text>
                     </Text>
                 ) : (
-                    props.translate('workspace.bankAccount.clearProgress')
+                    translate('workspace.bankAccount.clearProgress')
                 )
             }
             danger
@@ -52,11 +57,8 @@ function WorkspaceResetBankAccountModal(props) {
 WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
 WorkspaceResetBankAccountModal.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(WorkspaceResetBankAccountModal);
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(WorkspaceResetBankAccountModal);
