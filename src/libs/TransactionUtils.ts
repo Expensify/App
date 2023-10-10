@@ -279,22 +279,21 @@ function isDistanceRequest(transaction: Transaction): boolean {
 }
 
 function isExpensifyCardTransaction(transaction: Transaction): boolean {
-    if(!transaction.cardID){
+    if (!transaction.cardID) {
         return false;
     }
     return isExpensifyCard(transaction.cardID);
 }
 
-
 function isPending(transaction: Transaction): boolean {
-    if(!transaction.status){
+    if (!transaction.status) {
         return false;
     }
     return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
 }
 
 function isPosted(transaction: Transaction): boolean {
-    if(!transaction.status){
+    if (!transaction.status) {
         return false;
     }
     return transaction.status === CONST.TRANSACTION.STATUS.POSTED;

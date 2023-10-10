@@ -188,7 +188,7 @@ function MoneyRequestPreview(props) {
     };
 
     const getPreviewHeaderText = () => {
-        if(isExpensifyCardTransaction) {
+        if (isExpensifyCardTransaction) {
             let message = props.translate('iou.card');
 
             if (TransactionUtils.isPending(props.transaction)) {
