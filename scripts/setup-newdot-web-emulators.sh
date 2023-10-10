@@ -45,9 +45,9 @@ fi
 setup_ios()
 {
   select_device_ios
-  sleep 5
+  sleep 30
   info "Installing certificates on iOS simulator"
-  xcrun simctl keychain booted add-cert ./config/webpack/certificate.pem
+  xcrun simctl keychain booted add-root-cert "$(mkcert -CAROOT)/rootCA.pem"
   kill_all_emulators_ios
 }
 
