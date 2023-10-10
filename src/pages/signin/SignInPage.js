@@ -79,42 +79,40 @@ const defaultProps = {
 /**
  * @param {Boolean} hasLogin
  * @param {Boolean} hasValidateCode
- * @param {Boolean} hasAccount
+ * @param {Object} account
  * @param {Boolean} isPrimaryLogin
- * @param {Boolean} isAccountValidated
- * @param {Boolean} isSAMLEnabled
- * @param {Boolean} isSAMLRequired
  * @param {Boolean} isUsingMagicCode
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({
-    hasLogin,
-    hasValidateCode,
-    hasAccount,
-    isPrimaryLogin,
-    isAccountValidated,
-    isSAMLEnabled,
-    isSAMLRequired,
-    isUsingMagicCode,
-    hasEmailDeliveryFailure,
-    isClientTheLeader,
-}) {
-    const shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
+function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, isUsingMagicCode, isClientTheLeader}) {
+    const hasAccount = !_.isEmpty(account);
+    const isSAMLEnabled = Boolean(account.isSAMLEnabled);
+    const isSAMLRequired = Boolean(account.isSAMLRequired);
+    const hasEmailDeliveryFailure = Boolean(account.hasEmailDeliveryFailure);
+
+    // SAML is temporarily restricted to users on the beta or to users signing in on web and mweb
     let shouldShowChooseSSOOrMagicCode = false;
     let shouldInitiateSAMLLogin = false;
     const platform = getPlatform();
-
-    // SAML is temporarily restricted to users on the beta or to users signing in on web and mweb
     if (Permissions.canUseSAML() || platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP) {
+        // True if the user has SAML required and we're not already loading their account
+        shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && account.loadingForm === CONST.FORMS.LOGIN_FORM;
         shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
-        shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired;
+    }
+
+    let shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
+
+    // The SAML required flow has an edge case that we need to handle here so that the user isn't stuck in a loop
+    // if they've exited out of their SSO provider's login portal
+    if (isSAMLRequired && !shouldInitiateSAMLLogin) {
+        shouldShowLoginForm = isClientTheLeader;
     }
 
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
-    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
+    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !Boolean(account.validated) && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm =
-        hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
+        hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !isSAMLRequired;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin;
     const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || !isClientTheLeader;
     return {
@@ -157,20 +155,14 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
     } = getRenderOptions({
         hasLogin: Boolean(credentials.login),
         hasValidateCode: Boolean(credentials.validateCode),
-        hasAccount: !_.isEmpty(account),
+        account,
         isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
-        isAccountValidated: Boolean(account.validated),
-        isSAMLEnabled: Boolean(account.isSAMLEnabled),
-        isSAMLRequired: Boolean(account.isSAMLRequired),
         isUsingMagicCode,
-        hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
         isClientTheLeader,
     });
 
-    // If the user has SAML required and we're not already loading their account
-    // bypass the rest of the sign in logic and open up their SSO provider login page
-    if (shouldInitiateSAMLLogin && account.loadingForm === CONST.FORMS.LOGIN_FORM) {
-        Navigation.navigate(ROUTES.SAML_SIGN_IN);
+    if (shouldInitiateSAMLLogin) {
+        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.SAML_SIGN_IN));
     }
 
     let welcomeHeader = '';
