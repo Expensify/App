@@ -1,5 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
 import ConfirmModal from '../../components/ConfirmModal';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -7,6 +8,8 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import BankAccount from '../../libs/models/BankAccount';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Reimbursement account data */
@@ -39,7 +42,7 @@ function WorkspaceResetBankAccountModal(props) {
             }
             danger
             onCancel={BankAccounts.cancelResetFreePlanBankAccount}
-            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID)}
+            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, props.session)}
             shouldShowCancelButton
             isVisible
         />
@@ -49,4 +52,11 @@ function WorkspaceResetBankAccountModal(props) {
 WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
 WorkspaceResetBankAccountModal.propTypes = propTypes;
 
-export default withLocalize(WorkspaceResetBankAccountModal);
+export default compose(
+    withLocalize,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(WorkspaceResetBankAccountModal);
