@@ -35,7 +35,6 @@ function AnonymousReportFooter(props) {
             <View style={[styles.flexRow, styles.flexShrink1]}>
                 <AvatarWithDisplayName
                     report={props.report}
-                    size={CONST.AVATAR_SIZE.MEDIUM}
                     personalDetails={props.personalDetails}
                     isAnonymous
                 />
