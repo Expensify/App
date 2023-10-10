@@ -678,10 +678,10 @@ function extractValuesFromRGB(color: string): number[] | null {
  * @returns The theme color as an RGB value.
  */
 function getThemeBackgroundColor(bgColor: string = themeColors.appBG): string {
-    const backdropOpacity = variables.modalFullscreenBackdropOpacity;
+    const backdropOpacity = variables.overlayOpacity;
 
     const [backgroundRed, backgroundGreen, backgroundBlue] = extractValuesFromRGB(bgColor) ?? hexadecimalToRGBArray(bgColor) ?? [];
-    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop) ?? [];
+    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.overlay) ?? [];
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
     const [red, green, blue] = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
@@ -839,7 +839,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): View
     if (isSmallScreenWidth) {
         return {
             height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '100%',
+            width: '200%',
             position: 'absolute',
         };
     }
@@ -942,13 +942,13 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
     'worklet';
 
     const borderWidth = 2;
-    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + borderWidth;
+    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING),
+        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + borderWidth),
         height,
     };
 }
@@ -1148,9 +1148,22 @@ function getDisabledLinkStyles(isDisabled = false): ViewStyle | CSSProperties {
 }
 
 /**
+ * Returns the checkbox pressable style
+ */
+function getCheckboxPressableStyle(borderRadius = 6): ViewStyle | CSSProperties {
+    return {
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        // eslint-disable-next-line object-shorthand
+        borderRadius: borderRadius,
+    };
+}
+
+/**
  * Returns the checkbox container style
  */
-function getCheckboxContainerStyle(size: number, borderRadius: number): ViewStyle | CSSProperties {
+function getCheckboxContainerStyle(size: number, borderRadius = 4): ViewStyle | CSSProperties {
     return {
         backgroundColor: themeColors.componentBG,
         height: size,
@@ -1287,6 +1300,7 @@ export {
     getWrappingStyle,
     getMenuItemTextContainerStyle,
     getDisabledLinkStyles,
+    getCheckboxPressableStyle,
     getCheckboxContainerStyle,
     getDropDownButtonHeight,
     getAmountFontSizeAndLineHeight,

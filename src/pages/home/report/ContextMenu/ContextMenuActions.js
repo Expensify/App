@@ -144,7 +144,7 @@ export default [
         getDescription: () => {},
     },
     {
-        isAnonymousAction: false,
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -157,7 +157,7 @@ export default [
         getDescription: (selection) => selection,
     },
     {
-        isAnonymousAction: false,
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -221,7 +221,7 @@ export default [
     },
 
     {
-        isAnonymousAction: false,
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
         successIcon: Expensicons.Checkmark,

@@ -91,7 +91,7 @@ function Checkbox(props) {
             onPress={firePressHandlerOnClick}
             onMouseDown={props.onMouseDown}
             ref={props.forwardedRef}
-            style={[props.style, styles.checkboxPressable]}
+            style={[props.style, StyleUtils.getCheckboxPressableStyle(props.containerBorderRadius + 2)]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceKey}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
             accessibilityState={{checked: props.isChecked}}

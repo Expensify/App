@@ -30,7 +30,7 @@ const propTypes = {
     policy: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
@@ -59,6 +59,7 @@ const defaultProps = {
     parentReport: {},
     parentReportAction: {},
     transaction: {},
+    policy: {},
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}) {
@@ -66,6 +67,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the request, admins can only edit it.
@@ -84,7 +86,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 <HeaderWithBackButton
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton={isActionOwner && !isSettled}
+                    shouldShowThreeDotsButton={isActionOwner && !isSettled && !isApproved}
                     threeDotsMenuItems={[
                         ...(TransactionUtils.hasReceipt(transaction)
                             ? []

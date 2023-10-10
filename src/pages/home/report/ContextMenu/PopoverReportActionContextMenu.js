@@ -12,7 +12,7 @@ import useLocalize from '../../../../hooks/useLocalize';
 function PopoverReportActionContextMenu(_props, ref) {
     const {translate} = useLocalize();
     const reportIDRef = useRef('0');
-    const typeRef = useRef('');
+    const typeRef = useRef(undefined);
     const reportActionRef = useRef({});
     const reportActionIDRef = useRef('0');
     const originalReportIDRef = useRef('0');
@@ -278,6 +278,7 @@ function PopoverReportActionContextMenu(_props, ref) {
         instanceID,
         runAndResetOnPopoverHide,
         clearActiveReportAction,
+        contentRef,
     }));
 
     const reportAction = reportActionRef.current;

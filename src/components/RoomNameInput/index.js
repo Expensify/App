@@ -62,6 +62,7 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
             autoFocus={isFocused && autoFocus}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             spellCheck={false}
+            shouldInterceptSwipe
         />
     );
 }

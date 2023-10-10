@@ -5,6 +5,7 @@ import {format} from 'date-fns';
 import _ from 'underscore';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
+import {useIsFocused} from '@react-navigation/native';
 import Text from './Text';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -36,9 +37,11 @@ import tagPropTypes from './tagPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import transactionPropTypes from './transactionPropTypes';
 import DistanceRequestUtils from '../libs/DistanceRequestUtils';
+import FormHelpMessage from './FormHelpMessage';
 import * as IOU from '../libs/actions/IOU';
 import * as TransactionUtils from '../libs/TransactionUtils';
 import * as PolicyUtils from '../libs/PolicyUtils';
+import * as MoneyRequestUtils from '../libs/MoneyRequestUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -216,6 +219,13 @@ function MoneyRequestConfirmationList(props) {
               props.isDistanceRequest ? currency : props.iouCurrencyCode,
           );
 
+    const isFocused = useIsFocused();
+    const [formError, setFormError] = useState('');
+    useEffect(() => {
+        // reset the form error whenever the screen gains or loses focus
+        setFormError('');
+    }, [isFocused]);
+
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
             return;
@@ -370,8 +380,6 @@ function MoneyRequestConfirmationList(props) {
      */
     const confirm = useCallback(
         (paymentMethod) => {
-            setDidConfirm(true);
-
             if (_.isEmpty(selectedParticipants)) {
                 return;
             }
@@ -381,13 +389,23 @@ function MoneyRequestConfirmationList(props) {
                     return;
                 }
 
+                setDidConfirm(true);
+
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
                 onSendMoney(paymentMethod);
             } else {
+                // validate the amount for distance requests
+                const decimals = CurrencyUtils.getCurrencyDecimals(props.iouCurrencyCode);
+                if (props.isDistanceRequest && !isDistanceRequestWithoutRoute && !MoneyRequestUtils.validateAmount(String(props.iouAmount), decimals)) {
+                    setFormError('common.error.invalidAmount');
+                    return;
+                }
+
+                setDidConfirm(true);
                 onConfirm(selectedParticipants);
             }
         },
-        [selectedParticipants, onSendMoney, onConfirm, props.iouType],
+        [selectedParticipants, onSendMoney, onConfirm, props.iouType, props.isDistanceRequest, isDistanceRequestWithoutRoute, props.iouCurrencyCode, props.iouAmount],
     );
 
     const footerContent = useMemo(() => {
@@ -398,7 +416,7 @@ function MoneyRequestConfirmationList(props) {
         const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
 
-        return shouldShowSettlementButton ? (
+        const button = shouldShowSettlementButton ? (
             <SettlementButton
                 isDisabled={shouldDisableButton}
                 onPress={confirm}
@@ -416,13 +434,28 @@ function MoneyRequestConfirmationList(props) {
             />
         ) : (
             <ButtonWithDropdownMenu
+                pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                style={[styles.mt2]}
             />
         );
-    }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
+
+        return (
+            <>
+                {!_.isEmpty(formError) && (
+                    <FormHelpMessage
+                        style={[styles.ph1, styles.mb2]}
+                        isError
+                        message={translate(formError)}
+                    />
+                )}
+                {button}
+            </>
+        );
+    }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, translate, formError]);
 
     return (
         <OptionsSelector
@@ -470,7 +503,7 @@ function MoneyRequestConfirmationList(props) {
                 title={props.iouComment}
                 description={translate('common.description')}
                 onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION.getRoute(props.iouType, props.reportID))}
-                style={[styles.moneyRequestMenuItem, styles.mb2]}
+                style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
                 numberOfLinesTitle={2}
@@ -496,7 +529,7 @@ function MoneyRequestConfirmationList(props) {
                         shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                         title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                         description={translate('common.date')}
-                        style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        style={[styles.moneyRequestMenuItem]}
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
@@ -506,7 +539,7 @@ function MoneyRequestConfirmationList(props) {
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouMerchant}
                             description={translate('common.distance')}
-                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(props.iouType, props.reportID))}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
@@ -516,7 +549,7 @@ function MoneyRequestConfirmationList(props) {
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouMerchant}
                             description={translate('common.merchant')}
-                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(props.iouType, props.reportID))}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
@@ -528,7 +561,7 @@ function MoneyRequestConfirmationList(props) {
                             title={props.iouCategory}
                             description={translate('common.category')}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID))}
-                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
@@ -538,12 +571,12 @@ function MoneyRequestConfirmationList(props) {
                             title={props.iouTag}
                             description={policyTagListName}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID))}
-                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
                     {shouldShowBillable && (
-                        <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
                             <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
                             <Switch
                                 accessibilityLabel={translate('common.billable')}
