@@ -91,20 +91,13 @@ function HeaderView(props) {
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy));
+    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const threeDotMenuItems = [];
     if (isTaskReport && !isCanceledTaskReport) {
         const canModifyTask = Task.canModifyTask(props.report, props.session.accountID);
-        if (ReportUtils.isOpenTaskReport(props.report) && canModifyTask) {
-            threeDotMenuItems.push({
-                icon: Expensicons.Checkmark,
-                iconFill: themeColors.icon,
-                text: props.translate('task.markAsComplete'),
-                onSelected: () => Task.completeTask(props.report),
-            });
-        }
 
         // Task is marked as completed
         if (ReportUtils.isCompletedTaskReport(props.report) && canModifyTask) {
@@ -170,7 +163,7 @@ function HeaderView(props) {
                 Link.openExternalLink(props.guideCalendarLink);
             },
         });
-    } else if (!isAutomatedExpensifyAccount && !isTaskReport) {
+    } else if (!isAutomatedExpensifyAccount && !isTaskReport && !isArchivedRoom) {
         threeDotMenuItems.push({
             icon: ZoomIcon,
             iconFill: themeColors.icon,
