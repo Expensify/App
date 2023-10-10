@@ -14,7 +14,6 @@ import reportPropTypes from '../pages/reportPropTypes';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import styles from '../styles/styles';
 import * as PersonalDetailsUtils from '../libs/PersonalDetailsUtils';
-import ArchivedReportFooterSkeletonView from './ArchivedReportFooterSkeletonView';
 
 const propTypes = {
     /** The reason this report was archived */
@@ -51,9 +50,6 @@ const defaultProps = {
 };
 
 function ArchivedReportFooter(props) {
-    if (!props.reportClosedAction.reportActionID) {
-        return <ArchivedReportFooterSkeletonView />;
-    }
     const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
     let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [props.report.ownerAccountID, 'displayName']);
 

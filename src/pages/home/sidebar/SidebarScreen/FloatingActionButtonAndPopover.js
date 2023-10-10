@@ -154,7 +154,7 @@ function FloatingActionButtonAndPopover(props) {
         }
         Welcome.show({routes, showCreateMenu});
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [props.isLoading]);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
@@ -185,15 +185,11 @@ function FloatingActionButtonAndPopover(props) {
                         text: props.translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
-                    ...(Permissions.canUseIOUSend(props.betas)
-                        ? [
-                              {
-                                  icon: Expensicons.Send,
-                                  text: props.translate('iou.sendMoney'),
-                                  onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
-                              },
-                          ]
-                        : []),
+                    {
+                        icon: Expensicons.Send,
+                        text: props.translate('iou.sendMoney'),
+                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
+                    },
                     {
                         icon: Expensicons.MoneyCircle,
                         text: props.translate('iou.requestMoney'),
