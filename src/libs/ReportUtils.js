@@ -1334,22 +1334,26 @@ function getPolicyExpenseChatName(report, policy = undefined) {
  */
 function getMoneyRequestReportName(report, policy = undefined) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
-    const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
-    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {
-        payer: payerName,
-        amount: formattedAmount,
-    });
+    const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
 
     if (isReportApproved(report)) {
-        return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.approved')}`;
+        return Localize.translateLocal('iou.managerApprovedAmount', {
+            manager: payerOrApproverName,
+            amount: formattedAmount,
+        });
     }
+
+    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {
+        payer: payerOrApproverName,
+        amount: formattedAmount,
+    });
 
     if (report.isWaitingOnBankAccount) {
         return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
     if (report.hasOutstandingIOU) {
-        return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+        return Localize.translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
     return payerPaidAmountMesssage;
