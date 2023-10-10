@@ -35,7 +35,7 @@ function ConciergePage(props) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.goBack(ROUTES.HOME);
                 Report.navigateToConciergeChat();
-            })
+            });
         } else {
             Navigation.navigate();
         }
