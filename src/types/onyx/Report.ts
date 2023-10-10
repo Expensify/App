@@ -75,6 +75,8 @@ type Report = {
     total?: number;
     currency?: string;
     preexistingReportID?: string;
+    /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
+    nonReimbursableTotal?: number;
 };
 
 export default Report;

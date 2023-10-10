@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -24,6 +25,12 @@ const propTypes = {
         vertical: PropTypes.number,
     }),
 
+    /** Where the popover should be positioned relative to the anchor points. */
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
+
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -35,6 +42,10 @@ const propTypes = {
 
 const defaultProps = {
     anchorPosition: {},
+    anchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
     betas: [],
     anchorRef: () => {},
 };
@@ -45,6 +56,7 @@ function AddPaymentMethodMenu(props) {
             isVisible={props.isVisible}
             onClose={props.onClose}
             anchorPosition={props.anchorPosition}
+            anchorAlignment={props.anchorAlignment}
             anchorRef={props.anchorRef}
             onItemSelected={props.onClose}
             menuItems={[

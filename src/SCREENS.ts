@@ -172,4 +172,17 @@ export default {
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
+
+    // Iframe screens from olddot
+    HOME_OLDDOT: 'Home_OLDDOT',
+
+    // Spend tab
+    EXPENSES_OLDDOT: 'Expenses_OLDDOT',
+    REPORTS_OLDDOT: 'Reports_OLDDOT',
+    INSIGHTS_OLDDOT: 'Insights_OLDDOT',
+
+    // Workspaces tab
+    INDIVIDUAL_WORKSPACES_OLDDOT: 'IndividualWorkspaces_OLDDOT',
+    GROUPS_WORKSPACES_OLDDOT: 'GroupWorkspaces_OLDDOT',
+    CARDS_AND_DOMAINS_OLDDOT: 'CardsAndDomains_OLDDOT',
 } as const;
