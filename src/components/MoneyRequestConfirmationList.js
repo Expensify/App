@@ -563,7 +563,7 @@ function MoneyRequestConfirmationList(props) {
                 <>
                     {props.shouldShowSmartScanFields && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                            shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                             description={translate('common.date')}
                             style={[styles.moneyRequestMenuItem]}
@@ -591,7 +591,7 @@ function MoneyRequestConfirmationList(props) {
                     )}
                     {props.shouldShowSmartScanFields && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                            shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouMerchant}
                             description={translate('common.merchant')}
                             style={[styles.moneyRequestMenuItem]}
@@ -613,7 +613,7 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.category')}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID))}
                             style={[styles.moneyRequestMenuItem]}
-                            disabled={didConfirm || props.isReadOnly}
+                            disabled={didConfirm}
                         />
                     )}
                     {shouldShowTags && (
