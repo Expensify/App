@@ -34,6 +34,9 @@ const propTypes = {
 
     // eslint-disable-next-line react/forbid-prop-types
     additionalStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Is icon displayed in its own color */
+    displayInDefaultIconColor: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -45,6 +48,7 @@ const defaultProps = {
     additionalStyles: [],
     hovered: false,
     pressed: false,
+    displayInDefaultIconColor: false,
 };
 
 // We must use a class component to create an animatable component with the Animated API

@@ -35,6 +35,9 @@ const propTypes = {
 
     // eslint-disable-next-line react/forbid-prop-types
     additionalStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Is icon displayed in its own color */
+    displayInDefaultIconColor: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -47,6 +50,7 @@ const defaultProps = {
     hovered: false,
     pressed: false,
     contentFit: 'cover',
+    displayInDefaultIconColor: false,
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -67,7 +71,7 @@ class Icon extends PureComponent {
                             contentFit={this.props.contentFit}
                             source={this.props.src}
                             style={{width, height}}
-                            tintColor={this.props.fill}
+                            tintColor={this.props.displayInDefaultIconColor ? null : this.props.fill}
                         />
                     </View>
                 </View>
@@ -83,7 +87,7 @@ class Icon extends PureComponent {
                     contentFit={this.props.contentFit}
                     source={this.props.src}
                     style={{width, height}}
-                    tintColor={this.props.fill}
+                    tintColor={this.props.displayInDefaultIconColor ? null : this.props.fill}
                 />
             </View>
         );

@@ -162,7 +162,7 @@ const propTypes = {
     shouldCheckActionAllowedOnPress: PropTypes.bool,
     
     /** Icon should be displayed in its own color */
-    displayWithDefaultIconFill: PropTypes.bool,
+    displayInDefaultIconColor: PropTypes.bool,
 };
 
 export default propTypes;

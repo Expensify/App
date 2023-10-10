@@ -2,11 +2,12 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {Animated, StyleSheet, View} from 'react-native';
 import Icon from '@components/Icon';
+import {imagePropTypes} from '@components/Image/imagePropTypes';
 import themeColors from '@styles/themes/default';
 
 const propTypes = {
     /** Icon to display on tab */
-    icon: PropTypes.func,
+    icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
 
     /** Animated opacity value while the label is inactive state */
     // eslint-disable-next-line
