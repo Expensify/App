@@ -76,7 +76,6 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
         () =>
             _.debounce((text) => {
                 Report.savePrivateNotesDraft(report.reportID, text);
-                console.log('saved');
             }, 1000),
         [report.reportID],
     );

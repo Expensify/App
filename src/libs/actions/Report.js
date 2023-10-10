@@ -2201,7 +2201,7 @@ export default function getDraftPrivateNote(reportID) {
 }
 
 /**
- * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
+ * Saves the private notes left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
  *
  * @param {String} reportID
