@@ -1515,8 +1515,8 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${updatedTransaction.transactionID}`,
             value: {
+                ...updatedTransaction,
                 receipt: {
-                    ...updatedTransaction.receipt,
                     state: CONST.IOU.RECEIPT_STATE.OPEN,
                 },
             },
@@ -1539,7 +1539,10 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
 
     const splitParticipants = updatedTransaction.comment.splits;
     const {modifiedAmount: amount, modifiedCurrency: currency} = updatedTransaction;
-    const splitAmount = IOUUtils.calculateAmount(splitParticipants.length, amount, currency, false);
+
+    // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
+    const splitAmount = IOUUtils.calculateAmount(splitParticipants.length - 1, amount, currency, false);
+
     const splits = [];
     _.each(splitParticipants, (participant) => {
         // Skip creating the transaction for the current user
@@ -1557,7 +1560,6 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
                 splits.push({
                     email: participant.email,
                 });
-                console.log('returning cause no personal details of this participant');
                 return;
             }
         }
@@ -1593,11 +1595,11 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
             currency,
             oneOnOneIOUReport.reportID,
             updatedTransaction.comment,
-            updatedTransaction.created,
+            updatedTransaction.modifiedCreated,
             CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
             updatedTransaction.transactionID,
-            updatedTransaction.merchant,
-            updatedTransaction.receipt,
+            updatedTransaction.modifiedMerchant,
+            {...updatedTransaction.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
             updatedTransaction.filename,
         );
 
@@ -1618,7 +1620,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
-            oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
+            oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
         }
 
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
@@ -1654,7 +1656,6 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
         failureData.push(...oneOnOneFailureData);
     });
 
-    console.log(updatedTransaction);
     API.write(
         'CompleteSplitBill',
         {
@@ -1664,6 +1665,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
             created: updatedTransaction.modifiedCreated,
             merchant: updatedTransaction.modifiedMerchant,
             comment: updatedTransaction.comment.comment,
+            splits: JSON.stringify(splits),
         },
         {optimisticData, successData, failureData},
     );
