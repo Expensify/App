@@ -1455,6 +1455,17 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         });
     });
 
+    // Save the new splits array into the transaction's comment in case the user calls CompleteSplitBill while offline
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
+        value: {
+            comment: {
+                splits,
+            },
+        },
+    });
+
     API.write(
         'StartSplitBill',
         {
