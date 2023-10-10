@@ -54,10 +54,10 @@ const EmojiPickerMenu = (props) => {
     const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, isSmallScreenWidth, windowWidth, windowHeight, translate} = props;
 
     // Ref for the emoji search input
-    const searchInputRef = useRef<RNTextInput>(null); // TODO: is RNTextInput correct?
+    const searchInputRef = useRef(null);
 
     // Ref for emoji FlatList
-    const emojiListRef = useRef<FlatList>(null);
+    const emojiListRef = useRef(null);
 
     // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
     // prevent auto focus when open picker for mobile device
@@ -66,20 +66,19 @@ const EmojiPickerMenu = (props) => {
     const firstNonHeaderIndex = useRef(0);
 
     // TODO: Group the 3 refs into 1?? Adv:- code would look cleaner + there will be only 1 getEmojisAndHeaderRowIndices() call.
-    const emojis = useRef<Object[]>([]); // TODO: find TS type
+    const emojis = useRef([]);
     if (emojis.current.length === 0) {
         emojis.current = getEmojisAndHeaderRowIndices().filteredEmojis;
     }
-    const headerRowIndices = useRef<number[]>([]); // TODO: Maybe this ref is not needed. headerIndices state might suffice
+    const headerRowIndices = useRef([]); // TODO: Maybe this ref is not needed. headerIndices state might suffice
     if (headerRowIndices.current.length === 0) {
         headerRowIndices.current = getEmojisAndHeaderRowIndices().headerRowIndices;
     }
-    const headerEmojis = useRef<Object[]>([]); // TODO: find TS type
+    const headerEmojis = useRef([]);
     if (headerEmojis.current.length === 0) {
         headerEmojis.current = getEmojisAndHeaderRowIndices().headerEmojis;
     }
 
-    // TODO: Group releated states in objects
     const [filteredEmojis, setFilteredEmojis] = useState(emojis.current);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices.current);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -120,7 +119,7 @@ const EmojiPickerMenu = (props) => {
      *
      * @param {Event} event
      */
-    function onSelectionChange(event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) {
+    function onSelectionChange(event) {
         setSelection(event.nativeEvent.selection);
     }
 
@@ -153,12 +152,11 @@ const EmojiPickerMenu = (props) => {
      * Find and store index of the first emoji item
      * @param {Array} filteredEmojis
      */
-    function updateFirstNonHeaderIndex(filteredEmojis: Object[]) {
-        // TODO: Emoji Object type
+    function updateFirstNonHeaderIndex(filteredEmojis) {
         firstNonHeaderIndex.current = _.findIndex(filteredEmojis, (item) => !item.spacer && !item.header);
     }
 
-    const keyDownHandler = (keyBoardEvent: KeyboardEvent) => {
+    const keyDownHandler = (keyBoardEvent) => {
         if (keyBoardEvent.key.startsWith('Arrow')) {
             if (!isFocused || keyBoardEvent.key === 'ArrowUp' || keyBoardEvent.key === 'ArrowDown') {
                 keyBoardEvent.preventDefault();
@@ -230,8 +228,7 @@ const EmojiPickerMenu = (props) => {
      * @param {Number} index row index
      * @returns {Object}
      */
-    function getItemLayout(data: any, index: number) {
-        // TODO: data param is unused. Still find its type
+    function getItemLayout(data, index) {
         return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
     }
 
@@ -247,8 +244,7 @@ const EmojiPickerMenu = (props) => {
      * @param {String} emoji
      * @param {Object} emojiObject
      */
-    function addToFrequentAndSelectEmoji(emoji: string, emojiObject: {}) {
-        // TODO: type of emojiObject
+    function addToFrequentAndSelectEmoji(emoji, emojiObject) {
         const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
         User.updateFrequentlyUsedEmojis(frequentEmojiList);
         onEmojiSelected(emoji, emojiObject);
@@ -270,7 +266,7 @@ const EmojiPickerMenu = (props) => {
      * Highlights emojis adjacent to the currently highlighted emoji depending on the arrowKey
      * @param {String} arrowKey
      */
-    function highlightAdjacentEmoji(arrowKey: KeyboardEvent['key']) {
+    function highlightAdjacentEmoji(arrowKey) {
         if (filteredEmojis.length === 0) {
             return;
         }
@@ -364,7 +360,7 @@ const EmojiPickerMenu = (props) => {
         }
     }
 
-    function scrollToHeader(headerIndex: number) {
+    function scrollToHeader(headerIndex) {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
         emojiListRef.current?.flashScrollIndicators();
         emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
@@ -376,7 +372,7 @@ const EmojiPickerMenu = (props) => {
      * @param {String} searchTerm
      */
     const filterEmojis = useCallback(
-        _.debounce((searchTerm: string) => {
+        _.debounce((searchTerm) => {
             const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
             emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
             if (normalizedSearchTerm === '') {
@@ -404,20 +400,17 @@ const EmojiPickerMenu = (props) => {
      * @returns {Boolean}
      */
     function isMobileLandscape() {
-        // TODO: This isnt used anywhere
         return isSmallScreenWidth && windowWidth >= windowHeight;
     }
 
     /**
      * @param {Number} skinTone
      */
-    function updatePreferredSkinTone(skinTone: number) {
+    function updatePreferredSkinTone(skinTone) {
         if (Number(preferredSkinTone) === skinTone) {
-            // TODO: temp Number() for safety
             return;
         }
 
-        // TODO: Change JS Doc in User.js (type string => number)
         User.updatePreferredSkinTone(skinTone);
     }
 
@@ -428,8 +421,7 @@ const EmojiPickerMenu = (props) => {
      * @param {Number} index
      * @returns {String}
      */
-    function keyExtractor(item, index: number) {
-        // TODO: find type of item
+    function keyExtractor(item, index) {
         return `emoji_picker_${item.code}_${index}`;
     }
 
@@ -438,12 +430,11 @@ const EmojiPickerMenu = (props) => {
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
      *
-     * @param {Object} item // TODO: Find Type
+     * @param {Object} item
      * @param {Number} index
      * @returns {*}
      */
-    function renderItem({item, index}: {item: {}; index: number}) {
-        // TODO: TS types for item
+    function renderItem({item, index}) {
         const {code, header, types} = item;
         if (item.spacer) {
             return null;
