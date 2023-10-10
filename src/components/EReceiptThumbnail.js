@@ -17,6 +17,7 @@ import CONST from '../CONST';
 
 const propTypes = {
     /* transactionID */
+    // eslint-disable-next-line react/no-unused-prop-types
     transactionID: PropTypes.string.isRequired,
 
     /* Onyx Props */
@@ -27,10 +28,22 @@ const defaultProps = {
     transaction: {},
 };
 
-function EReceiptThumbnail({transaction, transactionID}) {
+const backgroundImages = {
+    [CONST.ERECEIPT_COLORS.YELLOW]: eReceiptBGs.EReceiptBG_Yellow,
+    [CONST.ERECEIPT_COLORS.ICE]: eReceiptBGs.EReceiptBG_Ice,
+    [CONST.ERECEIPT_COLORS.BLUE]: eReceiptBGs.EReceiptBG_Blue,
+    [CONST.ERECEIPT_COLORS.GREEN]: eReceiptBGs.EReceiptBG_Green,
+    [CONST.ERECEIPT_COLORS.TANGERINE]: eReceiptBGs.EReceiptBG_Tangerine,
+    [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
+};
+
+function getBackgroundImage(transaction) {
+    return backgroundImages[StyleUtils.getEReceiptColorCode(transaction)];
+}
+
+function EReceiptThumbnail({transaction}) {
     // Get receipt colorway, or default to Yellow.
-    const colorCode = StyleUtils.getEReceiptColorCode(transaction.parentTransactionID || transaction.transactionID || transactionID) || CONST.ERECEIPT_COLORS.YELLOW;
-    const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
+    const colorStyles = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
     const primaryColor = colorStyles.backgroundColor;
     const secondaryColor = colorStyles.color;
 
@@ -75,7 +88,7 @@ function EReceiptThumbnail({transaction, transactionID}) {
             onLayout={onContainerLayout}
         >
             <Image
-                source={eReceiptBGs[`EReceiptBG_${colorCode}`]}
+                source={getBackgroundImage(transaction)}
                 style={styles.eReceiptBackgroundThumbnail}
                 resizeMode="cover"
             />

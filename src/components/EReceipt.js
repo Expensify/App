@@ -14,7 +14,6 @@ import * as CurrencyUtils from '../libs/CurrencyUtils';
 import * as CardUtils from '../libs/CardUtils';
 import variables from '../styles/variables';
 import useLocalize from '../hooks/useLocalize';
-import CONST from '../CONST';
 import EReceiptThumbnail from './EReceiptThumbnail';
 
 const propTypes = {
@@ -33,8 +32,7 @@ function EReceipt({transaction, transactionID}) {
     const {translate} = useLocalize();
 
     // Get receipt colorway, or default to Yellow.
-    const colorCode = StyleUtils.getEReceiptColorCode(transaction.parentTransactionID || transaction.transactionID || transactionID) || CONST.ERECEIPT_COLORS.YELLOW;
-    const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
+    const colorStyles = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
     const primaryColor = colorStyles.backgroundColor;
     const secondaryColor = colorStyles.color;
 
@@ -53,7 +51,7 @@ function EReceipt({transaction, transactionID}) {
     return (
         <View style={[styles.eReceiptContainer, StyleUtils.getBackgroundColorStyle(primaryColor)]}>
             <View style={styles.fullScreen}>
-                <EReceiptThumbnail transactionID={transaction.transactionID} />
+                <EReceiptThumbnail transactionID={transactionID} />
             </View>
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pb14, styles.pt8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.eReceiptIconHeight)]} />

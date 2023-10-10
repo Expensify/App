@@ -13,6 +13,7 @@ import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
 import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
+import {Transaction} from '../types/onyx';
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -272,7 +273,9 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle | CSSP
 /**
  * Helper method to return eReceipt color code
  */
-function getEReceiptColorCode(transactionID: string): EReceiptColorName {
+function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
+    const transactionID = transaction.parentTransactionID ?? transaction.transactionID ?? '';
+
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColorOptions.length);
 
     return eReceiptColors[colorHash];
