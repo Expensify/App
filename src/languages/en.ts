@@ -108,6 +108,7 @@ export default {
         resend: 'Resend',
         save: 'Save',
         saveChanges: 'Save changes',
+        submit: 'Submit',
         rotate: 'Rotate',
         zoom: 'Zoom',
         password: 'Password',
@@ -262,6 +263,14 @@ export default {
         all: 'All',
         tbd: 'TBD',
     },
+    location: {
+        useCurrent: 'Use current location',
+        notFound: 'We were unable to find your location, please try again or enter an address manually.',
+        permissionDenied: 'It looks like you have denied permission to your location.',
+        please: 'Please',
+        allowPermission: 'allow location permission in settings',
+        tryAgain: 'and then try again.',
+    },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
     },
@@ -343,6 +352,8 @@ export default {
     phoneCountryCode: '1',
     welcomeText: {
         getStarted: 'Get started below.',
+        anotherLoginPageIsOpen: 'Another login page is open.',
+        anotherLoginPageIsOpenExplanation: "You've opened the login page in a separate tab, please login from that specific tab.",
         welcomeBack: 'Welcome back!',
         welcome: 'Welcome!',
         phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
@@ -430,7 +441,7 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
+        usePlusButton: '\n\nYou can also use the + button to send money, request money, or assign a task!',
     },
     reportAction: {
         asCopilot: 'as copilot for',
@@ -822,6 +833,22 @@ export default {
         availableSpend: 'Remaining spending power',
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
+        cardDetails: {
+            cardNumber: 'Virtual card number',
+            expiration: 'Expiration',
+            cvv: 'CVV',
+            address: 'Address',
+            revealDetails: 'Reveal details',
+            copyCardNumber: 'Copy card number',
+        },
+    },
+    activateCardPage: {
+        activateCard: 'Activate card',
+        pleaseEnterLastFour: 'Please enter the last four digits of your card.',
+        activatePhysicalCard: 'Activate physical card',
+        error: {
+            thatDidntMatch: "That didn't match the last 4 digits on your card. Please try again.",
+        },
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -976,7 +1003,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include letters.',
+            hasInvalidCharacter: 'Name can only include Latin characters.',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
@@ -1335,6 +1362,7 @@ export default {
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
             workspaceAvatar: 'Workspace avatar',
+            mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1773,6 +1801,11 @@ export default {
             tryDifferentEmail: 'Please try a different email',
         },
     },
+    cardTransactions: {
+        notActivated: 'Not activated',
+        outOfPocketSpend: 'Out-of-pocket spend',
+        companySpend: 'Company spend',
+    },
     distance: {
         addStop: 'Add stop',
         deleteWaypoint: 'Delete waypoint',
@@ -1789,7 +1822,10 @@ export default {
             onlineSubtitle: 'One moment while we set up the map',
         },
         errors: {
-            selectSuggestedAddress: 'Please select a suggested address',
+            selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
     },
 } satisfies TranslationBase;
