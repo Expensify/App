@@ -77,47 +77,74 @@ function getReportActionID(route) {
     return {reportActionID: lodashGet(route, 'params.reportActionID', null), reportID: lodashGet(route, 'params.reportID', null)};
 }
 
-function ReportActionsView({reportActions: allReportActions, ...props}) {
+function ReportActionsView({reportActions: allReportActions, fetchReport, ...props}) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute();
     const {reportActionID} = getReportActionID(route);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
-    const [isFetchNewerWasCalled, setFetchNewerWasCalled] = useState(false);
-    const [isLinkingToMessage, setLinkingToMessageTrigger] = useState(false);
+    const [isLinkingToCattedMessage, setLinkingToCattedMessage] = useState(false);
+    const [isLinkingToExtendedMessage, setLinkingToExtendedMessage] = useState(false);
+    const isLoadingLinkedMessage = !!reportActionID && props.isLoadingInitialReportActions;
 
-    const reportActionsBeforeAndIncludingLinked = useMemo(() => {
+    useEffect(() => {
+        let timeoutIdCatted;
+        let timeoutIdExtended;
+        if (!isLoadingLinkedMessage) {
+            timeoutIdCatted = setTimeout(() => {
+                setLinkingToCattedMessage(false);
+            }, 100);
+            timeoutIdExtended = setTimeout(() => {
+                setLinkingToExtendedMessage(false);
+            }, 200);
+        }
+        return () => {
+            clearTimeout(timeoutIdCatted);
+            clearTimeout(timeoutIdExtended);
+        };
+    }, [isLoadingLinkedMessage]);
+
+    const {catted: reportActionsBeforeAndIncludingLinked, expanded: reportActionsBeforeAndIncludingLinkedExpanded} = useMemo(() => {
         if (reportActionID && allReportActions?.length) {
             return ReportActionsUtils.getSlicedRangeFromArrayByID(allReportActions, reportActionID);
         }
-        return [];
+        // catted means the reportActions before and including the linked message
+        // expanded means the reportActions before and including the linked message plus the next 5
+        return {catted: [], expanded: []};
     }, [allReportActions, reportActionID]);
 
     const reportActions = useMemo(() => {
-        if (!reportActionID || (!isLinkingToMessage && !props.isLoadingInitialReportActions && isFetchNewerWasCalled)) {
+        if (!reportActionID || (!isLinkingToCattedMessage && !isLoadingLinkedMessage && !isLinkingToExtendedMessage)) {
             return allReportActions;
         }
+        if (
+            reportActionID &&
+            !isLinkingToCattedMessage &&
+            isLinkingToExtendedMessage &&
+            reportActionsBeforeAndIncludingLinkedExpanded.length !== reportActionsBeforeAndIncludingLinked.length
+        ) {
+            return reportActionsBeforeAndIncludingLinkedExpanded;
+        }
         return reportActionsBeforeAndIncludingLinked;
-    }, [isFetchNewerWasCalled, allReportActions, reportActionsBeforeAndIncludingLinked, reportActionID, isLinkingToMessage, props.isLoadingInitialReportActions]);
+    }, [
+        allReportActions,
+        reportActionsBeforeAndIncludingLinked,
+        reportActionID,
+        isLinkingToCattedMessage,
+        isLoadingLinkedMessage,
+        isLinkingToExtendedMessage,
+        reportActionsBeforeAndIncludingLinkedExpanded,
+    ]);
 
     useEffect(() => {
         if (!reportActionID) {
             return;
         }
-        setFetchNewerWasCalled(false);
-        setLinkingToMessageTrigger(true);
-        props.fetchReport();
-        const timeoutId = setTimeout(() => {
-            setLinkingToMessageTrigger(false);
-        }, 500);
-
-        // Return a cleanup function
-        return () => {
-            clearTimeout(timeoutId);
-        };
-        // setLinkingToMessageTrigger(true);
-    }, [route, reportActionID]);
+        setLinkingToCattedMessage(true);
+        setLinkingToExtendedMessage(true);
+        fetchReport();
+    }, [route, reportActionID, fetchReport]);
 
     const isReportActionArrayCatted = useMemo(() => {
         if (reportActions?.length !== allReportActions?.length && reportActionID) {
@@ -237,26 +264,18 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
                 //
                 // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
                 // This should be removed once the issue of frequent re-renders is resolved.
-                if (!isFetchNewerWasCalled) {
-                    setFetchNewerWasCalled(true);
-                    return;
-                }
-                if (!isFetchNewerWasCalled || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
+                if (!isLinkingToExtendedMessage || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
                     return;
                 }
 
                 const newestReportAction = reportActions[0];
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
-                // if (!isFetchNewerWasCalled.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
-                //     isFetchNewerWasCalled.current = true;
-                //     return;
-                // }
 
                 // const newestReportAction = _.first(props.reportActions);
                 // Report.getNewerActions(reportID, newestReportAction.reportActionID);
                 // Report.getNewerActions(reportID, '1134531619271003224');
             }, 500),
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID],
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, isLinkingToExtendedMessage, reportID, reportActions],
     );
 
     /**
