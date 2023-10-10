@@ -173,7 +173,7 @@ export default React.memo(
         }),
         withOnyx({
             fullReport: {
-                key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
+                key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             },
             reportActions: {
                 key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,

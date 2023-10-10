@@ -850,6 +850,14 @@ export default {
             copyCardNumber: 'Copy card number',
         },
     },
+    activateCardPage: {
+        activateCard: 'Activate card',
+        pleaseEnterLastFour: 'Please enter the last four digits of your card.',
+        activatePhysicalCard: 'Activate physical card',
+        error: {
+            thatDidntMatch: "That didn't match the last 4 digits on your card. Please try again.",
+        },
+    },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
         instant: 'Instant (Debit card)',
