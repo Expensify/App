@@ -73,10 +73,7 @@ const EmojiPickerMenu = (props) => {
     if (headerRowIndices.current.length === 0) {
         headerRowIndices.current = getEmojisAndHeaderRowIndices().headerRowIndices;
     }
-    const headerEmojis = useRef([]);
-    if (headerEmojis.current.length === 0) {
-        headerEmojis.current = getEmojisAndHeaderRowIndices().headerEmojis;
-    }
+    const [headerEmojis, setHeaderEmojis] = useState(() => getEmojisAndHeaderRowIndices().headerEmojis);
 
     const [filteredEmojis, setFilteredEmojis] = useState(emojis.current);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices.current);
@@ -108,7 +105,7 @@ const EmojiPickerMenu = (props) => {
         const emojisAndHeaderRowIndices = getEmojisAndHeaderRowIndices();
         emojis.current = emojisAndHeaderRowIndices.filteredEmojis;
         headerRowIndices.current = emojisAndHeaderRowIndices.headerRowIndices;
-        headerEmojis.current = emojisAndHeaderRowIndices.headerEmojis;
+        setHeaderEmojis(emojisAndHeaderRowIndices.headerEmojis);
         setFilteredEmojis(emojis.current);
         setHeaderIndices(headerRowIndices.current);
     }, [frequentlyUsedEmojis]);
@@ -511,7 +508,7 @@ const EmojiPickerMenu = (props) => {
             </View>
             {!isFiltered && (
                 <CategoryShortcutBar
-                    headerEmojis={headerEmojis.current}
+                    headerEmojis={headerEmojis}
                     onPress={scrollToHeader}
                 />
             )}
