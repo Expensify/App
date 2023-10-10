@@ -2700,9 +2700,6 @@ const CONST = {
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
-        MANUAL: 'manual', // TODO: remove
-        SCAN: 'scan', // TODO: remove
-        DISTANCE: 'distance', // TODO: remove
     },
     TAB_REQUEST: {
         MANUAL: 'manual',

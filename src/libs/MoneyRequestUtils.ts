@@ -79,14 +79,14 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
  * Check if distance request or not
  */
 function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, selectedTab: ValueOf<typeof CONST.TAB>): boolean {
-    return iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && selectedTab === CONST.TAB.DISTANCE;
+    return iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && selectedTab === CONST.TAB_REQUEST.DISTANCE;
 }
 
 /**
  * Check if scan request or not
  */
-function isScanRequest(selectedTab: ValueOf<typeof CONST.TAB>): boolean {
-    return selectedTab === CONST.TAB.SCAN;
+function isScanRequest(selectedTab: ValueOf<typeof CONST.TAB_REQUEST>): boolean {
+    return selectedTab === CONST.TAB_REQUEST.SCAN;
 }
 
 export {stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, addLeadingZero, validateAmount, replaceAllDigits, isDistanceRequest, isScanRequest};

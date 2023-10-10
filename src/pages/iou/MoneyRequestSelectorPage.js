@@ -44,7 +44,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    selectedTab: CONST.TAB.SCAN,
+    selectedTab: CONST.TAB_REQUEST.SCAN,
     report: {},
 };
 
@@ -91,7 +91,7 @@ function MoneyRequestSelectorPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <DragAndDropProvider
-                        isDisabled={props.selectedTab !== CONST.TAB.SCAN}
+                        isDisabled={props.selectedTab !== CONST.TAB_REQUEST.SCAN}
                         setIsDraggingOver={setIsDraggingOver}
                     >
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -112,18 +112,18 @@ function MoneyRequestSelectorPage(props) {
                                     )}
                                 >
                                     <TopTab.Screen
-                                        name={CONST.TAB.MANUAL}
+                                        name={CONST.TAB_REQUEST.MANUAL}
                                         component={NewRequestAmountPage}
                                         initialParams={{reportID, iouType}}
                                     />
                                     <TopTab.Screen
-                                        name={CONST.TAB.SCAN}
+                                        name={CONST.TAB_REQUEST.SCAN}
                                         component={ReceiptSelector}
                                         initialParams={{reportID, iouType, pageIndex: 1}}
                                     />
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
-                                            name={CONST.TAB.DISTANCE}
+                                            name={CONST.TAB_REQUEST.DISTANCE}
                                             component={NewDistanceRequestPage}
                                             initialParams={{reportID, iouType}}
                                         />

@@ -76,7 +76,7 @@ function MoneyRequestConfirmPage(props) {
         [props.iou.participants, props.personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
-    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
+    const isManualRequestDM = props.selectedTab === CONST.TAB_REQUEST.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     useEffect(() => {
         IOU.resetMoneyRequestCategory();
