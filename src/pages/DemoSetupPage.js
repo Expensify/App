@@ -18,10 +18,14 @@ const propTypes = {
  * route that led the user here. Now, it's just used to route the user home so we
  * don't show them a "Hmm... It's not here" message (which looks broken).
  */
-function DemoSetupPage() {
+function DemoSetupPage(props) {
     useFocusEffect(() => {
         Navigation.isNavigationReady().then(() => {
-            Navigation.goBack(ROUTES.HOME);
+            if (props.route.name === CONST.DEMO_PAGES.MONEY2020) {
+                DemoActions.runMoney2020Demo();
+            } else {
+                Navigation.goBack(ROUTES.HOME);
+            }
         });
     });
 
