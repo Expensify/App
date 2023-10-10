@@ -111,7 +111,7 @@ export default {
         const plainTextMessage = (_.find(message, (f) => f.type === 'COMMENT') || {}).text;
 
         if (isChatRoom) {
-            const roomName = _.get(report, 'displayName', '');
+            const roomName = _.get(report, 'reportName', '');
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
