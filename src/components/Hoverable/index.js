@@ -91,7 +91,9 @@ class Hoverable extends Component {
         /**
          * If the isScrollingRef is true, then the user is scrolling and we should not update the hover state.
          */
-        if (this.isScrollingRef && this.props.shouldHandleScroll && !this.state.isHovered) return;
+        if (this.isScrollingRef && this.props.shouldHandleScroll && !this.state.isHovered) {
+            return;
+        }
 
         if (isHovered !== this.state.isHovered) {
             this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
