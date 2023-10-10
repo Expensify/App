@@ -62,7 +62,7 @@ const getOpacity = (position, routesLength, tabIndex, active, affectedTabs) => {
 
         return position.interpolate({
             inputRange,
-            outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? activeValue : inactiveValue))
+            outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? activeValue : inactiveValue)),
         });
     }
     return activeValue;
@@ -74,7 +74,7 @@ const getBackgroundColor = (position, routesLength, tabIndex, affectedTabs) => {
 
         return position.interpolate({
             inputRange,
-            outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? themeColors.border : themeColors.appBG))
+            outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? themeColors.border : themeColors.appBG)),
         });
     }
     return themeColors.border;
@@ -82,20 +82,18 @@ const getBackgroundColor = (position, routesLength, tabIndex, affectedTabs) => {
 
 function TabSelector({state, navigation, onTabPress, position}) {
     const {translate} = useLocalize();
-    const [, reRender] = useReducer(x => !x, false);
+    const [, reRender] = useReducer((x) => !x, false);
 
     const defaultAffectedAnimatedTabs = Array.from({length: state.routes.length}, (v, i) => i);
     const affectedAnimatedTabs = useRef(defaultAffectedAnimatedTabs);
 
-
     React.useEffect(() => {
         setTimeout(() => {
             affectedAnimatedTabs.current = defaultAffectedAnimatedTabs;
-            // re-render is important to re-define opacity and background base on new affected tabs
+            // re-render is important to re-defining opacity and background base on new affected tabs, to be ready for user swiping.
             reRender();
-        }, CONST.ANIMATED_TRANSITION)
+        }, CONST.ANIMATED_TRANSITION);
     }, [state.index]);
-
 
     return (
         <View style={styles.tabSelector}>
