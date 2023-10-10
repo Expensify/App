@@ -66,6 +66,7 @@ import type {
     OOOEventSummaryPartialDayParams,
     ParentNavigationSummaryParams,
     ManagerApprovedParams,
+    ManagerApprovedAmountParams,
     SetTheRequestParams,
     UpdatedTheRequestParams,
     SetTheDistanceParams,
@@ -543,6 +544,7 @@ export default {
         payerPaidAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} paid ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} paid: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} approved:`,
+        managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} approved ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
