@@ -14,14 +14,8 @@ const propTypes = {
     /** Child elements */
     children: PropTypes.node,
 
-    /** If true, child components are replaced with a blocking "placeholder view" view */
-    shouldShow: PropTypes.bool,
-
-    /** The key in the translations file to use for the title */
-    titleKey: PropTypes.string,
-
-    /** The key in the translations file to use for the subtitle */
-    subtitleKey: PropTypes.string,
+    /** If true, child components are replaced with a blocking view */
+    shouldBlockContent: PropTypes.bool,
 
     /** The key in the translations files to use for the link */
     linkKey: PropTypes.string,
@@ -32,19 +26,17 @@ const propTypes = {
 
 const defaultProps = {
     children: null,
-    shouldShow: undefined,
-    titleKey: 'mobilePlacerHolder.title',
-    subtitleKey: 'mobilePlacerHolder.subTitle',
+    shouldBlockContent: undefined,
     linkKey: 'mobilePlacerHolder.goBackHome',
     onLinkPress: () => Navigation.dismissModal(),
 };
 
-function LargeDisplayWrapper({titleKey, subtitleKey, linkKey, onLinkPress, children, shouldShow}) {
+function LargeDisplayWrapper({linkKey, onLinkPress, children, shouldBlockContent}) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const {translate} = useLocalize();
 
-    const shouldShowBlockingView = _.isBoolean(shouldShow) ? shouldShow : isSmallScreenWidth;
+    const shouldShowBlockingView = _.isBoolean(shouldBlockContent) ? shouldBlockContent : isSmallScreenWidth;
 
     if (shouldShowBlockingView) {
         return (
@@ -53,9 +45,9 @@ function LargeDisplayWrapper({titleKey, subtitleKey, linkKey, onLinkPress, child
                     icon={Illustrations.EmptyStateBiggerScreen}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
-                    title={translate(titleKey)}
-                    subtitle={translate(subtitleKey)}
-                    linkKey={linkKey}
+                    title={translate('mobilePlacerHolder.title')}
+                    subtitle={translate('mobilePlacerHolder.subTitle')}
+                    linkKey={translate(linkKey)}
                     shouldShowLink
                     onLinkPress={onLinkPress}
                 />

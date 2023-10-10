@@ -1044,9 +1044,9 @@ export default {
         goBackHome: 'Volver a la página principal',
     },
     mobilePlacerHolder: {
-        goBackHome: 'Go back home',
-        title: "You're gonna need a bigger screen",
-        subTitle: 'This page is only available on wider browsers, like your laptop or desktop computer. Please try again over there.',
+        goBackHome: 'Volver a la página principal',
+        title: 'Vas a necesitar una pantalla más grande',
+        subTitle: 'Esta página sólo está disponible en navegadores más amplios, como su ordenador portátil o de sobremesa. Inténtelo de nuevo desde allí.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
