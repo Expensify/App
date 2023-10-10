@@ -2196,7 +2196,7 @@ function clearPrivateNotesError(reportID, accountID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
-export default function getDraftPrivateNote(reportID) {
+function getDraftPrivateNote(reportID) {
     return draftNoteMap[reportID];
 }
 
