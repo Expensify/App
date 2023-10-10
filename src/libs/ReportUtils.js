@@ -1340,6 +1340,10 @@ function getMoneyRequestReportName(report, policy = undefined) {
         amount: formattedAmount,
     });
 
+    if (isReportApproved(report)) {
+        return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.approved')}`;
+    }
+
     if (report.isWaitingOnBankAccount) {
         return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
     }

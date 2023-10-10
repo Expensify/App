@@ -110,7 +110,9 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const shouldShowBillable = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
-    if (isSettled) {
+    if (ReportUtils.isReportApproved(report)) {
+        description += ` • ${props.translate('iou.approved')}`;
+    } else if (isSettled) {
         description += ` • ${translate('iou.settledExpensify')}`;
     } else if (report.isWaitingOnBankAccount) {
         description += ` • ${translate('iou.pending')}`;

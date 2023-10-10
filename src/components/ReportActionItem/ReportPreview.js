@@ -167,7 +167,7 @@ function ReportPreview(props) {
         if (isScanning) {
             return props.translate('common.receipt');
         }
-        if (ReportUtils.isControlPolicyExpenseChat(props.chatReport) && ReportUtils.isReportApproved(props.iouReport)) {
+        if (ReportUtils.isReportApproved(props.iouReport)) {
             return props.translate('iou.managerApproved', {manager: ReportUtils.getDisplayNameForParticipant(managerID, true)});
         }
         const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
