@@ -394,7 +394,7 @@ function AttachmentModal(props) {
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={closeModal}
                     onCloseButtonPress={closeModal}
-                    shouldShowThreeDotsButton={isAttachmentReceipt}
+                    shouldShowThreeDotsButton={isAttachmentReceipt && isModalOpen}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldOverlay

@@ -17,23 +17,17 @@ import * as App from '../../../libs/actions/App';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import Header from '../../../components/Header';
-import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
-import variables from '../../../styles/variables';
-import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import * as Session from '../../../libs/actions/Session';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
-import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
+import Text from '../../../components/Text';
 import useLocalize from '../../../hooks/useLocalize';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const basePropTypes = {
-    /** Toggles the navigation menu open and closed */
-    onLinkClick: PropTypes.func.isRequired,
-
     /** Safe area insets required for mobile devices margins */
     insets: safeAreaInsetPropTypes.isRequired,
 };
@@ -149,17 +143,11 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     return (
         <View style={[styles.flex1, styles.h100]}>
             <View
-                style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
+                style={styles.sidebarHeaderContainer}
                 dataSet={{dragArea: true}}
             >
                 <Header
-                    title={
-                        <LogoComponent
-                            fill={defaultTheme.text}
-                            width={variables.lhnLogoWidth}
-                            height={variables.lhnLogoHeight}
-                        />
-                    }
+                    title={<Text style={styles.textHeadline}>{translate('globalNavigationOptions.chats')}</Text>}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     shouldShowEnvironmentBadge
                 />
@@ -173,7 +161,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                         <Icon src={Expensicons.MagnifyingGlass} />
                     </PressableWithoutFeedback>
                 </Tooltip>
-                <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
             </View>
 
             <LHNOptionsList

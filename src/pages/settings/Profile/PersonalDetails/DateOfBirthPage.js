@@ -1,8 +1,8 @@
-import moment from 'moment';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import {subYears} from 'date-fns';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
@@ -84,8 +84,8 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                         inputID="dob"
                         label={translate('common.date')}
                         defaultValue={privatePersonalDetails.dob || ''}
-                        minDate={moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'years').toDate()}
-                        maxDate={moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'years').toDate()}
+                        minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
+                        maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
                     />
                 </Form>
             )}
