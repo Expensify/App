@@ -3,7 +3,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {PickerAvoidingView} from 'react-native-picker-select';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useIsFocused} from '@react-navigation/native';
 import FocusTrapView from '../FocusTrapView';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
@@ -44,6 +44,7 @@ function ScreenWrapper({
     const {isDevelopment} = useEnvironment();
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
+    const isFocused = useIsFocused();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const isKeyboardShown = lodashGet(keyboardState, 'isKeyboardShown', false);
@@ -140,7 +141,7 @@ function ScreenWrapper({
                                         style={[styles.flex1, styles.noSelect]}
                                         enabled={!shouldDisableFocusTrap}
                                         shouldEnableAutoFocus={shouldEnableAutoFocus}
-                                        active={navigation.isFocused()}
+                                        active={isFocused}
                                     >
                                         <HeaderGap styles={headerGapStyles} />
                                         {isDevelopment && <TestToolsModal />}
