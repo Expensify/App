@@ -24,8 +24,7 @@ import ROUTES from '../../ROUTES';
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import * as ActiveClientManager from '../../libs/ActiveClientManager';
 import App from '../../App';
-import Localize from '../../libs/Localize';
-
+import {getDevicePreferredLocale} from '../../libs/Localize';
 const propTypes = {
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
@@ -147,7 +146,7 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
-        App.setLocale(Localize.getDevicePreferredLocale());
+        App.setLocale(getDevicePreferredLocale());
     }, []);
 
     const {
