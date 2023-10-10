@@ -119,7 +119,7 @@ function ExpensifyCardPage({
                             />
                         )}
                     </ScrollView>
-                    {physicalCard.state === CONST.CARD_STATE.NOT_ACTIVATED && (
+                    {physicalCard.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED && (
                         <Button
                             success
                             style={[styles.w100, styles.p5]}

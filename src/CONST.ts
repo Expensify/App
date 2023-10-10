@@ -83,14 +83,6 @@ const CONST = {
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
-    CARD_STATE: {
-        OPEN: 3,
-        NOT_ACTIVATED: 4,
-        DEACTIVATED: 5,
-        CLOSED: 6,
-        SUSPENDED: 7,
-    },
-
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,

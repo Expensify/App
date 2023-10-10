@@ -71,10 +71,10 @@ function ActivatePhysicalCardPage({
     const activateCardCodeInputRef = useRef(null);
 
     /**
-     * If state of the card is CONST.CARD_STATE.OPEN, navigate to card details screen.
+     * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, navigate to card details screen.
      */
     useEffect(() => {
-        if (physicalCard.isLoading || lodashGet(cardList, `${cardID}.state`, 0) !== CONST.CARD_STATE.OPEN) {
+        if (physicalCard.isLoading || lodashGet(cardList, `${cardID}.state`, 0) !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
             return;
         }
 
