@@ -93,6 +93,7 @@ function TabSelector({state, navigation, onTabPress, position}) {
             // re-render is important to re-defining opacity and background base on new affected tabs, to be ready for user swiping.
             reRender();
         }, CONST.ANIMATED_TRANSITION);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.index]);
 
     return (
