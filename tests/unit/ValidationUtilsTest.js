@@ -257,11 +257,10 @@ describe('ValidationUtils', () => {
         test('room name with division sign (÷)', () => {
             expect(ValidationUtils.isValidRoomName('#room-name-with-÷-sign')).toBe(false);
         });
-           
-        test('room name with Greek alphabet and Cyrillic alphabets', () => {
+
+        test('room name with Greek alphabets and Cyrillic alphabets', () => {
             expect(ValidationUtils.isValidRoomName('#σοβαρός-серьезный')).toBe(true);
         });
-
     });
 
     describe('isValidWebsite', () => {
