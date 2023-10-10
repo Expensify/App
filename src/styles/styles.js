@@ -3330,15 +3330,6 @@ const styles = (theme) => ({
         color: theme.textColorfulBackground,
     },
 
-    eReceiptBackground: {
-        ...sizing.w100,
-        borderRadius: 20,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        height: 540,
-    },
-
     eReceiptBackgroundThumbnail: {
         ...sizing.w100,
         position: 'absolute',
