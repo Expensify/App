@@ -190,7 +190,7 @@ function ReportCardLostPage({
                 ) : (
                     <>
                         <View style={styles.mh5}>
-                            <Text style={[styles.textHeadline, styles.pre]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
+                            <Text style={[styles.textHeadline, styles.mr5]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
                             <SingleOptionSelector
                                 options={OPTIONS}
                                 selectedOptionKey={reason && reason.key}
