@@ -80,6 +80,10 @@ export default {
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
+    SETTINGS_WALLET_CARD_ACTIVATE: {
+        route: 'settings/wallet/cards/:domain/activate',
+        getRoute: (domain: string) => `settings/wallet/cards/${domain}/activate`,
+    },
     SETTINGS_PERSONAL_DETAILS: 'settings/profile/personal-details',
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: 'settings/profile/personal-details/legal-name',
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: 'settings/profile/personal-details/date-of-birth',

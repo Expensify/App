@@ -434,7 +434,7 @@ export default {
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para pedir dinero o asignar una tarea!',
+        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar dinero, pedir dinero, o asignar una tarea!',
     },
     reportAction: {
         asCopilot: 'como copiloto de',
@@ -839,6 +839,14 @@ export default {
             copyCardNumber: 'Copiar número de la tarjeta',
         },
     },
+    activateCardPage: {
+        activateCard: 'Activar tarjeta',
+        pleaseEnterLastFour: 'Introduce los cuatro últimos dígitos de la tarjeta.',
+        activatePhysicalCard: 'Activar tarjeta física',
+        error: {
+            thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
+        },
+    },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,
         instant: 'Instante',
@@ -994,7 +1002,7 @@ export default {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
-            hasInvalidCharacter: 'El nombre sólo puede incluir letras.',
+            hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos.',
         },
     },
     resendValidationForm: {
@@ -1375,6 +1383,7 @@ export default {
             notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte al espacio de trabajo? Comunícate con el propietario de este espacio de trabajo para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
             workspaceAvatar: 'Espacio de trabajo avatar',
+            mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
