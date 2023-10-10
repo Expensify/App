@@ -273,22 +273,6 @@ function completeTask(taskReport) {
         },
     ];
 
-    // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
-    // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-    const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
-    if (!_.isEmpty(assigneeReportAction)) {
-        const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
-            taskReportID,
-            completedTaskReportAction.created,
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            assigneeReportAction.reportID,
-            assigneeReportAction.reportActionID,
-        );
-        if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
-            optimisticData.push(optimisticDataForClonedParentReportAction);
-        }
-    }
-
     API.write(
         'CompleteTask',
         {
@@ -358,22 +342,6 @@ function reopenTask(taskReport) {
             },
         },
     ];
-
-    // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
-    // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-    const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
-    if (!_.isEmpty(assigneeReportAction)) {
-        const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
-            taskReportID,
-            reopenedTaskReportAction.created,
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            assigneeReportAction.reportID,
-            assigneeReportAction.reportActionID,
-        );
-        if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
-            optimisticData.push(optimisticDataForClonedParentReportAction);
-        }
-    }
 
     API.write(
         'ReopenTask',
@@ -519,10 +487,19 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
                 reportName,
                 managerID: assigneeAccountID || report.managerID,
                 managerEmail: assigneeEmail || report.managerEmail,
+                pendingFields: {
+                    ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                },
             },
         },
     ];
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {pendingFields: {...(assigneeAccountID && {managerID: null})}},
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -797,8 +774,8 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
             value: {
-                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport.reportID, {[parentReportAction.reportActionID]: null}).lastMessageText,
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport.reportID, {[parentReportAction.reportActionID]: null}).created,
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport.reportID, optimisticReportActions).lastMessageText,
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport.reportID, optimisticReportActions).created,
             },
         },
         {
@@ -910,6 +887,10 @@ function getTaskOwnerAccountID(taskReport) {
  * @returns {Boolean}
  */
 function canModifyTask(taskReport, sessionAccountID) {
+    if (ReportUtils.isCanceledTaskReport(taskReport)) {
+        return false;
+    }
+
     if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
         return true;
     }

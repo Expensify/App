@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import moment from 'moment/moment';
+import {subYears} from 'date-fns';
 import _ from 'underscore';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
@@ -134,8 +134,8 @@ function IdentityForm(props) {
     const dobErrorText = (props.errors.dob ? props.translate('bankAccount.error.dob') : '') || (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
     const identityFormInputKeys = ['firstName', 'lastName', 'dob', 'ssnLast4'];
 
-    const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
-    const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'Y').toDate();
+    const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
+    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
     return (
         <View style={props.style}>
