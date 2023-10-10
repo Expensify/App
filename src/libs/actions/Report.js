@@ -505,7 +505,8 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 
     // If we're going to open a failed money request report, remove the report preview action in the failure data
     const currentReport = ReportUtils.getReport(reportID);
-    if (!_.isEmpty(lodashGet(currentReport, 'errorFields.createChat')) && ReportUtils.isExpenseReport(currentReport) && currentReport.parentReportID && currentReport.parentReportActionID) {
+    const reportCreationErrors = _.chain(lodashGet(currentReport, 'errorFields.createChat')).compact().value();
+    if (ReportUtils.isExpenseReport(currentReport) && currentReport.parentReportID && currentReport.parentReportActionID && !_.isEmpty(reportCreationErrors)) {
         reportFailureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReport.parentReportID}`,
