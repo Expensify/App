@@ -247,7 +247,7 @@ function BaseOptionsList({
             ) : (
                 <>
                     {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
-                    {/* This is confusing because we might be in the process of loading fresh options from the server. */}
+                    {/* This is misleading because we might be in the process of loading fresh options from the server. */}
                     {!isLoadingNewOptions && headerMessage ? (
                         <View style={[styles.ph5, styles.pb5]}>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
