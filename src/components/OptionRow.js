@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet, InteractionManager} from 'react-native';
 import styles from '../styles/styles';
@@ -70,6 +70,9 @@ const propTypes = {
     /** Whether to remove the lateral padding and align the content with the margins */
     shouldDisableRowInnerPadding: PropTypes.bool,
 
+    /** Whether to prevent default focusing on select */
+    shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,
+
     /** Whether to wrap large text up to 2 lines */
     isMultilineSupported: PropTypes.bool,
 
@@ -95,16 +98,17 @@ const defaultProps = {
     style: null,
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
+    shouldPreventDefaultFocusOnSelectRow: false,
 };
 
 function OptionRow(props) {
+    const pressableRef = useRef(null);
     const [isDisabled, setIsDisabled] = useState(props.isDisabled);
 
     useEffect(() => {
         setIsDisabled(props.isDisabled);
     }, [props.isDisabled]);
 
-    let pressableRef = null;
     const textStyle = props.optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = props.boldStyle || props.option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, props.style, styles.pre, isDisabled ? styles.optionRowDisabled : {});
@@ -142,7 +146,7 @@ function OptionRow(props) {
             <Hoverable>
                 {(hovered) => (
                     <PressableWithFeedback
-                        ref={(el) => (pressableRef = el)}
+                        ref={(el) => (pressableRef.current = el)}
                         onPress={(e) => {
                             if (!props.onSelectRow) {
                                 return;
@@ -152,7 +156,7 @@ function OptionRow(props) {
                             if (e) {
                                 e.preventDefault();
                             }
-                            let result = props.onSelectRow(props.option, pressableRef);
+                            let result = props.onSelectRow(props.option, pressableRef.current);
                             if (!(result instanceof Promise)) {
                                 result = Promise.resolve();
                             }
@@ -177,6 +181,7 @@ function OptionRow(props) {
                         hoverDimmingValue={1}
                         hoverStyle={props.hoverStyle}
                         needsOffscreenAlphaCompositing={lodashGet(props.option, 'icons.length', 0) >= 2}
+                        onMouseDown={props.shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
