@@ -122,7 +122,7 @@ function IOURequestStepConfirmation({
         (selectedParticipants, trimmedComment, receipt) => {
             IOU.requestMoney(
                 report,
-                transaction.amount,
+                undefined,
                 transaction.currency,
                 transaction.created,
                 transaction.merchant,
@@ -184,13 +184,12 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (transaction.receiptPath && transaction.receiptSource) {
-                // TODO:
-                // FileUtils.readFileAsync(transaction.receiptPath, transaction.receiptSource).then((file) => {
-                //     const receipt = file;
-                //     receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
-                //     requestMoney(selectedParticipants, trimmedComment, receipt);
-                // });
+            if (transaction.receipt.path && transaction.receipt.source) {
+                FileUtils.readFileAsync(transaction.receipt.path, transaction.receipt.source).then((file) => {
+                    const receipt = file;
+                    receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+                    requestMoney(selectedParticipants, trimmedComment, receipt);
+                });
                 return;
             }
 
@@ -222,8 +221,8 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             transaction.currency,
-            transaction.receiptPath,
-            transaction.receiptSource,
+            transaction.receipt.path,
+            transaction.receipt.source,
             requestType,
             requestMoney,
             IOU.createDistanceRequest,

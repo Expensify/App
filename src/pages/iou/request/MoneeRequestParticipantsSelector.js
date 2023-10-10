@@ -220,7 +220,6 @@ function MoneeRequestParticipantsSelector({
         [participants, onParticipantsAdded, reports, personalDetails, betas, searchTerm, iouType, iouRequestType],
     );
 
-    console.log('[tim', participants);
     const headerMessage = OptionsListUtils.getHeaderMessage(
         newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
         Boolean(newChatOptions.userToInvite),

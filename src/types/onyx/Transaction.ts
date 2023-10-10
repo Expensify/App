@@ -22,6 +22,7 @@ type Geometry = {
 
 type Receipt = {
     receiptID?: number;
+    path?: string;
     source?: string;
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
 };
