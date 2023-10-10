@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     children: PropTypes.node.isRequired,
@@ -25,7 +24,6 @@ function PopoverContextProvider(props) {
         }
         activePopoverRef.current.close();
         activePopoverRef.current = null;
-        ReportActionComposeFocusManager.focus();
         setIsOpen(false);
     }, []);
 

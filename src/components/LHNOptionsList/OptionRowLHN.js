@@ -28,6 +28,7 @@ import Permissions from '../../libs/Permissions';
 import Tooltip from '../Tooltip';
 import DomUtils from '../../libs/DomUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** Style for hovered state */
@@ -173,7 +174,7 @@ function OptionRowLHN(props) {
                             if (e) {
                                 e.preventDefault();
                             }
-
+                            ReportActionComposeFocusManager.focus();
                             props.onSelectRow(optionItem, popoverAnchor);
                         }}
                         onMouseDown={(e) => {
