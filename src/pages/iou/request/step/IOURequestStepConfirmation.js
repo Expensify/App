@@ -191,20 +191,7 @@ function IOURequestStepConfirmation({
                 transaction.billable,
             );
         },
-        [
-            iouType,
-            reportID,
-            transaction.amount,
-            transaction.comment,
-            transaction.participants,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            transaction.currency,
-            receipt,
-            requestType,
-            IOU.createDistanceRequest,
-            IOU.requestMoney,
-        ],
+        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, receipt, report, requestType],
     );
 
     /**
@@ -238,6 +225,13 @@ function IOURequestStepConfirmation({
             return participant;
         });
         IOU.setMoneeRequestParticipants(transactionID, newParticipants);
+    };
+
+    /**
+     * @param {Boolean} billable
+     */
+    const setBillable = (billable) => {
+        IOU.setMoneeRequestBillable(transactionID, billable);
     };
 
     return (
@@ -280,7 +274,7 @@ function IOURequestStepConfirmation({
                                 iouComment={lodashGet(transaction, 'comment.comment', '')}
                                 iouCurrencyCode={transaction.currency}
                                 iouIsBillable={transaction.billable}
-                                onToggleBillable={IOU.setMoneyRequestBillable}
+                                onToggleBillable={setBillable}
                                 iouCategory={transaction.category}
                                 iouTag={transaction.tag}
                                 onConfirm={createTransaction}

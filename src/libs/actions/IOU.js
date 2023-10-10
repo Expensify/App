@@ -2461,6 +2461,14 @@ function setMoneyRequestBillable(billable) {
 }
 
 /**
+ * @param {String} transactionID
+ * @param {Boolean} billable
+ */
+function setMoneeRequestBillable(transactionID, billable) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {billable});
+}
+
+/**
  * TODO: remove this in favor of setMoneeRequestParticipants()
  * @param {Object[]} participants
  */
@@ -2580,6 +2588,7 @@ export {
     resetMoneyRequestInfo,
     resetMoneyRequestTag,
     setMoneeRequestAmount,
+    setMoneeRequestBillable,
     setMoneeRequestCategory,
     setMoneeRequestCreated,
     setMoneeRequestCurrency,
