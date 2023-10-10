@@ -132,7 +132,7 @@ function ReportActionsList({
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
-    const firstRenderRef = useRef(true);
+    const firstComponentsRenderRef = useRef({header: true, footer: true});
     const reportActionSize = useRef(sortedReportActions.length);
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
@@ -352,8 +352,8 @@ function ReportActionsList({
     const listFooterComponent = useCallback(() => {
         // Skip this hook on the first render, as we are not sure if more actions are going to be loaded
         // Therefore showing the skeleton on footer might be misleading
-        if (firstRenderRef.current) {
-            firstRenderRef.current = false;
+        if (firstComponentsRenderRef.current.footer) {
+            firstComponentsRenderRef.current.footer = false;
             return null;
         }
 
@@ -375,8 +375,8 @@ function ReportActionsList({
     );
 
     const listHeaderComponent = useCallback(() => {
-        if (firstRenderRef.current) {
-            firstRenderRef.current = false;
+        if (firstComponentsRenderRef.current.header) {
+            firstComponentsRenderRef.current.header = false;
             return null;
         }
         return (

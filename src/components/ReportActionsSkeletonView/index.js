@@ -19,9 +19,8 @@ const defaultProps = {
 
 function ReportActionsSkeletonView({shouldAnimate, possibleVisibleContentItems}) {
     // Determines the number of content items based on container height
-    const visibleContentItems = possibleVisibleContentItems;
     const skeletonViewLines = [];
-    for (let index = 0; index < visibleContentItems; index++) {
+    for (let index = 0; index < possibleVisibleContentItems; index++) {
         const iconIndex = (index + 1) % 4;
         switch (iconIndex) {
             case 2:

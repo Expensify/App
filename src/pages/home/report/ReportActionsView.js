@@ -1,4 +1,4 @@
-import React, {useRef, useEffect, useContext, useMemo, useCallback} from 'react';
+import React, {useRef, useEffect, useContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -182,7 +182,7 @@ function ReportActionsView(props) {
                 const newestReportAction = _.first(props.reportActions);
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
             }, 500),
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID], // List of dependencies
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID],
     );
 
     /**

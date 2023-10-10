@@ -1,7 +1,7 @@
 import CONST from '../../CONST';
-import OptionAlternateTextPlatformStyles from './types';
+import BoundaryLoaderStyles from './types';
 
-const optionAlternateTextPlatformStyles: OptionAlternateTextPlatformStyles = {
+const boundaryLoaderStyles: BoundaryLoaderStyles = {
     position: 'absolute',
     top: 0,
     bottom: 0,
@@ -10,4 +10,4 @@ const optionAlternateTextPlatformStyles: OptionAlternateTextPlatformStyles = {
     height: CONST.CHAT_HEADER_LOADER_HEIGHT,
 };
 
-export default optionAlternateTextPlatformStyles;
+export default boundaryLoaderStyles;
