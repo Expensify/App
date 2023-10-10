@@ -3027,6 +3027,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     if (
         !report ||
         !report.reportID ||
+        !report.type ||        
         report.isHidden ||
         (report.participantAccountIDs &&
             report.participantAccountIDs.length === 0 &&
