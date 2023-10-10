@@ -211,6 +211,10 @@ export default {
         marginTop: 'auto',
     },
 
+    mtn6: {
+        marginTop: -24,
+    },
+
     mb0: {
         marginBottom: 0,
     },
