@@ -202,7 +202,7 @@ function ReportPreview(props) {
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                     <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
                                 </View>
-                                {hasErrors && _.isEmpty(lodashGet(props.iouReport, 'errorFields.createChat')) && (
+                                {hasErrors && !_.isEmpty(lodashGet(props.iouReport, 'errorFields.createChat')) && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={themeColors.danger}
