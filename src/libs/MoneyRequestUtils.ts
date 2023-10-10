@@ -28,7 +28,7 @@ function stripDecimalsFromAmount(amount: string): string {
  * @param amount - Changed amount from user input
  */
 function addLeadingZero(amount: string): string {
-    return amount === '.' ? '0.' : amount;
+    return amount.startsWith('.') ? `0${amount}` : amount;
 }
 
 /**

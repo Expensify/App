@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import moment from 'moment';
+import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -220,7 +220,7 @@ function getFrequentlyUsedEmojis(newEmoji) {
     let frequentEmojiList = [...frequentlyUsedEmojis];
 
     const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
-    const currentTimestamp = moment().unix();
+    const currentTimestamp = getUnixTime(new Date());
     _.each([].concat(newEmoji), (emoji) => {
         let currentEmojiCount = 1;
         const emojiIndex = _.findIndex(frequentEmojiList, (e) => e.code === emoji.code);

@@ -75,7 +75,13 @@ function MoneyRequestConfirmPage(props) {
             }),
         [props.iou.participants, props.personalDetails],
     );
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
     const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
+
+    useEffect(() => {
+        IOU.resetMoneyRequestCategory();
+        IOU.resetMoneyRequestTag();
+    }, []);
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
@@ -198,6 +204,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.amount,
                     trimmedComment,
                     props.iou.currency,
+                    props.iou.category,
                     reportID.current,
                 );
                 return;
@@ -212,6 +219,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.amount,
                     trimmedComment,
                     props.iou.currency,
+                    props.iou.category,
                 );
                 return;
             }
@@ -238,6 +246,7 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.login,
             props.currentUserPersonalDetails.accountID,
             props.iou.currency,
+            props.iou.category,
             props.iou.receiptPath,
             props.iou.receiptSource,
             isDistanceRequest,
@@ -338,6 +347,7 @@ function MoneyRequestConfirmPage(props) {
                                 receiptSource={props.iou.receiptSource}
                                 iouType={iouType.current}
                                 reportID={reportID.current}
+                                isPolicyExpenseChat={isPolicyExpenseChat}
                                 // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
                                 // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
                                 // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
@@ -375,12 +385,8 @@ export default compose(
     withOnyx({
         report: {
             key: ({route, iou}) => {
-                let reportID = lodashGet(route, 'params.reportID', '');
-                if (!reportID) {
-                    // When the money request creation flow is initialized on Global Create, the reportID is not passed as a navigation parameter.
-                    // Get the report id from the participants list on the IOU object stored in Onyx.
-                    reportID = lodashGet(iou, 'participants.0.reportID', '');
-                }
+                const reportID = IOU.getIOUReportID(iou, route);
+
                 return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
             },
         },

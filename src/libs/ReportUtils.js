@@ -1191,50 +1191,25 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
  * @returns {Array}
  */
 function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
-    return _.chain(personalDetailsList)
-        .map((user) => {
-            const accountID = Number(user.accountID);
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
-            const avatar = UserUtils.getDefaultAvatar(accountID);
+    return _.map(personalDetailsList, (user) => {
+        const accountID = Number(user.accountID);
+        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
+        const avatar = UserUtils.getDefaultAvatar(accountID);
 
-            let pronouns = user.pronouns;
-            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
-                const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
-            }
+        let pronouns = user.pronouns;
+        if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+            const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+            pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+        }
 
-            return {
-                displayName,
-                avatar,
-                login: user.login || '',
-                accountID,
-                pronouns,
-            };
-        })
-        .sort((first, second) => {
-            // First sort by displayName/login
-            const displayNameLoginOrder = first.displayName.localeCompare(second.displayName);
-            if (displayNameLoginOrder !== 0) {
-                return displayNameLoginOrder;
-            }
-
-            // Then fallback on accountID as the final sorting criteria.
-            return first.accountID > second.accountID;
-        })
-        .value();
-}
-
-/**
- * Gets a joined string of display names from the list of display name with tooltip objects.
- *
- * @param {Object} displayNamesWithTooltips
- * @returns {String}
- */
-function getDisplayNamesStringFromTooltips(displayNamesWithTooltips) {
-    return _.filter(
-        _.map(displayNamesWithTooltips, ({displayName}) => displayName),
-        (displayName) => !_.isEmpty(displayName),
-    ).join(', ');
+        return {
+            displayName,
+            avatar,
+            login: user.login || '',
+            accountID,
+            pronouns,
+        };
+    });
 }
 
 /**
@@ -2227,6 +2202,9 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
         case CONST.REPORT.ACTIONS.TYPE.APPROVED:
             iouMessage = `approved ${amount}`;
             break;
+        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
+            iouMessage = `submitted ${amount}`;
+            break;
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
             iouMessage = `requested ${amount}${comment && ` for ${comment}`}`;
             break;
@@ -2370,6 +2348,44 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
+ *
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {Number} expenseReportID
+ *
+ * @returns {Object}
+ */
+function buildOptimisticSubmittedReportAction(amount, currency, expenseReportID) {
+    const originalMessage = {
+        amount,
+        currency,
+        expenseReportID,
+    };
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        isAttachment: false,
+        originalMessage,
+        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency),
         person: [
             {
                 style: 'strong',
@@ -2554,7 +2570,6 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
  * @param {String} notificationPreference
  * @param {String} parentReportActionID
  * @param {String} parentReportID
- * @param {String} welcomeMessage
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -2570,7 +2585,6 @@ function buildOptimisticChatReport(
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
-    welcomeMessage = '',
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
@@ -2597,7 +2611,7 @@ function buildOptimisticChatReport(
         stateNum: 0,
         statusNum: 0,
         visibility,
-        welcomeMessage,
+        welcomeMessage: '',
         writeCapability,
     };
 }
@@ -3079,7 +3093,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
  * @returns {Array|undefined}
  */
 function getChatByParticipants(newParticipantList) {
-    newParticipantList.sort();
+    const sortedNewParticipantList = _.sortBy(newParticipantList);
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
         if (
@@ -3095,7 +3109,7 @@ function getChatByParticipants(newParticipantList) {
         }
 
         // Only return the chat if it has all the participants
-        return _.isEqual(newParticipantList, _.sortBy(report.participantAccountIDs));
+        return _.isEqual(sortedNewParticipantList, _.sortBy(report.participantAccountIDs));
     });
 }
 
@@ -3581,6 +3595,15 @@ function canCreateRequest(report, betas, iouType) {
     return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
 }
 
+/**
+ * @param {String} policyID
+ * @param {Array} accountIDs
+ * @returns {Array}
+ */
+function getWorkspaceChats(policyID, accountIDs) {
+    return _.filter(allReports, (report) => isPolicyExpenseChat(report) && lodashGet(report, 'policyID', '') === policyID && _.contains(accountIDs, lodashGet(report, 'ownerAccountID', '')));
+}
+
 /*
  * @param {Object|null} report
  * @returns {Boolean}
@@ -3811,6 +3834,14 @@ function getIOUReportActionDisplayMessage(reportAction) {
     return displayMessage;
 }
 
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isReportDraft(report) {
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.OPEN && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.OPEN;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3854,7 +3885,6 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
-    getDisplayNamesStringFromTooltips,
     getReportName,
     getReport,
     getReportIDFromLink,
@@ -3872,6 +3902,7 @@ export {
     buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
     buildOptimisticApprovedReportAction,
+    buildOptimisticSubmittedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
@@ -3939,6 +3970,7 @@ export {
     isDM,
     getPolicy,
     getPolicyExpenseChatReportIDByOwner,
+    getWorkspaceChats,
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
@@ -3956,4 +3988,5 @@ export {
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
+    isReportDraft,
 };
