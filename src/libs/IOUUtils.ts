@@ -77,7 +77,7 @@ function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
  * Checks if the iou type is one of request, send, or split.
  */
 function isValidMoneyRequestType(iouType: string): boolean {
-    const moneyRequestType: string[] = [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.MONEY_REQUEST_TYPE.SPLIT, CONST.IOU.MONEY_REQUEST_TYPE.SEND];
+    const moneyRequestType: string[] = [CONST.IOU.TYPE.REQUEST, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.SEND];
     return moneyRequestType.includes(iouType);
 }
 

@@ -184,7 +184,7 @@ export default {
         getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`,
     },
 
-    // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
+    // To see the available iouType, please refer to CONST.IOU.TYPE
     MONEY_REQUEST: {
         route: ':iouType/new/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}`,

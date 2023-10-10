@@ -173,7 +173,7 @@ const defaultProps = {
     onSendMoney: () => {},
     onSelectParticipant: () => {},
     onToggleBillable: () => {},
-    iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+    iouType: CONST.IOU.TYPE.REQUEST,
     iouCategory: '',
     iouTag: '',
     payeePersonalDetails: null,
@@ -207,7 +207,7 @@ function MoneyRequestConfirmationList(props) {
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
     const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields;
-    const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
+    const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
 
     const {unit, rate, currency} = props.mileageRate;
     const distance = TransactionUtils.getDistance(transaction);
@@ -281,7 +281,7 @@ function MoneyRequestConfirmationList(props) {
         return [
             {
                 text: text[0].toUpperCase() + text.slice(1),
-                value: props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+                value: props.hasMultipleParticipants ? CONST.IOU.TYPE.SPLIT : CONST.IOU.TYPE.REQUEST,
             },
         ];
     }, [props.hasMultipleParticipants, props.receiptPath, translate, formattedAmount, isDistanceRequestWithoutRoute]);
@@ -404,7 +404,7 @@ function MoneyRequestConfirmationList(props) {
                 return;
             }
 
-            if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+            if (props.iouType === CONST.IOU.TYPE.SEND) {
                 if (!paymentMethod) {
                     return;
                 }
@@ -432,7 +432,7 @@ function MoneyRequestConfirmationList(props) {
             return;
         }
 
-        const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+        const shouldShowSettlementButton = props.iouType === CONST.IOU.TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (

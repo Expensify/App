@@ -59,9 +59,9 @@ function IOURequestStartPage({
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
-        [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
-        [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
-        [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
+        [CONST.IOU.TYPE.REQUEST]: translate('iou.requestMoney'),
+        [CONST.IOU.TYPE.SEND]: translate('iou.sendMoney'),
+        [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const previousIOURequestType = usePrevious(transactionRequestType.current);

@@ -76,7 +76,7 @@ function MoneyRequestConfirmPage(props) {
         [props.iou.participants, props.personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
-    const isManualRequestDM = props.selectedTab === CONST.TAB_REQUEST.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
+    const isManualRequestDM = props.selectedTab === CONST.TAB_REQUEST.MANUAL && iouType.current === CONST.IOU.TYPE.REQUEST;
 
     useEffect(() => {
         IOU.resetMoneyRequestCategory();
@@ -196,7 +196,7 @@ function MoneyRequestConfirmPage(props) {
 
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
-            if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
+            if (iouType.current === CONST.IOU.TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
                 IOU.splitBill(
                     selectedParticipants,
                     props.currentUserPersonalDetails.login,
@@ -211,7 +211,7 @@ function MoneyRequestConfirmPage(props) {
             }
 
             // If the request is created from the global create menu, we also navigate the user to the group report
-            if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
+            if (iouType.current === CONST.IOU.TYPE.SPLIT) {
                 IOU.splitBillAndOpenReport(
                     selectedParticipants,
                     props.currentUserPersonalDetails.login,
@@ -284,7 +284,7 @@ function MoneyRequestConfirmPage(props) {
             return props.translate('common.distance');
         }
 
-        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
+        if (iouType.current === CONST.IOU.TYPE.SPLIT) {
             return props.translate('iou.split');
         }
 
@@ -323,7 +323,7 @@ function MoneyRequestConfirmPage(props) {
                         >
                             <MoneyRequestConfirmationList
                                 transactionID={props.iou.transactionID}
-                                hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                                hasMultipleParticipants={iouType.current === CONST.IOU.TYPE.SPLIT}
                                 selectedParticipants={participants}
                                 iouAmount={props.iou.amount}
                                 iouComment={props.iou.comment}

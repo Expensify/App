@@ -3387,17 +3387,17 @@ function getMoneyRequestOptions(report, reportParticipants) {
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
     // There is no Split Bill option for Workspace chats, IOU or Expense reports which are threads
     if ((isChatRoom(report) && participants.length > 0) || (hasMultipleParticipants && !isPolicyExpenseChat(report) && !isMoneyRequestReport(report)) || isControlPolicyExpenseChat(report)) {
-        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
+        return [CONST.IOU.TYPE.SPLIT];
     }
 
     // DM chats that only have 2 people will see the Send / Request money options.
     // IOU and open or processing expense reports should show the Request option.
     // Workspace chats should only see the Request money option or Split option in case of Control policies
     return [
-        ...(canRequestMoney(report, participants) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
+        ...(canRequestMoney(report, participants) ? [CONST.IOU.TYPE.REQUEST] : []),
 
         // Send money option should be visible only in DMs
-        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.TYPE.SEND] : []),
     ];
 }
 

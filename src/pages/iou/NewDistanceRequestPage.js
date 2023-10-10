@@ -22,7 +22,7 @@ const propTypes = {
         /** Parameters the route gets */
         params: PropTypes.shape({
             /** Type of IOU */
-            iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)),
+            iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)),
             /** Id of the report on which the distance request is being created */
             reportID: PropTypes.string,
         }),

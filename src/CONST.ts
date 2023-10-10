@@ -1091,12 +1091,6 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
-        // TODO: replace this with TYPE instead
-        MONEY_REQUEST_TYPE: {
-            SEND: 'send',
-            SPLIT: 'split',
-            REQUEST: 'request',
-        },
         TYPE: {
             SEND: 'send',
             SPLIT: 'split',

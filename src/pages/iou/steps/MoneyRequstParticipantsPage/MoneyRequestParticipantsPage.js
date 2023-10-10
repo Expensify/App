@@ -51,7 +51,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, selectedTab);
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
-    const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
+    const isSplitRequest = iou.id === CONST.IOU.TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
 
     useEffect(() => {
@@ -115,7 +115,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                         participants={iou.participants}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToConfirmationStep(iouType.current)}
-                        navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
+                        navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.TYPE.SPLIT)}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         iouType={iouType.current}
                         isDistanceRequest={isDistanceRequest}

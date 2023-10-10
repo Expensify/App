@@ -1112,7 +1112,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneIOUReport.reportID,
             comment,
             '',
-            CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
+            CONST.IOU.TYPE.SPLIT,
             splitTransaction.transactionID,
             undefined,
             undefined,

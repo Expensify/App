@@ -89,7 +89,7 @@ function SplitBillDetailsPage(props) {
                             iouComment={splitComment}
                             iouCurrencyCode={splitCurrency}
                             iouCategory={splitCategory}
-                            iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                            iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly
                             shouldShowFooter={false}
                             reportID={lodashGet(props.report, 'reportID', '')}
