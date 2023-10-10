@@ -3812,7 +3812,7 @@ function getIOUReportActionDisplayMessage(reportAction) {
  * @returns {Boolean}
  */
 function isReportDraft(report) {
-    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.OPEN && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.OPEN;
+    return isExpenseReport(report) && lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.OPEN && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.OPEN;
 }
 
 export {
