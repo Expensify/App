@@ -1,5 +1,5 @@
 import {createRef} from 'react';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import ONYXKEYS, {OnyxValues} from '../../ONYXKEYS';
 import * as API from '../API';
@@ -11,19 +11,6 @@ import {PaymentMethod} from '../PaymentUtils';
 
 type KYCWallRef = {
     continue?: () => void;
-};
-
-type DefaultPaymentOnyxDataItem = {
-    onyxMethod: ValueOf<typeof Onyx.METHOD>;
-    key: string;
-    value: {
-        walletLinkedAccountID?: number;
-        walletLinkedAccountType?: string;
-        errors?: unknown;
-        [key: number]: {
-            isDefault: boolean;
-        };
-    };
 };
 
 type PaymentCardParams = {expirationDate: string; cardNumber: string; securityCode: string; nameOnCard: string; addressZipCode: string};
@@ -83,22 +70,28 @@ function getMakeDefaultPaymentOnyxData(
     previousPaymentMethod: PaymentMethod,
     currentPaymentMethod: PaymentMethod,
     isOptimisticData = true,
-): DefaultPaymentOnyxDataItem[] {
-    const onyxData: DefaultPaymentOnyxDataItem[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.USER_WALLET,
-            value: {
-                walletLinkedAccountID: bankAccountID || fundID,
-                walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-            },
-        },
+): OnyxUpdate[] {
+    const onyxData: OnyxUpdate[] = [
+        isOptimisticData
+            ? {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: ONYXKEYS.USER_WALLET,
+                  value: {
+                      walletLinkedAccountID: bankAccountID || fundID,
+                      walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                      // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
+                      errors: null,
+                  },
+              }
+            : {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: ONYXKEYS.USER_WALLET,
+                  value: {
+                      walletLinkedAccountID: bankAccountID || fundID,
+                      walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                  },
+              },
     ];
-
-    // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
-    if (isOptimisticData) {
-        onyxData[0].value.errors = null;
-    }
 
     if (previousPaymentMethod?.methodID) {
         onyxData.push({
@@ -128,9 +121,9 @@ function getMakeDefaultPaymentOnyxData(
 }
 
 type MakeDefaultPaymentMethodParams = {
-    bankAccountID: number,
-    fundID: number
-}
+    bankAccountID: number;
+    fundID: number;
+};
 
 /**
  * Sets the default bank account or debit card for an Expensify Wallet
@@ -139,29 +132,25 @@ type MakeDefaultPaymentMethodParams = {
 function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previousPaymentMethod: PaymentMethod, currentPaymentMethod: PaymentMethod) {
     const parameters: MakeDefaultPaymentMethodParams = {
         bankAccountID,
-        fundID
-    }
-    
-    API.write(
-        'MakeDefaultPaymentMethod',
-        parameters,
-        {
-            optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, true),
-            failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false),
-        },
-    );
+        fundID,
+    };
+
+    API.write('MakeDefaultPaymentMethod', parameters, {
+        optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, true),
+        failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false),
+    });
 }
 
 type AddPaymentCardParams = {
-    cardNumber: string,
-    cardYear: string,
-    cardMonth: string,
-    cardCVV: string,
-    addressName: string,
-    addressZip: string,
-    currency: ValueOf<typeof CONST.CURRENCY>,
-    isP2PDebitCard: boolean
-}
+    cardNumber: string;
+    cardYear: string;
+    cardMonth: string;
+    cardCVV: string;
+    addressName: string;
+    addressZip: string;
+    currency: ValueOf<typeof CONST.CURRENCY>;
+    isP2PDebitCard: boolean;
+};
 
 /**
  * Calls the API to add a new card.
@@ -180,35 +169,31 @@ function addPaymentCard(params: PaymentCardParams) {
         addressZip: params.addressZipCode,
         currency: CONST.CURRENCY.USD,
         isP2PDebitCard: true,
-    }
+    };
 
-    API.write(
-        'AddPaymentCard',
-        parameters,
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-                    value: {isLoading: true},
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-                    value: {isLoading: false},
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-                    value: {isLoading: false},
-                },
-            ],
-        },
-    );
+    API.write('AddPaymentCard', parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+                value: {isLoading: true},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+                value: {isLoading: false},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+                value: {isLoading: false},
+            },
+        ],
+    });
 }
 
 /**
@@ -222,7 +207,7 @@ function clearDebitCardFormErrorAndSubmit() {
     });
 }
 
-type TransferWalletBalanceParameters = Partial<Record<ValueOf<typeof CONST.PAYMENT_METHOD_ID_KEYS>, number | undefined>>
+type TransferWalletBalanceParameters = Partial<Record<ValueOf<typeof CONST.PAYMENT_METHOD_ID_KEYS>, number | undefined>>;
 
 /**
  * Call the API to transfer wallet balance.
@@ -346,27 +331,23 @@ function clearWalletTermsError() {
 }
 
 type DeletePaymentCardParams = {
-    fundID: number
-}
+    fundID: number;
+};
 
 function deletePaymentCard(fundID: number) {
     const parameters: DeletePaymentCardParams = {
         fundID,
-    }
+    };
 
-    API.write(
-        'DeletePaymentCard',
-        parameters,
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.FUND_LIST}`,
-                    value: {[fundID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
-                },
-            ],
-        },
-    );
+    API.write('DeletePaymentCard', parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.FUND_LIST}`,
+                value: {[fundID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            },
+        ],
+    });
 }
 
 export {
