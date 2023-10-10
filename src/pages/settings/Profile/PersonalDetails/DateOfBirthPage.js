@@ -18,6 +18,7 @@ import compose from '../../../../libs/compose';
 import styles from '../../../../styles/styles';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import FormProvider from "../../../../components/Form/FormProvider";
 
 const propTypes = {
     /* Onyx Props */
@@ -72,7 +73,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
                     validate={validate}
@@ -87,7 +88,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                         minDate={moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'years').toDate()}
                         maxDate={moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'years').toDate()}
                     />
-                </Form>
+                </FormProvider>
             )}
         </ScreenWrapper>
     );
