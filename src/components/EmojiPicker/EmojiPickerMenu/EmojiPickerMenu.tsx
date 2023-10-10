@@ -33,7 +33,7 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]), // TODO: preferredSkinTone must be number (always)
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     /** Stores user's frequently used emojis */
     // eslint-disable-next-line react/forbid-prop-types
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.object),
@@ -65,12 +65,11 @@ const EmojiPickerMenu = (props) => {
 
     const firstNonHeaderIndex = useRef(0);
 
-    // TODO: Group the 3 refs into 1?? Adv:- code would look cleaner + there will be only 1 getEmojisAndHeaderRowIndices() call.
     const emojis = useRef([]);
     if (emojis.current.length === 0) {
         emojis.current = getEmojisAndHeaderRowIndices().filteredEmojis;
     }
-    const headerRowIndices = useRef([]); // TODO: Maybe this ref is not needed. headerIndices state might suffice
+    const headerRowIndices = useRef([]);
     if (headerRowIndices.current.length === 0) {
         headerRowIndices.current = getEmojisAndHeaderRowIndices().headerRowIndices;
     }
@@ -512,7 +511,7 @@ const EmojiPickerMenu = (props) => {
             </View>
             {!isFiltered && (
                 <CategoryShortcutBar
-                    headerEmojis={headerEmojis.current} // TODO: BAD PRACTICE: Do not write or read ref.current during rendering, except for initialization. This makes your component’s behavior unpredictable.
+                    headerEmojis={headerEmojis.current}
                     onPress={scrollToHeader}
                 />
             )}
