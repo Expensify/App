@@ -1,5 +1,6 @@
 import React from 'react';
 import {TextInput} from 'react-native';
+import willBlurTextInputOnTapOutsideFunc from './willBlurTextInputOnTapOutside';
 
 type FocusCallback = () => void;
 
@@ -9,6 +10,9 @@ const editComposerRef = React.createRef<TextInput>();
 // The general composer callback will take priority if it exists.
 let focusCallback: FocusCallback | null = null;
 let mainComposerFocusCallback: FocusCallback | null = null;
+
+const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
+let isKeyboardVisibleWhenShowingModal = false;
 
 /**
  * Register a callback to be called when focus is requested.
@@ -65,6 +69,27 @@ function isEditFocused(): boolean {
     return !!editComposerRef.current?.isFocused();
 }
 
+/**
+ * Restore focus state of ReportActionCompose
+ */
+function restoreFocusState() {
+    if (!isKeyboardVisibleWhenShowingModal) {
+        return;
+    }
+    composerRef?.current?.focus();
+    isKeyboardVisibleWhenShowingModal = false;
+}
+
+/**
+ * Blur ReportActionCompose
+ */
+function blur() {
+    if (!willBlurTextInputOnTapOutside) {
+        isKeyboardVisibleWhenShowingModal = isFocused();
+    }
+    composerRef?.current?.blur();
+}
+
 export default {
     composerRef,
     onComposerFocus,
@@ -73,4 +98,7 @@ export default {
     isFocused,
     editComposerRef,
     isEditFocused,
+    isKeyboardVisibleWhenShowingModal,
+    restoreFocusState,
+    blur,
 };

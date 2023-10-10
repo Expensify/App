@@ -38,6 +38,7 @@ import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
 import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
 import updatePropsPaperWorklet from '../../../../libs/updatePropsPaperWorklet';
+import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -188,15 +189,6 @@ function ReportActionCompose({
         composerRef.current.focus(true);
     };
 
-    const isKeyboardVisibleWhenShowingModalRef = useRef(false);
-    const restoreKeyboardState = useCallback(() => {
-        if (!isKeyboardVisibleWhenShowingModalRef.current) {
-            return;
-        }
-        focus();
-        isKeyboardVisibleWhenShowingModalRef.current = false;
-    }, []);
-
     const containerRef = useRef(null);
     const measureContainer = useCallback((callback) => {
         if (!containerRef.current) {
@@ -205,15 +197,8 @@ function ReportActionCompose({
         containerRef.current.measureInWindow(callback);
     }, []);
 
-    const onAddActionPressed = useCallback(() => {
-        if (!willBlurTextInputOnTapOutside) {
-            isKeyboardVisibleWhenShowingModalRef.current = composerRef.current.isFocused();
-        }
-        composerRef.current.blur();
-    }, []);
-
     const onItemSelected = useCallback(() => {
-        isKeyboardVisibleWhenShowingModalRef.current = false;
+        ReportActionComposeFocusManager.isKeyboardVisibleWhenShowingModal = false;
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -241,8 +226,8 @@ function ReportActionCompose({
     const onAttachmentPreviewClose = useCallback(() => {
         updateShouldShowSuggestionMenuToFalse();
         setIsAttachmentPreviewActive(false);
-        restoreKeyboardState();
-    }, [updateShouldShowSuggestionMenuToFalse, restoreKeyboardState]);
+        ReportActionComposeFocusManager.restoreFocusState();
+    }, [updateShouldShowSuggestionMenuToFalse]);
 
     /**
      * Add a new comment to this chat
@@ -273,7 +258,7 @@ function ReportActionCompose({
             suggestionsRef.current.setShouldBlockSuggestionCalc(true);
         }
         isNextModalWillOpenRef.current = true;
-        isKeyboardVisibleWhenShowingModalRef.current = true;
+        ReportActionComposeFocusManager.isKeyboardVisibleWhenShowingModal = true;
     }, []);
 
     const onBlur = useCallback((e) => {
@@ -282,7 +267,7 @@ function ReportActionCompose({
             suggestionsRef.current.resetSuggestions();
         }
         if (e.relatedTarget && e.relatedTarget === actionButtonRef.current) {
-            isKeyboardVisibleWhenShowingModalRef.current = true;
+            ReportActionComposeFocusManager.isKeyboardVisibleWhenShowingModal = true;
         }
     }, []);
 
@@ -378,9 +363,9 @@ function ReportActionCompose({
                                     setMenuVisibility={setMenuVisibility}
                                     isMenuVisible={isMenuVisible}
                                     onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-                                    onCanceledAttachmentPicker={restoreKeyboardState}
-                                    onMenuClosed={restoreKeyboardState}
-                                    onAddActionPressed={onAddActionPressed}
+                                    onCanceledAttachmentPicker={ReportActionComposeFocusManager.restoreFocusState}
+                                    onMenuClosed={ReportActionComposeFocusManager.restoreFocusState}
+                                    onAddActionPressed={ReportActionComposeFocusManager.blur}
                                     onItemSelected={onItemSelected}
                                     actionButtonRef={actionButtonRef}
                                 />
