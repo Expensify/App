@@ -31,26 +31,34 @@ function IOURequestStepParticipants({
         params: {iouType, reportID, transactionID},
     },
     transaction,
-    transaction: {participants},
+    transaction: {participants = []},
 }) {
     const {translate} = useLocalize();
     const optionsSelectorRef = useRef();
     const selectedReportID = useRef(reportID);
+    const numberOfParticipants = useRef(participants.length);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = translate(TransactionUtils.getHeaderTitle(transaction));
 
     const addParticipant = useCallback(
         (val) => {
             IOU.setMoneeRequestParticipants(transactionID, val);
+            numberOfParticipants.current = val.length;
+
+            if (val.length !== 1) {
+                return;
+            }
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
+            // TODO: Figure out what to do with multiple participants
             selectedReportID.current = val[0].reportID;
         },
         [transactionID],
     );
 
     const goToNextStep = () => {
-        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(iouType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current), true);
+        const nextStepIOUType = numberOfParticipants.current === 1 ? iouType : CONST.IOU.TYPE.SPLIT;
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(nextStepIOUType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current), true);
     };
 
     const navigateBack = () => {

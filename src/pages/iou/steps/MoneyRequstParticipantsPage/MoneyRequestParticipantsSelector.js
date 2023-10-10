@@ -21,7 +21,7 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    /** Callback to request parent modal to go to next step, which should be split */
+    /** Callback to request parent modal to go to next step, which should be request */
     navigateToRequest: PropTypes.func.isRequired,
 
     /** Callback to request parent modal to go to next step, which should be split */
