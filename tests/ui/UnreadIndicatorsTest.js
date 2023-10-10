@@ -3,7 +3,8 @@ import Onyx from 'react-native-onyx';
 import {Linking, AppState} from 'react-native';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import lodashGet from 'lodash/get';
-import moment from 'moment';
+import {subMinutes, format, addSeconds, subSeconds} from 'date-fns';
+import {utcToZonedTime} from 'date-fns-tz';
 import App from '../../src/App';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -117,7 +118,6 @@ const USER_B_ACCOUNT_ID = 2;
 const USER_B_EMAIL = 'user_b@test.com';
 const USER_C_ACCOUNT_ID = 3;
 const USER_C_EMAIL = 'user_c@test.com';
-const MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss.SSS';
 let reportAction3CreatedDate;
 let reportAction9CreatedDate;
 
@@ -142,9 +142,9 @@ function signInAndGetAppWithUnreadChat() {
             return waitForBatchedUpdates();
         })
         .then(() => {
-            const MOMENT_TEN_MINUTES_AGO = moment().subtract(10, 'minutes');
-            reportAction3CreatedDate = MOMENT_TEN_MINUTES_AGO.clone().add(30, 'seconds').format(MOMENT_FORMAT);
-            reportAction9CreatedDate = MOMENT_TEN_MINUTES_AGO.clone().add(90, 'seconds').format(MOMENT_FORMAT);
+            const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+            reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
+            reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
 
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
@@ -161,7 +161,7 @@ function signInAndGetAppWithUnreadChat() {
                 [createdReportActionID]: {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     automatic: false,
-                    created: MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT),
+                    created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
                     reportActionID: createdReportActionID,
                     message: [
                         {
@@ -176,14 +176,14 @@ function signInAndGetAppWithUnreadChat() {
                         },
                     ],
                 },
-                1: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '1'),
-                2: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '2'),
+                1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1'),
+                2: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2'),
                 3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
-                4: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '4'),
-                5: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '5'),
-                6: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '6'),
-                7: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '7'),
-                8: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '8'),
+                4: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 40), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '4'),
+                5: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 50), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '5'),
+                6: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 60), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '6'),
+                7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7'),
+                8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8'),
                 9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
             });
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -287,10 +287,10 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
-                // We set the created moment 5 seconds in the past to ensure that time has passed when we open the report
+                // We set the created date 5 seconds in the past to ensure that time has passed when we open the report
                 const NEW_REPORT_ID = '2';
-                const NEW_REPORT_CREATED_MOMENT = moment().subtract(5, 'seconds');
-                const NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT = NEW_REPORT_CREATED_MOMENT.add(1, 'seconds');
+                const NEW_REPORT_CREATED_DATE = subSeconds(new Date(), 5);
+                const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
 
                 const createdReportActionID = NumberUtils.rand64();
                 const commentReportActionID = NumberUtils.rand64();
@@ -306,7 +306,7 @@ describe('Unread Indicators', () => {
                                     reportID: NEW_REPORT_ID,
                                     reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                                     lastReadTime: '',
-                                    lastVisibleActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
+                                    lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
                                     lastMessageText: 'Comment 1',
                                     participantAccountIDs: [USER_C_ACCOUNT_ID],
                                 },
@@ -318,14 +318,14 @@ describe('Unread Indicators', () => {
                                     [createdReportActionID]: {
                                         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                                         automatic: false,
-                                        created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
+                                        created: format(NEW_REPORT_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
                                         reportActionID: createdReportActionID,
                                     },
                                     [commentReportActionID]: {
                                         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                                         actorAccountID: USER_C_ACCOUNT_ID,
                                         person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
-                                        created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
+                                        created: format(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
                                         message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
                                         reportActionID: commentReportActionID,
                                     },

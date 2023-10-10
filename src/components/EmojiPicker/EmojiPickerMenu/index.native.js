@@ -168,6 +168,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                     accessibilityLabel={translate('common.search')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     onChangeText={filterEmojis}
+                    blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
             {!isFiltered && (

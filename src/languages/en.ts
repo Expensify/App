@@ -68,11 +68,14 @@ import type {
     ManagerApprovedParams,
     SetTheRequestParams,
     UpdatedTheRequestParams,
+    SetTheDistanceParams,
+    UpdatedTheDistanceParams,
     RemovedTheRequestParams,
     FormattedMaxLengthParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
     TranslationBase,
+    WalletProgramParams,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
@@ -105,6 +108,7 @@ export default {
         resend: 'Resend',
         save: 'Save',
         saveChanges: 'Save changes',
+        submit: 'Submit',
         rotate: 'Rotate',
         zoom: 'Zoom',
         password: 'Password',
@@ -175,6 +179,7 @@ export default {
         notifications: 'Notifications',
         na: 'N/A',
         noResultsFound: 'No results found',
+        recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
         todayAt: 'Today at',
@@ -258,6 +263,14 @@ export default {
         all: 'All',
         tbd: 'TBD',
     },
+    location: {
+        useCurrent: 'Use current location',
+        notFound: 'We were unable to find your location, please try again or enter an address manually.',
+        permissionDenied: 'It looks like you have denied permission to your location.',
+        please: 'Please',
+        allowPermission: 'allow location permission in settings',
+        tryAgain: 'and then try again.',
+    },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
     },
@@ -339,6 +352,8 @@ export default {
     phoneCountryCode: '1',
     welcomeText: {
         getStarted: 'Get started below.',
+        anotherLoginPageIsOpen: 'Another login page is open.',
+        anotherLoginPageIsOpenExplanation: "You've opened the login page in a separate tab, please login from that specific tab.",
         welcomeBack: 'Welcome back!',
         welcome: 'Welcome!',
         phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
@@ -480,8 +495,7 @@ export default {
         dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
         dragReceiptAfterEmail: ' or choose a file to upload below.',
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
-        chooseFile: 'Choose File',
-        givePermission: 'Give permission',
+        chooseFile: 'Choose file',
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         cameraErrorTitle: 'Camera Error',
@@ -539,9 +553,12 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         changedTheRequest: 'changed the request',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `set the ${valueName} to ${newValueToDisplay}`,
+        setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) => `set the distance to ${newDistanceToDisplay}, which set the amount to ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `removed the ${valueName} (previously ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
             `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
+        updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
+            `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
@@ -816,6 +833,14 @@ export default {
         availableSpend: 'Remaining spending power',
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
+        cardDetails: {
+            cardNumber: 'Virtual card number',
+            expiration: 'Expiration',
+            cvv: 'CVV',
+            address: 'Address',
+            revealDetails: 'Reveal details',
+            copyCardNumber: 'Copy card number',
+        },
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -909,7 +934,7 @@ export default {
         phrase2: 'Terms of Service',
         phrase3: 'and',
         phrase4: 'Privacy',
-        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
+        phrase5: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its`,
         phrase6: 'licenses',
     },
     validateCodeForm: {
@@ -1170,7 +1195,7 @@ export default {
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'The Expensify Wallet is issued by The Bancorp Bank.',
+            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `The Expensify Wallet is issued by ${walletProgram}.`,
             perPurchase: 'Per purchase',
             atmWithdrawal: 'ATM withdrawal',
             cashReload: 'Cash reload',
@@ -1212,10 +1237,10 @@ export default {
                 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
             fdicInsuranceBancorp:
                 'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
-                'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up ' +
-                'to $250,000 by the FDIC in the event The Bancorp Bank fails. See',
+                `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
+                `to $250,000 by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails. See`,
             fdicInsuranceBancorp2: 'for details.',
-            contactExpensifyPayments: 'Contact Expensify Payments by calling +1 833-400-0904, by email at',
+            contactExpensifyPayments: `Contact ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} by calling +1 833-400-0904, by email at`,
             contactExpensifyPayments2: 'or sign in at',
             generalInformation: 'For general information about prepaid accounts, visit',
             generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial Protection Bureau at 1-855-411-2372 or visit',
@@ -1767,6 +1792,11 @@ export default {
             tryDifferentEmail: 'Please try a different email',
         },
     },
+    cardTransactions: {
+        notActivated: 'Not activated',
+        outOfPocketSpend: 'Out-of-pocket spend',
+        companySpend: 'Company spend',
+    },
     distance: {
         addStop: 'Add stop',
         deleteWaypoint: 'Delete waypoint',
@@ -1783,7 +1813,10 @@ export default {
             onlineSubtitle: 'One moment while we set up the map',
         },
         errors: {
-            selectSuggestedAddress: 'Please select a suggested address',
+            selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
     },
 } satisfies TranslationBase;
