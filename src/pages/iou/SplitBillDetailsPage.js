@@ -104,7 +104,10 @@ function SplitBillDetailsPage(props) {
         category: splitCategory,
     } = isEdittingSplitBill && draftSplitTransaction ? ReportUtils.getTransactionDetails(draftSplitTransaction) : ReportUtils.getTransactionDetails(transaction);
 
-    const onConfirm = useCallback(() => IOU.completeSplitBill(props.report.reportID, reportAction, draftSplitTransaction), [props.report.reportID, reportAction, draftSplitTransaction]);
+    const onConfirm = useCallback(
+        () => IOU.completeSplitBill(props.report.reportID, reportAction, draftSplitTransaction, props.session.accountID, props.session.email),
+        [props.report.reportID, reportAction, draftSplitTransaction, props.session.accountID, props.session.email],
+    );
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
