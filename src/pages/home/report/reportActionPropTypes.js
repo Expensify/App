@@ -23,9 +23,6 @@ export default {
         IOUTransactionID: PropTypes.string,
     }),
 
-    /** Whether we have received a response back from the server */
-    isLoading: PropTypes.bool,
-
     /** Error message that's come back from the server. */
     error: PropTypes.string,
 
