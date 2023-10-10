@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import moment from 'moment';
+import {getUnixTime} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Emoji from '../../assets/emojis';
@@ -206,7 +206,7 @@ describe('EmojiTest', () => {
 
             return waitForBatchedUpdates().then(() => {
                 // When add a new emoji
-                const currentTime = moment().unix();
+                const currentTime = getUnixTime(new Date());
                 const smileEmoji = {code: '😄', name: 'smile'};
                 const newEmoji = [smileEmoji];
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
@@ -254,7 +254,7 @@ describe('EmojiTest', () => {
 
             return waitForBatchedUpdates().then(() => {
                 // When add an emoji that exists in the list
-                const currentTime = moment().unix();
+                const currentTime = getUnixTime(new Date());
                 const newEmoji = [smileEmoji];
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
@@ -296,7 +296,7 @@ describe('EmojiTest', () => {
 
             return waitForBatchedUpdates().then(() => {
                 // When add multiple emojis that either exist or not exist in the list
-                const currentTime = moment().unix();
+                const currentTime = getUnixTime(new Date());
                 const newEmoji = [smileEmoji, zzzEmoji, impEmoji];
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
@@ -467,7 +467,7 @@ describe('EmojiTest', () => {
 
             return waitForBatchedUpdates().then(() => {
                 // When add new emojis
-                const currentTime = moment().unix();
+                const currentTime = getUnixTime(new Date());
                 const newEmoji = [bookEmoji, smileEmoji, zzzEmoji, impEmoji, smileEmoji];
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
