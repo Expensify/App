@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import moment from 'moment';
 import PropTypes from 'prop-types';
+import _ from "lodash"
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
@@ -51,15 +52,19 @@ function NewDatePicker(props) {
 
 
   useEffect(() => {
-    if (date === props.value) {
+    if (date === props.value || _.isUndefined(props.value)) {
       return;
     }
     setDate(props.value)
   }, [date, props.value]);
 
   useEffect(() => {
-    props.onTouched();
-    props.onInputChange(date);
+    if (_.isFunction(props.onTouched)) {
+      props.onTouched();
+    }
+    if (_.isFunction(props.onInputChange)) {
+      props.onInputChange(date);
+    }
     // To keep behavior from class component state update callback, we want to run effect only when the date is changed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date])
@@ -75,12 +80,12 @@ function NewDatePicker(props) {
           label={props.label}
           accessibilityLabel={props.label}
           accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-          value={props.value || ''}
+          value={props.value || date || ''}
           placeholder={props.placeholder || props.translate('common.dateFormat')}
           errorText={props.errorText}
           containerStyles={props.containerStyles}
-          textInputContainerStyles={styles.borderColorFocus}
-          inputStyle={styles.pointerEventsNone}
+          textInputContainerStyles={[styles.borderColorFocus]}
+          inputStyle={[styles.pointerEventsNone]}
           disabled={props.disabled}
           editable={false}
         />
