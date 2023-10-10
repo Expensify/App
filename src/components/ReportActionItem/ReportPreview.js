@@ -179,7 +179,6 @@ function ReportPreview(props) {
             onClose={() => IOU.cleanUpFailedMoneyRequest(props.iouReport.reportID, props.action)}
             pendingAction={props.action.pendingAction}
             errors={lodashGet(props.iouReport, 'errorFields.createChat')}
-            needsOffscreenAlphaCompositing={ReportActionUtils.isMoneyRequestAction(props.action)}
             shouldDisableStrikeThrough
         >
             <View style={[styles.chatItemMessage, ...props.containerStyles]}>
