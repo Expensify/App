@@ -441,7 +441,7 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
+        usePlusButton: '\n\nYou can also use the + button to send money, request money, or assign a task!',
     },
     reportAction: {
         asCopilot: 'as copilot for',
