@@ -127,22 +127,40 @@ function getMakeDefaultPaymentOnyxData(
     return onyxData;
 }
 
+type MakeDefaultPaymentMethodParams = {
+    bankAccountID: number,
+    fundID: number
+}
+
 /**
  * Sets the default bank account or debit card for an Expensify Wallet
  *
  */
 function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previousPaymentMethod: PaymentMethod, currentPaymentMethod: PaymentMethod) {
+    const parameters: MakeDefaultPaymentMethodParams = {
+        bankAccountID,
+        fundID
+    }
+    
     API.write(
         'MakeDefaultPaymentMethod',
-        {
-            bankAccountID,
-            fundID,
-        },
+        parameters,
         {
             optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, true),
             failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false),
         },
     );
+}
+
+type AddPaymentCardParams = {
+    cardNumber: string,
+    cardYear: string,
+    cardMonth: string,
+    cardCVV: string,
+    addressName: string,
+    addressZip: string,
+    currency: ValueOf<typeof CONST.CURRENCY>,
+    isP2PDebitCard: boolean
 }
 
 /**
@@ -153,18 +171,20 @@ function addPaymentCard(params: PaymentCardParams) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
+    const parameters: AddPaymentCardParams = {
+        cardNumber: params.cardNumber,
+        cardYear,
+        cardMonth,
+        cardCVV: params.securityCode,
+        addressName: params.nameOnCard,
+        addressZip: params.addressZipCode,
+        currency: CONST.CURRENCY.USD,
+        isP2PDebitCard: true,
+    }
+
     API.write(
         'AddPaymentCard',
-        {
-            cardNumber: params.cardNumber,
-            cardYear,
-            cardMonth,
-            cardCVV: params.securityCode,
-            addressName: params.nameOnCard,
-            addressZip: params.addressZipCode,
-            currency: CONST.CURRENCY.USD,
-            isP2PDebitCard: true,
-        },
+        parameters,
         {
             optimisticData: [
                 {
@@ -202,13 +222,15 @@ function clearDebitCardFormErrorAndSubmit() {
     });
 }
 
+type TransferWalletBalanceParameters = Partial<Record<ValueOf<typeof CONST.PAYMENT_METHOD_ID_KEYS>, number | undefined>>
+
 /**
  * Call the API to transfer wallet balance.
  *
  */
 function transferWalletBalance(paymentMethod: PaymentMethod) {
     const paymentMethodIDKey = paymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
-    const parameters = {
+    const parameters: TransferWalletBalanceParameters = {
         [paymentMethodIDKey]: paymentMethod.methodID,
     };
 
@@ -323,12 +345,18 @@ function clearWalletTermsError() {
     Onyx.merge(ONYXKEYS.WALLET_TERMS, {errors: null});
 }
 
+type DeletePaymentCardParams = {
+    fundID: number
+}
+
 function deletePaymentCard(fundID: number) {
+    const parameters: DeletePaymentCardParams = {
+        fundID,
+    }
+
     API.write(
         'DeletePaymentCard',
-        {
-            fundID,
-        },
+        parameters,
         {
             optimisticData: [
                 {
