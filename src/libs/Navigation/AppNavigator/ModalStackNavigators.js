@@ -142,6 +142,7 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     Settings_Lounge_Access: () => require('../../../pages/settings/Profile/LoungeAccessPage').default,
     Settings_Wallet: () => require('../../../pages/settings/Wallet/WalletPage').default,
     Settings_Wallet_DomainCards: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default,
+    Settings_Wallet_Card_Activate: () => require('../../../pages/settings/Wallet/ActivatePhysicalCardPage').default,
     Settings_Wallet_Transfer_Balance: () => require('../../../pages/settings/Wallet/TransferBalancePage').default,
     Settings_Wallet_Choose_Transfer_Account: () => require('../../../pages/settings/Wallet/ChooseTransferAccountPage').default,
     Settings_Wallet_EnablePayments: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,

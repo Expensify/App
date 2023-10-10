@@ -92,9 +92,11 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup Git for OSBotify
-        uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        uses: ./.github/actions/composite/setupGitForOSBotify
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
       - name: Update staging branch from main
         run: |

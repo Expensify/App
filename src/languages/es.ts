@@ -98,6 +98,7 @@ export default {
         resend: 'Reenviar',
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
+        submit: 'Enviar',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -252,6 +253,14 @@ export default {
         all: 'Todo',
         tbd: 'Por determinar',
     },
+    location: {
+        useCurrent: 'Usar ubicación actual',
+        notFound: 'No pudimos encontrar tu ubicación, inténtalo de nuevo o introduce una dirección manualmente.',
+        permissionDenied: 'Parece que has denegado el permiso a tu ubicación.',
+        please: 'Por favor,',
+        allowPermission: 'habilita el permiso de ubicación en la configuración',
+        tryAgain: 'e inténtalo de nuevo.',
+    },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
     },
@@ -334,6 +343,8 @@ export default {
     phoneCountryCode: '34',
     welcomeText: {
         getStarted: 'Comience a continuación.',
+        anotherLoginPageIsOpen: 'Otra página de inicio de sesión está abierta.',
+        anotherLoginPageIsOpenExplanation: 'Ha abierto la página de inicio de sesión en una pestaña separada, inicie sesión desde esa pestaña específica.',
         welcomeBack: '¡Bienvenido de nuevo!',
         welcome: '¡Bienvenido!',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
@@ -422,7 +433,7 @@ export default {
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para pedir dinero o asignar una tarea!',
+        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar dinero, pedir dinero, o asignar una tarea!',
     },
     reportAction: {
         asCopilot: 'como copiloto de',
@@ -827,6 +838,14 @@ export default {
             copyCardNumber: 'Copiar número de la tarjeta',
         },
     },
+    activateCardPage: {
+        activateCard: 'Activar tarjeta',
+        pleaseEnterLastFour: 'Introduce los cuatro últimos dígitos de la tarjeta.',
+        activatePhysicalCard: 'Activar tarjeta física',
+        error: {
+            thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
+        },
+    },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,
         instant: 'Instante',
@@ -874,7 +893,6 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Mensaje de bienvenida',
-        welcomeMessageOptional: 'Mensaje de bienvenida (opcional)',
         explainerText: 'Configura un mensaje de bienvenida privado y personalizado que se enviará cuando los usuarios se unan a esta sala de chat.',
     },
     languagePage: {
@@ -983,7 +1001,7 @@ export default {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
-            hasInvalidCharacter: 'El nombre sólo puede incluir letras.',
+            hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos.',
         },
     },
     resendValidationForm: {
@@ -2266,6 +2284,11 @@ export default {
             tryDifferentEmail: 'Por favor intenta con un e-mail diferente',
         },
     },
+    cardTransactions: {
+        notActivated: 'No activado',
+        outOfPocketSpend: 'Gastos por cuenta propia',
+        companySpend: 'Gastos de empresa',
+    },
     distance: {
         addStop: 'Agregar parada',
         deleteWaypoint: 'Eliminar punto de ruta',
@@ -2282,7 +2305,10 @@ export default {
             onlineSubtitle: 'Un momento mientras configuramos el mapa',
         },
         errors: {
-            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
+            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
     },
 } satisfies EnglishTranslation;
