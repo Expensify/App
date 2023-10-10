@@ -9,15 +9,13 @@ type State = {
         pan: string;
         expiration: string;
         cvv: string;
-        privatePersonalDetails: {
-            address: {
-                street: string;
-                street2: string;
-                city: string;
-                state: string;
-                zip: string;
-                country: string;
-            };
+        address: {
+            street: string;
+            street2: string;
+            city: string;
+            state: string;
+            zip: string;
+            country: string;
         };
     };
     isLoading: boolean;
@@ -31,15 +29,13 @@ const initialState: State = {
         pan: '',
         expiration: '',
         cvv: '',
-        privatePersonalDetails: {
-            address: {
-                street: '',
-                street2: '',
-                city: '',
-                state: '',
-                zip: '',
-                country: '',
-            },
+        address: {
+            street: '',
+            street2: '',
+            city: '',
+            state: '',
+            zip: '',
+            country: '',
         },
     },
     isLoading: false,

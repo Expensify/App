@@ -104,7 +104,7 @@ function ExpensifyCardPage({
                                         pan={details.pan}
                                         expiration={details.expiration}
                                         cvv={details.cvv}
-                                        privatePersonalDetails={details.privatePersonalDetails}
+                                        privatePersonalDetails={{address: details.address}}
                                     />
                                 ) : (
                                     <MenuItemWithTopDescription
