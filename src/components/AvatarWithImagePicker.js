@@ -52,9 +52,6 @@ const propTypes = {
         left: PropTypes.number,
     }).isRequired,
 
-    /** Flag to see if image is being uploaded */
-    isUploading: PropTypes.bool,
-
     /** Size of Indicator */
     size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
 
@@ -99,7 +96,6 @@ const defaultProps = {
     style: [],
     DefaultAvatar: () => {},
     isUsingDefaultAvatar: false,
-    isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
     fallbackIcon: Expensicons.FallbackAvatar,
     type: CONST.ICON_TYPE_AVATAR,
@@ -148,9 +144,19 @@ function AvatarWithImagePicker({
     });
     const anchorRef = useRef();
     const {translate} = useLocalize();
+
+     /**
+     * @param {String} error
+     * @param {Object} phraseParam
+     */
+     const setError = (error, phraseParam) => {
+        setErrorData({
+           validationError: error,
+           phraseParam,
+        });
+    };
     
     useEffect(() => {
-        // If the component is still focused, don't proceed further.
         if (isFocused) {
             return;
         }
@@ -158,17 +164,6 @@ function AvatarWithImagePicker({
         // Reset the error if the component is no longer focused.
         setError(null, {});
     }, [isFocused]);
-
-    /**
-     * @param {String} error
-     * @param {Object} phraseParam
-     */
-    const setError = (error, phraseParam) => {
-        setErrorData({
-            validationError: error,
-            phraseParam,
-        });
-    };
 
     /**
      * Check if the attachment extension is allowed.
@@ -195,16 +190,14 @@ function AvatarWithImagePicker({
      * @param {Object} image
      * @returns {Promise}
      */
-    const isValidResolution = (image) => {
-        return getImageResolution(image)
-            .then(({ height, width }) => 
-                height >= CONST.AVATAR_MIN_HEIGHT_PX &&
-                width >= CONST.AVATAR_MIN_WIDTH_PX &&
-                height <= CONST.AVATAR_MAX_HEIGHT_PX &&
-                width <= CONST.AVATAR_MAX_WIDTH_PX
-            );
-    };
-    
+    const isValidResolution = (image) => 
+    getImageResolution(image)
+        .then(({ height, width }) => 
+            height >= CONST.AVATAR_MIN_HEIGHT_PX &&
+            width >= CONST.AVATAR_MIN_WIDTH_PX &&
+            height <= CONST.AVATAR_MAX_HEIGHT_PX &&
+            width <= CONST.AVATAR_MAX_WIDTH_PX
+        );
 
     /**
      * Validates if an image has a valid resolution and opens an avatar crop modal
