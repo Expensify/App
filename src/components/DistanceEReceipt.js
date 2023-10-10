@@ -43,7 +43,7 @@ function DistanceEReceipt({transaction}) {
                 .keys()
                 .sort((keyA, keyB) => TransactionUtils.getWaypointIndex(keyA) - TransactionUtils.getWaypointIndex(keyB))
                 .map((key) => ({[key]: waypoints[key]}))
-                .reduce((result, obj) => _.assign(result, obj), {})
+                .reduce((result, obj) => (obj ? _.assign(result, obj) : result), {})
                 .value(),
         [waypoints],
     );
