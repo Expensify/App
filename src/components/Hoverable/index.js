@@ -97,14 +97,18 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, children, 
         return () => scrollingListener.remove();
     }, [shouldHandleScroll]);
 
-    /**
-     * Checks the hover state of a component and updates it based on the event target.
-     * This is necessary to handle cases where the hover state might get stuck due to an unreliable mouseleave trigger,
-     * such as when an element is removed before the mouseleave event is triggered.
-     * @param {Event} e - The hover event object.
-     */
-    const unsetHoveredIfOutside = useCallback(
-        (e) => {
+    useEffect(() => {
+        if (!DeviceCapabilities.hasHoverSupport()) {
+            return;
+        }
+
+        /**
+         * Checks the hover state of a component and updates it based on the event target.
+         * This is necessary to handle cases where the hover state might get stuck due to an unreliable mouseleave trigger,
+         * such as when an element is removed before the mouseleave event is triggered.
+         * @param {Event} e - The hover event object.
+         */
+        const unsetHoveredIfOutside = (e) => {
             if (!ref.current || !isHovered) {
                 return;
             }
@@ -114,19 +118,12 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, children, 
             }
 
             setIsHovered(false);
-        },
-        [isHovered],
-    );
-
-    useEffect(() => {
-        if (!DeviceCapabilities.hasHoverSupport()) {
-            return;
-        }
+        };
 
         document.addEventListener('mouseover', unsetHoveredIfOutside);
 
         return () => document.removeEventListener('mouseover', unsetHoveredIfOutside);
-    }, [unsetHoveredIfOutside]);
+    }, [isHovered]);
 
     useEffect(() => {
         if (!disabled || !isHovered) {
