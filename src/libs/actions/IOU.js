@@ -1537,9 +1537,23 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
         },
     ];
 
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${updatedTransaction.transactionID}`,
+            value: {pendingAction: null},
+        },
+    ];
 
-    const failureData = [];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${updatedTransaction.transactionID}`,
+            value: {
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+            },
+        },
+    ];
 
     const splitParticipants = updatedTransaction.comment.splits;
     const {modifiedAmount: amount, modifiedCurrency: currency} = updatedTransaction;
