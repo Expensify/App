@@ -2,7 +2,9 @@
  * We use the standard pusher-js module to support pusher on web environments.
  * @see: https://github.com/pusher/pusher-js
  */
-import PusherWeb from 'pusher-js/with-encryption';
-import Pusher from './types';
+import PusherImplementation from 'pusher-js/with-encryption';
+import type Pusher from './types';
 
-export default PusherWeb satisfies Pusher;
+const PusherWeb: Pusher = PusherImplementation;
+
+export default PusherWeb;
