@@ -295,9 +295,6 @@ export default compose(
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         betas: {
             key: ONYXKEYS.BETAS,
         },
