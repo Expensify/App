@@ -505,6 +505,7 @@ export default {
         approved: 'Aprobado',
         cash: 'Efectivo',
         card: 'Tarjeta',
+        original: 'Original',
         split: 'Dividir',
         addToSplit: 'Añadir para dividir',
         splitBill: 'Dividir factura',

@@ -20,6 +20,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as PolicyUtils from '../../libs/PolicyUtils';
+import * as CardUtils from '../../libs/CardUtils';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
@@ -90,11 +91,16 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
         billable: transactionBillable,
         category: transactionCategory,
         tag: transactionTag,
+        originalAmount: transactionOriginalAmount,
+        originalCurrency: transactionOriginalCurrency,
+        cardID: transactionCardID,
     } = ReportUtils.getTransactionDetails(transaction);
     const isEmptyMerchant =
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const isExpensifyCardTransaction = true; //TransactionUtils.isExpensifyCardTransaction(transaction);
+    const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
+    const isExpensifyCardTransaction = true; // TransactionUtils.isExpensifyCardTransaction(transaction);
+    const cardProgramName = isExpensifyCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction) && !isExpensifyCardTransaction;
@@ -110,11 +116,24 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const shouldShowTag = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
     const shouldShowBillable = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
-    let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
-    if (isSettled) {
-        description += ` • ${translate('iou.settledExpensify')}`;
-    } else if (report.isWaitingOnBankAccount) {
-        description += ` • ${translate('iou.pending')}`;
+
+
+    let amountDescription = `${translate('iou.amount')}`;
+
+    if(isExpensifyCardTransaction) {
+        if(TransactionUtils.isPending(transaction)) {
+            amountDescription += ` • ${translate('iou.pending')}`;
+        }
+        if (formattedOriginalAmount) {
+            amountDescription += ` • ${translate('iou.original')} ${formattedOriginalAmount}`;
+        }
+    } else {
+        amountDescription += ` • ${translate('iou.cash')}`;
+        if (isSettled) {
+            amountDescription += ` • ${translate('iou.settledExpensify')}`;
+        } else if (report.isWaitingOnBankAccount) {
+            amountDescription += ` • ${translate('iou.pending')}`;
+        }
     }
 
     // A temporary solution to hide the transaction detail
@@ -158,7 +177,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
                     shouldShowTitleIcon={isSettled}
                     titleIcon={Expensicons.Checkmark}
-                    description={description}
+                    description={amountDescription}
                     titleStyle={styles.newKansasLarge}
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
@@ -242,10 +261,10 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                 </OfflineWithFeedback>
             )}
             {isExpensifyCardTransaction ? (
-                <OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.cardID')}>
                     <MenuItemWithTopDescription
                         description={translate('iou.card')}
-                        title={'Card Program - Bank'}
+                        title={cardProgramName}
                         titleStyle={styles.flex1}
                         interactive={canEdit}
                     />

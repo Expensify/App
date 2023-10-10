@@ -29,7 +29,7 @@ function getMonthFromExpirationDateString(expirationDateString: string) {
  * @param cardID
  * @returns boolean
  */
-function isExpensifyCard(cardID: string) {
+function isExpensifyCard(cardID: number) {
     const card = allCards[cardID];
     if (!card) {
         return false;

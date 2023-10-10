@@ -218,6 +218,21 @@ function getCurrency(transaction: Transaction): string {
 }
 
 /**
+ * Return the original currency field from the transaction.
+ */
+function getOriginalCurrency(transaction: Transaction): string {
+    return transaction?.originalCurrency ?? '';
+}
+
+/**
+ * Return the original amount field from the transaction.
+ */
+function getOriginalAmount(transaction: Transaction): number {
+    const amount = transaction?.originalAmount ?? 0;
+    return Math.abs(amount);
+}
+
+/**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: Transaction): string {
@@ -243,6 +258,13 @@ function getWaypoints(transaction: Transaction): WaypointCollection | undefined 
  */
 function getCategory(transaction: Transaction): string {
     return transaction?.category ?? '';
+}
+
+/**
+ * Return the cardID from the transaction.
+ */
+function getCardID(transaction: Transaction): number {
+    return transaction?.cardID ?? 0;
 }
 
 /**
@@ -403,6 +425,9 @@ export {
     getDescription,
     getAmount,
     getCurrency,
+    getCardID,
+    getOriginalCurrency,
+    getOriginalAmount,
     getMerchant,
     getMCCGroup,
     getCreated,

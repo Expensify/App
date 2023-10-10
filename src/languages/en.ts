@@ -513,6 +513,7 @@ export default {
         approved: 'Approved',
         cash: 'Cash',
         card: 'Card',
+        original: 'Original',
         split: 'Split',
         addToSplit: 'Add to split',
         splitBill: 'Split bill',
