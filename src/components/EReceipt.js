@@ -69,7 +69,7 @@ function EReceipt({transaction, transactionID}) {
                             {amount}
                         </Text>
                     </View>
-                    <Text style={[styles.eReceiptMerchant, styles.breakAll, styles.textAlignCenter]}>{transactionMerchant}</Text>
+                    <Text style={[styles.eReceiptMerchant, styles.breakWord, styles.textAlignCenter]}>{transactionMerchant}</Text>
                 </View>
                 <View style={[styles.alignSelfStretch, styles.flexColumn, styles.mb8, styles.gap4]}>
                     <View style={[styles.flexColumn, styles.gap1]}>
