@@ -1285,7 +1285,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
             : ReportUtils.getChatByParticipants(participantAccountIDs);
     const splitChatReport = existingSplitChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
-    const isOwnPolicyExpenseChat = splitChatReport.isOwnPolicyExpenseChat ?? false;
+    const isOwnPolicyExpenseChat = splitChatReport.isOwnPolicyExpenseChat || false;
 
     const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCANREADY} = receipt;
     const receiptObject = {state, source};
