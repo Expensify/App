@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {withOnyx} from 'react-native-onyx';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -40,6 +41,7 @@ const defaultProps = {
     report: {},
 };
 
+const parser = new ExpensiMark();
 function TaskDescriptionPage(props) {
     const validate = useCallback(() => ({}), []);
 
@@ -103,7 +105,7 @@ function TaskDescriptionPage(props) {
                             name="description"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            defaultValue={(props.report && props.report.description) || ''}
+                            defaultValue={parser.htmlToMarkdown((props.report && parser.replace(props.report.description)) || '')}
                             ref={(el) => {
                                 if (!el) {
                                     return;
