@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import lodashHas from 'lodash/has';
 import lodashClone from 'lodash/clone';
+import {isEqual} from 'lodash';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
@@ -84,6 +85,12 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     // We're going to prevent saving those addresses in the recent waypoints though since they could be invalid addresses
     // However, in the backend once we verify the address, we will save the waypoint in the recent waypoints NVP
     if (!lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng')) {
+        return;
+    }
+
+    // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
+    // text from showing up in the address search suggestions
+    if (isEqual(waypoint?.address, CONST.YOUR_LOCATION_TEXT)) {
         return;
     }
     const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
