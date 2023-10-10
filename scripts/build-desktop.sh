@@ -14,7 +14,7 @@ else
 fi
 
 SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
-LOCAL_PACKAGES=$(npm bin)
+LOCAL_PACKAGES=$(npx)
 source "$SCRIPTS_DIR/shellUtils.sh";
 
 title "Bundling Desktop js Bundle Using Webpack"
