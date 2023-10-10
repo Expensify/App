@@ -67,7 +67,8 @@ const defaultProps = {
 
 function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-    const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+    const transactionID = reportAction.originalMessage.IOUTransactionID;
+    const transaction = props.allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
 
     // In case this is workspace split bill, we manually add the workspace as the second participant of the split bill
@@ -88,7 +89,7 @@ function SplitBillDetailsPage(props) {
     const isEdittingSplitBill =
         props.session.accountID === reportAction.actorAccountID && (isScanning || (TransactionUtils.hasReceipt(transaction) && transaction.receipt.state === CONST.IOU.RECEIPT_STATE.FAILED));
 
-    const draftSplitTransaction = props.draftSplitTransactions && props.draftSplitTransactions[`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transaction.transactionID}`];
+    const draftSplitTransaction = props.draftSplitTransactions && props.draftSplitTransactions[`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`];
 
     if (isEdittingSplitBill && !draftSplitTransaction) {
         IOU.setDraftSplitTransaction(transaction.transactionID);
@@ -152,6 +153,9 @@ export default compose(
     withLocalize,
     withReportAndReportActionOrNotFound,
     withOnyx({
+        allTransactions: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+        },
         draftSplitTransactions: {
             key: ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION,
         },
