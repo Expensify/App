@@ -1305,6 +1305,7 @@ export default {
         secureYourAccount: 'Asegura tu cuenta',
     },
     missingCategory: 'Categoría requerida',
+    categoryOutOfPolicy: 'Categoría fuera de workspace',
     missingTag: 'Etiqueta requerida',
     overLimit: 'Monto excede el límite',
     cashExpenseWithNoReceipt: 'Cash expense sin recibo',

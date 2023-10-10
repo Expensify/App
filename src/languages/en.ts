@@ -1286,6 +1286,7 @@ export default {
         secureYourAccount: 'Secure your account',
     },
     missingCategory: 'Missing Category',
+    categoryOutOfPolicy: 'Category out of policy',
     missingTag: 'Missing Tag',
     overLimit: 'Expense over limit',
     cashExpenseWithNoReceipt: 'Cash expense with no receipt',

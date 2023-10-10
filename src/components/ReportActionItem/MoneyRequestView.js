@@ -81,6 +81,7 @@ const defaultProps = {
 
 const violations = {
     missingCategory: 'category',
+    categoryOutOfPolicy: 'category',
     overLimit: 'amount',
     missingTag: 'amount',
     cashExpenseWithNoReceipt: 'amount',
@@ -195,7 +196,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                 />
-                {Boolean(getViolationForField(transactionViolation, 'amount')) && (
+                {Boolean(transactionViolation) && Boolean(getViolationForField(transactionViolation, 'amount')) && (
                     <View>
                         <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transactionViolation, 'amount')}</Text>
                     </View>
@@ -226,7 +227,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     subtitle={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                     subtitleTextStyle={styles.textLabelError}
                 />
-            {Boolean(getViolationForField(transactionViolation, 'date')) && (
+            {Boolean(transactionViolation) && Boolean(getViolationForField(transactionViolation, 'date')) && (
                 <View>
                     <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transactionViolation, 'date')}</Text>
                 </View>
@@ -284,7 +285,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     />
                 </OfflineWithFeedback>
             )}
-            {shouldShowCategory && Boolean(getViolationForField(transactionViolation, 'category')) && (
+            {shouldShowCategory && Boolean(transactionViolation) && Boolean(getViolationForField(transactionViolation, 'category')) && (
                 <View>
                 <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transactionViolation, 'category')}</Text>
                 </View>
