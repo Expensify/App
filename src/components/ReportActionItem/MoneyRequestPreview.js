@@ -164,6 +164,7 @@ function MoneyRequestPreview(props) {
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
+    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
     const isSettled = ReportUtils.isSettled(props.iouReport);
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
@@ -187,6 +188,17 @@ function MoneyRequestPreview(props) {
     };
 
     const getPreviewHeaderText = () => {
+        if(isExpensifyCardTransaction) {
+            let message = props.translate('iou.card');
+
+            if (TransactionUtils.isPending(props.transaction)) {
+                message += ` • ${props.translate('iou.pending')}`;
+            } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
+                message += ` • ${props.translate('common.done')}`;
+            }
+            return message;
+        }
+
         if (isDistanceRequest) {
             return props.translate('common.distance');
         }
