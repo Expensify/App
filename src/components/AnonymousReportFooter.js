@@ -6,7 +6,6 @@ import AvatarWithDisplayName from './AvatarWithDisplayName';
 import ExpensifyWordmark from './ExpensifyWordmark';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import reportPropTypes from '../pages/reportPropTypes';
-import CONST from '../CONST';
 import styles from '../styles/styles';
 import * as Session from '../libs/actions/Session';
 import participantPropTypes from './participantPropTypes';
