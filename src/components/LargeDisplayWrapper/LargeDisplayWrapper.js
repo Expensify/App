@@ -14,7 +14,7 @@ const propTypes = {
     /** Child elements */
     children: PropTypes.node,
 
-    /** If true, child components are replaced with a blocking "not found" view */
+    /** If true, child components are replaced with a blocking "placeholder view" view */
     shouldShow: PropTypes.bool,
 
     /** The key in the translations file to use for the title */
@@ -44,9 +44,7 @@ function LargeDisplayWrapper({titleKey, subtitleKey, linkKey, onLinkPress, child
 
     const {translate} = useLocalize();
 
-    // If `shouldShow` is a non-boolean value (no prop passed) default to `isSmallScreenWidth` else follow `shouldShow`
-    // Example: `shouldShow` = `undefined` or `null` `isSmallScreenWidth`  will take preference else we follow `shouldShow`
-    const shouldShowBlockingView = !_.isBoolean(shouldShow) ? isSmallScreenWidth : shouldShow;
+    const shouldShowBlockingView = _.isBoolean(shouldShow) ? shouldShow : isSmallScreenWidth;
 
     if (shouldShowBlockingView) {
         return (
