@@ -1,6 +1,8 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -18,14 +20,17 @@ import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
 import FormProvider from '../../../components/Form/FormProvider';
 import InputWrapper from '../../../components/Form/InputWrapper';
+import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
+    isLoadingApp: PropTypes.bool,
 };
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
+    isLoadingApp: true,
 };
 
 /**
@@ -75,44 +80,48 @@ function DisplayNamePage(props) {
                 title={props.translate('displayNamePage.headerTitle')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
-            <FormProvider
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
-                validate={validate}
-                onSubmit={updateDisplayName}
-                submitButtonText={props.translate('common.save')}
-                enabledWhenOffline
-                shouldValidateOnBlur
-                shouldValidateOnChange
-            >
-                <Text style={[styles.mb6]}>{props.translate('displayNamePage.isShownOnProfile')}</Text>
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID="firstName"
-                        name="fname"
-                        label={props.translate('common.firstName')}
-                        accessibilityLabel={props.translate('common.firstName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                        spellCheck={false}
-                    />
-                </View>
-                <View>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID="lastName"
-                        name="lname"
-                        label={props.translate('common.lastName')}
-                        accessibilityLabel={props.translate('common.lastName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                        spellCheck={false}
-                    />
-                </View>
-            </FormProvider>
+            {props.isLoadingApp ? (
+                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            ) : (
+                <FormProvider
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
+                    validate={validate}
+                    onSubmit={updateDisplayName}
+                    submitButtonText={props.translate('common.save')}
+                    enabledWhenOffline
+                    shouldValidateOnBlur
+                    shouldValidateOnChange
+                >
+                    <Text style={[styles.mb6]}>{props.translate('displayNamePage.isShownOnProfile')}</Text>
+                    <View style={styles.mb4}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID="firstName"
+                            name="fname"
+                            label={props.translate('common.firstName')}
+                            accessibilityLabel={props.translate('common.firstName')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
+                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                            spellCheck={false}
+                        />
+                    </View>
+                    <View>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID="lastName"
+                            name="lname"
+                            label={props.translate('common.lastName')}
+                            accessibilityLabel={props.translate('common.lastName')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
+                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                            spellCheck={false}
+                        />
+                    </View>
+                </FormProvider>
+            )}
         </ScreenWrapper>
     );
 }
@@ -121,4 +130,12 @@ DisplayNamePage.propTypes = propTypes;
 DisplayNamePage.defaultProps = defaultProps;
 DisplayNamePage.displayName = 'DisplayNamePage';
 
-export default compose(withLocalize, withCurrentUserPersonalDetails)(DisplayNamePage);
+export default compose(
+    withLocalize,
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
+        },
+    }),
+)(DisplayNamePage);

@@ -186,13 +186,19 @@ type ParentNavigationSummaryParams = {rootReportName: string; workspaceName: str
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
+type SetTheDistanceParams = {newDistanceToDisplay: string; newAmountToDisplay: string};
+
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
 
+type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisplay: string; newAmountToDisplay: string; oldAmountToDisplay: string};
+
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
 type TagSelectionParams = {tagName: string};
+
+type WalletProgramParams = {walletProgram: string};
 
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -307,4 +313,7 @@ export type {
     RemovedTheRequestParams,
     FormattedMaxLengthParams,
     TagSelectionParams,
+    SetTheDistanceParams,
+    UpdatedTheDistanceParams,
+    WalletProgramParams,
 };
