@@ -29,7 +29,6 @@ import reportPropTypes from '../../pages/reportPropTypes';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import * as ReportActionUtils from '../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
-import * as ReportActions from '../../libs/actions/ReportActions';
 import ReportActionItemImages from './ReportActionItemImages';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 
@@ -202,7 +201,7 @@ function ReportPreview(props) {
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                     <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
                                 </View>
-                                {hasErrors && !_.isEmpty(lodashGet(props.iouReport, 'errorFields.createChat')) && (
+                                {hasErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={themeColors.danger}

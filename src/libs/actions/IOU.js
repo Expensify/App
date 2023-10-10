@@ -138,7 +138,7 @@ function buildOnyxDataForMoneyRequest(
     iouAction,
     optimisticPersonalDetailListAction,
     reportPreviewAction,
-    optimisticRecentlyUsedCategories,
+    optimisticPolicyRecentlyUsedCategories,
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
     isNewIOUReport,
@@ -190,11 +190,11 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
-    if (!_.isEmpty(optimisticRecentlyUsedCategories)) {
+    if (!_.isEmpty(optimisticPolicyRecentlyUsedCategories)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
-            value: optimisticRecentlyUsedCategories,
+            value: optimisticPolicyRecentlyUsedCategories,
         });
     }
 
@@ -280,7 +280,7 @@ function buildOnyxDataForMoneyRequest(
             },
         },
     ];
-    const previousPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID) || {};
+
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -298,22 +298,19 @@ function buildOnyxDataForMoneyRequest(
                     : {}),
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: {
-                ...(isNewIOUReport
-                    ? {
+        ...(isNewIOUReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                      value: {
                           errorFields: {
                               createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                           },
-                      }
-                    : {}),
-
-                // If the money request fails to create, reset the report total
-                ...(ReportUtils.isPolicyExpenseChat(chatReport) ? {total: iouReport.total - transaction.amount} : {}),
-            },
-        },
+                      },
+                  },
+              ]
+            : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -336,7 +333,6 @@ function buildOnyxDataForMoneyRequest(
                       }
                     : {
                           [reportPreviewAction.reportActionID]: {
-                              previousCreated: previousPreviewAction.created || '',
                               created: reportPreviewAction.created,
                           },
                       }),

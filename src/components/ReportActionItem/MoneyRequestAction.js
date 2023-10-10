@@ -163,9 +163,6 @@ export default compose(
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             canEvict: false,
         },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
     }),
     withNetwork(),
 )(MoneyRequestAction);
