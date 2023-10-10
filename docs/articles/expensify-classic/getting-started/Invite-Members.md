@@ -14,7 +14,7 @@ Navigate to **Settings > Workspace > Group > *Workspace Name* > People** - then 
 
 Indicate whether you want them to be an Employee, Admin, or Auditor on the Workspace.
 
-If you are utilizing the Advanced Approval feature, you can specify who members should submit their expense reports to and who an approver should send approved reports to for the next step in the approval process. If someone is the final approver, you can leave this field blank.
+If you are utilizing the Advanced Approval feature and the invitee is an approver, you can use the "Approves to" field to specify to whom they approve and forward reports for additional approval.
 
 ## Inviting Members to a Workspace in Bulk 
 
