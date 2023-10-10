@@ -1287,13 +1287,8 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     const splitChatReport = existingSplitChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     const isOwnPolicyExpenseChat = splitChatReport.isOwnPolicyExpenseChat;
 
-    const receiptObject = {};
-    let filename;
-    if (receipt && receipt.source) {
-        receiptObject.source = receipt.source;
-        receiptObject.state = receipt.state || CONST.IOU.RECEIPT_STATE.SCANREADY;
-        filename = receipt.name;
-    }
+    const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCANREADY} = receipt || {};
+    const receiptObject = {state, source};
 
     // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
     const splitTransaction = TransactionUtils.buildOptimisticTransaction(0, CONST.CURRENCY.USD, CONST.REPORT.SPLIT_REPORTID, comment, '', '', '', '', receiptObject, filename);
