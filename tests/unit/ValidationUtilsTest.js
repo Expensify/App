@@ -264,7 +264,6 @@ describe('ValidationUtils', () => {
 
     });
 
-
     describe('isValidWebsite', () => {
         test('Valid URLs with https protocol', () => {
             expect(ValidationUtils.isValidWebsite('https://www.expensify.com')).toBe(true);
