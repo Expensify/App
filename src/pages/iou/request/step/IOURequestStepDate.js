@@ -14,6 +14,7 @@ import transactionPropTypes from '../../../../components/transactionPropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import * as IOUUtils from '../../../../libs/IOUUtils';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import moment from 'moment';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -68,7 +69,8 @@ function IOURequestStepDate({
                     inputID="moneyRequestCreated"
                     label={translate('common.date')}
                     defaultValue={transaction.created}
-                    maxDate={new Date()}
+                    maxDate={moment().add(1, 'year').toDate()}
+                    minDate={moment().subtract(20, 'years').toDate()}
                 />
             </Form>
         </StepScreenWrapper>
