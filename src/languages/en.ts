@@ -1362,6 +1362,7 @@ export default {
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
             workspaceAvatar: 'Workspace avatar',
+            mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
