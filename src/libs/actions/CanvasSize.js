@@ -4,11 +4,11 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Browser from '../Browser';
 
 /**
- * Calculate the max area of canvas on this specific platform and save it in onyx. 
- We're limiting the maximum value on mobile web to prevent a crash related to rendering large canvas elements.
- More information at: https://github.com/jhildenbiddle/canvas-size/issues/13
+ * Calculate the max area of canvas on this specific platform and save it in onyx.
  */
 function retrieveMaxCanvasArea() {
+    // We're limiting the maximum value on mobile web to prevent a crash related to rendering large canvas elements.
+    // More information at: https://github.com/jhildenbiddle/canvas-size/issues/13
     canvasSize
         .maxArea({
             max: Browser.isMobile() ? 8192 : null,
