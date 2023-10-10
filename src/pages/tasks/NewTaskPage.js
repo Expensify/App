@@ -172,10 +172,10 @@ function NewTaskPage(props) {
                             />
                             <MenuItemWithTopDescription
                                 description={props.translate('task.description')}
-                                title={parser.htmlToMarkdown(parser.replace(description))}
+                                title={parser.replace(description)}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
                                 shouldShowRightIcon
-                                shouldParseTitle
+                                shouldRenderAsHTML
                                 numberOfLinesTitle={2}
                                 titleStyle={styles.flex1}
                             />

@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions from '../withWindowDimensions';
@@ -40,7 +41,7 @@ const propTypes = {
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
-
+const parser = new ExpensiMark();
 function TaskView(props) {
     useEffect(() => {
         Task.setTaskReport({...props.report});
@@ -130,7 +131,7 @@ function TaskView(props) {
                     <MenuItemWithTopDescription
                         shouldParseTitle
                         description={props.translate('task.description')}
-                        title={props.report.description || ''}
+                        title={parser.replace(props.report.description || '')}
                         onPress={() => Navigation.navigate(ROUTES.TASK_DESCRIPTION.getRoute(props.report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
@@ -138,6 +139,7 @@ function TaskView(props) {
                         shouldGreyOutWhenDisabled={false}
                         numberOfLinesTitle={0}
                         interactive={!isDisableInteractive}
+                        shouldRenderAsHTML
                     />
                 </OfflineWithFeedback>
                 {props.report.managerID ? (
