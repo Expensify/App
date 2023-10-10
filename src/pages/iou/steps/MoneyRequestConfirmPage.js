@@ -85,17 +85,6 @@ function MoneyRequestConfirmPage(props) {
     }, []);
 
     useEffect(() => {
-        if (props.iou.receiptPath && props.iou.receiptSource) {
-            FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
-                if (!file) {
-                    Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current));
-                } else {
-                    const receipt = file;
-                    receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
-                    setReceiptFile(receipt);
-                }
-            });
-        }
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
@@ -104,13 +93,29 @@ function MoneyRequestConfirmPage(props) {
         if (typeof props.iou.billable !== 'boolean') {
             IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
         }
-    }, [isOffline, participants, props.iou.billable, props.iou.receiptPath, props.iou.receiptSource, props.policy, isManualRequestDM]);
+    }, [isOffline, participants, props.iou.billable, props.policy]);
+
+    useEffect(() => {
+        if (!props.iou.receiptPath || !props.iou.receiptSource) {
+            return;
+        }
+        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
+            if (!file) {
+                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current));
+            } else {
+                const receipt = file;
+                receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+                setReceiptFile(receipt);
+            }
+        });
+    }, [props.iou.receiptPath, props.iou.receiptSource, isManualRequestDM]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (!isDistanceRequest && prevMoneyRequestId.current !== props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
             if (props.iou.id) {
+                console.log('navigate 2');
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), true);
             }
             return;
@@ -124,6 +129,7 @@ function MoneyRequestConfirmPage(props) {
         }
 
         if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath && !isDistanceRequest) || shouldReset) {
+            console.log('navigate 3');
             Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), true);
         }
 
