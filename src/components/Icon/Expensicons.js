@@ -76,6 +76,7 @@ import MagnifyingGlass from '../../../assets/images/magnifying-glass.svg';
 import Mail from '../../../assets/images/mail.svg';
 import Megaphone from '../../../assets/images/megaphone.svg';
 import Menu from '../../../assets/images/menu.svg';
+import Meter from '../../../assets/images/meter.svg';
 import MoneyBag from '../../../assets/images/money-bag.svg';
 import MoneyCircle from '../../../assets/images/money-circle.svg';
 import Monitor from '../../../assets/images/monitor.svg';
@@ -215,6 +216,7 @@ export {
     MagnifyingGlass,
     Mail,
     Menu,
+    Meter,
     Megaphone,
     MoneyBag,
     MoneyCircle,

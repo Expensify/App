@@ -9,6 +9,9 @@ import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import {usePlaybackContext} from '../PlaybackContext';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import VideoPlayerControls from './VideoPlayerControls';
+import PopoverMenu from '../PopoverMenu';
+import * as Expensicons from '../Icon/Expensicons';
+import fileDownload from '../../libs/fileDownload';
 
 const propTypes = {
     url: PropTypes.string.isRequired,
@@ -45,6 +48,10 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const [duration, setDuration] = React.useState(0);
     const [position, setPosition] = React.useState(0);
 
+    const [isPlaybackMenuActive, setIsPlaybackMenuActive] = React.useState(false);
+
+    const [isCreateMenuActive, setIsCreateMenuActive] = React.useState(false);
+    const anchorRef = React.useRef(null);
     const ref = useRef(null);
 
     const togglePlay = () => {
@@ -64,6 +71,52 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const updateVolume = (newVolume) => {
         ref.current.setStatusAsync({volume: newVolume});
     };
+    const showCreateMenu = () => {
+        setIsCreateMenuActive(true);
+    };
+    const hideCreateMenu = () => {
+        setIsCreateMenuActive(false);
+    };
+    const toggleCreateMenu = () => {
+        if (isCreateMenuActive) {
+            hideCreateMenu();
+        } else {
+            showCreateMenu();
+        }
+    };
+
+    const menuItems = [
+        {
+            icon: Expensicons.Download,
+            text: 'Download',
+            onSelected: () => {
+                console.log('Download');
+                fileDownload(url);
+                hideCreateMenu();
+            },
+        },
+        {
+            icon: Expensicons.Meter,
+            text: 'Playback speed',
+            onSelected: () => {
+                console.log('Playback speed');
+                setIsPlaybackMenuActive(true);
+            },
+            shouldShowRightIcon: true,
+        },
+    ];
+
+    const playbackSpeedMenuItems = [
+        {
+            icon: Expensicons.Download,
+            text: 'TEST',
+            onSelected: () => {
+                console.log('Download');
+
+                hideCreateMenu();
+            },
+        },
+    ];
 
     useEffect(() => {
         updateVolume(volume);
@@ -72,7 +125,10 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     return (
         <Hoverable>
             {(isHovered) => (
-                <View style={[styles.w100, styles.h100]}>
+                <View
+                    style={[styles.w100, styles.h100]}
+                    ref={anchorRef}
+                >
                     <Video
                         ref={ref}
                         style={style}
@@ -100,7 +156,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
 
                     {isVideoLoading && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
 
-                    {!isVideoLoading && (isHovered || isSmallScreenWidth) && (
+                    {((!isVideoLoading && (isHovered || isSmallScreenWidth)) || isCreateMenuActive) && (
                         <VideoPlayerControls
                             duration={duration}
                             position={position}
@@ -108,8 +164,20 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             updatePostiion={updatePostiion}
                             enterFullScreenMode={enterFullScreenMode}
                             isPlaying={isVideoPlaying}
+                            toggleCreateMenu={toggleCreateMenu}
                         />
                     )}
+
+                    <PopoverMenu
+                        onClose={hideCreateMenu}
+                        onItemSelected={hideCreateMenu}
+                        isVisible={isCreateMenuActive}
+                        anchorPosition={{horizontal: 0, vertical: 0}}
+                        fromSidebarMediumScreen={!isSmallScreenWidth}
+                        menuItems={menuItems}
+                        withoutOverlay
+                        anchorRef={anchorRef}
+                    />
                 </View>
             )}
         </Hoverable>

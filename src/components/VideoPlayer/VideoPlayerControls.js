@@ -21,13 +21,15 @@ const propTypes = {
     enterFullScreenMode: PropTypes.func.isRequired,
 
     isPlaying: PropTypes.bool,
+
+    toggleCreateMenu: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
     isPlaying: false,
 };
 
-function VideoPlayerControls({duration, position, updatePostiion, togglePlay, enterFullScreenMode, isPlaying}) {
+function VideoPlayerControls({duration, position, updatePostiion, togglePlay, enterFullScreenMode, isPlaying, toggleCreateMenu}) {
     const [durationFormatted, setDurationFormatted] = React.useState('0:00');
 
     useEffect(() => {
@@ -76,6 +78,7 @@ function VideoPlayerControls({duration, position, updatePostiion, togglePlay, en
                         src={Expensicons.ThreeDots}
                         fill="white"
                         accessibilityLabel="more options"
+                        onPress={() => toggleCreateMenu()}
                     />
                 </View>
             </View>
