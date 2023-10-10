@@ -252,6 +252,7 @@ const ONYXKEYS = {
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
+        NEXT_STEP: 'reportNextStep_',
 
         // Manual request tab selector
         SELECTED_TAB: 'selectedTab_',
