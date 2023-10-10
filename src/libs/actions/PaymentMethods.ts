@@ -44,12 +44,14 @@ function openWalletPage() {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
                     value: true,
                 },
             ],
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
                     value: false,
                 },
             ],
