@@ -34,7 +34,7 @@ After uploading the spreadsheet, we'll display a window where you can choose whi
 - Approval Limit
 - Over Limit Forward To
   
-Click the Import button and you're done. We will import the new members with the optional settings and update any already existing ones.
+Click the **Import** button and you're done. We will import the new members with the optional settings and update any already existing ones.
 
 ## Inviting Members with a Shareable Workspace Joining Link
 
