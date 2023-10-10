@@ -12,7 +12,7 @@ import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import getStateFromPath from './getStateFromPath';
-import SCREENS from '../../SCREENS';
+import SCREENS, {PROTECTED_SCREENS} from '../../SCREENS';
 import CONST from '../../CONST';
 
 let resolveNavigationIsReadyPromise;
@@ -259,12 +259,22 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
-function navContainsConcierge(state) {
+/**
+ *  Checks if the navigation state contains routes that are protected (over the auth wall).
+ *
+ *  @function
+ *  @param {Object} state - react-navigation state object
+ *
+ *  @returns {Boolean}
+ */
+function navContainsProtectedRoutes(state) {
     if (!state || !state.routeNames || !_.isArray(state.routeNames)) {
         return false;
     }
+    const protectedScreensNames = _.values(PROTECTED_SCREENS);
+    const difference = _.difference(protectedScreensNames, state.routeNames);
 
-    return _.includes(state.routeNames, SCREENS.CONCIERGE);
+    return !difference.length;
 }
 
 /**
@@ -288,14 +298,14 @@ function waitForProtectedRoutes() {
             return;
         }
         const currentState = navigationRef.current.getState();
-        if (navContainsConcierge(currentState)) {
+        if (navContainsProtectedRoutes(currentState)) {
             resolve();
             return;
         }
         let unsubscribe;
         const handleStateChange = ({data}) => {
             const state = lodashGet(data, 'state');
-            if (navContainsConcierge(state)) {
+            if (navContainsProtectedRoutes(state)) {
                 unsubscribe();
                 resolve();
             }
