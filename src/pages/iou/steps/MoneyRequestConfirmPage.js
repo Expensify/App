@@ -115,7 +115,6 @@ function MoneyRequestConfirmPage(props) {
         if (!isDistanceRequest && prevMoneyRequestId.current !== props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
             if (props.iou.id) {
-                console.log('navigate 2');
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), true);
             }
             return;
@@ -129,7 +128,6 @@ function MoneyRequestConfirmPage(props) {
         }
 
         if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath && !isDistanceRequest) || shouldReset) {
-            console.log('navigate 3');
             Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), true);
         }
 
