@@ -167,11 +167,11 @@ function ReportPreview(props) {
         if (isScanning) {
             return props.translate('common.receipt');
         }
+        const payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
         if (ReportUtils.isReportApproved(props.iouReport)) {
-            return props.translate('iou.managerApproved', {manager: ReportUtils.getDisplayNameForParticipant(managerID, true)});
+            return props.translate('iou.managerApproved', {manager: payerOrApproverName});
         }
-        const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
-        return props.translate(iouSettled || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
+        return props.translate(iouSettled || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: payerOrApproverName});
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
