@@ -95,6 +95,7 @@ $color-gray-label: $color-gray-label;
 input#gsc-i-id1.gsc-input {
     background-color: $color-appBG;
     padding: 15px 0px 0px !important;
+    pointer-events: auto;
     color: #E7ECE9;
     font-family: "ExpensifyNeue", "Segoe UI Emoji", "Noto Color Emoji" !important;
 }
@@ -104,7 +105,8 @@ input#gsc-i-id1.gsc-input {
     background-color: $color-appBG;
     border-bottom: $color-borders 2px solid;
     border-bottom-left-radius: 0px;
-    
+    pointer-events: none;
+
     &:focus-within {
         border-bottom: $color-accent 2px solid;
     }
@@ -118,14 +120,14 @@ input#gsc-i-id1.gsc-input {
     margin-left: auto;
 }
 
-.gsst_b {
+.gsst_b, .gsst_a {
     padding: 0px !important;
 }
 /* This is the close icon on search bar */
 .gsib_b .gsst_a .gscb_a {
     color: $color-icons;
-    margin-top: 8px;
-    padding: 0 2px !important;
+    padding: 8px 6px 0px 6px !important;
+    pointer-events: auto;
 
     &:hover {
         color: $color-text;
