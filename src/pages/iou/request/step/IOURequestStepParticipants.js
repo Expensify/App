@@ -46,11 +46,11 @@ function IOURequestStepParticipants({
             numberOfParticipants.current = val.length;
 
             if (val.length !== 1) {
+                // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
                 return;
             }
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
-            // TODO: Figure out what to do with multiple participants
             selectedReportID.current = val[0].reportID;
         },
         [transactionID],
