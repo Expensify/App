@@ -42,6 +42,9 @@ const propTypes = {
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
 
+    /** Whetjer the report is ready for display */
+    isReportReadyForDisplay: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -53,6 +56,7 @@ const defaultProps = {
     personalDetails: {},
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
+    isReportReadyForDisplay: true,
 };
 
 function ReportFooter(props) {
@@ -92,6 +96,7 @@ function ReportFooter(props) {
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
                             disabled={props.shouldDisableCompose}
+                            isReportReadyForDisplay={props.isReportReadyForDisplay}
                         />
                     </SwipeableView>
                 </View>
