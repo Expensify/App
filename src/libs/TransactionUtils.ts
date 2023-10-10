@@ -1,6 +1,5 @@
 import Onyx, {OnyxCollection} from 'react-native-onyx';
 import {format, parseISO, isValid} from 'date-fns';
-import _ from 'lodash';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
@@ -378,7 +377,7 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
 /**
  * Returns the most recent transactions in an object
  */
-function getRecentTransactions(transactions: Record<string, string>, size = 2): unknown[] {
+function getRecentTransactions(transactions: Record<string, string>, size = 2): string[] {
     return Object.keys(transactions).sort((transactionID1, transactionID2) => new Date(transactions[transactionID1]) < new Date(transactions[transactionID2]) ? 1 : -1 ).slice(0, size);
 }
 
