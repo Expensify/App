@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Text from './Text';
 
-
 const propTypes = {
     /** Title displayed in badge */
     title: PropTypes.string.isRequired,
@@ -13,11 +12,11 @@ const propTypes = {
     description: PropTypes.string.isRequired,
 
     /** Whether we show the border bottom */
-    shouldShowBorderBottom: PropTypes.bool.isRequired
-}
+    shouldShowBorderBottom: PropTypes.bool.isRequired,
+};
 
 function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom}) {
-    const borderBottomStyle = shouldShowBorderBottom ? styles.borderBottom : {}
+    const borderBottomStyle = shouldShowBorderBottom ? styles.borderBottom : {};
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.overflowHidden, styles.ph5, styles.pb3, borderBottomStyle]}>
             <View style={[styles.moneyRequestHeaderStatusBarBadge]}>

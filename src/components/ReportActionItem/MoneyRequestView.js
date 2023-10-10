@@ -103,6 +103,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const cardProgramName = isExpensifyCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    // NOTE: edit logic for card transactions will be handled in https://github.com/Expensify/App/issues/28836, for now disable editing.
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction) && !isExpensifyCardTransaction;
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -116,12 +117,10 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const shouldShowTag = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
     const shouldShowBillable = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
-
-
     let amountDescription = `${translate('iou.amount')}`;
 
-    if(isExpensifyCardTransaction) {
-        if(TransactionUtils.isPending(transaction)) {
+    if (isExpensifyCardTransaction) {
+        if (TransactionUtils.isPending(transaction)) {
             amountDescription += ` • ${translate('iou.pending')}`;
         }
         if (formattedOriginalAmount) {
