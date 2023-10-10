@@ -222,34 +222,42 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadNewerChats = _.throttle(({distanceFromStart}) => {
-        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions) {
-            return;
-        }
+    const loadNewerChats = useMemo(
+        () =>
+            _.throttle(({distanceFromStart}) => {
+                if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions) {
+                    return;
+                }
 
-        // Ideally, we wouldn't need to use the 'distanceFromStart' variable. However, due to the low value set for 'maxToRenderPerBatch',
-        // the component undergoes frequent re-renders. This frequent re-rendering triggers the 'onStartReached' callback multiple times.
-        //
-        // To mitigate this issue, we use 'CONST.CHAT_HEADER_LOADER_HEIGHT' as a threshold. This ensures that 'onStartReached' is not
-        // triggered unnecessarily when the chat is initially opened or when the user has reached the end of the list but hasn't scrolled further.
-        //
-        // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
-        // This should be removed once the issue of frequent re-renders is resolved.
-        if (!isFetchNewerWasCalled) {
-            setFetchNewerWasCalled(true);
-            return;
-        }
-        if (!isFetchNewerWasCalled || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
-            return;
-        }
+                // Ideally, we wouldn't need to use the 'distanceFromStart' variable. However, due to the low value set for 'maxToRenderPerBatch',
+                // the component undergoes frequent re-renders. This frequent re-rendering triggers the 'onStartReached' callback multiple times.
+                //
+                // To mitigate this issue, we use 'CONST.CHAT_HEADER_LOADER_HEIGHT' as a threshold. This ensures that 'onStartReached' is not
+                // triggered unnecessarily when the chat is initially opened or when the user has reached the end of the list but hasn't scrolled further.
+                //
+                // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
+                // This should be removed once the issue of frequent re-renders is resolved.
+                if (!isFetchNewerWasCalled) {
+                    setFetchNewerWasCalled(true);
+                    return;
+                }
+                if (!isFetchNewerWasCalled || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
+                    return;
+                }
 
-        const newestReportAction = reportActions[0];
-        Report.getNewerActions(reportID, newestReportAction.reportActionID);
-        // Report.getNewerActions(reportID, '2420805078232802130');
-        // Report.getNewerActions(reportID, '569204055949619736');
-        // Report.getNewerActions(reportID, '1134531619271003224');
-    }, 500);
+                const newestReportAction = reportActions[0];
+                Report.getNewerActions(reportID, newestReportAction.reportActionID);
+                // if (!isFetchNewerWasCalled.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
+                //     isFetchNewerWasCalled.current = true;
+                //     return;
+                // }
+
+                // const newestReportAction = _.first(props.reportActions);
+                // Report.getNewerActions(reportID, newestReportAction.reportActionID);
+                // Report.getNewerActions(reportID, '1134531619271003224');
+            }, 500),
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID],
+    );
 
     /**
      * Runs when the FlatList finishes laying out

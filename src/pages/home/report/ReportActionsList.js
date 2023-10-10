@@ -39,6 +39,9 @@ const propTypes = {
     /** Are we loading more report actions? */
     isLoadingOlderReportActions: PropTypes.bool,
 
+    /** Are we loading newer report actions? */
+    isLoadingNewerReportActions: PropTypes.bool,
+
     /** Callback executed on list layout */
     onLayout: PropTypes.func.isRequired,
 
@@ -47,6 +50,9 @@ const propTypes = {
 
     /** Function to load more chats */
     loadOlderChats: PropTypes.func.isRequired,
+
+    /** Function to load newer chats */
+    loadNewerChats: PropTypes.func.isRequired,
 
     /** The policy object for the current route */
     policy: PropTypes.shape({
@@ -128,7 +134,7 @@ function ReportActionsList({
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
-    const firstRenderRef = useRef(true);
+    const firstComponentsRenderRef = useRef({header: true, footer: true});
     const reportActionSize = useRef(sortedReportActions.length);
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
@@ -346,8 +352,10 @@ function ReportActionsList({
     );
 
     const listFooterComponent = useCallback(() => {
-        if (firstRenderRef.current) {
-            firstRenderRef.current = false;
+        // Skip this hook on the first render, as we are not sure if more actions are going to be loaded
+        // Therefore showing the skeleton on footer might be misleading
+        if (firstComponentsRenderRef.current.footer) {
+            firstComponentsRenderRef.current.footer = false;
             return null;
         }
 
@@ -369,8 +377,8 @@ function ReportActionsList({
     );
 
     const listHeaderComponent = useCallback(() => {
-        if (firstRenderRef.current) {
-            firstRenderRef.current = false;
+        if (firstComponentsRenderRef.current.header) {
+            firstComponentsRenderRef.current.header = false;
             return null;
         }
         return (
