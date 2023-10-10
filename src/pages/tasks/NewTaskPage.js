@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -61,6 +62,7 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
 };
+const parser = new ExpensiMark();
 
 function NewTaskPage(props) {
     const [assignee, setAssignee] = useState({});
@@ -129,7 +131,7 @@ function NewTaskPage(props) {
         Task.createTaskAndNavigate(
             parentReport.reportID,
             props.task.title,
-            props.task.description,
+            parser.htmlToMarkdown(props.task.description || ''),
             props.task.assignee,
             props.task.assigneeAccountID,
             props.task.assigneeChatReport,
@@ -177,6 +179,7 @@ function NewTaskPage(props) {
                                 shouldParseTitle
                                 numberOfLinesTitle={2}
                                 titleStyle={styles.flex1}
+                                shouldRenderAsHTML
                             />
                             <MenuItem
                                 label={assignee.displayName ? props.translate('task.assignee') : ''}

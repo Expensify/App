@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -39,6 +40,8 @@ const defaultProps = {
     },
 };
 
+const parser = new ExpensiMark();
+
 function NewTaskDescriptionPage(props) {
     const inputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -62,7 +65,8 @@ function NewTaskDescriptionPage(props) {
     );
 
     const onSubmit = (values) => {
-        Task.setDescriptionValue(values.taskDescription);
+        const parsedTaskDescription = parser.replace(values.taskDescription);
+        Task.setDescriptionValue(parsedTaskDescription);
         Navigation.goBack(ROUTES.NEW_TASK);
     };
 
@@ -91,7 +95,7 @@ function NewTaskDescriptionPage(props) {
                 >
                     <View style={styles.mb5}>
                         <TextInput
-                            defaultValue={props.task.description}
+                            defaultValue={parser.htmlToMarkdown(props.task.description)}
                             inputID="taskDescription"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}

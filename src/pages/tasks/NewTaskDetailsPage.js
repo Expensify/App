@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -36,6 +37,8 @@ const defaultProps = {
     task: {},
 };
 
+const parser = new ExpensiMark();
+
 function NewTaskDetailsPage(props) {
     const inputRef = useRef();
     const [taskTitle, setTaskTitle] = useState(props.task.title);
@@ -43,7 +46,7 @@ function NewTaskDetailsPage(props) {
 
     useEffect(() => {
         setTaskTitle(props.task.title);
-        setTaskDescription(props.task.description || '');
+        setTaskDescription(parser.htmlToMarkdown(props.task.description || ''));
     }, [props.task]);
 
     /**
@@ -64,7 +67,8 @@ function NewTaskDetailsPage(props) {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     function onSubmit(values) {
-        Task.setDetailsValue(values.taskTitle, values.taskDescription);
+        const parsedTaskDescription = parser.replace(values.taskDescription);
+        Task.setDetailsValue(values.taskTitle, parsedTaskDescription);
         Navigation.navigate(ROUTES.NEW_TASK);
     }
 
@@ -114,6 +118,7 @@ function NewTaskDetailsPage(props) {
                         submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
+                        defaultValue={parser.htmlToMarkdown(taskDescription)}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />
