@@ -60,10 +60,6 @@ function BaseHTMLEngineProvider(props) {
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [props.textSelectable]);
 
-    // We need to pass multiple system-specific fonts for emojis but
-    // we can't apply multiple fonts at once so we need to pass fallback fonts.
-    const fallbackFonts = {'ExpensifyNeue-Regular': fontFamily.EXP_NEUE};
-
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}
@@ -71,7 +67,6 @@ function BaseHTMLEngineProvider(props) {
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             systemFonts={_.values(singleFontFamily)}
-            fallbackFonts={fallbackFonts}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),
