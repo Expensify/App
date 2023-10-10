@@ -158,15 +158,7 @@ function OptionRowLHN(props) {
      * @returns {Boolean}
      */
     const isGroupChat = function () {
-        return (
-            optionItem.type === CONST.REPORT.TYPE.CHAT &&
-            !optionItem.isThread &&
-            !optionItem.isChatRoom &&
-            !optionItem.isMoneyRequestReport &&
-            !optionItem.isExpenseRequest &&
-            !optionItem.isArchivedRoom &&
-            lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 1
-        );
+        return optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
     };
 
     const fullTitle = isGroupChat() ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips) : optionItem.text;

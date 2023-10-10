@@ -3853,7 +3853,7 @@ function getIOUReportActionDisplayMessage(reportAction) {
  * - Not a money request / IOU report.
  * - Not an archived room.
  * - Not a public / admin / announce chat room (chat type doesn't match any of the specified types).
- * - More than 1 participant.
+ * - More than 2 participants.
  *
  * @param {Object} report
  * @returns {Boolean}
@@ -3866,7 +3866,7 @@ function isGroupChat(report) {
         !isMoneyRequestReport(report) &&
         !isArchivedRoom(report) &&
         !Object.values(CONST.REPORT.CHAT_TYPE).includes(getChatType(report)) &&
-        lodashGet(report, 'participantAccountIDs.length', 0) > 1
+        lodashGet(report, 'participantAccountIDs.length', 0) > 2
     );
 }
 
