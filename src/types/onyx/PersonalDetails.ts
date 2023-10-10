@@ -1,3 +1,5 @@
+import {SvgProps} from 'react-native-svg';
+
 type Timezone = {
     /** Value of selected timezone */
     selected?: string;
@@ -46,7 +48,7 @@ type PersonalDetails = {
     /** If trying to get PersonalDetails from the server and user is offling */
     isOptimisticPersonalDetail?: boolean;
 
-    fallBackIcon?: string;
+    fallbackIcon?: string;
 };
 
 export type {Timezone};

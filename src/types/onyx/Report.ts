@@ -88,6 +88,9 @@ type Report = {
     };
     /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
     nonReimbursableTotal?: number;
+    cachedTotal?: string;
+    chatReportID?: string;
+    state?: ValueOf<typeof CONST.REPORT.STATE>;
 };
 
 export default Report;

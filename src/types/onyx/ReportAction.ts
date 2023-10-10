@@ -2,6 +2,7 @@ import {ValueOf} from 'type-fest';
 import OriginalMessage, {Reaction} from './OriginalMessage';
 import * as OnyxCommon from './OnyxCommon';
 import CONST from '../../CONST';
+import {Receipt} from './Transaction';
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -31,12 +32,14 @@ type Message = {
     iconUrl?: string;
 
     /** Fragment edited flag */
-    isEdited: boolean;
+    isEdited?: boolean;
 
-    isDeletedParentAction: boolean;
-    whisperedTo: number[];
-    reactions: Reaction[];
+    isDeletedParentAction?: boolean;
+    whisperedTo?: number[];
+    reactions?: Reaction[];
     taskReportID?: string;
+    html?: string;
+    translationKey?: string;
 };
 
 type Person = {
@@ -91,8 +94,13 @@ type ReportActionBase = {
     childLastReceiptTransactionIDs?: string;
     childLastMoneyRequestComment?: string;
     childMoneyRequestCount?: number;
+    isFirstItem?: boolean;
+    isAttachment?: boolean;
+    attachmentInfo?: (File & {source: string; uri: string}) | Record<string, never>;
+    receipt?: Receipt;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
 
 export default ReportAction;
+export type {Message};
