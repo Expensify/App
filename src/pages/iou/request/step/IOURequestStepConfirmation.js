@@ -212,8 +212,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            // TODO:
-            // requestMoney(selectedParticipants, trimmedComment);
+            requestMoney(selectedParticipants, trimmedComment);
         },
         [
             iouType,
