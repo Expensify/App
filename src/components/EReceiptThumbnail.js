@@ -43,9 +43,7 @@ function getBackgroundImage(transaction) {
 
 function EReceiptThumbnail({transaction}) {
     // Get receipt colorway, or default to Yellow.
-    const colorStyles = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
-    const primaryColor = colorStyles.backgroundColor;
-    const secondaryColor = colorStyles.color;
+    const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
 
     const [containerWidth, setContainerWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
@@ -83,7 +81,7 @@ function EReceiptThumbnail({transaction}) {
                 StyleUtils.getBackgroundColorStyle(primaryColor),
                 styles.overflowHidden,
                 styles.alignItemsCenter,
-                containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint && styles.justifyContentCenter,
+                containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint ? styles.justifyContentCenter : {},
             ]}
             onLayout={onContainerLayout}
         >

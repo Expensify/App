@@ -15,7 +15,7 @@ const story = {
 
 function Template(args) {
     return (
-        <>
+        <View style={{display: 'flex', flexDirection: 'column', gap: 12}}>
             <View>
                 <EReceiptThumbnail {...args} />
             </View>
@@ -35,7 +35,7 @@ function Template(args) {
             <View style={{height: 175, width: 335, borderRadius: 16, overflow: 'hidden'}}>
                 <EReceiptThumbnail {...args} />
             </View>
-        </>
+        </View>
     );
 }
 

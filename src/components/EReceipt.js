@@ -32,9 +32,7 @@ function EReceipt({transaction, transactionID}) {
     const {translate} = useLocalize();
 
     // Get receipt colorway, or default to Yellow.
-    const colorStyles = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
-    const primaryColor = colorStyles.backgroundColor;
-    const secondaryColor = colorStyles.color;
+    const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
 
     const {
         amount: transactionAmount,
@@ -48,6 +46,8 @@ function EReceipt({transaction, transactionID}) {
     const amount = formattedAmount.replace(currency, '');
     const cardDescription = CardUtils.getCardDescription(transactionCardID);
 
+    const secondaryTextColorStyle = StyleUtils.getColorStyle(secondaryColor);
+
     return (
         <View style={[styles.eReceiptContainer, StyleUtils.getBackgroundColorStyle(primaryColor)]}>
             <View style={styles.fullScreen}>
@@ -60,11 +60,11 @@ function EReceipt({transaction, transactionID}) {
                 <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2, styles.mb8]}>
                     <View style={[styles.flexRow, styles.justifyContentCenter]}>
                         <View style={[styles.flexColumn, styles.pt1]}>
-                            <Text style={[styles.eReceiptCurrency, StyleUtils.getColorStyle(secondaryColor)]}>{currency}</Text>
+                            <Text style={[styles.eReceiptCurrency, secondaryTextColorStyle]}>{currency}</Text>
                         </View>
                         <Text
                             adjustsFontSizeToFit
-                            style={[styles.eReceiptAmountLarge, StyleUtils.getColorStyle(secondaryColor)]}
+                            style={[styles.eReceiptAmountLarge, secondaryTextColorStyle]}
                         >
                             {amount}
                         </Text>
@@ -73,11 +73,11 @@ function EReceipt({transaction, transactionID}) {
                 </View>
                 <View style={[styles.alignSelfStretch, styles.flexColumn, styles.mb8, styles.gap4]}>
                     <View style={[styles.flexColumn, styles.gap1]}>
-                        <Text style={[styles.eReceiptWaypointTitle, StyleUtils.getColorStyle(secondaryColor)]}>{translate('eReceipt.transactionDate')}</Text>
+                        <Text style={[styles.eReceiptWaypointTitle, secondaryTextColorStyle]}>{translate('eReceipt.transactionDate')}</Text>
                         <Text style={[styles.eReceiptWaypointAddress]}>{transactionDate}</Text>
                     </View>
                     <View style={[styles.flexColumn, styles.gap1]}>
-                        <Text style={[styles.eReceiptWaypointTitle, StyleUtils.getColorStyle(secondaryColor)]}>{translate('common.card')}</Text>
+                        <Text style={[styles.eReceiptWaypointTitle, secondaryTextColorStyle]}>{translate('common.card')}</Text>
                         <Text style={[styles.eReceiptWaypointAddress]}>{cardDescription}</Text>
                     </View>
                 </View>
