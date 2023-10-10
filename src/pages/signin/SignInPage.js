@@ -143,6 +143,11 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
 
     const isClientTheLeader = activeClients && ActiveClientManager.isClientTheLeader();
 
+    useEffect(() => Performance.measureTTI(), []);
+    useEffect(() => {
+        App.setLocale(Localize.getDevicePreferredLocale());
+    }, []);
+
     const {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
