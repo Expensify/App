@@ -130,6 +130,5 @@ OldDotIFrame.propTypes = propTypes;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
-        selector: (session) => session,
     },
 })(OldDotIFrame);
