@@ -838,6 +838,14 @@ export default {
             copyCardNumber: 'Copiar número de la tarjeta',
         },
     },
+    activateCardPage: {
+        activateCard: 'Activar tarjeta',
+        pleaseEnterLastFour: 'Introduce los cuatro últimos dígitos de la tarjeta.',
+        activatePhysicalCard: 'Activar tarjeta física',
+        error: {
+            thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
+        },
+    },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,
         instant: 'Instante',
