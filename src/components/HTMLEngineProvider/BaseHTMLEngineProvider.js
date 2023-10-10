@@ -5,8 +5,8 @@ import PropTypes from 'prop-types';
 import htmlRenderers from './HTMLRenderers';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import styles from '../../styles/styles';
-import fontFamily from '../../styles/fontFamily';
 import convertToLTR from '../../libs/convertToLTR';
+import singleFontFamily from '../../styles/fontFamily/singleFontFamily';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -70,7 +70,7 @@ function BaseHTMLEngineProvider(props) {
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            systemFonts={_.values(fontFamily)}
+            systemFonts={_.values(singleFontFamily)}
             fallbackFonts={fallbackFonts}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
