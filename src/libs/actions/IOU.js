@@ -480,7 +480,10 @@ function getMoneyRequestInformation(
         billable,
     );
 
-    const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
+    let optimisticPolicyRecentlyUsedCategories = [];
+    if (category) {
+        optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
+    }
 
     const optimisticPolicyRecentlyUsedTags = {};
     const policyTags = allPolicyTags[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReport.policyID}`];

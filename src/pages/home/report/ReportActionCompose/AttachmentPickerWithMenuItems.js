@@ -141,14 +141,14 @@ function AttachmentPickerWithMenuItems({
             },
         };
 
-        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs, betas), (option) => ({
+        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs), (option) => ({
             ...options[option],
             onSelected: () => {
                 // TODO: IOU.startMoneyRequest(option, report.reportID);
                 Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID));
             },
         }));
-    }, [betas, report, reportParticipantIDs, translate]);
+    }, [report, reportParticipantIDs, translate]);
 
     /**
      * Determines if we can show the task option
