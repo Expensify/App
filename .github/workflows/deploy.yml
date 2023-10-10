@@ -46,11 +46,6 @@ jobs:
           ref: production
           token: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
-      - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotify
-        with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
       - name: Get current app version
         run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
