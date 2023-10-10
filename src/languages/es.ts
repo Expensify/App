@@ -522,6 +522,7 @@ export default {
         receiptMissingDetails: 'Recibo con campos vacíos',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
+        transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
         deleteRequest: 'Eliminar pedido',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',

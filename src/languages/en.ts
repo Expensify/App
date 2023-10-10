@@ -530,6 +530,7 @@ export default {
         receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
+        transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',

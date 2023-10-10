@@ -80,7 +80,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }, [parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-
+    const isPending = TransactionUtils.isPending(transaction);
+    
     const canModifyRequest = isActionOwner && !isSettled && !isApproved;
 
     useEffect(() => {
@@ -95,6 +96,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
+                    shouldShowBorderBottom={!isScanning || !isPending}
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton={canModifyRequest}
@@ -125,7 +127,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 />
-                {isScanning && <MoneyRequestHeaderStatusBar />}
+                {isPending && <MoneyRequestHeaderStatusBar title={translate('iou.pending')} description={translate('iou.transactionPendingText')} shouldShowBorderBottom={!isScanning}/>}
+                {isScanning && <MoneyRequestHeaderStatusBar title={translate('iou.receiptStatusTitle')} description={translate('iou.receiptStatusText')} shouldShowBorderBottom/>}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}
