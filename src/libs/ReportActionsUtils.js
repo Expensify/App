@@ -311,6 +311,14 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
 // const updatedActions = processReportActions(reportActions);
 // console.log(updatedActions);
 
+/**
+ * Returns the range of report actions from the given array which include current id
+ * the range is consistent
+ * 
+ * @param {Array} array
+ * @param {String} id
+ * @returns {Array}
+ */
 function getRangeFromArrayByID(array, id) {
     // without gaps
     let index;
@@ -342,22 +350,44 @@ function getRangeFromArrayByID(array, id) {
     // return array.slice(startIndex, endIndex);
 }
 
+
+/**
+ * Returns the sliced range of report actions from the given array.
+ * 
+ * @param {Array} array 
+ * @param {String} id 
+ * @returns {Object}
+ * getSlicedRangeFromArrayByID([{id:1}, ..., {id: 100}], 50) => { catted: [{id:1}, ..., {id: 50}], expanded: [{id: 45}, ..., {id: 55}] }
+ */
 function getSlicedRangeFromArrayByID(array, id) {
-    let index;
-    if (id) {
-        index = array.findIndex((obj) => obj.reportActionID === id);
-    } else {
-        index = array.length - 1;
-    }
+  let index;
+  if (id) {
+      index = array.findIndex((obj) => obj.reportActionID === id);
+  } else {
+      index = array.length - 1;
+  }
 
-    if (index === -1) {
-        return [];
-    }
+  if (index === -1) {
+      return { catted: [], expanded: [] };
+  }
 
-    // return array.slice(0, index+1);
-    // return array.slice(index, array.length);
-    return array.slice(index, array.length - index > 50 ? index + 50 : array.length);
+  const cattedEnd = array.length - index > 50 ? index + 50 : array.length;
+  const expandedStart = Math.max(0, index - 5);
+  
+  const catted = [];
+  const expanded = [];
+
+  for (let i = expandedStart; i < cattedEnd; i++) {
+      if (i >= index) {
+          catted.push(array[i]);
+      }
+      expanded.push(array[i]);
+  }
+  // We need the expanded version to prevent jittering of list. So when user navigate to linked message we show to him the catted version. After that we show the expanded version.
+  // Then we can show all reports.
+  return { catted, expanded };
 }
+
 
 /**
  * Finds most recent IOU request action ID.
