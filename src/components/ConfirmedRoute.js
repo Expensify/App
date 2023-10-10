@@ -97,7 +97,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
                         location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
                     }}
                     directionCoordinates={coordinates}
-                    style={styles.mapView}
+                    style={[styles.mapView, styles.mapConfirmationView]}
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
                 />

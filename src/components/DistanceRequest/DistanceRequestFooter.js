@@ -131,7 +131,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, hasRo
                             location: CONST.MAPBOX.DEFAULT_COORDINATE,
                         }}
                         directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
-                        style={styles.mapView}
+                        style={[styles.mapView, styles.mapEditView]}
                         waypoints={waypointMarkers}
                         styleURL={CONST.MAPBOX.STYLE_URL}
                         overlayStyle={styles.m4}
@@ -140,6 +140,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, hasRo
                     <PendingMapView
                         title={translate('distance.mapPending.title')}
                         subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                        style={styles.mapEditView}
                     />
                 )}
             </View>

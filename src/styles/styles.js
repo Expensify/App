@@ -3680,16 +3680,25 @@ const styles = (theme) => ({
 
     mapViewContainer: {
         ...flex.flex1,
-        ...spacing.p2,
         ...spacing.flex1,
         minHeight: 300,
         maxHeight: 500,
     },
 
     mapView: {
-        flex: 1,
-        borderRadius: 16,
+        ...flex.flex1,
         overflow: 'hidden',
+        backgroundColor: theme.highlightBG,
+    },
+
+    mapEditView: {
+        borderRadius: 28,
+        borderWidth: 8,
+        borderColor: theme.appBG,
+    },
+
+    mapConfirmationView: {
+        borderRadius: 16,
     },
 
     mapViewOverlay: {
