@@ -322,6 +322,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd]}
+                    disabled={permissions !== RESULTS.GRANTED}
                     onPress={() => setFlash((prevFlash) => !prevFlash)}
                 >
                     <Icon
