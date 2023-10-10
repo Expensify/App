@@ -273,7 +273,7 @@ function MoneyRequestConfirmPage(props) {
     );
 
     /**
-     * Checks if user has a GOLD wallet then creates a paid IOU report on the fly
+     * Checks if user has a GOLD wallet then creates a paid IOU report on the fl
      *
      * @param {String} paymentMethodType
      */
