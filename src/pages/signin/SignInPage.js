@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -23,6 +23,8 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import * as ActiveClientManager from '../../libs/ActiveClientManager';
+import App from '../../App';
+import Localize from '../../libs/Localize';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
