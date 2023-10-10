@@ -151,6 +151,11 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
+        const approveButtonOption = {
+            text: translate('iou.approve'),
+            icon: Expensicons.ThumbsUp,
+            value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+        };
         const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(betas) && Permissions.canUseWallet(betas);
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
@@ -159,13 +164,7 @@ function SettlementButton({
         if (!shouldShowPaymentOptions) {
             // Only show the Approve button if the user cannot pay the request
             if (nextStepButtons.approve && !nextStepButtons.reimburse) {
-                return [
-                    {
-                        text: translate('iou.approve'),
-                        icon: Expensicons.Key,
-                        value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
-                    },
-                ];
+                return [approveButtonOption];
             }
 
             if (!paymentMethod) {
@@ -197,11 +196,7 @@ function SettlementButton({
         buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
 
         if (nextStepButtons.approve) {
-            buttonOptions.push({
-                text: translate('iou.approve'),
-                icon: Expensicons.Key,
-                value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
-            })
+            buttonOptions.push(approveButtonOption)
         }
 
         // Put the preferred payment method to the front of the array so its shown as default
