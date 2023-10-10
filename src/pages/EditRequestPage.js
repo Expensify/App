@@ -92,7 +92,7 @@ const defaultProps = {
     },
     policyCategories: {},
     policyTags: {},
-    transaction:{}
+    transaction: {},
 };
 
 function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags, parentReportActions, transaction}) {
