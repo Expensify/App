@@ -51,7 +51,6 @@ const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
 }, 100);
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
-const isNativeApp = !willBlurTextInputOnTapOutside;
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus on existing chat for mobile device
@@ -126,7 +125,6 @@ function ComposerWithSuggestions({
 
     const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
-    const initialFocusedRef = useRef(false);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
@@ -449,14 +447,12 @@ function ComposerWithSuggestions({
     }, []);
 
     useEffect(() => {
-        // Initial focus ref to prevent unneccessary focus after first render.
-        if (initialFocusedRef.current || isNativeApp || !shouldAutoFocus) {
+        if (!shouldAutoFocus && !willBlurTextInputOnTapOutside) {
             return;
         }
 
         // Set the `selection at end` and `scrolls input to bottom` for `Web Platforms`.
         updateMultilineInputRange(textInputRef.current);
-        initialFocusedRef.current = true;
     }, [shouldAutoFocus]);
 
     useEffect(() => {
