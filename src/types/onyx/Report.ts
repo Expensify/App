@@ -86,6 +86,8 @@ type Report = {
         createChat: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
         addWorkspaceRoom: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
     };
+    /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
+    nonReimbursableTotal?: number;
 };
 
 export default Report;

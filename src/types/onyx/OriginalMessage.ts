@@ -60,6 +60,10 @@ type OriginalMessageAddComment = {
         reactions?: Reaction[];
     };
 };
+type OriginalMessageSubmitted = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+    originalMessage: unknown;
+};
 
 type OriginalMessageClosed = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CLOSED;
@@ -134,6 +138,7 @@ type OriginalMessagePolicyTask = {
 type OriginalMessage =
     | OriginalMessageIOU
     | OriginalMessageAddComment
+    | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
     | OriginalMessageRenamed
