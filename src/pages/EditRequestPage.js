@@ -11,12 +11,10 @@ import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as TransactionUtils from '../libs/TransactionUtils';
-import * as Policy from '../libs/actions/Policy';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Permissions from '../libs/Permissions';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
 import tagPropTypes from '../components/tagPropTypes';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
@@ -30,6 +28,8 @@ import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import categoryPropTypes from '../components/categoryPropTypes';
 import ScreenWrapper from '../components/ScreenWrapper';
+import reportActionPropTypes from './home/report/reportActionPropTypes';
+import transactionPropTypes from '../components/transactionPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -54,43 +54,30 @@ const propTypes = {
     /** The parent report object for the thread report */
     parentReport: reportPropTypes,
 
-    /** The policy object for the current route */
-    policy: PropTypes.shape({
-        /** The name of the policy */
-        name: PropTypes.string,
-
-        /** The URL for the policy avatar */
-        avatar: PropTypes.string,
-    }),
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
-
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
 
-    ...withCurrentUserPersonalDetailsPropTypes,
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** Transaction that stores the request data */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     betas: [],
     report: {},
     parentReport: {},
-    policy: null,
-    session: {
-        email: null,
-    },
     policyCategories: {},
     policyTags: {},
+    parentReportActions: {},
+    transaction: {},
 };
 
-function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({betas, report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportAction = parentReportActions[report.parentReportActionID];
     const {
         amount: transactionAmount,
@@ -292,7 +279,6 @@ EditRequestPage.displayName = 'EditRequestPage';
 EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
 export default compose(
-    withCurrentUserPersonalDetails,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
@@ -303,9 +289,6 @@ export default compose(
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-        },
         policyCategories: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
         },
