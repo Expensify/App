@@ -43,7 +43,7 @@ const darkTheme = {
     hoverComponentBG: colors.darkHighlightBackground,
     activeComponentBG: colors.darkBorders,
     signInSidebar: colors.green800,
-    sidebar: colors.darkHighlightBackground,
+    sidebar: colors.darkAppBackground,
     sidebarHover: colors.darkAppBackground,
     heading: colors.darkPrimaryText,
     textLight: colors.darkPrimaryText,

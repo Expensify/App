@@ -487,10 +487,19 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
                 reportName,
                 managerID: assigneeAccountID || report.managerID,
                 managerEmail: assigneeEmail || report.managerEmail,
+                pendingFields: {
+                    ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                },
             },
         },
     ];
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {pendingFields: {...(assigneeAccountID && {managerID: null})}},
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -765,8 +774,8 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
             value: {
-                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport.reportID, {[parentReportAction.reportActionID]: null}).lastMessageText,
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport.reportID, {[parentReportAction.reportActionID]: null}).created,
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport.reportID, optimisticReportActions).lastMessageText,
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport.reportID, optimisticReportActions).created,
             },
         },
         {
