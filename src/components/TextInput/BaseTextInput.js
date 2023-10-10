@@ -341,6 +341,8 @@ function BaseTextInput(props) {
                                     // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
                                     !isMultiline && {height, lineHeight},
 
+                                    // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
+                                    // for the issue mentioned here https://github.com/Expensify/App/issues/26735
                                     !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
