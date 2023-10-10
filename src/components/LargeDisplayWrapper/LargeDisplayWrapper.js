@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import _ from 'lodash';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -31,19 +32,23 @@ const propTypes = {
 
 const defaultProps = {
     children: null,
-    shouldShow: false,
+    shouldShow: undefined,
     titleKey: 'mobilePlacerHolder.title',
     subtitleKey: 'mobilePlacerHolder.subTitle',
     linkKey: 'mobilePlacerHolder.goBackHome',
     onLinkPress: () => Navigation.dismissModal(),
 };
 
-function Temp({titleKey, subtitleKey, linkKey, onLinkPress, children, shouldShow}) {
+function LargeDisplayWrapper({titleKey, subtitleKey, linkKey, onLinkPress, children, shouldShow}) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const {translate} = useLocalize();
 
-    if (shouldShow || isSmallScreenWidth) {
+    // If `shouldShow` is a non-boolean value (no prop passed) default to `isSmallScreenWidth` else follow `shouldShow`
+    // Example: `shouldShow` = `undefined` or `null` `isSmallScreenWidth`  will take preference else we follow `shouldShow`
+    const shouldShowBlockingView = !_.isBoolean(shouldShow) ? isSmallScreenWidth : shouldShow;
+
+    if (shouldShowBlockingView) {
         return (
             <View style={[styles.blockingViewContainer, styles.flex1]}>
                 <BlockingView
@@ -62,8 +67,8 @@ function Temp({titleKey, subtitleKey, linkKey, onLinkPress, children, shouldShow
     return children;
 }
 
-Temp.displayName = 'PlaceHolder';
-Temp.propTypes = propTypes;
-Temp.defaultProps = defaultProps;
+LargeDisplayWrapper.displayName = 'LargeDisplayWrapper';
+LargeDisplayWrapper.propTypes = propTypes;
+LargeDisplayWrapper.defaultProps = defaultProps;
 
-export default Temp;
+export default LargeDisplayWrapper;
