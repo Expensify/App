@@ -429,11 +429,6 @@ function getLastMessageTextForReport(report) {
     return lastMessageTextFromReport;
 }
 
-function getLastMessageTextFromActions(reportID) {
-    const lastReportAction = lastReportActions[reportID];
-    return ReportUtils.formatReportLastMessageText(lodashGet(lastReportAction, 'message[0].text', ''));
-}
-
 /**
  * Creates a report list option
  *
@@ -1558,7 +1553,6 @@ export {
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
-    getLastMessageTextFromActions,
     getEnabledCategoriesCount,
     hasEnabledOptions,
     getCategoryOptionTree,

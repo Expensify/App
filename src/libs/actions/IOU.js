@@ -19,7 +19,6 @@ import * as TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
-import Log from '../Log';
 import * as NumberUtils from '../NumberUtils';
 import ReceiptGeneric from '../../../assets/images/receipt-generic.png';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
@@ -369,33 +368,10 @@ function buildOnyxDataForMoneyRequest(
 }
 
 function cleanUpFailedMoneyRequest(iouReportID, iouAction) {
-    ReportActions.clearReportActionErrors(iouReportID, iouAction);
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
-    if (!iouReport) {
-        Log.warn('[cleanUpFailedMoneyRequest] No iouReport found', {iouReportID});
-        return;
-    }
-    const policyExpenseChatID = iouReport.parentReportID;
-    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(policyExpenseChatID, iouReport.reportID);
-
-    // If the report failed to create, delete it.
-    if (lodashGet(iouReport, 'errorFields.createChat')) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, null);
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, null);
-    } else {
-        const lastMessageText = OptionsListUtils.getLastMessageTextFromActions(iouReport.reportID);
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {lastMessageText, lastMessageHtml: lastMessageText});
-        const updatedIOUReport = allReports[iouReport.reportID] || {};
-
-        // Update the preview action after clearing the failed request
-        const message = ReportUtils.getReportPreviewMessage(updatedIOUReport, reportPreviewAction);
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChatID}`, {
-            [reportPreviewAction.reportActionID]: {
-                created: reportPreviewAction.previousCreated,
-                message: [{html: message, text: message}],
-            },
-        });
-    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, null);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, null);
+    ReportActions.clearReportActionErrors(iouReportID, iouAction);
 }
 
 /**
