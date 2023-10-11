@@ -315,7 +315,6 @@ function MagicCodeInput(props) {
                                 value={input}
                                 hideFocusedState
                                 autoComplete={index === 0 ? props.autoComplete : 'off'}
-                                inputMode={CONST.INPUT_MODE.NUMERIC}
                                 onChangeText={(value) => {
                                     // Do not run when the event comes from an input that is
                                     // not currently being responsible for the input, this is
