@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {max, parseISO, isEqual} from 'date-fns';
+import {max, isEqual} from 'date-fns';
 import lodashFindLast from 'lodash/findLast';
 import Onyx from 'react-native-onyx';
 import * as CollectionUtils from './CollectionUtils';
@@ -400,8 +400,9 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
     if (visibleActions.length === 0) {
         return {};
     }
-    const maxDate = max(visibleActions.map((action) => parseISO(action.created)));
-    const maxAction = visibleActions.find((action) => isEqual(parseISO(action.created), maxDate));
+
+    const maxDate = max(visibleActions.map((action) => new Date(action.created)));
+    const maxAction = visibleActions.find((action) => isEqual(new Date(action.created), maxDate));
     return maxAction;
 }
 
