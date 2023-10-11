@@ -135,7 +135,7 @@ function HeaderView(props) {
         }
     }
 
-    threeDotMenuItems.push(HeaderUtils.getPinFunctionality(props.report));
+    threeDotMenuItems.push(HeaderUtils.getPinOptions(props.report));
 
     if (isConcierge && props.guideCalendarLink) {
         threeDotMenuItems.push({

@@ -90,7 +90,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
         setIsDeleteModalVisible(false);
     }, [canModifyRequest]);
-    const threeDotsMenuItems = [HeaderUtils.getPinFunctionality(report)];
+    const threeDotsMenuItems = [HeaderUtils.getPinOptions(report)];
     if (canModifyRequest) {
         if (!TransactionUtils.hasReceipt(transaction)) {
             threeDotsMenuItems.push({

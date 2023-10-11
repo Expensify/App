@@ -8,7 +8,7 @@ import * as Expensicons from '../components/Icon/Expensicons';
  * @param {Object} report
  * @returns {Object}
  */
-function getPinFunctionality(report) {
+function getPinOptions(report) {
     if (!report.isPinned) {
         return {
             icon: Expensicons.Pin,
@@ -27,5 +27,5 @@ function getPinFunctionality(report) {
 
 export {
     // eslint-disable-next-line import/prefer-default-export
-    getPinFunctionality,
+    getPinOptions,
 };
