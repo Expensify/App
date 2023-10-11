@@ -160,6 +160,7 @@ function WorkspaceInitialPage(props) {
                     ? ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, ''))
                     : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+            shouldDisableOnExecuting: true,
         },
     ];
 
@@ -261,6 +262,7 @@ function WorkspaceInitialPage(props) {
                                         iconRight={item.iconRight}
                                         onPress={() => item.action()}
                                         shouldShowRightIcon
+                                        shouldDisableOnExecuting={item.shouldDisableOnExecuting}
                                         brickRoadIndicator={item.brickRoadIndicator}
                                     />
                                 ))}

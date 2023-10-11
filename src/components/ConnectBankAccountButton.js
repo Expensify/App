@@ -38,6 +38,7 @@ function ConnectBankAccountButton(props) {
     ) : (
         <Button
             text={props.translate('workspace.common.connectBankAccount')}
+            shouldDisableOnExecuting
             onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID, activeRoute)}
             icon={Expensicons.Bank}
             style={props.style}

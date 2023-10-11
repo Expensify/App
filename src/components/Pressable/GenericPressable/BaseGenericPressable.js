@@ -39,6 +39,7 @@ const GenericPressable = forwardRef((props, ref) => {
         keyboardShortcut,
         shouldUseAutoHitSlop,
         enableInScreenReaderStates,
+        shouldDisableOnExecuting,
         ...rest
     } = props;
 
@@ -120,7 +121,7 @@ const GenericPressable = forwardRef((props, ref) => {
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref}
             disabled={isDisabled}
-            onPress={singleExecution(onPressHandler)}
+            onPress={shouldDisableOnExecuting ? singleExecution(onPressHandler) : onPressHandler}
             // In order to prevent haptic feedback, pass empty callback as onLongPress props. Please refer https://github.com/necolas/react-native-web/issues/2349#issuecomment-1195564240
             onLongPress={onLongPress ? onLongPressHandler : defaultLongPressHandler}
             onKeyPress={onKeyPressHandler}

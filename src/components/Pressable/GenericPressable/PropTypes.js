@@ -130,6 +130,12 @@ const pressablePropTypes = {
      * @default true
      */
     shouldUseAutoHitSlop: PropTypes.bool,
+
+    /**
+     * Specifies if the pressable should be disables when on press is executing
+     * @default false
+     */
+    shouldDisableOnExecuting: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -147,6 +153,7 @@ const defaultProps = {
     enableInScreenReaderStates: CONST.SCREEN_READER_STATES.ALL,
     nextFocusRef: undefined,
     shouldUseAutoHitSlop: false,
+    shouldDisableOnExecuting: false,
     accessible: true,
 };
 

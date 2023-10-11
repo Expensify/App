@@ -79,6 +79,7 @@ const defaultProps = {
     shouldRenderAsHTML: false,
     rightComponent: undefined,
     shouldShowRightComponent: false,
+    shouldDisableOnExecuting: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -161,6 +162,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                         ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
                         props.shouldGreyOutWhenDisabled && props.disabled && styles.buttonOpacityDisabled,
                     ]}
+                    shouldDisableOnExecuting={props.shouldDisableOnExecuting}
                     disabled={props.disabled}
                     ref={ref}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}

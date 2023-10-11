@@ -112,6 +112,9 @@ const propTypes = {
     /** Should enable the haptic feedback? */
     shouldEnableHapticFeedback: PropTypes.bool,
 
+    /** Should disable when on press is executing */
+    shouldDisableOnExecuting: PropTypes.bool,
+
     /** Whether Button is on active screen */
     isFocused: PropTypes.bool.isRequired,
 
@@ -156,6 +159,7 @@ const defaultProps = {
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
+    shouldDisableOnExecuting: false,
     nativeID: '',
     accessibilityLabel: '',
     forwardedRef: undefined,
@@ -283,6 +287,7 @@ class Button extends Component {
                 onPressOut={this.props.onPressOut}
                 onMouseDown={this.props.onMouseDown}
                 disabled={this.props.isLoading || this.props.isDisabled}
+                shouldDisableOnExecuting={this.props.shouldDisableOnExecuting}
                 wrapperStyle={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,

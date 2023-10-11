@@ -153,6 +153,9 @@ const propTypes = {
 
     /** Should render component on the right */
     shouldShowRightComponent: PropTypes.bool,
+
+    /** Should disable when on press is executing */
+    shouldDisableOnExecuting: PropTypes.bool,
 };
 
 export default propTypes;
