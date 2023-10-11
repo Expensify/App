@@ -98,7 +98,6 @@ describe('ReportUtils', () => {
             expect(participants[4].login).toBe('ragnar@vikings.net');
             expect(participants[4].accountID).toBe(1);
             expect(participants[4].pronouns).toBeUndefined();
-
         });
     });
 
