@@ -198,7 +198,7 @@ function ReportActionCompose({
     }, []);
 
     const onItemSelected = useCallback(() => {
-        ReportActionComposeFocusManager.isKeyboardVisibleWhenShowingModalRef.current = false;
+        ReportActionComposeFocusManager.setIsKeyboardVisibleWhenShowingModal(false);
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -258,7 +258,7 @@ function ReportActionCompose({
             suggestionsRef.current.setShouldBlockSuggestionCalc(true);
         }
         isNextModalWillOpenRef.current = true;
-        ReportActionComposeFocusManager.isKeyboardVisibleWhenShowingModalRef.current = true;
+        ReportActionComposeFocusManager.setIsKeyboardVisibleWhenShowingModal(true);
     }, []);
 
     const onBlur = useCallback((e) => {
@@ -267,7 +267,7 @@ function ReportActionCompose({
             suggestionsRef.current.resetSuggestions();
         }
         if (e.relatedTarget && e.relatedTarget === actionButtonRef.current) {
-            ReportActionComposeFocusManager.isKeyboardVisibleWhenShowingModalRef.current = true;
+            ReportActionComposeFocusManager.setIsKeyboardVisibleWhenShowingModal(true);
         }
     }, []);
 

@@ -81,7 +81,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
 
     const onItemSelected = () => {
         setPopupMenuVisible(false);
-        ReportActionComposeFocusManager.isKeyboardVisibleWhenShowingModalRef.current = false;
+        ReportActionComposeFocusManager.setIsKeyboardVisibleWhenShowingModal(false);
     };
 
     return (

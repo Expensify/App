@@ -12,8 +12,7 @@ let focusCallback: FocusCallback | null = null;
 let mainComposerFocusCallback: FocusCallback | null = null;
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
-const isKeyboardVisibleWhenShowingModalRef: React.MutableRefObject<boolean | null> = React.createRef();
-isKeyboardVisibleWhenShowingModalRef.current = false;
+let isKeyboardVisibleWhenShowingModal = false;
 
 /**
  * Register a callback to be called when focus is requested.
@@ -70,15 +69,19 @@ function isEditFocused(): boolean {
     return !!editComposerRef.current?.isFocused();
 }
 
+function setIsKeyboardVisibleWhenShowingModal(value: boolean) {
+    isKeyboardVisibleWhenShowingModal = value;
+}
+
 /**
  * Restore focus state of ReportActionCompose
  */
 function restoreFocusState() {
-    if (!isKeyboardVisibleWhenShowingModalRef.current) {
+    if (!isKeyboardVisibleWhenShowingModal) {
         return;
     }
     composerRef?.current?.focus();
-    isKeyboardVisibleWhenShowingModalRef.current = false;
+    isKeyboardVisibleWhenShowingModal = false;
 }
 
 /**
@@ -86,7 +89,7 @@ function restoreFocusState() {
  */
 function blur() {
     if (!willBlurTextInputOnTapOutside) {
-        isKeyboardVisibleWhenShowingModalRef.current = isFocused();
+        isKeyboardVisibleWhenShowingModal = isFocused();
     }
     composerRef?.current?.blur();
 }
@@ -99,7 +102,7 @@ export default {
     isFocused,
     editComposerRef,
     isEditFocused,
-    isKeyboardVisibleWhenShowingModalRef,
+    setIsKeyboardVisibleWhenShowingModal,
     restoreFocusState,
     blur,
 };
