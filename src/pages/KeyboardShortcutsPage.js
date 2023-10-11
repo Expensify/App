@@ -8,6 +8,7 @@ import styles from '../styles/styles';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
+import MenuItem from '../components/MenuItem';
 
 function KeyboardShortcutsPage() {
     const {translate} = useLocalize();
@@ -30,13 +31,13 @@ function KeyboardShortcutsPage() {
      * @returns {React.Component}
      */
     const renderShortcut = (shortcut) => (
-        <View
+        <MenuItem
             key={shortcut.displayName}
-            style={styles.mb5}
-        >
-            <Text style={[styles.textStrong, styles.mb1]}>{shortcut.displayName}</Text>
-            <Text style={styles.textLabelSupporting}>{translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}`)}</Text>
-        </View>
+            title={shortcut.displayName}
+            description={translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}`)}
+            wrapperStyle={styles.ph0}
+            interactive={false}
+        />
     );
 
     return (
@@ -47,7 +48,7 @@ function KeyboardShortcutsPage() {
             <HeaderWithBackButton title={translate('keyboardShortcutsPage.title')} />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.pv3]}>
-                    <Text style={[styles.mb5, styles.baseFontStyle]}>{translate('keyboardShortcutsPage.subtitle')}</Text>
+                    <Text style={[styles.mb3, styles.baseFontStyle]}>{translate('keyboardShortcutsPage.subtitle')}</Text>
                     {_.map(shortcuts, renderShortcut)}
                 </View>
             </ScrollView>
