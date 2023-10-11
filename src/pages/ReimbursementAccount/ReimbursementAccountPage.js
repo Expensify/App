@@ -97,7 +97,6 @@ const defaultProps = {
 
 function ReimbursementAccountPage({
     reimbursementAccount,
-    network,
     route,
     onfidoToken,
     policy,
@@ -111,7 +110,6 @@ function ReimbursementAccountPage({
     const [prevProps, setPrevProps] = useState({
         current: {
             reimbursementAccount,
-            network,
             route,
             onfidoToken,
             policy,
@@ -145,7 +143,6 @@ function ReimbursementAccountPage({
         setPrevProps({
             current: {
                 reimbursementAccount,
-                network,
                 route,
                 onfidoToken,
                 policy,
@@ -158,7 +155,6 @@ function ReimbursementAccountPage({
         });
     }, [
         reimbursementAccount,
-        network,
         route,
         onfidoToken,
         policy,
@@ -342,7 +338,6 @@ function ReimbursementAccountPage({
         // At the end, update the prevProps ref to the current values
         prevProps.current = {
             reimbursementAccount,
-            network,
             route,
             onfidoToken,
             policy,
@@ -352,7 +347,7 @@ function ReimbursementAccountPage({
             plaidLinkToken,
             reimbursementAccountDraft,
         };
-    }, [reimbursementAccount, network, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton]);
+    }, [reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton]);
 
     /**
      * @param {String} currentStep
