@@ -31,7 +31,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
     // This is necessary because dragging over children will cause dragleave to execute on the parent.
     // You can think of this counter as a stack. When a child is hovered over we push an element onto the stack.
     // Then we only process the dragleave event if the count is 0, because it means that the last element (the parent) has been popped off the stack.
-    const dragCounter = useRef<number>(0);
+    const dragCounter = useRef(0);
 
     // If this component is out of focus or disabled, reset the drag state back to the default
     useEffect(() => {
