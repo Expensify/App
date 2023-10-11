@@ -37,6 +37,7 @@ import variables from '../styles/variables';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import Permissions from '../libs/Permissions';
 import ROUTES from '../ROUTES';
+import MenuItemWithTopDescription from '../components/MenuItemWithTopDescription';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -122,7 +123,7 @@ function ProfilePage(props) {
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
     const isCurrentUser = _.keys(props.loginList).includes(login);
-    const hasMinimumDetails = !_.isEmpty(details.avatar) && !_.isUndefined(details.displayName);
+    const hasMinimumDetails = !_.isEmpty(details.avatar);
     const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details) || props.isLoadingReportData;
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
@@ -135,7 +136,7 @@ function ProfilePage(props) {
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
 
-    const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : 0;
+    const notificationPreference = !_.isEmpty(props.report) ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -231,6 +232,15 @@ function ProfilePage(props) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
+                        {!_.isEmpty(props.report) && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={notificationPreference}
+                                description={props.translate('notificationPreferencesPage.label')}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(props.report.reportID))}
+                                wrapperStyle={[styles.mtn6, styles.mb5]}
+                            />
+                        )}
                         {!isCurrentUser && !Session.isAnonymousUser() && (
                             <MenuItem
                                 title={`${props.translate('common.message')}${displayName}`}
@@ -241,15 +251,15 @@ function ProfilePage(props) {
                                 shouldShowRightIcon
                             />
                         )}
-                        {!_.isEmpty(chatReportWithCurrentUser) && (
+                        {!_.isEmpty(props.report) && (
                             <MenuItem
                                 title={`${props.translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(chatReportWithCurrentUser.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID))}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
-                                brickRoadIndicator={Report.hasErrorInPrivateNotes(chatReportWithCurrentUser) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                                brickRoadIndicator={Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             />
                         )}
                     </ScrollView>
@@ -288,6 +298,21 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        report: {
+            key: ({route, session}) => {
+                const accountID = Number(lodashGet(route.params, 'accountID', 0));
+                if (Number(session.accountID) === accountID || Session.isAnonymousUser()) {
+                    return null;
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(ReportUtils.getChatByParticipants([accountID]), 'reportID', '')}`;
+            },
         },
     }),
 )(ProfilePage);
