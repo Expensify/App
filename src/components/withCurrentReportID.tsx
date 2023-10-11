@@ -1,18 +1,19 @@
-import React, {createContext, forwardRef, useCallback, useState, useMemo} from 'react';
+import React, {createContext, forwardRef, useCallback, useState, useMemo, RefAttributes, ComponentType} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationState} from '@react-navigation/native';
 
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import Navigation from '../libs/Navigation/Navigation';
+import {type} from 'os';
 
-type CurrentReportIDContextType = {
+type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;
     currentReportID: string;
 };
 type CurrentReportIDContextProviderProps = {
     children: React.ReactNode;
 };
-const CurrentReportIDContext = createContext<CurrentReportIDContextType | null>(null);
+const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>(null);
 
 const withCurrentReportIDPropTypes = {
     /** Function to update the state */
@@ -45,7 +46,7 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
      * @returns  currentReportID to share between central pane and LHN
      */
     const contextValue = useMemo(
-        () => ({
+        (): CurrentReportIDContextValue => ({
             updateCurrentReportID,
             currentReportID,
         }),
@@ -62,8 +63,8 @@ CurrentReportIDContextProvider.propTypes = {
 };
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export default function withCurrentReportID(WrappedComponent: React.ComponentType) {
-    const WithCurrentReportID = forwardRef((props, ref) => (
+export default function withCurrentReportID<TComponentProps extends CurrentReportIDContextValue>(WrappedComponent: ComponentType<TComponentProps>) {
+    const WithCurrentReportID: ComponentType<TComponentProps & RefAttributes<ComponentType<TComponentProps>>> = forwardRef((props, ref) => (
         <CurrentReportIDContext.Consumer>
             {(currentReportIDUtils) => (
                 <WrappedComponent
@@ -77,9 +78,10 @@ export default function withCurrentReportID(WrappedComponent: React.ComponentTyp
         </CurrentReportIDContext.Consumer>
     ));
 
-    (WithCurrentReportID as React.FC).displayName = `withCurrentReportID(${getComponentDisplayName(WrappedComponent)})`;
+    WithCurrentReportID.displayName = `withCurrentReportID(${getComponentDisplayName(WrappedComponent)})`;
 
     return WithCurrentReportID;
 }
 
 export {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps, CurrentReportIDContextProvider, CurrentReportIDContext};
+export type {CurrentReportIDContextValue};
