@@ -75,6 +75,8 @@ const propTypes = {
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
 
+    isLoadingReportData: PropTypes.boolean,
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -88,9 +90,10 @@ const defaultProps = {
     },
     policyCategories: {},
     policyTags: {},
+    isLoadingReportData: true
 };
 
-function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags, parentReportActions, transaction, isLoadingReportData}) {
     const parentReportAction = parentReportActions[report.parentReportActionID];
     const {
         amount: transactionAmount,
@@ -130,13 +133,13 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
 
     // Dismiss the modal when the request is paid or deleted
     useEffect(() => {
-        if (canEdit) {
+        if (isLoadingReportData || canEdit) {
             return;
         }
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [canEdit]);
+    }, [canEdit, isLoadingReportData]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
@@ -296,6 +299,9 @@ export default compose(
         },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
