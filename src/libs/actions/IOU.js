@@ -2197,7 +2197,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                     reimburse: null,
                 },
             },
-        }
+        },
     ];
 
     const successData = [

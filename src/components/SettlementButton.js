@@ -73,10 +73,12 @@ const propTypes = {
     }),
 
     /** Next steps buttons to take action for an expense report */
-    nextStepButtons: PropTypes.objectOf(PropTypes.shape({
-        /** Text of the next step button */
-        text: PropTypes.string,
-    })),
+    nextStepButtons: PropTypes.objectOf(
+        PropTypes.shape({
+            /** Text of the next step button */
+            text: PropTypes.string,
+        }),
+    ),
 };
 
 const defaultProps = {
@@ -196,7 +198,7 @@ function SettlementButton({
         buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
 
         if (nextStepButtons.approve) {
-            buttonOptions.push(approveButtonOption)
+            buttonOptions.push(approveButtonOption);
         }
 
         // Put the preferred payment method to the front of the array so its shown as default

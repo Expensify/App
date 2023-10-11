@@ -92,10 +92,12 @@ const propTypes = {
     isWhisper: PropTypes.bool,
 
     /** Next steps buttons to take action for an expense report */
-    nextStepButtons: PropTypes.objectOf(PropTypes.shape({
-        /** Text of the next step button */
-        text: PropTypes.string,
-    })),
+    nextStepButtons: PropTypes.objectOf(
+        PropTypes.shape({
+            /** Text of the next step button */
+            text: PropTypes.string,
+        }),
+    ),
 
     ...withLocalizePropTypes,
 };
@@ -177,7 +179,8 @@ function ReportPreview(props) {
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowPayButtonForFreePlan = !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
+    const shouldShowPayButtonForFreePlan =
+        !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
     const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || props.nextStepButtons.approve || props.nextStepButtons.reimburse;
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
@@ -288,6 +291,6 @@ export default compose(
         nextStepButtons: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_NEXT_STEP}${iouReportID}`,
             selector: (nextStep) => lodashGet(nextStep, 'buttons'),
-        }
+        },
     }),
 )(ReportPreview);

@@ -50,10 +50,12 @@ const propTypes = {
     }),
 
     /** Next steps buttons to take action for an expense report */
-    nextStepButtons: PropTypes.objectOf(PropTypes.shape({
-        /** Text of the next step button */
-        text: PropTypes.string,
-    })),
+    nextStepButtons: PropTypes.objectOf(
+        PropTypes.shape({
+            /** Text of the next step button */
+            text: PropTypes.string,
+        }),
+    ),
 
     ...windowDimensionsPropTypes,
 };
@@ -77,7 +79,14 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
     const isPayer = isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isReportDraft(moneyRequestReport);
     const shouldShowPayButtonForFreePlan = useMemo(
-        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport) && policyType === CONST.POLICY.TYPE.PERSONAL,
+        () =>
+            isPayer &&
+            !isDraft &&
+            !isSettled &&
+            !moneyRequestReport.isWaitingOnBankAccount &&
+            reportTotal !== 0 &&
+            !ReportUtils.isArchivedRoom(chatReport) &&
+            policyType === CONST.POLICY.TYPE.PERSONAL,
         [isPayer, isDraft, isSettled, moneyRequestReport, reportTotal, chatReport, policyType],
     );
     const shouldShowSubmitButton = isDraft && reportTotal !== 0;
@@ -180,6 +189,6 @@ export default compose(
         nextStepButtons: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_NEXT_STEP}${report.reportID}`,
             selector: (nextStep) => lodashGet(nextStep, 'buttons'),
-        }
+        },
     }),
 )(MoneyReportHeader);
