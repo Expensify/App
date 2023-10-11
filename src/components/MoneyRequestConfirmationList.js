@@ -141,9 +141,6 @@ const propTypes = {
     /** Whether the money request is a distance request */
     isDistanceRequest: PropTypes.bool,
 
-    /** Whether the receipt associated with this report is being scanned */
-    isScanning: PropTypes.bool,
-
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields: PropTypes.bool,
 
@@ -185,7 +182,6 @@ const defaultProps = {
     transaction: {},
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
     isDistanceRequest: false,
-    isScanning: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
 };
@@ -287,7 +283,7 @@ function MoneyRequestConfirmationList(props) {
                 value: props.iouType,
             },
         ];
-    }, [isSplitBill, isTypeRequest, props.iouType, props.iouAmount, props.receiptPath, formattedAmount, isDistanceRequestWithoutRoute, translate, props.receiptPathtranslate]);
+    }, [isSplitBill, isTypeRequest, props.iouType, props.iouAmount, props.receiptPath, formattedAmount, isDistanceRequestWithoutRoute, translate]);
 
     const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);

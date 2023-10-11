@@ -37,7 +37,7 @@ const propTypes = {
     reportActions: PropTypes.shape(reportActionPropTypes),
 
     /** The current transaction */
-    transaction: PropTypes.shape(transactionPropTypes),
+    transaction: PropTypes.shape(transactionPropTypes).isRequired,
 
     /** The draft transaction that holds data to be persisited on the current transaction */
     draftTransaction: PropTypes.shape(transactionPropTypes),
@@ -73,7 +73,6 @@ const defaultProps = {
 
 function SplitBillDetailsPage(props) {
     const {reportID} = props.report;
-    console.log(props.route);
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
 

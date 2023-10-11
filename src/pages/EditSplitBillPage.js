@@ -34,7 +34,7 @@ const propTypes = {
     }).isRequired,
 
     /** The current transaction */
-    transaction: PropTypes.shape(transactionPropTypes),
+    transaction: PropTypes.shape(transactionPropTypes).isRequired,
 
     /** The draft transaction that holds data to be persisited on the current transaction */
     draftTransaction: PropTypes.shape(transactionPropTypes),
@@ -42,8 +42,6 @@ const propTypes = {
 
 const defaultProps = {
     draftTransaction: {},
-    transactions: {},
-    reportActions: {},
 };
 
 function EditSplitBillPage({route, transaction, draftTransaction}) {
