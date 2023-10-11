@@ -29,6 +29,6 @@ export default function useCopySelectionHelper() {
             false,
         );
 
-        return unsubscribeCopyShortcut;
+        return () => { unsubscribeCopyShortcut() };
     }, []);
 }
