@@ -2,7 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 
@@ -167,15 +167,6 @@ function IOURequestStepWaypoint({
         Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
     };
 
-    const focusAddressInput = () => {
-        InteractionManager.runAfterInteractions(() => {
-            if (!textInput.current) {
-                return;
-            }
-            textInput.current.focus();
-        });
-    };
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -199,14 +190,12 @@ function IOURequestStepWaypoint({
                             onSelected: () => setIsDeleteStopModalOpen(true),
                         },
                     ]}
-                    onModalHide={focusAddressInput}
                 />
                 <ConfirmModal
                     title={translate('distance.deleteWaypoint')}
                     isVisible={isDeleteStopModalOpen}
                     onConfirm={deleteStopAndHideModal}
                     onCancel={() => setIsDeleteStopModalOpen(false)}
-                    onModalHide={focusAddressInput}
                     prompt={translate('distance.deleteWaypointConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}

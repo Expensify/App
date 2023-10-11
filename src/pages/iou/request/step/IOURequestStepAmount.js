@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
-import * as ReportUtils from '../../../../libs/ReportUtils';
 import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
 import * as IOU from '../../../../libs/actions/IOU';
 import useLocalize from '../../../../hooks/useLocalize';

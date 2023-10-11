@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -76,10 +76,15 @@ function IOURequestStepConfirmation({
 
     const requestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate(TransactionUtils.getHeaderTitle(transaction));
-    const participants = _.map(transaction.participants, (participant) => {
-        const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-        return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
-    });
+    const participants = useMemo(
+        () =>
+            _.map(transaction.participants, (participant) => {
+                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+            }),
+        [transaction.participants, personalDetails],
+    );
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
 
     const navigateBack = () => {
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
@@ -118,6 +123,15 @@ function IOURequestStepConfirmation({
         (selectedParticipants) => {
             const trimmedComment = lodashGet(transaction, 'comment.comment', '').trim();
 
+            // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
+            if (iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && receipt.path) {
+                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
+                FileUtils.readFileAsync(receipt.path, receipt.source).then((receiptFile) => {
+                    IOU.startSplitBill(selectedParticipants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, trimmedComment, receiptFile, existingSplitChatReportID);
+                });
+                return;
+            }
+
             // Split request
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 IOU.splitBillAndOpenReport(
@@ -127,6 +141,7 @@ function IOURequestStepConfirmation({
                     transaction.amount,
                     trimmedComment,
                     transaction.currency,
+                    transaction.category,
                 );
                 return;
             }
@@ -234,7 +249,6 @@ function IOURequestStepConfirmation({
         IOU.setMoneeRequestBillable(transactionID, billable);
     };
 
-    console.log('[tim receipt', transaction.receipt);
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -285,6 +299,7 @@ function IOURequestStepConfirmation({
                                 receiptSource={lodashGet(transaction, 'receipt.source')}
                                 iouType={iouType}
                                 reportID={reportID}
+                                isPolicyExpenseChat={isPolicyExpenseChat}
                                 // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
                                 // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
                                 // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
@@ -317,7 +332,7 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
+            key: ({route, iou}) => `${ONYXKEYS.COLLECTION.REPORT}${IOU.getIOUReportID(iou, route)}`,
         },
         transaction: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
