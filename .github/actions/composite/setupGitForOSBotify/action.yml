@@ -29,4 +29,3 @@ runs:
       shell: bash
       if: runner.debug == '1'
       run: echo "GIT_TRACE=true" >> "$GITHUB_ENV"
-
