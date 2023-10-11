@@ -380,7 +380,7 @@ class BaseOptionsSelector extends Component {
                 errorText={this.state.errorMessage}
                 onSubmitEditing={this.selectFocusedOption}
                 placeholder={this.props.placeholderText}
-                maxLength={this.props.maxLength + CONST.ERROR_EXCEED_RANGE}
+                maxLength={this.props.maxLength + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
                 keyboardType={this.props.keyboardType}
                 onBlur={(e) => {
                     if (!this.props.shouldFocusOnSelectRow) {
