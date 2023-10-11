@@ -402,6 +402,7 @@ export {
     getValidWaypoints,
     isDistanceRequest,
     getWaypoints,
+    areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
