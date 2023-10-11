@@ -10,8 +10,11 @@ import styles from '../../styles/styles';
 import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
+import Performance from '../../libs/Performance';
+import * as App from '../../libs/actions/App';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
+import * as Localize from '../../libs/Localize';
 import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
@@ -23,8 +26,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import * as ActiveClientManager from '../../libs/ActiveClientManager';
-import App from '../../App';
-import * as Localize from '../../libs/Localize';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -84,10 +86,11 @@ const defaultProps = {
  * @param {Object} account
  * @param {Boolean} isPrimaryLogin
  * @param {Boolean} isUsingMagicCode
+ * @param {Boolean} hasInitiatedSAMLLogin
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, isUsingMagicCode, isClientTheLeader}) {
+function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, isUsingMagicCode, hasInitiatedSAMLLogin, isClientTheLeader}) {
     const hasAccount = !_.isEmpty(account);
     const isSAMLEnabled = Boolean(account.isSAMLEnabled);
     const isSAMLRequired = Boolean(account.isSAMLRequired);
@@ -99,18 +102,18 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     const platform = getPlatform();
     if (Permissions.canUseSAML() || platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP) {
         // True if the user has SAML required and we're not already loading their account
-        shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && account.loadingForm === CONST.FORMS.LOGIN_FORM;
+        shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && account.isLoading;
         shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
     }
 
-    let shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
-
-    // The SAML required flow has an edge case that we need to handle here so that the user isn't stuck in a loop
-    // if they've exited out of their SSO provider's login portal
-    if (isSAMLRequired && !shouldInitiateSAMLLogin) {
-        shouldShowLoginForm = isClientTheLeader;
+    // SAML required users may reload the login page after having already entered their login details, in which
+    // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
+    // SSO provider's login page
+    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
+        Session.clearSignInData();
     }
 
+    let shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account.validated && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm =
@@ -143,6 +146,10 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
      * instead of signing in via SAML when SAML is enabled and not required */
     const [isUsingMagicCode, setIsUsingMagicCode] = useState(false);
 
+    /** This state is needed to keep track of whether the user has been directed to their SSO provider's login page and
+     *  if we need to clear their sign in details so they can enter a login */
+    const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
+
     const isClientTheLeader = activeClients && ActiveClientManager.isClientTheLeader();
 
     useEffect(() => Performance.measureTTI(), []);
@@ -165,10 +172,12 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
         account,
         isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
         isUsingMagicCode,
+        hasInitiatedSAMLLogin,
         isClientTheLeader,
     });
 
     if (shouldInitiateSAMLLogin) {
+        setHasInitiatedSAMLLogin(true);
         Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.SAML_SIGN_IN));
     }
 
