@@ -151,48 +151,48 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 )}
             </HeaderWithBackButton>
             <View style={[styles.dFlex, styles.flexColumn, styles.borderBottom]}>
-            {shouldShowNextSteps && (
+                {shouldShowNextSteps && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
-            )}
-            {shouldShowSettlementButton && isSmallScreenWidth && (
+                )}
+                {shouldShowSettlementButton && isSmallScreenWidth && (
                     <View style={[styles.ph5, styles.pb2]}>
-                    <SettlementButton
-                        currency={moneyRequestReport.currency}
-                        policyID={moneyRequestReport.policyID}
-                        chatReportID={moneyRequestReport.chatReportID}
-                        iouReport={moneyRequestReport}
-                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
-                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                        addBankAccountRoute={bankAccountRoute}
-                        shouldShowPaymentOptions
-                        formattedAmount={formattedAmount}
-                    />
-                </View>
-            )}
-            {shouldShowApproveButton && isSmallScreenWidth && (
+                        <SettlementButton
+                            currency={moneyRequestReport.currency}
+                            policyID={moneyRequestReport.policyID}
+                            chatReportID={moneyRequestReport.chatReportID}
+                            iouReport={moneyRequestReport}
+                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
+                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                            addBankAccountRoute={bankAccountRoute}
+                            shouldShowPaymentOptions
+                            formattedAmount={formattedAmount}
+                        />
+                    </View>
+                )}
+                {shouldShowApproveButton && isSmallScreenWidth && (
                     <View style={[styles.ph5, styles.pb2]}>
-                    <Button
-                        success
-                        medium
-                        text={translate('iou.approve')}
-                        style={[styles.w100, styles.pr0]}
-                        onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
-                    />
-                </View>
-            )}
-            {shouldShowSubmitButton && isSmallScreenWidth && (
+                        <Button
+                            success
+                            medium
+                            text={translate('iou.approve')}
+                            style={[styles.w100, styles.pr0]}
+                            onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
+                        />
+                    </View>
+                )}
+                {shouldShowSubmitButton && isSmallScreenWidth && (
                     <View style={[styles.ph5, styles.pb2]}>
-                    <Button
-                        medium
-                        success={chatReport.isOwnPolicyExpenseChat}
-                        text={translate('common.submit')}
-                        style={[styles.w100, styles.pr0]}
-                        onPress={() => IOU.submitReport(moneyRequestReport)}
-                    />
-                </View>
-            )}
+                        <Button
+                            medium
+                            success={chatReport.isOwnPolicyExpenseChat}
+                            text={translate('common.submit')}
+                            style={[styles.w100, styles.pr0]}
+                            onPress={() => IOU.submitReport(moneyRequestReport)}
+                        />
+                    </View>
+                )}
             </View>
         </View>
     );
