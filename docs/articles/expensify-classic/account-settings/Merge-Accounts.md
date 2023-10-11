@@ -27,7 +27,7 @@ No, only the account holder (user) can perform account merging.
 No, merging accounts is not reversible. It is a permanent action that cannot be undone.
 ## Are there any restrictions on account merging?
 Yes! Please see below:
-If your email address belongs to a verified domain (verified in Expensify), you must start the process from the email account under the verified domain. You cannot merge a verified company email account into a personal account.
-If you have two accounts with two different verified domains, you cannot merge them together.
+* If your email address belongs to a verified domain (verified in Expensify), you must start the process from the email account under the verified domain. You cannot merge a verified company email account into a personal account.
+* If you have two accounts with two different verified domains, you cannot merge them together.
 ## What happens to my “personal” Individual policy when merging accounts?
 The old “personal” Individual policy will be deleted. If you plan to submit reports under a different policy in the future, ensure that any reports on the Individual policy in the old account are marked as Open before merging the accounts. You can typically do this by selecting “Undo Submit” on any submitted reports. 
