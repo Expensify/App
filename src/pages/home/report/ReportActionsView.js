@@ -70,7 +70,7 @@ function ReportActionsView(props) {
     const reactionListRef = useContext(ReactionListContext);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
-    const isFirstRender = useRef(false);
+    const isFirstRender = useRef(true);
     const hasCachedActions = useRef(_.size(props.reportActions) > 0);
 
     const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
@@ -174,9 +174,18 @@ function ReportActionsView(props) {
                     return;
                 }
 
+                // Ideally, we wouldn't need to use the 'distanceFromStart' variable. However, due to the low value set for 'maxToRenderPerBatch',
+                // the component undergoes frequent re-renders. This frequent re-rendering triggers the 'onStartReached' callback multiple times.
+                //
+                // To mitigate this issue, we use 'CONST.CHAT_HEADER_LOADER_HEIGHT' as a threshold. This ensures that 'onStartReached' is not
+                // triggered unnecessarily when the chat is initially opened or when the user has reached the end of the list but hasn't scrolled further.
+                //
+                // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
+                // This should be removed once the issue of frequent re-renders is resolved.
+                //
                 // onStartReached is triggered during the first render. Since we use OpenReport on the first render and are confident about the message ordering, we can safely skip this call
-                if (!isFirstRender.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
-                    isFirstRender.current = true;
+                if (isFirstRender.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
+                    isFirstRender.current = false;
                     return;
                 }
 
