@@ -56,7 +56,7 @@ export default function withEnvironment<TComponentProps extends EnvironmentConte
         );
     });
 
-    WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent as ComponentType)})`;
+    WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
 
     return WithEnvironment;
 }
