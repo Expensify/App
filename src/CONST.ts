@@ -478,20 +478,21 @@ const CONST = {
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
-                APPROVED: 'APPROVED',
                 ADDCOMMENT: 'ADDCOMMENT',
+                APPROVED: 'APPROVED',
+                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
-                TASKEDITED: 'TASKEDITED',
-                TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
-                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
-                TASKCOMPLETED: 'TASKCOMPLETED',
-                TASKREOPENED: 'TASKREOPENED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
+                SUBMITTED: 'SUBMITTED',
+                TASKCANCELLED: 'TASKCANCELLED',
+                TASKCOMPLETED: 'TASKCOMPLETED',
+                TASKEDITED: 'TASKEDITED',
+                TASKREOPENED: 'TASKREOPENED',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -930,6 +931,7 @@ const CONST = {
         RECEIPTS: 'receipts@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
+        EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
 
     ACCOUNT_ID: {
@@ -1169,6 +1171,14 @@ const CONST = {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             USER: 'user',
+        },
+        AUTO_REPORTING_FREQUENCIES: {
+            IMMEDIATE: 'immediate',
+            WEEKLY: 'weekly',
+            SEMI_MONTHLY: 'semimonthly',
+            MONTHLY: 'monthly',
+            TRIP: 'trip',
+            MANUAL: 'manual',
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
@@ -2725,6 +2735,8 @@ const CONST = {
         SPEND: 'spend',
         WORKSPACES: 'workspaces',
     },
+
+    MISSING_TRANSLATION: 'MISSING TRANSLATION',
 } as const;
 
 export default CONST;
