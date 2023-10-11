@@ -6,11 +6,14 @@
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
 import {View} from 'react-native';
 import Map, {MapRef, Marker} from 'react-map-gl';
+import mapboxgl from 'mapbox-gl';
 
 import responder from './responder';
 import utils from './utils';
 
 import CONST from '../../CONST';
+import * as StyleUtils from '../../styles/StyleUtils';
+import themeColors from '../../styles/themes/default';
 import Direction from './Direction';
 import {MapViewHandle, MapViewProps} from './MapViewTypes';
 
@@ -40,9 +43,12 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
 
             const map = mapRef.getMap();
 
-            const {northEast, southWest} = utils.getBounds(waypoints.map((waypoint) => waypoint.coordinate));
+            const {northEast, southWest} = utils.getBounds(
+                waypoints.map((waypoint) => waypoint.coordinate),
+                directionCoordinates,
+            );
             map.fitBounds([northEast, southWest], {padding: mapPadding});
-        }, [waypoints, mapRef, mapPadding]);
+        }, [waypoints, mapRef, mapPadding, directionCoordinates]);
 
         useEffect(() => {
             if (!mapRef) {
@@ -81,12 +87,14 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
             >
                 <Map
                     ref={setRef}
+                    mapLib={mapboxgl}
                     mapboxAccessToken={accessToken}
                     initialViewState={{
                         longitude: initialState.location[0],
                         latitude: initialState.location[1],
                         zoom: initialState.zoom,
                     }}
+                    style={StyleUtils.getTextColorStyle(themeColors.mapAttributionText) as React.CSSProperties}
                     mapStyle={styleURL}
                 >
                     {waypoints?.map(({coordinate, markerComponent, id}) => {

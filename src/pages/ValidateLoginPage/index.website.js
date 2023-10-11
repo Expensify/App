@@ -7,7 +7,6 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
-import useLocalize from '../../hooks/useLocalize';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -49,7 +48,6 @@ const defaultProps = {
 };
 
 function ValidateLoginPage(props) {
-    const {preferredLocale} = useLocalize();
     const login = lodashGet(props, 'credentials.login', null);
     const autoAuthState = lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
     const accountID = lodashGet(props.route.params, 'accountID', '');
@@ -71,7 +69,7 @@ function ValidateLoginPage(props) {
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(accountID, validateCode, preferredLocale);
+        Session.signInWithValidateCode(accountID, validateCode);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

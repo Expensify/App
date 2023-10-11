@@ -55,6 +55,10 @@ export default {
         marginHorizontal: -20,
     },
 
+    mv0: {
+        marginVertical: 0,
+    },
+
     mv1: {
         marginVertical: 4,
     },
@@ -201,6 +205,10 @@ export default {
 
     mtAuto: {
         marginTop: 'auto',
+    },
+
+    mtn6: {
+        marginTop: -24,
     },
 
     mb0: {
@@ -443,6 +451,10 @@ export default {
 
     pt5: {
         paddingTop: 20,
+    },
+
+    pt6: {
+        paddingTop: 24,
     },
 
     pt10: {

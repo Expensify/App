@@ -173,6 +173,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
             includeSafeAreaPaddingBottom={false}
             includePaddingTop={false}
             shouldEnableMaxHeight
+            testID={NewChatPage.displayName}
         >
             {({safeAreaPaddingBottomStyle, insets}) => (
                 <KeyboardAvoidingView
@@ -197,7 +198,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
                             onChangeText={setSearchTerm}
                             headerMessage={headerMessage}
                             boldStyle
-                            shouldFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                             shouldShowOptions={isOptionsDataReady}
                             shouldShowConfirmButton
                             confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}

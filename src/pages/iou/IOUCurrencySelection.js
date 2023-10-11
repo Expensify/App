@@ -71,8 +71,7 @@ const defaultProps = {
 function IOUCurrencySelection(props) {
     const [searchValue, setSearchValue] = useState('');
     const optionsSelectorRef = useRef();
-    const selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.currency, CONST.CURRENCY.USD);
-
+    const selectedCurrencyCode = (lodashGet(props.route, 'params.currency', props.iou.currency) || CONST.CURRENCY.USD).toUpperCase();
     const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
     const reportID = lodashGet(props.route, 'params.reportID', '');
 
@@ -96,6 +95,7 @@ function IOUCurrencySelection(props) {
         const currencyOptions = _.map(currencyList, (currencyInfo, currencyCode) => {
             const isSelectedCurrency = currencyCode === selectedCurrencyCode;
             return {
+                currencyName: currencyInfo.name,
                 text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
                 currencyCode,
                 keyForList: currencyCode,
@@ -104,8 +104,8 @@ function IOUCurrencySelection(props) {
             };
         });
 
-        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue), 'i');
-        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text));
+        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
+        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text) || searchRegex.test(currencyOption.currencyName));
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
         return {
@@ -131,12 +131,13 @@ function IOUCurrencySelection(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
+            testID={IOUCurrencySelection.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
                         title={translate('iOUCurrencySelection.selectCurrency')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID))}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
                     />
                     <OptionsSelector
                         sections={sections}

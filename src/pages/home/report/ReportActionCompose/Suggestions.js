@@ -9,9 +9,6 @@ const propTypes = {
     /** A ref to this component */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 
-    /** Callback when a emoji was inserted */
-    onInsertedEmoji: PropTypes.func.isRequired,
-
     /** Function to clear the input */
     resetKeyboardInput: PropTypes.func.isRequired,
 
@@ -28,20 +25,7 @@ const defaultProps = {
  *
  * @returns {React.Component}
  */
-function Suggestions({
-    isComposerFullSize,
-    value,
-    setValue,
-    selection,
-    setSelection,
-    updateComment,
-    composerHeight,
-    shouldShowReportRecipientLocalTime,
-    forwardedRef,
-    onInsertedEmoji,
-    resetKeyboardInput,
-    measureParentContainer,
-}) {
+function Suggestions({isComposerFullSize, value, setValue, selection, setSelection, updateComment, composerHeight, forwardedRef, resetKeyboardInput, measureParentContainer}) {
     const suggestionEmojiRef = useRef(null);
     const suggestionMentionRef = useRef(null);
 
@@ -105,7 +89,6 @@ function Suggestions({
         isComposerFullSize,
         updateComment,
         composerHeight,
-        shouldShowReportRecipientLocalTime,
         isAutoSuggestionPickerLarge,
         measureParentContainer,
     };
@@ -116,7 +99,6 @@ function Suggestions({
                 ref={suggestionEmojiRef}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
-                onInsertedEmoji={onInsertedEmoji}
                 resetKeyboardInput={resetKeyboardInput}
             />
             <SuggestionMention

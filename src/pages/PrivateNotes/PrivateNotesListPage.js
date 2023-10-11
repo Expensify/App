@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {ScrollView} from 'react-native';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
@@ -23,6 +24,7 @@ import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -62,10 +64,11 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
     const {translate} = useLocalize();
 
     useEffect(() => {
-        if (network.isOffline) {
+        if (network.isOffline && report.isLoadingPrivateNotes) {
             return;
         }
         Report.getReportPrivateNote(report.reportID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add isLoadingPrivateNotes to dependencies
     }, [report.reportID, network.isOffline]);
 
     /**
@@ -110,25 +113,36 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
                 title: Number(lodashGet(session, 'accountID', null)) === Number(accountID) ? translate('privateNotes.myNote') : lodashGet(personalDetailsList, [accountID, 'login'], ''),
                 icon: UserUtils.getAvatar(lodashGet(personalDetailsList, [accountID, 'avatar'], UserUtils.getDefaultAvatar(accountID)), accountID),
                 iconType: CONST.ICON_TYPE_AVATAR,
-                action: () => Navigation.navigate(ROUTES.getPrivateNotesViewRoute(report.reportID, accountID)),
+                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.reportID, accountID)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
             }))
             .value();
     }, [report, personalDetailsList, session, translate]);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <FullPageNotFoundView shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {})))}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={PrivateNotesListPage.displayName}
+        >
+            <FullPageNotFoundView
+                shouldShow={
+                    _.isEmpty(report.reportID) ||
+                    (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {}))) ||
+                    ReportUtils.isArchivedRoom(report)
+                }
+            >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
-                    <FullScreenLoadingIndicator />
-                ) : (
-                    _.map(privateNotes, (item, index) => getMenuItem(item, index))
-                )}
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
+                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    ) : (
+                        _.map(privateNotes, (item, index) => getMenuItem(item, index))
+                    )}
+                </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
@@ -136,6 +150,7 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
 
 PrivateNotesListPage.propTypes = propTypes;
 PrivateNotesListPage.defaultProps = defaultProps;
+PrivateNotesListPage.displayName = 'PrivateNotesListPage';
 
 export default compose(
     withLocalize,

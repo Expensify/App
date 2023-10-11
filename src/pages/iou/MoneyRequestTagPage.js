@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import useLocalize from '../../hooks/useLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -36,12 +37,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Collection of tags attached to a policy */
-    policyTags: PropTypes.objectOf(
-        PropTypes.shape({
-            name: PropTypes.string,
-            tags: PropTypes.objectOf(tagPropTypes),
-        }),
-    ),
+    policyTags: tagPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
@@ -60,11 +56,10 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
 
     // Fetches the first tag list of the policy
     const tagListKey = _.first(_.keys(policyTags));
-    const tagList = lodashGet(policyTags, tagListKey, {});
-    const tagListName = lodashGet(tagList, 'name', translate('common.tag'));
+    const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, report.reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
     };
 
     const updateTag = (selectedTag) => {
@@ -80,12 +75,13 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={MoneyRequestTagPage.displayName}
         >
             <HeaderWithBackButton
-                title={tagListName}
+                title={policyTagListName}
                 onBackButtonPress={navigateBack}
             />
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: tagListName})}</Text>
+            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
             <TagPicker
                 policyID={report.policyID}
                 tag={tagListKey}
@@ -102,13 +98,21 @@ MoneyRequestTagPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
-        },
         iou: {
             key: ONYXKEYS.IOU,
         },
     }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        report: {
+            key: ({route, iou}) => {
+                const reportID = IOU.getIOUReportID(iou, route);
+
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            },
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,

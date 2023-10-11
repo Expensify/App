@@ -59,9 +59,6 @@ const propTypes = {
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
 
-    /** Whether the money request is a scan request or not */
-    isScanRequest: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
@@ -73,7 +70,6 @@ const defaultProps = {
     reports: {},
     betas: [],
     isDistanceRequest: false,
-    isScanRequest: false,
 };
 
 function MoneyRequestParticipantsSelector({
@@ -89,7 +85,6 @@ function MoneyRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
-    isScanRequest,
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
@@ -143,7 +138,10 @@ function MoneyRequestParticipantsSelector({
         if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
             newSections.push({
                 undefined,
-                data: [newChatOptions.userToInvite],
+                data: _.map([newChatOptions.userToInvite], (participant) => {
+                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+                }),
                 shouldShow: true,
                 indexOffset,
             });
@@ -158,7 +156,9 @@ function MoneyRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = (option) => {
-        onAddParticipants([{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true}]);
+        onAddParticipants([
+            {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText},
+        ]);
         navigateToRequest();
     };
 
@@ -187,35 +187,20 @@ function MoneyRequestParticipantsSelector({
             } else {
                 newSelectedOptions = [
                     ...participants,
-                    {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true},
+                    {
+                        accountID: option.accountID,
+                        login: option.login,
+                        isPolicyExpenseChat: option.isPolicyExpenseChat,
+                        reportID: option.reportID,
+                        selected: true,
+                        searchText: option.searchText,
+                    },
                 ];
             }
 
             onAddParticipants(newSelectedOptions);
-
-            const chatOptions = OptionsListUtils.getFilteredOptions(
-                reports,
-                personalDetails,
-                betas,
-                isOptionInList ? searchTerm : '',
-                newSelectedOptions,
-                CONST.EXPENSIFY_EMAILS,
-
-                // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-                // sees the option to request money from their admin on their own Workspace Chat.
-                iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
-
-                // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-                !isDistanceRequest,
-            );
-
-            setNewChatOptions({
-                recentReports: chatOptions.recentReports,
-                personalDetails: chatOptions.personalDetails,
-                userToInvite: chatOptions.userToInvite,
-            });
         },
-        [participants, onAddParticipants, reports, personalDetails, betas, searchTerm, iouType, isDistanceRequest],
+        [participants, onAddParticipants],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -223,7 +208,7 @@ function MoneyRequestParticipantsSelector({
         Boolean(newChatOptions.userToInvite),
         searchTerm.trim(),
         maxParticipantsReached,
-        _.some(participants, (participant) => participant.login.toLowerCase().includes(searchTerm.trim().toLowerCase())),
+        _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
@@ -255,7 +240,7 @@ function MoneyRequestParticipantsSelector({
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowConfirmButton = !(participants.length > 1 && hasPolicyExpenseChatParticipant);
-    const isAllowedToSplit = !isDistanceRequest && !isScanRequest;
+    const isAllowedToSplit = !isDistanceRequest;
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
@@ -278,7 +263,7 @@ function MoneyRequestParticipantsSelector({
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
-                shouldFocusOnSelectRow={!Browser.isMobile()}
+                shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 shouldDelayFocus
             />
         </View>

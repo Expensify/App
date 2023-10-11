@@ -14,11 +14,7 @@ const requestsToIgnoreLastUpdateID = ['OpenApp', 'ReconnectApp', 'GetMissingOnyx
  * @returns {Promise}
  */
 function SaveResponseInOnyx(requestResponse, request) {
-    return requestResponse.then((response) => {
-        // Make sure we have response data (i.e. response isn't a promise being passed down to us by a failed retry request and response undefined)
-        if (!response) {
-            return;
-        }
+    return requestResponse.then((response = {}) => {
         const onyxUpdates = response.onyxData;
 
         // Sometimes we call requests that are successfull but they don't have any response or any success/failure data to set. Let's return early since

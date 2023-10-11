@@ -1,3 +1,6 @@
+// Do not remove this import until moment package is fully removed.
+// Issue - https://github.com/Expensify/App/issues/26719
+import 'moment/locale/es';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -325,10 +328,10 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
             }
 
             if (shouldNavigateToAdminChat) {
-                Navigation.navigate(ROUTES.getReportRoute(adminsChatReportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
             }
 
-            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
         })
         .then(endSignOnTransition);
 }

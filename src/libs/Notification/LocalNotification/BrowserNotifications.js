@@ -111,7 +111,7 @@ export default {
         const plainTextMessage = (_.find(message, (f) => f.type === 'COMMENT') || {}).text;
 
         if (isChatRoom) {
-            const roomName = _.get(report, 'displayName', '');
+            const roomName = ReportUtils.getReportName(report);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -122,6 +122,16 @@ export default {
         push({
             title,
             body,
+            delay: 0,
+            onClick,
+            icon: usesIcon ? EXPENSIFY_ICON_URL : '',
+        });
+    },
+
+    pushModifiedExpenseNotification({reportAction, onClick}, usesIcon = false) {
+        push({
+            title: _.map(reportAction.person, (f) => f.text).join(', '),
+            body: ReportUtils.getModifiedExpenseMessage(reportAction),
             delay: 0,
             onClick,
             icon: usesIcon ? EXPENSIFY_ICON_URL : '',

@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
 
     <!-- android:hardwareAccelerated is essential for Android performance: https://developer.android.com/topic/performance/hardware-accel -->
     <application
@@ -67,6 +69,7 @@
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/split"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/request"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/new"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/search"/>
 
                 <!-- Staging URLs -->
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
@@ -83,6 +86,7 @@
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/split"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/request"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/new"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/search"/>
             </intent-filter>
         </activity>
 

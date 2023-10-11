@@ -25,6 +25,7 @@ type AvatarSizeValue = ValueOf<
         | 'avatarSizeSubscript'
         | 'avatarSizeSmall'
         | 'avatarSizeSmaller'
+        | 'avatarSizeXLarge'
         | 'avatarSizeLarge'
         | 'avatarSizeMedium'
         | 'avatarSizeLargeBordered'
@@ -40,6 +41,7 @@ type AvatarSize = {width: number};
 type ParsableStyle = ViewStyle | CSSProperties | ((state: PressableStateCallbackType) => ViewStyle | CSSProperties);
 
 type WorkspaceColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
+type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue};
 
 type ModalPaddingStylesArgs = {
     shouldAddBottomSafeAreaMargin: boolean;
@@ -85,6 +87,15 @@ const workspaceColorOptions: WorkspaceColorStyle[] = [
     {backgroundColor: colors.ice700, fill: colors.ice200},
 ];
 
+const eReceiptColorOptions: EreceiptColorStyle[] = [
+    {backgroundColor: colors.yellow600, color: colors.yellow100},
+    {backgroundColor: colors.blue800, color: colors.ice400},
+    {backgroundColor: colors.blue400, color: colors.blue100},
+    {backgroundColor: colors.green800, color: colors.green400},
+    {backgroundColor: colors.tangerine800, color: colors.tangerine400},
+    {backgroundColor: colors.pink800, color: colors.pink400},
+];
+
 const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
     [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.componentBorderRadiusSmall,
@@ -95,6 +106,7 @@ const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.XLARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.componentBorderRadiusMedium,
 };
@@ -107,6 +119,7 @@ const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
     [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
+    [CONST.AVATAR_SIZE.XLARGE]: variables.avatarSizeXLarge,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
@@ -229,12 +242,21 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle | C
 }
 
 /**
- * Helper method to return old dot default avatar associated with login
+ * Helper method to return workspace avatar color styles
  */
 function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle | CSSProperties {
     const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
+}
+
+/**
+ * Helper method to return eReceipt color styles
+ */
+function getEReceiptColor(transactionID: string): ViewStyle | CSSProperties {
+    const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColorOptions.length);
+
+    return eReceiptColorOptions[colorHash];
 }
 
 /**
@@ -574,7 +596,7 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle | CSSProper
 /**
  * Generate the styles for the ReportActionItem wrapper view.
  */
-function getReportActionItemStyle(isHovered = false, isLoading = false): ViewStyle | CSSProperties {
+function getReportActionItemStyle(isHovered = false): ViewStyle | CSSProperties {
     // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -584,7 +606,7 @@ function getReportActionItemStyle(isHovered = false, isLoading = false): ViewSty
             ? themeColors.hoverComponentBG
             : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
               themeColors.transparent,
-        opacity: isLoading ? 0.5 : 1,
+        opacity: 1,
         ...styles.cursorInitial,
     };
 }
@@ -675,10 +697,10 @@ function extractValuesFromRGB(color: string): number[] | null {
  * @returns The theme color as an RGB value.
  */
 function getThemeBackgroundColor(bgColor: string = themeColors.appBG): string {
-    const backdropOpacity = variables.modalFullscreenBackdropOpacity;
+    const backdropOpacity = variables.overlayOpacity;
 
     const [backgroundRed, backgroundGreen, backgroundBlue] = extractValuesFromRGB(bgColor) ?? hexadecimalToRGBArray(bgColor) ?? [];
-    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop) ?? [];
+    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.overlay) ?? [];
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
     const [red, green, blue] = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
@@ -836,7 +858,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): View
     if (isSmallScreenWidth) {
         return {
             height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '100%',
+            width: '200%',
             position: 'absolute',
         };
     }
@@ -935,19 +957,17 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: {lef
 /**
  * Gets the correct position for auto complete suggestion container
  */
-function getAutoCompleteSuggestionContainerStyle(itemsHeight: number, shouldIncludeReportRecipientLocalTimeHeight: boolean): ViewStyle | CSSProperties {
+function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle | CSSProperties {
     'worklet';
 
-    const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
-    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + optionalPadding;
     const borderWidth = 2;
-    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + borderWidth;
+    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(height + padding),
+        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + borderWidth),
         height,
     };
 }
@@ -1147,9 +1167,22 @@ function getDisabledLinkStyles(isDisabled = false): ViewStyle | CSSProperties {
 }
 
 /**
+ * Returns the checkbox pressable style
+ */
+function getCheckboxPressableStyle(borderRadius = 6): ViewStyle | CSSProperties {
+    return {
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        // eslint-disable-next-line object-shorthand
+        borderRadius: borderRadius,
+    };
+}
+
+/**
  * Returns the checkbox container style
  */
-function getCheckboxContainerStyle(size: number, borderRadius: number): ViewStyle | CSSProperties {
+function getCheckboxContainerStyle(size: number, borderRadius = 4): ViewStyle | CSSProperties {
     return {
         backgroundColor: themeColors.componentBG,
         height: size,
@@ -1286,8 +1319,10 @@ export {
     getWrappingStyle,
     getMenuItemTextContainerStyle,
     getDisabledLinkStyles,
+    getCheckboxPressableStyle,
     getCheckboxContainerStyle,
     getDropDownButtonHeight,
     getAmountFontSizeAndLineHeight,
     getTransparentColor,
+    getEReceiptColor,
 };

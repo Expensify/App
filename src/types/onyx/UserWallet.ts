@@ -34,6 +34,9 @@ type UserWallet = {
     /** The type of the linked account (debitCard or bankAccount) */
     walletLinkedAccountType: WalletLinkedAccountType;
 
+    /** The wallet's programID, used to show the correct terms. */
+    walletProgramID?: string;
+
     /** The user's bank account ID */
     bankAccountID?: number;
 

@@ -36,14 +36,14 @@ const darkTheme = {
     signInPage: colors.green800,
 
     // Additional keys
-    overlay: colors.darkHighlightBackground,
+    overlay: colors.darkBorders,
     inverse: colors.darkPrimaryText,
     shadow: colors.black,
     componentBG: colors.darkAppBackground,
     hoverComponentBG: colors.darkHighlightBackground,
     activeComponentBG: colors.darkBorders,
     signInSidebar: colors.green800,
-    sidebar: colors.darkHighlightBackground,
+    sidebar: colors.darkAppBackground,
     sidebarHover: colors.darkAppBackground,
     heading: colors.darkPrimaryText,
     textLight: colors.darkPrimaryText,
@@ -53,7 +53,6 @@ const darkTheme = {
     textMutedReversed: colors.darkIcons,
     textError: colors.red,
     offline: colors.darkIcons,
-    modalBackdrop: colors.darkHighlightBackground,
     modalBackground: colors.darkAppBackground,
     cardBG: colors.darkHighlightBackground,
     cardBorder: colors.darkHighlightBackground,
@@ -83,15 +82,18 @@ const darkTheme = {
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
+    selectionListIndicatorColor: colors.white,
+    mapAttributionText: colors.black,
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: darkTheme.sidebar,
+    [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
     [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
     [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
-    [ROUTES.SETTINGS_STATUS]: colors.green700,
-    [ROUTES.I_KNOW_A_TEACHER]: colors.tangerine800,
-    [ROUTES.SETTINGS_SECURITY]: colors.ice500,
+    [SCREENS.SETTINGS.SECURITY]: colors.ice500,
+    [SCREENS.SETTINGS.STATUS]: colors.green700,
+    [SCREENS.SETTINGS.ROOT]: darkTheme.sidebar,
 };
 
 export default darkTheme;

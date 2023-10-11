@@ -108,6 +108,7 @@ const CONST = {
 
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
+        ASPECT_RATIO: 3.72,
         SMALL_SCREEN: {
             IMAGE_HEIGHT: 300,
             CONTAINER_MINHEIGHT: 200,
@@ -123,8 +124,6 @@ const CONST = {
         },
     },
 
-    RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY: 0.4,
-
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
@@ -136,6 +135,8 @@ const CONST = {
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         LOCAL_TIME_FORMAT: 'h:mm a',
+        YEAR_MONTH_FORMAT: 'yyyyMM',
+        MONTH_FORMAT: 'MMMM',
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
@@ -234,7 +235,6 @@ const CONST = {
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         BETA_COMMENT_LINKING: 'commentLinking',
         INTERNATIONALIZATION: 'internationalization',
-        IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
@@ -442,6 +442,12 @@ const CONST = {
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
     EXPENSIFY_URL: 'https://www.expensify.com',
+    BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
+        'https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account',
+    PERSONAL_DATA_PROTECTION_INFO_URL: 'https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information',
+    ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
+    ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
+    ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
@@ -472,20 +478,21 @@ const CONST = {
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
-                APPROVED: 'APPROVED',
                 ADDCOMMENT: 'ADDCOMMENT',
+                APPROVED: 'APPROVED',
+                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
-                TASKEDITED: 'TASKEDITED',
-                TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
-                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
-                TASKCOMPLETED: 'TASKCOMPLETED',
-                TASKREOPENED: 'TASKREOPENED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
+                SUBMITTED: 'SUBMITTED',
+                TASKCANCELLED: 'TASKCANCELLED',
+                TASKCOMPLETED: 'TASKCOMPLETED',
+                TASKEDITED: 'TASKEDITED',
+                TASKREOPENED: 'TASKREOPENED',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -678,6 +685,25 @@ const CONST = {
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
         },
+        STATUS: {
+            PENDING: 'Pending',
+            POSTED: 'Posted',
+        },
+    },
+    MCC_GROUPS: {
+        AIRLINES: 'Airlines',
+        COMMUTER: 'Commuter',
+        GAS: 'Gas',
+        GOODS: 'Goods',
+        GROCERIES: 'Groceries',
+        HOTEL: 'Hotel',
+        MAIL: 'Mail',
+        MEALS: 'Meals',
+        RENTAL: 'Rental',
+        SERVICES: 'Services',
+        TAXI: 'Taxi',
+        MISCELLANEOUS: 'Miscellaneous',
+        UTILITIES: 'Utilities',
     },
     JSON_CODE: {
         SUCCESS: 200,
@@ -733,10 +759,11 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
+        MAX_REQUEST_RETRIES: 10,
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: {}, success: '', isLoading: false},
+    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -822,6 +849,8 @@ const CONST = {
         DEFAULT: 'default',
     },
 
+    YOUR_LOCATION_TEXT: 'Your Location',
+
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     // This is a placeholder for attachment which is uploading
     ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
@@ -902,6 +931,7 @@ const CONST = {
         RECEIPTS: 'receipts@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
+        EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
 
     ACCOUNT_ID: {
@@ -983,6 +1013,15 @@ const CONST = {
         TIER_NAME: {
             GOLD: 'GOLD',
             SILVER: 'SILVER',
+        },
+        WEB_MESSAGE_TYPE: {
+            STATEMENT: 'STATEMENT_NAVIGATE',
+            CONCIERGE: 'CONCIERGE_NAVIGATE',
+        },
+        MTL_WALLET_PROGRAM_ID: '760',
+        PROGRAM_ISSUERS: {
+            EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
+            BANCORP_BANK: 'The Bancorp Bank',
         },
     },
 
@@ -1133,6 +1172,14 @@ const CONST = {
             AUDITOR: 'auditor',
             USER: 'user',
         },
+        AUTO_REPORTING_FREQUENCIES: {
+            IMMEDIATE: 'immediate',
+            WEEKLY: 'weekly',
+            SEMI_MONTHLY: 'semimonthly',
+            MONTHLY: 'monthly',
+            TRIP: 'trip',
+            MANUAL: 'manual',
+        },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
@@ -1145,6 +1192,7 @@ const CONST = {
         DISTANCE_UNIT_KILOMETERS: 'km',
         MILEAGE_IRS_RATE: 0.655,
         DEFAULT_RATE: 'Default Rate',
+        RATE_DECIMALS: 3,
     },
 
     TERMS: {
@@ -1163,6 +1211,7 @@ const CONST = {
     },
 
     AVATAR_SIZE: {
+        XLARGE: 'xlarge',
         LARGE: 'large',
         MEDIUM: 'medium',
         DEFAULT: 'default',
@@ -1182,6 +1231,13 @@ const CONST = {
             DOMAIN: 'domain',
             INDIVIDUAL: 'individal',
             NONE: 'none',
+        },
+        STATE: {
+            OPEN: 3,
+            NOT_ACTIVATED: 4,
+            STATE_DEACTIVATED: 5,
+            CLOSED: 6,
+            STATE_SUSPENDED: 7,
         },
     },
     AVATAR_ROW_SIZE: {
@@ -1208,7 +1264,7 @@ const CONST = {
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
-        ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
+        ROOM_NAME: /^#[\p{Ll}0-9-]{1,80}$/u,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
@@ -1222,6 +1278,7 @@ const CONST = {
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
+        LINE_BREAK: /\n/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
@@ -1229,7 +1286,7 @@ const CONST = {
 
         SPECIAL_CHAR_OR_EMOJI:
             // eslint-disable-next-line no-misleading-character-class
-            /[\n\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+            /[\n\s,/?"{}[\]()&_~^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
         SPACE_OR_EMOJI:
             // eslint-disable-next-line no-misleading-character-class
@@ -1252,6 +1309,8 @@ const CONST = {
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         ATTACHMENT_ROUTE: /\/r\/(\d*)\/attachment/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
+
+        ENCODE_PERCENT_CHARACTER: /%(25)+/g,
     },
 
     PRONOUNS: {
@@ -1311,9 +1370,9 @@ const CONST = {
     },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
-    MAX_COMMENT_LENGTH: 15000,
+    MAX_COMMENT_LENGTH: 10000,
 
-    // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
+    // Use the same value as MAX_COMMENT_LENGTH to ensure the entire comment is parsed. Note that applying markup is very resource-consuming.
     MAX_MARKUP_LENGTH: 10000,
 
     MAX_THREAD_REPLIES_PREVIEW: 99,
@@ -1357,7 +1416,10 @@ const CONST = {
         DATE: 'date',
         DESCRIPTION: 'description',
         MERCHANT: 'merchant',
+        CATEGORY: 'category',
         RECEIPT: 'receipt',
+        DISTANCE: 'distance',
+        TAG: 'tag',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -2650,19 +2712,37 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
+
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
     },
+
     EVENTS: {
         SCROLLING: 'scrolling',
     },
+
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
         DEFAULT_MARGIN_VERTICAL: 8,
         HIDDEN_MARGIN_VERTICAL: 0,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
+
+    GLOBAL_NAVIGATION_OPTION: {
+        HOME: 'home',
+        CHATS: 'chats',
+        SPEND: 'spend',
+        WORKSPACES: 'workspaces',
+    },
+
+    MISSING_TRANSLATION: 'MISSING TRANSLATION',
+    SEARCH_MAX_LENGTH: 500,
+
+    /**
+     * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
+     */
+    ADDITIONAL_ALLOWED_CHARACTERS: 20,
 } as const;
 
 export default CONST;

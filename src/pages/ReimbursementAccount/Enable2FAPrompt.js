@@ -13,7 +13,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 function Enable2FAPrompt(props) {
-    const secureYourAccountUrl = encodeURI(`settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.getBankAccountRoute()}","isFromNewDot":"true"}`);
+    const secureYourAccountUrl = encodeURI(
+        `settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute()}","isFromNewDot":"true"}`,
+    );
 
     return (
         <Section

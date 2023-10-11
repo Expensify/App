@@ -3,6 +3,7 @@ import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../../styles/styles';
+import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import CarouselActions from './CarouselActions';
 import withWindowDimensions from '../../withWindowDimensions';
 import CarouselButtons from './CarouselButtons';
@@ -12,7 +13,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize from '../../withLocalize';
 import compose from '../../../libs/compose';
 import useCarouselArrows from './useCarouselArrows';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import CarouselItem from './CarouselItem';
 import Navigation from '../../../libs/Navigation/Navigation';
 import BlockingView from '../../BlockingViews/BlockingView';
@@ -30,7 +30,6 @@ const viewabilityConfig = {
 function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
     const scrollRef = useRef(null);
 
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const [containerWidth, setContainerWidth] = useState(0);
@@ -133,29 +132,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     );
 
     /**
-     * Defines how a container for a single attachment should be rendered
-     * @param {Object} cellRendererProps
-     * @returns {JSX.Element}
-     */
-    const renderCell = useCallback(
-        (cellProps) => {
-            // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
-            // considering horizontal margin and border width in centered modal
-            const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
-            const style = [cellProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
-
-            return (
-                <View
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...cellProps}
-                    style={style}
-                />
-            );
-        },
-        [isSmallScreenWidth, windowWidth],
-    );
-
-    /**
      * Defines how a single attachment should be rendered
      * @param {Object} item
      * @param {String} item.reportActionID
@@ -226,7 +202,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             windowSize={5}
                             maxToRenderPerBatch={3}
                             data={attachments}
-                            CellRendererComponent={renderCell}
+                            CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
                             getItemLayout={getItemLayout}
                             keyExtractor={(item) => item.source}
