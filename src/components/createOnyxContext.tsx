@@ -33,7 +33,7 @@ type WithOnyxKey<TOnyxKey extends OnyxKeys> = <TNewOnyxKey extends string = TOny
 ) => WrapComponentWithConsumer<TNewOnyxKey, TTransformedValue>;
 
 // createOnyxContext return type
-type CreateOnyxContext<TOnyxKey extends OnyxKeys> = [WithOnyxKey<TOnyxKey>, ComponentType<Omit<ProviderPropsWithOnyx<TOnyxKey>, TOnyxKey>>, Context<OnyxKeyValue<TOnyxKey>>];
+type CreateOnyxContext<TOnyxKey extends OnyxKeys> = [WithOnyxKey<TOnyxKey>, ComponentType<Omit<ProviderPropsWithOnyx<TOnyxKey>, TOnyxKey>>, React.Context<OnyxKeyValue<TOnyxKey>>];
 
 export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey, defaultValue: OnyxKeyValue<TOnyxKey> = null): CreateOnyxContext<TOnyxKey> => {
     const Context = createContext(defaultValue);
