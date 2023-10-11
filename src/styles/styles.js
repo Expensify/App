@@ -2969,47 +2969,6 @@ const styles = (theme) => ({
         transform: [{scaleX: -1}, {scaleY: -1}],
     },
 
-    keyboardShortcutModalContainer: {
-        maxHeight: '100%',
-        flex: 0,
-        flexBasis: 'auto',
-    },
-
-    keyboardShortcutTableWrapper: {
-        alignItems: 'center',
-        flex: 1,
-        height: 'auto',
-        maxHeight: '100%',
-    },
-
-    keyboardShortcutTableContainer: {
-        display: 'flex',
-        width: '100%',
-        borderColor: theme.border,
-        height: 'auto',
-        borderRadius: variables.componentBorderRadius,
-        borderWidth: 1,
-    },
-
-    keyboardShortcutTableRow: {
-        flex: 1,
-        flexDirection: 'row',
-        borderColor: theme.border,
-        flexBasis: 'auto',
-        alignSelf: 'stretch',
-        borderTopWidth: 1,
-    },
-
-    keyboardShortcutTablePrefix: {
-        width: '30%',
-        borderRightWidth: 1,
-        borderColor: theme.border,
-    },
-
-    keyboardShortcutTableFirstRow: {
-        borderTopWidth: 0,
-    },
-
     iPhoneXSafeArea: {
         backgroundColor: theme.inverse,
         flex: 1,

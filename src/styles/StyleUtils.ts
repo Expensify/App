@@ -797,16 +797,6 @@ function fade(fadeAnimation: Animated.Value): Animated.WithAnimatedValue<ViewSty
     };
 }
 
-/**
- * Return width for keyboard shortcuts modal.
- */
-function getKeyboardShortcutsModalWidth(isSmallScreenWidth: boolean): ViewStyle | CSSProperties {
-    if (isSmallScreenWidth) {
-        return {maxWidth: '100%'};
-    }
-    return {maxWidth: 600};
-}
-
 function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}: AvatarBorderStyleArgs): ViewStyle | CSSProperties {
     let borderColor = shouldUseCardBackground ? themeColors.cardBG : themeColors.appBG;
 
@@ -1299,7 +1289,6 @@ export {
     getEmojiPickerStyle,
     getReportActionItemStyle,
     getMiniReportActionContextMenuWrapperStyle,
-    getKeyboardShortcutsModalWidth,
     getPaymentMethodMenuWidth,
     getThemeBackgroundColor,
     parseStyleAsArray,
