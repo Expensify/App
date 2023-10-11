@@ -79,6 +79,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 contentContainerStyle={contentContainerStyles}
                 showsVerticalScrollIndicator={false}
                 data={data}
+                testID="lhn-options-list"
                 keyExtractor={(item) => item}
                 stickySectionHeadersEnabled={false}
                 renderItem={renderItem}
