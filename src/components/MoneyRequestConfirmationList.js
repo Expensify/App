@@ -193,6 +193,7 @@ function MoneyRequestConfirmationList(props) {
     const {translate, toLocaleDigit} = useLocalize();
 
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
+    const isTypeSend = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
 
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
@@ -209,6 +210,10 @@ function MoneyRequestConfirmationList(props) {
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
     const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields;
+
+    // In Send Money flow, we don't allow the Merchant or Date to be edited.
+    const shouldShowDate = shouldShowAllFields && !isTypeSend;
+    const shouldShowMerchant = shouldShowAllFields && !isTypeSend;
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(props.policyTags);
@@ -549,7 +554,7 @@ function MoneyRequestConfirmationList(props) {
             )}
             {shouldShowAllFields && (
                 <>
-                    {shouldShowSmartScanFields && (
+                    {shouldShowDate && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
@@ -571,7 +576,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}
-                    {shouldShowSmartScanFields && (
+                    {shouldShowMerchant && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouMerchant}
