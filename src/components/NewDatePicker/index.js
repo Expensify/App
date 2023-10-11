@@ -45,25 +45,25 @@ const datePickerDefaultProps = {
 };
 
 function NewDatePicker(props) {
-    const [date, setDate] = useState(props.value || props.defaultValue || undefined);
+    const [selectedDate, setSelectedDate] = useState(props.value || props.defaultValue || undefined);
 
     useEffect(() => {
-        if (date === props.value || _.isUndefined(props.value)) {
+        if (selectedDate === props.value || _.isUndefined(props.value)) {
             return;
         }
-        setDate(props.value);
-    }, [date, props.value]);
+        setSelectedDate(props.value);
+    }, [selectedDate, props.value]);
 
     useEffect(() => {
         if (_.isFunction(props.onTouched)) {
             props.onTouched();
         }
         if (_.isFunction(props.onInputChange)) {
-            props.onInputChange(date);
+            props.onInputChange(selectedDate);
         }
-        // To keep behavior from class component state update callback, we want to run effect only when the date is changed.
+        // To keep behavior from class component state update callback, we want to run effect only when the selected date is changed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [date]);
+    }, [selectedDate]);
 
     return (
         <View style={styles.datePickerRoot}>
@@ -76,7 +76,7 @@ function NewDatePicker(props) {
                     label={props.label}
                     accessibilityLabel={props.label}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    value={props.value || date || ''}
+                    value={props.value || selectedDate || ''}
                     placeholder={props.placeholder || props.translate('common.dateFormat')}
                     errorText={props.errorText}
                     containerStyles={props.containerStyles}
@@ -90,8 +90,8 @@ function NewDatePicker(props) {
                 <CalendarPicker
                     minDate={props.minDate}
                     maxDate={props.maxDate}
-                    value={date}
-                    onSelected={setDate}
+                    value={selectedDate}
+                    onSelected={setSelectedDate}
                 />
             </View>
         </View>
