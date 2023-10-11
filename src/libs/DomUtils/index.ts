@@ -1,4 +1,4 @@
-import {GetActiveElement} from './types';
+import GetActiveElement from './types';
 
 const getActiveElement: GetActiveElement = () => document.activeElement;
 

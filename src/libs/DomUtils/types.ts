@@ -1,3 +1,3 @@
 type GetActiveElement = () => Element | null;
 
-export type {GetActiveElement};
+export default GetActiveElement;
