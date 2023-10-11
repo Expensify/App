@@ -263,6 +263,7 @@ export default {
         recent: 'Recent',
         all: 'All',
         tbd: 'TBD',
+        card: 'Card',
     },
     location: {
         useCurrent: 'Use current location',
@@ -506,6 +507,8 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        deleteReceipt: 'Delete receipt',
+        deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
     },
     iou: {
@@ -1592,7 +1595,7 @@ export default {
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
     },
-    keyboardShortcutModal: {
+    keyboardShortcutsPage: {
         title: 'Keyboard shortcuts',
         subtitle: 'Save time with these handy keyboard shortcuts:',
         shortcuts: {
@@ -1838,5 +1841,9 @@ export default {
     },
     globalNavigationOptions: {
         chats: 'Chats',
+    },
+    eReceipt: {
+        guaranteed: 'Guaranteed eReceipt',
+        transactionDate: 'Transaction date',
     },
 } satisfies TranslationBase;

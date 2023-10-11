@@ -2663,6 +2663,29 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     Navigation.dismissModal(chatReport.reportID);
 }
 
+function detachReceipt(transactionID) {
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
+    const newTransaction = {...transaction, filename: '', receipt: {}};
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: newTransaction,
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: transaction,
+        },
+    ];
+
+    API.write('DetachReceipt', {transactionID}, {optimisticData, failureData});
+}
+
 /**
  * @param {String} transactionID
  * @param {Object} receipt
@@ -2897,5 +2920,6 @@ export {
     navigateToNextPage,
     updateDistanceRequest,
     replaceReceipt,
+    detachReceipt,
     getIOUReportID,
 };

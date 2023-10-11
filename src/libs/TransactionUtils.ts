@@ -257,6 +257,13 @@ function getCategory(transaction: Transaction): string {
 }
 
 /**
+ * Return the cardID from the transaction.
+ */
+function getCardID(transaction: Transaction): number {
+    return transaction?.cardID ?? 0;
+}
+
+/**
  * Return the billable field from the transaction. This "billable" field has no "modified" complement.
  */
 function getBillable(transaction: Transaction): boolean {
@@ -273,11 +280,11 @@ function getTag(transaction: Transaction): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getCreated(transaction: Transaction): string {
+function getCreated(transaction: Transaction, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
     const createdDate = parseISO(created);
     if (isValid(createdDate)) {
-        return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
+        return format(createdDate, dateFormat);
     }
 
     return '';
@@ -423,6 +430,7 @@ export {
     getDescription,
     getAmount,
     getCurrency,
+    getCardID,
     getMerchant,
     getMCCGroup,
     getCreated,
