@@ -83,14 +83,18 @@ function WorkspaceInvitePage(props) {
     const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails), [props.policyMembers, props.personalDetails]);
 
     useEffect(() => {
-        let emails = searchTerm.replace(/,\s/g, ',').split(',');
+        let emails = searchTerm.replace(/\s,\s/g, ',').split(',');
         emails = _.map(emails, word => word.trim());
 
         const newUsersToInviteDict = {};
         const newPersonalDetailsDict = {};
         const newSelectedOptionsDict = {};
-        
-        emails.forEach((email) => {
+
+        _.forEach(emails, (email) => {
+            if (email === '') {
+                return;
+            }
+
             const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, email, excludedUsers);
     
             // Update selectedOptions with the latest personalDetails and policyMembers information
