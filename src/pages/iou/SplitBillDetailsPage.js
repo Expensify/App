@@ -93,7 +93,7 @@ function SplitBillDetailsPage(props) {
     const isScanning =
         TransactionUtils.hasReceipt(props.transaction) && TransactionUtils.isReceiptBeingScanned(props.transaction) && TransactionUtils.areRequiredFieldsEmpty(props.transaction);
     const hasSmartScanFailed = TransactionUtils.hasReceipt(props.transaction) && props.transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANFAILED;
-    const isEditingSplitBill = props.session.accountID === reportAction.actorAccountID && (isScanning || hasSmartScanFailed);
+    const isEditingSplitBill = props.session.accountID === reportAction.actorAccountID && (TransactionUtils.areRequiredFieldsEmpty(props.transaction) || hasSmartScanFailed);
 
     const {
         amount: splitAmount,

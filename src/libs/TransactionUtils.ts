@@ -83,14 +83,19 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
 }
 
 function areRequiredFieldsEmpty(transaction: Transaction): boolean {
-    return (
+    const isMerchantEmpty =
+        transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
+
+    const isModifiedMerchantEmpty =
+        !transaction.modifiedMerchant ||
         transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
         transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
-        (transaction.modifiedMerchant === '' &&
-            (transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === '' || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) ||
-        (transaction.modifiedAmount === 0 && transaction.amount === 0) ||
-        (transaction.modifiedCreated === '' && transaction.created === '')
-    );
+        transaction.modifiedMerchant === '';
+
+    const isModifiedAmountEmpty = !transaction.modifiedAmount || transaction.modifiedAmount === 0;
+    const isModifiedCreatedEmpty = !transaction.modifiedCreated || transaction.modifiedCreated === '';
+
+    return (isModifiedMerchantEmpty && isMerchantEmpty) || (isModifiedAmountEmpty && transaction.amount === 0) || (isModifiedCreatedEmpty && transaction.created === '');
 }
 
 /**
