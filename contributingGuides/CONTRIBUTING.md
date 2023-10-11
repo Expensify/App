@@ -203,7 +203,6 @@ During communication with Expensify, you will come across a variety of acronyms 
 - **RBR:** Red Brick Road (UX Design Principle that utilizes red indicators on action items to encourage the user down the optimal path for handling and discovering errors) 
 - **VBA:** Verified Bank Account (Bank account that has been verified as real and belonging to the correct business/individual)
 - **NAB:** Not a Blocker (An issue that doesn't block progress, but would be nice to not have)
-- **LHN:** Left Hand Navigation
 - **IOU:** I owe you (used to describe payment requests between users)
 - **OTP:** One-time password, or magic sign-in
 - **RHP:** Right Hand Panel (on larger screens, pages are often displayed docked to the right side of the screen)
