@@ -169,9 +169,6 @@ const ONYXKEYS = {
     /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
-    /** Is Keyboard shortcuts modal open? */
-    IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
-
     /** Is the test tools modal open? */
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
 
@@ -353,7 +350,6 @@ type OnyxValues = {
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID]: string;
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
-    [ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
