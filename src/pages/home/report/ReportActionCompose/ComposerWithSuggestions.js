@@ -448,15 +448,6 @@ function ComposerWithSuggestions({
     }, []);
 
     useEffect(() => {
-        if (!shouldAutoFocus && !willBlurTextInputOnTapOutside) {
-            return;
-        }
-
-        // Set the `selection at end` and `scrolls input to bottom` for `Web Platforms`.
-        updateMultilineInputRange(textInputRef.current);
-    }, [shouldAutoFocus]);
-
-    useEffect(() => {
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress);
@@ -493,9 +484,13 @@ function ComposerWithSuggestions({
     }, [focus, prevIsFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
 
     useEffect(() => {
+        // Set the `selection at end` and `scrolls input to bottom` for `Web Platforms`.
+        updateMultilineInputRange(textInputRef.current);
+
         if (value.length === 0) {
             return;
         }
+
         Report.setReportWithDraft(reportID, true);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
