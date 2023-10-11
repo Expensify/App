@@ -2,6 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import Webcam from 'react-webcam';
 import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 
 const propTypes = {
     /* Flag to turn on/off the torch/flashlight - if available */
@@ -54,14 +55,16 @@ function NavigationAwareCamera({torchOn, onTorchAvailability, ...props}, ref) {
         return null;
     }
     return (
-        <Webcam
-            audio={false}
-            screenshotFormat="image/png"
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            ref={ref}
-            onUserMedia={handleOnUserMedia}
-        />
+        <View>
+            <Webcam
+                audio={false}
+                screenshotFormat="image/png"
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                ref={ref}
+                onUserMedia={handleOnUserMedia}
+            />
+        </View>
     );
 }
 
