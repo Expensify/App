@@ -336,6 +336,13 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
         .then(endSignOnTransition);
 }
 
+/**
+ * Create a new Draft workspace and navigate to it
+ *
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {String} [policyName] Optional, custom policy name we will use for created workspace
+ * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
+ */
 function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false) {
     const policyID = Policy.generatePolicyID();
     Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID);
@@ -351,6 +358,14 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
         .then(endSignOnTransition);
 }
 
+/**
+ * Create a new workspace and delete the draft
+ *
+ * @param {String} [policyID] the ID of the policy to use
+ * @param {String} [policyName] custom policy name we will use for created workspace
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ */
 function savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail = '', makeMeAdmin = false) {
     Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
 }

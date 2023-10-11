@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import isEmpty from 'underscore/modules/isEmpty';
-import omit from 'underscore/modules/omit';
+import isEmpty from 'lodash/isEmpty';
+import omit from 'lodash/omit';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';

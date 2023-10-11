@@ -909,6 +909,13 @@ function buildOptimisticCustomUnits() {
     };
 }
 
+/**
+ * Optimistically creates a Policy Draft for a new workspace
+ *
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {String} [policyName] Optional, custom policy name we will use for created workspace
+ * @param {String} [policyID] Optional, custom policy id we will use for created workspace
+ */
 function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID()) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
     const {customUnits} = buildOptimisticCustomUnits();
@@ -940,6 +947,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
             },
         },
     ];
+
     Onyx.update(optimisticData);
 }
 
