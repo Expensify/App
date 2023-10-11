@@ -542,6 +542,8 @@ export default {
         payerOwes: ({payer}: PayerOwesParams) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} paid ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} paid: `,
+        payerSpentAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} spent ${amount}`,
+        payerSpent: ({payer}: PayerPaidParams) => `${payer} spent: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} approved:`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,

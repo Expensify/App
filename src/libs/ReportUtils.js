@@ -1268,6 +1268,18 @@ function isWaitingForTaskCompleteFromAssignee(report, parentReportAction = {}) {
 }
 
 /**
+ * Returns number of transactions that are nonReimbursable
+ *
+ * @param {Object|null} iouReportID
+ * @returns {Number}
+ */
+function hasNonReimbursableTransactions(iouReportID) {
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.filter(allTransactions, (transaction) => transaction.reimbursable === false).length > 0;
+}
+
+
+/**
  * @param {Object} report
  * @param {Object} allReportsDict
  * @returns {Number}
@@ -1342,6 +1354,11 @@ function getMoneyRequestReportName(report, policy = undefined) {
 
     if (report.isWaitingOnBankAccount) {
         return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
+    }
+
+    if (hasNonReimbursableTransactions(report)) {
+        return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
+
     }
 
     if (report.hasOutstandingIOU) {
@@ -3955,6 +3972,7 @@ export {
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
+    hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,

@@ -303,6 +303,14 @@ function hasEreceipt(transaction: Transaction): boolean {
 }
 
 /**
+ * Check if the transaction is Non-reimbursable
+ */
+function isNonReimbursable(transaction: Transaction): boolean {
+    // We want to specifically check that reimbursable is set to false
+    return !!(transaction?.reimbursable === false);
+}
+
+/**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
@@ -394,6 +402,7 @@ export {
     hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,
+    isNonReimbursable,
     isDistanceRequest,
     getWaypoints,
     hasMissingSmartscanFields,
