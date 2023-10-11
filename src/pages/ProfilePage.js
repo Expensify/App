@@ -308,10 +308,11 @@ export default compose(
         report: {
             key: ({route, session}) => {
                 const accountID = Number(lodashGet(route.params, 'accountID', 0));
-                if (Number(session.accountID) === accountID || Session.isAnonymousUser()) {
+                const reportID = lodashGet(ReportUtils.getChatByParticipants([accountID]), 'reportID', '');
+                if (Number(session.accountID) === accountID || Session.isAnonymousUser() || !reportID) {
                     return null;
                 }
-                return `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(ReportUtils.getChatByParticipants([accountID]), 'reportID', '')}`;
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
             },
         },
     }),
