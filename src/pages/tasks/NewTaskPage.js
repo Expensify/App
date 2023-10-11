@@ -69,6 +69,7 @@ function NewTaskPage(props) {
     const [description, setDescription] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [parentReport, setParentReport] = useState({});
+
     const isAllowedToCreateTask = useMemo(() => _.isEmpty(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
 
     useEffect(() => {
@@ -173,6 +174,7 @@ function NewTaskPage(props) {
                                 title={description}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
                                 shouldShowRightIcon
+                                shouldParseTitle
                                 numberOfLinesTitle={2}
                                 titleStyle={styles.flex1}
                             />
