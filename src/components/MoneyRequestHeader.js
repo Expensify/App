@@ -19,12 +19,10 @@ import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import * as TransactionUtils from '../libs/TransactionUtils';
+import * as HeaderUtils from '../libs/HeaderUtils';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import transactionPropTypes from './transactionPropTypes';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import themeColors from '../styles/themes/default';
-import * as Report from '../libs/actions/Report';
-import * as Session from '../libs/actions/Session';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -92,23 +90,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
         setIsDeleteModalVisible(false);
     }, [canModifyRequest]);
-    const threeDotsMenuItems = [];
-    if (!report.isPinned) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Pin,
-            iconFill: themeColors.icon,
-            text: translate('common.pin'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, report.isPinned)),
-        });
-    } else {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Pin,
-            iconFill: themeColors.icon,
-            text: translate('common.unPin'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, report.isPinned)),
-        });
-    }
-
+    const threeDotsMenuItems = [HeaderUtils.getPinFunctionality()];
     if (canModifyRequest) {
         if (!TransactionUtils.hasReceipt(transaction)) {
             threeDotsMenuItems.push({
