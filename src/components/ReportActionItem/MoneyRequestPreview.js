@@ -191,16 +191,6 @@ function MoneyRequestPreview(props) {
     };
 
     const getPreviewHeaderText = () => {
-        if (isExpensifyCardTransaction) {
-            let message = props.translate('iou.card');
-
-            if (TransactionUtils.isPending(props.transaction)) {
-                message += ` • ${props.translate('iou.pending')}`;
-            }
-
-            return message;
-        }
-
         if (isDistanceRequest) {
             return props.translate('common.distance');
         }
@@ -211,6 +201,14 @@ function MoneyRequestPreview(props) {
 
         if (props.isBillSplit) {
             return props.translate('iou.split');
+        }
+
+        if (isExpensifyCardTransaction) {
+            let message = props.translate('iou.card');
+            if (TransactionUtils.isPending(props.transaction)) {
+                message += ` • ${props.translate('iou.pending')}`;
+            }
+            return message;
         }
 
         let message = props.translate('iou.cash');
