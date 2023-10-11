@@ -35,11 +35,12 @@ const propTypes = {
     iou: iouPropTypes,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
     iou: iouDefaultProps,
+    selectedTab: undefined,
 };
 
 function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
@@ -113,7 +114,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                         ref={(el) => (optionsSelectorRef.current = el)}
                         participants={iou.participants}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
-                        navigateToRequest={() => navigateToConfirmationStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)}
+                        navigateToRequest={() => navigateToConfirmationStep(iouType.current)}
                         navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         iouType={iouType.current}
@@ -126,7 +127,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     );
 }
 
-MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
+MoneyRequestParticipantsPage.displayName = 'MoneyRequestParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
