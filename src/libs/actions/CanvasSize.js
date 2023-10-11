@@ -1,16 +1,25 @@
 import Onyx from 'react-native-onyx';
 import canvasSize from 'canvas-size';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as Browser from '../Browser';
 
 /**
  * Calculate the max area of canvas on this specific platform and save it in onyx
  */
 function retrieveMaxCanvasArea() {
-    canvasSize.maxArea({
-        onSuccess: (width, height) => {
-            Onyx.merge(ONYXKEYS.MAX_CANVAS_AREA, width * height);
-        },
-    });
+    // We're limiting the maximum value on mobile web to prevent a crash related to rendering large canvas elements.
+    // More information at: https://github.com/jhildenbiddle/canvas-size/issues/13
+    canvasSize
+        .maxArea({
+            max: Browser.isMobile() ? 8192 : null,
+            usePromise: true,
+            useWorker: false,
+        })
+        .then(() => ({
+            onSuccess: (width, height) => {
+                Onyx.merge(ONYXKEYS.MAX_CANVAS_AREA, width * height);
+            },
+        }));
 }
 
 /**
