@@ -17,9 +17,6 @@ const propTypes = {
     /** If true, child components are replaced with a blocking view */
     shouldBlockContent: PropTypes.bool,
 
-    /** The key in the translations files to use for the link */
-    linkKey: PropTypes.string,
-
     /** Action to run when clicked on a the link text */
     onLinkPress: PropTypes.func,
 };
@@ -27,11 +24,10 @@ const propTypes = {
 const defaultProps = {
     children: null,
     shouldBlockContent: undefined,
-    linkKey: 'mobilePlacerHolder.goBackHome',
     onLinkPress: () => Navigation.dismissModal(),
 };
 
-function LargeDisplayWrapper({linkKey, onLinkPress, children, shouldBlockContent}) {
+function LargeDisplayWrapper({onLinkPress, children, shouldBlockContent}) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const {translate} = useLocalize();
@@ -47,7 +43,7 @@ function LargeDisplayWrapper({linkKey, onLinkPress, children, shouldBlockContent
                     iconHeight={variables.modalTopIconHeight}
                     title={translate('mobilePlacerHolder.title')}
                     subtitle={translate('mobilePlacerHolder.subTitle')}
-                    linkKey={translate(linkKey)}
+                    linkKey={translate('mobilePlacerHolder.goBackHome')}
                     shouldShowLink
                     onLinkPress={onLinkPress}
                 />
