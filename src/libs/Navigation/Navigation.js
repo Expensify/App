@@ -282,7 +282,7 @@ function navContainsProtectedRoutes(state) {
 }
 
 /**
- * Waits for the navigation state to contain protected routes (specifically 'Concierge').
+ * Waits for the navigation state to contain protected routes specified in PROTECTED_SCREENS constant
  * If the navigation is in a state, where protected routes are available, the promise will resolve immediately.
  *
  * @function
