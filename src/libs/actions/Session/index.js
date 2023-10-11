@@ -798,6 +798,19 @@ const canAccessRouteByAnonymousUser = (route) => {
     if (reportID) {
         return true;
     }
+    const parsedReportRouteParams = ReportUtils.parseReportRouteParams(route);
+    let routeRemovedReportId = route;
+    if (parsedReportRouteParams.reportID) {
+        routeRemovedReportId = route.replace(lodashGet(parsedReportRouteParams, 'reportID', ''), ':reportID');
+    }
+    if (route.startsWith('/')) {
+        routeRemovedReportId = routeRemovedReportId.slice(1);
+    }
+    const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route];
+
+    if (_.contains(routesCanAccessByAnonymousUser, routeRemovedReportId)) {
+        return true;
+    }
     return false;
 };
 
