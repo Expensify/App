@@ -326,6 +326,7 @@ class PDFView extends Component {
         return this.props.onPress ? (
             <PressableWithoutFeedback
                 onPress={this.props.onPress}
+                wrapperStyle={[styles.flex1]}
                 style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}

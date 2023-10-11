@@ -867,8 +867,12 @@ const styles = (theme) => ({
         ...userSelect.userSelectNone,
     },
 
-    calendarDayRoot: {
+    calendarDayRootWrapper: {
         flex: 1,
+        height: 45,
+    },
+
+    calendarDayRoot: {
         height: 45,
         justifyContent: 'center',
         alignItems: 'center',
@@ -1796,13 +1800,17 @@ const styles = (theme) => ({
         lineHeight: variables.emojiLineHeight,
     },
 
-    emojiItem: {
+    emojiItemWrapper: {
         width: '12.5%',
+        borderRadius: 8,
+        height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+    },
+
+    emojiItem: {
         textAlign: 'center',
         borderRadius: 8,
         paddingTop: 2,
         paddingBottom: 2,
-        height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
         ...userSelect.userSelectNone,
     },
 
@@ -1818,19 +1826,27 @@ const styles = (theme) => ({
         borderRadius: variables.buttonBorderRadius,
     },
 
-    categoryShortcutButton: {
+    categoryShortcutButtonWrapper: {
         flex: 1,
         borderRadius: 8,
+    },
+
+    categoryShortcutButton: {
         height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+
+    chatItemEmojiButtonWrapper: {
+        borderRadius: variables.buttonBorderRadius,
+        marginVertical: 3,
     },
 
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
         height: 40,
-        marginVertical: 3,
         paddingHorizontal: 10,
         justifyContent: 'center',
     },
@@ -2160,11 +2176,15 @@ const styles = (theme) => ({
         borderColor: theme.transparent,
     },
 
-    reportActionContextMenuMiniButton: {
-        ...spacing.p1,
+    reportActionContextMenuMiniButtonWrapper: {
         ...spacing.mv1,
         ...spacing.mh1,
-        ...{borderRadius: variables.buttonBorderRadius},
+        borderRadius: variables.buttonBorderRadius,
+    },
+
+    reportActionContextMenuMiniButton: {
+        ...spacing.p1,
+        borderRadius: variables.buttonBorderRadius,
     },
 
     reportActionSystemMessageContainer: {
@@ -3542,17 +3562,21 @@ const styles = (theme) => ({
         ...flex.alignItemsCenter,
     },
 
+    emojiPickerButtonDropdownWrapper: {
+        width: 86,
+        height: 52,
+        borderRadius: 26,
+        marginBottom: 32,
+    },
+
     emojiPickerButtonDropdown: {
         justifyContent: 'center',
         backgroundColor: theme.activeComponentBG,
-        width: 86,
-        height: 52,
+        height: '100%',
         borderRadius: 26,
         alignItems: 'center',
         paddingLeft: 10,
         paddingRight: 4,
-        marginBottom: 32,
-        alignSelf: 'flex-start',
     },
 
     emojiPickerButtonDropdownIcon: {

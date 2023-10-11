@@ -75,6 +75,7 @@ function CarouselItem({item, isFocused, onPress}) {
         );
         return onPress ? (
             <PressableWithoutFeedback
+                wrapperStyle={[styles.flex1]}
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}

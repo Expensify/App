@@ -161,6 +161,7 @@ function AvatarWithDisplayName(props) {
     return (
         <PressableWithoutFeedback
             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+            wrapperStyle={[styles.flex1]}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}

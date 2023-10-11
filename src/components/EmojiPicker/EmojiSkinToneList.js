@@ -46,7 +46,8 @@ function EmojiSkinToneList(props) {
             {!isSkinToneListVisible && (
                 <PressableWithoutFeedback
                     onPress={toggleIsSkinToneListVisible}
-                    style={[styles.flex1, styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
+                    wrapperStyle={[styles.flex1]}
+                    style={[styles.flexRow, styles.alignItemsCenter]}
                     accessibilityLabel={props.translate('emojiPicker.skinTonePickerLabel')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 >

@@ -214,7 +214,7 @@ function ReportActionItemSingle(props) {
     return (
         <View style={props.wrapperStyles}>
             <PressableWithoutFeedback
-                style={[styles.alignSelfStart, styles.mr3]}
+                wrapperStyle={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
                 onPress={showActorDetails}
@@ -228,7 +228,7 @@ function ReportActionItemSingle(props) {
                 {props.showHeader ? (
                     <View style={[styles.chatItemMessageHeader]}>
                         <PressableWithoutFeedback
-                            style={[styles.flexShrink1, styles.mr1]}
+                            wrapperStyle={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
                             onPress={showActorDetails}

@@ -212,6 +212,7 @@ class CalendarPicker extends React.PureComponent {
                                     key={`${index}_day-${day}`}
                                     disabled={isDisabled}
                                     onPress={() => this.onDayPressed(day)}
+                                    wrapperStyle={styles.calendarDayRootWrapper}
                                     style={styles.calendarDayRoot}
                                     accessibilityLabel={day ? day.toString() : undefined}
                                     focusable={Boolean(day)}

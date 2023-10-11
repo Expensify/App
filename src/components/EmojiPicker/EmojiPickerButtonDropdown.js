@@ -39,6 +39,7 @@ function EmojiPickerButtonDropdown(props) {
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
+                wrapperStyle={styles.emojiPickerButtonDropdownWrapper}
                 style={styles.emojiPickerButtonDropdown}
                 disabled={props.isDisabled}
                 onPress={onPress}

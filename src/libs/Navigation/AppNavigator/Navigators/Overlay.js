@@ -32,6 +32,7 @@ function Overlay(props) {
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 />
                 <PressableWithoutFeedback
+                    wrapperStyle={[styles.flex1]}
                     style={[styles.flex1]}
                     onPress={props.onPress}
                     accessibilityLabel={translate('common.close')}

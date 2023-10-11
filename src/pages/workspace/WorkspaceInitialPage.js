@@ -234,7 +234,8 @@ function WorkspaceInitialPage(props) {
                                             <Tooltip text={props.translate('workspace.common.settings')}>
                                                 <PressableWithoutFeedback
                                                     disabled={hasPolicyCreationError}
-                                                    style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
+                                                    wrapperStyle={[styles.mt4, styles.w100]}
+                                                    style={[styles.alignSelfCenter, styles.w100]}
                                                     onPress={() => openEditor(policy.id)}
                                                     accessibilityLabel={props.translate('workspace.common.settings')}
                                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}

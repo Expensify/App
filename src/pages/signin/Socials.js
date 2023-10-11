@@ -45,7 +45,7 @@ function Socials() {
                         Link.openExternalLink(social.link);
                     }}
                     accessible={false}
-                    style={[styles.mr1, styles.mt1]}
+                    wrapperStyle={[styles.mr1, styles.mt1]}
                     shouldUseAutoHitSlop={false}
                 >
                     {({hovered, pressed}) => (

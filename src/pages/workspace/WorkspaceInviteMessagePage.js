@@ -189,7 +189,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                                 accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
-                                style={[styles.mv2, styles.alignSelfStart]}
+                                wrapperStyle={[styles.mv2, styles.alignSelfStart]}
                             >
                                 <View style={[styles.flexRow]}>
                                     <Text style={[styles.mr1, styles.label, styles.link]}>{this.props.translate('common.privacy')}</Text>

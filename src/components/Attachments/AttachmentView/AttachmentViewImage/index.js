@@ -26,6 +26,7 @@ function AttachmentViewImage({source, file, isAuthTokenRequired, loadComplete, o
         <PressableWithoutFeedback
             onPress={onPress}
             disabled={loadComplete}
+            wrapperStyle={[styles.flex1]}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
             accessibilityLabel={file.name || translate('attachmentView.unknownFilename')}

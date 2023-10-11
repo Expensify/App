@@ -405,7 +405,7 @@ function AvatarCropModal(props) {
                                     fill={themeColors.icons}
                                 />
                                 <PressableWithoutFeedback
-                                    style={[styles.mh5, styles.flex1]}
+                                    wrapperStyle={[styles.mh5, styles.flex1]}
                                     onLayout={initializeSliderContainer}
                                     onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
                                     accessibilityLabel="slider"

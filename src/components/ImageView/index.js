@@ -254,12 +254,13 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
             style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}
         >
             <PressableWithoutFeedback
-                style={{
-                    ...StyleUtils.getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, isLoading),
-                    ...StyleUtils.getZoomCursorStyle(isZoomed, isDragging),
-                    ...(isZoomed && zoomScale >= 1 ? styles.pRelative : styles.pAbsolute),
-                    ...styles.flex1,
-                }}
+                wrapperStyle={[
+                    StyleUtils.getZoomCursorStyle(isZoomed, isDragging),
+                    StyleUtils.getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, isLoading),
+                    isZoomed && zoomScale >= 1 ? styles.pRelative : styles.pAbsolute,
+                    styles.flex1,
+                ]}
+                style={[styles.w100, styles.h100, StyleUtils.getZoomCursorStyle(isZoomed, isDragging)]}
                 onPressIn={onContainerPressIn}
                 onPress={onContainerPress}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGE}

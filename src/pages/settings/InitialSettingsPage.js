@@ -340,7 +340,7 @@ function InitialSettingsPage(props) {
                 <>
                     <Tooltip text={translate('common.profile')}>
                         <PressableWithoutFeedback
-                            style={styles.mb3}
+                            wrapperStyle={styles.mb3}
                             onPress={openProfileSettings}
                             accessibilityLabel={translate('common.profile')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}

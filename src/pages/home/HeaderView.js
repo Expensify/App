@@ -216,7 +216,8 @@ function HeaderView(props) {
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <PressableWithoutFeedback
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+                            wrapperStyle={[styles.flex1]}
+                            style={[styles.flexRow, styles.alignItemsCenter]}
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={title}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}

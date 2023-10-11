@@ -70,6 +70,7 @@ function BaseMiniContextMenuItem(props) {
                     e.preventDefault();
                 }}
                 accessibilityLabel={props.tooltipText}
+                wrapperStyle={[styles.reportActionContextMenuMiniButtonWrapper]}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
