@@ -1,12 +1,6 @@
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
-
-const propTypes = {
-    /** Position index of the list item in a list view */
-    index: PropTypes.number.isRequired,
-};
+import BaseInvertedFlatList from './BaseInvertedFlatList';
 
 function CellRendererComponent(props) {
     return (
@@ -14,8 +8,7 @@ function CellRendererComponent(props) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             style={[
-                styles.invert,
-
+                props.style,
                 /**
                  * To achieve absolute positioning and handle overflows for list items,
                  * it is necessary to assign zIndex values. In the case of inverted lists,
@@ -29,7 +22,17 @@ function CellRendererComponent(props) {
     );
 }
 
-CellRendererComponent.propTypes = propTypes;
-CellRendererComponent.displayName = 'CellRendererComponent';
-
-export default CellRendererComponent;
+export default forwardRef((props, ref) => (
+    <BaseInvertedFlatList
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        ref={ref}
+        CellRendererComponent={CellRendererComponent}
+        /**
+         * To achieve absolute positioning and handle overflows for list items, the property must be disabled
+         * for Android native builds.
+         * Source: https://reactnative.dev/docs/0.71/optimizing-flatlist-configuration#removeclippedsubviews
+         */
+        removeClippedSubviews={false}
+    />
+));
