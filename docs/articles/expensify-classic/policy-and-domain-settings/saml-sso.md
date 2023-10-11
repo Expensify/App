@@ -22,6 +22,7 @@ Instructions for setting up Expensify for specific SSO providers can be found be
 - [SAASPASS](https://saaspass.com/saaspass/expensify-two-factor-authentication-2fa-single-sign-on-sso-saml.html)
 - Microsoft Active Directory Federation Services (see instructions in the FAQ section below)
 When SSO is enabled, employees will be prompted to sign in through Single Sign-On when using their company email (private domain email) and also a public email (e.g. gmail.com) linked as a secondary login.
+
 ## How can I update the Microsoft Azure SSO Certificate?
 Expensify's SAML configuration doesn't support multiple active certificates. This means that if you create the new certification ahead of time without first removing the old one, the respective IdP will include two unique x509 certificates instead of one and the connection will break. Should you need to access Expensify, switching back to the old certificate will continue to allow access while that certificate is still valid.
 To transfer from one Microsoft Azure certificate to another, please follow the below steps:
