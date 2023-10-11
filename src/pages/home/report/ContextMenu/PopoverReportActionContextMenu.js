@@ -316,7 +316,7 @@ function PopoverReportActionContextMenu(_props, ref) {
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal
-                title={translate('reportActionContextMenu.deleteAction', {action: reportAction})}
+                title={translate('reportActionContextMenu.deleteAction', {reportAction})}
                 isVisible={isDeleteCommentConfirmModalVisible}
                 shouldSetModalVisibility={shouldSetModalVisibilityForDeleteConfirmation}
                 onConfirm={confirmDeleteAndHideModal}

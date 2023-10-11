@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {useFocusEffect} from '@react-navigation/native';
 import MagicCodeInput from '../../../../../components/MagicCodeInput';
 import * as ErrorUtils from '../../../../../libs/ErrorUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
@@ -78,7 +77,6 @@ function BaseValidateCodeForm(props) {
     const inputValidateCodeRef = useRef();
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const shouldDisableResendValidateCode = props.network.isOffline || props.account.isLoading;
-    const focusTimeoutRef = useRef(null);
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
@@ -88,21 +86,6 @@ function BaseValidateCodeForm(props) {
             inputValidateCodeRef.current.focus();
         },
     }));
-
-    useFocusEffect(
-        useCallback(() => {
-            if (!inputValidateCodeRef.current) {
-                return;
-            }
-            focusTimeoutRef.current = setTimeout(inputValidateCodeRef.current.focus, CONST.ANIMATED_TRANSITION);
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
-                }
-                clearTimeout(focusTimeoutRef.current);
-            };
-        }, []),
-    );
 
     useEffect(() => {
         Session.clearAccountMessages();

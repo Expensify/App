@@ -24,7 +24,7 @@ import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import RenderHTML from './RenderHTML';
+import MenuItemRenderHTMLTitle from './MenuItemRenderHTMLTitle';
 
 const propTypes = menuItemPropTypes;
 
@@ -252,9 +252,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             {Boolean(props.title) && (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) && (
-                                                <View style={styles.renderHTMLTitle}>
-                                                    <RenderHTML html={getProcessedTitle} />
-                                                </View>
+                                                <MenuItemRenderHTMLTitle title={getProcessedTitle} />
                                             )}
                                             {!props.shouldRenderAsHTML && !props.shouldParseTitle && Boolean(props.title) && (
                                                 <Text

@@ -195,7 +195,7 @@ class EmojiPickerMenu extends Component {
                     return;
                 }
                 const emoji = lodashGet(item, ['types', this.props.preferredSkinTone], item.code);
-                this.props.onEmojiSelected(emoji, item);
+                this.addToFrequentAndSelectEmoji(emoji, item);
                 return;
             }
 
@@ -256,6 +256,16 @@ class EmojiPickerMenu extends Component {
 
         document.removeEventListener('keydown', this.keyDownHandler, true);
         document.removeEventListener('mousemove', this.mouseMoveHandler);
+    }
+
+    /**
+     * @param {String} emoji
+     * @param {Object} emojiObject
+     */
+    addToFrequentAndSelectEmoji(emoji, emojiObject) {
+        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
+        User.updateFrequentlyUsedEmojis(frequentEmojiList);
+        this.props.onEmojiSelected(emoji, emojiObject);
     }
 
     /**
@@ -456,7 +466,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={(emoji) => this.props.onEmojiSelected(emoji, item)}
+                onPress={(emoji) => this.addToFrequentAndSelectEmoji(emoji, item)}
                 onHoverIn={() => this.setState({highlightedIndex: index, isUsingKeyboardMovement: false})}
                 onHoverOut={() => {
                     if (this.state.arePointerEventsDisabled) {

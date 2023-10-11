@@ -1,4 +1,3 @@
-const singleBold = 'ExpensifyNeue-Regular';
-const multiBold = 'ExpensifyNeue-Regular, Segoe UI Emoji, Noto Color Emoji';
+const bold = 'ExpensifyNeue-Regular, Segoe UI Emoji, Noto Color Emoji';
 
-export {singleBold, multiBold};
+export default bold;

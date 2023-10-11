@@ -18,7 +18,6 @@ import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ROUTES from '../../ROUTES';
 import * as PolicyUtils from '../../libs/PolicyUtils';
-import * as Browser from '../../libs/Browser';
 import useNetwork from '../../hooks/useNetwork';
 import useLocalize from '../../hooks/useLocalize';
 import SelectionList from '../../components/SelectionList';
@@ -232,7 +231,6 @@ function WorkspaceInvitePage(props) {
                             onConfirm={inviteUser}
                             showScrollIndicator
                             showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
-                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                         />
                         <View style={[styles.flexShrink0]}>
                             <FormAlertWithSubmitButton

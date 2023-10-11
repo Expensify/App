@@ -256,6 +256,14 @@ PODS:
     - Onfido (= 27.4.0)
     - React
   - OpenSSL-Universal (1.1.1100)
+  - Permission-Camera (3.6.1):
+    - RNPermissions
+  - Permission-LocationAccuracy (3.6.1):
+    - RNPermissions
+  - Permission-LocationAlways (3.6.1):
+    - RNPermissions
+  - Permission-LocationWhenInUse (3.6.1):
+    - RNPermissions
   - Plaid (4.1.0)
   - PromisesObjC (2.2.0)
   - RCT-Folly (2021.07.22.00):
@@ -579,7 +587,7 @@ PODS:
     - React
   - react-native-image-picker (5.1.0):
     - React-Core
-  - react-native-key-command (1.0.6):
+  - react-native-key-command (1.0.1):
     - React-Core
   - react-native-netinfo (9.3.10):
     - React-Core
@@ -773,7 +781,7 @@ PODS:
     - React
     - React-Core
     - Turf
-  - RNPermissions (3.9.3):
+  - RNPermissions (3.6.1):
     - React-Core
   - RNReactNativeHapticFeedback (1.14.0):
     - React-Core
@@ -859,6 +867,10 @@ DEPENDENCIES:
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - OpenSSL-Universal (= 1.1.1100)
+  - Permission-Camera (from `../node_modules/react-native-permissions/ios/Camera`)
+  - Permission-LocationAccuracy (from `../node_modules/react-native-permissions/ios/LocationAccuracy`)
+  - Permission-LocationAlways (from `../node_modules/react-native-permissions/ios/LocationAlways`)
+  - Permission-LocationWhenInUse (from `../node_modules/react-native-permissions/ios/LocationWhenInUse`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
@@ -1006,6 +1018,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/lottie-react-native"
   onfido-react-native-sdk:
     :path: "../node_modules/@onfido/react-native-sdk"
+  Permission-Camera:
+    :path: "../node_modules/react-native-permissions/ios/Camera"
+  Permission-LocationAccuracy:
+    :path: "../node_modules/react-native-permissions/ios/LocationAccuracy"
+  Permission-LocationAlways:
+    :path: "../node_modules/react-native-permissions/ios/LocationAlways"
+  Permission-LocationWhenInUse:
+    :path: "../node_modules/react-native-permissions/ios/LocationWhenInUse"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTRequired:
@@ -1207,6 +1227,10 @@ SPEC CHECKSUMS:
   Onfido: e36f284b865adcf99d9c905590a64ac09d4a576b
   onfido-react-native-sdk: 4ecde1a97435dcff9f00a878e3f8d1eb14fabbdc
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
+  Permission-Camera: bf6791b17c7f614b6826019fcfdcc286d3a107f6
+  Permission-LocationAccuracy: 76df17de5c6b8bc2eee34e61ee92cdd7a864c73d
+  Permission-LocationAlways: 8d99b025c9f73c696e0cdb367e42525f2e9a26f2
+  Permission-LocationWhenInUse: 3ba99e45c852763f730eabecec2870c2382b7bd4
   Plaid: 7d340abeadb46c7aa1a91f896c5b22395a31fcf2
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
@@ -1233,7 +1257,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: 0f7fe8a4c2de477e278b0365cce27d089a8c5903
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
-  react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
+  react-native-key-command: c2645ec01eb1fa664606c09480c05cb4220ef67b
   react-native-netinfo: ccbe1085dffd16592791d550189772e13bf479e2
   react-native-pager-view: 0ccb8bf60e2ebd38b1f3669fa3650ecce81db2df
   react-native-pdf: 7c0e91ada997bac8bac3bb5bea5b6b81f5a3caae
@@ -1278,7 +1302,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
-  RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
+  RNPermissions: dcdb7b99796bbeda6975a6e79ad519c41b251b1c
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNReanimated: ab2e96c6d5591c3dfbb38a464f54c8d17fb34a87
   RNScreens: d037903436160a4b039d32606668350d2a808806
@@ -1291,6 +1315,6 @@ SPEC CHECKSUMS:
   Yoga: 3efc43e0d48686ce2e8c60f99d4e6bd349aff981
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: ff769666b7221c15936ebc5576a8c8e467dc6879
+PODFILE CHECKSUM: 2daf34c870819a933f3fefe426801d54b2ff2a14
 
 COCOAPODS: 1.12.1

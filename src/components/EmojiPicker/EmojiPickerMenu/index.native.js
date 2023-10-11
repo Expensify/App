@@ -87,6 +87,16 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
     }, 300);
 
     /**
+     * @param {String} emoji
+     * @param {Object} emojiObject
+     */
+    const addToFrequentAndSelectEmoji = (emoji, emojiObject) => {
+        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
+        User.updateFrequentlyUsedEmojis(frequentEmojiList);
+        onEmojiSelected(emoji, emojiObject);
+    };
+
+    /**
      * @param {Number} skinTone
      */
     const updatePreferredSkinTone = (skinTone) => {
@@ -142,7 +152,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
 
         return (
             <EmojiPickerMenuItem
-                onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
+                onPress={singleExecution((emoji) => addToFrequentAndSelectEmoji(emoji, item))}
                 emoji={emojiCode}
             />
         );

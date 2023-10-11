@@ -59,6 +59,9 @@ const propTypes = {
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
 
+    /** Whether the money request is a scan request or not */
+    isScanRequest: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -70,6 +73,7 @@ const defaultProps = {
     reports: {},
     betas: [],
     isDistanceRequest: false,
+    isScanRequest: false,
 };
 
 function MoneyRequestParticipantsSelector({
@@ -85,6 +89,7 @@ function MoneyRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
+    isScanRequest,
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
@@ -240,7 +245,7 @@ function MoneyRequestParticipantsSelector({
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowConfirmButton = !(participants.length > 1 && hasPolicyExpenseChatParticipant);
-    const isAllowedToSplit = !isDistanceRequest;
+    const isAllowedToSplit = !isDistanceRequest && !isScanRequest;
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
@@ -263,7 +268,7 @@ function MoneyRequestParticipantsSelector({
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
-                shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
+                shouldFocusOnSelectRow={!Browser.isMobile()}
                 shouldDelayFocus
             />
         </View>

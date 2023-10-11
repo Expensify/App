@@ -5,6 +5,7 @@ import GenericPressable from './GenericPressable';
 import GenericPressablePropTypes from './GenericPressable/PropTypes';
 import OpacityView from '../OpacityView';
 import variables from '../../styles/variables';
+import useSingleExecution from '../../hooks/useSingleExecution';
 
 const omittedProps = ['wrapperStyle', 'needsOffscreenAlphaCompositing'];
 
@@ -42,12 +43,14 @@ const PressableWithFeedbackDefaultProps = {
 
 const PressableWithFeedback = forwardRef((props, ref) => {
     const propsWithoutWrapperProps = _.omit(props, omittedProps);
+    const {isExecuting, singleExecution} = useSingleExecution();
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
+    const isDisabled = props.disabled || isExecuting;
 
     return (
         <OpacityView
-            shouldDim={Boolean(!props.disabled && (isPressed || isHovered))}
+            shouldDim={Boolean(!isDisabled && (isPressed || isHovered))}
             dimmingValue={isPressed ? props.pressDimmingValue : props.hoverDimmingValue}
             style={props.wrapperStyle}
             needsOffscreenAlphaCompositing={props.needsOffscreenAlphaCompositing}
@@ -56,7 +59,8 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                 ref={ref}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...propsWithoutWrapperProps}
-                disabled={props.disabled}
+                disabled={isDisabled}
+                isExecuting={isExecuting}
                 onHoverIn={() => {
                     setIsHovered(true);
                     if (props.onHoverIn) {
@@ -80,6 +84,9 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                     if (props.onPressOut) {
                         props.onPressOut();
                     }
+                }}
+                onPress={(e) => {
+                    singleExecution(() => props.onPress(e))();
                 }}
             >
                 {(state) => (_.isFunction(props.children) ? props.children(state) : props.children)}

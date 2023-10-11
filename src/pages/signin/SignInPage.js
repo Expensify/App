@@ -10,11 +10,8 @@ import styles from '../../styles/styles';
 import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
-import Performance from '../../libs/Performance';
-import * as App from '../../libs/actions/App';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
-import * as Localize from '../../libs/Localize';
 import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
@@ -26,7 +23,8 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import * as ActiveClientManager from '../../libs/ActiveClientManager';
-
+import App from '../../App';
+import * as Localize from '../../libs/Localize';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */

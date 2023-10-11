@@ -39,17 +39,13 @@ const propTypes = {
     /* Onyx props */
     /** The original transaction that is being edited */
     transaction: transactionPropTypes,
-
-    /** backup version of the original transaction  */
-    transactionBackup: transactionPropTypes,
 };
 
 const defaultProps = {
     transaction: {},
-    transactionBackup: {},
 };
 
-function EditRequestDistancePage({report, route, transaction, transactionBackup}) {
+function EditRequestDistancePage({report, route, transaction}) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const transactionWasSaved = useRef(false);
@@ -91,16 +87,6 @@ function EditRequestDistancePage({report, route, transaction, transactionBackup}
      * @param {Object} waypoints
      */
     const saveTransaction = (waypoints) => {
-        // If nothing was changed, simply go to transaction thread
-        // We compare only addresses because numbers are rounded while backup
-        const oldWaypoints = lodashGet(transactionBackup, 'comment.waypoints', {});
-        const oldAddresses = _.mapObject(oldWaypoints, (waypoint) => _.pick(waypoint, 'address'));
-        const addresses = _.mapObject(waypoints, (waypoint) => _.pick(waypoint, 'address'));
-        if (_.isEqual(oldAddresses, addresses)) {
-            Navigation.dismissModal(report.reportID);
-            return;
-        }
-
         transactionWasSaved.current = true;
         IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints});
 
@@ -138,8 +124,5 @@ EditRequestDistancePage.displayName = 'EditRequestDistancePage';
 export default withOnyx({
     transaction: {
         key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
-    },
-    transactionBackup: {
-        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}-backup`,
     },
 })(EditRequestDistancePage);

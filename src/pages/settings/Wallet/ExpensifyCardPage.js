@@ -14,7 +14,6 @@ import useLocalize from '../../../hooks/useLocalize';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
-import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as CardUtils from '../../../libs/CardUtils';
 import Button from '../../../components/Button';
 import CardDetails from './WalletPage/CardDetails';
@@ -109,13 +108,6 @@ function ExpensifyCardPage({
                                         }
                                     />
                                 )}
-                                <MenuItemWithTopDescription
-                                    title={translate('cardPage.reportFraud')}
-                                    titleStyle={styles.walletCardMenuItem}
-                                    icon={Expensicons.Flag}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain))}
-                                />
                             </>
                         )}
                         {!_.isEmpty(physicalCard) && (
@@ -123,7 +115,7 @@ function ExpensifyCardPage({
                                 description={translate('cardPage.physicalCardNumber')}
                                 title={CardUtils.maskCard(physicalCard.lastFourPAN)}
                                 interactive={false}
-                                titleStyle={styles.walletCardMenuItem}
+                                titleStyle={styles.walletCardNumber}
                             />
                         )}
                     </ScrollView>

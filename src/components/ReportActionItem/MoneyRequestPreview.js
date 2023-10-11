@@ -317,7 +317,7 @@ function MoneyRequestPreview(props) {
                                     )}
                                     {shouldShowDescription && <Text style={[styles.colorMuted]}>{description}</Text>}
                                 </View>
-                                {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
+                                {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
                                         {props.translate('iou.amountEach', {
                                             amount: CurrencyUtils.convertToDisplayString(
