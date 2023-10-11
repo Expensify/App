@@ -1779,7 +1779,6 @@ const styles = (theme) => ({
     },
 
     emojiSkinToneTitle: {
-        width: '100%',
         ...spacing.pv1,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
@@ -2530,6 +2529,7 @@ const styles = (theme) => ({
                   // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
                   // Therefore, the transition effect needs to be delayed.
                   transitionDelay: '99999s',
+                  transitionProperty: 'background-color',
               }
             : {}),
     },
@@ -3486,10 +3486,16 @@ const styles = (theme) => ({
 
     tabText: (isSelected) => ({
         marginLeft: 8,
-        fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
-        fontWeight: isSelected ? fontWeightBold : 400,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
         color: isSelected ? theme.textLight : theme.textSupporting,
     }),
+
+    tabBackground: (hovered, isFocused, background) => ({
+        backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+    }),
+
+    tabOpacity: (hovered, isFocused, activeOpacityValue, inactiveOpacityValue) => (hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue),
 
     /**
      * @param {String} backgroundColor
@@ -3764,7 +3770,7 @@ const styles = (theme) => ({
         overflow: 'hidden',
     },
 
-    walletCardNumber: {
+    walletCardMenuItem: {
         color: theme.text,
         fontSize: variables.fontSizeNormal,
     },
