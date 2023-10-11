@@ -49,6 +49,27 @@ function showPermissionErrorAlert() {
 }
 
 /**
+ * Inform the users when they need to grant camera access and guide them to settings
+ */
+function showCameraPermissionsAlert() {
+    Alert.alert(
+        Localize.translateLocal('attachmentPicker.cameraPermissionRequired'),
+        Localize.translateLocal('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+        [
+            {
+                text: Localize.translateLocal('common.cancel'),
+                style: 'cancel',
+            },
+            {
+                text: Localize.translateLocal('common.settings'),
+                onPress: () => Linking.openSettings(),
+            },
+        ],
+        {cancelable: false},
+    );
+}
+
+/**
  * Generate a random file name with timestamp and file extension
  * @param {String} url
  * @returns {String}
@@ -213,6 +234,7 @@ export {
     showGeneralErrorAlert,
     showSuccessAlert,
     showPermissionErrorAlert,
+    showCameraPermissionsAlert,
     splitExtensionFromFileName,
     getAttachmentName,
     getFileType,
