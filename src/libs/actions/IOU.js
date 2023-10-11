@@ -1541,6 +1541,11 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {pendingAction: null},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`,
+            value: null,
+        },
     ];
 
     const failureData = [
