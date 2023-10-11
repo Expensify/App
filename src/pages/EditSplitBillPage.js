@@ -4,14 +4,13 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import ROUTES from '../ROUTES';
-import Navigation from '../libs/Navigation/Navigation';
 import ONYXKEYS from '../ONYXKEYS';
-import reportPropTypes from './reportPropTypes';
+import compose from '../libs/compose';
 import transactionPropTypes from '../components/transactionPropTypes';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import Navigation from '../libs/Navigation/Navigation';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
@@ -34,28 +33,26 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** All the transactions */
-    transactions: PropTypes.shape(transactionPropTypes),
+    /** The current transaction */
+    transaction: PropTypes.shape(transactionPropTypes),
 
-    /** Used for retrieving the draft transaction of the split bill being edited */
-    draftSplitTransactions: PropTypes.shape(transactionPropTypes),
+    /** The draft transaction that holds data to be persisited on the current transaction */
+    draftTransaction: PropTypes.shape(transactionPropTypes),
 };
 
 const defaultProps = {
-    draftSplitTransactions: {},
+    draftTransaction: {},
     transactions: {},
+    reportActions: {},
 };
 
-function EditSplitBillPage({route, reportActions, transactions, draftSplitTransactions}) {
+function EditSplitBillPage({route, transaction, draftTransaction}) {
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
     const reportID = lodashGet(route, ['params', 'reportID'], '');
     const reportActionID = lodashGet(route, ['params', 'reportActionID'], '');
-    const transactionID = lodashGet(reportActions[reportActionID], 'originalMessage.IOUTransactionID', 0);
-    const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
-    let draftSplitTransaction = draftSplitTransactions[`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`];
-    if (!draftSplitTransaction) {
-        IOU.setDraftSplitTransaction(transactionID);
+    if (!draftTransaction) {
+        IOU.setDraftSplitTransaction(transaction.transactionID);
     }
 
     const {
@@ -64,12 +61,12 @@ function EditSplitBillPage({route, reportActions, transactions, draftSplitTransa
         comment: transactionDescription,
         merchant: transactionMerchant,
         created: transactionCreated,
-    } = draftSplitTransaction ? ReportUtils.getTransactionDetails(draftSplitTransaction) : ReportUtils.getTransactionDetails(transaction);
+    } = draftTransaction ? ReportUtils.getTransactionDetails(draftTransaction) : ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
 
     function setDraftSplitTransaction(transactionChanges) {
-        IOU.setDraftSplitTransaction(transactionID, transactionChanges);
+        IOU.setDraftSplitTransaction(transaction.transactionID, transactionChanges);
         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(reportID, reportActionID));
     }
 
@@ -158,15 +155,26 @@ function EditSplitBillPage({route, reportActions, transactions, draftSplitTransa
 EditSplitBillPage.displayName = 'EditSplitBillPage';
 EditSplitBillPage.propTypes = propTypes;
 EditSplitBillPage.defaultProps = defaultProps;
-export default withOnyx({
-    reportActions: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
-        canEvict: false,
-    },
-    transactions: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION,
-    },
-    draftSplitTransactions: {
-        key: ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION,
-    },
-})(EditSplitBillPage);
+export default compose(
+    withOnyx({
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
+            canEvict: false,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        transaction: {
+            key: ({route, reportActions}) => {
+                const reportAction = reportActions[`${route.params.reportActionID.toString()}`];
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(reportAction, 'originalMessage.IOUTransactionID', 0)}`;
+            },
+        },
+        draftTransaction: {
+            key: ({route, reportActions}) => {
+                const reportAction = reportActions[`${route.params.reportActionID.toString()}`];
+                return `${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${lodashGet(reportAction, 'originalMessage.IOUTransactionID', 0)}`;
+            },
+        },
+    }),
+)(EditSplitBillPage);
