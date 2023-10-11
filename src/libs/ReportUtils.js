@@ -1386,6 +1386,12 @@ function getTransactionDetails(transaction) {
  * @returns {Boolean}
  */
 function canEditMoneyRequest(reportAction) {
+    const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
+
+    if (isDeleted) {
+        return false;
+    }
+
     // If the report action is not IOU type, return true early
     if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return true;

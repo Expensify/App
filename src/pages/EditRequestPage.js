@@ -7,7 +7,6 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as TransactionUtils from '../libs/TransactionUtils';
@@ -94,9 +93,7 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
     const transactionCreated = TransactionUtils.getCreated(transaction);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
-    const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
     const isSettled = ReportUtils.isSettled(parentReport.reportID);
-
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
 
     // For now, it always defaults to the first tag of the policy
@@ -119,14 +116,14 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
         const isEditingCreatedDate = fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE;
         const isNonEditableFieldWhenSettled = isEditingAmount || isEditingCreatedDate;
 
-        if (canEdit && !isDeleted && (!isNonEditableFieldWhenSettled || !isSettled)) {
+        if (canEdit && (!isNonEditableFieldWhenSettled || !isSettled)) {
             return;
         }
 
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [canEdit, isDeleted, isSettled, fieldToEdit]);
+    }, [canEdit, isSettled, fieldToEdit]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {

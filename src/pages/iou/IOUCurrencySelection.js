@@ -86,11 +86,10 @@ function IOUCurrencySelection(props) {
 
         const report = ReportUtils.getReport(threadReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
-        const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
         const isSettled = ReportUtils.isSettled(report.parentReportID);
         const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
 
-        if (canEdit && !isDeleted && !isSettled) {
+        if (canEdit && !isSettled) {
             return;
         }
 
