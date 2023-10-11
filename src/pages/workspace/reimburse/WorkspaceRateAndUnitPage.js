@@ -22,6 +22,7 @@ import ROUTES from '../../../ROUTES';
 import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import * as ReimbursementAccountProps from '../../ReimbursementAccount/reimbursementAccountPropTypes';
+import * as NumberUtils from '../../../libs/NumberUtils';
 
 const propTypes = {
     /** Bank account attached to free plan */
@@ -86,7 +87,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
     }
 
     getNumericValue(value) {
-        const numValue = parseFloat(value.toString().replace(',', '.'));
+        const numValue = NumberUtils.parseFloatAnyLocale(value.toString());
         if (Number.isNaN(numValue)) {
             return NaN;
         }
@@ -137,7 +138,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
         const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,3})?$`, 'i');
         if (!rateValueRegex.test(values.rate) || values.rate === '') {
             errors.rate = 'workspace.reimburse.invalidRateError';
-        } else if (parseFloat(values.rate) <= 0) {
+        } else if (NumberUtils.parseFloatAnyLocale(values.rate) <= 0) {
             errors.rate = 'workspace.reimburse.lowRateError';
         }
         return errors;

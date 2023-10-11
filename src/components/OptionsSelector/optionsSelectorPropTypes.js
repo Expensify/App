@@ -158,7 +158,7 @@ const defaultProps = {
     isDisabled: false,
     shouldHaveOptionSeparator: false,
     initiallyFocusedOptionKey: undefined,
-    maxLength: undefined,
+    maxLength: CONST.SEARCH_MAX_LENGTH,
     shouldShowTextInput: true,
     onChangeText: () => {},
     shouldUseStyleForChildren: true,

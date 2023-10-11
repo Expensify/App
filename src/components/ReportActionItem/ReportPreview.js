@@ -136,6 +136,8 @@ function ReportPreview(props) {
               scanningReceipts: numberOfScanningReceipts,
           });
 
+    const shouldShowSubmitButton = isReportDraft && reportTotal !== 0;
+
     const getDisplayAmount = () => {
         if (reportTotal) {
             return CurrencyUtils.convertToDisplayString(reportTotal, props.iouReport.currency);
@@ -242,7 +244,7 @@ function ReportPreview(props) {
                                 }}
                             />
                         )}
-                        {isReportDraft && (
+                        {shouldShowSubmitButton && (
                             <Button
                                 medium
                                 success={props.chatReport.isOwnPolicyExpenseChat}
