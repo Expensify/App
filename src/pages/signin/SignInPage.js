@@ -113,7 +113,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
         Session.clearSignInData();
     }
 
-    let shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
+    const shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account.validated && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm =
