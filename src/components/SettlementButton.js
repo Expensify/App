@@ -204,7 +204,7 @@ function SettlementButton({
             return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
         }
         return buttonOptions;
-    }, [betas, currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, shouldShowPaymentOptions, translate]);
+    }, [betas, currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, shouldShowPaymentOptions, translate, nextStepButtons.approve, nextStepButtons.reimburse]);
 
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
