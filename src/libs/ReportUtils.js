@@ -1356,12 +1356,13 @@ function getMoneyRequestReportName(report, policy = undefined) {
  * into a flat object. Used for displaying transactions and sending them in API commands
  *
  * @param {Object} transaction
+ * @param {Object} createdDateFormat
  * @returns {Object}
  */
-function getTransactionDetails(transaction) {
+function getTransactionDetails(transaction, createdDateFormat = CONST.DATE.FNS_FORMAT_STRING) {
     const report = getReport(transaction.reportID);
     return {
-        created: TransactionUtils.getCreated(transaction),
+        created: TransactionUtils.getCreated(transaction, createdDateFormat),
         amount: TransactionUtils.getAmount(transaction, isExpenseReport(report)),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
@@ -1370,6 +1371,8 @@ function getTransactionDetails(transaction) {
         category: TransactionUtils.getCategory(transaction),
         billable: TransactionUtils.getBillable(transaction),
         tag: TransactionUtils.getTag(transaction),
+        mccGroup: TransactionUtils.getMCCGroup(transaction),
+        cardID: TransactionUtils.getCardID(transaction),
     };
 }
 
@@ -1900,15 +1903,11 @@ function getParentNavigationSubtitle(report) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report) || isMoneyRequestReport(report)) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
-        return;
-    }
-    if (participantAccountIDs.length === 1) {
+    if (isDM(report) && participantAccountIDs.length === 1) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
         return;
     }
-    Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID));
+    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
 }
 
 /**
@@ -2414,6 +2413,7 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '', trans
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
+    const created = DateUtils.getDBTime();
     return {
         reportActionID: NumberUtils.rand64(),
         reportID: chatReport.reportID,
@@ -2430,13 +2430,13 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '', trans
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
-        created: DateUtils.getDBTime(),
+        created,
         accountID: iouReport.managerID || 0,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
         actorAccountID: hasReceipt ? currentUserAccountID : iouReport.managerID || 0,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
-        childLastReceiptTransactionIDs: hasReceipt ? transaction.transactionID : '',
+        childRecentReceiptTransactionIDs: hasReceipt ? {[transaction.transactionID]: created} : [],
         whisperedToAccountIDs: isReceiptBeingScanned ? [currentUserAccountID] : [],
     };
 }
@@ -2495,8 +2495,9 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
  */
 function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = false, comment = '', transaction = undefined) {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const lastReceiptTransactionIDs = lodashGet(reportPreviewAction, 'childLastReceiptTransactionIDs', '');
-    const previousTransactionIDs = lastReceiptTransactionIDs.split(',').slice(0, 2);
+    const recentReceiptTransactions = lodashGet(reportPreviewAction, 'childRecentReceiptTransactionIDs', {});
+    const transactionsToKeep = TransactionUtils.getRecentTransactions(recentReceiptTransactions);
+    const previousTransactions = _.mapObject(recentReceiptTransactions, (value, key) => (_.contains(transactionsToKeep, key) ? value : null));
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
@@ -2512,7 +2513,12 @@ function updateReportPreview(iouReport, reportPreviewAction, isPayRequest = fals
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
         childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + (isPayRequest ? 0 : 1),
-        childLastReceiptTransactionIDs: hasReceipt ? [transaction.transactionID, ...previousTransactionIDs].join(',') : lastReceiptTransactionIDs,
+        childRecentReceiptTransactionIDs: hasReceipt
+            ? {
+                  [transaction.transactionID]: transaction.created,
+                  ...previousTransactions,
+              }
+            : recentReceiptTransactions,
         // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
         // so we remove the whisper
         whisperedToAccountIDs: hasReceipt ? reportPreviewAction.whisperedToAccountIDs : [],
@@ -3367,10 +3373,9 @@ function canRequestMoney(report, participants) {
  *
  * @param {Object} report
  * @param {Array<Number>} reportParticipants
- * @param {Array} betas
  * @returns {Array}
  */
-function getMoneyRequestOptions(report, reportParticipants, betas) {
+function getMoneyRequestOptions(report, reportParticipants) {
     // In any thread or task report, we do not allow any new money requests yet
     if (isChatThread(report) || isTaskReport(report)) {
         return [];
@@ -3402,7 +3407,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         ...(canRequestMoney(report, participants) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
 
         // Send money option should be visible only in DMs
-        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 
@@ -3589,14 +3594,6 @@ function getWorkspaceChats(policyID, accountIDs) {
     return _.filter(allReports, (report) => isPolicyExpenseChat(report) && lodashGet(report, 'policyID', '') === policyID && _.contains(accountIDs, lodashGet(report, 'ownerAccountID', '')));
 }
 
-/*
- * @param {Object|null} report
- * @returns {Boolean}
- */
-function shouldDisableSettings(report) {
-    return !isMoneyRequestReport(report) && !isPolicyExpenseChat(report) && !isChatRoom(report) && !isChatThread(report);
-}
-
 /**
  * @param {Object|null} report
  * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
@@ -3765,13 +3762,15 @@ function getParticipantsIDs(report) {
  * @returns {Object}
  */
 function getReportPreviewDisplayTransactions(reportPreviewAction) {
-    const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
+    const transactionIDs = lodashGet(reportPreviewAction, ['childRecentReceiptTransactionIDs']);
     return _.reduce(
-        transactionIDs,
+        _.keys(transactionIDs),
         (transactions, transactionID) => {
-            const transaction = TransactionUtils.getTransaction(transactionID);
-            if (TransactionUtils.hasReceipt(transaction)) {
-                transactions.push(transaction);
+            if (transactionIDs[transactionID] !== null) {
+                const transaction = TransactionUtils.getTransaction(transactionID);
+                if (TransactionUtils.hasReceipt(transaction)) {
+                    transactions.push(transaction);
+                }
             }
             return transactions;
         },
@@ -3824,7 +3823,7 @@ function getIOUReportActionDisplayMessage(reportAction) {
  * @returns {Boolean}
  */
 function isReportDraft(report) {
-    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.OPEN && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.OPEN;
+    return isExpenseReport(report) && lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.OPEN && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.OPEN;
 }
 
 export {
@@ -3955,7 +3954,6 @@ export {
     getPolicy,
     getPolicyExpenseChatReportIDByOwner,
     getWorkspaceChats,
-    shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
     getReportRecipientAccountIDs,
