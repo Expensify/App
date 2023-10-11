@@ -370,7 +370,10 @@ function ReportActionCompose({
                                     actionButtonRef={actionButtonRef}
                                 />
                                 <ComposerWithSuggestions
-                                    ref={composerRef}
+                                    ref={(el) => {
+                                        ReportActionComposeFocusManager.reportActionComposeRef.current = el;
+                                        composerRef.current = el;
+                                    }}
                                     animatedRef={animatedRef}
                                     suggestionsRef={suggestionsRef}
                                     isNextModalWillOpenRef={isNextModalWillOpenRef}

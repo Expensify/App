@@ -6,6 +6,8 @@ type FocusCallback = () => void;
 
 const composerRef = React.createRef<TextInput>();
 const editComposerRef = React.createRef<TextInput>();
+// This ref is to access functions exposed by ComposerWithSuggestion
+const reportActionComposeRef = React.createRef<TextInput>();
 // There are two types of composer: general composer (edit composer) and main composer.
 // The general composer callback will take priority if it exists.
 let focusCallback: FocusCallback | null = null;
@@ -80,7 +82,8 @@ function restoreFocusState() {
     if (!isKeyboardVisibleWhenShowingModal) {
         return;
     }
-    composerRef?.current?.focus();
+    // @ts-expect-error ComposerWithSuggestions exposes its own focus function through useImperativeHandle
+    reportActionComposeRef?.current?.focus(true);
     isKeyboardVisibleWhenShowingModal = false;
 }
 
@@ -89,18 +92,19 @@ function restoreFocusState() {
  */
 function blur() {
     if (!willBlurTextInputOnTapOutside) {
-        isKeyboardVisibleWhenShowingModal = isFocused();
+        isKeyboardVisibleWhenShowingModal = !!reportActionComposeRef?.current?.isFocused();
     }
-    composerRef?.current?.blur();
+    reportActionComposeRef?.current?.blur();
 }
 
 export default {
     composerRef,
+    editComposerRef,
+    reportActionComposeRef,
     onComposerFocus,
     focus,
     clear,
     isFocused,
-    editComposerRef,
     isEditFocused,
     setIsKeyboardVisibleWhenShowingModal,
     restoreFocusState,
