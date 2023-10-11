@@ -12,12 +12,10 @@ import ReimbursementAccountLoadingIndicator from '../../components/Reimbursement
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import BankAccount from '../../libs/models/BankAccount';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
 import Text from '../../components/Text';
-import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
@@ -35,6 +33,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import shouldReopenOnfido from '../../libs/shouldReopenOnfido';
 import useLocalize from '../../hooks/useLocalize';
+import useNetwork from '../../hooks/useNetwork';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -76,8 +75,6 @@ const propTypes = {
             policyID: PropTypes.string,
         }),
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -135,6 +132,7 @@ function ReimbursementAccountPage({
     const policyName = lodashGet(policy, 'name');
     const policyID = lodashGet(route.params, 'policyID');
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     const continueFunction = () => {
         setShouldShowContinueSetupButton(false);
@@ -215,7 +213,7 @@ function ReimbursementAccountPage({
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                 if (_.contains([BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP], achData.state)) {
                     BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
-                } else if (!network.isOffline && achData.state === BankAccount.STATE.PENDING) {
+                } else if (!isOffline && achData.state === BankAccount.STATE.PENDING) {
                     setShouldShowContinueSetupButton(true);
                 } else {
                     Navigation.goBack(backTo);
@@ -304,7 +302,7 @@ function ReimbursementAccountPage({
 
     useEffect(() => {
         // Check for network change from offline to online
-        if (prevProps.current.network.isOffline && !network.isOffline && prevProps.current.reimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (prevProps.current.isOffline && !isOffline && prevProps.current.reimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             fetchData();
         }
 
@@ -394,7 +392,7 @@ function ReimbursementAccountPage({
 
     const isLoading = isLoadingReportData || account.isLoading || reimbursementAccount.isLoading;
     const shouldShowOfflineLoader = !(
-        network.isOffline &&
+        isOffline &&
         _.contains([
             CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
             CONST.BANK_ACCOUNT.STEP.COMPANY,
@@ -529,7 +527,6 @@ ReimbursementAccountPage.propTypes = propTypes;
 ReimbursementAccountPage.defaultProps = defaultProps;
 
 export default compose(
-    withNetwork(),
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
@@ -553,6 +550,5 @@ export default compose(
             key: ONYXKEYS.ACCOUNT,
         },
     }),
-    withLocalize,
     withPolicy,
 )(ReimbursementAccountPage);
