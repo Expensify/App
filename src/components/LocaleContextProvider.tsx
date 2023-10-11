@@ -20,10 +20,12 @@ type CurrentUserPersonalDetails = {
     timezone?: SelectedTimezone;
 };
 
-type LocaleContextProviderProps = {
+type LocaleContextProviderOnyxProps = {
     /** The user's preferred locale e.g. 'en', 'es-ES' */
     preferredLocale: string;
+};
 
+type LocaleContextProviderProps = LocaleContextProviderOnyxProps & {
     /** The current user's personalDetails */
     currentUserPersonalDetails: CurrentUserPersonalDetails;
 
@@ -68,7 +70,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     formatPhoneNumber: () => '',
     toLocaleDigit: () => '',
     fromLocaleDigit: () => '',
-    preferredLocale: '',
+    preferredLocale: CONST.LOCALES.DEFAULT,
 });
 
 function LocaleContextProvider({preferredLocale = CONST.LOCALES.DEFAULT, currentUserPersonalDetails = {}, children}: LocaleContextProviderProps) {
@@ -114,14 +116,14 @@ function LocaleContextProvider({preferredLocale = CONST.LOCALES.DEFAULT, current
 }
 const Provider = compose(
     withCurrentUserPersonalDetails,
-    withOnyx({
+    withOnyx<LocaleContextProviderProps, LocaleContextProviderOnyxProps>({
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-            selector: (preferredLocale) => preferredLocale,
+            selector: (preferredLocale) => preferredLocale ?? CONST.LOCALES.DEFAULT,
         },
     }),
 )(LocaleContextProvider);
 
 export {Provider as LocaleContextProvider, LocaleContext};
 
-export type { LocaleContextProps };
+export type {LocaleContextProps};
