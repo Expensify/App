@@ -193,6 +193,7 @@ export default {
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
             characterLimit: ({limit}: CharacterLimitParams) => `Exceeds the maximum length of ${limit} characters`,
+            characterLimitExceedCounter: ({length, limit}) => `Character limit exceeded (${length}/${limit})`,
             dateInvalid: 'Please select a valid date',
             invalidCharacter: 'Invalid character',
             enterMerchant: 'Enter a merchant name',
@@ -441,7 +442,7 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
+        usePlusButton: '\n\nYou can also use the + button to send money, request money, or assign a task!',
     },
     reportAction: {
         asCopilot: 'as copilot for',
@@ -833,6 +834,7 @@ export default {
         availableSpend: 'Remaining spending power',
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
+        reportFraud: 'Report virtual card fraud',
         cardDetails: {
             cardNumber: 'Virtual card number',
             expiration: 'Expiration',
@@ -841,6 +843,12 @@ export default {
             revealDetails: 'Reveal details',
             copyCardNumber: 'Copy card number',
         },
+    },
+    reportFraudPage: {
+        title: 'Report virtual card fraud',
+        description: 'If your virtual card details have been stolen or compromised, we’ll permanently deactivate your existing card and provide you with a new virtual card and number.',
+        deactivateCard: 'Deactivate card',
+        reportVirtualCardFraud: 'Report virtual card fraud',
     },
     activateCardPage: {
         activateCard: 'Activate card',
@@ -1362,6 +1370,7 @@ export default {
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
             workspaceAvatar: 'Workspace avatar',
+            mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
