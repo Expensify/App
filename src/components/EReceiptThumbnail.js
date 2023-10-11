@@ -16,7 +16,7 @@ import Image from './Image';
 import CONST from '../CONST';
 
 const propTypes = {
-    /* transactionID */
+    /* TransactionID of the transaction this EReceipt corresponds to */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: PropTypes.string.isRequired,
 
@@ -57,8 +57,8 @@ function EReceiptThumbnail({transaction}) {
     const {mccGroup: transactionMCCGroup} = ReportUtils.getTransactionDetails(transaction);
     const MCCIcon = MCCIcons[`${transactionMCCGroup}`];
 
-    const isSmall = containerWidth < variables.eReceiptThumbnailSmallBreakpoint;
-    const isMedium = containerWidth < variables.eReceiptThumbnailMediumBreakpoint;
+    const isSmall = containerWidth && containerWidth < variables.eReceiptThumbnailSmallBreakpoint;
+    const isMedium = containerWidth && containerWidth < variables.eReceiptThumbnailMediumBreakpoint;
 
     let receiptIconWidth = variables.eReceiptIconWidth;
     let receiptIconHeight = variables.eReceiptIconHeight;
@@ -81,7 +81,7 @@ function EReceiptThumbnail({transaction}) {
                 StyleUtils.getBackgroundColorStyle(primaryColor),
                 styles.overflowHidden,
                 styles.alignItemsCenter,
-                containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint ? styles.justifyContentCenter : {},
+                containerHeight && containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint ? styles.justifyContentCenter : {},
             ]}
             onLayout={onContainerLayout}
         >

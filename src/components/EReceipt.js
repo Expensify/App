@@ -15,9 +15,10 @@ import * as CardUtils from '../libs/CardUtils';
 import variables from '../styles/variables';
 import useLocalize from '../hooks/useLocalize';
 import EReceiptThumbnail from './EReceiptThumbnail';
+import CONST from '../CONST';
 
 const propTypes = {
-    /* transactionID */
+    /* TransactionID of the transaction this EReceipt corresponds to */
     transactionID: PropTypes.string.isRequired,
 
     /* Onyx Props */
@@ -38,9 +39,9 @@ function EReceipt({transaction, transactionID}) {
         amount: transactionAmount,
         currency: transactionCurrency,
         merchant: transactionMerchant,
-        createdMMDYYYY: transactionDate,
+        created: transactionDate,
         cardID: transactionCardID,
-    } = ReportUtils.getTransactionDetails(transaction);
+    } = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency);
     const amount = formattedAmount.replace(currency, '');
