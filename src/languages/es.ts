@@ -2318,6 +2318,6 @@ export default {
         },
     },
     globalNavigationOptions: {
-        chats: 'Chats',
+        chats: 'Chats', // "Chats" is the accepted term colloqially in Spanish, this is not a bug!!
     },
 } satisfies EnglishTranslation;
